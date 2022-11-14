@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2021 the original author or authors.
+ * Copyright 2007-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import jakarta.mail.Folder;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Service;
 import jakarta.mail.URLName;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

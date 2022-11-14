@@ -19,16 +19,15 @@ package org.springframework.integration.hazelcast;
 import java.net.SocketAddress;
 import java.util.concurrent.locks.Lock;
 
+import com.hazelcast.cluster.MembershipListener;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.multimap.MultiMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.integration.hazelcast.listener.HazelcastMembershipListener;
-
-import com.hazelcast.cluster.MembershipListener;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.multimap.MultiMap;
 
 /**
  * This class creates an internal configuration {@link MultiMap} to cache Hazelcast instances' socket

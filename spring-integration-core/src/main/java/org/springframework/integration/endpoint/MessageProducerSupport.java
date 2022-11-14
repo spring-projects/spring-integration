@@ -16,8 +16,10 @@
 
 package org.springframework.integration.endpoint;
 
+import io.micrometer.observation.ObservationRegistry;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
+import reactor.core.publisher.Flux;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -44,9 +46,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import io.micrometer.observation.ObservationRegistry;
-import reactor.core.publisher.Flux;
 
 /**
  * A support class for producer endpoints that provides a setter for the

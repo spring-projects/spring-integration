@@ -18,6 +18,11 @@ package org.springframework.integration.mongodb;
 
 import java.time.Duration;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
@@ -41,12 +46,6 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
 import org.springframework.messaging.Message;
-
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
 
 /**
  * The base contract for all tests requiring a MongoDb connection.

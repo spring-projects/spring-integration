@@ -16,13 +16,13 @@
 
 package org.springframework.integration.smb.dsl;
 
+import jcifs.smb.SmbFile;
+
 import org.springframework.integration.file.dsl.FileTransferringMessageHandlerSpec;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.smb.outbound.SmbMessageHandler;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
-
-import jcifs.smb.SmbFile;
 
 /**
  * A {@link FileTransferringMessageHandlerSpec} for SMB.

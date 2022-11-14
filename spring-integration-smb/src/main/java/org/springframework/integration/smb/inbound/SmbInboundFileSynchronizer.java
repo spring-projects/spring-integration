@@ -16,10 +16,10 @@
 
 package org.springframework.integration.smb.inbound;
 
+import jcifs.smb.SmbFile;
+
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
-
-import jcifs.smb.SmbFile;
 
 /**
  * An implementation of {@link AbstractInboundFileSynchronizer} for SMB.

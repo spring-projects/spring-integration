@@ -16,10 +16,10 @@
 
 package org.springframework.integration.smb.session;
 
+import jcifs.smb.SmbFile;
+
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
-
-import jcifs.smb.SmbFile;
 
 /**
  * The SMB-specific {@link RemoteFileTemplate} implementation.

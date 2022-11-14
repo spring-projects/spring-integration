@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package org.springframework.integration.handler.advice;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +37,8 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import io.github.resilience4j.ratelimiter.RateLimiterConfig;
-import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan

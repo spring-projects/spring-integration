@@ -16,24 +16,6 @@
 
 package org.springframework.integration.mqtt;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.lang.reflect.Method;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
@@ -90,6 +72,24 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ReflectionUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -232,7 +232,7 @@ public class MqttAdapterTests {
 		given(clientManager.getClient()).willReturn(client);
 
 		var subscribeToken = mock(MqttToken.class);
-		given(subscribeToken.getGrantedQos()).willReturn(new int[]{ 2 });
+		given(subscribeToken.getGrantedQos()).willReturn(new int[] {2});
 		given(client.subscribe(any(String[].class), any(int[].class), any()))
 				.willReturn(subscribeToken);
 
@@ -247,8 +247,8 @@ public class MqttAdapterTests {
 
 		// then
 		verify(client, never()).connect(any(MqttConnectOptions.class));
-		verify(client).subscribe(eq(new String[]{ "mqtt-foo" }), any(int[].class), any());
-		verify(client).unsubscribe(new String[]{ "mqtt-foo" });
+		verify(client).subscribe(eq(new String[] {"mqtt-foo"}), any(int[].class), any());
+		verify(client).unsubscribe(new String[] {"mqtt-foo"});
 		verify(client, never()).disconnect();
 		verify(client, never()).disconnect(anyLong());
 		verify(client, never()).close();
@@ -293,7 +293,7 @@ public class MqttAdapterTests {
 			return token;
 		}).given(client).connect(any(MqttConnectOptions.class));
 		given(client.subscribe(any(String[].class), any(int[].class), any())).willReturn(token);
-		given(token.getGrantedQos()).willReturn(new int[]{ 2 });
+		given(token.getGrantedQos()).willReturn(new int[] {2});
 
 		final AtomicReference<MqttCallbackExtended> callback = new AtomicReference<>();
 		willAnswer(invocation -> {
@@ -460,7 +460,7 @@ public class MqttAdapterTests {
 		willReturn(alwaysComplete).given(client).connect(any(MqttConnectOptions.class));
 
 		IMqttToken token = mock(IMqttToken.class);
-		given(token.getGrantedQos()).willReturn(new int[]{ 0x80 });
+		given(token.getGrantedQos()).willReturn(new int[] {0x80});
 		willReturn(token).given(client).subscribe(any(String[].class), any(int[].class), any());
 
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
@@ -507,7 +507,7 @@ public class MqttAdapterTests {
 		willReturn(alwaysComplete).given(client).connect(any(MqttConnectOptions.class));
 
 		IMqttToken token = mock(IMqttToken.class);
-		given(token.getGrantedQos()).willReturn(new int[]{ 2, 0 });
+		given(token.getGrantedQos()).willReturn(new int[] {2, 0});
 		willReturn(token).given(client).subscribe(any(String[].class), any(int[].class), any());
 
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
@@ -551,7 +551,7 @@ public class MqttAdapterTests {
 
 		};
 		MqttConnectOptions connectOptions = new MqttConnectOptions();
-		connectOptions.setServerURIs(new String[]{ "tcp://localhost:1883" });
+		connectOptions.setServerURIs(new String[] {"tcp://localhost:1883"});
 		if (cleanSession != null) {
 			connectOptions.setCleanSession(cleanSession);
 		}
@@ -563,7 +563,7 @@ public class MqttAdapterTests {
 		IMqttToken token = mock(IMqttToken.class);
 		given(client.connect(any(MqttConnectOptions.class))).willReturn(token);
 		given(client.subscribe(any(String[].class), any(int[].class), any())).willReturn(token);
-		given(token.getGrantedQos()).willReturn(new int[]{ 2 });
+		given(token.getGrantedQos()).willReturn(new int[] {2});
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("client", factory, "foo");
 		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		adapter.setOutputChannel(new NullChannel());
@@ -581,7 +581,7 @@ public class MqttAdapterTests {
 
 		};
 		MqttConnectOptions connectOptions = new MqttConnectOptions();
-		connectOptions.setServerURIs(new String[]{ "tcp://localhost:1883" });
+		connectOptions.setServerURIs(new String[] {"tcp://localhost:1883"});
 		factory.setConnectionOptions(connectOptions);
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("client", factory);
 		adapter.setDefaultTopic("foo");

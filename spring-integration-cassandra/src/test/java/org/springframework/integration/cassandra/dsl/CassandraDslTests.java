@@ -18,7 +18,10 @@ package org.springframework.integration.cassandra.dsl;
 
 import java.time.Duration;
 
+import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,10 +42,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-
-import com.datastax.oss.driver.api.core.ConsistencyLevel;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 /**
  * @author Artem Bilan

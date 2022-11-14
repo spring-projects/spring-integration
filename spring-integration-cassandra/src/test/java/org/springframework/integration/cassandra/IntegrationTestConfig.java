@@ -80,7 +80,7 @@ public class IntegrationTestConfig extends AbstractReactiveCassandraConfiguratio
 
 	@Override
 	public String[] getEntityBasePackages() {
-		return new String[]{ Book.class.getPackage().getName() };
+		return new String[] {Book.class.getPackage().getName()};
 	}
 
 }

@@ -16,20 +16,6 @@
 
 package org.springframework.integration.mail;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -45,6 +31,12 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 
+import com.icegreen.greenmail.user.GreenMailUser;
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.GreenMailUtil;
+import com.icegreen.greenmail.util.ServerSetup;
+import com.icegreen.greenmail.util.ServerSetupTest;
+import com.sun.mail.imap.IMAPFolder;
 import jakarta.mail.Flags;
 import jakarta.mail.Flags.Flag;
 import jakarta.mail.Folder;
@@ -60,7 +52,6 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.AndTerm;
 import jakarta.mail.search.FlagTerm;
 import jakarta.mail.search.FromTerm;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,12 +80,19 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MimeTypeUtils;
 
-import com.icegreen.greenmail.user.GreenMailUser;
-import com.icegreen.greenmail.util.GreenMail;
-import com.icegreen.greenmail.util.GreenMailUtil;
-import com.icegreen.greenmail.util.ServerSetup;
-import com.icegreen.greenmail.util.ServerSetupTest;
-import com.sun.mail.imap.IMAPFolder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Zhurakousky
@@ -291,7 +289,7 @@ public class ImapMailReceiverTests {
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		final Message[] messages = new Message[]{ msg1, msg2 };
+		final Message[] messages = new Message[] {msg1, msg2};
 
 		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
@@ -403,7 +401,7 @@ public class ImapMailReceiverTests {
 
 		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
-		final Message[] messages = new Message[]{ msg1, msg2 };
+		final Message[] messages = new Message[] {msg1, msg2};
 		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 			int folderOpenMode = (int) accessor.getPropertyValue("folderOpenMode");
@@ -439,7 +437,7 @@ public class ImapMailReceiverTests {
 
 		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
-		final Message[] messages = new Message[]{ msg1, msg2 };
+		final Message[] messages = new Message[] {msg1, msg2};
 		willAnswer(invocation -> null).given(receiver).openFolder();
 
 		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
@@ -468,7 +466,7 @@ public class ImapMailReceiverTests {
 
 		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
-		final Message[] messages = new Message[]{ msg1, msg2 };
+		final Message[] messages = new Message[] {msg1, msg2};
 		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 			int folderOpenMode = (int) accessor.getPropertyValue("folderOpenMode");
@@ -504,7 +502,7 @@ public class ImapMailReceiverTests {
 
 		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
-		final Message[] messages = new Message[]{ msg1, msg2 };
+		final Message[] messages = new Message[] {msg1, msg2};
 		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 			int folderOpenMode = (int) accessor.getPropertyValue("folderOpenMode");
@@ -539,7 +537,7 @@ public class ImapMailReceiverTests {
 		Message mailMessage = spy(GreenMailUtil.newMimeMessage("test1"));
 		Flags flags = mock(Flags.class);
 		given(mailMessage.getFlags()).willReturn(flags);
-		final Message[] messages = new Message[]{ mailMessage };
+		final Message[] messages = new Message[] {mailMessage};
 
 		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
@@ -607,7 +605,7 @@ public class ImapMailReceiverTests {
 		Message mailMessage = spy(GreenMailUtil.newMimeMessage("test1"));
 		Flags flags = mock(Flags.class);
 		given(mailMessage.getFlags()).willReturn(flags);
-		final Message[] messages = new Message[]{ mailMessage };
+		final Message[] messages = new Message[] {mailMessage};
 
 		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
 
@@ -654,7 +652,7 @@ public class ImapMailReceiverTests {
 		Message mailMessage = spy(GreenMailUtil.newMimeMessage("test1"));
 		Flags flags = mock(Flags.class);
 		given(mailMessage.getFlags()).willReturn(flags);
-		final Message[] messages = new Message[]{ mailMessage };
+		final Message[] messages = new Message[] {mailMessage};
 
 		final AtomicInteger shouldFindMessagesCounter = new AtomicInteger(2);
 		willAnswer(invocation -> {
@@ -727,7 +725,7 @@ public class ImapMailReceiverTests {
 		Message mailMessage = spy(GreenMailUtil.newMimeMessage("test1"));
 		Flags flags = mock(Flags.class);
 		given(mailMessage.getFlags()).willReturn(flags);
-		final Message[] messages = new Message[]{ mailMessage };
+		final Message[] messages = new Message[] {mailMessage};
 
 		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
 
@@ -783,7 +781,7 @@ public class ImapMailReceiverTests {
 			Folder folder = mock(Folder.class);
 			given(folder.exists()).willReturn(true);
 			given(folder.isOpen()).willReturn(true);
-			given(folder.search(Mockito.any())).willReturn(new Message[]{ });
+			given(folder.search(Mockito.any())).willReturn(new Message[] {});
 			given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 			given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 
@@ -865,7 +863,7 @@ public class ImapMailReceiverTests {
 		given(folder.isOpen()).willReturn(true);
 
 		Message message = GreenMailUtil.newMimeMessage(new ClassPathResource("test.mail").getInputStream());
-		given(folder.search(Mockito.any())).willReturn(new Message[]{ message });
+		given(folder.search(Mockito.any())).willReturn(new Message[] {message});
 		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		DirectFieldAccessor df = new DirectFieldAccessor(receiver);
@@ -880,8 +878,8 @@ public class ImapMailReceiverTests {
 	public void testNullMessages() throws Exception {
 		Message message1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		Message message2 = spy(GreenMailUtil.newMimeMessage("test2"));
-		final Message[] messages1 = new Message[]{ null, null, message1 };
-		final Message[] messages2 = new Message[]{ message2 };
+		final Message[] messages1 = new Message[] {null, null, message1};
+		final Message[] messages2 = new Message[] {message2};
 		final SearchTermStrategy searchTermStrategy = mock(SearchTermStrategy.class);
 		class TestReceiver extends ImapMailReceiver {
 
@@ -910,7 +908,6 @@ public class ImapMailReceiverTests {
 				this.firstDone = true;
 				return messages;
 			}
-
 
 		}
 		ImapMailReceiver receiver = new TestReceiver();

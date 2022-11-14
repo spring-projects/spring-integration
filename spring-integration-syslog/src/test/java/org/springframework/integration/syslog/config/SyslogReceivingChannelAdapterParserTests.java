@@ -16,9 +16,6 @@
 
 package org.springframework.integration.syslog.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -45,6 +42,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ReflectionUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Gary Russell

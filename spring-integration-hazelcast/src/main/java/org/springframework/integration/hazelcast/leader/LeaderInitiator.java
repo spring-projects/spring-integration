@@ -24,6 +24,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.cp.CPSubsystem;
+import com.hazelcast.cp.lock.FencedLock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -38,10 +41,6 @@ import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
 import org.springframework.util.Assert;
-
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.cp.CPSubsystem;
-import com.hazelcast.cp.lock.FencedLock;
 
 /**
  * Bootstrap leadership {@link org.springframework.integration.leader.Candidate candidates}

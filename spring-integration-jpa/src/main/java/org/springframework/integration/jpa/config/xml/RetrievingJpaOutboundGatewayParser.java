@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,9 +87,9 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 			BeanDefinitionBuilder jpaExecutorBuilder) {
 
 		if (StringUtils.hasText(gatewayElement.getAttribute("id-expression"))) {
-			String[] otherAttributes = { "jpa-query", "native-query", "named-query", "first-result",
+			String[] otherAttributes = {"jpa-query", "native-query", "named-query", "first-result",
 					"first-result-expression", "max-results", "max-results-expression", "delete-in-batch",
-					"expect-single-result", "parameter-source-factory", "use-payload-as-parameter-source" };
+					"expect-single-result", "parameter-source-factory", "use-payload-as-parameter-source"};
 
 			String others =
 					Arrays.stream(otherAttributes)

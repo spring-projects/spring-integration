@@ -16,9 +16,6 @@
 
 package org.springframework.integration.file.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -81,6 +78,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -298,7 +298,7 @@ public class FileTests {
 		assertThat(receive).isNotNull();
 		payloads.add((String) receive.getPayload());
 
-		assertThat(payloads.toArray()).isEqualTo(new String[]{ "bar", "foo" });
+		assertThat(payloads.toArray()).isEqualTo(new String[] {"bar", "foo"});
 
 		assertThat(TestUtils.getPropertyValue(
 				this.beanFactory.getBean(newFolder1.getName() + ".adapter.source"),

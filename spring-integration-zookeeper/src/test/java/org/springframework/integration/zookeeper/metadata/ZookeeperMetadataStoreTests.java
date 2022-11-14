@@ -16,11 +16,6 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.awaitility.Awaitility.await;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,6 +36,11 @@ import org.springframework.integration.metadata.MetadataStoreListener;
 import org.springframework.integration.metadata.MetadataStoreListenerAdapter;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Marius Bogoevici

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.stomp.config;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +35,8 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -121,7 +121,7 @@ public class StompAdaptersParserTests {
 		assertThat(headerMapper).isNotNull();
 		assertThat(headerMapper).isNotSameAs(this.headerMapper);
 		assertThat(TestUtils.getPropertyValue(headerMapper, "inboundHeaderNames", String[].class))
-				.isEqualTo(new String[]{"bar", "foo"});
+				.isEqualTo(new String[] {"bar", "foo"});
 		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "payloadType", Class.class))
 				.isEqualTo(Integer.class);
 		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "autoStartup", Boolean.class)).isFalse();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -275,7 +275,7 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 
 		@Nullable
 		Object invoke(CacheOperationInvoker invoker, Object target, Message<?> message) {
-			return super.execute(invoker, target, HANDLE_REQUEST_METHOD, new Object[] { message }); // NOSONAR
+			return super.execute(invoker, target, HANDLE_REQUEST_METHOD, new Object[] {message}); // NOSONAR
 		}
 
 	}

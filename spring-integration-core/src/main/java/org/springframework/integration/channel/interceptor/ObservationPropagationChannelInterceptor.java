@@ -16,16 +16,16 @@
 
 package org.springframework.integration.channel.interceptor;
 
+import io.micrometer.common.lang.Nullable;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+
 import org.springframework.aop.support.AopUtils;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-
-import io.micrometer.common.lang.Nullable;
-import io.micrometer.observation.Observation;
-import io.micrometer.observation.ObservationRegistry;
 
 /**
  * The {@link org.springframework.messaging.support.ExecutorChannelInterceptor}

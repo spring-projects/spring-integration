@@ -96,7 +96,8 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 		return "xmpp:inbound-channel-adapter";
 	}
 
-	@Override protected void onInit() {
+	@Override
+	protected void onInit() {
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
@@ -152,7 +153,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 					if (ChatMessageListeningEndpoint.this.payloadExpression != null) {
 						logger.info("The 'payloadExpression' ["
 								+ ChatMessageListeningEndpoint.this.payloadExpression.getExpressionString()
-						+ "] has been evaluated to 'null'. The XMPP Message [" + xmppMessage + "] is ignored.");
+								+ "] has been evaluated to 'null'. The XMPP Message [" + xmppMessage + "] is ignored.");
 					}
 					else {
 						logger.info("The XMPP Message [" + xmppMessage + "] with empty body is ignored.");

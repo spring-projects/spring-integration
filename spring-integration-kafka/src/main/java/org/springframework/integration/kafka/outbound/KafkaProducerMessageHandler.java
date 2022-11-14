@@ -171,7 +171,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		if (this.isGateway) {
 			setAsync(true);
 			updateNotPropagatedHeaders(
-					new String[]{ KafkaHeaders.TOPIC, KafkaHeaders.PARTITION, KafkaHeaders.KEY }, false);
+					new String[] {KafkaHeaders.TOPIC, KafkaHeaders.PARTITION, KafkaHeaders.KEY}, false);
 		}
 		if (JacksonPresent.isJackson2Present()) {
 			this.headerMapper = new DefaultKafkaHeaderMapper();

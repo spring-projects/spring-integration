@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.integration.transformer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -47,10 +47,10 @@ public class SysLogTransformerTests {
 		assertThat(transformed.get(SyslogToMapTransformer.TAG)).isEqualTo("TESTING");
 		assertThat(transformed.get(SyslogToMapTransformer.MESSAGE)).isEqualTo("[70729]: TEST SYSLOG MESSAGE");
 
-		String[] fields = { SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
+		String[] fields = {SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
 				SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
-				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE };
-		Object[] values = { 19, 6, date, "WEBERN", "TESTING", "[70729]: TEST SYSLOG MESSAGE" };
+				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE};
+		Object[] values = {19, 6, date, "WEBERN", "TESTING", "[70729]: TEST SYSLOG MESSAGE"};
 		assertIterationOrder(fields, values, transformed);
 	}
 
@@ -83,10 +83,10 @@ public class SysLogTransformerTests {
 		assertThat(transformed.containsKey(SyslogToMapTransformer.TAG)).isFalse();
 		assertThat(transformed.get(SyslogToMapTransformer.MESSAGE)).isEqualTo("[70729]: TEST SYSLOG MESSAGE");
 
-		String[] fields = { SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
+		String[] fields = {SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
 				SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
-				SyslogToMapTransformer.MESSAGE };
-		Object[] values = { 19, 6, date, "WEBERN", "[70729]: TEST SYSLOG MESSAGE" };
+				SyslogToMapTransformer.MESSAGE};
+		Object[] values = {19, 6, date, "WEBERN", "[70729]: TEST SYSLOG MESSAGE"};
 		assertIterationOrder(fields, values, transformed);
 	}
 
@@ -103,10 +103,10 @@ public class SysLogTransformerTests {
 		assertThat(transformed.get(SyslogToMapTransformer.TAG)).isEqualTo("ABCDE1234567890ABCDE1234567890UV");
 		assertThat(transformed.get(SyslogToMapTransformer.MESSAGE)).isEqualTo("XYZ TEST SYSLOG MESSAGE");
 
-		String[] fields = { SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
+		String[] fields = {SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
 				SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
-				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE };
-		Object[] values = { 19, 6, date, "WEBERN", "ABCDE1234567890ABCDE1234567890UV", "XYZ TEST SYSLOG MESSAGE" };
+				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE};
+		Object[] values = {19, 6, date, "WEBERN", "ABCDE1234567890ABCDE1234567890UV", "XYZ TEST SYSLOG MESSAGE"};
 		assertIterationOrder(fields, values, transformed);
 	}
 

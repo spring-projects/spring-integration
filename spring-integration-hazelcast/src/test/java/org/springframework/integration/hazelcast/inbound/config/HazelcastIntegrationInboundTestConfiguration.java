@@ -16,6 +16,17 @@
 
 package org.springframework.integration.hazelcast.inbound.config;
 
+import com.hazelcast.collection.IList;
+import com.hazelcast.collection.IQueue;
+import com.hazelcast.collection.ISet;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
+import com.hazelcast.multimap.MultiMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
+import com.hazelcast.topic.ITopic;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -30,17 +41,6 @@ import org.springframework.integration.hazelcast.inbound.HazelcastContinuousQuer
 import org.springframework.integration.hazelcast.inbound.HazelcastDistributedSQLMessageSource;
 import org.springframework.integration.hazelcast.inbound.HazelcastEventDrivenMessageProducer;
 import org.springframework.messaging.PollableChannel;
-
-import com.hazelcast.collection.IList;
-import com.hazelcast.collection.IQueue;
-import com.hazelcast.collection.ISet;
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.map.IMap;
-import com.hazelcast.multimap.MultiMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
-import com.hazelcast.topic.ITopic;
 
 /**
  * Configuration Class for Hazelcast Integration Inbound Test

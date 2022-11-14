@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,29 +47,29 @@ import org.springframework.util.StringUtils;
 abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String[] CONTAINER_VALUE_ATTRIBUTES = {
-		"acknowledge-mode",
-		"channel-transacted",
-		"concurrent-consumers",
-		"consumers-per-queue",
-		"expose-listener-channel",
-		"phase",
-		"prefetch-count",
-		"queue-names",
-		"recovery-interval",
-		"receive-timeout",
-		"shutdown-timeout",
-		"tx-size",
-		"missing-queues-fatal"
+			"acknowledge-mode",
+			"channel-transacted",
+			"concurrent-consumers",
+			"consumers-per-queue",
+			"expose-listener-channel",
+			"phase",
+			"prefetch-count",
+			"queue-names",
+			"recovery-interval",
+			"receive-timeout",
+			"shutdown-timeout",
+			"tx-size",
+			"missing-queues-fatal"
 	};
 
 	private static final String[] CONTAINER_REFERENCE_ATTRIBUTES = {
-		"advice-chain",
-		"connection-factory",
-		"error-handler",
-		"message-properties-converter",
-		"task-executor",
-		"transaction-attribute",
-		"transaction-manager"
+			"advice-chain",
+			"connection-factory",
+			"error-handler",
+			"message-properties-converter",
+			"task-executor",
+			"transaction-attribute",
+			"transaction-manager"
 	};
 
 

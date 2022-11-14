@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 
 package org.springframework.integration.amqp.config;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.isNull;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -48,6 +45,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.ReflectionUtils;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.isNull;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -64,7 +64,7 @@ public class AmqpOutboundGatewayParserTests {
 	private static volatile int adviceCalled;
 
 	@Autowired
-	private ApplicationContext  context;
+	private ApplicationContext context;
 
 	@Test
 	public void testGatewayConfig() {
@@ -116,22 +116,22 @@ public class AmqpOutboundGatewayParserTests {
 		final AtomicBoolean shouldBePersistent = new AtomicBoolean();
 
 		Mockito.doAnswer(invocation -> {
-			Object[] args = invocation.getArguments();
-			org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
-			MessageProperties properties = amqpRequestMessage.getMessageProperties();
-			assertThat(properties.getHeaders().get("foo")).isEqualTo("foo");
-			assertThat(properties.getDeliveryMode()).isEqualTo(shouldBePersistent.get() ?
-					MessageDeliveryMode.PERSISTENT
-					: MessageDeliveryMode.NON_PERSISTENT);
-			// mock reply AMQP message
-			MessageProperties amqpProperties = new MessageProperties();
-			amqpProperties.setAppId("test.appId");
-			amqpProperties.setHeader("foobar", "foobar");
-			amqpProperties.setHeader("bar", "bar");
-			return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
-		})
+					Object[] args = invocation.getArguments();
+					org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
+					MessageProperties properties = amqpRequestMessage.getMessageProperties();
+					assertThat(properties.getHeaders().get("foo")).isEqualTo("foo");
+					assertThat(properties.getDeliveryMode()).isEqualTo(shouldBePersistent.get() ?
+							MessageDeliveryMode.PERSISTENT
+							: MessageDeliveryMode.NON_PERSISTENT);
+					// mock reply AMQP message
+					MessageProperties amqpProperties = new MessageProperties();
+					amqpProperties.setAppId("test.appId");
+					amqpProperties.setHeader("foobar", "foobar");
+					amqpProperties.setHeader("bar", "bar");
+					return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
+				})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class), isNull());
+						Mockito.any(org.springframework.amqp.core.Message.class), isNull());
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = this.context.getBean("toRabbit1", MessageChannel.class);
@@ -178,21 +178,21 @@ public class AmqpOutboundGatewayParserTests {
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {
-			Object[] args = invocation.getArguments();
-			org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
-			MessageProperties properties = amqpRequestMessage.getMessageProperties();
-			assertThat(properties.getHeaders().get("foo")).isEqualTo("foo");
-			// mock reply AMQP message
-			MessageProperties amqpProperties = new MessageProperties();
-			amqpProperties.setAppId("test.appId");
-			amqpProperties.setHeader("foobar", "foobar");
-			amqpProperties.setHeader("bar", "bar");
-			assertThat(properties.getDeliveryMode()).isEqualTo(MessageDeliveryMode.PERSISTENT);
-			amqpProperties.setReceivedDeliveryMode(properties.getDeliveryMode());
-			return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
-		})
+					Object[] args = invocation.getArguments();
+					org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
+					MessageProperties properties = amqpRequestMessage.getMessageProperties();
+					assertThat(properties.getHeaders().get("foo")).isEqualTo("foo");
+					// mock reply AMQP message
+					MessageProperties amqpProperties = new MessageProperties();
+					amqpProperties.setAppId("test.appId");
+					amqpProperties.setHeader("foobar", "foobar");
+					amqpProperties.setHeader("bar", "bar");
+					assertThat(properties.getDeliveryMode()).isEqualTo(MessageDeliveryMode.PERSISTENT);
+					amqpProperties.setReceivedDeliveryMode(properties.getDeliveryMode());
+					return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
+				})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class), isNull());
+						Mockito.any(org.springframework.amqp.core.Message.class), isNull());
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = this.context.getBean("toRabbit2", MessageChannel.class);
@@ -227,19 +227,19 @@ public class AmqpOutboundGatewayParserTests {
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {
-			Object[] args = invocation.getArguments();
-			org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
-			MessageProperties properties = amqpRequestMessage.getMessageProperties();
-			assertThat(properties.getHeaders().get("foo")).isNull();
-			// mock reply AMQP message
-			MessageProperties amqpProperties = new MessageProperties();
-			amqpProperties.setAppId("test.appId");
-			amqpProperties.setHeader("foobar", "foobar");
-			amqpProperties.setHeader("bar", "bar");
-			return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
-		})
+					Object[] args = invocation.getArguments();
+					org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
+					MessageProperties properties = amqpRequestMessage.getMessageProperties();
+					assertThat(properties.getHeaders().get("foo")).isNull();
+					// mock reply AMQP message
+					MessageProperties amqpProperties = new MessageProperties();
+					amqpProperties.setAppId("test.appId");
+					amqpProperties.setHeader("foobar", "foobar");
+					amqpProperties.setHeader("bar", "bar");
+					return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
+				})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class), isNull());
+						Mockito.any(org.springframework.amqp.core.Message.class), isNull());
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = this.context.getBean("toRabbit3", MessageChannel.class);
@@ -276,19 +276,19 @@ public class AmqpOutboundGatewayParserTests {
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {
-			Object[] args = invocation.getArguments();
-			org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
-			MessageProperties properties = amqpRequestMessage.getMessageProperties();
-			assertThat(properties.getHeaders().get("foo")).isNull();
-			// mock reply AMQP message
-			MessageProperties amqpProperties = new MessageProperties();
-			amqpProperties.setAppId("test.appId");
-			amqpProperties.setHeader("foobar", "foobar");
-			amqpProperties.setHeader("bar", "bar");
-			return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
-		})
+					Object[] args = invocation.getArguments();
+					org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
+					MessageProperties properties = amqpRequestMessage.getMessageProperties();
+					assertThat(properties.getHeaders().get("foo")).isNull();
+					// mock reply AMQP message
+					MessageProperties amqpProperties = new MessageProperties();
+					amqpProperties.setAppId("test.appId");
+					amqpProperties.setHeader("foobar", "foobar");
+					amqpProperties.setHeader("bar", "bar");
+					return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
+				})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class), isNull());
+						Mockito.any(org.springframework.amqp.core.Message.class), isNull());
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 

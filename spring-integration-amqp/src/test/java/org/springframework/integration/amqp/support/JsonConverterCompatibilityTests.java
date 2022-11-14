@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.amqp.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.rabbitmq.client.AMQP.BasicProperties;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,7 +32,7 @@ import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.rabbitmq.client.AMQP.BasicProperties;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -63,8 +62,7 @@ public class JsonConverterCompatibilityTests {
 
 	@Test
 	public void testInbound() {
-		@SuppressWarnings("unchecked")
-		final Message<String> out = (Message<String>) new ObjectToJsonTransformer()
+		@SuppressWarnings("unchecked") final Message<String> out = (Message<String>) new ObjectToJsonTransformer()
 				.transform(new GenericMessage<Foo>(new Foo()));
 		MessageProperties messageProperties = new MessageProperties();
 		DefaultAmqpHeaderMapper.outboundMapper().fromHeadersToRequest(out.getHeaders(), messageProperties);

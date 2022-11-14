@@ -16,12 +16,12 @@
 
 package org.springframework.integration.rsocket.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,8 +38,7 @@ import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

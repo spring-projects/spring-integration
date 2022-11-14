@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.jms.request_reply;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -32,7 +29,6 @@ import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.MessageProducer;
 import jakarta.jms.TextMessage;
-
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
@@ -54,6 +50,9 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.support.GenericMessage;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -68,8 +67,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	@SuppressWarnings("resource")
 	@Test
 	public void messageCorrelationBasedOnRequestMessageId() {
-		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("producer-temp-reply-consumers.xml", this.getClass())) {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"producer-temp-reply-consumers.xml", this.getClass())) {
 
 			RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
 			CachingConnectionFactory connectionFactory = context.getBean(CachingConnectionFactory.class);
@@ -107,8 +106,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	@Test
 	public void messageCorrelationBasedOnRequestCorrelationIdTimedOutFirstReply() throws Exception {
 		DefaultMessageListenerContainer dmlc = new DefaultMessageListenerContainer();
-		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("producer-temp-reply-consumers.xml", getClass())) {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"producer-temp-reply-consumers.xml", getClass())) {
 
 			RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
 			ConnectionFactory connectionFactory = context.getBean(ConnectionFactory.class);
@@ -212,8 +211,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	@Test
 	public void testConcurrently() throws Exception {
 		ExecutorService executor = Executors.newFixedThreadPool(10);
-		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("multi-producer-and-consumers-temp-reply.xml", this.getClass())) {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"multi-producer-and-consumers-temp-reply.xml", this.getClass())) {
 
 			final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
 			final int testNumbers = 30;

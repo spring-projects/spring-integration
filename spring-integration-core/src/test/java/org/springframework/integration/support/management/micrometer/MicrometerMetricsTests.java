@@ -16,11 +16,12 @@
 
 package org.springframework.integration.support.management.micrometer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.Set;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.search.MeterNotFoundException;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,10 +57,8 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.config.MeterFilter;
-import io.micrometer.core.instrument.search.MeterNotFoundException;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Gary Russell
@@ -197,7 +196,8 @@ public class MicrometerMetricsTests {
 				BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class).getRawBeanDefinition());
 		DirectChannel newChannel = this.context.getBean("newChannel", DirectChannel.class);
 		newChannel.setBeanName("newChannel");
-		newChannel.subscribe(m -> { });
+		newChannel.subscribe(m -> {
+		});
 		newChannel.send(new GenericMessage<>("foo"));
 		assertThat(registry.get("spring.integration.send")
 				.tag("name", "newChannel")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,15 +52,15 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 				String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
 				parserContext.getReaderContext().error(
 						"The 'channel' attribute isn't allowed for " +
-						elementDescription +
-						" when it is used as a nested element," +
+								elementDescription +
+								" when it is used as a nested element," +
 								" e.g. inside a <chain/>", element);
 			}
 			AbstractBeanDefinition consumerBeanDefinition = this.parseConsumer(element, parserContext);
 			this.configureRequestHandlerAdviceChain(element, parserContext, consumerBeanDefinition, null);
 			return consumerBeanDefinition;
 		}
-		BeanDefinitionBuilder builder =  BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		BeanComponentDefinition handlerBeanComponentDefinition = this.doParseAndRegisterConsumer(element, parserContext);
 		builder.addPropertyReference("handler", handlerBeanComponentDefinition.getBeanName());
@@ -81,7 +81,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	}
 
 	private void configureRequestHandlerAdviceChain(Element element, ParserContext parserContext,
-							BeanDefinition handlerBeanDefinition, BeanDefinitionBuilder consumerBuilder) {
+			BeanDefinition handlerBeanDefinition, BeanDefinitionBuilder consumerBuilder) {
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
 				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);

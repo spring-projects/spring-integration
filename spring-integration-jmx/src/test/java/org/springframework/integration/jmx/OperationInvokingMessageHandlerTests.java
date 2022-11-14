@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 
 package org.springframework.integration.jmx;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,6 +37,9 @@ import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * See DynamicRouterTests for additional tests where the MBean is registered by the Spring exporter.
@@ -143,7 +143,7 @@ public class OperationInvokingMessageHandlerTests {
 		handler.setOperationName("x");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		List<Object> params = Arrays.asList(new Object[] { "foo", 123 });
+		List<Object> params = Arrays.asList(new Object[] {"foo", 123});
 		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);

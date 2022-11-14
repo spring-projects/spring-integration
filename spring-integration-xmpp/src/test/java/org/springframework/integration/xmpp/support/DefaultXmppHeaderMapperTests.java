@@ -16,8 +16,6 @@
 
 package org.springframework.integration.xmpp.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +28,8 @@ import org.jxmpp.stringprep.XmppStringprepException;
 
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.messaging.MessageHeaders;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

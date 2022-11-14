@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,9 +204,9 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		Query query = Query.query(Criteria.where("_id").is(SEQUENCE_NAME));
 		query.fields().include(MessageDocumentFields.SEQUENCE);
 		return ((Number) this.mongoTemplate.findAndModify(query,
-				new Update().inc(MessageDocumentFields.SEQUENCE, 1L),
-				FindAndModifyOptions.options().returnNew(true).upsert(true),
-				Map.class, this.collectionName)
+						new Update().inc(MessageDocumentFields.SEQUENCE, 1L),
+						FindAndModifyOptions.options().returnNew(true).upsert(true),
+						Map.class, this.collectionName)
 				.get(MessageDocumentFields.SEQUENCE))  // NOSONAR - never returns null
 				.longValue();
 	}

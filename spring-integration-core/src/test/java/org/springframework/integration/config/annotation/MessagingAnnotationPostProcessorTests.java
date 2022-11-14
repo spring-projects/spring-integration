@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -50,6 +48,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
@@ -401,7 +401,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	}
 
-	@Target({ ElementType.METHOD })
+	@Target({ElementType.METHOD})
 	@Retention(RetentionPolicy.RUNTIME)
 	@ServiceActivator(inputChannel = "eventBus")
 	public @interface EventHandler {

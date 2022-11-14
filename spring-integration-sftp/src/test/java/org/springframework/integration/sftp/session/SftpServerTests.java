@@ -16,8 +16,6 @@
 
 package org.springframework.integration.sftp.session;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -44,6 +42,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.FileCopyUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * *

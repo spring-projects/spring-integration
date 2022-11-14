@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package org.springframework.integration.hazelcast.lock;
 
 import java.util.concurrent.locks.Lock;
 
+import com.hazelcast.core.HazelcastInstance;
+
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.util.Assert;
-
-import com.hazelcast.core.HazelcastInstance;
 
 /**
  * A {@link LockRegistry} implementation Hazelcast distributed locks.

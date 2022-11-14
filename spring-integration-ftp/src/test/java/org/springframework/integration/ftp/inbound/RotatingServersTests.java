@@ -16,8 +16,6 @@
 
 package org.springframework.integration.ftp.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
@@ -60,6 +58,8 @@ import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileLi
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.messaging.Message;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -324,10 +324,10 @@ public class RotatingServersTests extends FtpTestSupport {
 		@Bean
 		public IntegrationFlow flow() {
 			return IntegrationFlow.from(Ftp.inboundAdapter(sf())
-							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
-							.localDirectory(localDir())
-							.remoteDirectory("."),
-					e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
+									.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
+									.localDirectory(localDir())
+									.remoteDirectory("."),
+							e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
 		}
@@ -360,11 +360,11 @@ public class RotatingServersTests extends FtpTestSupport {
 		@Bean
 		public IntegrationFlow flow() {
 			return IntegrationFlow.from(Ftp.inboundAdapter(sf())
-							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
-							.localDirectory(new File(TMP_DIR, "variable"))
-							.localFilenameExpression("#remoteDirectory + T(java.io.File).separator + #root")
-							.remoteDirectory("."),
-					e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
+									.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
+									.localDirectory(new File(TMP_DIR, "variable"))
+									.localFilenameExpression("#remoteDirectory + T(java.io.File).separator + #root")
+									.remoteDirectory("."),
+							e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
 		}
@@ -378,9 +378,9 @@ public class RotatingServersTests extends FtpTestSupport {
 		@Bean
 		public IntegrationFlow flow() {
 			return IntegrationFlow.from(Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sf()))
-							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
-							.remoteDirectory("."),
-					e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
+									.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
+									.remoteDirectory("."),
+							e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
 		}
@@ -404,10 +404,10 @@ public class RotatingServersTests extends FtpTestSupport {
 		@Bean
 		public IntegrationFlow flow() {
 			return IntegrationFlow.from(Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sf()))
-							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
-							.remoteDirectory(".")
-							.maxFetchSize(1),
-					e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
+									.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
+									.remoteDirectory(".")
+									.maxFetchSize(1),
+							e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
 		}

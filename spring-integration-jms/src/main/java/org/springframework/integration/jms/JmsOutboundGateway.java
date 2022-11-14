@@ -42,7 +42,6 @@ import jakarta.jms.Session;
 import jakarta.jms.TemporaryQueue;
 import jakarta.jms.TemporaryTopic;
 import jakarta.jms.Topic;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

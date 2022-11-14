@@ -16,8 +16,6 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,6 +30,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

@@ -16,11 +16,6 @@
 
 package org.springframework.integration.kafka.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
-import static org.springframework.kafka.test.assertj.KafkaConditions.value;
-
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -66,6 +61,11 @@ import org.springframework.retry.listener.RetryListenerSupport;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
+import static org.springframework.kafka.test.assertj.KafkaConditions.value;
+
 /**
  *
  * @author Gary Russell
@@ -76,13 +76,13 @@ import org.springframework.retry.support.RetryTemplate;
  *
  */
 @EmbeddedKafka(controlledShutdown = true,
-		topics = { InboundGatewayTests.topic1,
+		topics = {InboundGatewayTests.topic1,
 				InboundGatewayTests.topic2,
 				InboundGatewayTests.topic3,
 				InboundGatewayTests.topic4,
 				InboundGatewayTests.topic5,
 				InboundGatewayTests.topic6,
-				InboundGatewayTests.topic7 })
+				InboundGatewayTests.topic7})
 class InboundGatewayTests {
 
 	static final String topic1 = "testTopic1";

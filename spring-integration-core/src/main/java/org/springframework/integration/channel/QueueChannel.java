@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 		super.registerMetricsCaptor(metricsCaptor);
 		this.sizeGauge =
 				metricsCaptor.gaugeBuilder("spring.integration.channel.queue.size", this,
-						(channel) -> getQueueSize())
+								(channel) -> getQueueSize())
 						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 						.tag("type", "channel")
 						.description("The size of the queue channel")
@@ -98,7 +98,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 
 		this.remainingCapacityGauge =
 				metricsCaptor.gaugeBuilder("spring.integration.channel.queue.remaining.capacity", this,
-						(channel) -> getRemainingCapacity())
+								(channel) -> getRemainingCapacity())
 						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 						.tag("type", "channel")
 						.description("The remaining capacity of the queue channel")

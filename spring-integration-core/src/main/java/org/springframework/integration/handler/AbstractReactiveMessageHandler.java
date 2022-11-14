@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.integration.handler;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Mono;
 
 /**
  * Base class for {@link ReactiveMessageHandler} implementations.

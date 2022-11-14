@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,9 @@ import jakarta.persistence.TemporalType;
 @Entity(name = "Student")
 @Table(name = "Student")
 @NamedQueries({
-	@NamedQuery(name = "selectAllStudents", query = "select s from Student s"),
-	@NamedQuery(name = "selectStudent", query = "select s from Student s where s.lastName = 'Last One'"),
-	@NamedQuery(name = "updateStudent", query = "update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
+		@NamedQuery(name = "selectAllStudents", query = "select s from Student s"),
+		@NamedQuery(name = "selectStudent", query = "select s from Student s where s.lastName = 'Last One'"),
+		@NamedQuery(name = "updateStudent", query = "update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
 })
 @NamedNativeQuery(resultClass = StudentDomain.class, name = "updateStudentNativeQuery", query = "update Student s set s.lastName = :lastName, lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
 @SequenceGenerator(name = "student_sequence", initialValue = 1004, allocationSize = 1)

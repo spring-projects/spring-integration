@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jdbc.mysql;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Properties;
@@ -59,6 +57,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gunnar Hillert

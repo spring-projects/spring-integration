@@ -16,8 +16,6 @@
 
 package org.springframework.integration.redis.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -33,6 +31,8 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky

@@ -16,10 +16,6 @@
 
 package org.springframework.integration.smb.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -44,6 +40,10 @@ import org.springframework.integration.smb.session.SmbSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Markus Spann

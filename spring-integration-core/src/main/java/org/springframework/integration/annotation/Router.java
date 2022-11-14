@@ -48,7 +48,7 @@ import org.springframework.messaging.handler.annotation.ValueConstants;
  * @author Artem Bilan
  * @author Chris Bono
  */
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Repeatable(Routers.class)
@@ -74,7 +74,7 @@ public @interface Router {
 	 * @return the channelMappings.
 	 * @see org.springframework.integration.router.AbstractMappingMessageRouter#setChannelMapping(String, String)
 	 */
-	String[] channelMappings() default { };
+	String[] channelMappings() default {};
 
 	/**
 	 * Specify a prefix to be added to each channel name prior to resolution.

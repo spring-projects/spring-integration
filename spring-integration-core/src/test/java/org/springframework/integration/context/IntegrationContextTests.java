@@ -16,8 +16,6 @@
 
 package org.springframework.integration.context;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +24,8 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

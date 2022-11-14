@@ -32,6 +32,7 @@ import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
@@ -108,8 +109,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-
-import reactor.core.publisher.Flux;
 
 /**
  * Base class for Method-level annotation post-processors.

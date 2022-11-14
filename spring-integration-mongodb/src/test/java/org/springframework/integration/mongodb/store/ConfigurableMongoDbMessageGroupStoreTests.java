@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Map;
 
 import org.bson.Document;
@@ -37,6 +35,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Amol Nayak

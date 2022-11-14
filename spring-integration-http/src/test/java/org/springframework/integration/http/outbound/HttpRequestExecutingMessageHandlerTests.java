@@ -16,12 +16,6 @@
 
 package org.springframework.integration.http.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -37,6 +31,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.xml.transform.Source;
 
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Sinks;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -73,8 +69,11 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
-import reactor.core.publisher.Sinks;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Mark Fisher
@@ -204,9 +203,9 @@ public class HttpRequestExecutingMessageHandlerTests {
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<>();
-		form.put("a", new String[]{ "1", "2", "3" });
+		form.put("a", new String[] {"1", "2", "3"});
 		form.put("b", "4");
-		form.put("c", new String[]{ "5" });
+		form.put("c", new String[] {"5"});
 		form.put("d", "6");
 		Message<?> message = MessageBuilder.withPayload(form).build();
 
@@ -249,9 +248,9 @@ public class HttpRequestExecutingMessageHandlerTests {
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<>();
-		form.put("a", new int[]{ 1, 2, 3 });
+		form.put("a", new int[] {1, 2, 3});
 		form.put("b", "4");
-		form.put("c", new String[]{ "5" });
+		form.put("c", new String[] {"5"});
 		form.put("d", "6");
 		Message<?> message = MessageBuilder.withPayload(form).build();
 
@@ -297,7 +296,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<>();
-		form.put("a", new Object[]{ null, 4, null });
+		form.put("a", new Object[] {null, 4, null});
 		form.put("b", "4");
 		Message<?> message = MessageBuilder.withPayload(form).build();
 

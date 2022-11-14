@@ -16,10 +16,6 @@
 
 package org.springframework.integration.ip.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-
 import java.net.DatagramSocket;
 import java.time.Duration;
 import java.util.Iterator;
@@ -78,6 +74,10 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell

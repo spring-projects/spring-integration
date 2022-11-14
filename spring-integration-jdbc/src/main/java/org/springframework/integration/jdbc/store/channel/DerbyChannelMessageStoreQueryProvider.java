@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ public class DerbyChannelMessageStoreQueryProvider extends AbstractChannelMessag
 
 	private static final String SELECT_COMMON =
 			"SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES "
-			+ "from %PREFIX%CHANNEL_MESSAGE "
-			+ "where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region ";
+					+ "from %PREFIX%CHANNEL_MESSAGE "
+					+ "where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region ";
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {

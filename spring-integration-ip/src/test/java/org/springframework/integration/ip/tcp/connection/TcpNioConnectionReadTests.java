@@ -16,9 +16,6 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.with;
-
 import java.net.InetAddress;
 import java.net.Socket;
 import java.time.Duration;
@@ -42,6 +39,9 @@ import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.with;
 
 /**
  * @author Gary Russell

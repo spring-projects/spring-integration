@@ -16,14 +16,6 @@
 
 package org.springframework.integration.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -63,6 +55,14 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.StringUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Mark Fisher
@@ -312,7 +312,7 @@ public class ChainParserTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(handler);
 		dfa.setPropertyValue("messageLogger", logger);
 
-		this.loggingChannelAdapterChannel.send(MessageBuilder.withPayload(new byte[]{ 116, 101, 115, 116 }).build());
+		this.loggingChannelAdapterChannel.send(MessageBuilder.withPayload(new byte[] {116, 101, 115, 116}).build());
 		assertThat(log.get()).isNotNull();
 		assertThat(log.get().get()).isEqualTo("TEST");
 	}
@@ -394,7 +394,7 @@ public class ChainParserTests {
 		//INT-3117
 		GatewayProxyFactoryBean<?> gatewayProxyFactoryBean =
 				this.beanFactory.getBean("&subComponentsIdSupport1$child.gatewayWithinChain.handler",
-				GatewayProxyFactoryBean.class);
+						GatewayProxyFactoryBean.class);
 		assertThat(TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestChannelName"))
 				.isEqualTo("strings");
 		assertThat(TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyChannelName")).isEqualTo(

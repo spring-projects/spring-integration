@@ -19,6 +19,12 @@ package org.springframework.integration.support.management.micrometer;
 import java.util.concurrent.TimeUnit;
 import java.util.function.ToDoubleFunction;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.GaugeFacade;
@@ -27,12 +33,6 @@ import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.util.Assert;
-
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 
 /**
  * The Micrometer implementation of {@link MetricsCaptor}.

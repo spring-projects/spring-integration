@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,9 +32,6 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.smb.filters.SmbPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.smb.session.SmbFileInfo;
-
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
 
 /**
  * Message source for streaming SMB remote file contents.

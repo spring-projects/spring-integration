@@ -16,10 +16,6 @@
 
 package org.springframework.integration.jdbc.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
-
 import java.io.NotSerializableException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -46,6 +42,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StopWatch;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Dave Syer

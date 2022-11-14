@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Registration;
+
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Registration;
 
 /**
  * Registers common MessageHeader types and Serializers.

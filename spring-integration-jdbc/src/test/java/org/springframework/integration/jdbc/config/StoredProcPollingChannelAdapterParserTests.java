@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.jdbc.config;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.sql.Types;
 import java.util.Iterator;
@@ -42,6 +40,8 @@ import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gunnar Hillert
@@ -99,8 +99,8 @@ public class StoredProcPollingChannelAdapterParserTests {
 		setUp("storedProcPollingChannelAdapterParserTest2.xml", getClass());
 
 		Integer cacheSize = TestUtils.getPropertyValue(this.pollingAdapter,
-						"source.executor.jdbcCallOperationsCacheSize",
-						Integer.class);
+				"source.executor.jdbcCallOperationsCacheSize",
+				Integer.class);
 
 		assertThat(cacheSize).as("Wrong JdbcCallOperations Cache Size").isEqualTo(Integer.valueOf(77));
 	}

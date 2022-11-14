@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.kafka.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +25,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -58,11 +58,11 @@ public class KafkaInboundGatewayTests {
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "listener.fallbackType"))
 				.isEqualTo(String.class);
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "errorMessageStrategy"))
-			.isSameAs(this.context.getBean("ems"));
+				.isSameAs(this.context.getBean("ems"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "retryTemplate"))
-			.isSameAs(this.context.getBean("retryTemplate"));
+				.isSameAs(this.context.getBean("retryTemplate"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "recoveryCallback"))
-			.isSameAs(this.context.getBean("recoveryCallback"));
+				.isSameAs(this.context.getBean("recoveryCallback"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "messagingTemplate.sendTimeout")).isEqualTo(5000L);
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "replyTimeout")).isEqualTo(43L);
 	}

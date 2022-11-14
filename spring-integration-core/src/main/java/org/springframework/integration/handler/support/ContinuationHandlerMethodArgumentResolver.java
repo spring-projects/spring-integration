@@ -16,12 +16,12 @@
 
 package org.springframework.integration.handler.support;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.integration.util.CoroutinesUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
-
-import reactor.core.publisher.Mono;
 
 /**
  * No-op resolver for method arguments of type {@link kotlin.coroutines.Continuation}.

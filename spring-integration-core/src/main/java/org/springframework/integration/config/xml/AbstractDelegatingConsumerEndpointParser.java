@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		else if (hasRef && hasExpression) {
 			parserContext.getReaderContext().error(
 					"Only one of 'ref' or 'expression' is permitted, not both, on element " +
-					IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+							IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 			return null;
 		}
 		else if (hasRef) {
@@ -93,7 +93,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		if (hasRef || hasExpression || expressionElement != null) {
 			parserContext.getReaderContext().error(
 					"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured on element " +
-				IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+							IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 		}
 		builder.addPropertyValue("targetObject", innerDefinition);
 	}
@@ -104,7 +104,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		if (hasRef || hasExpression || expressionElement != null) {
 			parserContext.getReaderContext().error(
 					"Neither 'ref' nor 'expression' are permitted when an inner script element is configured on element " +
-				IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+							IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 		}
 		BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement, builder.getBeanDefinition());
 		builder.addPropertyValue("targetObject", scriptBeanDefinition);
@@ -115,7 +115,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		if (hasRef || hasExpression) {
 			parserContext.getReaderContext().error(
 					"Neither 'ref' nor 'expression' are permitted when an inner 'expression' element is configured on element " +
-				IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+							IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 		}
 		BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				DynamicExpression.class);
@@ -134,7 +134,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 			if (hasExpression || expressionElement != null) {
 				parserContext.getReaderContext().error(
 						"A 'method' attribute is not permitted when configuring an 'expression' on element " +
-					IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+								IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 			}
 			if (hasRef || innerDefinition != null) {
 				builder.addPropertyValue("targetMethodName", method);
@@ -142,7 +142,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 			else {
 				parserContext.getReaderContext().error("A 'method' attribute is only permitted when either " +
 						"a 'ref' or inner-bean definition is provided on element " +
-					IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+						IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 			}
 		}
 	}

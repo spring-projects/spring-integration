@@ -20,12 +20,6 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import jcifs.CIFSContext;
 import jcifs.CIFSException;
 import jcifs.config.PropertyConfiguration;
@@ -34,6 +28,11 @@ import jcifs.context.SingletonContext;
 import jcifs.smb.NtlmPasswordAuthenticator;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * The {@link SmbFile} extension to  represent an SMB share directory.

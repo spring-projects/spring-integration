@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.rsocket.Payload;
+import io.rsocket.frame.FrameType;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ReactiveAdapterRegistry;
@@ -41,11 +46,6 @@ import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHa
 import org.springframework.messaging.rsocket.annotation.support.RSocketPayloadReturnValueHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-
-import io.rsocket.Payload;
-import io.rsocket.frame.FrameType;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * The {@link RSocketMessageHandler} extension for Spring Integration needs.
@@ -159,7 +159,8 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 			super(encoders, registry);
 		}
 
-		@Override public Mono<Void> handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
+		@Override
+		public Mono<Void> handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 				Message<?> message) {
 
 			AtomicReference<Flux<Payload>> responseReference = getResponseReference(message);

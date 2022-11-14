@@ -16,8 +16,6 @@
 
 package org.springframework.integration.enablecomponentscan;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collection;
 import java.util.Collections;
 
@@ -37,6 +35,8 @@ import org.springframework.integration.dsl.flows.IntegrationFlowTests;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ClassUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

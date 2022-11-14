@@ -16,9 +16,6 @@
 
 package org.springframework.integration.sftp.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Set;
@@ -45,6 +42,9 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky

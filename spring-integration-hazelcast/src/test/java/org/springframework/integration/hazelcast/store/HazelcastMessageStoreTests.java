@@ -16,12 +16,13 @@
 
 package org.springframework.integration.hazelcast.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -35,9 +36,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.map.IMap;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Vinicius Carvalho

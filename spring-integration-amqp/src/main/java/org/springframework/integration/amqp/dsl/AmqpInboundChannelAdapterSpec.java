@@ -36,7 +36,7 @@ import org.springframework.integration.dsl.ComponentsRegistration;
  * @since 5.0
  */
 public abstract class AmqpInboundChannelAdapterSpec
-			<S extends AmqpInboundChannelAdapterSpec<S, C>, C extends MessageListenerContainer>
+		<S extends AmqpInboundChannelAdapterSpec<S, C>, C extends MessageListenerContainer>
 		extends AmqpBaseInboundChannelAdapterSpec<S>
 		implements ComponentsRegistration {
 

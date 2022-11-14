@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,6 +32,8 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gunnar Hillert

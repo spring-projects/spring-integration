@@ -16,12 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -47,6 +41,12 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Gary Russell

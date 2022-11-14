@@ -16,9 +16,6 @@
 
 package org.springframework.integration.dsl.flows;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +33,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -99,7 +97,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import reactor.core.publisher.Mono;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.integration.webflux.inbound;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.core.Ordered;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.reactive.HandlerResult;
 import org.springframework.web.reactive.HandlerResultHandler;
 import org.springframework.web.server.ServerWebExchange;
-
-import reactor.core.publisher.Mono;
 
 /**
  * A {@link HandlerResultHandler} implementation to handle the result of the

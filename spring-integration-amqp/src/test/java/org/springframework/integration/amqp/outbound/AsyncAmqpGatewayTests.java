@@ -16,15 +16,6 @@
 
 package org.springframework.integration.amqp.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -60,6 +51,15 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+
 /**
  * @author Gary Russell
  * @author Artem Bilan
@@ -67,7 +67,7 @@ import org.springframework.messaging.support.ErrorMessage;
  * @since 4.3
  *
  */
-@RabbitAvailable(queues = { "asyncQ1", "asyncRQ1" })
+@RabbitAvailable(queues = {"asyncQ1", "asyncRQ1"})
 @LogLevels(categories = "org.springframework.amqp", level = "trace")
 class AsyncAmqpGatewayTests {
 
@@ -152,7 +152,8 @@ class AsyncAmqpGatewayTests {
 		// timeout tests
 		asyncTemplate.setReceiveTimeout(10);
 
-		receiver.setMessageListener(message1 -> { });
+		receiver.setMessageListener(message1 -> {
+		});
 		// reply timeout with no requiresReply
 		message = MessageBuilder.withPayload("bar").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);

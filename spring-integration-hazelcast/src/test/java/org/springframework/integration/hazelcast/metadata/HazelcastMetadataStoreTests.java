@@ -16,11 +16,9 @@
 
 package org.springframework.integration.hazelcast.metadata;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -29,9 +27,10 @@ import org.junit.Test;
 
 import org.springframework.integration.metadata.MetadataStoreListener;
 
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.map.IMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Vinicius Carvalho

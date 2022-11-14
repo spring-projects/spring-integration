@@ -16,8 +16,6 @@
 
 package org.springframework.integration.event.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Date;
 import java.util.Properties;
 import java.util.Set;
@@ -42,6 +40,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky

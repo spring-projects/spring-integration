@@ -19,14 +19,13 @@ package org.springframework.integration.smb.session;
 import java.io.IOException;
 import java.util.Properties;
 
+import jcifs.CIFSContext;
+import jcifs.smb.SmbFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
-
-import jcifs.CIFSContext;
-import jcifs.smb.SmbFile;
 
 /**
  * The SMB session factory.

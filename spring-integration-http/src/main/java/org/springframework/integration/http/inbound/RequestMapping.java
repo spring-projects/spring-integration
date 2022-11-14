@@ -40,15 +40,15 @@ public class RequestMapping {
 
 	private String[] pathPatterns;
 
-	private HttpMethod[] methods = { HttpMethod.GET, HttpMethod.POST };
+	private HttpMethod[] methods = {HttpMethod.GET, HttpMethod.POST};
 
-	private String[] params = { };
+	private String[] params = {};
 
-	private String[] headers = { };
+	private String[] headers = {};
 
-	private String[] consumes = { };
+	private String[] consumes = {};
 
-	private String[] produces = { };
+	private String[] produces = {};
 
 	public String getName() {
 		return this.name;

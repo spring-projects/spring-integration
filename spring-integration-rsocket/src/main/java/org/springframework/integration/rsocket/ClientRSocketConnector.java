@@ -21,14 +21,14 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import io.rsocket.transport.ClientTransport;
+import io.rsocket.transport.netty.client.TcpClientTransport;
+import io.rsocket.transport.netty.client.WebsocketClientTransport;
+
 import org.springframework.messaging.rsocket.RSocketConnectorConfigurer;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
-
-import io.rsocket.transport.ClientTransport;
-import io.rsocket.transport.netty.client.TcpClientTransport;
-import io.rsocket.transport.netty.client.WebsocketClientTransport;
 
 /**
  * A client {@link AbstractRSocketConnector} extension to the RSocket connection.
@@ -46,7 +46,8 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	private final Map<Object, MimeType> setupMetadata = new LinkedHashMap<>(4);
 
-	private RSocketConnectorConfigurer connectorConfigurer = (connector) -> { };
+	private RSocketConnectorConfigurer connectorConfigurer = (connector) -> {
+	};
 
 	private Object setupData;
 

@@ -16,9 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 import java.time.Duration;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,6 +24,8 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -36,8 +35,8 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Artem Bilan
@@ -86,9 +85,9 @@ public class ReactiveMessageSourceProducerTests {
 
 		StepVerifier stepVerifier =
 				StepVerifier.create(
-						Flux.from(outputChannel)
-								.map(Message::getPayload)
-								.cast(Integer.class))
+								Flux.from(outputChannel)
+										.map(Message::getPayload)
+										.cast(Integer.class))
 						.expectNextSequence(
 								IntStream.range(0, 10)
 										.boxed()

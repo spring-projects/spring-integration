@@ -24,6 +24,11 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -34,11 +39,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import com.rometools.rome.feed.synd.SyndEntry;
-import com.rometools.rome.feed.synd.SyndFeed;
-import com.rometools.rome.io.SyndFeedInput;
-import com.rometools.rome.io.XmlReader;
 
 /**
  * This implementation of {@link org.springframework.integration.core.MessageSource} will

@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.micrometer.observation.ObservationRegistry;
 import org.apache.commons.logging.Log;
 
 import org.springframework.beans.BeansException;
@@ -41,8 +42,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-
-import io.micrometer.observation.ObservationRegistry;
 
 
 /**

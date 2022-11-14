@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.ftp.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.File;
 
 import org.junit.jupiter.api.Disabled;
@@ -26,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky
@@ -69,7 +69,7 @@ public class FtpInboundOutboundSanitySample {
 	@Disabled
 	public void testFtpOutboundChannelAdapter() throws Exception {
 		ClassPathXmlApplicationContext ac =
-			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterSample-context.xml", this.getClass());
+				new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterSample-context.xml", this.getClass());
 		File fileA = new File("local-test-dir/a.test");
 		File fileB = new File("local-test-dir/b.test");
 		MessageChannel ftpChannel = ac.getBean("ftpChannel", MessageChannel.class);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,6 @@
 
 package org.springframework.integration.ws.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.doAnswer;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -34,7 +29,6 @@ import jakarta.jms.JMSException;
 import jakarta.jms.MessageProducer;
 import jakarta.jms.Queue;
 import jakarta.jms.Session;
-
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Stanza;
 import org.junit.jupiter.api.Test;
@@ -64,6 +58,11 @@ import org.springframework.ws.transport.WebServiceMessageSender;
 import org.springframework.ws.transport.context.TransportContext;
 import org.springframework.ws.transport.context.TransportContextHolder;
 import org.springframework.ws.transport.mail.MailSenderConnection;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.doAnswer;
 
 /**
  * @author Mark Fisher

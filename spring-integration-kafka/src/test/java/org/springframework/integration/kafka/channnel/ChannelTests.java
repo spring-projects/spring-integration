@@ -16,8 +16,6 @@
 
 package org.springframework.integration.kafka.channnel;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +50,8 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell

@@ -16,9 +16,6 @@
 
 package org.springframework.integration.event.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,6 +45,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher

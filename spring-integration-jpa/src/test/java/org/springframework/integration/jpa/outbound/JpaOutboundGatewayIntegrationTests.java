@@ -16,13 +16,9 @@
 
 package org.springframework.integration.jpa.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.List;
 
 import jakarta.persistence.EntityManager;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,6 +33,9 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * The test cases for testing out a complete flow of the JPA gateways/adapters with all

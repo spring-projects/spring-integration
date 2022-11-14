@@ -16,8 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -27,6 +25,8 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
@@ -34,8 +34,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -74,8 +73,8 @@ class FluxAggregatorMessageHandlerTests {
 		Flux<Message<?>> window = (Flux<Message<?>>) payload;
 
 		StepVerifier.create(
-				window.map(Message::getPayload)
-						.cast(String.class))
+						window.map(Message::getPayload)
+								.cast(String.class))
 				.expectNextSequence(
 						IntStream.iterate(0, i -> i + 2)
 								.limit(10)
@@ -94,8 +93,8 @@ class FluxAggregatorMessageHandlerTests {
 		window = (Flux<Message<?>>) payload;
 
 		StepVerifier.create(
-				window.map(Message::getPayload)
-						.cast(String.class))
+						window.map(Message::getPayload)
+								.cast(String.class))
 				.expectNextSequence(
 						IntStream.iterate(1, i -> i + 2)
 								.limit(10)
@@ -247,8 +246,8 @@ class FluxAggregatorMessageHandlerTests {
 		Flux<Message<?>> window = (Flux<Message<?>>) result.getPayload();
 
 		StepVerifier.create(
-				window.map(Message::getPayload)
-						.cast(String.class))
+						window.map(Message::getPayload)
+								.cast(String.class))
 				.expectNext("0", "1", "2")
 				.expectNext("terminate")
 				.verifyComplete();
@@ -286,8 +285,8 @@ class FluxAggregatorMessageHandlerTests {
 		Flux<Message<?>> window = (Flux<Message<?>>) result.getPayload();
 
 		StepVerifier.create(
-				window.map(Message::getPayload)
-						.cast(Integer.class))
+						window.map(Message::getPayload)
+								.cast(Integer.class))
 				.expectNext(0, 1, 2)
 				.verifyComplete();
 

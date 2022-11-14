@@ -16,10 +16,6 @@
 
 package org.springframework.integration.xmpp.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
-
 import java.util.Set;
 
 import org.jivesoftware.smack.XMPPConnection;
@@ -39,6 +35,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Oleg Zhurakousky

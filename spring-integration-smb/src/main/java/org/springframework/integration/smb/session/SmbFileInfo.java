@@ -18,15 +18,14 @@ package org.springframework.integration.smb.session;
 
 import java.io.IOException;
 
+import jcifs.internal.dtyp.ACE;
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.util.Assert;
-
-import jcifs.internal.dtyp.ACE;
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
 
 /**
  * A {@link org.springframework.integration.file.remote.FileInfo} implementation for

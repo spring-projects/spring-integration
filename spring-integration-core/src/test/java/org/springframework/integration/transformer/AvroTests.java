@@ -16,11 +16,6 @@
 
 package org.springframework.integration.transformer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -40,6 +35,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Gary Russell

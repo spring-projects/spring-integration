@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import io.micrometer.observation.ObservationRegistry;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.EnvironmentAware;
@@ -33,8 +35,6 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import io.micrometer.observation.ObservationRegistry;
 
 /**
  * {@code @Configuration} class that registers a {@link IntegrationManagementConfigurer} bean.

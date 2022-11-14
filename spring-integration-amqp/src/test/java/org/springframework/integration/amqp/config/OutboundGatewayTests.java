@@ -16,14 +16,6 @@
 
 package org.springframework.integration.amqp.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -45,6 +37,14 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Mark Fisher

@@ -20,8 +20,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.micrometer.observation.ObservationRegistry;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -70,10 +73,6 @@ import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
-
-import io.micrometer.observation.ObservationRegistry;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
 /**
  * A convenient base class for connecting application code to

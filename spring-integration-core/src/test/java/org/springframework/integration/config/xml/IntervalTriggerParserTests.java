@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
@@ -27,6 +25,8 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Marius Bogoevici

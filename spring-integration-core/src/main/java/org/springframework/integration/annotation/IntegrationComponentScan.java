@@ -54,7 +54,7 @@ public @interface IntegrationComponentScan {
 	 * @return the array of 'basePackages'.
 	 */
 	@AliasFor("basePackages")
-	String[] value() default { };
+	String[] value() default {};
 
 	/**
 	 * Base packages to scan for annotated components. The {@link #value()} is an alias
@@ -63,7 +63,7 @@ public @interface IntegrationComponentScan {
 	 * @return the array of 'basePackages'.
 	 */
 	@AliasFor("value")
-	String[] basePackages() default { };
+	String[] basePackages() default {};
 
 	/**
 	 * Type-safe alternative to {@link #basePackages()} for specifying the packages to
@@ -72,7 +72,7 @@ public @interface IntegrationComponentScan {
 	 * serves no purpose other than being referenced by this attribute.
 	 * @return the array of 'basePackageClasses'.
 	 */
-	Class<?>[] basePackageClasses() default { };
+	Class<?>[] basePackageClasses() default {};
 
 
 	/**
@@ -96,7 +96,7 @@ public @interface IntegrationComponentScan {
 	 * @since 5.0
 	 * @see #excludeFilters()
 	 */
-	Filter[] includeFilters() default { };
+	Filter[] includeFilters() default {};
 
 	/**
 	 * Specifies which types are not eligible for component scanning.
@@ -104,7 +104,7 @@ public @interface IntegrationComponentScan {
 	 * @since 5.0
 	 * @see #includeFilters()
 	 */
-	Filter[] excludeFilters() default { };
+	Filter[] excludeFilters() default {};
 
 
 	/**

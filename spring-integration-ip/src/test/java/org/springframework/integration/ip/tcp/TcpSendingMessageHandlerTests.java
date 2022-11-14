@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  */
 
 package org.springframework.integration.ip.tcp;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,6 +74,11 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.mock;
 
 
 /**
@@ -1019,7 +1019,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[] { newInterceptorFactory() });
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {newInterceptorFactory()});
 		ccf.setInterceptorFactoryChain(fc);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();

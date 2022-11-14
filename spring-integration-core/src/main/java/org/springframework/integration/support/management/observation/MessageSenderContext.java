@@ -16,10 +16,10 @@
 
 package org.springframework.integration.support.management.observation;
 
+import io.micrometer.observation.transport.SenderContext;
+
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.messaging.Message;
-
-import io.micrometer.observation.transport.SenderContext;
 
 /**
  * The {@link SenderContext} extension for {@link Message} context.

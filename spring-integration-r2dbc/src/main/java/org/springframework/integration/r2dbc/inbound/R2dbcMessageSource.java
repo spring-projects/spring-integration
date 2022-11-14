@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,10 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import io.r2dbc.spi.Row;
+import io.r2dbc.spi.RowMetadata;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Mono;
 
 import org.springframework.data.r2dbc.convert.EntityRowMapper;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
@@ -35,10 +38,6 @@ import org.springframework.r2dbc.core.ColumnMapRowMapper;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.RowsFetchSpec;
 import org.springframework.util.Assert;
-
-import io.r2dbc.spi.Row;
-import io.r2dbc.spi.RowMetadata;
-import reactor.core.publisher.Mono;
 
 
 /**
@@ -186,7 +185,7 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		Mono<RowsFetchSpec<?>> queryMono =
 				Mono.fromSupplier(() ->
-						this.queryExpression.getValue(this.evaluationContext, this.selectCreator))
+								this.queryExpression.getValue(this.evaluationContext, this.selectCreator))
 						.map(this::prepareFetch);
 		if (this.expectSingleResult) {
 			return queryMono.flatMap(RowsFetchSpec::one)

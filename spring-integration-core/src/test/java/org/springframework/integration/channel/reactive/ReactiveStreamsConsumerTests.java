@@ -16,16 +16,6 @@
 
 package org.springframework.integration.channel.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,6 +32,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.test.StepVerifier;
+import reactor.util.Loggers;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -58,11 +53,15 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-import reactor.test.StepVerifier;
-import reactor.util.Loggers;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Artem Bilan

@@ -308,7 +308,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 		HostConfigEntry config = this.hostConfig;
 		if (config == null) {
 			config = new HostConfigEntry(SshdSocketAddress.isIPv6Address(this.host) ? "" : this.host, this.host,
-							this.port, this.user);
+					this.port, this.user);
 		}
 		ClientSession clientSession =
 				this.sshClient.connect(config)

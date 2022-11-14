@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.xml.config;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -46,6 +44,8 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.MultiValueMap;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Jonas Partner
  * @author Mark Fisher
@@ -57,7 +57,7 @@ import org.springframework.util.MultiValueMap;
 public class XPathRouterParserTests {
 
 	String channelConfig = "<si:channel id='test-input'/> <si:channel id='outputOne'><si:queue capacity='10'/></si:channel>" +
-		"<si:channel id='defaultOutput'><si:queue capacity='10'/></si:channel>";
+			"<si:channel id='defaultOutput'><si:queue capacity='10'/></si:channel>";
 
 	@Autowired @Qualifier("test-input")
 	MessageChannel inputChannel;

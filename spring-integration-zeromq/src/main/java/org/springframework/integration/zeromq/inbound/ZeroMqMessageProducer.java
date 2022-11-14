@@ -28,6 +28,10 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mapping.ConvertingBytesMessageMapper;
@@ -41,11 +45,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 /**
  * A {@link MessageProducerSupport} implementation for consuming messages from ZeroMq socket.
@@ -77,11 +76,12 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 
 	private InboundMessageMapper<byte[]> messageMapper;
 
-	private Consumer<ZMQ.Socket> socketConfigurer = (socket) -> { };
+	private Consumer<ZMQ.Socket> socketConfigurer = (socket) -> {
+	};
 
 	private Duration consumeDelay = DEFAULT_CONSUME_DELAY;
 
-	private String[] topics = { "" }; // Equivalent to ZMQ#SUBSCRIPTION_ALL
+	private String[] topics = {""}; // Equivalent to ZMQ#SUBSCRIPTION_ALL
 
 	private boolean receiveRaw;
 

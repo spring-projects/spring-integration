@@ -7,15 +7,21 @@
             {
               "@build.name": "${buildname}",
               "@build.number": "${buildnumber}",
-              "path": {"$match": "org*"}
+              "path": {
+                "$match": "org*"
+              }
             },
             {
               "$or": [
                 {
-                  "name": {"$match": "*.pom"}
+                  "name": {
+                    "$match": "*.pom"
+                  }
                 },
                 {
-                  "name": {"$match": "*.jar"}
+                  "name": {
+                    "$match": "*.jar"
+                  }
                 }
               ]
             }

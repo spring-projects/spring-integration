@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 				String expression = xslParameterElement.getAttribute("expression");
 				String value = xslParameterElement.getAttribute("value");
 				Assert.isTrue(StringUtils.hasText(expression) ^ StringUtils.hasText(value),
-							"Exactly one of 'expression' or 'value' is required.");
+						"Exactly one of 'expression' or 'value' is required.");
 				RootBeanDefinition expressionDef = null;
 				if (StringUtils.hasText(value)) {
 					expressionDef = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");

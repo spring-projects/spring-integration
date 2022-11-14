@@ -16,8 +16,6 @@
 
 package org.springframework.integration.smb.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
+import jcifs.smb.SmbFileInputStream;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,9 +62,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-import jcifs.smb.SmbFileInputStream;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *

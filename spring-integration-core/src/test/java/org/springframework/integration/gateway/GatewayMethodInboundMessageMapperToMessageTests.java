@@ -16,11 +16,6 @@
 
 package org.springframework.integration.gateway;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
-
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +34,11 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
+
 /**
  * @author Mark Fisher
  * @author Gary Russell
@@ -51,7 +51,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		Message<?> message = mapper.toMessage(new Object[] { "test" });
+		Message<?> message = mapper.toMessage(new Object[] {"test"});
 		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
@@ -61,7 +61,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> mapper.toMessage(new Object[] { "test", "oops" }));
+				.isThrownBy(() -> mapper.toMessage(new Object[] {"test", "oops"}));
 	}
 
 	@Test
@@ -79,7 +79,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 				"sendPayloadAndHeader", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		Message<?> message = mapper.toMessage(new Object[] { "test", "bar" });
+		Message<?> message = mapper.toMessage(new Object[] {"test", "bar"});
 		assertThat(message.getPayload()).isEqualTo("test");
 		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
@@ -91,7 +91,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		assertThatExceptionOfType(MessageMappingException.class)
-				.isThrownBy(() -> mapper.toMessage(new Object[] { "test", null }));
+				.isThrownBy(() -> mapper.toMessage(new Object[] {"test", null}));
 	}
 
 	@Test
@@ -100,7 +100,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 				"sendPayloadAndOptionalHeader", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		Message<?> message = mapper.toMessage(new Object[] { "test", "bar" });
+		Message<?> message = mapper.toMessage(new Object[] {"test", "bar"});
 		assertThat(message.getPayload()).isEqualTo("test");
 		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
@@ -111,7 +111,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 				"sendPayloadAndOptionalHeader", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		Message<?> message = mapper.toMessage(new Object[] { "test", null });
+		Message<?> message = mapper.toMessage(new Object[] {"test", null});
 		assertThat(message.getPayload()).isEqualTo("test");
 		assertThat(message.getHeaders().get("foo")).isNull();
 	}
@@ -125,7 +125,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Map<String, Object> headers = new HashMap<>();
 		headers.put("abc", 123);
 		headers.put("def", 456);
-		Message<?> message = mapper.toMessage(new Object[] { "test", headers });
+		Message<?> message = mapper.toMessage(new Object[] {"test", headers});
 		assertThat(message.getPayload()).isEqualTo("test");
 		assertThat(message.getHeaders().get("abc")).isEqualTo(123);
 		assertThat(message.getHeaders().get("def")).isEqualTo(456);
@@ -137,7 +137,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 				"sendPayloadAndHeadersMap", String.class, Map.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		Message<?> message = mapper.toMessage(new Object[] { "test", null });
+		Message<?> message = mapper.toMessage(new Object[] {"test", null});
 		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
@@ -150,7 +150,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Map<Integer, String> headers = new HashMap<>();
 		headers.put(123, "abc");
 		assertThatExceptionOfType(MessageMappingException.class)
-				.isThrownBy(() -> mapper.toMessage(new Object[] { "test", headers }));
+				.isThrownBy(() -> mapper.toMessage(new Object[] {"test", headers}));
 	}
 
 	@Test
@@ -159,7 +159,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
-		Message<?> message = mapper.toMessage(new Object[] { inputMessage });
+		Message<?> message = mapper.toMessage(new Object[] {inputMessage});
 		assertThat(message.getPayload()).isEqualTo("test message");
 	}
 
@@ -169,7 +169,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
-		Message<?> message = mapper.toMessage(new Object[] { inputMessage, "bar" });
+		Message<?> message = mapper.toMessage(new Object[] {inputMessage, "bar"});
 		assertThat(message.getPayload()).isEqualTo("test message");
 		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
@@ -181,7 +181,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		assertThatExceptionOfType(MessageMappingException.class)
-				.isThrownBy(() -> mapper.toMessage(new Object[] { inputMessage, null }));
+				.isThrownBy(() -> mapper.toMessage(new Object[] {inputMessage, null}));
 	}
 
 	@Test
@@ -190,7 +190,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
-		Message<?> message = mapper.toMessage(new Object[] { inputMessage, "bar" });
+		Message<?> message = mapper.toMessage(new Object[] {inputMessage, "bar"});
 		assertThat(message.getPayload()).isEqualTo("test message");
 		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
@@ -201,7 +201,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
-		Message<?> message = mapper.toMessage(new Object[] { inputMessage, null });
+		Message<?> message = mapper.toMessage(new Object[] {inputMessage, null});
 		assertThat(message.getPayload()).isEqualTo("test message");
 		assertThat(message.getHeaders().get("foo")).isNull();
 	}
@@ -221,7 +221,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		assertThatExceptionOfType(MessageMappingException.class)
-				.isThrownBy(() -> mapper.toMessage(new Object[] { "abc", "def" }));
+				.isThrownBy(() -> mapper.toMessage(new Object[] {"abc", "def"}));
 	}
 
 	@Test
@@ -233,7 +233,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		headers.put("baz", new LiteralExpression("hello"));
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method, headers);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		Message<?> message = mapper.toMessage(new Object[] { "test" });
+		Message<?> message = mapper.toMessage(new Object[] {"test"});
 		assertThat(message.getPayload()).isEqualTo("test");
 		assertThat(message.getHeaders().get("foo")).isEqualTo("foo");
 		assertThat(message.getHeaders().get("bar")).isEqualTo(42);
@@ -248,7 +248,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.setPayloadExpression(new LiteralExpression("hello"));
-		Message<?> message = mapper.toMessage(new Object[] { map });
+		Message<?> message = mapper.toMessage(new Object[] {map});
 		assertThat(message.getPayload()).isEqualTo("hello");
 	}
 
@@ -261,7 +261,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.setPayloadExpression(new FunctionExpression<MethodArgsHolder>((methodArgs) -> methodArgs.getArgs()[0]));
-		Message<?> message = mapper.toMessage(new Object[] { map });
+		Message<?> message = mapper.toMessage(new Object[] {map});
 		assertThat(message.getPayload()).isEqualTo(map);
 	}
 
@@ -273,7 +273,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		map.put(2, "Two");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		Message<?> message = mapper.toMessage(new Object[] { map });
+		Message<?> message = mapper.toMessage(new Object[] {map});
 		assertThat(message.getPayload()).isEqualTo(map);
 	}
 
@@ -289,7 +289,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.setPayloadExpression(new FunctionExpression<MethodArgsHolder>((methodArgs) -> methodArgs.getArgs()[0]));
-		Message<?> message = mapper.toMessage(new Object[] { mapA, mapB });
+		Message<?> message = mapper.toMessage(new Object[] {mapA, mapB});
 		assertThat(message.getPayload()).isEqualTo(mapA);
 		assertThat(message.getHeaders().get("1")).isEqualTo(mapB.get("1"));
 		assertThat(message.getHeaders().get("2")).isEqualTo(mapB.get("2"));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2021 the original author or authors.
+ * Copyright 2001-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public interface CommonSocketOptions {
 	 * adapters, specifies which interface to which the acknowledgment socket will be bound. Does not
 	 * apply to TCP outbound adapters and gateways.
 	 *
- 	 * @param localAddress The local address.
+	 * @param localAddress The local address.
 	 */
 	void setLocalAddress(String localAddress);
 

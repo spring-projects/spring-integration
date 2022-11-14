@@ -16,8 +16,6 @@
 
 package org.springframework.integration.http.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -43,6 +41,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.MessageHeaders;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky
@@ -108,7 +108,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateAllowAsStringArray() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
-		messageHeaders.put("Allow", new String[] { "GET", "POST" });
+		messageHeaders.put("Allow", new String[] {"GET", "POST"});
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -121,7 +121,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateAllowAsHttpMethodArray() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
-		messageHeaders.put("Allow", new HttpMethod[] { HttpMethod.GET, HttpMethod.POST });
+		messageHeaders.put("Allow", new HttpMethod[] {HttpMethod.GET, HttpMethod.POST});
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);

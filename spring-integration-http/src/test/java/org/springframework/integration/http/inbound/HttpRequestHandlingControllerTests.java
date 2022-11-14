@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.http.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.servlet.http.Cookie;
-
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 
@@ -46,6 +42,9 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -425,6 +424,5 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		assertThat(modelAndView.getModelMap()).containsKey("cookiesReply");
 		assertThat(modelAndView.getModelMap()).containsEntry("cookiesReply", "first");
 	}
-
 
 }

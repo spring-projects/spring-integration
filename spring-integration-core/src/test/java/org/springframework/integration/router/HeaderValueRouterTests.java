@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.router;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.Test;
 
 import org.springframework.beans.factory.support.ManagedMap;
@@ -29,6 +27,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.core.DestinationResolver;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
@@ -90,7 +90,7 @@ public class HeaderValueRouterTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void resolveChannelNameFromMap() {
 		StaticApplicationContext context = new StaticApplicationContext();
 		ManagedMap channelMappings = new ManagedMap();
@@ -114,7 +114,7 @@ public class HeaderValueRouterTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void resolveChannelNameFromMapAndCustomeResolver() {
 		final StaticApplicationContext context = new StaticApplicationContext();
 		ManagedMap channelMappings = new ManagedMap();
@@ -152,7 +152,7 @@ public class HeaderValueRouterTests {
 		context.registerBeanDefinition("channel2", new RootBeanDefinition(QueueChannel.class));
 		context.refresh();
 		MessageHandler handler = (MessageHandler) context.getBean("router");
-		String[] channels = new String[] { "channel1", "channel2" };
+		String[] channels = new String[] {"channel1", "channel2"};
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeaderName", channels).build();
 		handler.handleMessage(message);
 		QueueChannel channel1 = (QueueChannel) context.getBean("channel1");

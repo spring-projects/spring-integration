@@ -16,12 +16,12 @@
 
 package org.springframework.integration.smb.outbound;
 
+import jcifs.smb.SmbFile;
+
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
-
-import jcifs.smb.SmbFile;
 
 /**
  * The SMB specific {@link FileTransferringMessageHandler} extension. Based on the

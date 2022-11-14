@@ -16,16 +16,13 @@
 
 package org.springframework.integration.feed.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
 import java.io.File;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.io.SyndFeedInput;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -43,8 +40,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
-import com.rometools.rome.feed.synd.SyndEntry;
-import com.rometools.rome.io.SyndFeedInput;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky

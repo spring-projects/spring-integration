@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,6 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.integration.mapping.support.JsonHeaders;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -39,6 +35,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+
+import org.springframework.integration.mapping.support.JsonHeaders;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Jackson 2 JSON-processor (@link https://github.com/FasterXML)
@@ -170,7 +170,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	}
 
 	@Override
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({"unchecked"})
 	protected JavaType extractJavaType(Map<String, Object> javaTypes) {
 		JavaType classType = this.createJavaType(javaTypes, JsonHeaders.TYPE_ID);
 		if (!classType.isContainerType() || classType.isArrayType()) {

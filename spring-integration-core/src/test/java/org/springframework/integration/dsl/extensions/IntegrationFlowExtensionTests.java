@@ -16,8 +16,6 @@
 
 package org.springframework.integration.dsl.extensions;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -38,6 +36,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

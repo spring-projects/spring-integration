@@ -16,8 +16,6 @@
 
 package org.springframework.integration.gateway;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -29,6 +27,8 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell

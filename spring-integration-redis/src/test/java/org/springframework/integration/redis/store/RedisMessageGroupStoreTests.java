@@ -16,9 +16,6 @@
 
 package org.springframework.integration.redis.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -30,6 +27,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,8 +55,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import junit.framework.AssertionFailedError;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Oleg Zhurakousky

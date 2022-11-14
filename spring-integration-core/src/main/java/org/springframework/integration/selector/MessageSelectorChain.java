@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,21 +31,17 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MessageSelectorChain implements MessageSelector {
 
-	public enum VotingStrategy { ALL, ANY, MAJORITY, MAJORITY_OR_TIE };
-
-
 	private volatile VotingStrategy votingStrategy = VotingStrategy.ALL;
 
-	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
-
+	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<>();
 
 	/**
 	 * Specify the voting strategy for this selector chain.
 	 * <p>The default is {@link VotingStrategy#ALL}.
-	 *
 	 * @param votingStrategy The voting strategy.
 	 */
 	public void setVotingStrategy(VotingStrategy votingStrategy) {
@@ -55,7 +51,6 @@ public class MessageSelectorChain implements MessageSelector {
 
 	/**
 	 * Add a selector to the end of the chain.
-	 *
 	 * @param selector The message selector.
 	 */
 	public void add(MessageSelector selector) {
@@ -64,7 +59,6 @@ public class MessageSelectorChain implements MessageSelector {
 
 	/**
 	 * Add a selector to the chain at the specified index.
-	 *
 	 * @param index The index.
 	 * @param selector The message selector.
 	 */
@@ -74,7 +68,6 @@ public class MessageSelectorChain implements MessageSelector {
 
 	/**
 	 * Initialize the selector chain. Removes any existing selectors.
-	 *
 	 * @param selectors The message selectors.
 	 */
 	public void setSelectors(List<MessageSelector> selectors) {
@@ -87,7 +80,7 @@ public class MessageSelectorChain implements MessageSelector {
 
 	/**
 	 * Pass the message through the selector chain. Whether the Message is
-	 * {@link #accept(Message) accepted} is based upon the tallied results of
+	 * accepted is based upon the tallied results of
 	 * the individual selectors' responses in accordance with this chain's
 	 * {@link VotingStrategy}.
 	 */
@@ -114,18 +107,18 @@ public class MessageSelectorChain implements MessageSelector {
 		if (accepted == 0) {
 			return false;
 		}
-		switch (this.votingStrategy) {
-			case ANY:
-				return true;
-			case ALL:
-				return (accepted == total);
-			case MAJORITY:
-				return (2 * accepted) > total;
-			case MAJORITY_OR_TIE:
-				return (2 * accepted) >= total;
-			default:
-				throw new IllegalArgumentException("unsupported voting strategy " + this.votingStrategy);
-		}
+		return switch (this.votingStrategy) {
+			case ANY -> true;
+			case ALL -> (accepted == total);
+			case MAJORITY -> (2 * accepted) > total;
+			case MAJORITY_OR_TIE -> (2 * accepted) >= total;
+		};
+	}
+
+	public enum VotingStrategy {
+
+		ALL, ANY, MAJORITY, MAJORITY_OR_TIE
+
 	}
 
 }

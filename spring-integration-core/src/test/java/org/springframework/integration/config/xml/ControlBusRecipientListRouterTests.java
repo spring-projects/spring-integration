@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.config.xml;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,6 +38,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Liujiong
  * @since 4.1
@@ -63,7 +64,7 @@ public class ControlBusRecipientListRouterTests {
 	private MessageChannel channel;
 
 	@Before
-	public  void aa() {
+	public void aa() {
 		context.start();
 	}
 
@@ -72,7 +73,7 @@ public class ControlBusRecipientListRouterTests {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel2','true')");
-		Message<?>  message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
 		assertThat(chanel2.receive(0).getPayload().equals(1)).isTrue();
@@ -84,7 +85,7 @@ public class ControlBusRecipientListRouterTests {
 		messagingTemplate.setReceiveTimeout(1000);
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel3')");
 
-		Message<?>  message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel3 = (PollableChannel) context.getBean("channel3");
 		assertThat(chanel3.receive(0).getPayload().equals(1)).isTrue();
@@ -98,7 +99,7 @@ public class ControlBusRecipientListRouterTests {
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel4')");
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.removeRecipient('channel4')");
 
-		Message<?>  message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel4 = (PollableChannel) context.getBean("channel4");
@@ -114,7 +115,7 @@ public class ControlBusRecipientListRouterTests {
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel5','true')");
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.removeRecipient('channel5','true')");
 
-		Message<?>  message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel5 = (PollableChannel) context.getBean("channel5");
@@ -156,7 +157,7 @@ public class ControlBusRecipientListRouterTests {
 		messagingTemplate.setReceiveTimeout(1000);
 
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.replaceRecipients('channel7=true')");
-		Message<?>  message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel7 = (PollableChannel) context.getBean("channel7");
 		assertThat(chanel7.receive(0).getPayload().equals(1)).isTrue();

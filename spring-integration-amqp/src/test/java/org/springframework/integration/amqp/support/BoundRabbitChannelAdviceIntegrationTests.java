@@ -16,12 +16,6 @@
 
 package org.springframework.integration.amqp.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.spy;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +37,12 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Gary Russell

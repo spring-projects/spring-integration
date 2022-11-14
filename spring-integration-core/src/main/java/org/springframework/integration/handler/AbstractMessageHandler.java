@@ -16,7 +16,9 @@
 
 package org.springframework.integration.handler;
 
+import io.micrometer.observation.ObservationRegistry;
 import org.reactivestreams.Subscription;
+import reactor.core.CoreSubscriber;
 
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
@@ -30,9 +32,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-
-import io.micrometer.observation.ObservationRegistry;
-import reactor.core.CoreSubscriber;
 
 /**
  * Base class for {@link MessageHandler} implementations.

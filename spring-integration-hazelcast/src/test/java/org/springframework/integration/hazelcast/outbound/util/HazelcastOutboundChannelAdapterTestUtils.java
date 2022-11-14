@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.hazelcast.outbound.util;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,15 +29,18 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
+import com.hazelcast.multimap.MultiMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
+import com.hazelcast.topic.ITopic;
+import com.hazelcast.topic.MessageListener;
+
 import org.springframework.integration.hazelcast.HazelcastIntegrationTestUser;
 import org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.hazelcast.multimap.MultiMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
-import com.hazelcast.topic.ITopic;
-import com.hazelcast.topic.MessageListener;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Util Class for Hazelcast Outbound Channel Adapter Test Support
@@ -49,7 +49,7 @@ import com.hazelcast.topic.MessageListener;
  *
  * @since 6.0
  */
-@SuppressWarnings({ "unchecked", "rawtypes" })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public final class HazelcastOutboundChannelAdapterTestUtils {
 
 	public static final int DATA_COUNT = 100;

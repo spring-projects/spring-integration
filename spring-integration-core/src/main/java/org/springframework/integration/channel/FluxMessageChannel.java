@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,6 @@ import java.util.concurrent.locks.LockSupport;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.util.Assert;
-
 import reactor.core.Disposable;
 import reactor.core.Disposables;
 import reactor.core.publisher.Flux;
@@ -34,6 +29,10 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.util.Assert;
 
 /**
  * The {@link AbstractMessageChannel} implementation for the

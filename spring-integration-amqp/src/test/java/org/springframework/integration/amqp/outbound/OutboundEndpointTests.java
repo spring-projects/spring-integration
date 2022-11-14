@@ -16,18 +16,6 @@
 
 package org.springframework.integration.amqp.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -52,6 +40,18 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Gary Russell

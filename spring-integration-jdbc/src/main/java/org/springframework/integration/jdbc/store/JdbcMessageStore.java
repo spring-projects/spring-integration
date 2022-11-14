@@ -249,7 +249,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * A converter for deserializing byte arrays to message.
 	 * @param deserializer the deserializer to set
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
 		this.deserializerExplicitlySet = true;

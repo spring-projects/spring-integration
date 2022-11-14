@@ -16,24 +16,6 @@
 
 package org.springframework.integration.kafka.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.springframework.kafka.test.assertj.KafkaConditions.key;
-import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
-import static org.springframework.kafka.test.assertj.KafkaConditions.timestamp;
-import static org.springframework.kafka.test.assertj.KafkaConditions.value;
-
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.micrometer.observation.Observation;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
@@ -108,7 +91,23 @@ import org.springframework.transaction.support.AbstractPlatformTransactionManage
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import io.micrometer.observation.Observation;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.kafka.test.assertj.KafkaConditions.key;
+import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
+import static org.springframework.kafka.test.assertj.KafkaConditions.timestamp;
+import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
 /**
  * @author Gary Russell
@@ -470,7 +469,7 @@ class KafkaProducerMessageHandlerTests {
 		producerFactory.destroy();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testTransaction() {
 		ProducerFactory pf = mock(ProducerFactory.class);
@@ -492,7 +491,7 @@ class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).commitTransaction();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	void testConsumeAndProduceTransaction() throws Exception {
 		Consumer mockConsumer = mock(Consumer.class);
@@ -565,7 +564,7 @@ class KafkaProducerMessageHandlerTests {
 		verifyNoMoreInteractions(producer);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testTransactionTxIdOverride() {
 		Producer producer = mock(Producer.class);
@@ -577,7 +576,6 @@ class KafkaProducerMessageHandlerTests {
 				txId.set(txIdPrefix);
 				return producer;
 			}
-
 
 		};
 		pf.setTransactionIdPrefix("default.tx.id.");
@@ -598,7 +596,7 @@ class KafkaProducerMessageHandlerTests {
 		assertThat(txId.get()).isEqualTo("overridden.tx.id.");
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testTransactionSynch() {
 		Producer producer = mock(Producer.class);
@@ -628,7 +626,7 @@ class KafkaProducerMessageHandlerTests {
 		verifyNoMoreInteractions(producer);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	void testConsumeAndProduceTransactionTxIdOverride() throws Exception {
 		Consumer mockConsumer = mock(Consumer.class);
@@ -726,7 +724,7 @@ class KafkaProducerMessageHandlerTests {
 		verify(template).send(any(ProducerRecord.class));
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testFlush() {
 		ProducerFactory pf = mock(ProducerFactory.class);
@@ -749,7 +747,7 @@ class KafkaProducerMessageHandlerTests {
 		assertThat(captor.getValue().headers().lastHeader(KafkaIntegrationHeaders.FLUSH)).isNull();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testNoFlush() {
 		ProducerFactory pf = mock(ProducerFactory.class);
@@ -769,7 +767,7 @@ class KafkaProducerMessageHandlerTests {
 		handler.stop();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void conversion() {
 		ProducerFactory pf = mock(ProducerFactory.class);

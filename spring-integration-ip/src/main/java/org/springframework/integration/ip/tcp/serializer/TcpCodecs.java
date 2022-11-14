@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,14 +137,14 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader(int bytes) {
 		switch (bytes) {
-		case ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_BYTE:
-			return lengthHeader1();
-		case ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_SHORT:
-			return lengthHeader2();
-		case ByteArrayLengthHeaderSerializer.HEADER_SIZE_INT:
-			return lengthHeader4();
-		default:
-			throw new IllegalArgumentException("Only 1, 2 or 4 byte headers are supported");
+			case ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_BYTE:
+				return lengthHeader1();
+			case ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_SHORT:
+				return lengthHeader2();
+			case ByteArrayLengthHeaderSerializer.HEADER_SIZE_INT:
+				return lengthHeader4();
+			default:
+				throw new IllegalArgumentException("Only 1, 2 or 4 byte headers are supported");
 		}
 	}
 

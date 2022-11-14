@@ -16,8 +16,6 @@
 
 package org.springframework.integration.event.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.ApplicationEvent;
@@ -25,6 +23,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

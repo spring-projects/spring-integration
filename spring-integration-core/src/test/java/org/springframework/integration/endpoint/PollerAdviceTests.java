@@ -16,12 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,6 +66,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Gary Russell
@@ -313,7 +313,8 @@ public class PollerAdviceTests {
 						return false;
 					}
 
-				}, m -> { });
+				}, m -> {
+				});
 
 		SimpleActiveIdleReceiveMessageAdvice toggling = new SimpleActiveIdleReceiveMessageAdvice(trigger);
 		toggling.setActivePollPeriod(11);

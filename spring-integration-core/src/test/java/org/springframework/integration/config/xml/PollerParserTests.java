@@ -16,9 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 
@@ -34,6 +31,9 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.transaction.interceptor.NameMatchTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher

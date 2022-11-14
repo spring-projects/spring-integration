@@ -16,9 +16,6 @@
 
 package org.springframework.integration.transformer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -28,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -40,8 +39,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.messaging.Message;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  *
@@ -200,7 +199,7 @@ public class ObjectToMapTransformerTests {
 		assertThat(transformedMap.get("listOfDates[1][1]")).isInstanceOf(String.class);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public Employee buildEmployee() {
 		Address companyAddress = new Address();
 		companyAddress.setCity("Philadelphia");
@@ -208,8 +207,8 @@ public class ObjectToMapTransformerTests {
 		companyAddress.setZip("12345");
 
 		Map<String, Long[]> coordinates = new HashMap<>();
-		coordinates.put("latitude", new Long[]{ (long) 1, (long) 5, (long) 13 });
-		coordinates.put("longitude", new Long[]{ (long) 156 });
+		coordinates.put("latitude", new Long[] {(long) 1, (long) 5, (long) 13});
+		coordinates.put("longitude", new Long[] {(long) 156});
 		companyAddress.setCoordinates(coordinates);
 
 		List<Date> datesA = new ArrayList<>();

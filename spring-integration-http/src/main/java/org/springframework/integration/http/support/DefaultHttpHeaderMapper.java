@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -184,10 +184,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private static final Set<String> HTTP_RESPONSE_HEADER_NAMES_LOWER = new HashSet<>();
 
-	private static final String[] HTTP_REQUEST_HEADER_NAMES_OUTBOUND_EXCLUSIONS = { };
+	private static final String[] HTTP_REQUEST_HEADER_NAMES_OUTBOUND_EXCLUSIONS = {};
 
 	private static final String[] HTTP_RESPONSE_HEADER_NAMES_INBOUND_EXCLUSIONS =
-			{ HttpHeaders.CONTENT_LENGTH, HttpHeaders.TRANSFER_ENCODING };
+			{HttpHeaders.CONTENT_LENGTH, HttpHeaders.TRANSFER_ENCODING};
 
 	public static final String HTTP_REQUEST_HEADER_NAME_PATTERN = "HTTP_REQUEST_HEADERS";
 

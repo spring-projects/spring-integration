@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,9 +115,9 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 	 */
 	public void setMultiSend(boolean multiSend) {
 		Assert.isTrue(this.rabbitTemplate != null
-				&& (!this.waitForConfirm || this.rabbitTemplate.getConnectionFactory().isSimplePublisherConfirms()),
+						&& (!this.waitForConfirm || this.rabbitTemplate.getConnectionFactory().isSimplePublisherConfirms()),
 				() -> "To use multiSend, " + AmqpOutboundEndpoint.this.amqpTemplate
-					+ " must be a RabbitTemplate with a ConnectionFactory configured with simple confirms");
+						+ " must be a RabbitTemplate with a ConnectionFactory configured with simple confirms");
 		this.multiSend = multiSend;
 	}
 

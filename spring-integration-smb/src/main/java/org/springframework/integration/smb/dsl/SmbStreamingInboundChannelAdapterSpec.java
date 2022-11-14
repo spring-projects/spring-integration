@@ -18,6 +18,8 @@ package org.springframework.integration.smb.dsl;
 
 import java.util.Comparator;
 
+import jcifs.smb.SmbFile;
+
 import org.springframework.integration.file.dsl.RemoteFileStreamingInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -28,8 +30,6 @@ import org.springframework.integration.smb.filters.SmbRegexPatternFileListFilter
 import org.springframework.integration.smb.filters.SmbSimplePatternFileListFilter;
 import org.springframework.integration.smb.inbound.SmbStreamingMessageSource;
 
-import jcifs.smb.SmbFile;
-
 /**
  * A {@link RemoteFileStreamingInboundChannelAdapterSpec} for a {@link SmbStreamingMessageSource}.
  *
@@ -39,7 +39,7 @@ import jcifs.smb.SmbFile;
  */
 public class SmbStreamingInboundChannelAdapterSpec
 		extends RemoteFileStreamingInboundChannelAdapterSpec<SmbFile, SmbStreamingInboundChannelAdapterSpec,
-				SmbStreamingMessageSource> {
+		SmbStreamingMessageSource> {
 
 	protected SmbStreamingInboundChannelAdapterSpec(RemoteFileTemplate<SmbFile> remoteFileTemplate,
 			Comparator<SmbFile> comparator) {

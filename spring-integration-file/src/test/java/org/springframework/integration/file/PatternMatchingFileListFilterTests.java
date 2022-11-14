@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.file;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.File;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -29,6 +27,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Mark Fisher
  * @author Gary Russell
@@ -37,7 +37,7 @@ public class PatternMatchingFileListFilterTests {
 
 	@Test
 	public void matchSingleFile() {
-		File[] files = new File[] { new File("/some/path/test.txt") };
+		File[] files = new File[] {new File("/some/path/test.txt")};
 		Pattern pattern = Pattern.compile("[a-z]+\\.txt");
 		RegexPatternFileListFilter filter = new RegexPatternFileListFilter(pattern);
 		List<File> accepted = filter.filterFiles(files);
@@ -46,7 +46,7 @@ public class PatternMatchingFileListFilterTests {
 
 	@Test
 	public void noMatchWithSingleFile() {
-		File[] files = new File[] { new File("/some/path/Test.txt") };
+		File[] files = new File[] {new File("/some/path/Test.txt")};
 		Pattern pattern = Pattern.compile("[a-z]+\\.txt");
 		RegexPatternFileListFilter filter = new RegexPatternFileListFilter(pattern);
 		List<File> accepted = filter.filterFiles(files);
@@ -59,7 +59,7 @@ public class PatternMatchingFileListFilterTests {
 				new File("/some/path/foo.txt"),
 				new File("/some/path/foo.not"),
 				new File("/some/path/bar.txt"),
-				new File("/some/path/bar.not") };
+				new File("/some/path/bar.not")};
 		Pattern pattern = Pattern.compile("[a-z]+\\.txt");
 		RegexPatternFileListFilter filter = new RegexPatternFileListFilter(pattern);
 		List<File> accepted = filter.filterFiles(files);
@@ -74,7 +74,7 @@ public class PatternMatchingFileListFilterTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"patternMatchingFileListFilterTests.xml", this.getClass());
 		FileListFilter<File> filter = (FileListFilter<File>) context.getBean("filter");
-		File[] files = new File[] { new File("/some/path/foo.txt") };
+		File[] files = new File[] {new File("/some/path/foo.txt")};
 		List<File> accepted = filter.filterFiles(files);
 		assertThat(accepted.size()).isEqualTo(1);
 		context.close();

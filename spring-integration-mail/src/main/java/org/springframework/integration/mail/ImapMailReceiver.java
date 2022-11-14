@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
 
+import com.sun.mail.imap.IMAPFolder;
 import jakarta.mail.Flags;
 import jakarta.mail.Flags.Flag;
 import jakarta.mail.Folder;
@@ -35,8 +36,6 @@ import jakarta.mail.search.SearchTerm;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
-
-import com.sun.mail.imap.IMAPFolder;
 
 /**
  * A {@link MailReceiver} implementation for receiving mail messages from a
@@ -137,7 +136,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			this.isInternalScheduler = true;
 		}
 		Properties javaMailProperties = getJavaMailProperties();
-		for (String name : new String[]{ PROTOCOL, "imaps" }) {
+		for (String name : new String[] {PROTOCOL, "imaps"}) {
 			String peek = "mail." + name + ".peek";
 			if (javaMailProperties.getProperty(peek) == null) {
 				javaMailProperties.setProperty(peek, "true");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,6 @@
  */
 
 package org.springframework.integration.handler.advice;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -70,6 +62,14 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -833,7 +833,7 @@ public class AdvisedMessageHandlerTests {
 		Method method = AbstractReplyProducingMessageHandler.class.getDeclaredMethod("handleRequestMessage",
 				Message.class);
 		when(methodInvocation.getMethod()).thenReturn(method);
-		when(methodInvocation.getArguments()).thenReturn(new Object[]{ new GenericMessage<>("foo") });
+		when(methodInvocation.getArguments()).thenReturn(new Object[] {new GenericMessage<>("foo")});
 		try {
 			doAnswer(invocation -> {
 				throw theThrowable;
@@ -889,10 +889,12 @@ public class AdvisedMessageHandlerTests {
 			}
 		};
 		PollableChannel inputChannel = new QueueChannel();
-		PollingConsumer consumer = new PollingConsumer(inputChannel, message -> { });
+		PollingConsumer consumer = new PollingConsumer(inputChannel, message -> {
+		});
 		consumer.setAdviceChain(Collections.singletonList(advice));
 		ExecutorService exec = Executors.newSingleThreadExecutor();
-		consumer.setTaskExecutor(new ErrorHandlingTaskExecutor(exec, t -> { }));
+		consumer.setTaskExecutor(new ErrorHandlingTaskExecutor(exec, t -> {
+		}));
 		consumer.setBeanFactory(mock(BeanFactory.class));
 		consumer.afterPropertiesSet();
 		consumer.setTaskScheduler(mock(TaskScheduler.class));

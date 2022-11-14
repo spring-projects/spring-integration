@@ -16,26 +16,24 @@
 
 package org.springframework.integration.mail;
 
+import java.lang.reflect.Field;
+
+import com.icegreen.greenmail.util.GreenMailUtil;
+import jakarta.mail.Flags;
+import jakarta.mail.Flags.Flag;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import org.junit.jupiter.api.Test;
+
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
+
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.lang.reflect.Field;
-
-import jakarta.mail.Flags;
-import jakarta.mail.Flags.Flag;
-import jakarta.mail.Folder;
-import jakarta.mail.Message;
-
-import org.junit.jupiter.api.Test;
-
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
-
-import com.icegreen.greenmail.util.GreenMailUtil;
 
 /**
  * @author Oleg Zhurakousky
@@ -61,7 +59,7 @@ public class Pop3MailReceiverTests {
 
 		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
-		final Message[] messages = new Message[]{ msg1, msg2 };
+		final Message[] messages = new Message[] {msg1, msg2};
 		doAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
@@ -96,7 +94,7 @@ public class Pop3MailReceiverTests {
 
 		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
-		final Message[] messages = new Message[]{ msg1, msg2 };
+		final Message[] messages = new Message[] {msg1, msg2};
 		doAnswer(invocation -> null).when(receiver).openFolder();
 
 		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
@@ -123,7 +121,7 @@ public class Pop3MailReceiverTests {
 
 		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
-		final Message[] messages = new Message[]{ msg1, msg2 };
+		final Message[] messages = new Message[] {msg1, msg2};
 		doAnswer(invocation -> null).when(receiver).openFolder();
 
 		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
@@ -150,7 +148,7 @@ public class Pop3MailReceiverTests {
 
 		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
-		final Message[] messages = new Message[]{ msg1, msg2 };
+		final Message[] messages = new Message[] {msg1, msg2};
 		doAnswer(invocation -> null).when(receiver).openFolder();
 
 		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();

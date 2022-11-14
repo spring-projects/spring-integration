@@ -683,9 +683,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 										processForceRelease(groupId, timestamp, lastModified);
 									}
 									catch (MessageDeliveryException ex) {
-											logger.warn(ex, () ->
-													"The MessageGroup [" + groupId +
-															"] is rescheduled by the reason of: ");
+										logger.warn(ex, () ->
+												"The MessageGroup [" + groupId +
+														"] is rescheduled by the reason of: ");
 										scheduleGroupToForceComplete(groupId);
 									}
 								}, startTime.toInstant());

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.stomp.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -78,6 +76,8 @@ import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrate
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

@@ -16,12 +16,6 @@
 
 package org.springframework.integration.gateway;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -97,6 +91,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ClassUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky
@@ -440,7 +440,8 @@ public class GatewayInterfaceTests {
 		org.springframework.util.concurrent.ListenableFuture<Thread> result3 =
 				this.execGateway.test3(Thread.currentThread());
 		final CountDownLatch latch1 = new CountDownLatch(1);
-		result3.addCallback(data -> latch1.countDown(), ex -> { });
+		result3.addCallback(data -> latch1.countDown(), ex -> {
+		});
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(result3.get().getName()).startsWith("exec-");
 
@@ -713,7 +714,8 @@ public class GatewayInterfaceTests {
 		@Conditional(GatewayByAnnotationGPFBCondition.class)
 		@Bean
 		PrimaryGateway notPrimaryGatewayInstance(GatewayByAnnotationGPFB annotationGPFB) {
-			return payload -> { };
+			return payload -> {
+			};
 		}
 
 	}
@@ -826,7 +828,7 @@ public class GatewayInterfaceTests {
 
 	}
 
-	@Target({ ElementType.TYPE, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface TestMessagingGateway {
 

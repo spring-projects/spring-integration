@@ -16,18 +16,6 @@
 
 package org.springframework.integration.sftp.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.AdditionalMatchers.and;
-import static org.mockito.AdditionalMatchers.not;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -70,6 +58,18 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileCopyUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.AdditionalMatchers.and;
+import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Zhurakousky
@@ -224,7 +224,7 @@ public class SftpOutboundTests {
 	}
 
 	@ParameterizedTest
-	@ValueSource(booleans = { true, false })
+	@ValueSource(booleans = {true, false})
 	public void testSharedSession(boolean sharedSession) throws IOException {
 		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);

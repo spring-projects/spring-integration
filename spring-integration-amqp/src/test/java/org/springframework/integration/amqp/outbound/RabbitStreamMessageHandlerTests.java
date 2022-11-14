@@ -16,12 +16,14 @@
 
 package org.springframework.integration.amqp.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.rabbitmq.stream.Address;
+import com.rabbitmq.stream.Consumer;
+import com.rabbitmq.stream.Environment;
+import com.rabbitmq.stream.OffsetSpecification;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.amqp.dsl.RabbitStream;
@@ -29,10 +31,7 @@ import org.springframework.integration.amqp.support.RabbitTestContainer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
 
-import com.rabbitmq.stream.Address;
-import com.rabbitmq.stream.Consumer;
-import com.rabbitmq.stream.Environment;
-import com.rabbitmq.stream.OffsetSpecification;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell

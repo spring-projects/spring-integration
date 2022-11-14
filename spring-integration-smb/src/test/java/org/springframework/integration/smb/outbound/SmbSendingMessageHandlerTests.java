@@ -16,15 +16,11 @@
 
 package org.springframework.integration.smb.outbound;
 
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import jcifs.smb.SmbFile;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +36,10 @@ import org.springframework.integration.smb.session.SmbSessionFactory;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileSystemUtils;
 
-import jcifs.smb.SmbFile;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Markus Spann

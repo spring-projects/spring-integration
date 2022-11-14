@@ -16,10 +16,6 @@
 
 package org.springframework.integration.mongodb.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.fail;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -47,6 +43,10 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Xavier Padro

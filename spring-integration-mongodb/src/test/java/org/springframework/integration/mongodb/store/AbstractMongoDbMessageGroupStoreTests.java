@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -48,6 +46,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky

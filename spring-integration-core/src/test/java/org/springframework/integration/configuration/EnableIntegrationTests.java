@@ -16,14 +16,6 @@
 
 package org.springframework.integration.configuration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -41,6 +33,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.FactoryBean;
@@ -145,8 +139,13 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Artem Bilan
@@ -157,8 +156,8 @@ import reactor.core.publisher.Mono;
  * @since 4.0
  */
 @ContextConfiguration(loader = NoBeansOverrideAnnotationConfigContextLoader.class)
-@SpringJUnitConfig(classes = { EnableIntegrationTests.ContextConfiguration.class,
-		EnableIntegrationTests.ContextConfiguration2.class })
+@SpringJUnitConfig(classes = {EnableIntegrationTests.ContextConfiguration.class,
+		EnableIntegrationTests.ContextConfiguration2.class})
 @DirtiesContext
 public class EnableIntegrationTests {
 
@@ -479,10 +478,10 @@ public class EnableIntegrationTests {
 	@DirtiesContext
 	public void testChangePatterns() {
 		assertThatIllegalStateException()
-				.isThrownBy(() -> this.configurer.setComponentNamePatterns(new String[]{ "*" }))
+				.isThrownBy(() -> this.configurer.setComponentNamePatterns(new String[] {"*"}))
 				.withMessageContaining("cannot be changed");
 		this.configurer.stop();
-		this.configurer.setComponentNamePatterns(new String[]{ "*" });
+		this.configurer.setComponentNamePatterns(new String[] {"*"});
 		assertThat(TestUtils.getPropertyValue(this.configurer, "componentNamePatterns", String[].class)[0])
 				.isEqualTo("*");
 	}
@@ -1405,7 +1404,7 @@ public class EnableIntegrationTests {
 		}
 
 		@MyServiceActivator1(inputChannel = "annInput1", autoStartup = "true",
-				adviceChain = { "annAdvice1" }, poller = @Poller(fixedRate = "2000"))
+				adviceChain = {"annAdvice1"}, poller = @Poller(fixedRate = "2000"))
 		public Integer annCount1() {
 			return 0;
 		}
@@ -1492,7 +1491,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target({ ElementType.TYPE, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel",
 			defaultRequestTimeout = "${default.request.timeout:12300}", defaultReplyTimeout = "#{13400}",
@@ -1517,13 +1516,13 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@ServiceActivator(autoStartup = "false",
 			phase = "23",
 			inputChannel = "annInput",
 			outputChannel = "annOutput",
-			adviceChain = { "annAdvice" },
+			adviceChain = {"annAdvice"},
 			poller = @Poller(fixedDelay = "1000"))
 	public @interface MyServiceActivator {
 
@@ -1534,7 +1533,7 @@ public class EnableIntegrationTests {
 		String outputChannel() default "";
 
 		@AliasFor(annotation = ServiceActivator.class, attribute = "adviceChain")
-		String[] adviceChain() default { };
+		String[] adviceChain() default {};
 
 		@AliasFor(annotation = ServiceActivator.class, attribute = "autoStartup")
 		String autoStartup() default "";
@@ -1547,7 +1546,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator
 	public @interface MyServiceActivator1 {
@@ -1556,7 +1555,7 @@ public class EnableIntegrationTests {
 
 		String outputChannel() default "";
 
-		String[] adviceChain() default { };
+		String[] adviceChain() default {};
 
 		String autoStartup() default "";
 
@@ -1566,7 +1565,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator1
 	public @interface MyServiceActivator2 {
@@ -1575,7 +1574,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator2
 	public @interface MyServiceActivator3 {
@@ -1584,7 +1583,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator3(inputChannel = "annInput3")
 	public @interface MyServiceActivator4 {
@@ -1593,7 +1592,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator4
 	public @interface MyServiceActivator5 {
@@ -1604,7 +1603,7 @@ public class EnableIntegrationTests {
 
 	// Test prevent infinite recursion
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator5
 	public @interface MyServiceActivator6 {
@@ -1613,7 +1612,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator8
 	public @interface MyServiceActivator7 {
@@ -1622,7 +1621,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MyServiceActivator7
 	public @interface MyServiceActivator8 {
@@ -1638,7 +1637,7 @@ public class EnableIntegrationTests {
 			phase = "23",
 			inputChannel = "annInput",
 			outputChannel = "annOutput",
-			adviceChain = { "annAdvice" },
+			adviceChain = {"annAdvice"},
 			poller = @Poller(fixedDelay = "1000"))
 	public @interface MyServiceActivatorNoLocalAtts {
 
@@ -1690,7 +1689,7 @@ public class EnableIntegrationTests {
 
 	}
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@InboundChannelAdapter(value = "counterChannel", autoStartup = "false", phase = "23")
 	public @interface MyInboundChannelAdapter {

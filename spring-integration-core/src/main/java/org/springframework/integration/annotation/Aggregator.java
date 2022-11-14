@@ -37,7 +37,7 @@ import org.springframework.messaging.handler.annotation.ValueConstants;
  * @author Artem Bilan
  * @author Chris Bono
  */
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Repeatable(Aggregators.class)

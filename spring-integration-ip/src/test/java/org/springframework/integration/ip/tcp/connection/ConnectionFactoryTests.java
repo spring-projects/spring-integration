@@ -16,19 +16,6 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -72,6 +59,19 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -326,7 +326,8 @@ public class ConnectionFactoryTests {
 		server.start();
 		assertThat(serverUp.await(10, TimeUnit.SECONDS)).isTrue();
 		TcpNetClientConnectionFactory clientFactory = new TcpNetClientConnectionFactory("localhost", server.getPort());
-		clientFactory.setApplicationEventPublisher(event -> { });
+		clientFactory.setApplicationEventPublisher(event -> {
+		});
 		clientFactory.setConnectionTest(conn -> {
 			CountDownLatch latch = new CountDownLatch(1);
 			AtomicBoolean result = new AtomicBoolean();
@@ -354,7 +355,7 @@ public class ConnectionFactoryTests {
 		gateway.start();
 		if (fail) {
 			assertThatExceptionOfType(MessagingException.class).isThrownBy(() ->
-					gateway.handleMessage(new GenericMessage<>("test1")))
+							gateway.handleMessage(new GenericMessage<>("test1")))
 					.withStackTraceContaining("Connection test failed for");
 		}
 		else {

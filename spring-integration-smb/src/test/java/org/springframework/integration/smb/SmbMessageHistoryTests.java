@@ -16,8 +16,6 @@
 
 package org.springframework.integration.smb;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -26,6 +24,8 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.smb.session.SmbSessionFactory;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Markus Spann

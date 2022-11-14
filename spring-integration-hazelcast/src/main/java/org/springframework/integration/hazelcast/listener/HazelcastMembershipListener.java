@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@ import java.net.SocketAddress;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
-import org.springframework.integration.hazelcast.HazelcastLocalInstanceRegistrar;
-
 import com.hazelcast.cluster.MembershipAdapter;
 import com.hazelcast.cluster.MembershipEvent;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.instance.EndpointQualifier;
 import com.hazelcast.multimap.MultiMap;
+
+import org.springframework.integration.hazelcast.HazelcastLocalInstanceRegistrar;
 
 /**
  * Hazelcast {@link MembershipAdapter} in order to listen for membership updates in the cluster.

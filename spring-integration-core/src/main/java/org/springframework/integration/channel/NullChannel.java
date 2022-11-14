@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,19 +132,23 @@ public class NullChannel implements PollableChannel,
 			((Publisher<?>) payload).subscribe(
 					new Subscriber<Object>() {
 
-						@Override public void onSubscribe(Subscription subscription) {
+						@Override
+						public void onSubscribe(Subscription subscription) {
 							subscription.request(Long.MAX_VALUE);
 						}
 
-						@Override public void onNext(Object value) {
+						@Override
+						public void onNext(Object value) {
 
 						}
 
-						@Override public void onError(Throwable ex) {
+						@Override
+						public void onError(Throwable ex) {
 							LOG.warn(ex, "An error happened in a reactive stream processing");
 						}
 
-						@Override public void onComplete() {
+						@Override
+						public void onComplete() {
 
 						}
 

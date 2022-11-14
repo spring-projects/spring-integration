@@ -16,8 +16,6 @@
 
 package org.springframework.integration.redis.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -43,6 +41,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Attoumane Ahamadi

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mqtt.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -30,6 +28,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell

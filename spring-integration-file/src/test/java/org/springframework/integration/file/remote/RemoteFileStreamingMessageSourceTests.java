@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,6 @@
  */
 
 package org.springframework.integration.file.remote;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +32,13 @@ import org.springframework.integration.file.remote.session.CachingSessionFactory
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * @author Lukas Gemela
  * @author Artem Bilan
@@ -52,7 +52,7 @@ public class RemoteFileStreamingMessageSourceTests {
 	@SuppressWarnings("unchecked")
 	public void filterOutFilesNotAcceptedByFilter() throws IOException {
 		RemoteFileTemplate<String> remoteFileTemplate = mock(RemoteFileTemplate.class);
-		when(remoteFileTemplate.list("remoteDirectory")).thenReturn(new String[] { "file1", "file2" });
+		when(remoteFileTemplate.list("remoteDirectory")).thenReturn(new String[] {"file1", "file2"});
 		Session<String> session = mock(Session.class);
 		when(session.readRaw(anyString())).thenReturn(mock(InputStream.class));
 		when(remoteFileTemplate.getSession()).thenReturn(session);
@@ -79,7 +79,7 @@ public class RemoteFileStreamingMessageSourceTests {
 	public void sessionReturnedToCacheProperlyOnDoReceive() throws IOException {
 		Session<String> session = mock(Session.class);
 		when(session.readRaw(anyString())).thenThrow(IOException.class);
-		when(session.list("remoteDirectory")).thenReturn(new String[] { "file1" });
+		when(session.list("remoteDirectory")).thenReturn(new String[] {"file1"});
 
 		SessionFactory<String> sessionFactory = mock(SessionFactory.class);
 		when(sessionFactory.getSession()).thenReturn(session);

@@ -16,11 +16,6 @@
 
 package org.springframework.integration.xmpp.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
-
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.junit.jupiter.api.Test;
@@ -31,6 +26,11 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Oleg Zhurakousky

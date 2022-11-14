@@ -16,12 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atMost;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +41,12 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atMost;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 
 /**
  * @author Oleg Zhurakousky

@@ -77,7 +77,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		super(url, clientId);
 		Assert.hasText(url, "'url' cannot be null or empty");
 		this.connectionOptions = new MqttConnectionOptions();
-		this.connectionOptions.setServerURIs(new String[]{ url });
+		this.connectionOptions.setServerURIs(new String[] {url});
 		this.connectionOptions.setAutomaticReconnect(true);
 	}
 

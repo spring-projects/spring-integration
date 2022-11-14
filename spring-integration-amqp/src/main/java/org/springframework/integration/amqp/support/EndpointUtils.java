@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package org.springframework.integration.amqp.support;
 
 import java.util.List;
 
+import com.rabbitmq.client.Channel;
+
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
-
-import com.rabbitmq.client.Channel;
 
 /**
  * Utility methods for messaging endpoints.
@@ -53,7 +53,7 @@ public final class EndpointUtils {
 
 		return isManualAck
 				? new ManualAckListenerExecutionFailedException(LEFE_MESSAGE, ex, channel,
-						message.getMessageProperties().getDeliveryTag(), message)
+				message.getMessageProperties().getDeliveryTag(), message)
 				: new ListenerExecutionFailedException(LEFE_MESSAGE, ex, message);
 	}
 
@@ -72,8 +72,8 @@ public final class EndpointUtils {
 
 		return isManualAck
 				? new ManualAckListenerExecutionFailedException(LEFE_MESSAGE, ex, channel,
-						messages.get(messages.size() - 1).getMessageProperties().getDeliveryTag(),
-						messages.toArray(new Message[0]))
+				messages.get(messages.size() - 1).getMessageProperties().getDeliveryTag(),
+				messages.toArray(new Message[0]))
 				: new ListenerExecutionFailedException(LEFE_MESSAGE, ex, messages.toArray(new Message[0]));
 	}
 

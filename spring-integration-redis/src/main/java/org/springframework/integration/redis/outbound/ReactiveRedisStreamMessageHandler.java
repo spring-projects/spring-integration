@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.redis.outbound;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.StreamRecords;
@@ -31,8 +33,6 @@ import org.springframework.integration.handler.AbstractReactiveMessageHandler;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Mono;
 
 /**
  * Implementation of {@link org.springframework.messaging.ReactiveMessageHandler} which writes
@@ -124,7 +124,7 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 				this.hashMapper == null
 						? template.opsForStream()
 						: template.opsForStream(
-								(HashMapper<? super String, ? super Object, ? super Object>) this.hashMapper);
+						(HashMapper<? super String, ? super Object, ? super Object>) this.hashMapper);
 	}
 
 	@Override

@@ -16,9 +16,6 @@
 
 package org.springframework.integration.redis.util;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -51,6 +48,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
 import org.springframework.integration.test.util.TestUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Gary Russell

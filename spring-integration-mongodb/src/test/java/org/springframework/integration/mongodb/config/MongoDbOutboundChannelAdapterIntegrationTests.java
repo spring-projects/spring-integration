@@ -16,8 +16,7 @@
 
 package org.springframework.integration.mongodb.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.mongodb.BasicDBObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +30,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.mongodb.BasicDBObject;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky

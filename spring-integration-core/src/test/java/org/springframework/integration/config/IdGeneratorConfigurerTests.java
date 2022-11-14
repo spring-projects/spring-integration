@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -32,6 +29,9 @@ import org.springframework.integration.support.IdGenerators.SimpleIncrementingId
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.IdGenerator;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Gary Russell
@@ -91,7 +91,8 @@ public class IdGeneratorConfigurerTests {
 
 	@Test
 	public void testTwoContextsSameClass() {
-		try (GenericApplicationContext context = new GenericApplicationContext();
+		try (
+				GenericApplicationContext context = new GenericApplicationContext();
 				GenericApplicationContext context2 = new GenericApplicationContext()) {
 
 			context.registerBeanDefinition("bfpp",
@@ -154,7 +155,8 @@ public class IdGeneratorConfigurerTests {
 
 	@Test
 	public void testTwoContextDifferentClass() {
-		try (GenericApplicationContext context = new GenericApplicationContext();
+		try (
+				GenericApplicationContext context = new GenericApplicationContext();
 				GenericApplicationContext context2 = new GenericApplicationContext()) {
 
 			context.registerBeanDefinition("bfpp", new RootBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class));

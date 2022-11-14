@@ -147,7 +147,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private String domain = DEFAULT_DOMAIN;
 
-	private String[] componentNamePatterns = { "*" };
+	private String[] componentNamePatterns = {"*"};
 
 	private volatile long shutdownDeadline;
 

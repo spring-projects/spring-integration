@@ -16,8 +16,8 @@
 
 package org.springframework.integration.hazelcast.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.hazelcast.core.EntryEventType;
+import com.hazelcast.replicatedmap.ReplicatedMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,8 +32,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.hazelcast.core.EntryEventType;
-import com.hazelcast.replicatedmap.ReplicatedMap;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Hazelcast Replicated Map Event Driven Inbound Channel Adapter Test
@@ -44,7 +43,7 @@ import com.hazelcast.replicatedmap.ReplicatedMap;
 @RunWith(SpringRunner.class)
 @ContextConfiguration
 @DirtiesContext
-@SuppressWarnings({ "unchecked", "rawtypes" })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class HazelcastReplicatedMapEventDrivenInboundChannelAdapterTests {
 
 	@Autowired

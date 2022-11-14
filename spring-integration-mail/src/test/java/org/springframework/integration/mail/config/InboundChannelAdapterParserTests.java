@@ -16,11 +16,7 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import jakarta.mail.Authenticator;
-
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXParseException;
 
@@ -41,6 +37,9 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,6 +30,8 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
@@ -57,6 +57,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 		assertThat(conversionService.canConvert(TestBean1.class, TestBean2.class)).isTrue();
 		assertThat(conversionService.canConvert(TestBean1.class, TestBean3.class)).isTrue();
 	}
+
 	@Test
 	public void testParentConversionServiceAvailability() {
 		ClassPathXmlApplicationContext parentContext = new ClassPathXmlApplicationContext(
@@ -83,7 +84,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 	}
 
 
-	private static class TestBean1  {
+	private static class TestBean1 {
 
 		private final String text;
 
@@ -110,6 +111,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 		}
 
 	}
+
 	private static class TestBean3 {
 
 		private final String text;

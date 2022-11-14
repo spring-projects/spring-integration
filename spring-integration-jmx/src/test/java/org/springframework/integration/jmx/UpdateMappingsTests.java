@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.jmx;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +37,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -95,7 +95,7 @@ public class UpdateMappingsTests {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
 		Set<ObjectName> names = this.server.queryNames(ObjectName
-				.getInstance("update.mapping.domain:type=MessageHandler,name=router,bean=endpoint"),
+						.getInstance("update.mapping.domain:type=MessageHandler,name=router,bean=endpoint"),
 				null);
 		assertThat(names.size()).isEqualTo(1);
 		Map<String, String> map = new HashMap<String, String>();
@@ -103,7 +103,7 @@ public class UpdateMappingsTests {
 		map.put("baz", "qux");
 		Object[] params = new Object[] {map};
 		this.server.invoke(names.iterator().next(), "setChannelMappings", params,
-				new String[] { "java.util.Map" });
+				new String[] {"java.util.Map"});
 		Map<?, ?> mappings = messagingTemplate.convertSendAndReceive(control, "@'router.handler'.getChannelMappings()", Map.class);
 		assertThat(mappings).isNotNull();
 		assertThat(mappings.size()).isEqualTo(2);

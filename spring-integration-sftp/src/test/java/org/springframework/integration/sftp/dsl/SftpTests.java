@@ -16,8 +16,6 @@
 
 package org.springframework.integration.sftp.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.attribute.PosixFilePermission;
@@ -53,6 +51,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

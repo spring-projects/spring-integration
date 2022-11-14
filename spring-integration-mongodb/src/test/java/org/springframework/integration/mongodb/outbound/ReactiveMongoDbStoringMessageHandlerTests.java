@@ -16,12 +16,6 @@
 
 package org.springframework.integration.mongodb.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,6 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +43,11 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import reactor.core.publisher.Mono;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Amol Nayak

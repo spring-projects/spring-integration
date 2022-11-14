@@ -16,22 +16,6 @@
 
 package org.springframework.integration.kafka.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -86,6 +70,22 @@ import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+
 
 /**
  * @author Gary Russell
@@ -97,7 +97,7 @@ import org.springframework.messaging.Message;
  */
 class MessageSourceTests {
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testIllegalArgs() {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
@@ -106,7 +106,7 @@ class MessageSourceTests {
 				.hasMessage("topics, topicPattern, or topicPartitions must be provided");
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	void testConsumerAwareRebalanceListener() {
 		Consumer consumer = mock(Consumer.class);
@@ -156,7 +156,7 @@ class MessageSourceTests {
 		assertThat(partitionsRevokedConsumer.get()).isEqualTo(consumer);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	void testRebalanceListener() {
 		Consumer consumer = mock(Consumer.class);
@@ -233,7 +233,7 @@ class MessageSourceTests {
 		testAckCommon(false, false);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	private void testAckCommon(boolean sync, boolean timeout) {
 		Consumer consumer = mock(Consumer.class);
 		TopicPartition topicPartition = new TopicPartition("foo", 0);
@@ -341,7 +341,7 @@ class MessageSourceTests {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void checkCommit(boolean sync, boolean timeout, Consumer consumer, TopicPartition topicPartition,
 			OffsetCommitCallback commitCallback, InOrder inOrder, long offset) {
 
@@ -363,7 +363,7 @@ class MessageSourceTests {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testAckOutOfOrder() {
 		Consumer consumer = mock(Consumer.class);
@@ -459,7 +459,7 @@ class MessageSourceTests {
 		inOrder.verifyNoMoreInteractions();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testNack() {
 		Consumer consumer = mock(Consumer.class);
@@ -530,7 +530,7 @@ class MessageSourceTests {
 		inOrder.verifyNoMoreInteractions();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testNackWithLaterInflight() {
 		Consumer consumer = mock(Consumer.class);
@@ -618,7 +618,7 @@ class MessageSourceTests {
 		inOrder.verifyNoMoreInteractions();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testMaxPollRecords() {
 		KafkaMessageSource source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(Collections.emptyMap()),
@@ -632,12 +632,13 @@ class MessageSourceTests {
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() ->
-						new KafkaMessageSource((new DefaultKafkaConsumerFactory(Collections.emptyMap()) { }),
+						new KafkaMessageSource((new DefaultKafkaConsumerFactory(Collections.emptyMap()) {
+						}),
 								new ConsumerProperties("topic")))
 				.withMessageContaining(ConsumerConfig.MAX_POLL_RECORDS_CONFIG);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testPollTimeouts() {
 		Consumer consumer = mock(Consumer.class);
@@ -700,7 +701,7 @@ class MessageSourceTests {
 		inOrder.verify(consumer).poll(Duration.of(20 * 5000, ChronoUnit.MILLIS));
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testAllowMulti() {
 		Consumer consumer = mock(Consumer.class);
@@ -830,7 +831,7 @@ class MessageSourceTests {
 		source.destroy();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testStaticPartitionAssignment() {
 		MockConsumer<String, String> consumer = spy(new MockConsumer<>(OffsetResetStrategy.EARLIEST));
@@ -903,7 +904,7 @@ class MessageSourceTests {
 		ConsumerRecord<String, String> p5r2 = new ConsumerRecord<>("foo", 5, 2, null, "p5r2");
 		ConsumerRecord<String, String> p5r3 = new ConsumerRecord<>("foo", 5, 3, null, "p5r3");
 		Arrays.asList(p0r0, p0r1, p0r2, p0r3, p1r0, p1r1, p1r2, p1r3, p2r0, p2r1, p2r2, p2r3, p3r0, p3r1, p3r2, p3r3,
-				p4r0, p4r1, p4r2, p4r3, p5r0, p5r1, p5r2, p5r3)
+						p4r0, p4r1, p4r2, p4r3, p5r0, p5r1, p5r2, p5r3)
 				.forEach(consumer::addRecord);
 
 

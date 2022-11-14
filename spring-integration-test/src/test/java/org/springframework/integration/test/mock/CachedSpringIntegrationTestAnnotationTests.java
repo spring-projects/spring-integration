@@ -16,8 +16,6 @@
 
 package org.springframework.integration.test.mock;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +25,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.context.SpringIntegrationTest;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

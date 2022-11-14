@@ -59,7 +59,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	private int soSendBufferSize = -1;
 
-	private SocketCustomizer socketCustomizer = (aSocket) -> { };
+	private SocketCustomizer socketCustomizer = (aSocket) -> {
+	};
 
 	/**
 	 * Constructs a UnicastReceivingChannelAdapter that listens on the specified port.

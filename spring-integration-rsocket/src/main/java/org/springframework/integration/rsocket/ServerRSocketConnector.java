@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,15 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import io.rsocket.core.RSocketServer;
+import io.rsocket.transport.ServerTransport;
+import io.rsocket.transport.netty.server.CloseableChannel;
+import io.rsocket.transport.netty.server.TcpServerTransport;
+import io.rsocket.transport.netty.server.WebsocketServerTransport;
+import reactor.core.Disposable;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.server.HttpServer;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,15 +39,6 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
-
-import io.rsocket.core.RSocketServer;
-import io.rsocket.transport.ServerTransport;
-import io.rsocket.transport.netty.server.CloseableChannel;
-import io.rsocket.transport.netty.server.TcpServerTransport;
-import io.rsocket.transport.netty.server.WebsocketServerTransport;
-import reactor.core.Disposable;
-import reactor.core.publisher.Mono;
-import reactor.netty.http.server.HttpServer;
 
 /**
  * A server {@link AbstractRSocketConnector} extension to accept and manage client RSocket connections.

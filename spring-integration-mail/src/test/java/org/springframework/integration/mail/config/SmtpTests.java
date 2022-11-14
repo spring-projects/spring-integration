@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.ServerSetup;
+import com.icegreen.greenmail.util.ServerSetupTest;
 import jakarta.mail.Message.RecipientType;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -31,9 +31,7 @@ import org.springframework.integration.mail.MailSendingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-import com.icegreen.greenmail.util.GreenMail;
-import com.icegreen.greenmail.util.ServerSetup;
-import com.icegreen.greenmail.util.ServerSetupTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -71,7 +69,7 @@ public class SmtpTests {
 		MailSendingMessageHandler handler = new MailSendingMessageHandler(mailSender);
 
 		handler.handleMessage(MessageBuilder.withPayload("foo")
-				.setHeader(MailHeaders.TO, new String[]{ "bar@baz" })
+				.setHeader(MailHeaders.TO, new String[] {"bar@baz"})
 				.setHeader(MailHeaders.FROM, "foo@bar")
 				.setHeader(MailHeaders.SUBJECT, "foo")
 				.build());

@@ -27,7 +27,6 @@ import java.util.concurrent.ScheduledFuture;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
-
 import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;

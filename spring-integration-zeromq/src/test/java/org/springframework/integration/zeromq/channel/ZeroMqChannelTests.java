@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.zeromq.channel;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -33,6 +30,7 @@ import org.zeromq.ZAuth;
 import org.zeromq.ZCert;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
+import reactor.core.publisher.Mono;
 
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
 import org.springframework.integration.test.util.TestUtils;
@@ -40,7 +38,8 @@ import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
-import reactor.core.publisher.Mono;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
@@ -66,7 +65,8 @@ public class ZeroMqChannelTests {
 		AtomicBoolean customMessageMapperCalled = new AtomicBoolean();
 		channel.setMessageMapper(new EmbeddedJsonHeadersMessageMapper() {
 
-			@Override public Message<?> toMessage(byte[] bytes, Map<String, Object> headers) {
+			@Override
+			public Message<?> toMessage(byte[] bytes, Map<String, Object> headers) {
 				customMessageMapperCalled.set(true);
 				return super.toMessage(bytes, headers);
 			}

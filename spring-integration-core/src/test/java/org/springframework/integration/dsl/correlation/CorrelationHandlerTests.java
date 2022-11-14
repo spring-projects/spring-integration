@@ -16,8 +16,6 @@
 
 package org.springframework.integration.dsl.correlation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,8 +23,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,10 +55,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -167,7 +166,7 @@ public class CorrelationHandlerTests {
 				.isNotNull()
 				.extracting(Message::getPayload)
 				.isInstanceOf(ArrayNode.class)
-				.extracting(new String[] { "_children" })
+				.extracting(new String[] {"_children"})
 				.element(0)
 				.asList()
 				.hasSize(0);
@@ -191,13 +190,13 @@ public class CorrelationHandlerTests {
 		@SuppressWarnings("unchecked")
 		Flux<Message<?>> window =
 				registration.getMessagingTemplate()
-						.convertSendAndReceive(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, Flux.class);
+						.convertSendAndReceive(new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, Flux.class);
 
 		assertThat(window).isNotNull();
 
 		StepVerifier.create(
-				window.map(Message::getPayload)
-						.cast(Integer.class))
+						window.map(Message::getPayload)
+								.cast(Integer.class))
 				.expectNextSequence(IntStream.range(0, 10).boxed().collect(Collectors.toList()))
 				.verifyComplete();
 

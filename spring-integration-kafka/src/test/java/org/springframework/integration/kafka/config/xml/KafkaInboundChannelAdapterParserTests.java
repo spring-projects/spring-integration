@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.kafka.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +27,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -53,21 +53,21 @@ public class KafkaInboundChannelAdapterParserTests {
 
 	@Test
 	public void testProps() {
-		assertThat(TestUtils.getPropertyValue(this.source1, "consumerProperties.topics")).isEqualTo(new String[] { "topic1" });
+		assertThat(TestUtils.getPropertyValue(this.source1, "consumerProperties.topics")).isEqualTo(new String[] {"topic1"});
 		assertThat(TestUtils.getPropertyValue(this.source1, "consumerFactory"))
-			.isSameAs(this.context.getBean("consumerFactory"));
+				.isSameAs(this.context.getBean("consumerFactory"));
 		assertThat(TestUtils.getPropertyValue(this.source1, "ackCallbackFactory"))
-			.isSameAs(this.context.getBean("ackFactory"));
+				.isSameAs(this.context.getBean("ackFactory"));
 		assertThat(TestUtils.getPropertyValue(this.source1, "consumerProperties.clientId")).isEqualTo("client");
 		assertThat(TestUtils.getPropertyValue(this.source1, "consumerProperties.groupId")).isEqualTo("group");
 		assertThat(TestUtils.getPropertyValue(this.source1, "messageConverter"))
-			.isSameAs(this.context.getBean("converter"));
+				.isSameAs(this.context.getBean("converter"));
 		assertThat(TestUtils.getPropertyValue(this.source1, "payloadType")).isEqualTo(String.class);
 		assertThat(TestUtils.getPropertyValue(this.source1, "rawMessageHeader", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(this.source1, "consumerProperties.consumerRebalanceListener"))
-			.isSameAs(this.context.getBean("rebal"));
+				.isSameAs(this.context.getBean("rebal"));
 
-		assertThat(TestUtils.getPropertyValue(this.source2, "consumerProperties.topics")).isEqualTo(new String[] { "topic1", "topic2" });
+		assertThat(TestUtils.getPropertyValue(this.source2, "consumerProperties.topics")).isEqualTo(new String[] {"topic1", "topic2"});
 		DefaultKafkaConsumerFactory<?, ?> cf = TestUtils.getPropertyValue(this.source2, "consumerFactory",
 				DefaultKafkaConsumerFactory.class);
 		assertThat(cf).isSameAs(this.context.getBean("multiFetchConsumerFactory"));

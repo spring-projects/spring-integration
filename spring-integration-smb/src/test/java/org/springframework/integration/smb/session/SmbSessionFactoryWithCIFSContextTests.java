@@ -16,16 +16,13 @@
 
 package org.springframework.integration.smb.session;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import jcifs.CIFSContext;
+import jcifs.context.SingletonContext;
+import jcifs.smb.SmbFile;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,9 +37,11 @@ import org.springframework.integration.smb.AbstractBaseTests;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileSystemUtils;
 
-import jcifs.CIFSContext;
-import jcifs.context.SingletonContext;
-import jcifs.smb.SmbFile;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gregory Bragg

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public final class ChannelInitializer implements BeanFactoryAware, InitializingB
 			return;
 		}
 		else {
-			AutoCreateCandidatesCollector channelCandidatesCollector  =
+			AutoCreateCandidatesCollector channelCandidatesCollector =
 					this.beanFactory.getBean(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME,
 							AutoCreateCandidatesCollector.class);
 			// at this point channelNames are all resolved with placeholders and SpEL

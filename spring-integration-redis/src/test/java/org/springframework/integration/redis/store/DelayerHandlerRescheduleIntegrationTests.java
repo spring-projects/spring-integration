@@ -16,9 +16,6 @@
 
 package org.springframework.integration.redis.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -37,6 +34,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Artem Bilan

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.splitter;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,6 +23,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
@@ -35,8 +35,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
@@ -48,7 +47,7 @@ class DefaultSplitterTests {
 
 	@Test
 	void splitMessageWithArrayPayload() {
-		String[] payload = new String[] { "x", "y", "z" };
+		String[] payload = new String[] {"x", "y", "z"};
 		Message<String[]> message = MessageBuilder.withPayload(payload).build();
 		QueueChannel replyChannel = new QueueChannel();
 		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
@@ -159,7 +158,7 @@ class DefaultSplitterTests {
 
 	@Test
 	void splitArrayPayloadReactive() {
-		Message<?> message = new GenericMessage<>(new String[] { "x", "y", "z" });
+		Message<?> message = new GenericMessage<>(new String[] {"x", "y", "z"});
 		FluxMessageChannel replyChannel = new FluxMessageChannel();
 
 		Flux<String> testFlux =

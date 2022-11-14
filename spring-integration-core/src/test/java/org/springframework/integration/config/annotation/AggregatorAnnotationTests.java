@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
-
 import java.lang.reflect.Method;
 
 import org.junit.Test;
@@ -34,6 +31,9 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
+
 /**
  * @author Marius Bogoevici
  * @author Mark Fisher
@@ -45,7 +45,7 @@ public class AggregatorAnnotationTests {
 	@Test
 	public void testAnnotationWithDefaultSettings() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
+				new String[] {"classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml"});
 		final String endpointName = "endpointWithDefaultAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		assertThat(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy)
@@ -59,7 +59,7 @@ public class AggregatorAnnotationTests {
 	@Test
 	public void testAnnotationWithCustomSettings() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
+				new String[] {"classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml"});
 		final String endpointName = "endpointWithCustomizedAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		assertThat(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy)
@@ -74,7 +74,7 @@ public class AggregatorAnnotationTests {
 	@Test
 	public void testAnnotationWithCustomReleaseStrategy() throws Exception {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
+				new String[] {"classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml"});
 		final String endpointName = "endpointWithDefaultAnnotationAndCustomReleaseStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		Object releaseStrategy = getPropertyValue(aggregator, "releaseStrategy");
@@ -92,7 +92,7 @@ public class AggregatorAnnotationTests {
 	@Test
 	public void testAnnotationWithCustomCorrelationStrategy() throws Exception {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
+				new String[] {"classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml"});
 		final String endpointName = "endpointWithCorrelationStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		Object correlationStrategy = getPropertyValue(aggregator, "correlationStrategy");

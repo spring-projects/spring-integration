@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +29,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.camel.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.spring.SpringCamelContext;
@@ -35,6 +33,8 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

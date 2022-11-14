@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,9 +66,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 	static {
 		cannedHeaderElementExpressions.put("header-channels-to-string", new String[][] {
 				{"replyChannel", "@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
-						+ ".channelToChannelName(headers.replyChannel, ####)" },
+						+ ".channelToChannelName(headers.replyChannel, ####)"},
 				{"errorChannel", "@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
-						+ ".channelToChannelName(headers.errorChannel, ####)" },
+						+ ".channelToChannelName(headers.errorChannel, ####)"},
 		});
 	}
 
@@ -280,7 +280,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			}
 			valueProcessorBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
-					.addConstructorArgValue(headerValue);
+							.addConstructorArgValue(headerValue);
 		}
 		return valueProcessorBuilder;
 	}

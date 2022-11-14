@@ -16,10 +16,6 @@
 
 package org.springframework.integration.dsl.routers;
 
-import static org.assertj.core.api.Assertions.as;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +58,10 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import static org.assertj.core.api.Assertions.as;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 /**
  * @author Artem Bilan
  * @author Gary Russell
@@ -93,7 +93,7 @@ public class RouterTests {
 	public void testRouter() {
 		this.beanFactory.containsBean("routeFlow.subFlow#0.channel#0");
 
-		int[] payloads = { 1, 2, 3, 4, 5, 6 };
+		int[] payloads = {1, 2, 3, 4, 5, 6};
 
 		for (int payload : payloads) {
 			this.routerInput.send(new GenericMessage<>(payload));
@@ -628,7 +628,7 @@ public class RouterTests {
 
 	@Configuration
 	@EnableIntegration
-	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
+	@EnableMessageHistory({"recipientListOrder*", "recipient1*", "recipient2*"})
 	public static class ContextConfiguration {
 
 		@Bean
@@ -749,7 +749,7 @@ public class RouterTests {
 		public IntegrationFlow routeMultiMethodInvocationFlow() {
 			return IntegrationFlow.from("routerMultiInput")
 					.route(String.class, p -> p.equals("foo") || p.equals("bar")
-									? new String[]{ "foo", "bar" }
+									? new String[] {"foo", "bar"}
 									: null,
 							s -> s.suffix("-channel"))
 					.get();

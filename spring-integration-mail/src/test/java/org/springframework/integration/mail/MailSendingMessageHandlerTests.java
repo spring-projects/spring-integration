@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,20 @@
 
 package org.springframework.integration.mail;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.DataInputStream;
 
 import jakarta.mail.Message;
 import jakarta.mail.Multipart;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mail.SimpleMailMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Marius Bogoevici
@@ -69,7 +68,7 @@ public class MailSendingMessageHandlerTests {
 
 	@Test
 	public void byteArrayMessage() throws Exception {
-		byte[] payload = { 1, 2, 3 };
+		byte[] payload = {1, 2, 3};
 		org.springframework.messaging.Message<byte[]> message =
 				MessageBuilder.withPayload(payload)
 						.setHeader(MailHeaders.ATTACHMENT_FILENAME, "attachment.txt")
@@ -115,7 +114,7 @@ public class MailSendingMessageHandlerTests {
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		mailMessage.getTo();
 		this.handler.handleMessage(MessageBuilder.withPayload(mailMessage)
-				.setHeader(MailHeaders.TO, new String[]{ "foo@bar.bam" }).build());
+				.setHeader(MailHeaders.TO, new String[] {"foo@bar.bam"}).build());
 		assertThat(mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
 				.isEqualTo(1);
 		SimpleMailMessage sentMessage = mailSender.getSentSimpleMailMessages().get(0);

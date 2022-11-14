@@ -16,9 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -44,6 +41,9 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * See INT-1688 for background.
@@ -346,6 +346,5 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		}
 
 	}
-
 
 }

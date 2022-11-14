@@ -19,11 +19,11 @@ package org.springframework.integration.gateway;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Payload;
-
-import reactor.core.publisher.Mono;
 
 /**
  * @author Mark Fisher

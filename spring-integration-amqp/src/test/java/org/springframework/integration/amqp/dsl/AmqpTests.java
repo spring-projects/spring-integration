@@ -16,17 +16,13 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.rabbitmq.stream.ConsumerBuilder;
+import com.rabbitmq.stream.Environment;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
@@ -75,8 +71,11 @@ import org.springframework.rabbit.stream.listener.ConsumerCustomizer;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.rabbitmq.stream.ConsumerBuilder;
-import com.rabbitmq.stream.Environment;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Artem Bilan
@@ -85,9 +84,9 @@ import com.rabbitmq.stream.Environment;
  * @since 5.0
  */
 @SpringJUnitConfig
-@RabbitAvailable(queues = { "amqpOutboundInput", "amqpReplyChannel", "asyncReplies",
+@RabbitAvailable(queues = {"amqpOutboundInput", "amqpReplyChannel", "asyncReplies",
 		"defaultReplyTo", "si.dsl.test", "si.dsl.exception.test.dlq",
-		"si.dsl.conv.exception.test.dlq", "testTemplateChannelTransacted" })
+		"si.dsl.conv.exception.test.dlq", "testTemplateChannelTransacted"})
 @DirtiesContext
 public class AmqpTests {
 
@@ -169,7 +168,7 @@ public class AmqpTests {
 	@Test
 	public void testTemplateChannelTransacted() {
 		IntegrationFlowBuilder flow = IntegrationFlow.from(Amqp.channel("testTemplateChannelTransacted",
-				this.rabbitConnectionFactory)
+						this.rabbitConnectionFactory)
 				.autoStartup(false)
 				.templateChannelTransacted(true));
 		assertThat(TestUtils.getPropertyValue(flow, "currentMessageChannel.amqpTemplate.transactional",
@@ -365,10 +364,10 @@ public class AmqpTests {
 		@Bean
 		public IntegrationFlow amqpInboundFlow(ConnectionFactory rabbitConnectionFactory) {
 			return IntegrationFlow.from(Amqp.inboundAdapter(rabbitConnectionFactory, fooQueue())
-						.configureContainer(container -> container.consumerBatchEnabled(true)
-								.batchSize(2))
-						.batchMode(BatchMode.EXTRACT_PAYLOADS)
-						.id("amqpInboundFlowAdapter"))
+							.configureContainer(container -> container.consumerBatchEnabled(true)
+									.batchSize(2))
+							.batchMode(BatchMode.EXTRACT_PAYLOADS)
+							.id("amqpInboundFlowAdapter"))
 					.transform(String.class, String::toUpperCase)
 					.channel(Amqp.pollableChannel(rabbitConnectionFactory)
 							.queueName("amqpReplyChannel")
@@ -403,8 +402,8 @@ public class AmqpTests {
 		@Bean
 		public IntegrationFlow inboundWithExceptionFlow(ConnectionFactory cf) {
 			return IntegrationFlow.from(Amqp.inboundAdapter(cf, exQueue())
-					.configureContainer(c -> c.defaultRequeueRejected(false))
-					.errorChannel("errors.input"))
+							.configureContainer(c -> c.defaultRequeueRejected(false))
+							.errorChannel("errors.input"))
 					.handle(m -> {
 						throw new RuntimeException("fail");
 					})
@@ -440,17 +439,17 @@ public class AmqpTests {
 		@Bean
 		public IntegrationFlow inboundWithConvExceptionFlow(ConnectionFactory cf) {
 			return IntegrationFlow.from(Amqp.inboundAdapter(cf, exConvQueue())
-					.configureContainer(c -> c.defaultRequeueRejected(false))
-					.messageConverter(new SimpleMessageConverter() {
+							.configureContainer(c -> c.defaultRequeueRejected(false))
+							.messageConverter(new SimpleMessageConverter() {
 
-						@Override
-						public Object fromMessage(org.springframework.amqp.core.Message message)
-								throws MessageConversionException {
-							throw new MessageConversionException("fail");
-						}
+								@Override
+								public Object fromMessage(org.springframework.amqp.core.Message message)
+										throws MessageConversionException {
+									throw new MessageConversionException("fail");
+								}
 
-					})
-					.errorChannel("errors.input"))
+							})
+							.errorChannel("errors.input"))
 					.get();
 		}
 

@@ -74,7 +74,7 @@ public class FtpMessageHandler extends FileTransferringMessageHandler<FTPFile> {
 				client.sendSiteCommand(chModCommand);
 			}
 			catch (IOException e) {
-				throw new UncheckedIOException("Failed to execute '" + chModCommand  + "'", e);
+				throw new UncheckedIOException("Failed to execute '" + chModCommand + "'", e);
 			}
 		});
 	}

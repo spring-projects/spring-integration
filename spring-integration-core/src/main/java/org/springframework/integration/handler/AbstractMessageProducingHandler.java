@@ -29,6 +29,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -54,10 +57,6 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 /**
  * The base {@link AbstractMessageHandler} implementation for the {@link MessageProducer}.
@@ -165,7 +164,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 
 		if (headerPatterns.contains("*")) {
-			this.notPropagatedHeaders = new String[]{ "*" };
+			this.notPropagatedHeaders = new String[] {"*"};
 			this.noHeadersPropagation = true;
 		}
 

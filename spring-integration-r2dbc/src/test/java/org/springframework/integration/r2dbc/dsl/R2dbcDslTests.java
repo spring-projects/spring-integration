@@ -16,14 +16,14 @@
 
 package org.springframework.integration.r2dbc.dsl;
 
-import static org.awaitility.Awaitility.await;
-
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.Lifecycle;
@@ -43,8 +43,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
@@ -103,10 +102,10 @@ public class R2dbcDslTests {
 		IntegrationFlow r2dbcDslFlow(R2dbcEntityTemplate r2dbcEntityTemplate) {
 			return IntegrationFlow
 					.from(R2dbc.inboundChannelAdapter(r2dbcEntityTemplate,
-							(selectCreator) ->
-									selectCreator.createSelect("person")
-											.withProjection("*")
-											.withCriteria(Criteria.where("id").is(1)))
+											(selectCreator) ->
+													selectCreator.createSelect("person")
+															.withProjection("*")
+															.withCriteria(Criteria.where("id").is(1)))
 									.expectSingleResult(true)
 									.payloadType(Person.class)
 									.updateSql("UPDATE Person SET id='2' where id = :id")

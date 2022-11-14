@@ -16,9 +16,6 @@
 
 package org.springframework.integration.security.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -73,6 +70,9 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -335,7 +335,7 @@ public class ChannelSecurityAnnotationTests {
 		@GlobalChannelInterceptor(patterns = {
 				"#{'queueChannel'}",
 				"${security.channel:executorChannel}",
-				"publishSubscribeChannel" })
+				"publishSubscribeChannel"})
 		public ChannelInterceptor securityContextPropagationInterceptor() {
 			return new SecurityContextPropagationChannelInterceptor();
 		}

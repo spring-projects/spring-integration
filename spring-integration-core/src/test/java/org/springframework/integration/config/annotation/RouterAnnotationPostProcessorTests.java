@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -35,6 +33,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
@@ -55,7 +55,6 @@ public class RouterAnnotationPostProcessorTests {
 	private final QueueChannel integerChannel = new QueueChannel();
 
 	private final QueueChannel stringChannel = new QueueChannel();
-
 
 
 	@BeforeEach

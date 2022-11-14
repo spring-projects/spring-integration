@@ -781,14 +781,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			String remoteDir, String remoteFilePath, String remoteFileNewPath) {
 
 		return this.remoteFileTemplate.execute(session -> {
-					Boolean result = mv(requestMessage, session, remoteFilePath, remoteFileNewPath);
-					return getMessageBuilderFactory()
-							.withPayload(result)
-							.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-							.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-							.setHeader(FileHeaders.RENAME_TO, remoteFileNewPath)
-							.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
-				});
+			Boolean result = mv(requestMessage, session, remoteFilePath, remoteFileNewPath);
+			return getMessageBuilderFactory()
+					.withPayload(result)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
+					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
+					.setHeader(FileHeaders.RENAME_TO, remoteFileNewPath)
+					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
+		});
 	}
 
 	/**

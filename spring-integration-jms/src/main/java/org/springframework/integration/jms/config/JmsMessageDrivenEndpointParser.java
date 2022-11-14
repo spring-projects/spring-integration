@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -256,7 +256,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 				+ ".listener";
 		BeanDefinition beanDefinition = builder.getBeanDefinition();
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
-		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName, new String[]{ alias });
+		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName, new String[] {alias});
 		parserContext.registerBeanComponent(component);
 		return beanName;
 	}

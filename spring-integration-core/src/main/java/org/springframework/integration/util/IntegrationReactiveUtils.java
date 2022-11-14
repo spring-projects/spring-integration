@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,11 @@ import java.util.concurrent.locks.LockSupport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AckUtils;
@@ -32,12 +37,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-import reactor.core.scheduler.Schedulers;
-import reactor.util.retry.Retry;
 
 /**
  * Utilities for adapting integration components to/from reactive types.
@@ -80,7 +79,7 @@ public final class IntegrationReactiveUtils {
 	public static <T> Flux<Message<T>> messageSourceToFlux(MessageSource<T> messageSource) {
 		return Mono.
 				<Message<T>>create(monoSink ->
-						monoSink.onRequest(value -> monoSink.success(messageSource.receive())))
+				monoSink.onRequest(value -> monoSink.success(messageSource.receive())))
 				.doOnSuccess((message) -> {
 					if (message != null) {
 						AckUtils.autoAck(StaticMessageHeaderAccessor.getAcknowledgmentCallback(message));

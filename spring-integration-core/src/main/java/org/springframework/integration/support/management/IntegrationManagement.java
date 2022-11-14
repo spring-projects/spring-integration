@@ -16,13 +16,13 @@
 
 package org.springframework.integration.support.management;
 
+import io.micrometer.observation.ObservationRegistry;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.lang.Nullable;
-
-import io.micrometer.observation.ObservationRegistry;
 
 /**
  * Base interface for Integration managed components.

@@ -187,7 +187,7 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		return args;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private Object invokeMethod(Object[] args) throws InvocationTargetException, IllegalAccessException {
 		if (this.target instanceof Function function) {
 			return function.apply(args[0]);

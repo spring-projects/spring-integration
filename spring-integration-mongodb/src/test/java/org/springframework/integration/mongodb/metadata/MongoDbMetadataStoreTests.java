@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.metadata;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.integration.mongodb.MongoDbContainerTest;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Senthil Arumugam, Samiraj Panneer Selvam

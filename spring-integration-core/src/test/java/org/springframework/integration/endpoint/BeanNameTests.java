@@ -16,8 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +38,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -142,7 +141,8 @@ public class BeanNameTests {
 		@EndpointId("eipBean2")
 		@ServiceActivator(inputChannel = "channel3")
 		public MessageHandler handler() {
-			return m -> { };
+			return m -> {
+			};
 		}
 
 		@EndpointId("eipMethodSource")

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.kafka.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -37,6 +35,8 @@ import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell

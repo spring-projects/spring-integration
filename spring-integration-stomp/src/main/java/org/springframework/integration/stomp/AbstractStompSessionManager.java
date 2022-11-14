@@ -280,7 +280,8 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			}
 			this.stompSessionFuture.whenComplete(new BiConsumer<StompSession, Throwable>() {
 
-				@Override public void accept(StompSession session, Throwable throwable) {
+				@Override
+				public void accept(StompSession session, Throwable throwable) {
 					if (session != null) {
 						session.disconnect();
 					}

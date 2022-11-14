@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,7 +218,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		}
 		JavaUtils.INSTANCE
 				.acceptIfNotNull(getHeaderIfAvailable(headers, IntegrationMessageHeaderAccessor.PRIORITY,
-						Integer.class),
+								Integer.class),
 						amqpMessageProperties::setPriority)
 				.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.RECEIVED_EXCHANGE, String.class),
 						amqpMessageProperties::setReceivedExchange)
@@ -364,7 +364,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * @since 4.3
 	 */
 	public static String[] inboundRequestHeaders() {
-		return new String[] { "*" };
+		return new String[] {"*"};
 	}
 
 	/**
@@ -388,11 +388,11 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * @since 4.3
 	 */
 	public static String[] outboundReplyHeaders() {
-		return new String[] { "*" };
+		return new String[] {"*"};
 	}
 
 	private static String[] safeOutboundHeaders() {
-		return new String[] { "!x-*", "*" };
+		return new String[] {"!x-*", "*"};
 	}
 
 }

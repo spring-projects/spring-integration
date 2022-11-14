@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 
 package org.springframework.integration.ip.tcp;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Map;
 
@@ -40,6 +37,9 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Gary Russell
@@ -133,37 +133,37 @@ public class TcpConfigOutboundGatewayTests {
 		servers.forEach((k, v) -> {
 			TestingUtilities.waitListening(v, null);
 			switch (k) {
-			case "crLfServer":
-				this.crLfClient.setPort(v.getPort());
-				break;
-			case "crLfServer2":
-				this.ctx.getBean("crLfClient2", AbstractClientConnectionFactory.class).setPort(v.getPort());
-				break;
-			case "crLfServerNio":
-				this.ctx.getBean("crLfClientNio", AbstractClientConnectionFactory.class).setPort(v.getPort());
-				break;
-			case "stxEtxServer":
-				this.stxEtxClient.setPort(v.getPort());
-				break;
-			case "stxEtxServerNio":
-				this.ctx.getBean("stxEtxClientNio", AbstractClientConnectionFactory.class).setPort(v.getPort());
-				break;
-			case "lengthHeaderServer":
-				this.lengthHeaderClient.setPort(v.getPort());
-				break;
-			case "lengthHeaderServerNio":
-				this.ctx.getBean("lengthHeaderClientNio",
-						AbstractClientConnectionFactory.class).setPort(v.getPort());
-				break;
-			case "javaSerialServer":
-				this.javaSerialClient.setPort(v.getPort());
-				break;
-			case "javaSerialServerNio":
-				this.ctx.getBean("javaSerialClientNio",
-						AbstractClientConnectionFactory.class).setPort(v.getPort());
-				break;
-			default:
-				fail("Unexpected server:" + v);
+				case "crLfServer":
+					this.crLfClient.setPort(v.getPort());
+					break;
+				case "crLfServer2":
+					this.ctx.getBean("crLfClient2", AbstractClientConnectionFactory.class).setPort(v.getPort());
+					break;
+				case "crLfServerNio":
+					this.ctx.getBean("crLfClientNio", AbstractClientConnectionFactory.class).setPort(v.getPort());
+					break;
+				case "stxEtxServer":
+					this.stxEtxClient.setPort(v.getPort());
+					break;
+				case "stxEtxServerNio":
+					this.ctx.getBean("stxEtxClientNio", AbstractClientConnectionFactory.class).setPort(v.getPort());
+					break;
+				case "lengthHeaderServer":
+					this.lengthHeaderClient.setPort(v.getPort());
+					break;
+				case "lengthHeaderServerNio":
+					this.ctx.getBean("lengthHeaderClientNio",
+							AbstractClientConnectionFactory.class).setPort(v.getPort());
+					break;
+				case "javaSerialServer":
+					this.javaSerialClient.setPort(v.getPort());
+					break;
+				case "javaSerialServerNio":
+					this.ctx.getBean("javaSerialClientNio",
+							AbstractClientConnectionFactory.class).setPort(v.getPort());
+					break;
+				default:
+					fail("Unexpected server:" + v);
 			}
 		});
 		Map<String, ConsumerEndpointFactoryBean> consumers =

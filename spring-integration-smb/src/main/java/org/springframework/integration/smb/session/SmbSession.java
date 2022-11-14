@@ -25,15 +25,15 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.Arrays;
 
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
+import jcifs.smb.SmbFileOutputStream;
+
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
-
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-import jcifs.smb.SmbFileOutputStream;
 
 /**
  * Implementation of the {@link Session} interface for Server Message Block (SMB)

@@ -16,11 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -33,6 +28,9 @@ import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanNameAware;
@@ -63,9 +61,10 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Mark Fisher

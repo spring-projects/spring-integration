@@ -16,15 +16,11 @@
 
 package org.springframework.integration.mail;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.io.DataInputStream;
 
 import jakarta.mail.Message;
 import jakarta.mail.Multipart;
 import jakarta.mail.internet.MimeMessage;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +34,9 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Marius Bogoevici
@@ -85,7 +84,7 @@ public class MailSendingMessageHandlerContextTests {
 
 	@Test
 	public void byteArrayMessage() throws Exception {
-		byte[] payload = { 1, 2, 3 };
+		byte[] payload = {1, 2, 3};
 		org.springframework.messaging.Message<?> message =
 				MessageBuilder.withPayload(payload)
 						.setHeader(MailHeaders.ATTACHMENT_FILENAME, "attachment.txt")
@@ -110,7 +109,7 @@ public class MailSendingMessageHandlerContextTests {
 
 	@Test
 	public void byteArrayMessageWithoutAttachmentFileName() {
-		byte[] payload = { 1, 2, 3 };
+		byte[] payload = {1, 2, 3};
 		assertThatExceptionOfType(MessageMappingException.class)
 				.isThrownBy(() -> this.handler.handleMessage(new GenericMessage<>(payload)));
 	}

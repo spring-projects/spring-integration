@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.springframework.integration.file.filters;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.File;
 import java.util.List;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -41,10 +41,10 @@ public class FileSystemMarkerFilePresentFileListFilterTests {
 				new SimplePatternFileListFilter("*.txt"));
 		File foo = this.folder.newFile("foo.txt");
 		foo.createNewFile();
-		assertThat(filter.filterFiles(new File[] { foo }).size()).isEqualTo(0);
+		assertThat(filter.filterFiles(new File[] {foo}).size()).isEqualTo(0);
 		File complete = this.folder.newFile("foo.txt.complete");
 		complete.createNewFile();
-		List<File> filtered = filter.filterFiles(new File[] { foo, complete });
+		List<File> filtered = filter.filterFiles(new File[] {foo, complete});
 		assertThat(filtered.size()).isEqualTo(1);
 		assertThat(filtered.get(0).getName()).isEqualTo("foo.txt");
 	}

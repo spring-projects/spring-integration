@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,8 @@ public class JdbcNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		registerBeanDefinitionParser("outbound-gateway", new JdbcOutboundGatewayParser());
 		registerBeanDefinitionParser("message-store", new JdbcMessageStoreParser());
 		registerBeanDefinitionParser("stored-proc-outbound-channel-adapter", new StoredProcMessageHandlerParser());
-		registerBeanDefinitionParser("stored-proc-inbound-channel-adapter",  new StoredProcPollingChannelAdapterParser());
-		registerBeanDefinitionParser("stored-proc-outbound-gateway",  new StoredProcOutboundGatewayParser());
+		registerBeanDefinitionParser("stored-proc-inbound-channel-adapter", new StoredProcPollingChannelAdapterParser());
+		registerBeanDefinitionParser("stored-proc-outbound-gateway", new StoredProcOutboundGatewayParser());
 	}
 
 }

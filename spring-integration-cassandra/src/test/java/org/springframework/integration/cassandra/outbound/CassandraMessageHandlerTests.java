@@ -16,13 +16,16 @@
 
 package org.springframework.integration.cassandra.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.datastax.oss.driver.api.core.ConsistencyLevel;
+import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
+import com.datastax.oss.driver.api.querybuilder.select.Select;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -49,11 +52,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.datastax.oss.driver.api.core.ConsistencyLevel;
-import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
-import com.datastax.oss.driver.api.querybuilder.select.Select;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Soby Chacko

@@ -16,6 +16,13 @@
 
 package org.springframework.integration.hazelcast.inbound.config;
 
+import com.hazelcast.collection.IList;
+import com.hazelcast.collection.IQueue;
+import com.hazelcast.collection.ISet;
+import com.hazelcast.map.IMap;
+import com.hazelcast.multimap.MultiMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
+import com.hazelcast.topic.ITopic;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,14 +34,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
-
-import com.hazelcast.collection.IList;
-import com.hazelcast.collection.IQueue;
-import com.hazelcast.collection.ISet;
-import com.hazelcast.map.IMap;
-import com.hazelcast.multimap.MultiMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
-import com.hazelcast.topic.ITopic;
 
 /**
  * Hazelcast Event Driven Inbound Channel Adapter JavaConfig driven Unit Test Class

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Date;
 
 import org.junit.jupiter.api.Test;
@@ -29,6 +27,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

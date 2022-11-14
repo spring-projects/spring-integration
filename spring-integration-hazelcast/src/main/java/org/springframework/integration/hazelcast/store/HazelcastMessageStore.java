@@ -18,13 +18,13 @@ package org.springframework.integration.hazelcast.store;
 
 import java.util.Collection;
 
-import org.springframework.integration.store.AbstractKeyValueMessageStore;
-import org.springframework.util.Assert;
-
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.hazelcast.query.Predicates;
 import com.hazelcast.query.QueryConstants;
+
+import org.springframework.integration.store.AbstractKeyValueMessageStore;
+import org.springframework.util.Assert;
 
 /**
  * The Hazelcast {@link IMap}-based {@link AbstractKeyValueMessageStore} implementation.

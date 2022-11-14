@@ -16,15 +16,13 @@
 
 package org.springframework.integration.expression;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.BeansException;
@@ -51,7 +49,8 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ClassUtils;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Gary Russell

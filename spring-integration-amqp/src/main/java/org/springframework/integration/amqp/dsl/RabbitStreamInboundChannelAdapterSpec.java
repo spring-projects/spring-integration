@@ -18,11 +18,11 @@ package org.springframework.integration.amqp.dsl;
 
 import java.util.function.Consumer;
 
-import org.springframework.lang.Nullable;
-import org.springframework.rabbit.stream.listener.StreamListenerContainer;
-
 import com.rabbitmq.stream.Codec;
 import com.rabbitmq.stream.Environment;
+
+import org.springframework.lang.Nullable;
+import org.springframework.rabbit.stream.listener.StreamListenerContainer;
 
 /**
  * Spec for an inbound channel adapter with a {@link StreamListenerContainer}.

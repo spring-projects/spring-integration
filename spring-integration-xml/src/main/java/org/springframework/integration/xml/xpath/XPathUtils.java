@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public final class XPathUtils {
 	 * object can't be converted to a {@link Node};
 	 * @throws XPathException - if the xpath expression can't be evaluated.
 	 */
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({"unchecked"})
 	public static <T> T evaluate(Object object, String xpath, Object... resultArg) {
 		Object resultType = null;
 		if (resultArg != null && resultArg.length > 0) {

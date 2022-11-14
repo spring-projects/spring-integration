@@ -16,9 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +37,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky
@@ -120,7 +120,7 @@ public class ObjectToMapTransformerParserTests {
 		assertThat(transformedMap.get("departments")).isInstanceOf(List.class);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public Employee buildEmployee() {
 		Address companyAddress = new Address();
 		companyAddress.setCity("Philadelphia");
@@ -128,8 +128,8 @@ public class ObjectToMapTransformerParserTests {
 		companyAddress.setZip("12345");
 
 		Map<String, Integer[]> coordinates = new HashMap<>();
-		coordinates.put("latitude", new Integer[]{ 1, 5, 13 });
-		coordinates.put("longitude", new Integer[]{ 156 });
+		coordinates.put("latitude", new Integer[] {1, 5, 13});
+		coordinates.put("longitude", new Integer[] {156});
 		companyAddress.setCoordinates(coordinates);
 
 		Employee employee = new Employee();

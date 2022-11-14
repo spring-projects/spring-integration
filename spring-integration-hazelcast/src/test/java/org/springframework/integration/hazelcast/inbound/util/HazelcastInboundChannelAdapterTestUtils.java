@@ -16,17 +16,8 @@
 
 package org.springframework.integration.hazelcast.inbound.util;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 import java.util.Collection;
 import java.util.Map;
-
-import org.springframework.integration.hazelcast.HazelcastHeaders;
-import org.springframework.integration.hazelcast.HazelcastIntegrationTestUser;
-import org.springframework.integration.hazelcast.message.EntryEventMessagePayload;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.PollableChannel;
 
 import com.hazelcast.cluster.MembershipEvent;
 import com.hazelcast.collection.ICollection;
@@ -38,6 +29,15 @@ import com.hazelcast.multimap.MultiMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import com.hazelcast.spi.exception.DistributedObjectDestroyedException;
 import com.hazelcast.topic.ITopic;
+
+import org.springframework.integration.hazelcast.HazelcastHeaders;
+import org.springframework.integration.hazelcast.HazelcastIntegrationTestUser;
+import org.springframework.integration.hazelcast.message.EntryEventMessagePayload;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Util Class for Hazelcast Inbound Channel Adapters Test Support.

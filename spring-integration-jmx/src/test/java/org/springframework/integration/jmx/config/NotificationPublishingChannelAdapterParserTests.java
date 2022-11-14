@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 
 package org.springframework.integration.jmx.config;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Set;
 
@@ -43,6 +40,9 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Mark Fisher
@@ -141,7 +141,8 @@ public class NotificationPublishingChannelAdapterParserTests {
 		assertThat(names.size()).isEqualTo(1);
 	}
 
-	@Test @DirtiesContext
+	@Test
+	@DirtiesContext
 	public void changeMessageHistoryPatterns() throws Exception {
 		Set<ObjectInstance> mbeans = server.queryMBeans(null, null);
 		boolean tested = false;
@@ -159,7 +160,7 @@ public class NotificationPublishingChannelAdapterParserTests {
 				catch (Exception e) {
 					throw e;
 				}
-				server.invoke(objectName, "stop", new Object[]{}, new String[]{});
+				server.invoke(objectName, "stop", new Object[] {}, new String[] {});
 				server.setAttribute(objectName, new Attribute("ComponentNamePatternsString", "foo, bar"));
 				assertThat(server.getAttribute(objectName, "ComponentNamePatternsString")).isEqualTo("bar,foo");
 				tested = true;

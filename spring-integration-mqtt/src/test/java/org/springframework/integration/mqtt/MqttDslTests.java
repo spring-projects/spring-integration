@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mqtt;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Set;
 
 import javax.management.MBeanServer;
@@ -45,6 +43,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -101,7 +101,7 @@ public class MqttDslTests implements MosquittoContainerTest {
 		public DefaultMqttPahoClientFactory pahoClientFactory() {
 			DefaultMqttPahoClientFactory pahoClientFactory = new DefaultMqttPahoClientFactory();
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
-			connectionOptions.setServerURIs(new String[]{ MosquittoContainerTest.mqttUrl() });
+			connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 			pahoClientFactory.setConnectionOptions(connectionOptions);
 			return pahoClientFactory;
 		}

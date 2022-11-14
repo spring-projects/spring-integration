@@ -39,7 +39,7 @@ import org.springframework.integration.support.management.micrometer.MicrometerM
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import({ MicrometerMetricsCaptorImportSelector.class, IntegrationManagementConfiguration.class })
+@Import({MicrometerMetricsCaptorImportSelector.class, IntegrationManagementConfiguration.class})
 public @interface EnableIntegrationManagement {
 
 
@@ -72,6 +72,6 @@ public @interface EnableIntegrationManagement {
 	 * @since 6.0
 	 * @see org.springframework.integration.support.utils.PatternMatchUtils#smartMatch(String, String...)
 	 */
-	String[] observationPatterns() default { };
+	String[] observationPatterns() default {};
 
 }

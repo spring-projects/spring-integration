@@ -16,8 +16,6 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -35,6 +33,8 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky

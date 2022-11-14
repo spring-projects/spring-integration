@@ -101,7 +101,8 @@ public class UnicastSendingMessageHandler extends
 
 	private EvaluationContext evaluationContext;
 
-	private SocketCustomizer socketCustomizer = (aSocket) -> { };
+	private SocketCustomizer socketCustomizer = (aSocket) -> {
+	};
 
 	private volatile CountDownLatch ackLatch;
 

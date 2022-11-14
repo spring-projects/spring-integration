@@ -34,7 +34,7 @@ import org.springframework.messaging.handler.annotation.ValueConstants;
  * @author Artem Bilan
  * @author Chris Bono
  */
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Repeatable(Transformers.class)
@@ -59,7 +59,7 @@ public @interface Transformer {
 	 * Only the handler is advised, not the downstream flow.
 	 * @return the advice chain.
 	 */
-	String[] adviceChain() default { };
+	String[] adviceChain() default {};
 
 	/**
 	 * Specify the maximum amount of time in milliseconds to wait when sending a reply

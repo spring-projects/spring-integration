@@ -16,10 +16,6 @@
 
 package org.springframework.integration.dsl.composition;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -39,6 +35,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Artem Bilan
@@ -120,7 +120,8 @@ public class IntegrationFlowCompositionTests {
 
 	@Test
 	void testInvalidStartFlowForComposition() {
-		IntegrationFlow startFlow = f -> f.handle(m -> { });
+		IntegrationFlow startFlow = f -> f.handle(m -> {
+		});
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> IntegrationFlow.from(startFlow))

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.smb.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.File;
 
 import org.junit.Ignore;
@@ -36,6 +34,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * System tests that perform SMB access without any mocking.
  * These tests are annotated with '@Ignore', as they requires real SMB share configured
@@ -49,7 +49,8 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class SmbInboundOutboundSample extends AbstractBaseTests {
 
-	private static final String INBOUND_APPLICATION_CONTEXT_XML  = "SmbInboundChannelAdapterSample-context.xml";
+	private static final String INBOUND_APPLICATION_CONTEXT_XML = "SmbInboundChannelAdapterSample-context.xml";
+
 	private static final String OUTBOUND_APPLICATION_CONTEXT_XML = "SmbOutboundChannelAdapterSample-context.xml";
 
 	@Ignore("Actual SMB share must be configured in file [" + INBOUND_APPLICATION_CONTEXT_XML + "].")

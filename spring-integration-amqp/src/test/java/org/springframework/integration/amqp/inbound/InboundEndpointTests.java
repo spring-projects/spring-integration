@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,6 @@
 
 package org.springframework.integration.amqp.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +24,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.rabbitmq.client.Channel;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -80,7 +68,18 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.support.RetryTemplate;
 
-import com.rabbitmq.client.Channel;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Artem Bilan
@@ -199,19 +198,19 @@ public class InboundEndpointTests {
 		CountDownLatch sendLatch = new CountDownLatch(1);
 
 		Mockito.doAnswer(invocation -> {
-			org.springframework.amqp.core.Message message =
-					invocation.getArgument(2);
-			Map<String, Object> headers = message.getMessageProperties().getHeaders();
-			assertThat(headers.containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isTrue();
-			assertThat(headers.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isNotEqualTo("foo");
-			assertThat(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isFalse();
-			assertThat(headers.containsKey(JsonHeaders.KEY_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isFalse();
-			assertThat(headers.containsKey(JsonHeaders.TYPE_ID)).isFalse();
-			assertThat(headers.containsKey(JsonHeaders.KEY_TYPE_ID)).isFalse();
-			assertThat(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID)).isFalse();
-			sendLatch.countDown();
-			return null;
-		}).when(rabbitTemplate)
+					org.springframework.amqp.core.Message message =
+							invocation.getArgument(2);
+					Map<String, Object> headers = message.getMessageProperties().getHeaders();
+					assertThat(headers.containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isTrue();
+					assertThat(headers.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isNotEqualTo("foo");
+					assertThat(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isFalse();
+					assertThat(headers.containsKey(JsonHeaders.KEY_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isFalse();
+					assertThat(headers.containsKey(JsonHeaders.TYPE_ID)).isFalse();
+					assertThat(headers.containsKey(JsonHeaders.KEY_TYPE_ID)).isFalse();
+					assertThat(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID)).isFalse();
+					sendLatch.countDown();
+					return null;
+				}).when(rabbitTemplate)
 				.send(anyString(), anyString(), any(org.springframework.amqp.core.Message.class), isNull());
 
 		AmqpInboundGateway gateway = new AmqpInboundGateway(container, rabbitTemplate);
@@ -462,7 +461,7 @@ public class InboundEndpointTests {
 		assertThat(recoveredMessage.get()).isSameAs(amqpMessage);
 	}
 
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({"unchecked"})
 	@Test
 	public void testBatchAdapter() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
@@ -486,7 +485,7 @@ public class InboundEndpointTests {
 		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
 	}
 
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({"unchecked"})
 	@Test
 	public void testBatchGateway() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
@@ -513,7 +512,7 @@ public class InboundEndpointTests {
 		assertThat(sourceData).isSameAs(batched.getMessage());
 	}
 
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({"unchecked"})
 	@Test
 	public void testConsumerBatchExtract() {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
@@ -537,7 +536,7 @@ public class InboundEndpointTests {
 				.hasSize(2);
 	}
 
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({"unchecked"})
 	@Test
 	public void testConsumerBatch() {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
@@ -566,7 +565,8 @@ public class InboundEndpointTests {
 		container.setConsumerBatchEnabled(true);
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
 		adapter.setRetryTemplate(new RetryTemplate());
-		adapter.setMessageRecoverer((message, cause) -> { });
+		adapter.setMessageRecoverer((message, cause) -> {
+		});
 		assertThatIllegalArgumentException()
 				.isThrownBy(adapter::afterPropertiesSet)
 				.withMessageStartingWith("The 'messageRecoverer' must be an instance of MessageBatchRecoverer " +
@@ -577,7 +577,8 @@ public class InboundEndpointTests {
 	public void testExclusiveRecover() {
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(mock(AbstractMessageListenerContainer.class));
 		adapter.setRetryTemplate(new RetryTemplate());
-		adapter.setMessageRecoverer((message, cause) -> { });
+		adapter.setMessageRecoverer((message, cause) -> {
+		});
 		adapter.setRecoveryCallback(context -> null);
 		assertThatIllegalStateException()
 				.isThrownBy(adapter::afterPropertiesSet)

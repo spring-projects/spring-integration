@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 		parseSelectorChain(builder, element, parserContext);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void parseSelectorChain(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "voting-strategy");
 		ManagedList selectors = new ManagedList();

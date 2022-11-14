@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,18 +83,18 @@ public class MessageGroupExpiredEvent extends IntegrationEvent {
 			sourceName = this.source.toString();
 		}
 		builder.append("MessageGroupExpiredEvent [groupId=")
-			.append(this.groupId)
-			.append(", messageCount=")
-			.append(this.messageCount)
-			.append(", lastModified=")
-			.append(this.lastModified)
-			.append(", expiredAt=")
-			.append(this.expired)
-			.append(", discarded=")
-			.append(this.discarded)
-			.append(", source=")
-			.append(sourceName)
-			.append("]");
+				.append(this.groupId)
+				.append(", messageCount=")
+				.append(this.messageCount)
+				.append(", lastModified=")
+				.append(this.lastModified)
+				.append(", expiredAt=")
+				.append(this.expired)
+				.append(", discarded=")
+				.append(this.discarded)
+				.append(", source=")
+				.append(sourceName)
+				.append("]");
 		return builder.toString();
 	}
 

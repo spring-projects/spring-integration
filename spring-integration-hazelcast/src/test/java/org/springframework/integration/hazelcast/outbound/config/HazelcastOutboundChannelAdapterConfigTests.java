@@ -20,6 +20,11 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import com.hazelcast.instance.impl.HazelcastInstanceFactory;
+import com.hazelcast.map.IMap;
+import com.hazelcast.multimap.MultiMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
+import com.hazelcast.topic.ITopic;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
@@ -31,12 +36,6 @@ import org.springframework.integration.hazelcast.outbound.util.HazelcastOutbound
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-
-import com.hazelcast.instance.impl.HazelcastInstanceFactory;
-import com.hazelcast.map.IMap;
-import com.hazelcast.multimap.MultiMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
-import com.hazelcast.topic.ITopic;
 
 /**
  * Hazelcast Outbound Channel Adapter JavaConfig driven Unit Test Class

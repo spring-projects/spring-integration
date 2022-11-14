@@ -16,16 +16,14 @@
 
 package org.springframework.integration.hazelcast;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.spy;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import org.aopalliance.aop.Advice;
 import org.junit.jupiter.api.Test;
 
@@ -71,8 +69,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Artem Bilan
@@ -290,9 +289,9 @@ public class IdempotentReceiverIntegrationTests {
 		@Bean
 		@org.springframework.integration.annotation.Transformer(inputChannel = "input",
 				outputChannel = "output",
-				adviceChain = { "fooAdvice",
+				adviceChain = {"fooAdvice",
 						"idempotentReceiverInterceptor",
-						"transactionInterceptor" })
+						"transactionInterceptor"})
 		public Transformer transformer() {
 			return message -> message;
 		}

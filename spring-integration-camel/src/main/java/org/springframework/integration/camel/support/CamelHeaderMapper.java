@@ -42,9 +42,9 @@ public class CamelHeaderMapper implements HeaderMapper<org.apache.camel.Message>
 
 	private static final LogAccessor LOGGER = new LogAccessor(CamelHeaderMapper.class);
 
-	private String[] inboundHeaderNames = { "*" };
+	private String[] inboundHeaderNames = {"*"};
 
-	private String[] outboundHeaderNames = { "*" };
+	private String[] outboundHeaderNames = {"*"};
 
 	/**
 	 * Provide a list of patterns to map Apache Camel message headers into Spring Integration message.

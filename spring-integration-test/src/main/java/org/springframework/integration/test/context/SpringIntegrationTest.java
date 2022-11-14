@@ -75,6 +75,6 @@ public @interface SpringIntegrationTest {
 	 * @see SpringIntegrationTestExecutionListener
 	 * @see org.springframework.util.PatternMatchUtils
 	 */
-	String[] noAutoStartup() default { };
+	String[] noAutoStartup() default {};
 
 }

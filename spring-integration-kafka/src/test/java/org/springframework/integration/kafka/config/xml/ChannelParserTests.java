@@ -16,9 +16,6 @@
 
 package org.springframework.integration.kafka.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +33,9 @@ import org.springframework.kafka.core.KafkaOperations;
 import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell

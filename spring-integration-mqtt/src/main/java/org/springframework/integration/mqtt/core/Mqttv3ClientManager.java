@@ -66,7 +66,7 @@ public class Mqttv3ClientManager
 	private static MqttConnectOptions buildDefaultConnectionOptions(String url) {
 		Assert.notNull(url, "'url' is required");
 		MqttConnectOptions connectOptions = new MqttConnectOptions();
-		connectOptions.setServerURIs(new String[]{ url });
+		connectOptions.setServerURIs(new String[] {url});
 		connectOptions.setAutomaticReconnect(true);
 		return connectOptions;
 	}

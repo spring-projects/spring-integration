@@ -16,9 +16,6 @@
 
 package org.springframework.integration.http;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.isNull;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -56,6 +53,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.isNull;
 
 /**
  * @author Artem Bilan

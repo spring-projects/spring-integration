@@ -16,13 +16,13 @@
 
 package org.springframework.integration.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.scheduling.support.PeriodicTrigger;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell

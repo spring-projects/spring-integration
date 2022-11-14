@@ -16,18 +16,6 @@
 
 package org.springframework.integration.kafka.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.Arrays;
@@ -98,6 +86,18 @@ import org.springframework.retry.RetryContext;
 import org.springframework.retry.listener.RetryListenerSupport;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  *
@@ -573,7 +573,7 @@ class MessageDrivenAdapterTests {
 		pf.reset();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	void testPauseResume() throws Exception {
 		ConsumerFactory<Integer, String> cf = mock(ConsumerFactory.class);
@@ -597,7 +597,7 @@ class MessageDrivenAdapterTests {
 		}).given(consumer).commitSync(anyMap(), any());
 		given(consumer.assignment()).willReturn(records.keySet());
 		given(consumer.paused()).willReturn(records.keySet());
-		TopicPartitionOffset[] topicPartition = { new TopicPartitionOffset("foo", 0) };
+		TopicPartitionOffset[] topicPartition = {new TopicPartitionOffset("foo", 0)};
 		ContainerProperties containerProps = new ContainerProperties(topicPartition);
 		containerProps.setAckMode(ContainerProperties.AckMode.RECORD);
 		containerProps.setClientId("clientId");

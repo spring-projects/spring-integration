@@ -16,9 +16,6 @@
 
 package org.springframework.integration.dsl.gateway;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +48,9 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -207,11 +207,11 @@ public class GatewayDslTests {
 		@Bean
 		public IntegrationFlow functionGateway() {
 			return IntegrationFlow.from(MessageFunction.class,
-					(gateway) -> gateway
-							.header("gatewayMethod", MethodArgsHolder::getMethod)
-							.header("gatewayArgs", MethodArgsHolder::getArgs)
-							.replyTimeout(10)
-							.requestTimeout(20))
+							(gateway) -> gateway
+									.header("gatewayMethod", MethodArgsHolder::getMethod)
+									.header("gatewayArgs", MethodArgsHolder::getArgs)
+									.replyTimeout(10)
+									.requestTimeout(20))
 					.bridge()
 					.get();
 		}
@@ -219,7 +219,7 @@ public class GatewayDslTests {
 		@Bean
 		public IntegrationFlow routingGatewayFlow() {
 			return IntegrationFlow.from(RoutingGateway.class,
-					(gateway) -> gateway.beanName("routingGateway").header("gatewayMethod", MethodArgsHolder::getMethod))
+							(gateway) -> gateway.beanName("routingGateway").header("gatewayMethod", MethodArgsHolder::getMethod))
 					.route(Message.class, (message) ->
 									message.getHeaders().get("gatewayMethod", Method.class).getName(),
 							(router) -> router

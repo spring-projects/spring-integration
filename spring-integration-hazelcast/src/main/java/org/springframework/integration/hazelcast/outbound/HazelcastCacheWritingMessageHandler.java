@@ -19,6 +19,10 @@ package org.springframework.integration.hazelcast.outbound;
 import java.util.Collection;
 import java.util.Map;
 
+import com.hazelcast.core.DistributedObject;
+import com.hazelcast.multimap.MultiMap;
+import com.hazelcast.topic.ITopic;
+
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -26,10 +30,6 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.hazelcast.HazelcastHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-
-import com.hazelcast.core.DistributedObject;
-import com.hazelcast.multimap.MultiMap;
-import com.hazelcast.topic.ITopic;
 
 /**
  * MessageHandler implementation that writes {@link Message} or payload to defined
@@ -78,7 +78,7 @@ public class HazelcastCacheWritingMessageHandler extends AbstractMessageHandler 
 	}
 
 	@Override
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	protected void handleMessageInternal(final Message<?> message) {
 		Object objectToStore = message;
 		if (this.extractPayload) {

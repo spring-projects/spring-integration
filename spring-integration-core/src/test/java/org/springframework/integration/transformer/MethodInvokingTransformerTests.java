@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 package org.springframework.integration.transformer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
-
 import java.lang.reflect.Method;
 import java.util.Properties;
 
@@ -33,6 +29,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -212,7 +212,7 @@ class MethodInvokingTransformerTests {
 		assertThat(result).isNull();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 		// this changed in 2.0 see INT-785 and INT-1130
 	void headerEnricherConfiguredWithMethodReference() throws Exception {
@@ -233,7 +233,7 @@ class MethodInvokingTransformerTests {
 		assertThat(result.getHeaders().get("prop3")).isEqualTo("baz");
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 		// this changed in 2.0 see INT-785 and INT-1130
 	void headerEnricherConfiguredWithMethodName() {

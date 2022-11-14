@@ -16,8 +16,6 @@
 
 package org.springframework.integration.sftp.filters;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.util.Arrays;
@@ -27,6 +25,8 @@ import org.apache.sshd.sftp.client.SftpClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.metadata.SimpleMetadataStore;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -47,7 +47,7 @@ public class SftpPersistentAcceptOnceFileListFilterTests {
 		SftpClient.DirEntry sftpFile1 = new SftpClient.DirEntry("foo", "foo", attrs);
 		SftpClient.DirEntry sftpFile2 = new SftpClient.DirEntry("bar", "bar", attrs);
 		SftpClient.DirEntry sftpFile3 = new SftpClient.DirEntry("baz", "baz", attrs);
-		SftpClient.DirEntry[] files = new SftpClient.DirEntry[]{ sftpFile1, sftpFile2, sftpFile3 };
+		SftpClient.DirEntry[] files = new SftpClient.DirEntry[] {sftpFile1, sftpFile2, sftpFile3};
 		List<SftpClient.DirEntry> passed = filter.filterFiles(files);
 		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
 		List<SftpClient.DirEntry> now = filter.filterFiles(files);
@@ -70,7 +70,7 @@ public class SftpPersistentAcceptOnceFileListFilterTests {
 		attrs.setModifyTime(FileTime.from(Instant.now()));
 		SftpClient.DirEntry sftpFile1 = new SftpClient.DirEntry("foo", "same", attrs);
 		SftpClient.DirEntry sftpFile2 = new SftpClient.DirEntry("bar", "same", attrs);
-		SftpClient.DirEntry[] files = new SftpClient.DirEntry[]{ sftpFile1, sftpFile2 };
+		SftpClient.DirEntry[] files = new SftpClient.DirEntry[] {sftpFile1, sftpFile2};
 		List<SftpClient.DirEntry> now = filter.filterFiles(files);
 		assertThat(now.size()).isEqualTo(2);
 		assertThat(now.get(0).getFilename()).isEqualTo("foo");

@@ -16,15 +16,14 @@
 
 package org.springframework.integration.smb.session;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.IOException;
 
+import jcifs.smb.SmbFile;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.smb.SmbTestSupport;
 
-import jcifs.smb.SmbFile;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *

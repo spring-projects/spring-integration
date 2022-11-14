@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -32,9 +34,6 @@ import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOut
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.smb.session.SmbFileInfo;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
-
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
 
 /**
  * Outbound Gateway for performing remote file operations via SMB.

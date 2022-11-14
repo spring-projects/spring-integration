@@ -16,9 +16,6 @@
 
 package org.springframework.integration.scripting.jsr223;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -29,6 +26,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author David Turanski
@@ -43,7 +43,7 @@ public class DeriveLanguageFromExtensionTests {
 
 	@Test
 	public void testParseLanguage() {
-		String[] langs = { "ruby", "Groovy", "python", "kotlin" };
+		String[] langs = {"ruby", "Groovy", "python", "kotlin"};
 		Class<?>[] executors = {
 				RubyScriptExecutor.class,
 				DefaultScriptExecutor.class,

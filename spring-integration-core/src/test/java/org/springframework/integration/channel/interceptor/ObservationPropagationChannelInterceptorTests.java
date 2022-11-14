@@ -16,8 +16,6 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -25,6 +23,26 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.micrometer.common.KeyValues;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.core.tck.MeterRegistryAssert;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationHandler;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistryAssert;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
+import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
+import io.micrometer.tracing.propagation.Propagator;
+import io.micrometer.tracing.test.simple.SimpleTracer;
+import io.micrometer.tracing.test.simple.SpansAssert;
+import io.micrometer.tracing.test.simple.TracerAssert;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,26 +71,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import io.micrometer.common.KeyValues;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import io.micrometer.core.tck.MeterRegistryAssert;
-import io.micrometer.observation.Observation;
-import io.micrometer.observation.ObservationHandler;
-import io.micrometer.observation.ObservationRegistry;
-import io.micrometer.observation.tck.TestObservationRegistry;
-import io.micrometer.observation.tck.TestObservationRegistryAssert;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
-import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
-import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
-import io.micrometer.tracing.propagation.Propagator;
-import io.micrometer.tracing.test.simple.SimpleTracer;
-import io.micrometer.tracing.test.simple.SpansAssert;
-import io.micrometer.tracing.test.simple.TracerAssert;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

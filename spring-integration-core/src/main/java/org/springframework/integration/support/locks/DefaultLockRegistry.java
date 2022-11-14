@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.util.Assert;
+
 /**
  * Default implementation of {@link LockRegistry} which uses Masked Hashcode algorithm to obtain locks.
  * When an instance of this class is created and array of {@link Lock} objects is created. The length of

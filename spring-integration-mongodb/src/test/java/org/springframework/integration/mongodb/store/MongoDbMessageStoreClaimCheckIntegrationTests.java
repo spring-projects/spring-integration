@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.Serializable;
 
 import org.junit.jupiter.api.AfterEach;
@@ -33,6 +31,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ClaimCheckInTransformer;
 import org.springframework.integration.transformer.ClaimCheckOutTransformer;
 import org.springframework.messaging.Message;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

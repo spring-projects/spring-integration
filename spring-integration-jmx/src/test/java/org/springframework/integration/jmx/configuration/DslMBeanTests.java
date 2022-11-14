@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jmx.configuration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Set;
 
 import javax.management.MBeanServer;
@@ -35,6 +33,8 @@ import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell

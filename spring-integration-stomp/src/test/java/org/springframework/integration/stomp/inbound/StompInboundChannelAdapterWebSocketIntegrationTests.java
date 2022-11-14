@@ -16,8 +16,6 @@
 
 package org.springframework.integration.stomp.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -78,6 +76,8 @@ import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrate
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -264,7 +264,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 			handshakeHeaders.setOrigin("https://www.example.com/");
 			webSocketStompSessionManager.setHandshakeHeaders(handshakeHeaders);
 			StompHeaders stompHeaders = new StompHeaders();
-			stompHeaders.setHeartbeat(new long[]{10000, 10000});
+			stompHeaders.setHeartbeat(new long[] {10000, 10000});
 			webSocketStompSessionManager.setConnectHeaders(stompHeaders);
 			return webSocketStompSessionManager;
 		}

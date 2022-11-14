@@ -21,6 +21,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
+import com.datastax.oss.driver.api.core.DriverException;
+import com.datastax.oss.driver.api.core.cql.BatchStatementBuilder;
+import com.datastax.oss.driver.api.core.cql.BatchType;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.api.core.cql.Statement;
+import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.cassandra.ReactiveResultSet;
 import org.springframework.data.cassandra.ReactiveSession;
@@ -43,15 +52,6 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-
-import com.datastax.oss.driver.api.core.DriverException;
-import com.datastax.oss.driver.api.core.cql.BatchStatementBuilder;
-import com.datastax.oss.driver.api.core.cql.BatchType;
-import com.datastax.oss.driver.api.core.cql.SimpleStatement;
-import com.datastax.oss.driver.api.core.cql.Statement;
-import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * An {@link AbstractReplyProducingMessageHandler} implementation for Cassandra outbound operations.

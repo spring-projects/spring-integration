@@ -16,8 +16,6 @@
 
 package org.springframework.integration.redis.leader;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -36,6 +34,8 @@ import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
 import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

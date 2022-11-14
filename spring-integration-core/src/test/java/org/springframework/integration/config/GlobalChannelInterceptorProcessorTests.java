@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 package org.springframework.integration.config;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +28,10 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.InterceptableChannel;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Meherzad Lahewala
@@ -95,7 +95,7 @@ public class GlobalChannelInterceptorProcessorTests {
 
 		InterceptableChannel channel = Mockito.mock(InterceptableChannel.class);
 
-		globalChannelInterceptorWrapper.setPatterns(new String[] { "Te*" });
+		globalChannelInterceptorWrapper.setPatterns(new String[] {"Te*"});
 		interceptors.put("Test-1", globalChannelInterceptorWrapper);
 		channels.put("Test-1", channel);
 		when(this.beanFactory.getBeansOfType(GlobalChannelInterceptorWrapper.class))
@@ -118,7 +118,7 @@ public class GlobalChannelInterceptorProcessorTests {
 
 		InterceptableChannel channel = Mockito.mock(InterceptableChannel.class);
 
-		globalChannelInterceptorWrapper.setPatterns(new String[] { "te*" });
+		globalChannelInterceptorWrapper.setPatterns(new String[] {"te*"});
 		interceptors.put("Test-1", globalChannelInterceptorWrapper);
 		channels.put("Test-1", channel);
 		when(this.beanFactory.getBeansOfType(GlobalChannelInterceptorWrapper.class))
@@ -142,7 +142,7 @@ public class GlobalChannelInterceptorProcessorTests {
 
 		InterceptableChannel channel = Mockito.mock(InterceptableChannel.class);
 
-		globalChannelInterceptorWrapper.setPatterns(new String[] { "!te*", "!Te*" });
+		globalChannelInterceptorWrapper.setPatterns(new String[] {"!te*", "!Te*"});
 		interceptors.put("Test-1", globalChannelInterceptorWrapper);
 		channels.put("Test-1", channel);
 		when(this.beanFactory.getBeansOfType(GlobalChannelInterceptorWrapper.class))

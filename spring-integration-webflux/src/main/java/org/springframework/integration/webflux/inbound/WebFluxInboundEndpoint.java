@@ -28,6 +28,9 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ReactiveAdapterRegistry;
@@ -61,10 +64,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 import org.springframework.web.server.WebHandler;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 /**
  * A {@link org.springframework.integration.gateway.MessagingGatewaySupport}

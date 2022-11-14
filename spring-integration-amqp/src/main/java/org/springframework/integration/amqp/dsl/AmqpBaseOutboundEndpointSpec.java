@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import org.springframework.messaging.MessageChannel;
  * @since 5.0
  */
 public abstract class
-	AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E extends AbstractAmqpOutboundEndpoint>
+AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E extends AbstractAmqpOutboundEndpoint>
 		extends MessageHandlerSpec<S, E> {
 
 	protected final DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper(); // NOSONAR final

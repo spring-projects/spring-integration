@@ -19,6 +19,8 @@ package org.springframework.integration.r2dbc.outbound;
 import java.util.HashMap;
 import java.util.Map;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.r2dbc.core.StatementMapper;
 import org.springframework.data.relational.core.query.Criteria;
@@ -37,8 +39,6 @@ import org.springframework.messaging.Message;
 import org.springframework.r2dbc.core.Parameter;
 import org.springframework.r2dbc.core.PreparedOperation;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Mono;
 
 
 /**

@@ -16,9 +16,6 @@
 
 package org.springframework.integration.mqtt;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.net.UnknownHostException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +43,9 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 
 /**
@@ -83,7 +83,7 @@ public class Mqttv5BackToBackAutomaticReconnectTests implements MosquittoContain
 				.withCauseExactlyInstanceOf(MqttException.class)
 				.withRootCauseExactlyInstanceOf(UnknownHostException.class);
 
-		connectionOptions.setServerURIs(new String[]{ MosquittoContainerTest.mqttUrl() });
+		connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 
 		assertThat(this.config.subscribeLatch.await(10, TimeUnit.SECONDS)).isTrue();
 

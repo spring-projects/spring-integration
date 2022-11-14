@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 
 package org.springframework.integration.mongodb.outbound;
 
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoCollection;
 
 /**
  * The callback to be used with the {@link MongoDbOutboundGateway}

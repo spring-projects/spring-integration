@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package org.springframework.integration.json;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.IOException;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import org.springframework.integration.history.MessageHistory;
@@ -28,10 +30,7 @@ import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 import org.springframework.messaging.Message;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Jeremy Grelle

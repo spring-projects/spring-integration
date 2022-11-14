@@ -16,9 +16,6 @@
 
 package org.springframework.integration.redis.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -41,6 +38,9 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Oleg Zhurakousky

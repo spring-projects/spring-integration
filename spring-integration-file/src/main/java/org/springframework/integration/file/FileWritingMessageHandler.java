@@ -362,7 +362,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * the payload is a {@link File}, the payload's {@code lastModified} time will be
 	 * transferred to the destination file. For other payloads, the
 	 * {@link FileHeaders#SET_MODIFIED} header {@value FileHeaders#SET_MODIFIED}
-	 * will be used if present and it's a {@link Number}.
+	 * will be used if present, and it's a {@link Number}.
 	 * @param preserveTimestamp the preserveTimestamp to set.
 	 * @since 4.3
 	 */
@@ -396,7 +396,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			this.logger.error("'chmod' setting ignored - the file system does not support Posix attributes");
 			return;
 		}
-		BitSet bits = BitSet.valueOf(new byte[] { (byte) chmod, (byte) (chmod >> 8) }); // NOSONAR
+		BitSet bits = BitSet.valueOf(new byte[] {(byte) chmod, (byte) (chmod >> 8)}); // NOSONAR
 		this.permissions = bits.stream()
 				.boxed()
 				.map((b) -> POSIX_FILE_PERMISSIONS[b])
@@ -450,7 +450,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	public void start() {
 		if (this.flushTask == null && FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)) {
 			TaskScheduler taskScheduler = getTaskScheduler();
-			Assert.state(taskScheduler != null, "'taskScheduler' is required for FileExistsMode.APPEND_NO_FLUSH");
+			Assert.state(taskScheduler != null,
+					"'taskScheduler' is required for FileExistsMode.APPEND_NO_FLUSH");
 			this.flushTask = taskScheduler
 					.scheduleAtFixedRate(new Flusher(), Duration.ofMillis(this.flushInterval / 3)); // NOSONAR
 		}
@@ -600,7 +601,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	/**
-	 * Retrieves the File instance from the {@link FileHeaders#ORIGINAL_FILE}
+	 * Retrieve the File instance from the {@link FileHeaders#ORIGINAL_FILE}
 	 * header if available. If the value is not a File instance or a String
 	 * representation of a file path, this will return {@code null}.
 	 */
@@ -657,9 +658,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 		else {
 
-			try (InputStream inputStream = sourceFileInputStream;
-					OutputStream outputStream =
-							new BufferedOutputStream(new FileOutputStream(tempFile), this.bufferSize)) {
+			try (InputStream inputStream = sourceFileInputStream; OutputStream outputStream =
+					new BufferedOutputStream(new FileOutputStream(tempFile), this.bufferSize)) {
 
 				byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 				int bytesRead;
@@ -815,24 +815,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private File determineFileToWrite(File resultFile, File tempFile) {
-
-		final File fileToWriteTo;
-
-		switch (this.fileExistsMode) {
-			case APPEND:
-			case APPEND_NO_FLUSH:
-				fileToWriteTo = resultFile;
-				break;
-			case FAIL:
-			case IGNORE:
-			case REPLACE:
-			case REPLACE_IF_MODIFIED:
-				fileToWriteTo = tempFile;
-				break;
-			default:
-				throw new IllegalStateException("Unsupported FileExistsMode: " + this.fileExistsMode);
-		}
-		return fileToWriteTo;
+		return switch (this.fileExistsMode) {
+			case APPEND, APPEND_NO_FLUSH -> resultFile;
+			case FAIL, IGNORE, REPLACE, REPLACE_IF_MODIFIED -> tempFile;
+		};
 	}
 
 	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile) throws IOException {

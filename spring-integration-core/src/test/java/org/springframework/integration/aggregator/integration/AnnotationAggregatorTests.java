@@ -16,8 +16,6 @@
 
 package org.springframework.integration.aggregator.integration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -41,6 +39,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

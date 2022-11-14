@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,8 @@ public class Person {
 		return this.age;
 	}
 
-	@Override public boolean equals(Object o) {
+	@Override
+	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
 		}
@@ -79,11 +80,13 @@ public class Person {
 				Objects.equals(this.age, person.age);
 	}
 
-	@Override public int hashCode() {
+	@Override
+	public int hashCode() {
 		return Objects.hash(this.id, this.name, this.age);
 	}
 
-	@Override public String toString() {
+	@Override
+	public String toString() {
 		return "Person{" +
 				"id=" + this.id +
 				", name='" + this.name + '\'' +

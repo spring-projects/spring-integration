@@ -16,10 +16,6 @@
 
 package org.springframework.integration.ip.udp;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -50,6 +46,10 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 /**
  *

@@ -44,9 +44,9 @@ import org.springframework.util.Assert;
 public class CamelMessageHandlerSpec extends
 		MessageHandlerSpec<CamelMessageHandlerSpec, CamelMessageHandler> {
 
-	private String[] inboundHeaderNames = { "*" };
+	private String[] inboundHeaderNames = {"*"};
 
-	private String[] outboundHeaderNames = { "*" };
+	private String[] outboundHeaderNames = {"*"};
 
 	protected CamelMessageHandlerSpec(@Nullable ProducerTemplate producerTemplate) {
 		this.target = producerTemplate == null ? new CamelMessageHandler() : new CamelMessageHandler(producerTemplate);

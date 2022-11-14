@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,9 @@ import java.util.function.Function;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -41,10 +44,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 /**
  * A {@link EndpointSpec} for consumer endpoints.
@@ -92,6 +91,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	public S reactive() {
 		return reactive(Function.identity());
 	}
+
 	/**
 	 * Make the consumer endpoint as reactive independently of an input channel and
 	 * apply the provided function into the {@link Flux#transform(Function)} operator.
@@ -134,7 +134,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @since 5.3
 	 */
 	public S handleMessageAdvice(MethodInterceptor... interceptors) {
-		for (MethodInterceptor interceptor: interceptors) {
+		for (MethodInterceptor interceptor : interceptors) {
 			advice(new HandleMessageAdviceAdapter(interceptor));
 		}
 		return _this();
@@ -229,7 +229,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @since 5.3
 	 * @see ReactiveRequestHandlerAdvice
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes"})
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public <T, V> S customizeMonoReply(BiFunction<Message<?>, Mono<T>, Publisher<V>> replyCustomizer) {
 		return advice(new ReactiveRequestHandlerAdvice(
 				(BiFunction<Message<?>, Mono<?>, Publisher<?>>) (BiFunction) replyCustomizer));

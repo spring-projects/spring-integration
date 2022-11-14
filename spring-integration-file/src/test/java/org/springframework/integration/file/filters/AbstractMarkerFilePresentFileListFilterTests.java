@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.springframework.integration.file.filters;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -36,7 +36,7 @@ public class AbstractMarkerFilePresentFileListFilterTests {
 	public void testDefault() {
 		StringMarkerFilePresentFileListFilter filter = new StringMarkerFilePresentFileListFilter(
 				new StringSimplePatternFilter("*.txt"));
-		List<String> filtered = filter.filterFiles(new String[] { "foo.txt", "foo.txt.complete", "bar.txt" });
+		List<String> filtered = filter.filterFiles(new String[] {"foo.txt", "foo.txt.complete", "bar.txt"});
 		assertThat(filtered.size()).isEqualTo(1);
 		assertThat(filtered.get(0)).isEqualTo("foo.txt");
 	}
@@ -45,7 +45,7 @@ public class AbstractMarkerFilePresentFileListFilterTests {
 	public void testSimple() {
 		StringMarkerFilePresentFileListFilter filter = new StringMarkerFilePresentFileListFilter(
 				new StringSimplePatternFilter("*.txt"), ".done");
-		List<String> filtered = filter.filterFiles(new String[] { "foo.txt", "foo.txt.done", "bar.txt", "baz.txt" });
+		List<String> filtered = filter.filterFiles(new String[] {"foo.txt", "foo.txt.done", "bar.txt", "baz.txt"});
 		assertThat(filtered.size()).isEqualTo(1);
 		assertThat(filtered.get(0)).isEqualTo("foo.txt");
 	}
@@ -54,9 +54,9 @@ public class AbstractMarkerFilePresentFileListFilterTests {
 	public void testCustomFunction() {
 		StringMarkerFilePresentFileListFilter filter = new StringMarkerFilePresentFileListFilter(
 				new StringSimplePatternFilter("*.txt"), s -> "allFilesDone");
-		List<String> filtered = filter.filterFiles(new String[] { "foo.txt", "bar.txt" });
+		List<String> filtered = filter.filterFiles(new String[] {"foo.txt", "bar.txt"});
 		assertThat(filtered.size()).isEqualTo(0);
-		filtered = filter.filterFiles(new String[] { "foo.txt", "bar.txt", "allFilesDone" });
+		filtered = filter.filterFiles(new String[] {"foo.txt", "bar.txt", "allFilesDone"});
 		assertThat(filtered.get(0)).isEqualTo("foo.txt");
 		assertThat(filtered.get(1)).isEqualTo("bar.txt");
 	}
@@ -70,7 +70,7 @@ public class AbstractMarkerFilePresentFileListFilterTests {
 				AbstractMarkerFilePresentFileListFilter.defaultFileNameFunction(".complete"));
 		StringMarkerFilePresentFileListFilter filter = new StringMarkerFilePresentFileListFilter(map);
 		List<String> filtered = filter
-				.filterFiles(new String[] { "foo.txt", "foo.txt.done", "bar.xml", "bar.xml.complete", "baz.txt" });
+				.filterFiles(new String[] {"foo.txt", "foo.txt.done", "bar.xml", "bar.xml.complete", "baz.txt"});
 		assertThat(filtered.size()).isEqualTo(2);
 		assertThat(filtered.get(0)).isEqualTo("foo.txt");
 		assertThat(filtered.get(1)).isEqualTo("bar.xml");

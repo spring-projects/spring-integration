@@ -21,6 +21,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import jcifs.DialectVersion;
+import jcifs.smb.SmbFile;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.GenericContainer;
@@ -32,9 +34,6 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.smb.session.SmbSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
-
-import jcifs.DialectVersion;
-import jcifs.smb.SmbFile;
 
 /**
  * Provides a connection to a Testcontainers-driven SMB Server for test cases.

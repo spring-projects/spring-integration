@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 
 package org.springframework.integration.file.splitter;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -37,6 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -67,7 +65,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -383,7 +382,8 @@ public class FileSplitterTests {
 		AtomicBoolean closeCalled = new AtomicBoolean();
 		FileReader fileReader = new FileReader(file) {
 
-			@Override public void close() throws IOException {
+			@Override
+			public void close() throws IOException {
 				super.close();
 				closeCalled.set(true);
 			}

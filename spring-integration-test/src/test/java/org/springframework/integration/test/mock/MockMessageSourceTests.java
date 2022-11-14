@@ -16,9 +16,6 @@
 
 package org.springframework.integration.test.mock;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -47,13 +44,16 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 /**
  * @author Artem Bilan
  *
  * @since 5.0
  */
 @SpringJUnitConfig(classes = MockMessageSourceTests.Config.class)
-@SpringIntegrationTest(noAutoStartup = { "inboundChannelAdapter", "*Source*" })
+@SpringIntegrationTest(noAutoStartup = {"inboundChannelAdapter", "*Source*"})
 @DirtiesContext
 public class MockMessageSourceTests {
 

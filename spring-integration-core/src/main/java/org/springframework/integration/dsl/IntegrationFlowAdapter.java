@@ -80,7 +80,8 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, Managea
 		return this.targetIntegrationFlow.getInputChannel();
 	}
 
-	@Override public Map<Object, String> getIntegrationComponents() {
+	@Override
+	public Map<Object, String> getIntegrationComponents() {
 		return this.targetIntegrationFlow.getIntegrationComponents();
 	}
 

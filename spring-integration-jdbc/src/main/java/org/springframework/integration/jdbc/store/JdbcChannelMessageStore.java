@@ -185,7 +185,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * A converter for deserializing byte arrays to messages.
 	 * @param deserializer the deserializer to set
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
 	}
@@ -422,7 +422,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
 		try {
 			this.jdbcTemplate.update(getQuery(Query.CREATE_MESSAGE,
-					() -> this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
+							() -> this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
 					ps -> this.preparedStatementSetter.setValues(ps, message, groupId, this.region,
 							this.priorityEnabled));
 		}
@@ -590,8 +590,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		UUID id = messageToRemove.getHeaders().getId();
 		int updated = this.jdbcTemplate.update(
 				getQuery(Query.DELETE_MESSAGE, () -> this.channelMessageStoreQueryProvider.getDeleteMessageQuery()),
-				new Object[]{ getKey(id), getKey(groupId), this.region },
-				new int[]{ Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
+				new Object[] {getKey(id), getKey(groupId), this.region},
+				new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR});
 
 		boolean result = updated != 0;
 		if (result) {

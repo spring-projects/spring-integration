@@ -17,9 +17,6 @@
 package org.springframework.integration.websocket;
 
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,6 +42,9 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Artem Bilan

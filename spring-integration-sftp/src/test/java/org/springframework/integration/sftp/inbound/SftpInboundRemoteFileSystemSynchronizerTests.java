@@ -16,14 +16,6 @@
 
 package org.springframework.integration.sftp.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URI;
@@ -54,6 +46,14 @@ import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Zhurakousky

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,6 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,8 +43,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -87,7 +86,7 @@ public class ReactiveInboundChannelAdapterTests {
 				Flux.from(this.fluxChannel2)
 						.map(Message::getPayload)
 						.cast(Date.class)
-				.map(Date::getTime);
+						.map(Date::getTime);
 
 		List<Long> dates = new ArrayList<>();
 

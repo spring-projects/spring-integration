@@ -22,11 +22,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.hazelcast.ClusterMonitorType;
-import org.springframework.integration.hazelcast.HazelcastIntegrationDefinitionValidator;
-import org.springframework.util.Assert;
-
 import com.hazelcast.client.Client;
 import com.hazelcast.client.ClientListener;
 import com.hazelcast.cluster.MembershipEvent;
@@ -39,6 +34,11 @@ import com.hazelcast.core.LifecycleListener;
 import com.hazelcast.partition.MigrationListener;
 import com.hazelcast.partition.MigrationState;
 import com.hazelcast.partition.ReplicaMigrationEvent;
+
+import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.hazelcast.ClusterMonitorType;
+import org.springframework.integration.hazelcast.HazelcastIntegrationDefinitionValidator;
+import org.springframework.util.Assert;
 
 /**
  * Hazelcast Cluster Monitor Event Driven Message Producer is a message producer which
@@ -89,13 +89,13 @@ public class HazelcastClusterMonitorMessageProducer extends MessageProducerSuppo
 		if (this.monitorTypes.contains(ClusterMonitorType.MIGRATION.name())) {
 			final UUID registrationId = this.hazelcastInstance.getPartitionService()
 					.addMigrationListener(clusterMonitorListener);
-			this.hazelcastRegisteredListenerIdMap.put(ClusterMonitorType.MIGRATION,	registrationId);
+			this.hazelcastRegisteredListenerIdMap.put(ClusterMonitorType.MIGRATION, registrationId);
 		}
 
 		if (this.monitorTypes.contains(ClusterMonitorType.LIFECYCLE.name())) {
 			final UUID registrationId = this.hazelcastInstance.getLifecycleService()
 					.addLifecycleListener(clusterMonitorListener);
-			this.hazelcastRegisteredListenerIdMap.put(ClusterMonitorType.LIFECYCLE,	registrationId);
+			this.hazelcastRegisteredListenerIdMap.put(ClusterMonitorType.LIFECYCLE, registrationId);
 		}
 
 		if (this.monitorTypes.contains(ClusterMonitorType.CLIENT.name())) {

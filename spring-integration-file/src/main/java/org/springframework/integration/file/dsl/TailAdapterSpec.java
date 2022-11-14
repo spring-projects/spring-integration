@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	 * @param idleEventInterval interval in ms for the event idle time.
 	 * @return the spec.
 	 */
-	public TailAdapterSpec idleEventInterval(long idleEventInterval)  {
+	public TailAdapterSpec idleEventInterval(long idleEventInterval) {
 		this.factoryBean.setIdleEventInterval(idleEventInterval);
 		return _this();
 	}

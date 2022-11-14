@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.file.filters;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Closeable;
 import java.io.File;
@@ -35,6 +33,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -70,21 +70,21 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 		final FileSystemPersistentAcceptOnceFileListFilter filter =
 				new FileSystemPersistentAcceptOnceFileListFilter(store, "foo:");
 		final File file = File.createTempFile("foo", ".txt");
-		assertThat(filter.filterFiles(new File[]{ file }).size()).isEqualTo(1);
+		assertThat(filter.filterFiles(new File[] {file}).size()).isEqualTo(1);
 		String ts = store.get("foo:" + file.getAbsolutePath());
 		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
-		assertThat(filter.filterFiles(new File[]{ file }).size()).isEqualTo(0);
+		assertThat(filter.filterFiles(new File[] {file}).size()).isEqualTo(0);
 		file.setLastModified(file.lastModified() + 5000L);
-		assertThat(filter.filterFiles(new File[]{ file }).size()).isEqualTo(1);
+		assertThat(filter.filterFiles(new File[] {file}).size()).isEqualTo(1);
 		ts = store.get("foo:" + file.getAbsolutePath());
 		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
-		assertThat(filter.filterFiles(new File[]{ file }).size()).isEqualTo(0);
+		assertThat(filter.filterFiles(new File[] {file}).size()).isEqualTo(0);
 
 		suspend.set(true);
 		file.setLastModified(file.lastModified() + 5000L);
 
 		Future<Integer> result = Executors.newSingleThreadExecutor()
-				.submit(() -> filter.filterFiles(new File[]{ file }).size());
+				.submit(() -> filter.filterFiles(new File[] {file}).size());
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		store.put("foo:" + file.getAbsolutePath(), "43");
 		latch1.countDown();
@@ -119,7 +119,7 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 	public void testRollbackFileSystem() throws Exception {
 		FileSystemPersistentAcceptOnceFileListFilter filter = new FileSystemPersistentAcceptOnceFileListFilter(
 				new SimpleMetadataStore(), "rollback:");
-		File[] files = new File[]{ new File("foo"), new File("bar"), new File("baz") };
+		File[] files = new File[] {new File("foo"), new File("bar"), new File("baz")};
 		List<File> passed = filter.filterFiles(files);
 		assertThat(passed.size()).isEqualTo(0);
 		for (File file : files) {
@@ -173,7 +173,7 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 		FileSystemPersistentAcceptOnceFileListFilter filter = new FileSystemPersistentAcceptOnceFileListFilter(
 				store, prefix);
 		final File file = File.createTempFile("foo", ".txt");
-		File[] files = new File[]{ file };
+		File[] files = new File[] {file};
 		List<File> passed = filter.filterFiles(files);
 		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
 		filter.rollback(passed.get(0), passed);

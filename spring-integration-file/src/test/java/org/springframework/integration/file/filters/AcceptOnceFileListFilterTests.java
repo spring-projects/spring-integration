@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.file.filters;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +26,8 @@ import org.junit.Test;
 
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.StopWatch;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -82,7 +82,7 @@ public class AcceptOnceFileListFilterTests {
 	}
 
 	protected void doTestRollback(ReversibleFileListFilter<String> filter) {
-		String[] files = new String[] { "foo", "bar", "baz" };
+		String[] files = new String[] {"foo", "bar", "baz"};
 		List<String> passed = filter.filterFiles(files);
 		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
 		List<String> now = filter.filterFiles(files);

@@ -16,11 +16,6 @@
 
 package org.springframework.integration.file.remote.synchronizer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.Mockito.mock;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +40,11 @@ import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.messaging.MessagingException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -358,7 +358,7 @@ public class AbstractRemoteFileSynchronizerTests {
 
 		@Override
 		public String[] list(String path) {
-			return new String[]{ "foo", "bar", "baz" };
+			return new String[] {"foo", "bar", "baz"};
 		}
 
 		@Override

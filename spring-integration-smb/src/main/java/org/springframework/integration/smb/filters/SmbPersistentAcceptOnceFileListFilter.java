@@ -16,10 +16,10 @@
 
 package org.springframework.integration.smb.filters;
 
+import jcifs.smb.SmbFile;
+
 import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-
-import jcifs.smb.SmbFile;
 
 /**
  * Implementation of {@link AbstractPersistentAcceptOnceFileListFilter} for SMB.

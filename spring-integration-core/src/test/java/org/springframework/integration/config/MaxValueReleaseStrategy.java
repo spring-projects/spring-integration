@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public class MaxValueReleaseStrategy {
 
 	public boolean checkCompletenessAsList(List<Long> numbers) {
 		int sum = 0;
-		for (long number: numbers) {
+		for (long number : numbers) {
 			sum += number;
 		}
 		return sum >= maxValue;
@@ -38,7 +38,7 @@ public class MaxValueReleaseStrategy {
 
 	public boolean checkCompletenessAsCollection(Collection<Long> numbers) {
 		int sum = 0;
-		for (long number: numbers) {
+		for (long number : numbers) {
 			sum += number;
 		}
 		return sum >= maxValue;

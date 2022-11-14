@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.time.Duration;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -43,9 +45,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * A {@link MessageProducerSupport} for reading messages from a Redis Stream and publishing them into the provided

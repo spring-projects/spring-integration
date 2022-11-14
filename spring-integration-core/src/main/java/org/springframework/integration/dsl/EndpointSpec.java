@@ -20,6 +20,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.channel.DirectChannel;
@@ -27,9 +30,6 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
-
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 /**
  * An {@link IntegrationComponentSpec} for endpoints.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
  */
 public class FtpInboundChannelAdapterSpec
 		extends RemoteFileInboundChannelAdapterSpec<FTPFile, FtpInboundChannelAdapterSpec,
-				FtpInboundFileSynchronizingMessageSource> {
+		FtpInboundFileSynchronizingMessageSource> {
 
 	protected FtpInboundChannelAdapterSpec(SessionFactory<FTPFile> sessionFactory, Comparator<File> comparator) {
 		super(new FtpInboundFileSynchronizer(sessionFactory));

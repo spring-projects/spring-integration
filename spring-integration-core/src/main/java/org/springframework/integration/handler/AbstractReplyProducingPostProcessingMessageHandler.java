@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import org.springframework.messaging.Message;
  *
  */
 public abstract class AbstractReplyProducingPostProcessingMessageHandler
-	extends AbstractReplyProducingMessageHandler
-	implements PostProcessingMessageHandler {
+		extends AbstractReplyProducingMessageHandler
+		implements PostProcessingMessageHandler {
 
 	private volatile boolean postProcessWithinAdvice = true;
 

@@ -30,6 +30,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.mongodb.BasicDBList;
+import com.mongodb.DBObject;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.Binary;
@@ -82,9 +84,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-
-import com.mongodb.BasicDBList;
-import com.mongodb.DBObject;
 
 
 /**
@@ -584,7 +583,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 
 		@Override
-		@SuppressWarnings({ UNCHECKED })
+		@SuppressWarnings({UNCHECKED})
 		public <S> S read(Class<S> clazz, Bson source) {
 			if (!MessageWrapper.class.equals(clazz)) {
 				return super.read(clazz, source);
@@ -640,7 +639,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 
 		@Override
-		@SuppressWarnings({ UNCHECKED })
+		@SuppressWarnings({UNCHECKED})
 		protected <S> S read(TypeInformation<S> type, Bson source) {
 			if (!MessageWrapper.class.equals(type.getType())) {
 				return super.read(type, source);

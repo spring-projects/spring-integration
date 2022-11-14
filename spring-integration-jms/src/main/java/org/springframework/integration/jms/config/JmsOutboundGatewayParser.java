@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,8 +97,8 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		boolean hasDestinationName = StringUtils.hasText(destinationNameAttribute);
 		boolean hasDestinationExpression = StringUtils.hasText(destinationExpressionAttribute);
 		int destCount = (hasDestination ? 1 : 0) +
-						(hasDestinationName ? 1 : 0) +
-						(hasDestinationExpression ? 1 : 0);
+				(hasDestinationName ? 1 : 0) +
+				(hasDestinationExpression ? 1 : 0);
 		if (oneRequired) {
 			if (destCount != 1) {
 				parserContext.getReaderContext().error("Exactly one of the '" + destinationAttribute + "', "

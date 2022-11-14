@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.Mockito.mock;
-
 import java.util.concurrent.Executor;
 
 import org.junit.jupiter.api.Test;
@@ -28,6 +24,10 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -41,7 +41,8 @@ public class PublishSubscribeChannelTests {
 	@Test
 	public void testEarlySubscribe() {
 		PublishSubscribeChannel channel = new PublishSubscribeChannel(mock(Executor.class));
-		channel.subscribe(m -> { });
+		channel.subscribe(m -> {
+		});
 		channel.setBeanFactory(mock(BeanFactory.class));
 		assertThatIllegalStateException()
 				.isThrownBy(channel::afterPropertiesSet)

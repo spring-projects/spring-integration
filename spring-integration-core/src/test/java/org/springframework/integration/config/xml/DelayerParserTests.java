@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.config.xml;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -40,6 +38,8 @@ import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttribu
 import org.springframework.transaction.interceptor.NameMatchTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.Test;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky
@@ -37,7 +37,7 @@ public class TransactionalPollerWithMixedAopConfigTests {
 	@Test
 	public void validateTransactionalProxyIsolationToThePollerOnly() {
 		ClassPathXmlApplicationContext context =
-			new ClassPathXmlApplicationContext("TransactionalPollerWithMixedAopConfig-context.xml", this.getClass());
+				new ClassPathXmlApplicationContext("TransactionalPollerWithMixedAopConfig-context.xml", this.getClass());
 
 		assertThat(!(context.getBean("foo") instanceof Advised)).isTrue();
 		assertThat(!(context.getBean("inputChannel") instanceof Advised)).isTrue();
@@ -45,11 +45,13 @@ public class TransactionalPollerWithMixedAopConfigTests {
 	}
 
 	public static class SampleService {
-		public void foo(String payload) { }
+		public void foo(String payload) {
+		}
 	}
 
 	public static class Foo {
-		public Foo(String value) { }
+		public Foo(String value) {
+		}
 	}
 
 //	public static class SampleAdvice implements MethodInterceptor{

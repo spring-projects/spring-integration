@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -42,8 +43,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
  * @author Mark Fisher
@@ -217,7 +216,8 @@ public final class MessageHistory implements List<Properties>, Serializable {
 		return this.components.lastIndexOf(o);
 	}
 
-	@Override public boolean equals(Object o) {
+	@Override
+	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
 		}
@@ -228,7 +228,8 @@ public final class MessageHistory implements List<Properties>, Serializable {
 		return this.components.equals(that.components);
 	}
 
-	@Override public int hashCode() {
+	@Override
+	public int hashCode() {
 		return Objects.hash(this.components);
 	}
 

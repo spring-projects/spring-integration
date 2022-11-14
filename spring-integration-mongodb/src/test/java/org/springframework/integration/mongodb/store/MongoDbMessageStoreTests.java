@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +25,8 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

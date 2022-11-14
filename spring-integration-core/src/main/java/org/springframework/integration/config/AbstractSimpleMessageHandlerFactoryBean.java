@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,19 +199,19 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			}
 			this.handler = createHandler();
 			JavaUtils.INSTANCE
-				.acceptIfCondition(this.handler instanceof ApplicationContextAware && this.applicationContext != null,
-					this.applicationContext,
-					context -> ((ApplicationContextAware) this.handler).setApplicationContext(this.applicationContext))
-				.acceptIfCondition(this.handler instanceof BeanFactoryAware && getBeanFactory() != null,
-					getBeanFactory(),
-					factory -> ((BeanFactoryAware) this.handler).setBeanFactory(factory))
-				.acceptIfCondition(this.handler instanceof BeanNameAware && this.beanName != null, this.beanName,
-					name -> ((BeanNameAware) this.handler).setBeanName(this.beanName))
-				.acceptIfCondition(this.handler instanceof ApplicationEventPublisherAware
-										&& this.applicationEventPublisher != null,
-					this.applicationEventPublisher,
-					publisher -> ((ApplicationEventPublisherAware) this.handler)
-						.setApplicationEventPublisher(publisher));
+					.acceptIfCondition(this.handler instanceof ApplicationContextAware && this.applicationContext != null,
+							this.applicationContext,
+							context -> ((ApplicationContextAware) this.handler).setApplicationContext(this.applicationContext))
+					.acceptIfCondition(this.handler instanceof BeanFactoryAware && getBeanFactory() != null,
+							getBeanFactory(),
+							factory -> ((BeanFactoryAware) this.handler).setBeanFactory(factory))
+					.acceptIfCondition(this.handler instanceof BeanNameAware && this.beanName != null, this.beanName,
+							name -> ((BeanNameAware) this.handler).setBeanName(this.beanName))
+					.acceptIfCondition(this.handler instanceof ApplicationEventPublisherAware
+									&& this.applicationEventPublisher != null,
+							this.applicationEventPublisher,
+							publisher -> ((ApplicationEventPublisherAware) this.handler)
+									.setApplicationEventPublisher(publisher));
 			configureOutputChannelIfAny();
 			Object actualHandler = extractTarget(this.handler);
 			if (actualHandler == null) {
@@ -221,11 +221,11 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			integrationObjectSupport(actualHandler, handlerToConfigure);
 			adviceChain(actualHandler);
 			JavaUtils.INSTANCE
-				.acceptIfCondition(this.async != null && actualHandler instanceof AbstractMessageProducingHandler,
-					this.async,
-					asyncValue -> ((AbstractMessageProducingHandler) handlerToConfigure).setAsync(asyncValue))
-				.acceptIfCondition(this.handler instanceof Orderable && this.order != null,
-					this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
+					.acceptIfCondition(this.async != null && actualHandler instanceof AbstractMessageProducingHandler,
+							this.async,
+							asyncValue -> ((AbstractMessageProducingHandler) handlerToConfigure).setAsync(asyncValue))
+					.acceptIfCondition(this.handler instanceof Orderable && this.order != null,
+							this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
 			this.initialized = true;
 		}
 		initializingBean();
@@ -235,10 +235,10 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	private void integrationObjectSupport(Object actualHandler, final Object handlerToConfigure) {
 		if (actualHandler instanceof IntegrationObjectSupport) {
 			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.componentName,
-						name -> ((IntegrationObjectSupport) handlerToConfigure).setComponentName(name))
-				.acceptIfNotNull(this.channelResolver,
-						resolver -> ((IntegrationObjectSupport) handlerToConfigure).setChannelResolver(resolver));
+					.acceptIfNotNull(this.componentName,
+							name -> ((IntegrationObjectSupport) handlerToConfigure).setComponentName(name))
+					.acceptIfNotNull(this.channelResolver,
+							resolver -> ((IntegrationObjectSupport) handlerToConfigure).setChannelResolver(resolver));
 		}
 	}
 

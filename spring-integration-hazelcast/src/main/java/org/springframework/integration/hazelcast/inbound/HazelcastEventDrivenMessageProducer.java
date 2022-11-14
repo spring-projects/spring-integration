@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,6 @@ package org.springframework.integration.hazelcast.inbound;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.hazelcast.HazelcastHeaders;
-import org.springframework.integration.hazelcast.HazelcastIntegrationDefinitionValidator;
-import org.springframework.util.Assert;
-
 import com.hazelcast.collection.IList;
 import com.hazelcast.collection.IQueue;
 import com.hazelcast.collection.ISet;
@@ -37,6 +33,10 @@ import com.hazelcast.replicatedmap.ReplicatedMap;
 import com.hazelcast.topic.ITopic;
 import com.hazelcast.topic.Message;
 import com.hazelcast.topic.MessageListener;
+
+import org.springframework.integration.hazelcast.HazelcastHeaders;
+import org.springframework.integration.hazelcast.HazelcastIntegrationDefinitionValidator;
+import org.springframework.util.Assert;
 
 /**
  * Hazelcast Event Driven Message Producer is a message producer which enables
@@ -63,7 +63,7 @@ public class HazelcastEventDrivenMessageProducer extends AbstractHazelcastMessag
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected void doStart() {
 		if (this.distributedObject instanceof IMap) {
 			setHazelcastRegisteredEventListenerId(((IMap<?, ?>) this.distributedObject)

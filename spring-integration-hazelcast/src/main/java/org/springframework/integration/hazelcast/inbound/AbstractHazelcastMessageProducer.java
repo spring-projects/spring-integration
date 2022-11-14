@@ -25,16 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.hazelcast.CacheEventType;
-import org.springframework.integration.hazelcast.CacheListeningPolicyType;
-import org.springframework.integration.hazelcast.HazelcastHeaders;
-import org.springframework.integration.hazelcast.HazelcastIntegrationDefinitionValidator;
-import org.springframework.integration.hazelcast.HazelcastLocalInstanceRegistrar;
-import org.springframework.integration.hazelcast.message.EntryEventMessagePayload;
-import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
-
 import com.hazelcast.core.DistributedObject;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
@@ -44,6 +34,16 @@ import com.hazelcast.instance.EndpointQualifier;
 import com.hazelcast.map.AbstractIMapEvent;
 import com.hazelcast.map.MapEvent;
 import com.hazelcast.multimap.MultiMap;
+
+import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.hazelcast.CacheEventType;
+import org.springframework.integration.hazelcast.CacheListeningPolicyType;
+import org.springframework.integration.hazelcast.HazelcastHeaders;
+import org.springframework.integration.hazelcast.HazelcastIntegrationDefinitionValidator;
+import org.springframework.integration.hazelcast.HazelcastLocalInstanceRegistrar;
+import org.springframework.integration.hazelcast.message.EntryEventMessagePayload;
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * Hazelcast Base Event-Driven Message Producer.

@@ -16,9 +16,6 @@
 
 package org.springframework.integration.stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 import java.io.StringWriter;
 import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
@@ -36,6 +33,9 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher

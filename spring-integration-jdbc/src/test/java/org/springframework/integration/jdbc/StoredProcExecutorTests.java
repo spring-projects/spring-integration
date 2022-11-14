@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  */
 
 package org.springframework.integration.jdbc;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +34,11 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gunnar Hillert

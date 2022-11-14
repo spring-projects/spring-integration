@@ -26,6 +26,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.util.function.Tuple2;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
@@ -95,9 +97,6 @@ import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import reactor.core.publisher.Flux;
-import reactor.util.function.Tuple2;
 
 /**
  * The {@code Builder} pattern implementation for the EIP-method chain.

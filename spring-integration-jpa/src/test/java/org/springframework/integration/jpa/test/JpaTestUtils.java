@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,11 +47,11 @@ public final class JpaTestUtils {
 		dateOfBirth.set(1984, 0, 31);
 
 		StudentDomain student = new StudentDomain()
-		.withFirstName("First Executor")
-		.withLastName("Last Executor")
-		.withGender(Gender.MALE)
-		.withDateOfBirth(dateOfBirth.getTime())
-		.withLastUpdated(new Date());
+				.withFirstName("First Executor")
+				.withLastName("Last Executor")
+				.withGender(Gender.MALE)
+				.withDateOfBirth(dateOfBirth.getTime())
+				.withLastUpdated(new Date());
 
 		return student;
 	}

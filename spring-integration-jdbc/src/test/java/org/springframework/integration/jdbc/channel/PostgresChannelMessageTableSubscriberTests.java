@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jdbc.channel;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +42,8 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Rafael Winterhalter

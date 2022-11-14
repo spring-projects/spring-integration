@@ -16,15 +16,12 @@
 
 package org.springframework.integration.smb.inbound;
 
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import jcifs.smb.SmbFile;
 import org.junit.Before;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -34,7 +31,9 @@ import org.springframework.integration.smb.AbstractBaseTests;
 import org.springframework.integration.smb.session.SmbSession;
 import org.springframework.integration.smb.session.SmbSessionFactory;
 
-import jcifs.smb.SmbFile;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Markus Spann
@@ -118,7 +117,7 @@ public class SmbInboundRemoteFileSystemSynchronizerTests extends AbstractBaseTes
 					}).when(smbSession).read(Mockito.eq(testRemoteDir + "/" + fileName), Mockito.any(OutputStream.class));
 				}
 
-				when(smbSession.list(testRemoteDir)).thenReturn(smbFiles.toArray(new SmbFile[] { }));
+				when(smbSession.list(testRemoteDir)).thenReturn(smbFiles.toArray(new SmbFile[] {}));
 				when(smbSession.remove(Mockito.anyString())).thenReturn(true);
 				return smbSession;
 

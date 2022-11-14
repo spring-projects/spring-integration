@@ -16,6 +16,7 @@
 
 package org.springframework.integration.hazelcast.inbound.config;
 
+import com.hazelcast.map.IMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,8 +28,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
-
-import com.hazelcast.map.IMap;
 
 /**
  * Hazelcast Distributed SQL Inbound Channel Adapter JavaConfig driven Unit Test Class

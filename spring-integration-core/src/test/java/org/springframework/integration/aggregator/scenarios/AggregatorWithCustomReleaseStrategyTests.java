@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.aggregator.scenarios;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +30,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky
@@ -99,15 +99,15 @@ public class AggregatorWithCustomReleaseStrategyTests {
 
 		for (int i = 0; i < 600; i++) {
 			this.executor.execute(() -> {
-				this.inChannel.send(MessageBuilder.withPayload(new Integer[]{ 1, 2, 3, 4, 5, 6, 7, 8 }).build());
+				this.inChannel.send(MessageBuilder.withPayload(new Integer[] {1, 2, 3, 4, 5, 6, 7, 8}).build());
 				latch.countDown();
 			});
 			executor.execute(() -> {
-				this.inChannel.send(MessageBuilder.withPayload(new Integer[]{ 9, 10, 11, 12, 13, 14, 15, 16 }).build());
+				this.inChannel.send(MessageBuilder.withPayload(new Integer[] {9, 10, 11, 12, 13, 14, 15, 16}).build());
 				latch.countDown();
 			});
 			executor.execute(() -> {
-				this.inChannel.send(MessageBuilder.withPayload(new Integer[]{ 17, 18, 19, 20, 21, 22, 23, 24 }).build());
+				this.inChannel.send(MessageBuilder.withPayload(new Integer[] {17, 18, 19, 20, 21, 22, 23, 24}).build());
 				latch.countDown();
 			});
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,11 @@ import java.util.function.Supplier;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.mapping.BytesMessageMapper;
@@ -36,12 +41,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
-
-import reactor.core.Disposable;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 /**
  * The {@link SubscribableChannel} implementation over ZeroMQ sockets.
@@ -94,9 +93,11 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 	private BytesMessageMapper messageMapper = new EmbeddedJsonHeadersMessageMapper();
 
-	private Consumer<ZMQ.Socket> sendSocketConfigurer = (socket) -> { };
+	private Consumer<ZMQ.Socket> sendSocketConfigurer = (socket) -> {
+	};
 
-	private Consumer<ZMQ.Socket> subscribeSocketConfigurer = (socket) -> { };
+	private Consumer<ZMQ.Socket> subscribeSocketConfigurer = (socket) -> {
+	};
 
 	@Nullable
 	private ZeroMqProxy zeroMqProxy;
@@ -142,21 +143,21 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 
 	private Mono<Integer> prepareProxyMono() {
 		return Mono.defer(() -> {
-			if (this.zeroMqProxy != null) {
-				return Mono.fromCallable(() -> this.zeroMqProxy.getBackendPort())
-						.filter((proxyPort) -> proxyPort > 0)
-						.repeatWhenEmpty(100, (repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
-						.doOnNext((proxyPort) ->
-								setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
-										':' + this.zeroMqProxy.getBackendPort()))
-						.doOnError((error) ->
-								logger.error(error,
-										() -> "The provided '" + this.zeroMqProxy + "' has not been started"));
-			}
-			else {
-				return Mono.empty();
-			}
-		})
+					if (this.zeroMqProxy != null) {
+						return Mono.fromCallable(() -> this.zeroMqProxy.getBackendPort())
+								.filter((proxyPort) -> proxyPort > 0)
+								.repeatWhenEmpty(100, (repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
+								.doOnNext((proxyPort) ->
+										setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
+												':' + this.zeroMqProxy.getBackendPort()))
+								.doOnError((error) ->
+										logger.error(error,
+												() -> "The provided '" + this.zeroMqProxy + "' has not been started"));
+					}
+					else {
+						return Mono.empty();
+					}
+				})
 				.cache();
 	}
 

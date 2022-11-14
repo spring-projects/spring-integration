@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,15 @@
 
 package org.springframework.integration.amqp.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.GetResponse;
 import org.junit.Test;
 
 import org.springframework.amqp.core.MessageProperties;
@@ -40,12 +38,13 @@ import org.springframework.integration.acks.AcknowledgmentCallback.Status;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.messaging.Message;
 
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.GetResponse;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Gary Russell
@@ -76,7 +75,7 @@ public class AmqpMessageSourceTests {
 		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE))
 				.isInstanceOf(org.springframework.amqp.core.Message.class);
 		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA))
-			.isSameAs(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE));
+				.isSameAs(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE));
 		assertThat(received.getHeaders().get(AmqpHeaders.CONSUMER_QUEUE)).isEqualTo("foo");
 		// make sure channel is not cached
 		org.springframework.amqp.rabbit.connection.Connection conn = ccf.createConnection();
@@ -130,7 +129,7 @@ public class AmqpMessageSourceTests {
 		verify(connection).close(30000);
 	}
 
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({"unchecked"})
 	@Test
 	public void testBatch() throws Exception {
 		SimpleBatchingStrategy bs = new SimpleBatchingStrategy(2, 10_000, 10_000L);
@@ -163,6 +162,5 @@ public class AmqpMessageSourceTests {
 		assertThat(received).isNotNull();
 		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
 	}
-
 
 }

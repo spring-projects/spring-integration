@@ -16,11 +16,6 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -57,6 +52,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Artem Bilan
@@ -119,7 +119,7 @@ public class CustomMessagingAnnotationTests {
 
 	}
 
-	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+	@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@Inherited
 	@Documented

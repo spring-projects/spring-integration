@@ -19,14 +19,13 @@ package org.springframework.integration.codec.kryo;
 import java.util.Collections;
 import java.util.List;
 
-import org.objenesis.strategy.StdInstantiatorStrategy;
-
-import org.springframework.util.CollectionUtils;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy;
+import org.objenesis.strategy.StdInstantiatorStrategy;
+
+import org.springframework.util.CollectionUtils;
 
 /**
  * Kryo Codec that can encode and decode arbitrary types. Classes and associated

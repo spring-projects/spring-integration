@@ -16,11 +16,6 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.provider.ExtensionElementProvider;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
@@ -45,6 +40,11 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.json;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -42,6 +40,8 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

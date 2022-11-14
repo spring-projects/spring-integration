@@ -16,9 +16,6 @@
 
 package org.springframework.integration.stomp.client;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
@@ -58,6 +55,9 @@ import org.springframework.messaging.simp.stomp.ReactorNettyTcpStompClient;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan

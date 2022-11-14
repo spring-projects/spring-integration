@@ -16,12 +16,11 @@
 
 package org.springframework.integration.feed.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.File;
 import java.io.FileReader;
 import java.util.Properties;
 
+import com.rometools.rome.feed.synd.SyndEntry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -39,7 +38,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.rometools.rome.feed.synd.SyndEntry;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

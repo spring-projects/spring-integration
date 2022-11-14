@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.jms.request_reply;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.concurrent.CountDownLatch;
 
 import jakarta.jms.ConnectionFactory;
@@ -27,7 +24,6 @@ import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.MessageProducer;
 import jakarta.jms.TextMessage;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -44,6 +40,9 @@ import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.support.GenericMessage;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -55,8 +54,8 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 
 	@Test
 	public void messageCorrelationBasedOnRequestMessageIdOptimized() {
-		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("producer-cached-consumers.xml", getClass())) {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"producer-cached-consumers.xml", getClass())) {
 
 			RequestReplyExchanger gateway = context
 					.getBean("standardMessageIdCopyingConsumerWithOptimization", RequestReplyExchanger.class);
@@ -82,8 +81,8 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 
 	@Test
 	public void messageCorrelationBasedOnRequestMessageIdNonOptimized() {
-		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("producer-cached-consumers.xml", getClass())) {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"producer-cached-consumers.xml", getClass())) {
 
 			RequestReplyExchanger gateway = context
 					.getBean("standardMessageIdCopyingConsumerWithoutOptimization", RequestReplyExchanger.class);
@@ -109,8 +108,8 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 
 	@Test
 	public void messageCorrelationBasedOnRequestCorrelationIdOptimized() {
-		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("producer-cached-consumers.xml", getClass())) {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"producer-cached-consumers.xml", getClass())) {
 
 			RequestReplyExchanger gateway = context
 					.getBean("correlationPropagatingConsumerWithOptimization", RequestReplyExchanger.class);
@@ -137,8 +136,8 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 
 	@Test
 	public void messageCorrelationBasedOnRequestCorrelationIdNonOptimized() {
-		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("producer-cached-consumers.xml", getClass())) {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"producer-cached-consumers.xml", getClass())) {
 
 			RequestReplyExchanger gateway = context
 					.getBean("correlationPropagatingConsumerWithoutOptimization", RequestReplyExchanger.class);
@@ -164,8 +163,8 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 
 	@Test
 	public void messageCorrelationBasedOnRequestCorrelationIdTimedOutFirstReplyOptimized() throws Exception {
-		try (ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("producer-cached-consumers.xml", getClass())) {
+		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"producer-cached-consumers.xml", getClass())) {
 
 			RequestReplyExchanger gateway =
 					context.getBean("correlationPropagatingConsumerWithOptimizationDelayFirstReply",

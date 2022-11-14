@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jdbc.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
@@ -62,6 +60,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Dave Syer

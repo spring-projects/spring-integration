@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +31,10 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Alex Peters

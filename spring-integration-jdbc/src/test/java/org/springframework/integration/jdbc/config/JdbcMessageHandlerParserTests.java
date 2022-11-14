@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +35,8 @@ import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Dave Syer

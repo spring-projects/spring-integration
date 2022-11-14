@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.springframework.integration.json;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -29,8 +29,7 @@ import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
@@ -45,7 +44,8 @@ public class JsonToObjectTransformerTests {
 	public void objectPayload() {
 		JsonToObjectTransformer transformer =
 				new JsonToObjectTransformer(
-						ResolvableType.forType(new ParameterizedTypeReference<List<TestPerson>>() { }));
+						ResolvableType.forType(new ParameterizedTypeReference<List<TestPerson>>() {
+						}));
 		// Since DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES is disabled by default
 		// (see Jackson2JsonObjectMapper)
 		// the extra "foo" property is ignored.

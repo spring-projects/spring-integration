@@ -16,11 +16,13 @@
 
 package org.springframework.integration.mail.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.Closeable;
 import java.util.Properties;
 
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.GreenMailUtil;
+import com.icegreen.greenmail.util.ServerSetup;
+import com.icegreen.greenmail.util.ServerSetupTest;
 import jakarta.mail.Flags;
 import jakarta.mail.Folder;
 import jakarta.mail.internet.AddressException;
@@ -31,7 +33,6 @@ import jakarta.mail.search.AndTerm;
 import jakarta.mail.search.FlagTerm;
 import jakarta.mail.search.FromTerm;
 import jakarta.mail.search.SearchTerm;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -58,10 +59,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.icegreen.greenmail.util.GreenMail;
-import com.icegreen.greenmail.util.GreenMailUtil;
-import com.icegreen.greenmail.util.ServerSetup;
-import com.icegreen.greenmail.util.ServerSetupTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
@@ -82,7 +80,7 @@ public class MailTests {
 		imap.setServerStartupTimeout(10000);
 		ServerSetup pop3 = ServerSetupTest.POP3.dynamicPort();
 		pop3.setServerStartupTimeout(10000);
-		mailServer = new GreenMail(new ServerSetup[]{ smtp, pop3, imap });
+		mailServer = new GreenMail(new ServerSetup[] {smtp, pop3, imap});
 		mailServer.setUser("bar@baz", "smtpuser", "pw");
 		mailServer.setUser("popuser", "pw");
 		mailServer.setUser("imapuser", "pw");
@@ -206,7 +204,7 @@ public class MailTests {
 					.enrichHeaders(Mail.headers()
 							.subjectFunction(m -> "foo")
 							.from("foo@bar")
-							.toFunction(m -> new String[]{ "bar@baz" }))
+							.toFunction(m -> new String[] {"bar@baz"}))
 					.handle(Mail.outboundAdapter("localhost")
 									.port(mailServer.getSmtp().getPort())
 									.credentials("smtpuser", "pw")

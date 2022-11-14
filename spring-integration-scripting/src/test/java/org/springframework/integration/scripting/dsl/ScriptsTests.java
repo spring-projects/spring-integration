@@ -16,8 +16,6 @@
 
 package org.springframework.integration.scripting.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -46,6 +44,8 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -269,7 +269,6 @@ public class ScriptsTests {
 							.lang("kotlin"))
 					.channel(results());
 		}
-
 
 	}
 

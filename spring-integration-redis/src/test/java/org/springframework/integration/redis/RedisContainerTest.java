@@ -16,10 +16,10 @@
 
 package org.springframework.integration.redis;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.SocketOptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -38,8 +38,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
-import io.lettuce.core.ClientOptions;
-import io.lettuce.core.SocketOptions;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * The base contract for all tests requiring a Redis connection.

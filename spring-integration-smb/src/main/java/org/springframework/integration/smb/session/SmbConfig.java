@@ -19,10 +19,10 @@ package org.springframework.integration.smb.session;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import jcifs.DialectVersion;
+
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import jcifs.DialectVersion;
 
 /**
  * Data holder class for a SMB share configuration.

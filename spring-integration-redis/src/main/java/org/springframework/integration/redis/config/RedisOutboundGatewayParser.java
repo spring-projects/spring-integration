@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,8 +73,8 @@ public class RedisOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		if (hasArgumentExpressions) {
 			BeanDefinitionBuilder argumentsBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(ExpressionArgumentsStrategy.class)
-					.addConstructorArgValue(argumentExpressions)
-					.addConstructorArgValue(element.getAttribute("use-command-variable"));
+							.addConstructorArgValue(argumentExpressions)
+							.addConstructorArgValue(element.getAttribute("use-command-variable"));
 			builder.addPropertyValue("argumentsStrategy", argumentsBuilder.getBeanDefinition());
 		}
 		else if (StringUtils.hasLength(argumentsStrategy)) {

@@ -19,6 +19,8 @@ package org.springframework.integration.smb.dsl;
 import java.io.File;
 import java.util.Comparator;
 
+import jcifs.smb.SmbFile;
+
 import org.springframework.integration.file.dsl.RemoteFileInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -30,8 +32,6 @@ import org.springframework.integration.smb.filters.SmbSimplePatternFileListFilte
 import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizer;
 import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizingMessageSource;
 
-import jcifs.smb.SmbFile;
-
 /**
  * A {@link RemoteFileInboundChannelAdapterSpec} for an {@link SmbInboundFileSynchronizingMessageSource}.
  *
@@ -41,7 +41,7 @@ import jcifs.smb.SmbFile;
  */
 public class SmbInboundChannelAdapterSpec
 		extends RemoteFileInboundChannelAdapterSpec<SmbFile, SmbInboundChannelAdapterSpec,
-				SmbInboundFileSynchronizingMessageSource> {
+		SmbInboundFileSynchronizingMessageSource> {
 
 	protected SmbInboundChannelAdapterSpec(SessionFactory<SmbFile> sessionFactory, Comparator<File> comparator) {
 		super(new SmbInboundFileSynchronizer(sessionFactory));

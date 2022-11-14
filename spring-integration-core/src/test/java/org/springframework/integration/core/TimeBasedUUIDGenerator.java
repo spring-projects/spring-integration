@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ class TimeBasedUUIDGenerator {
 				lastTime = currentTimeMillis;
 				clockSequence = 0;
 			}
-			else  {
+			else {
 				++clockSequence;
 			}
 		}
@@ -94,8 +94,9 @@ class TimeBasedUUIDGenerator {
 			return new UUID(time, lsb);
 		}
 	}
+
 	private static long getMac() {
-		long  macAddressAsLong = 0;
+		long macAddressAsLong = 0;
 		try {
 			InetAddress address = InetAddress.getLocalHost();
 			NetworkInterface ni = NetworkInterface.getByInetAddress(address);

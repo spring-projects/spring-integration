@@ -128,9 +128,9 @@ public final class IntegrationProperties {
 
 	private boolean messagingTemplateThrowExceptionOnLateReply = false;
 
-	private String[] readOnlyHeaders = { };
+	private String[] readOnlyHeaders = {};
 
-	private String[] noAutoStartupEndpoints = { };
+	private String[] noAutoStartupEndpoints = {};
 
 	private volatile Properties properties;
 

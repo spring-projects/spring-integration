@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.config.xml;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +34,8 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 /**
  * @author Oleg Zhurakousky
@@ -47,6 +47,7 @@ public class MapToObjectTransformerParserTests {
 	@Autowired
 	@Qualifier("input")
 	private MessageChannel input;
+
 	@Autowired
 	@Qualifier("output")
 	private PollableChannel output;
@@ -54,11 +55,12 @@ public class MapToObjectTransformerParserTests {
 	@Autowired
 	@Qualifier("inputA")
 	private MessageChannel inputA;
+
 	@Autowired
 	@Qualifier("outputA")
 	private PollableChannel outputA;
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	public void testMapToObjectTransformationWithType() {
 		Map map = new HashMap();
@@ -82,7 +84,7 @@ public class MapToObjectTransformerParserTests {
 		assertThat(person.getAddress().getStreet()).isEqualTo("1123 Main st");
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	public void testMapToObjectTransformationWithRef() {
 		Map map = new HashMap();
@@ -94,7 +96,7 @@ public class MapToObjectTransformerParserTests {
 
 		Message message = MessageBuilder.withPayload(map).build();
 		inputA.send(message);
-		Message<?> newMessage =  outputA.receive();
+		Message<?> newMessage = outputA.receive();
 		Person person = (Person) newMessage.getPayload();
 		assertThat(person).isNotNull();
 		assertThat(person.getFname()).isEqualTo("Justin");
@@ -105,7 +107,7 @@ public class MapToObjectTransformerParserTests {
 	}
 
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	public void testMapToObjectTransformationWithConversionService() {
 		Map map = new HashMap();
@@ -124,6 +126,7 @@ public class MapToObjectTransformerParserTests {
 		assertThat(person.getAddress()).isNotNull();
 		assertThat(person.getAddress().getStreet()).isEqualTo("1123 Main st");
 	}
+
 	@Test(expected = BeanCreationException.class)
 	public void testNonPrototypeFailure() {
 		new ClassPathXmlApplicationContext("MapToObjectTransformerParserTests-context-fail.xml",
@@ -132,30 +135,41 @@ public class MapToObjectTransformerParserTests {
 
 	public static class Person {
 		private String fname;
+
 		private String lname;
+
 		private String ssn;
+
 		private Address address;
+
 		public String getSsn() {
 			return ssn;
 		}
+
 		public void setSsn(String ssn) {
 			this.ssn = ssn;
 		}
+
 		public String getFname() {
 			return fname;
 		}
+
 		public void setFname(String fname) {
 			this.fname = fname;
 		}
+
 		public String getLname() {
 			return lname;
 		}
+
 		public void setLname(String lname) {
 			this.lname = lname;
 		}
+
 		public Address getAddress() {
 			return address;
 		}
+
 		public void setAddress(Address address) {
 			this.address = address;
 		}
@@ -174,7 +188,9 @@ public class MapToObjectTransformerParserTests {
 	}
 
 	public static class StringToAddressConverter implements Converter<String, Address> {
-		public StringToAddressConverter() { }
+		public StringToAddressConverter() {
+		}
+
 		@Override
 		public Address convert(String source) {
 			Address address = new Address();

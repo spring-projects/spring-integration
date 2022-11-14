@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,6 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 	public enum GroupType {
 
 		LIST {
-
 			@Override
 			Collection<Message<?>> get() {
 				return new ArrayList<>();
@@ -96,7 +95,6 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 		},
 
 		BLOCKING_QUEUE {
-
 			@Override
 			Collection<Message<?>> get() {
 				return new LinkedBlockingQueue<>();
@@ -105,7 +103,6 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 		},
 
 		HASH_SET {
-
 			@Override
 			Collection<Message<?>> get() {
 				return new LinkedHashSet<>();
@@ -114,7 +111,6 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 		},
 
 		SYNCHRONISED_SET {
-
 			@Override
 			Collection<Message<?>> get() {
 				return Collections.synchronizedSet(new LinkedHashSet<>());
@@ -123,7 +119,6 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 		},
 
 		PERSISTENT {
-
 			@Override
 			Collection<Message<?>> get() {
 				return HASH_SET.get();

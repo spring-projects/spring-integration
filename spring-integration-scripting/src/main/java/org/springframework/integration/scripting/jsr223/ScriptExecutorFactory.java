@@ -37,7 +37,7 @@ public final class ScriptExecutorFactory {
 		if (language.equalsIgnoreCase("python") || language.equalsIgnoreCase("jython")) {
 			return new PythonScriptExecutor();
 		}
-		else if (language.equalsIgnoreCase("ruby") ||  language.equalsIgnoreCase("jruby")) {
+		else if (language.equalsIgnoreCase("ruby") || language.equalsIgnoreCase("jruby")) {
 			return new RubyScriptExecutor();
 		}
 		else if (language.equalsIgnoreCase("kotlin")) {

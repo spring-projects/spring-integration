@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.Serializable;
 import java.util.Properties;
 import java.util.UUID;
@@ -43,6 +41,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -26,12 +24,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-
-import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.util.IntegrationReactiveUtils;
-import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.GenericMessage;
-
 import reactor.core.Disposable;
 import reactor.core.Disposables;
 import reactor.core.publisher.Mono;
@@ -39,6 +31,13 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 import reactor.util.concurrent.Queues;
+
+import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.util.IntegrationReactiveUtils;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Sergei Egorov

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,13 @@
 
 package org.springframework.integration.jms;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Date;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.jms.Destination;
 import jakarta.jms.JMSException;
 import jakarta.jms.Session;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -36,7 +34,7 @@ import org.springframework.jms.support.converter.MessageType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

@@ -16,9 +16,6 @@
 
 package org.springframework.integration.routingslip;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -28,6 +25,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -54,7 +52,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.GenericXmlContextLoader;
 
-import reactor.core.publisher.Flux;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 
 /**
@@ -132,7 +131,7 @@ public class RoutingSlipTests {
 
 	public static class TestRoutingSlipRoutePojo {
 
-		final String[] channels = { "channel2", "channel3" };
+		final String[] channels = {"channel2", "channel3"};
 
 		private int i = 0;
 

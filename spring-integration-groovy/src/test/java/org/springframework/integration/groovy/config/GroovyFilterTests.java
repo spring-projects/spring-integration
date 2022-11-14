@@ -16,9 +16,6 @@
 
 package org.springframework.integration.groovy.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
@@ -42,6 +39,9 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher

@@ -16,17 +16,11 @@
 
 package org.springframework.integration.jpa.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.Mockito.mock;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import jakarta.persistence.EntityManager;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -42,6 +36,11 @@ import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gunnar Hillert

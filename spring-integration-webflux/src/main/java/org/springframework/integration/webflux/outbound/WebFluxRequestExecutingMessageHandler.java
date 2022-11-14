@@ -20,6 +20,8 @@ import java.net.URI;
 import java.util.Map;
 
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
@@ -46,9 +48,6 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * A {@link org.springframework.messaging.MessageHandler} implementation that executes
@@ -307,7 +306,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 				.toEntityFlux(createBodyExtractor(expectedResponseType));
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private BodyExtractor<Flux<Object>, ? super ClientHttpResponse> createBodyExtractor(Object expectedResponseType) {
 		if (expectedResponseType != null) {
 			if (this.replyPayloadToFlux) {

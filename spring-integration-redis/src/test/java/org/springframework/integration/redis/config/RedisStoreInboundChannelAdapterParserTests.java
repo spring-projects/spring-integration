@@ -16,9 +16,6 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +29,9 @@ import org.springframework.integration.redis.inbound.RedisStoreMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Oleg Zhurakousky

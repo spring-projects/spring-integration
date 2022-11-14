@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered 
 			if (!this.mBeanExportersForExcludes.isEmpty()) {
 				autoCreateChannelCandidatesNames
 						.stream().
-						<Consumer<? super MBeanExporter>>map(candidateName ->
+								<Consumer<? super MBeanExporter>>map(candidateName ->
 								mBeanExporter -> mBeanExporter.addExcludedBean(candidateName))
 						.forEach(this.mBeanExportersForExcludes::forEach);
 			}

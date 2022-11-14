@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,6 +47,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Equivalent to {@link StoredProcPollingChannelAdapterWithNamespaceIntegrationTests}.

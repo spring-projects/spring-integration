@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
@@ -40,7 +40,7 @@ public class ContextHierarchyTests {
 		String prefix = "/org/springframework/integration/config/xml/ContextHierarchyTests-";
 		this.parentContext = new ClassPathXmlApplicationContext(prefix + "parent.xml");
 		this.childContext = new ClassPathXmlApplicationContext(
-				new String[] { prefix + "child.xml" }, parentContext);
+				new String[] {prefix + "child.xml"}, parentContext);
 	}
 
 

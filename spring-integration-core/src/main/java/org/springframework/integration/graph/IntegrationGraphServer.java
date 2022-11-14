@@ -236,7 +236,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 				.peek(nodes::add)
 				.forEach(gatewayNode -> producerLink(links, channelNodes, gatewayNode));
 
-		@SuppressWarnings({ "rawtypes", "unchecked"})
+		@SuppressWarnings({"rawtypes", "unchecked"})
 		Map<String, GatewayProxyFactoryBean<?>> gpfbs = (Map) getBeansOfType(GatewayProxyFactoryBean.class);
 
 		for (Entry<String, GatewayProxyFactoryBean<?>> entry : gpfbs.entrySet()) {
@@ -517,7 +517,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 			Collection<String> routes =
 					Stream.concat(router.getChannelMappings().values().stream(),
-							router.getDynamicChannelNames().stream())
+									router.getDynamicChannelNames().stream())
 							.collect(Collectors.toList());
 
 			String inputChannel = channelToBeanName(consumer.getInputChannel());

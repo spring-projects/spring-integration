@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.jmx.config;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +33,8 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky
@@ -70,20 +70,22 @@ public class DynamicRouterTests {
 	private NullChannel nullChannel;
 
 
-	@Test @DirtiesContext
+	@Test
+	@DirtiesContext
 	public void testRouteChange() throws Exception {
 		routingChannel.send(new GenericMessage<String>("123"));
 		assertThat(processAChannel.receive(0).getPayload()).isEqualTo("123");
 		routingChannel.send(MessageBuilder.withPayload(123).build());
 		assertThat(processBChannel.receive(0).getPayload()).isEqualTo(123);
 
-		controlChannel.send(MessageBuilder.withPayload(new String[]{"java.lang.String", "processCChannel"}).build());
+		controlChannel.send(MessageBuilder.withPayload(new String[] {"java.lang.String", "processCChannel"}).build());
 
 		routingChannel.send(new GenericMessage<String>("123"));
 		assertThat(processCChannel.receive(0).getPayload()).isEqualTo("123");
 	}
 
-	@Test @DirtiesContext
+	@Test
+	@DirtiesContext
 	public void testRouteChangeMap() throws Exception {
 		routingChannel.send(new GenericMessage<String>("123"));
 		assertThat(processAChannel.receive(0).getPayload()).isEqualTo("123");
@@ -99,7 +101,8 @@ public class DynamicRouterTests {
 		assertThat(processCChannel.receive(0).getPayload()).isEqualTo("123");
 	}
 
-	@Test @DirtiesContext
+	@Test
+	@DirtiesContext
 	public void testRouteChangeMapNamedArgs() throws Exception {
 		routingChannel.send(new GenericMessage<String>("123"));
 		assertThat(processAChannel.receive(0).getPayload()).isEqualTo("123");
@@ -115,7 +118,9 @@ public class DynamicRouterTests {
 		assertThat(processCChannel.receive(0).getPayload()).isEqualTo("123");
 	}
 
-	@Test @DirtiesContext @Ignore
+	@Test
+	@DirtiesContext
+	@Ignore
 	public void testPerf() throws Exception {
 //		this.nullChannel.enableStats(false);
 		for (int i = 0; i < 1000000000; i++) {

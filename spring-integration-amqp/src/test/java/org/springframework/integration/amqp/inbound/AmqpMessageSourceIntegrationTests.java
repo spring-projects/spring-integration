@@ -16,8 +16,6 @@
 
 package org.springframework.integration.amqp.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -58,6 +56,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Gary Russell
  *
@@ -70,7 +70,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 		AmqpMessageSourceIntegrationTests.DSL_QUEUE,
 		AmqpMessageSourceIntegrationTests.INTERCEPT_QUEUE,
 		AmqpMessageSourceIntegrationTests.DLQ,
-		AmqpMessageSourceIntegrationTests.NOAUTOACK_QUEUE })
+		AmqpMessageSourceIntegrationTests.NOAUTOACK_QUEUE})
 public class AmqpMessageSourceIntegrationTests {
 
 	static final String DSL_QUEUE = "AmqpMessageSourceIntegrationTests";
@@ -182,7 +182,7 @@ public class AmqpMessageSourceIntegrationTests {
 
 		@ServiceActivator(inputChannel = "noAutoAck")
 		public void ack(@Header(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK)
-				AcknowledgmentCallback callback) {
+		AcknowledgmentCallback callback) {
 			callback.noAutoAck();
 			this.callback = callback;
 			latch.countDown();

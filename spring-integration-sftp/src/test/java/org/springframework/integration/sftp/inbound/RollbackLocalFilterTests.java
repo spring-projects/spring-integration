@@ -16,8 +16,6 @@
 
 package org.springframework.integration.sftp.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +32,8 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell

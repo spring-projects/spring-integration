@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jdbc.lock;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -45,6 +43,8 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.StopWatch;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Dave Syer

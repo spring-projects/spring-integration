@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private boolean soTcpNoDelay;
 
-	private int soLinger  = -1; // don't set by default
+	private int soLinger = -1; // don't set by default
 
 	private boolean soKeepAlive;
 
@@ -148,10 +148,10 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	@Override
 	public Class<?> getObjectType() {
 		return this.connectionFactory != null ? this.connectionFactory.getClass() :
-			this.type == null ? AbstractConnectionFactory.class :
-				isServer() ? AbstractServerConnectionFactory.class :
-					isClient() ? AbstractClientConnectionFactory.class :
-						AbstractConnectionFactory.class;
+				this.type == null ? AbstractConnectionFactory.class :
+						isServer() ? AbstractServerConnectionFactory.class :
+								isClient() ? AbstractClientConnectionFactory.class :
+										AbstractConnectionFactory.class;
 	}
 
 	@Override

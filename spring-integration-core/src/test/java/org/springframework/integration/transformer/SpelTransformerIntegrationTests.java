@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.transformer;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
@@ -43,6 +41,8 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
@@ -175,7 +175,7 @@ public class SpelTransformerIntegrationTests {
 		@Override
 		public TypedValue read(EvaluationContext context, Object target, String name) throws AccessException {
 			Assert.isInstanceOf(Foo.class, target);
-			return  new TypedValue(((Foo) target).obtainBar(), TypeDescriptor.valueOf(String.class));
+			return new TypedValue(((Foo) target).obtainBar(), TypeDescriptor.valueOf(String.class));
 		}
 
 		@Override

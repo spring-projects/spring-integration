@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public final class Log4j2LevelAdjuster implements MethodRule {
 	private final String[] categories;
 
 	private Log4j2LevelAdjuster(Level level) {
-		this(level, null, new String[] { "org.springframework.integration" });
+		this(level, null, new String[] {"org.springframework.integration"});
 	}
 
 	private Log4j2LevelAdjuster(Level level, Class<?>[] classes, String[] categories) {

@@ -19,17 +19,17 @@ package org.springframework.integration.hazelcast.metadata;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.metadata.ListenableMetadataStore;
-import org.springframework.integration.metadata.MetadataStoreListener;
-import org.springframework.util.Assert;
-
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.metadata.ListenableMetadataStore;
+import org.springframework.integration.metadata.MetadataStoreListener;
+import org.springframework.util.Assert;
 
 /**
  * The Hazelcast {@link IMap}-based {@link ListenableMetadataStore} implementation.

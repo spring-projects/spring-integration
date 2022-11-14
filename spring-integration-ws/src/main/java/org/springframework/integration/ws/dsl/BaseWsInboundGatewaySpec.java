@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.springframework.integration.ws.SoapHeaderMapper;
  */
 public abstract class BaseWsInboundGatewaySpec<
 		S extends BaseWsInboundGatewaySpec<S, E>, E extends AbstractWebServiceInboundGateway>
-	extends MessagingGatewaySpec<S, E> {
+		extends MessagingGatewaySpec<S, E> {
 
 	/**
 	 * Construct an instance.

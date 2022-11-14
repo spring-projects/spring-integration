@@ -16,10 +16,15 @@
 
 package org.springframework.integration.support.management.observation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import io.micrometer.common.KeyValues;
+import io.micrometer.core.tck.MeterRegistryAssert;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.test.SampleTestRunner;
+import io.micrometer.tracing.test.simple.SpansAssert;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -41,12 +46,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 
-import io.micrometer.common.KeyValues;
-import io.micrometer.core.tck.MeterRegistryAssert;
-import io.micrometer.observation.ObservationRegistry;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.test.SampleTestRunner;
-import io.micrometer.tracing.test.simple.SpansAssert;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -57,7 +57,7 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 
 	@Override
 	public TracingSetup[] getTracingSetup() {
-		return new TracingSetup[]{ TracingSetup.IN_MEMORY_BRAVE, TracingSetup.ZIPKIN_BRAVE };
+		return new TracingSetup[] {TracingSetup.IN_MEMORY_BRAVE, TracingSetup.ZIPKIN_BRAVE};
 	}
 
 	@Override

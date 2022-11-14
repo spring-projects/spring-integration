@@ -16,8 +16,6 @@
 
 package org.springframework.integration.ftp.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -65,6 +63,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Artem Bilan
  * @author Gary Russell
@@ -91,14 +91,14 @@ public class FtpTests extends FtpTestSupport {
 		QueueChannel out = new QueueChannel();
 		DirectoryScanner scanner = new DefaultDirectoryScanner();
 		IntegrationFlow flow = IntegrationFlow.from(Ftp.inboundAdapter(sessionFactory())
-						.preserveTimestamp(true)
-						.remoteDirectory("ftpSource")
-						.maxFetchSize(10)
-						.scanner(scanner)
-						.regexFilter(".*\\.txt$")
-						.localFilename(f -> f.toUpperCase() + ".a")
-						.localDirectory(getTargetLocalDirectory()),
-				e -> e.id("ftpInboundAdapter").poller(Pollers.fixedDelay(100)))
+								.preserveTimestamp(true)
+								.remoteDirectory("ftpSource")
+								.maxFetchSize(10)
+								.scanner(scanner)
+								.regexFilter(".*\\.txt$")
+								.localFilename(f -> f.toUpperCase() + ".a")
+								.localDirectory(getTargetLocalDirectory()),
+						e -> e.id("ftpInboundAdapter").poller(Pollers.fixedDelay(100)))
 				.channel(out)
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
@@ -150,11 +150,11 @@ public class FtpTests extends FtpTestSupport {
 	public void testFtpInboundStreamFlow() throws Exception {
 		QueueChannel out = new QueueChannel();
 		StandardIntegrationFlow flow = IntegrationFlow.from(
-				Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sessionFactory()))
-						.remoteDirectory("ftpSource")
-						.maxFetchSize(11)
-						.regexFilter(".*\\.txt$"),
-				e -> e.id("ftpInboundAdapter").poller(Pollers.fixedDelay(100)))
+						Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sessionFactory()))
+								.remoteDirectory("ftpSource")
+								.maxFetchSize(11)
+								.regexFilter(".*\\.txt$"),
+						e -> e.id("ftpInboundAdapter").poller(Pollers.fixedDelay(100)))
 				.channel(out)
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();

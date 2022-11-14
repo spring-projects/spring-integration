@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.syslog.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +23,8 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.integration.syslog.SyslogHeaders;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Duncan McIntyre
@@ -36,17 +36,22 @@ public class SyslogDeserializerTests {
 
 	static final String VALID_UNFRAMED_ENTRY =
 			"<14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - - Removing instance\n";
+
 	static final String VALID_FRAMED_ENTRY =
 			"106 <14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - - Removing instance";
+
 	static final String SHORT_FRAMED_ENTRY =
 			"107 <14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - - Removing instance";
+
 	static final String SD_ENTRY_1 =
 			"179 <14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
 					"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"] Removing instance";
+
 	static final String SD_ENTRY_2 =
 			"253 <14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
 					"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"][exampleSDID@32473 " +
 					"iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"] Removing instance";
+
 	static final String SD_ENTRY_3 = "275 <14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
 			"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"][exampleSDID@32473 " +
 			"iut=\\\"3\\\" eventSource=\\\"Application\\\" escapedBracket=\\\"\\]\\\" eventID=\\\"1011\\\"] Removing instance";

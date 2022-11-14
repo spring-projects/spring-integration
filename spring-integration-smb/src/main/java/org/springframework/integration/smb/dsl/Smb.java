@@ -19,6 +19,8 @@ package org.springframework.integration.smb.dsl;
 import java.io.File;
 import java.util.Comparator;
 
+import jcifs.smb.SmbFile;
+
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
@@ -26,8 +28,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.smb.outbound.SmbOutboundGateway;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
-
-import jcifs.smb.SmbFile;
 
 /**
  * The factory for SMB components.

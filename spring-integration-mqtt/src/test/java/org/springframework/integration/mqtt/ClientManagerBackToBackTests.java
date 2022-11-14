@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mqtt;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +42,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Vozhdayenko
@@ -117,7 +117,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		@Bean
 		public Mqttv3ClientManager mqttv3ClientManager() {
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
-			connectionOptions.setServerURIs(new String[]{ MosquittoContainerTest.mqttUrl() });
+			connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 			connectionOptions.setAutomaticReconnect(true);
 			return new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3");
 		}
@@ -157,7 +157,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		@Bean
 		public Mqttv3ClientManager mqttv3ClientManager() {
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
-			connectionOptions.setServerURIs(new String[]{ MosquittoContainerTest.mqttUrl() });
+			connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 			connectionOptions.setAutomaticReconnect(true);
 			return new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3-reconnect");
 		}

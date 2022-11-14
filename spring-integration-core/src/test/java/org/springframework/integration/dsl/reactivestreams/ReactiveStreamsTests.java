@@ -16,8 +16,6 @@
 
 package org.springframework.integration.dsl.reactivestreams;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -33,6 +31,9 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,9 +54,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import reactor.core.Disposable;
-import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
@@ -116,7 +115,7 @@ public class ReactiveStreamsTests {
 						});
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		String[] strings = results.toArray(new String[0]);
-		assertThat(strings).isEqualTo(new String[]{ "A", "B", "C", "D", "E", "F" });
+		assertThat(strings).isEqualTo(new String[] {"A", "B", "C", "D", "E", "F"});
 
 		disposable.dispose();
 		assertThat(this.messageSource.isRunning()).isFalse();

@@ -16,11 +16,6 @@
 
 package org.springframework.integration.kafka.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +42,11 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Soby Chacko

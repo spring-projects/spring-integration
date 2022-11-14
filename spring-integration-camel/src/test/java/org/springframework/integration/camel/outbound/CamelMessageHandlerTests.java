@@ -16,9 +16,6 @@
 
 package org.springframework.integration.camel.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ProducerTemplate;
@@ -39,6 +36,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Artem Bilan

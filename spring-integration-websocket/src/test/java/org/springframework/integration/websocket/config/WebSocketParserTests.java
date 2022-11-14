@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.websocket.config;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -57,6 +55,8 @@ import org.springframework.web.socket.sockjs.frame.SockJsMessageCodec;
 import org.springframework.web.socket.sockjs.transport.TransportHandler;
 import org.springframework.web.socket.sockjs.transport.TransportHandlingSockJsService;
 import org.springframework.web.socket.sockjs.transport.TransportType;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -156,7 +156,7 @@ public class WebSocketParserTests {
 		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendTimeLimit")).isEqualTo(100);
 		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendBufferSizeLimit")).isEqualTo(100000);
 		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "origins", String[].class))
-				.isEqualTo(new String[]{ "https://foo.com" });
+				.isEqualTo(new String[] {"https://foo.com"});
 
 		WebSocketHandlerDecoratorFactory[] decoratorFactories =
 				TestUtils.getPropertyValue(this.serverWebSocketContainer, "decoratorFactories",

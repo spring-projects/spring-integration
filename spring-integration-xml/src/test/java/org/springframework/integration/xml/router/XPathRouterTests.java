@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.xml.router;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 
 import org.junit.Test;
@@ -30,13 +28,15 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Jonas Partner
  */
 public class XPathRouterTests {
 
 	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void simpleSingleAttribute() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\" />");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
@@ -47,7 +47,7 @@ public class XPathRouterTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void simpleSingleAttributeAsString() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\" />");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
@@ -59,7 +59,7 @@ public class XPathRouterTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void simpleRootNode() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<doc><foo>oleg</foo><bar>bang</bar></doc>");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("name(./node())");
@@ -71,7 +71,7 @@ public class XPathRouterTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void multipleNodeValues() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\"><book>bOne</book><book>bTwo</book></doc>");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/book");
@@ -84,7 +84,7 @@ public class XPathRouterTests {
 
 
 	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	/*
 	 * Will return only one (the first node text in the collection), since
 	 * the evaluation return type use is String (not NODESET)

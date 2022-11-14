@@ -16,9 +16,6 @@
 
 package org.springframework.integration.jdbc.lock;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
@@ -43,6 +40,9 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Dave Syer
@@ -471,16 +471,16 @@ public class JdbcLockRegistryTests {
 
 		assertThat(getRegistryLocks(registry)).hasSize(3);
 		assertThat(getRegistryLocks(registry)).containsKeys(toUUID("foo:2"),
-															toUUID("foo:3"),
-															toUUID("foo:4"));
+				toUUID("foo:3"),
+				toUUID("foo:4"));
 
 		//capacity 3->4
 		registry.setCacheCapacity(CAPACITY_CNT);
 		registry.obtain("foo:5");
 		assertThat(getRegistryLocks(registry)).hasSize(4);
 		assertThat(getRegistryLocks(registry)).containsKeys(toUUID("foo:3"),
-															toUUID("foo:4"),
-															toUUID("foo:5"));
+				toUUID("foo:4"),
+				toUUID("foo:5"));
 	}
 
 	@SuppressWarnings("unchecked")

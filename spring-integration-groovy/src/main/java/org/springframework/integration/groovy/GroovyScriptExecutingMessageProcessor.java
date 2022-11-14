@@ -22,6 +22,14 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import groovy.lang.Binding;
+import groovy.lang.GString;
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
+import groovy.lang.MissingPropertyException;
+import groovy.lang.Script;
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 
@@ -39,15 +47,6 @@ import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-
-import groovy.lang.Binding;
-import groovy.lang.GString;
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyObject;
-import groovy.lang.MetaClass;
-import groovy.lang.MissingPropertyException;
-import groovy.lang.Script;
-import groovy.transform.CompileStatic;
 
 /**
  * The {@link org.springframework.integration.handler.MessageProcessor} implementation

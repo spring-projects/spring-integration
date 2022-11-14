@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,6 @@
  */
 
 package org.springframework.integration.file.remote;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -56,6 +47,15 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Gary Russell
@@ -345,19 +345,19 @@ public class StreamingInboundTests {
 			}
 			try {
 				Session<String> session = mock(Session.class);
-				willReturn(new String[]{ "/foo/foo", "/foo/bar" }).given(session).list("/foo");
+				willReturn(new String[] {"/foo/foo", "/foo/bar"}).given(session).list("/foo");
 				ByteArrayInputStream foo = new ByteArrayInputStream("foo\nbar".getBytes());
 				ByteArrayInputStream bar = new ByteArrayInputStream("baz\nqux".getBytes());
 				willReturn(foo).given(session).readRaw("/foo/foo");
 				willReturn(bar).given(session).readRaw("/foo/bar");
 
-				willReturn(new String[]{ "/bar/foo", "/bar/bar" }).given(session).list("/bar");
+				willReturn(new String[] {"/bar/foo", "/bar/bar"}).given(session).list("/bar");
 				ByteArrayInputStream foo2 = new ByteArrayInputStream("foo\r\nbar".getBytes());
 				ByteArrayInputStream bar2 = new ByteArrayInputStream("baz\r\nqux".getBytes());
 				willReturn(foo2).given(session).readRaw("/bar/foo");
 				willReturn(bar2).given(session).readRaw("/bar/bar");
 
-				willReturn(new String[]{ "/bad/file1", "/bad/file2" }).given(session).list("/bad");
+				willReturn(new String[] {"/bad/file1", "/bad/file2"}).given(session).list("/bad");
 				willThrow(new IOException("No file")).given(session).readRaw("/bad/file1");
 				willThrow(new IOException("No file")).given(session).readRaw("/bad/file2");
 

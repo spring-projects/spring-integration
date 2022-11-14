@@ -16,6 +16,7 @@
 
 package org.springframework.integration.hazelcast.inbound;
 
+import com.hazelcast.map.IMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,8 +27,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.hazelcast.map.IMap;
-
 /**
  * Hazelcast Distributed SQL Inbound Channel Adapter Test
  *
@@ -37,7 +36,7 @@ import com.hazelcast.map.IMap;
 @RunWith(SpringRunner.class)
 @ContextConfiguration
 @DirtiesContext
-@SuppressWarnings({ "unchecked", "rawtypes" })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class HazelcastDistributedSQLInboundChannelAdapterTests {
 
 	@Autowired

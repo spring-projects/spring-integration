@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,16 +169,16 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 		logger.debug(() -> "Sending expression result message to " + messageChannel + " " +
 				"as part of '" + expressionType + "' transaction synchronization");
 		Message<?> spelResultMessage;
-			if (value instanceof Message<?>) {
-				spelResultMessage = (Message<?>) value;
-			}
-			else {
-				spelResultMessage =
-						getMessageBuilderFactory()
-								.withPayload(value)
-								.copyHeaders(headers)
-								.build();
-			}
+		if (value instanceof Message<?>) {
+			spelResultMessage = (Message<?>) value;
+		}
+		else {
+			spelResultMessage =
+					getMessageBuilderFactory()
+							.withPayload(value)
+							.copyHeaders(headers)
+							.build();
+		}
 		try {
 			sendMessage(messageChannel, spelResultMessage);
 		}

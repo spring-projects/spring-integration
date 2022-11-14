@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,6 @@
  */
 
 package org.springframework.integration.test.mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.springframework.integration.test.mock.MockIntegration.mockMessageHandler;
 
 import java.util.List;
 import java.util.Map;
@@ -61,6 +53,14 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.springframework.integration.test.mock.MockIntegration.mockMessageHandler;
 
 /**
  * @author Artem Bilan
@@ -185,7 +185,8 @@ public class MockMessageHandlerTests {
 		ArgumentCaptor<Message<?>> messageArgumentCaptor = MockIntegration.messageArgumentCaptor();
 		MessageHandler mockMessageHandler =
 				spy(mockMessageHandler(messageArgumentCaptor))
-						.handleNext(m -> { });
+						.handleNext(m -> {
+						});
 
 		String endpointId = "rawHandlerConsumer";
 		this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler);
@@ -245,7 +246,8 @@ public class MockMessageHandlerTests {
 	@SuppressWarnings("unchecked")
 	public void testMockIntegrationContextReset() {
 		MockMessageHandler mockMessageHandler = mockMessageHandler();
-		mockMessageHandler.handleNext(message -> { });
+		mockMessageHandler.handleNext(message -> {
+		});
 
 		this.mockIntegrationContext.substituteMessageHandlerFor("logEndpoint", mockMessageHandler);
 

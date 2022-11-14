@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.jdbc.config;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.sql.Types;
 import java.util.List;
@@ -38,6 +36,8 @@ import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gunnar Hillert
@@ -82,7 +82,7 @@ public class StoredProcMessageHandlerParserTests {
 		Object executor = accessor.getPropertyValue("executor");
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
 
-		Object  procedureParameters = executorAccessor.getPropertyValue("procedureParameters");
+		Object procedureParameters = executorAccessor.getPropertyValue("procedureParameters");
 		assertThat(procedureParameters).isNotNull();
 		assertThat(procedureParameters instanceof List).isTrue();
 
@@ -124,7 +124,7 @@ public class StoredProcMessageHandlerParserTests {
 		Object executor = accessor.getPropertyValue("executor");
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
 
-		Object  sqlParameters = executorAccessor.getPropertyValue("sqlParameters");
+		Object sqlParameters = executorAccessor.getPropertyValue("sqlParameters");
 
 		assertThat(sqlParameters).isNotNull();
 		assertThat(sqlParameters instanceof List).isTrue();
@@ -177,8 +177,8 @@ public class StoredProcMessageHandlerParserTests {
 	}
 
 	public void setUp(String name, Class<?> cls) {
-		context    = new ClassPathXmlApplicationContext(name, cls);
-		consumer   = this.context.getBean("storedProcedureOutboundChannelAdapter", EventDrivenConsumer.class);
+		context = new ClassPathXmlApplicationContext(name, cls);
+		consumer = this.context.getBean("storedProcedureOutboundChannelAdapter", EventDrivenConsumer.class);
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

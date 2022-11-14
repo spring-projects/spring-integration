@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,13 @@ public class MailTestsHelper {
 	public static final String MESSAGE_TEXT = "Some text";
 
 	public static final String[] TO = new String[] {
-			"toRecipient1@springframework.org", "toRecipient2@springframework.org" };
+			"toRecipient1@springframework.org", "toRecipient2@springframework.org"};
 
 	public static final String[] CC = new String[] {
-		"ccRecipient1@springframework.org", "ccRecipient2@springframework.org" };
+			"ccRecipient1@springframework.org", "ccRecipient2@springframework.org"};
 
 	public static final String[] BCC = new String[] {
-			"bccRecipient1@springframework.org", "bccRecipient2@springframework.org" };
+			"bccRecipient1@springframework.org", "bccRecipient2@springframework.org"};
 
 	public static final String FROM = "from@springframework.org";
 

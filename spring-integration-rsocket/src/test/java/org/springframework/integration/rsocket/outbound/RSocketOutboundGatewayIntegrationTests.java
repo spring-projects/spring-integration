@@ -16,15 +16,23 @@
 
 package org.springframework.integration.rsocket.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 
+import io.rsocket.RSocket;
+import io.rsocket.core.RSocketServer;
+import io.rsocket.frame.decoder.PayloadDecoder;
+import io.rsocket.transport.netty.server.CloseableChannel;
+import io.rsocket.transport.netty.server.TcpServerTransport;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -57,16 +65,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import io.rsocket.RSocket;
-import io.rsocket.core.RSocketServer;
-import io.rsocket.frame.decoder.PayloadDecoder;
-import io.rsocket.transport.netty.server.CloseableChannel;
-import io.rsocket.transport.netty.server.TcpServerTransport;
-import reactor.core.Disposable;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -183,9 +182,9 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		StepVerifier verifier =
 				StepVerifier.create(
-						Flux.from(resultChannel)
-								.map(Message::getPayload)
-								.cast(String.class))
+								Flux.from(resultChannel)
+										.map(Message::getPayload)
+										.cast(String.class))
 						.expectNext("Hello")
 						.thenCancel()
 						.verifyLater();
@@ -215,9 +214,9 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		StepVerifier verifier =
 				StepVerifier.create(
-						Flux.from(resultChannel)
-								.map(Message::getPayload)
-								.cast(String.class))
+								Flux.from(resultChannel)
+										.map(Message::getPayload)
+										.cast(String.class))
 						.expectNext("Hello async")
 						.thenCancel()
 						.verifyLater();
@@ -248,10 +247,10 @@ public class RSocketOutboundGatewayIntegrationTests {
 		@SuppressWarnings("unchecked")
 		StepVerifier verifier =
 				StepVerifier.create(
-						Flux.from(resultChannel)
-								.next()
-								.map(Message::getPayload)
-								.flatMapMany((payload) -> (Flux<String>) payload))
+								Flux.from(resultChannel)
+										.next()
+										.map(Message::getPayload)
+										.flatMapMany((payload) -> (Flux<String>) payload))
 						.expectNext("Hello 0").expectNextCount(6).expectNext("Hello 7")
 						.thenCancel()
 						.verifyLater();
@@ -282,10 +281,10 @@ public class RSocketOutboundGatewayIntegrationTests {
 		@SuppressWarnings("unchecked")
 		StepVerifier verifier =
 				StepVerifier.create(
-						Flux.from(resultChannel)
-								.next()
-								.map(Message::getPayload)
-								.flatMapMany((payload) -> (Flux<String>) payload))
+								Flux.from(resultChannel)
+										.next()
+										.map(Message::getPayload)
+										.flatMapMany((payload) -> (Flux<String>) payload))
 						.expectNext("Hello 1 async").expectNextCount(8).expectNext("Hello 10 async")
 						.thenCancel()
 						.verifyLater();
@@ -376,9 +375,9 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		StepVerifier verifier =
 				StepVerifier.create(
-						Flux.from(resultChannel)
-								.map(Message::getPayload)
-								.cast(String.class))
+								Flux.from(resultChannel)
+										.map(Message::getPayload)
+										.cast(String.class))
 						.expectNext("Invalid input error handled")
 						.thenCancel()
 						.verifyLater();
@@ -408,9 +407,9 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		StepVerifier verifier =
 				StepVerifier.create(
-						Flux.from(resultChannel)
-								.map(Message::getPayload)
-								.cast(String.class))
+								Flux.from(resultChannel)
+										.map(Message::getPayload)
+										.cast(String.class))
 						.expectNext("Invalid input error handled")
 						.thenCancel()
 						.verifyLater();

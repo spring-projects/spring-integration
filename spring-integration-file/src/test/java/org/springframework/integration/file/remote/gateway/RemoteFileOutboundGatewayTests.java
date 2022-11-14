@@ -16,19 +16,6 @@
 
 package org.springframework.integration.file.remote.gateway;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -65,6 +52,19 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -167,10 +167,10 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry(path1.replaceFirst("testremote/", ""), 123, false, false, 1234, "-r--r--r--"),
 						new TestLsEntry(path2.replaceFirst("testremote/", ""), 123, false, false, 1234,
-								"-r--r--r--") };
+								"-r--r--r--")};
 			}
 
 		});
@@ -201,7 +201,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[]{ new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--") };
+				return new TestLsEntry[] {new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--")};
 			}
 
 		});
@@ -343,7 +343,7 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	public TestLsEntry[] level1List() {
-		return new TestLsEntry[]{
+		return new TestLsEntry[] {
 				new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--"),
 				new TestLsEntry("d1", 0, true, false, 12345, "drw-r--r--"),
 				new TestLsEntry("f2", 12345, false, false, 123456, "-rw-r--r--")
@@ -351,14 +351,14 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	public TestLsEntry[] level2List() {
-		return new TestLsEntry[]{
+		return new TestLsEntry[] {
 				new TestLsEntry("d2", 0, true, false, 12345, "drw-r--r--"),
 				new TestLsEntry("f3", 12345, false, false, 123456, "-rw-r--r--")
 		};
 	}
 
 	public TestLsEntry[] level3List() {
-		return new TestLsEntry[]{
+		return new TestLsEntry[] {
 				new TestLsEntry("f4", 12345, false, false, 123456, "-rw-r--r--")
 		};
 	}
@@ -560,7 +560,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -597,7 +597,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -659,7 +659,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -697,7 +697,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, modified.getTime(), "-rw-r--r--")
 				};
 			}
@@ -732,7 +732,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -1052,7 +1052,8 @@ public class RemoteFileOutboundGatewayTests {
 
 	static class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
 
-		@SuppressWarnings("unchecked") TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
+		@SuppressWarnings("unchecked")
+		TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
 				String command, String expression) {
 			super(sessionFactory, Command.toCommand(command), expression);
 			this.setBeanFactory(mock(BeanFactory.class));

@@ -16,14 +16,14 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky

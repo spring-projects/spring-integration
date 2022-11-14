@@ -16,11 +16,6 @@
 
 package org.springframework.integration.dsl.manualflow;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.Arrays;
@@ -37,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
@@ -90,7 +86,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ReflectionUtils;
 
-import reactor.core.publisher.Flux;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Artem Bilan
@@ -257,10 +256,10 @@ public class ManualFlowTests {
 		PollableChannel resultChannel = new QueueChannel();
 
 		this.integrationFlowContext.registration(flow ->
-				flow.publishSubscribeChannel(p -> p
-						.minSubscribers(1)
-						.subscribe(f -> f.channel(resultChannel))
-				))
+						flow.publishSubscribeChannel(p -> p
+								.minSubscribers(1)
+								.subscribe(f -> f.channel(resultChannel))
+						))
 				.id("dynamicFlow")
 				.register();
 
@@ -329,9 +328,9 @@ public class ManualFlowTests {
 
 		IntegrationFlowRegistration flowRegistration =
 				this.integrationFlowContext.registration(
-						flow -> flow
-								.handle(new MessageProducingHandler())
-								.channel(resultChannel))
+								flow -> flow
+										.handle(new MessageProducingHandler())
+										.channel(resultChannel))
 						.register();
 
 		this.integrationFlowContext.messagingTemplateFor(flowRegistration.getId())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.springframework.integration.dsl.ComponentsRegistration;
  * @since 5.0
  */
 public abstract class AmqpInboundGatewaySpec
-				<S extends AmqpInboundGatewaySpec<S, C>, C extends AbstractMessageListenerContainer>
+		<S extends AmqpInboundGatewaySpec<S, C>, C extends AbstractMessageListenerContainer>
 		extends AmqpBaseInboundGatewaySpec<S>
 		implements ComponentsRegistration {
 

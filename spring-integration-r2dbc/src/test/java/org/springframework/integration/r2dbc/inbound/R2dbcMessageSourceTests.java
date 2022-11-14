@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,15 @@
 package org.springframework.integration.r2dbc.inbound;
 
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -39,9 +40,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Rohan Mukesh
@@ -92,7 +91,7 @@ public class R2dbcMessageSourceTests {
 	@Test
 	public void validateComponentType() {
 		assertThat(this.defaultR2dbcMessageSource.getComponentType())
-												.isEqualTo("r2dbc:inbound-channel-adapter");
+				.isEqualTo("r2dbc:inbound-channel-adapter");
 	}
 
 	@Test

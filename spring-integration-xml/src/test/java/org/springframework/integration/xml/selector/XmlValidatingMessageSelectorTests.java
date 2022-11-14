@@ -16,10 +16,6 @@
 
 package org.springframework.integration.xml.selector;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -27,6 +23,10 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.selector.XmlValidatingMessageSelector.SchemaType;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Oleg Zhurakousky

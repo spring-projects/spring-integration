@@ -16,14 +16,16 @@
 
 package org.springframework.integration.graphql.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import graphql.execution.reactive.SubscriptionPublisher;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -57,10 +59,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import graphql.execution.reactive.SubscriptionPublisher;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *

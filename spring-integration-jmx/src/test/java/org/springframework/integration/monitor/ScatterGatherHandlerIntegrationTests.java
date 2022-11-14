@@ -16,8 +16,6 @@
 
 package org.springframework.integration.monitor;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -55,6 +53,8 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

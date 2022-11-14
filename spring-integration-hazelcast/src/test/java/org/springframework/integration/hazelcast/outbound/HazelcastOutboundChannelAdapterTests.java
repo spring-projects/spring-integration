@@ -16,8 +16,6 @@
 
 package org.springframework.integration.hazelcast.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,10 +29,13 @@ import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.hazelcast.instance.impl.HazelcastInstanceFactory;
+import com.hazelcast.multimap.MultiMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
+import com.hazelcast.topic.ITopic;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -49,13 +50,10 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.hazelcast.instance.impl.HazelcastInstanceFactory;
-import com.hazelcast.multimap.MultiMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
-import com.hazelcast.topic.ITopic;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * Hazelcast Outbound Channel Adapter Test Class.
@@ -65,10 +63,9 @@ import com.hazelcast.topic.ITopic;
  *
  * @since 6.0
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
-@SuppressWarnings({ "unchecked", "rawtypes" })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class HazelcastOutboundChannelAdapterTests {
 
 	private static final String DISTRIBUTED_MAP = "distributedMap";
@@ -246,12 +243,12 @@ public class HazelcastOutboundChannelAdapterTests {
 	@Qualifier("testTopicRequestHandlerAdvice")
 	private HazelcastTestRequestHandlerAdvice testTopicRequestHandlerAdvice;
 
-	@AfterClass
+	@AfterAll
 	public static void shutdown() {
 		HazelcastInstanceFactory.terminateAll();
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.distributedMap.clear();
 		this.distributedBulkMap.clear();
@@ -330,10 +327,8 @@ public class HazelcastOutboundChannelAdapterTests {
 	public void testBulkWriteToReplicatedMap() throws InterruptedException {
 		Map<Integer, HazelcastIntegrationTestUser> userMap =
 				new HashMap<>(HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT);
-		for (int index = 1;
-				index <= HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT; index++) {
-			userMap
-					.put(index, HazelcastOutboundChannelAdapterTestUtils.getTestUser(index));
+		for (int index = 1; index <= HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT; index++) {
+			userMap.put(index, HazelcastOutboundChannelAdapterTestUtils.getTestUser(index));
 		}
 
 		this.bulkReplicatedMapChannel.send(new GenericMessage<>(userMap));
@@ -356,8 +351,7 @@ public class HazelcastOutboundChannelAdapterTests {
 	public void testBulkWriteToDistributedList() throws InterruptedException {
 		List<HazelcastIntegrationTestUser> userList =
 				new ArrayList<>(HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT);
-		for (int index = 1;
-				index <= HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT; index++) {
+		for (int index = 1; index <= HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT; index++) {
 			userList.add(HazelcastOutboundChannelAdapterTestUtils.getTestUser(index));
 		}
 
@@ -381,8 +375,7 @@ public class HazelcastOutboundChannelAdapterTests {
 	public void testBulkWriteToDistributedSet() throws InterruptedException {
 		Set<HazelcastIntegrationTestUser> userSet =
 				new HashSet<>(HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT);
-		for (int index = 1;
-				index <= HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT; index++) {
+		for (int index = 1; index <= HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT; index++) {
 			userSet.add(HazelcastOutboundChannelAdapterTestUtils.getTestUser(index));
 		}
 
@@ -408,8 +401,7 @@ public class HazelcastOutboundChannelAdapterTests {
 	public void testBulkWriteToDistributedQueue() throws InterruptedException {
 		Queue<HazelcastIntegrationTestUser> userQueue =
 				new ArrayBlockingQueue(HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT);
-		for (int index = 1;
-				index <= HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT; index++) {
+		for (int index = 1; index <= HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT; index++) {
 			userQueue.add(HazelcastOutboundChannelAdapterTestUtils.getTestUser(index));
 		}
 
@@ -429,29 +421,33 @@ public class HazelcastOutboundChannelAdapterTests {
 						this.testTopicRequestHandlerAdvice);
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void testWriteToDistributedMapWhenCacheIsNotSet() {
-		this.fifthMapChannel.send(new GenericMessage<>(
-				HazelcastOutboundChannelAdapterTestUtils.getTestUser(1)));
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() ->
+						this.fifthMapChannel.send(
+								new GenericMessage<>(HazelcastOutboundChannelAdapterTestUtils.getTestUser(1))));
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void testWriteToDistributedMapWhenKeyExpressionIsNotSet() {
 		Message<HazelcastIntegrationTestUser> message = this.messageBuilderFactory
 				.withPayload(HazelcastOutboundChannelAdapterTestUtils.getTestUser(1))
 				.setHeader(HazelcastHeaders.CACHE_NAME, DISTRIBUTED_MAP).build();
-		this.sixthMapChannel.send(message);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.sixthMapChannel.send(message));
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void testWriteToLock() {
-		this.lockChannel.send(new GenericMessage<>("foo"));
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.lockChannel.send(new GenericMessage<>("foo")));
 	}
 
 	private void sendMessageWithCacheHeaderToChannel(final MessageChannel channel,
 			final String headerName, final String distributedObjectName) {
-		for (int index = 1;
-				index <= HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT; index++) {
+
+		for (int index = 1; index <= HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT; index++) {
 			Message<HazelcastIntegrationTestUser> message = this.messageBuilderFactory
 					.withPayload(HazelcastOutboundChannelAdapterTestUtils.getTestUser(index))
 					.setHeader(headerName, distributedObjectName).build();
@@ -459,8 +455,7 @@ public class HazelcastOutboundChannelAdapterTests {
 		}
 	}
 
-	private void verifyMapForMessage(
-			final Map<Integer, Message<HazelcastIntegrationTestUser>> map) {
+	private static void verifyMapForMessage(final Map<Integer, Message<HazelcastIntegrationTestUser>> map) {
 		int index = 1;
 		assertThat(map).isNotNull();
 		assertThat(map.size()).isEqualTo(HazelcastOutboundChannelAdapterTestUtils.DATA_COUNT);

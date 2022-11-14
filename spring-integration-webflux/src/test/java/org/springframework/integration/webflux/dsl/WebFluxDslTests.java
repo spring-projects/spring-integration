@@ -16,11 +16,6 @@
 
 package org.springframework.integration.webflux.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-
 import java.security.Principal;
 import java.time.Duration;
 import java.util.Collections;
@@ -30,6 +25,9 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,9 +86,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 /**
  * @author Artem Bilan
@@ -472,7 +471,7 @@ public class WebFluxDslTests {
 					.from(WebFlux.inboundGateway("/sse")
 							.requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE))
 							.mappedResponseHeaders("*"))
-					.enrichHeaders(Collections.singletonMap("aHeader", new String[]{ "foo", "bar", "baz" }))
+					.enrichHeaders(Collections.singletonMap("aHeader", new String[] {"foo", "bar", "baz"}))
 					.handle((p, h) -> Flux.fromArray(h.get("aHeader", String[].class)))
 					.get();
 		}

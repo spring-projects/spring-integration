@@ -133,7 +133,7 @@ public @interface MessagingGateway {
 	 * all methods on the service-interface (unless overridden by a specific method).
 	 * @return the suggested payload expression, if any
 	 */
-	GatewayHeader[] defaultHeaders() default { };
+	GatewayHeader[] defaultHeaders() default {};
 
 	/**
 	 * An {@link org.springframework.integration.gateway.MethodArgsMessageMapper}

@@ -19,6 +19,8 @@ package org.springframework.integration.handler;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.micrometer.observation.ObservationRegistry;
+
 import org.springframework.core.Ordered;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
@@ -30,8 +32,6 @@ import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.TimerFacade;
-
-import io.micrometer.observation.ObservationRegistry;
 
 /**
  * Base class for Message handling components that provides basic validation and error

@@ -429,7 +429,7 @@ public abstract class IntegrationNamespaceUtils {
 		String[] handlerAlias = null;
 		String id = element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE);
 		if (StringUtils.hasText(id)) {
-			handlerAlias = new String[] { id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX };
+			handlerAlias = new String[] {id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX};
 		}
 		return handlerAlias;
 	}
@@ -455,7 +455,7 @@ public abstract class IntegrationNamespaceUtils {
 				parserContext, propertyName);
 	}
 
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings({"rawtypes"})
 	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
 			boolean handleMessageAdvice, BeanDefinition parentBeanDefinition, ParserContext parserContext,
 			String propertyName) {
@@ -474,7 +474,7 @@ public abstract class IntegrationNamespaceUtils {
 		return configureAdviceChain(adviceChainElement, txElement, false, parentBeanDefinition, parserContext);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static ManagedList configureAdviceChain(Element adviceChainElement, Element txElement,
 			boolean handleMessageAdvice, BeanDefinition parentBeanDefinition, ParserContext parserContext) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.ws.config;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -64,6 +62,8 @@ import org.springframework.ws.transport.WebServiceMessageSender;
 import org.springframework.xml.namespace.QNameUtils;
 import org.springframework.xml.transform.StringResult;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
@@ -91,7 +91,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	public void headerMapperParserTest() throws Exception {
 		SimpleWebServiceOutboundGateway gateway =
 				TestUtils.getPropertyValue(this.context.getBean("withHeaderMapper"),
-				"handler", SimpleWebServiceOutboundGateway.class);
+						"handler", SimpleWebServiceOutboundGateway.class);
 		DefaultSoapHeaderMapper headerMapper = TestUtils.getPropertyValue(gateway, "headerMapper",
 				DefaultSoapHeaderMapper.class);
 		assertThat(headerMapper).isNotNull();
@@ -201,7 +201,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	private Message<?> process(Object payload, String gatewayName, String channelName, final boolean soap) throws Exception {
 		AbstractWebServiceOutboundGateway gateway =
 				TestUtils.getPropertyValue(this.context.getBean(gatewayName), "handler",
-				AbstractWebServiceOutboundGateway.class);
+						AbstractWebServiceOutboundGateway.class);
 
 		if (!soap) {
 			WebServiceTemplate template = TestUtils.getPropertyValue(gateway, "webServiceTemplate", WebServiceTemplate.class);
@@ -215,8 +215,8 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 
 		Mockito.doAnswer(invocation -> {
 
-			Object[] args = invocation.getArguments();
-			WebServiceMessage wsMessage = (WebServiceMessage) args[0];
+					Object[] args = invocation.getArguments();
+					WebServiceMessage wsMessage = (WebServiceMessage) args[0];
 //				try { // uncomment if you want to see a pretty-print of SOAP message
 //					Transformer transformer = TransformerFactory.newInstance().newTransformer();
 //					transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -225,16 +225,16 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 //				catch (Exception e) {
 //					// ignore
 //				}
-			if (soap) {
-				SoapHeader soapHeader = ((SoapMessage) wsMessage).getSoapHeader();
-				assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foo"))).isNotNull();
-				assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foobar"))).isNotNull();
-				assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("abaz"))).isNotNull();
-				assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("bar"))).isNull();
-			}
-			return null;
+					if (soap) {
+						SoapHeader soapHeader = ((SoapMessage) wsMessage).getSoapHeader();
+						assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foo"))).isNotNull();
+						assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foobar"))).isNotNull();
+						assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("abaz"))).isNotNull();
+						assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("bar"))).isNull();
+					}
+					return null;
 
-		}).when(wsConnection)
+				}).when(wsConnection)
 				.send(Mockito.any(WebServiceMessage.class));
 
 		Mockito.doAnswer(invocation -> {

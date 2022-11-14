@@ -21,13 +21,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.springframework.integration.codec.Codec;
-import org.springframework.util.Assert;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.util.Pool;
+
+import org.springframework.integration.codec.Codec;
+import org.springframework.util.Assert;
 
 /**
  * Base class for {@link Codec}s using {@link Kryo}.

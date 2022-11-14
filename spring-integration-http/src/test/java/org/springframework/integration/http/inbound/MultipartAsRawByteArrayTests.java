@@ -16,18 +16,12 @@
 
 package org.springframework.integration.http.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.Collections;
 import java.util.Enumeration;
 
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -36,6 +30,11 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell

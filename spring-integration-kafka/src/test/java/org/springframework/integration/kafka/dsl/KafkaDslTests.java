@@ -16,8 +16,6 @@
 
 package org.springframework.integration.kafka.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -84,6 +82,8 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.backoff.FixedBackOff;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan

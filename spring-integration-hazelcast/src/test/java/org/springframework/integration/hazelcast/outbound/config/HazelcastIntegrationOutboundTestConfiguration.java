@@ -20,6 +20,14 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import com.hazelcast.core.DistributedObject;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
+import com.hazelcast.multimap.MultiMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
+import com.hazelcast.topic.ITopic;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -31,14 +39,6 @@ import org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvi
 import org.springframework.integration.hazelcast.outbound.HazelcastCacheWritingMessageHandler;
 import org.springframework.integration.hazelcast.outbound.util.HazelcastOutboundChannelAdapterTestUtils;
 import org.springframework.messaging.MessageChannel;
-
-import com.hazelcast.core.DistributedObject;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.map.IMap;
-import com.hazelcast.multimap.MultiMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
-import com.hazelcast.topic.ITopic;
 
 /**
  * Configuration Class for Hazelcast Integration Outbound Test

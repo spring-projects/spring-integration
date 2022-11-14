@@ -16,10 +16,10 @@
 
 package org.springframework.integration.support.management.observation;
 
+import io.micrometer.observation.transport.RequestReplyReceiverContext;
+
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-
-import io.micrometer.observation.transport.RequestReplyReceiverContext;
 
 /**
  * The {@link RequestReplyReceiverContext} extension for a {@link Message} contract with inbound gateways.

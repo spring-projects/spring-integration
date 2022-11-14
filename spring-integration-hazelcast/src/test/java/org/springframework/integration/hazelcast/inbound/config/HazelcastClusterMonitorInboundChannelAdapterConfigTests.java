@@ -16,6 +16,7 @@
 
 package org.springframework.integration.hazelcast.inbound.config;
 
+import com.hazelcast.core.HazelcastInstance;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -25,8 +26,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.hazelcast.core.HazelcastInstance;
 
 /**
  * Hazelcast Cluster Monitor Inbound Channel Adapter JavaConfig driven Unit Test Class

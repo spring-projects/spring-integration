@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,8 +72,8 @@ public abstract class AbstractKafkaChannel extends AbstractMessageChannel {
 	protected boolean doSend(Message<?> message, long timeout) {
 		try {
 			this.template.send(MessageBuilder.fromMessage(message)
-					.setHeader(KafkaHeaders.TOPIC, this.topic)
-					.build())
+							.setHeader(KafkaHeaders.TOPIC, this.topic)
+							.build())
 					.get(timeout < 0 ? Long.MAX_VALUE : timeout, TimeUnit.MILLISECONDS);
 		}
 		catch (@SuppressWarnings("unused") InterruptedException e) {

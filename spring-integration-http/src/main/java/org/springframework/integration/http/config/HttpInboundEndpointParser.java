@@ -222,7 +222,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		if (crossOriginElement != null) {
 			BeanDefinitionBuilder crossOriginBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(CrossOrigin.class);
-			String[] attributes = { "origin", "allowed-headers", "exposed-headers", "max-age", "method" };
+			String[] attributes = {"origin", "allowed-headers", "exposed-headers", "max-age", "method"};
 			for (String crossOriginAttribute : attributes) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(crossOriginBuilder, crossOriginElement,
 						crossOriginAttribute);
@@ -247,7 +247,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		Element requestMappingElement = DomUtils.getChildElementByTagName(element, "request-mapping");
 
 		if (requestMappingElement != null) {
-			for (String requestMappingAttribute : new String[]{ "params", "headers", "consumes", "produces" }) {
+			for (String requestMappingAttribute : new String[] {"params", "headers", "consumes", "produces"}) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(requestMappingDefBuilder, requestMappingElement,
 						requestMappingAttribute);
 			}

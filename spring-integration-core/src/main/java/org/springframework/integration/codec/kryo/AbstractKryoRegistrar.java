@@ -16,11 +16,10 @@
 
 package org.springframework.integration.codec.kryo;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Registration;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Base class for {@link KryoRegistrar} implementations.

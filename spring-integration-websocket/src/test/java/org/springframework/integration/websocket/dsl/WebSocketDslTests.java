@@ -16,12 +16,7 @@
 
 package org.springframework.integration.websocket.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.awaitility.Awaitility.await;
-
 import jakarta.websocket.DeploymentException;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +42,10 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.server.HandshakeHandler;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 
 @SpringJUnitConfig(classes = WebSocketDslTests.ClientConfig.class)
 @DirtiesContext

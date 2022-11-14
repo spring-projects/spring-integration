@@ -70,7 +70,7 @@ public class Mqttv5ClientManager
 	private static MqttConnectionOptions buildDefaultConnectionOptions(String url) {
 		Assert.notNull(url, "'url' is required");
 		var connectionOptions = new MqttConnectionOptions();
-		connectionOptions.setServerURIs(new String[]{ url });
+		connectionOptions.setServerURIs(new String[] {url});
 		connectionOptions.setAutomaticReconnect(true);
 		return connectionOptions;
 	}

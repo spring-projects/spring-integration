@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.datastax.oss.driver.api.core.cql.Statement;
+
 import org.springframework.data.cassandra.core.ReactiveCassandraOperations;
 import org.springframework.data.cassandra.core.cql.WriteOptions;
 import org.springframework.expression.Expression;
@@ -27,8 +29,6 @@ import org.springframework.integration.cassandra.outbound.CassandraMessageHandle
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.messaging.Message;
-
-import com.datastax.oss.driver.api.core.cql.Statement;
 
 /**
  * The {@link MessageHandlerSpec} for {@link CassandraMessageHandler}.

@@ -24,11 +24,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.integration.message.AdviceMessage;
-import org.springframework.integration.support.MutableMessage;
-import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.messaging.support.GenericMessage;
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.DeserializationConfig;
@@ -40,6 +35,11 @@ import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+
+import org.springframework.integration.message.AdviceMessage;
+import org.springframework.integration.support.MutableMessage;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * Utility methods for Jackson.

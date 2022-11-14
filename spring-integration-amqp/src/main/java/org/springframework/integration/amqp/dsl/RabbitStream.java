@@ -16,11 +16,11 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import org.springframework.rabbit.stream.listener.StreamListenerContainer;
-import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
-
 import com.rabbitmq.stream.Codec;
 import com.rabbitmq.stream.Environment;
+
+import org.springframework.rabbit.stream.listener.StreamListenerContainer;
+import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
 
 /**
  * Factory class for RabbitMQ components.

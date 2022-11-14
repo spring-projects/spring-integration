@@ -16,9 +16,6 @@
 
 package org.springframework.integration.dsl.transformers;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
@@ -53,6 +50,9 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 package org.springframework.integration.ws;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,7 +29,6 @@ import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.MimeHeaders;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
-
 import org.junit.Test;
 import org.w3c.dom.NodeList;
 
@@ -45,6 +40,10 @@ import org.springframework.ws.soap.saaj.SaajSoapMessage;
 import org.springframework.ws.transport.TransportConstants;
 import org.springframework.xml.namespace.QNameUtils;
 import org.springframework.xml.transform.StringSource;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell

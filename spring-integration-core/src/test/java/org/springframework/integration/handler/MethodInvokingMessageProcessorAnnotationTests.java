@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  */
 
 package org.springframework.integration.handler;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -47,6 +43,10 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.GenericMessage;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
+
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -54,7 +54,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class MethodInvokingMessageProcessorAnnotationTests {
 
 	private final TestService testService = new TestService();
@@ -465,7 +465,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 				@Payload Employee payloadArg,
 				@Payload("fname") String value,
 				@Headers Map<?, ?> headers) {
-			return new Object[]{ argA, argB, payloadArg, value, headers };
+			return new Object[] {argA, argB, payloadArg, value, headers};
 		}
 
 		public String irrelevantAnnotation(@BogusAnnotation String value) {

@@ -16,16 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Mockito.mock;
-
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +31,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -89,8 +81,15 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.mock;
 
 
 /**
@@ -102,15 +101,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class MethodInvokingMessageProcessorTests {
 
 	private static final Log logger = LogFactory.getLog(MethodInvokingMessageProcessorTests.class);
 
 	@Test
 	public void testMessageHandlerMethodFactoryOverride() {
-		try (AnnotationConfigApplicationContext context =
-				new AnnotationConfigApplicationContext(MyConfiguration.class)) {
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MyConfiguration.class)) {
 			MessageChannel channel = context.getBean("foo", MessageChannel.class);
 			channel.send(MessageBuilder.withPayload("Bob Smith").build());
 			PollableChannel out = context.getBean("out", PollableChannel.class);
@@ -1170,8 +1168,8 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	void lifecycleOnly() {
 		assertThatIllegalStateException().isThrownBy(() ->
-				new MethodInvokingMessageProcessor(new LifecycleBean(), (String) null))
-			.withMessageContaining("no eligible methods");
+						new MethodInvokingMessageProcessor(new LifecycleBean(), (String) null))
+				.withMessageContaining("no eligible methods");
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Set;
 
 import javax.management.MBeanServer;
@@ -33,6 +31,8 @@ import org.springframework.jmx.export.naming.ObjectNamingStrategy;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Dave Syer
@@ -73,6 +73,7 @@ public class MBeanRegistrationCustomNamingTests {
 	public static class Namer implements ObjectNamingStrategy {
 
 		private final ObjectNamingStrategy realNamer = new KeyNamingStrategy();
+
 		@Override
 		public ObjectName getObjectName(Object managedBean, String beanKey) throws MalformedObjectNameException {
 			String actualBeanKey = beanKey.replace("type=", "type=Integration,componentType=");

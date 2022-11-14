@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +25,8 @@ import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Iwein Fuld
  * @author Gary Russell
@@ -35,7 +35,7 @@ public class ResequencingMessageGroupProcessorTests {
 
 	private final ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	public void shouldProcessSequence() {
 		Message prototypeMessage = MessageBuilder.withPayload("foo").setCorrelationId("x").setSequenceNumber(1).setSequenceSize(3).build();
@@ -51,7 +51,7 @@ public class ResequencingMessageGroupProcessorTests {
 		assertThat(processedMessages).contains(message1, message2, message3);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	public void shouldPartiallProcessIncompleteSequence() {
 		Message prototypeMessage = MessageBuilder.withPayload("foo").setCorrelationId("x").setSequenceNumber(1).setSequenceSize(4).build();

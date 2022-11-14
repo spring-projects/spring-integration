@@ -16,10 +16,11 @@
 
 package org.springframework.integration.mongodb.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Duration;
 
+import com.mongodb.client.model.changestream.OperationType;
+import com.mongodb.reactivestreams.client.MongoClient;
+import com.mongodb.reactivestreams.client.MongoClients;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -27,6 +28,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -45,11 +48,7 @@ import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.mongodb.client.model.changestream.OperationType;
-import com.mongodb.reactivestreams.client.MongoClient;
-import com.mongodb.reactivestreams.client.MongoClients;
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
@@ -134,8 +133,8 @@ public class MongoDbChangeStreamMessageProducerTests {
 						.verifyLater();
 
 		Flux.concat(this.mongoTemplate.insert(person1),
-				this.mongoTemplate.insert(person2),
-				this.mongoTemplate.insert(person3))
+						this.mongoTemplate.insert(person2),
+						this.mongoTemplate.insert(person3))
 				.as(StepVerifier::create)
 				.expectNextCount(3)
 				.verifyComplete();
@@ -157,12 +156,12 @@ public class MongoDbChangeStreamMessageProducerTests {
 		@Bean
 		IntegrationFlow changeStreamFlow() {
 			return IntegrationFlow.from(
-					MongoDb.changeStreamInboundChannelAdapter(mongoTemplate())
-							.domainType(Person.class)
-							.collection("person")
-							.extractBody(false)
-							.autoStartup(false)
-							.shouldTrack(true))
+							MongoDb.changeStreamInboundChannelAdapter(mongoTemplate())
+									.domainType(Person.class)
+									.collection("person")
+									.extractBody(false)
+									.autoStartup(false)
+									.shouldTrack(true))
 					.channel(MessageChannels.flux())
 					.get();
 		}

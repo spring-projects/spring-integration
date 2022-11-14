@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class IntegrationGraphController {
 
 	static final String REQUEST_MAPPING_PATH_VARIABLE =
-			"${" + HttpContextUtils.GRAPH_CONTROLLER_PATH_PROPERTY +  ":" +
+			"${" + HttpContextUtils.GRAPH_CONTROLLER_PATH_PROPERTY + ":" +
 					HttpContextUtils.GRAPH_CONTROLLER_DEFAULT_PATH + "}";
 
 	private final IntegrationGraphServer integrationGraphServer;

@@ -16,9 +16,6 @@
 
 package org.springframework.integration.sftp.session;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 import java.io.File;
 import java.net.ConnectException;
 
@@ -26,6 +23,9 @@ import org.apache.sshd.common.SshException;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Gary Russell

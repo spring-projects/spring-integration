@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  */
 
 package org.springframework.integration.ip.tcp.serializer;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -53,6 +49,10 @@ import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -308,19 +308,19 @@ public class DeserializationTests {
 		doDeserialize(new ByteArrayCrLfSerializer(), "CRLF not found before max message length: 5");
 		doDeserialize(new ByteArrayLengthHeaderSerializer(), "Message length 1718579042 exceeds max message length: 5");
 		TcpDeserializationExceptionEvent event = doDeserialize(new ByteArrayLengthHeaderSerializer(),
-				"Stream closed after 3 of 4", new byte[] { 0, 0, 0 }, 5); // closed during header read
+				"Stream closed after 3 of 4", new byte[] {0, 0, 0}, 5); // closed during header read
 		assertThat(event.getOffset()).isEqualTo(-1);
-		assertThat(new String(event.getBuffer()).substring(0, 3)).isEqualTo(new String(new byte[] { 0, 0, 0 }));
+		assertThat(new String(event.getBuffer()).substring(0, 3)).isEqualTo(new String(new byte[] {0, 0, 0}));
 		event = doDeserialize(new ByteArrayLengthHeaderSerializer(),
-				"Stream closed after 1 of 2", new byte[] { 0, 0, 0, 2, 7 }, 5); // closed during data read
+				"Stream closed after 1 of 2", new byte[] {0, 0, 0, 2, 7}, 5); // closed during data read
 		assertThat(event.getOffset()).isEqualTo(-1);
-		assertThat(new String(event.getBuffer()).substring(0, 1)).isEqualTo(new String(new byte[] { 7 }));
+		assertThat(new String(event.getBuffer()).substring(0, 1)).isEqualTo(new String(new byte[] {7}));
 		doDeserialize(new ByteArrayLfSerializer(), "Terminator '0xa' not found before max message length: 5");
 		doDeserialize(new ByteArrayRawSerializer(), "Socket was not closed before max message length: 5");
 		doDeserialize(new ByteArraySingleTerminatorSerializer((byte) 0xfe), "Terminator '0xfe' not found before max message length: 5");
 		doDeserialize(new ByteArrayStxEtxSerializer(), "Expected STX to begin message");
 		event = doDeserialize(new ByteArrayStxEtxSerializer(),
-				"Socket closed during message assembly", new byte[] { 0x02, 0, 0 }, 5);
+				"Socket closed during message assembly", new byte[] {0x02, 0, 0}, 5);
 		assertThat(event.getOffset()).isEqualTo(2);
 	}
 

@@ -142,7 +142,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 			String url = getUrl();
 			if (url != null) {
 				options = MqttUtils.cloneConnectOptions(options);
-				options.setServerURIs(new String[]{ url });
+				options.setServerURIs(new String[] {url});
 			}
 		}
 		return options;

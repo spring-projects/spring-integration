@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.channel.interceptor;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +40,8 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.StringUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
@@ -302,6 +302,7 @@ public class ChannelInterceptorTests {
 					.setHeader(this.getClass().getSimpleName(), counter.incrementAndGet())
 					.build();
 		}
+
 		public String getFoo() {
 			return foo;
 		}
@@ -456,11 +457,10 @@ public class ChannelInterceptorTests {
 
 		@Override
 		public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler,
-										Exception ex) {
+				Exception ex) {
 
 		}
 
 	}
-
 
 }

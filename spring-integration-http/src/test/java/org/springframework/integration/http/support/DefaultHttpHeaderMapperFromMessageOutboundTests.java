@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.http.support;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
@@ -42,6 +40,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.MimeType;
 import org.springframework.util.StopWatch;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Oleg Zhurakousky
@@ -108,7 +108,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	public void validateAcceptHeaderMultipleAsStringArray() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
-		messageHeaders.put("Accept", new String[] { "bar/foo", "text/xml" });
+		messageHeaders.put("Accept", new String[] {"bar/foo", "text/xml"});
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -209,7 +209,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	public void validateAcceptCharsetHeaderMultipleAsStringArray() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
-		messageHeaders.put("Accept-Charset", new String[] { "UTF-8", "ISO-8859-1" });
+		messageHeaders.put("Accept-Charset", new String[] {"UTF-8", "ISO-8859-1"});
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -223,7 +223,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	public void validateAcceptCharsetHeaderMultipleAsCharsetArray() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
-		messageHeaders.put("Accept-Charset", new Charset[] { Charset.forName("UTF-8"), Charset.forName("ISO-8859-1") });
+		messageHeaders.put("Accept-Charset", new Charset[] {Charset.forName("UTF-8"), Charset.forName("ISO-8859-1")});
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -472,7 +472,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	public void validateIfNoneMatchAsStringArray() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
-		messageHeaders.put("If-None-Match", new String[] { "\"1234567\"", "\"123\"" });
+		messageHeaders.put("If-None-Match", new String[] {"\"1234567\"", "\"123\""});
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 

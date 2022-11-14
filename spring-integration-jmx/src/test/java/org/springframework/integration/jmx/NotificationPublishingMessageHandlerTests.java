@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.jmx;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +38,8 @@ import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Mark Fisher
  * @author Artem Bilan
@@ -60,7 +60,7 @@ public class NotificationPublishingMessageHandlerTests {
 		this.context.registerBean("mbeanServer", MBeanServerFactoryBean.class, MBeanServerFactoryBean::new);
 		this.context.registerSingleton("exporter", IntegrationMBeanExporter.class,
 				new MutablePropertyValues()
-		.add("server", new RuntimeBeanReference("mbeanServer")));
+						.add("server", new RuntimeBeanReference("mbeanServer")));
 		this.context.registerSingleton("anotherExporter", MBeanExporter.class);
 
 		RootBeanDefinition publisherDefinition = new RootBeanDefinition(NotificationPublishingMessageHandler.class);

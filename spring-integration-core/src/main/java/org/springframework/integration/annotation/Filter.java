@@ -45,7 +45,7 @@ import org.springframework.messaging.handler.annotation.ValueConstants;
  *
  * @since 2.0
  */
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Repeatable(Filters.class)
@@ -86,7 +86,7 @@ public @interface Filter {
 	 * Only the handler is advised, not the downstream flow.
 	 * @return the advice chain.
 	 */
-	String[] adviceChain() default { };
+	String[] adviceChain() default {};
 
 	/**
 	 * When {@code true} (default) any discard action (and exception thrown) will occur
