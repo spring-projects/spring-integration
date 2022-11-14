@@ -27,7 +27,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
  * the underlying ChannelSftp object.
  *
  * @author Gary Russell
- * @author Artme Bilan
+ * @author Artem Bilan
  *
  * @since 4.1
  *
