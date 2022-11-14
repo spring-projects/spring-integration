@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.outbound;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -103,6 +104,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 */
 	private static final int DEFAULT_TIMEOUT_BUFFER = 5000;
 
+	private static final int TWENTY = 20;
+
+	private static final Duration DEFAULT_ASSIGNMENT_TIMEOUT = Duration.ofSeconds(TWENTY);
+
 	private final Map<String, Set<Integer>> replyTopicsAndPartitions = new HashMap<>();
 
 	private final KafkaTemplate<K, V> kafkaTemplate;
@@ -161,6 +166,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	private int timeoutBuffer = DEFAULT_TIMEOUT_BUFFER;
 
 	private boolean useTemplateConverter;
+
+	private Duration assignmentDuration = DEFAULT_ASSIGNMENT_TIMEOUT;
 
 	private volatile byte[] singleReplyTopic;
 
@@ -415,6 +422,17 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		this.useTemplateConverter = useTemplateConverter;
 	}
 
+	/**
+	 * Set the time to wait for partition assignment, when used as a gateway, to determine
+	 * the default reply-to topic/partition.
+	 * @param assignmentDuration the assignmentDuration to set.
+	 * @since 6.0
+	 */
+	public void setAssignmentDuration(Duration assignmentDuration) {
+		Assert.notNull(assignmentDuration, "'assignmentDuration' cannot be null");
+		this.assignmentDuration = assignmentDuration;
+	}
+
 	@Override
 	public String getComponentType() {
 		return this.isGateway ? "kafka:outbound-gateway" : "kafka:outbound-channel-adapter";
@@ -647,6 +665,12 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private void determineValidReplyTopicsAndPartitions() {
 		ReplyingKafkaTemplate<?, ?, ?> rkt = (ReplyingKafkaTemplate<?, ?, ?>) this.kafkaTemplate;
+		try {
+			rkt.waitForAssignment(this.assignmentDuration);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 		Collection<TopicPartition> replyTopics = rkt.getAssignedReplyTopicPartitions();
 		Map<String, Set<Integer>> topicsAndPartitions = new HashMap<>();
 		if (replyTopics != null) {

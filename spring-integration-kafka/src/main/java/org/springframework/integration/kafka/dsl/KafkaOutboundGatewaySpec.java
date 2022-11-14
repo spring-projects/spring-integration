@@ -61,6 +61,18 @@ public class KafkaOutboundGatewaySpec<K, V, R, S extends KafkaOutboundGatewaySpe
 	}
 
 	/**
+	 * Set the time to wait for partition assignment, when used as a gateway, to determine
+	 * the default reply-to topic/partition.
+	 * @param duration the duration.
+	 * @return the spec.
+	 * @since 6.0
+	 */
+	public S assigmentDuration(Duration duration) {
+		this.target.setAssignmentDuration(duration);
+		return _this();
+	}
+
+	/**
 	 * A {@link org.springframework.kafka.core.KafkaTemplate}-based {@link KafkaProducerMessageHandlerSpec} extension.
 	 *
 	 * @param <K> the key type.
