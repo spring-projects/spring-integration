@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.file;
 import java.io.File;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -43,7 +44,7 @@ import org.springframework.util.StringUtils;
 public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implements FileNameGenerator {
 
 	private volatile Expression expression =
-			EXPRESSION_PARSER.parseExpression("headers['" + FileHeaders.FILENAME + "']");
+			new FunctionExpression<Message<?>>((message) -> message.getHeaders().get(FileHeaders.FILENAME));
 
 	/**
 	 * Specify an expression to be evaluated against the Message
@@ -62,17 +63,18 @@ public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implem
 	 */
 	public void setHeaderName(String headerName) {
 		Assert.notNull(headerName, "'headerName' must not be null");
-		this.expression = EXPRESSION_PARSER.parseExpression("headers['" + headerName + "']");
+		this.expression = new FunctionExpression<Message<?>>((message) -> message.getHeaders().get(headerName));
 	}
 
 	@Override
 	public String generateFileName(Message<?> message) {
-		Object filename = this.evaluateExpression(this.expression, message);
-		if (filename instanceof String && StringUtils.hasText((String) filename)) {
-			return (String) filename;
+		Object filename = evaluateExpression(this.expression, message);
+		if (filename instanceof String name && StringUtils.hasText(name)) {
+			return name;
 		}
-		if (message.getPayload() instanceof File) {
-			return ((File) message.getPayload()).getName();
+		Object payload = message.getPayload();
+		if (payload instanceof File file) {
+			return file.getName();
 		}
 		return message.getHeaders().getId() + ".msg";
 	}
