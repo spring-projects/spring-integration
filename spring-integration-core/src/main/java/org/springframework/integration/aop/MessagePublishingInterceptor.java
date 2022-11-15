@@ -65,17 +65,17 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	private final PublisherMetadataSource metadataSource;
 
-	private final AtomicBoolean templateInitialized = new AtomicBoolean();
-
 	private DestinationResolver<MessageChannel> channelResolver;
 
 	private BeanFactory beanFactory;
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
-	private boolean messageBuilderFactorySet;
-
 	private String defaultChannelName;
+
+	private volatile boolean messageBuilderFactorySet;
+
+	private volatile boolean templateInitialized;
 
 	public MessagePublishingInterceptor(PublisherMetadataSource metadataSource) {
 		Assert.notNull(metadataSource, "metadataSource must not be null");
@@ -144,11 +144,12 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	}
 
 	private void initMessagingTemplateIfAny() {
-		if (this.templateInitialized.compareAndSet(false, true)) {
+		if (!this.templateInitialized) {
 			this.messagingTemplate.setBeanFactory(beanFactory);
 			if (this.channelResolver == null) {
 				this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
 			}
+			this.templateInitialized = true;
 		}
 	}
 

@@ -572,7 +572,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel;
 			try {
-				inputChannel = this.channelResolver.resolveDestination(inputChannelName);
+				inputChannel = getChannelResolver().resolveDestination(inputChannelName);
 			}
 			catch (DestinationResolutionException e) {
 				if (e.getCause() instanceof NoSuchBeanDefinitionException) {
