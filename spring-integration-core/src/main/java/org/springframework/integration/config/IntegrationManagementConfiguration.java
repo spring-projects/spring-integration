@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @since 4.2
  */
 @Configuration(proxyBeanMethods = false)
+@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class IntegrationManagementConfiguration implements ImportAware, EnvironmentAware {
 
 	private AnnotationAttributes attributes;

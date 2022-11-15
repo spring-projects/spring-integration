@@ -125,9 +125,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final ConversionService conversionService; // NOSONAR
 
-	protected final DestinationResolver<MessageChannel> channelResolver; // NOSONAR
-
 	protected final Class<T> annotationType; // NOSONAR
+
+	private volatile DestinationResolver<MessageChannel> channelResolver;
 
 	@SuppressWarnings(UNCHECKED)
 	public AbstractMethodAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
@@ -135,13 +135,21 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		this.messageHandlerAttributes.add(SEND_TIMEOUT_ATTRIBUTE);
 		this.beanFactory = beanFactory;
 		this.definitionRegistry = (BeanDefinitionRegistry) beanFactory;
-		this.conversionService = this.beanFactory.getConversionService() != null
-				? this.beanFactory.getConversionService()
-				: DefaultConversionService.getSharedInstance();
-		this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
+		this.conversionService =
+				this.beanFactory.getConversionService() != null
+						? this.beanFactory.getConversionService()
+						: DefaultConversionService.getSharedInstance();
 		this.annotationType =
 				(Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),
 						MethodAnnotationPostProcessor.class);
+	}
+
+
+	protected DestinationResolver<MessageChannel> getChannelResolver() {
+		if (this.channelResolver == null) {
+			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
+		}
+		return this.channelResolver;
 	}
 
 	@Override
@@ -332,7 +340,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel;
 			try {
-				inputChannel = this.channelResolver.resolveDestination(inputChannelName);
+				inputChannel = getChannelResolver().resolveDestination(inputChannelName);
 			}
 			catch (DestinationResolutionException e) {
 				if (e.getCause() instanceof NoSuchBeanDefinitionException) {
