@@ -58,10 +58,8 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.integration.support.MutableMessage;
-import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.management.observation.IntegrationObservation;
-import org.springframework.integration.support.management.observation.MessageSenderContext;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -215,13 +213,12 @@ public class ObservationPropagationChannelInterceptorTests {
 
 		QueueChannel replyChannel = new QueueChannel();
 
-		MutableMessage<String> message =
-				(MutableMessage<String>) MutableMessageBuilder.withPayload("test")
+		Message<String> message =
+				MessageBuilder.withPayload("test")
 						.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 						.build();
 
-		Observation.createNotStarted("sending", () -> new MessageSenderContext(message), this.observationRegistry)
-				.observe(() -> this.testTracingChannel.send(message));
+		this.testTracingChannel.send(message);
 
 		Message<?> receive = replyChannel.receive();
 
@@ -238,7 +235,11 @@ public class ObservationPropagationChannelInterceptorTests {
 				.reportedSpans()
 				.hasSize(2)
 				.satisfies(simpleSpans -> SpansAssert.assertThat(simpleSpans)
-						.hasASpanWithName("sending")
+						.assertThatASpanWithNameEqualTo("testTracingChannel send")
+						.hasTag("spring.integration.type", "producer")
+						.hasTag("spring.integration.name", "testTracingChannel")
+						.hasKindEqualTo(Span.Kind.PRODUCER)
+						.backToSpans()
 						.assertThatASpanWithNameEqualTo("testBridge receive")
 						.hasTag("foo", "some foo value")
 						.hasTag("bar", "some bar value")
@@ -315,8 +316,10 @@ public class ObservationPropagationChannelInterceptorTests {
 		}
 
 		@Bean
-		public ExecutorChannel testTracingChannel() {
-			return new ExecutorChannel(Executors.newSingleThreadExecutor());
+		public ExecutorChannel testTracingChannel(ObservationRegistry observationRegistry) {
+			ExecutorChannel channel = new ExecutorChannel(Executors.newSingleThreadExecutor());
+			channel.registerObservationRegistry(observationRegistry);
+			return channel;
 		}
 
 		@Bean

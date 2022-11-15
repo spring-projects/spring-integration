@@ -92,7 +92,11 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 							.hasTag(IntegrationObservation.HandlerTags.COMPONENT_NAME.asString(), "observedEndpoint")
 							.hasTag(IntegrationObservation.HandlerTags.COMPONENT_TYPE.asString(), "handler")
 							.hasKindEqualTo(Span.Kind.CONSUMER))
-					.hasSize(2);
+					.hasASpanWithName("queueChannel send", spanAssert -> spanAssert
+							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_NAME.asString(), "queueChannel")
+							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer")
+							.hasKindEqualTo(Span.Kind.PRODUCER))
+					.hasSize(3);
 
 			MeterRegistryAssert.assertThat(getMeterRegistry())
 					.hasTimerWithNameAndTags("spring.integration.handler",
@@ -108,7 +112,7 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 	@EnableIntegration
 	@EnableIntegrationManagement(
 			observationPatterns = {
-					"${spring.integration.management.observation-patterns:observedEndpoint,testInboundGateway}",
+					"${spring.integration.management.observation-patterns:testInboundGateway,queueChannel,observedEndpoint}",
 					"${spring.integration.management.observation-patterns:}"
 			})
 	public static class ObservationIntegrationTestConfiguration {

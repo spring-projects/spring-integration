@@ -113,14 +113,27 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 		if (this == obj) {
 			return true;
 		}
-		if (obj instanceof MutableMessage<?>) {
-			MutableMessage<?> other = (MutableMessage<?>) obj;
+		if (obj instanceof MutableMessage<?> other) {
 			UUID thisId = this.headers.getId();
 			UUID otherId = other.headers.getId();
 			return (ObjectUtils.nullSafeEquals(thisId, otherId) &&
 					this.headers.equals(other.headers) && this.payload.equals(other.payload));
 		}
 		return false;
+	}
+
+	/**
+	 * Build a new {@link MutableMessage} based on the provided message
+	 * if that one is not already a {@link MutableMessage}.
+	 * @param message the message to build from.
+	 * @return new {@link MutableMessage}.
+	 * @since 6.0
+	 */
+	public static MutableMessage<?> of(Message<?> message) {
+		if (message instanceof MutableMessage) {
+			return (MutableMessage<?>) message;
+		}
+		return new MutableMessage<>(message.getPayload(), message.getHeaders());
 	}
 
 }
