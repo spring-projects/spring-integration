@@ -347,6 +347,7 @@ public class IntegrationGraphServerTests {
 			HeaderValueRouter router = new HeaderValueRouter("foo");
 			router.setChannelMapping("bar", "barChannel");
 			router.setChannelMapping("baz", "bazChannel");
+			router.setChannelKeyFallback(true);
 			router.setDefaultOutputChannel(discards());
 			return router;
 		}
@@ -365,6 +366,7 @@ public class IntegrationGraphServerTests {
 		public ExpressionEvaluatingRouter expressionRouter() {
 			ExpressionEvaluatingRouter router = new ExpressionEvaluatingRouter(
 					new SpelExpressionParser().parseExpression("headers['foo']"));
+			router.setChannelKeyFallback(true);
 			router.setDefaultOutputChannel(discards());
 			return router;
 		}
