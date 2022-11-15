@@ -459,7 +459,9 @@ public class KafkaDslTests {
 
 				@Override
 				public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-					ContextConfiguration.this.replyContainerLatch.countDown();
+					if (!partitions.isEmpty()) {
+						ContextConfiguration.this.replyContainerLatch.countDown();
+					}
 				}
 
 			});

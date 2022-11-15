@@ -345,7 +345,9 @@ class KafkaDslKotlinTests {
 				}
 
 				override fun onPartitionsAssigned(partitions: Collection<TopicPartition>) {
-					this@ContextConfiguration.replyContainerLatch.countDown()
+					if (!partitions.isEmpty()) {
+						this@ContextConfiguration.replyContainerLatch.countDown()
+					}
 				}
 
 			})

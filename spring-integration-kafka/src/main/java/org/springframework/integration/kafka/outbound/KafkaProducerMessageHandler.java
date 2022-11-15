@@ -626,7 +626,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 				replyTopic = getSingleReplyTopic();
 			}
 			else {
-				throw new IllegalStateException("No reply topic header and no default reply topic can be determined");
+				throw new IllegalStateException("No reply topic header and no default reply topic can be determined; "
+						+ "container's assigned partitions: " + this.replyTopicsAndPartitions);
 			}
 		}
 		else {
