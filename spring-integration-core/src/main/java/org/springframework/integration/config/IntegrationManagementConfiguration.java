@@ -44,9 +44,11 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.2
  */
 @Configuration(proxyBeanMethods = false)
+@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class IntegrationManagementConfiguration implements ImportAware, EnvironmentAware {
 
 	private AnnotationAttributes attributes;

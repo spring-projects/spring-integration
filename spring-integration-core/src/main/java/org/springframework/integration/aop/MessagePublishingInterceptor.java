@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.aop;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -64,6 +65,8 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	private final PublisherMetadataSource metadataSource;
 
+	private final AtomicBoolean templateInitialized = new AtomicBoolean();
+
 	private DestinationResolver<MessageChannel> channelResolver;
 
 	private BeanFactory beanFactory;
@@ -94,10 +97,6 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
-		this.messagingTemplate.setBeanFactory(beanFactory);
-		if (this.channelResolver == null) {
-			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
-		}
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
@@ -111,8 +110,9 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	}
 
 	@Override
-	public final Object invoke(final MethodInvocation invocation) throws Throwable {
-		final StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+	public final Object invoke(MethodInvocation invocation) throws Throwable {
+		initMessagingTemplateIfAny();
+		StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
 		final Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
 		String[] argumentNames = resolveArgumentNames(method);
@@ -143,6 +143,15 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		}
 	}
 
+	private void initMessagingTemplateIfAny() {
+		if (this.templateInitialized.compareAndSet(false, true)) {
+			this.messagingTemplate.setBeanFactory(beanFactory);
+			if (this.channelResolver == null) {
+				this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
+			}
+		}
+	}
+
 	private String[] resolveArgumentNames(Method method) {
 		return this.parameterNameDiscoverer.getParameterNames(method);
 	}
@@ -163,20 +172,14 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 			}
 			Message<?> message = builder.build();
 			String channelName = this.metadataSource.getChannelName(method);
-			MessageChannel channel = null;
 			if (channelName != null) {
-				Assert.state(this.channelResolver != null, "ChannelResolver is required to resolve channel names.");
-				channel = this.channelResolver.resolveDestination(channelName);
-			}
-			if (channel != null) {
-				this.messagingTemplate.send(channel, message);
+				this.messagingTemplate.send(channelName, message);
 			}
 			else {
 				String channelNameToUse = this.defaultChannelName;
 				if (channelNameToUse != null && this.messagingTemplate.getDefaultDestination() == null) {
 					Assert.state(this.channelResolver != null, "ChannelResolver is required to resolve channel names.");
-					this.messagingTemplate.setDefaultChannel(
-							this.channelResolver.resolveDestination(channelNameToUse));
+					this.messagingTemplate.setDefaultChannel(this.channelResolver.resolveDestination(channelNameToUse));
 					this.defaultChannelName = null;
 				}
 				this.messagingTemplate.send(message);
