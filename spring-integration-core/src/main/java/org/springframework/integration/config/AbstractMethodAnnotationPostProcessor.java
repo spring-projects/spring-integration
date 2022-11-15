@@ -174,7 +174,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected DestinationResolver<MessageChannel> getChannelResolver() {
 		if (this.channelResolver == null) {
-			this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
+			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
 		}
 		return this.channelResolver;
 	}

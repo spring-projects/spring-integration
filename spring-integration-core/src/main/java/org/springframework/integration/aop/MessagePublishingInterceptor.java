@@ -144,7 +144,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	private void initMessagingTemplateIfAny() {
 		if (!this.templateInitialized) {
-			this.messagingTemplate.setBeanFactory(beanFactory);
+			this.messagingTemplate.setBeanFactory(this.beanFactory);
 			if (this.channelResolver == null) {
 				this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
 			}
