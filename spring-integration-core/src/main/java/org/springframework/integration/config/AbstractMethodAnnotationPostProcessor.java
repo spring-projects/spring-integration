@@ -141,7 +141,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	private ConversionService conversionService;
 
-	private DestinationResolver<MessageChannel> channelResolver;
+	private volatile DestinationResolver<MessageChannel> channelResolver;
 
 	@SuppressWarnings(UNCHECKED)
 	public AbstractMethodAnnotationPostProcessor() {
@@ -154,10 +154,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
 		this.definitionRegistry = (BeanDefinitionRegistry) beanFactory;
-		this.conversionService = this.beanFactory.getConversionService() != null
-				? this.beanFactory.getConversionService()
-				: DefaultConversionService.getSharedInstance();
-		this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
+		this.conversionService =
+				this.beanFactory.getConversionService() != null
+						? this.beanFactory.getConversionService()
+						: DefaultConversionService.getSharedInstance();
 	}
 
 	protected ConfigurableListableBeanFactory getBeanFactory() {
@@ -173,6 +173,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	protected DestinationResolver<MessageChannel> getChannelResolver() {
+		if (this.channelResolver == null) {
+			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
+		}
 		return this.channelResolver;
 	}
 
@@ -569,7 +572,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel;
 			try {
-				inputChannel = this.channelResolver.resolveDestination(inputChannelName);
+				inputChannel = getChannelResolver().resolveDestination(inputChannelName);
 			}
 			catch (DestinationResolutionException e) {
 				if (e.getCause() instanceof NoSuchBeanDefinitionException) {
