@@ -88,7 +88,7 @@ class GatewayProxyInstantiationPostProcessor implements
 		if (beanClass.isInterface() && AnnotatedElementUtils.hasAnnotation(beanClass, MessagingGateway.class)) {
 			RootBeanDefinition beanDefinition = registeredBean.getMergedBeanDefinition();
 			beanDefinition.setBeanClass(AnnotationGatewayProxyFactoryBean.class);
-			beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(beanClass);
+			beanDefinition.getConstructorArgumentValues().addIndexedArgumentValue(0, beanClass);
 			beanDefinition.setTargetType(
 					ResolvableType.forClassWithGenerics(AnnotationGatewayProxyFactoryBean.class, beanClass));
 		}
