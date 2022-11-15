@@ -325,11 +325,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private boolean sendWithObservation(Message<?> message, long timeout) {
 		MutableMessage<?> messageToSend = MutableMessage.of(message);
-		MessageSenderContext context = new MessageSenderContext(messageToSend, getComponentName());
 		return IntegrationObservation.PRODUCER.observation(
 						this.observationConvention,
 						DefaultMessageSenderObservationConvention.INSTANCE,
-						() -> context,
+						() -> new MessageSenderContext(messageToSend, getComponentName()),
 						this.observationRegistry)
 				.observe(() -> sendInternal(messageToSend, timeout));
 	}

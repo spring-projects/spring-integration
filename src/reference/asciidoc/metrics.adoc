@@ -159,6 +159,17 @@ Can be configured as `*` to match all components.
 
 The meters are not gathered in this case independently, but delegated to an appropriate `ObservationHandler` configured on the provided `ObservationRegistry`.
 
+These Spring Integration components are instrumented with an observation logic and respective convention:
+
+* The `MessageProducerSupport`, being inbound endpoint of the flow, is considered as a `CONSUMER` span kind and uses `IntegrationObservation.HANDLER` API;
+* The `MessagingGatewaySupport` is an inbound request-reply endpoint, and it fits into a `SERVER` span kind.
+Uses `IntegrationObservation.GATEWAY` API;
+* An `AbstractMessageChannel.send()` operation is only Spring Integration API where it produces messages.
+So, it is treated as a `PRODUCER` span kind and uses `IntegrationObservation.PRODCUER` API.
+This makes more sense when a channel implementation is a distributed one (e.g. `PublishSubscribeKafkaChannel` or `ZeroMqChannel`) and trace information has to be carried on.
+So, the `IntegrationObservation.PRODCUER` observation is based on a `MessageSenderContext` where Spring Integration supplies a `MutableMessage` to let subsequent tracing `Propagator` to add headers to carry over to the consumer;
+* An `AbstractMessageHandler` is a `CONSUMER` span kind and uses `IntegrationObservation.HANDLER` API.
+
 An observation production on the `IntegrationManagement` components can be customized via `ObservationConvention` configuration.
 For example an `AbstractMessageHandler` expects a `MessageReceiverObservationConvention` via its `setObservationConvention()` API.
 
