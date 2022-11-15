@@ -349,7 +349,9 @@ If set, this attribute provides a reference to the channel where messages should
 If no default output channel is provided, the router throws an exception.
 If you would like to silently drop those messages instead, set the default output channel attribute value to `nullChannel`.
 +
-NOTE: A message is sent only to the `default-output-channel` if `resolution-required` is `false` and the channel is not resolved.
+NOTE: Starting with version 6.0, setting a default output channel also resets `channelKeyFallback` option to `false`.
+So, no attempts to resolve a channel from name, but rather fallback to this default output channel - similar to Java `switch` statement.
+If `channelKeyFallback` is set to `true` explicitly, the further logic depends on the `resolutionRequired` option: the message can reach a `defaultOutputChannel` only if `resolutionRequired` is `false`.
 
 `resolution-required`::
 This attribute specifies whether channel names must always be successfully resolved to channel instances that exist.

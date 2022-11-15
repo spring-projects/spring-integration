@@ -33,6 +33,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
@@ -53,9 +55,7 @@ public class NoFallbackAllowedTests {
 
 		@Bean
 		public IntegrationFlow flow() {
-			return f -> f.route("headers.whereTo", r -> r
-					.noChannelKeyFallback()
-					.defaultOutputChannel(queue()));
+			return f -> f.route("headers.whereTo", r -> r.defaultOutputChannel(queue()));
 		}
 
 		@Bean
