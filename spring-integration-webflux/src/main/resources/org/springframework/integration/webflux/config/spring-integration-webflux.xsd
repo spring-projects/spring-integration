@@ -419,6 +419,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="attribute-variables-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Specifies the SpEL expression to be evaluated as a Map for request attributes.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -591,6 +598,13 @@
 						<xsd:simpleType>
 							<xsd:union memberTypes="xsd:boolean xsd:string"/>
 						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="attribute-variables-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+					Specifies the SpEL expression to be evaluated as a Map for request attributes.
+					]]></xsd:documentation>
+						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>

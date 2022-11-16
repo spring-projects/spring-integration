@@ -39,7 +39,8 @@
 					  reply-payload-to-flux="true"
 					  body-extractor="bodyExtractor"
 					  publisher-element-type-expression="headers.elementType"
-					  extract-response-body="false">
+					  extract-response-body="false"
+					  attribute-variables-expression="{name:{first:'Nikola',last:'Tesla'},dob:{day:10,month:'July',year:1856}}">
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-gateway>
 

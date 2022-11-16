@@ -23,10 +23,12 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
@@ -35,6 +37,7 @@ import org.springframework.http.ReactiveHttpInputMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ClientHttpRequest;
 import org.springframework.http.client.reactive.ClientHttpResponse;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.AbstractHttpRequestExecutingMessageHandler;
 import org.springframework.lang.Nullable;
@@ -74,6 +77,11 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	private BodyExtractor<?, ? super ClientHttpResponse> bodyExtractor;
 
 	private Expression publisherElementTypeExpression;
+
+	private Expression attributeVariablesExpression;
+
+	private StandardEvaluationContext evaluationContext;
+
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -193,9 +201,20 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		this.publisherElementTypeExpression = publisherElementTypeExpression;
 	}
 
+	public void setAttributeVariablesExpression(Expression attributeVariablesExpression) {
+		Assert.notNull(attributeVariablesExpression, "'attributeVariablesExpression' must not be null");
+		this.attributeVariablesExpression = attributeVariablesExpression;
+	}
+
 	@Override
 	public String getComponentType() {
 		return (isExpectReply() ? "webflux:outbound-gateway" : "webflux:outbound-channel-adapter");
+	}
+
+	@Override
+	protected final void doInit() {
+		BeanFactory beanFactory = getBeanFactory();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 	}
 
 	@Override
@@ -230,6 +249,12 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		}
 
 		requestSpec = requestSpec.headers(headers -> headers.putAll(httpRequest.getHeaders()));
+
+		if(attributeVariablesExpression != null) {
+			Map<String, Object> attributeMap = evaluateAttributeVariables(requestMessage);
+			requestSpec = requestSpec.attributes(map -> map.putAll(attributeMap));
+		}
+
 		BodyInserter<?, ? super ClientHttpRequest> inserter = buildBodyInserterForRequest(requestMessage, httpRequest);
 		if (inserter != null) {
 			requestSpec.body(inserter);
@@ -369,4 +394,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 				.map(this::getReply);
 	}
 
+	private Map<String,Object> evaluateAttributeVariables(Message<?> requestMessage){
+		return this.attributeVariablesExpression.getValue(this.evaluationContext, requestMessage, Map.class);
+	}
 }

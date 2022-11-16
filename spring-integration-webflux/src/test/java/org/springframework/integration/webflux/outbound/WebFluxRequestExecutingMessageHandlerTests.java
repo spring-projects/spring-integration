@@ -16,17 +16,19 @@
 
 package org.springframework.integration.webflux.outbound;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ClientHttpConnector;
@@ -44,7 +46,9 @@ import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * @author Shiliang Li
@@ -214,6 +218,10 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		reactiveHandler.setExpectedResponseType(String.class);
 		reactiveHandler.setReplyPayloadToFlux(true);
 
+		reactiveHandler.setAttributeVariablesExpression(new SpelExpressionParser().parseExpression("{name:{first:'Nikola',last:'Tesla'},dob:{day:10,month:'July',year:1856}}"));
+		setBeanFactory(reactiveHandler);
+		reactiveHandler.afterPropertiesSet();
+
 		reactiveHandler.handleMessage(MessageBuilder.withPayload(Mono.just("hello, world")).build());
 
 		Message<?> receive = replyChannel.receive(10_000);
@@ -374,6 +382,10 @@ class WebFluxRequestExecutingMessageHandlerTests {
 				.isInstanceOf(DataBufferLimitException.class)
 				.extracting("message")
 				.isEqualTo("Exceeded limit on max bytes to buffer : 1");
+	}
+
+	private void setBeanFactory(WebFluxRequestExecutingMessageHandler handler) {
+		handler.setBeanFactory(mock(BeanFactory.class));
 	}
 
 }

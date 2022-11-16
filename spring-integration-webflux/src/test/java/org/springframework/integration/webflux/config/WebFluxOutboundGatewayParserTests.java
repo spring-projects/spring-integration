@@ -129,6 +129,8 @@ public class WebFluxOutboundGatewayParserTests {
 				.isEqualTo("headers.elementType");
 		assertThat(handlerAccessor.getPropertyValue("extractResponseBody"))
 				.isEqualTo(false);
+		assertThat(handlerAccessor.getPropertyValue("attributeVariablesExpression.expression"))
+				.isEqualTo("{name:{first:'Nikola',last:'Tesla'},dob:{day:10,month:'July',year:1856}}");
 	}
 
 }
