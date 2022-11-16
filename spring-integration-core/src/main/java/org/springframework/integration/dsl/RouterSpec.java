@@ -226,7 +226,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 * Use the next, after router, parent flow {@link MessageChannel} as a
 	 * {@link AbstractMessageRouter#setDefaultOutputChannel(MessageChannel)} of this router.
 	 * This option also disables {@link AbstractMappingMessageRouter#setChannelKeyFallback(boolean)},
-	 * if not called explicitly, to skip an attempt to resolve channel name.
+	 * if not called explicitly afterwards, to skip an attempt to resolve the channel name.
 	 * @return the router spec.
 	 * @since 6.0
 	 */

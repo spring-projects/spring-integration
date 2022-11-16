@@ -110,8 +110,8 @@ For convenience, the XML and Java DSL for Scatter-Gather, based on the `Recipien
 
 See <<./scatter-gather.adoc#scatter-gather,Scatter-Gather>> for more information.
 
-Another convenient behaviour change has been done for an `AbstractMappingMessageRouter`.
-Now setting a `defaultOutputChannel` also resets a `channelKeyFallback` to `false`, so no attempts to resolve channel from its key, but immediate fallback to `defaultOutputChannel`.
+Another convenient behavior change has been made to the `AbstractMappingMessageRouter`.
+Now, setting a `defaultOutputChannel` also resets the `channelKeyFallback` property to `false`, so no attempts will be made to resolve a channel from its key, but the logic immediately falls back to sending the message to the `defaultOutputChannel`.
 
 See <<./router.adoc#router-common-parameters-all,Router Options>> for more information.
 

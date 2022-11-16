@@ -144,14 +144,15 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * Set the default channel where Messages should be sent if channel resolution
 	 * fails to return any channels.
 	 * It also sets {@link #channelKeyFallback} to {@code false} to avoid
-	 * an attempt to resolve a channel from its key, but instead send message
+	 * an attempt to resolve a channel from its key, but instead send the message
 	 * directly to this channel.
 	 * If {@link #channelKeyFallback} is set explicitly to {@code true},
-	 * the further logic depend on a {@link #resolutionRequired} options
+	 * the logic depends on the {@link #resolutionRequired} option
 	 * ({@code true} by default), and therefore a fallback to
 	 * this default output channel may never happen.
-	 * The configuration where default output channel is present and
-	 * {@link #resolutionRequired} and {@link #resolutionRequired} are set to {@code true}
+	 * The configuration where a default output channel is present and
+	 * {@link #setResolutionRequired resolutionRequired} and
+	 * {@link #setChannelKeyFallback channelKeyFallback} are set to {@code true}
 	 * is rejected since it leads to ambiguity.
 	 * @param defaultOutputChannel The default output channel.
 	 * @since 6.0
@@ -171,14 +172,15 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * Set the default channel where Messages should be sent if channel resolution
 	 * fails to return any channels.
 	 * It also sets {@link #channelKeyFallback} to {@code false} to avoid
-	 * an attempt to resolve a channel from its key, but instead send message
+	 * an attempt to resolve a channel from its key, but instead send the message
 	 * directly to this channel.
 	 * If {@link #channelKeyFallback} is set explicitly to {@code true},
-	 * the further logic depend on a {@link #resolutionRequired} options
+	 * the logic depends on the {@link #resolutionRequired} option
 	 * ({@code true} by default), and therefore a fallback to
 	 * this default output channel may never happen.
-	 * The configuration where default output channel is present and
-	 * {@link #resolutionRequired} and {@link #resolutionRequired} are set to {@code true}
+	 * The configuration where a default output channel is present and
+	 * {@link #setResolutionRequired resolutionRequired} and
+	 * {@link #setChannelKeyFallback channelKeyFallback} are set to {@code true}
 	 * is rejected since it leads to ambiguity.
 	 * @param defaultOutputChannelName the name of the channel bean for default output.
 	 * @since 6.0
