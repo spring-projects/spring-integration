@@ -36,12 +36,14 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.core.Ordered;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.handler.LoggingHandler;
@@ -221,6 +223,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 					BeanDefinitionBuilder.genericBeanDefinition(LoggingHandler.class,
 									() -> new LoggingHandler(LoggingHandler.Level.ERROR))
 							.addConstructorArgValue(LoggingHandler.Level.ERROR)
+							.addPropertyValue(IntegrationNamespaceUtils.ORDER, Ordered.LOWEST_PRECEDENCE - 100)
 							.getBeanDefinition());
 
 			BeanDefinitionBuilder loggingEndpointBuilder =

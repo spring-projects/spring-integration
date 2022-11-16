@@ -52,6 +52,8 @@ QueueChannel errorChannel() {
 ====
 
 NOTE: The default error channel is a `PublishSubscribeChannel`.
+By default, it has a `LoggingHandler` as a subscriber with an `ERROR` logging level and subscription order as `Ordered.LOWEST_PRECEDENCE - 100`.
+If you subscribe additional consuming endpoints, that might throw an exception, and you don't want to preempt the logging, ensure that the additional handlers have a higher order.
 
 The most important thing to understand here is that the messaging-based error handling applies only to exceptions that are thrown by a Spring Integration task that is executing within a `TaskExecutor`.
 This does not apply to exceptions thrown by a handler that operates within the same thread as the sender (for example, through a `DirectChannel` as described earlier in this section).
