@@ -151,7 +151,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * ({@code true} by default), and therefore a fallback to
 	 * this default output channel may never happen.
 	 * The configuration where default output channel is present and
-	 * {@link #resolutionRequired} & {@link #resolutionRequired} are set to {@code true}
+	 * {@link #resolutionRequired} and {@link #resolutionRequired} are set to {@code true}
 	 * is rejected since it leads to ambiguity.
 	 * @param defaultOutputChannel The default output channel.
 	 * @since 6.0
@@ -178,7 +178,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * ({@code true} by default), and therefore a fallback to
 	 * this default output channel may never happen.
 	 * The configuration where default output channel is present and
-	 * {@link #resolutionRequired} & {@link #resolutionRequired} are set to {@code true}
+	 * {@link #resolutionRequired} and {@link #resolutionRequired} are set to {@code true}
 	 * is rejected since it leads to ambiguity.
 	 * @param defaultOutputChannelName the name of the channel bean for default output.
 	 * @since 6.0
