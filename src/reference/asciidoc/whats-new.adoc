@@ -110,6 +110,11 @@ For convenience, the XML and Java DSL for Scatter-Gather, based on the `Recipien
 
 See <<./scatter-gather.adoc#scatter-gather,Scatter-Gather>> for more information.
 
+Another convenient behavior change has been made to the `AbstractMappingMessageRouter`.
+Now, setting a `defaultOutputChannel` also resets the `channelKeyFallback` property to `false`, so no attempts will be made to resolve a channel from its key, but the logic immediately falls back to sending the message to the `defaultOutputChannel`.
+
+See <<./router.adoc#router-common-parameters-all,Router Options>> for more information.
+
 The `AggregatingMessageHandler` now does not split a `Collection<Message<?>>` result of the `MessageGroupProcessor` (unless it is a `SimpleMessageGroupProcessor`) on the output, but emits a single message containing this whole collection as a payload.
 
 See <<./aggregator.adoc#aggregator,Aggregator>> for more information.

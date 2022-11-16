@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
+import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.messaging.MessageChannel;
@@ -118,9 +119,24 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 * cause a stack overflow.
 	 * @return the router spec.
 	 * @since 5.2
+	 * @deprecated since 6.0 in favor of {@link  #channelKeyFallback(boolean)}
 	 */
+	@Deprecated(since = "6.0", forRemoval = true)
 	public RouterSpec<K, R> noChannelKeyFallback() {
-		this.handler.setChannelKeyFallback(false);
+		return channelKeyFallback(false);
+	}
+
+	/**
+	 * When true (default), if a resolved channel key does not exist in the channel map,
+	 * the key itself is used as the channel name, which we will attempt to resolve to a
+	 * channel. Set to {@code false} to disable this feature.
+	 * @param channelKeyFallback false to disable the fallback.
+	 * @return the router spec.
+	 * @since 6.0
+	 * @see AbstractMappingMessageRouter#setChannelKeyFallback(boolean)
+	 */
+	public RouterSpec<K, R> channelKeyFallback(boolean channelKeyFallback) {
+		this.handler.setChannelKeyFallback(channelKeyFallback);
 		return _this();
 	}
 
@@ -203,6 +219,20 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 
 		this.mappingProvider.addMapping(key, (NamedComponent) channel);
 		return _this();
+	}
+
+	/**
+	 * Make a default output mapping of the router to the parent flow.
+	 * Use the next, after router, parent flow {@link MessageChannel} as a
+	 * {@link AbstractMessageRouter#setDefaultOutputChannel(MessageChannel)} of this router.
+	 * This option also disables {@link AbstractMappingMessageRouter#setChannelKeyFallback(boolean)},
+	 * if not called explicitly afterwards, to skip an attempt to resolve the channel name.
+	 * @return the router spec.
+	 * @since 6.0
+	 */
+	public RouterSpec<K, R> defaultOutputToParentFlow() {
+		return super.defaultOutputToParentFlow()
+				.channelKeyFallback(false);
 	}
 
 	@Override

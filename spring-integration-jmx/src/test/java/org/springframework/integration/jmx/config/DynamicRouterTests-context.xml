@@ -19,8 +19,7 @@
 		object-name="org.springframework.integration.jmx.config:type=SimpleDynamicRouter,name=dynamicRouter"
 		operation-name="addChannelMapping" />
 
-	<int:router input-channel="routingChannel" ref="dynamicRouter" method="route"
-				default-output-channel="errorChannel"/>
+	<int:router input-channel="routingChannel" ref="dynamicRouter" method="route"/>
 
 	<bean id="dynamicRouter"
 		class="org.springframework.integration.jmx.config.SimpleDynamicRouter">

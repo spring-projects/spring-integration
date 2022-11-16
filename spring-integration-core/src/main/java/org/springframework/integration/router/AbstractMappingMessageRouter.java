@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@SuppressWarnings("serial")
 	private final Map<String, MessageChannel> dynamicChannels =
 			Collections.synchronizedMap(
-					new LinkedHashMap<String, MessageChannel>(DEFAULT_DYNAMIC_CHANNEL_LIMIT, 0.75f, true) {
+					new LinkedHashMap<>(DEFAULT_DYNAMIC_CHANNEL_LIMIT, 0.75f, true) {
 
 						@Override
 						protected boolean removeEldestEntry(Entry<String, MessageChannel> eldest) {
@@ -78,6 +78,10 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	private boolean resolutionRequired = true;
 
 	private boolean channelKeyFallback = true;
+
+	private boolean defaultOutputChannelSet;
+
+	private boolean channelKeyFallbackSetExplicitly;
 
 	private volatile Map<String, String> channelMappings = new LinkedHashMap<>();
 
@@ -124,15 +128,72 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	/**
 	 * When true (default), if a resolved channel key does not exist in the channel map,
 	 * the key itself is used as the channel name, which we will attempt to resolve to a
-	 * channel. Set to false to disable this feature. This could be useful to prevent
+	 * channel. Set to {@code false} to disable this feature. This could be useful to prevent
 	 * malicious actors from generating a message that could cause the message to be
 	 * routed to an unexpected channel, such as one upstream of the router, which would
 	 * cause a stack overflow.
-	 * @param channelKeyFallback false to disable the fall back.
+	 * @param channelKeyFallback false to disable the fallback.
 	 * @since 5.2
 	 */
 	public void setChannelKeyFallback(boolean channelKeyFallback) {
 		this.channelKeyFallback = channelKeyFallback;
+		this.channelKeyFallbackSetExplicitly = true;
+	}
+
+	/**
+	 * Set the default channel where Messages should be sent if channel resolution
+	 * fails to return any channels.
+	 * It also sets {@link #channelKeyFallback} to {@code false} to avoid
+	 * an attempt to resolve a channel from its key, but instead send the message
+	 * directly to this channel.
+	 * If {@link #channelKeyFallback} is set explicitly to {@code true},
+	 * the logic depends on the {@link #resolutionRequired} option
+	 * ({@code true} by default), and therefore a fallback to
+	 * this default output channel may never happen.
+	 * The configuration where a default output channel is present and
+	 * {@link #setResolutionRequired resolutionRequired} and
+	 * {@link #setChannelKeyFallback channelKeyFallback} are set to {@code true}
+	 * is rejected since it leads to ambiguity.
+	 * @param defaultOutputChannel The default output channel.
+	 * @since 6.0
+	 * @see #setChannelKeyFallback(boolean)
+	 * @see #setResolutionRequired(boolean)
+	 */
+	@Override
+	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
+		super.setDefaultOutputChannel(defaultOutputChannel);
+		if (!this.channelKeyFallbackSetExplicitly) {
+			this.channelKeyFallback = false;
+		}
+		this.defaultOutputChannelSet = true;
+	}
+
+	/**
+	 * Set the default channel where Messages should be sent if channel resolution
+	 * fails to return any channels.
+	 * It also sets {@link #channelKeyFallback} to {@code false} to avoid
+	 * an attempt to resolve a channel from its key, but instead send the message
+	 * directly to this channel.
+	 * If {@link #channelKeyFallback} is set explicitly to {@code true},
+	 * the logic depends on the {@link #resolutionRequired} option
+	 * ({@code true} by default), and therefore a fallback to
+	 * this default output channel may never happen.
+	 * The configuration where a default output channel is present and
+	 * {@link #setResolutionRequired resolutionRequired} and
+	 * {@link #setChannelKeyFallback channelKeyFallback} are set to {@code true}
+	 * is rejected since it leads to ambiguity.
+	 * @param defaultOutputChannelName the name of the channel bean for default output.
+	 * @since 6.0
+	 * @see #setChannelKeyFallback(boolean)
+	 * @see #setResolutionRequired(boolean)
+	 */
+	@Override
+	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
+		super.setDefaultOutputChannelName(defaultOutputChannelName);
+		if (!this.channelKeyFallbackSetExplicitly) {
+			this.channelKeyFallback = false;
+		}
+		this.defaultOutputChannelSet = true;
 	}
 
 	/**
@@ -189,15 +250,14 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		return Collections.unmodifiableSet(this.dynamicChannels.keySet());
 	}
 
-	/**
-	 * Subclasses must implement this method to return the channel keys.
-	 * A "key" might be present in this router's "channelMappings", or it
-	 * could be the channel's name or even the Message Channel instance itself.
-	 * @param message The message.
-	 * @return The channel keys.
-	 */
-	protected abstract List<Object> getChannelKeys(Message<?> message);
-
+	@Override
+	protected void onInit() {
+		super.onInit();
+		Assert.state(!this.channelKeyFallback || !this.resolutionRequired || !this.defaultOutputChannelSet,
+				"The 'defaultOutputChannel' cannot be reached " +
+						"when both 'channelKeyFallback' & 'resolutionRequired' are set to true. " +
+						"See their javadocs for more information.");
+	}
 
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
@@ -206,6 +266,15 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		addToCollection(channels, channelKeys, message);
 		return channels;
 	}
+
+	/**
+	 * Subclasses must implement this method to return the channel keys.
+	 * A "key" might be present in this router's "channelMappings", or it
+	 * could be the channel's name or even the Message Channel instance itself.
+	 * @param message The message.
+	 * @return The channel keys.
+	 */
+	protected abstract List<Object> getChannelKeys(Message<?> message);
 
 	/**
 	 * Convenience method allowing conversion of a list
