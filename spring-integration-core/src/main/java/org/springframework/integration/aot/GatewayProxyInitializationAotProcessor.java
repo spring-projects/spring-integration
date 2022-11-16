@@ -27,7 +27,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.RegisteredBean;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
-import org.springframework.integration.gateway.RequestReplyExchanger;
 
 
 /**
