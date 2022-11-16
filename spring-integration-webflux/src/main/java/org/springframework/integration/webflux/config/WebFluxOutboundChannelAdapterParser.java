@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
  * Parser for the 'outbound-channel-adapter' element of the webflux namespace.
  *
  * @author Artem Bilan
- *
+ * @author Jatin Saxena
  * @since 5.0
  */
 public class WebFluxOutboundChannelAdapterParser extends HttpOutboundChannelAdapterParser {

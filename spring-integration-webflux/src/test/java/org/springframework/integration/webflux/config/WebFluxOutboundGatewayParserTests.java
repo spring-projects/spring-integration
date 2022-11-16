@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Jatin Saxena
  *
  * @since 5.0
  */
