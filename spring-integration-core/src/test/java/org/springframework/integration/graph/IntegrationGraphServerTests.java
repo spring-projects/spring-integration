@@ -135,7 +135,7 @@ public class IntegrationGraphServerTests {
 
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links).isNotNull();
-		assertThat(links.size()).isEqualTo(34);
+		assertThat(links.size()).isEqualTo(32);
 
 		jsonArray =
 				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'expressionRouter.router')]");
@@ -169,7 +169,7 @@ public class IntegrationGraphServerTests {
 		assertThat(nodes.size()).isEqualTo(34);
 		links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links).isNotNull();
-		assertThat(links.size()).isEqualTo(37);
+		assertThat(links.size()).isEqualTo(35);
 
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router.router')]");
 		routerJson = jsonArray.toJSONString();
@@ -348,7 +348,6 @@ public class IntegrationGraphServerTests {
 			router.setChannelMapping("bar", "barChannel");
 			router.setChannelMapping("baz", "bazChannel");
 			router.setChannelKeyFallback(true);
-			router.setDefaultOutputChannel(discards());
 			return router;
 		}
 
@@ -367,7 +366,6 @@ public class IntegrationGraphServerTests {
 			ExpressionEvaluatingRouter router = new ExpressionEvaluatingRouter(
 					new SpelExpressionParser().parseExpression("headers['foo']"));
 			router.setChannelKeyFallback(true);
-			router.setDefaultOutputChannel(discards());
 			return router;
 		}
 
@@ -406,7 +404,7 @@ public class IntegrationGraphServerTests {
 		@Bean
 		@InboundChannelAdapter(channel = "fizChannel", autoStartup = "false")
 		public MessageSource<String> testSource() {
-			return new AbstractMessageSource<String>() {
+			return new AbstractMessageSource<>() {
 
 				@Override
 				public String getComponentType() {
