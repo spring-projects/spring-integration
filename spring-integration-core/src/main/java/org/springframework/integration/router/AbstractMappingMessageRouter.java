@@ -79,7 +79,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	private boolean channelKeyFallback = true;
 
-	private boolean isChannelKeyFallbackSetExplicitly;
+	private boolean defaultOutputChannelSet;
+
+	private boolean channelKeyFallbackSetExplicitly;
 
 	private volatile Map<String, String> channelMappings = new LinkedHashMap<>();
 
@@ -135,7 +137,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 */
 	public void setChannelKeyFallback(boolean channelKeyFallback) {
 		this.channelKeyFallback = channelKeyFallback;
-		this.isChannelKeyFallbackSetExplicitly = true;
+		this.channelKeyFallbackSetExplicitly = true;
 	}
 
 	/**
@@ -146,8 +148,11 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * directly to this channel.
 	 * If {@link #channelKeyFallback} is set explicitly to {@code true},
 	 * the further logic depend on a {@link #resolutionRequired} options
-	 * ({@code true} by default), abd therefore a fallback to
+	 * ({@code true} by default), and therefore a fallback to
 	 * this default output channel may never happen.
+	 * The configuration where default output channel is present and
+	 * {@link #resolutionRequired} & {@link #resolutionRequired} are set to {@code true}
+	 * is rejected since it leads to ambiguity.
 	 * @param defaultOutputChannel The default output channel.
 	 * @since 6.0
 	 * @see #setChannelKeyFallback(boolean)
@@ -156,9 +161,10 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		super.setDefaultOutputChannel(defaultOutputChannel);
-		if (!this.isChannelKeyFallbackSetExplicitly) {
+		if (!this.channelKeyFallbackSetExplicitly) {
 			this.channelKeyFallback = false;
 		}
+		this.defaultOutputChannelSet = true;
 	}
 
 	/**
@@ -169,8 +175,11 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * directly to this channel.
 	 * If {@link #channelKeyFallback} is set explicitly to {@code true},
 	 * the further logic depend on a {@link #resolutionRequired} options
-	 * ({@code true} by default), abd therefore a fallback to
+	 * ({@code true} by default), and therefore a fallback to
 	 * this default output channel may never happen.
+	 * The configuration where default output channel is present and
+	 * {@link #resolutionRequired} & {@link #resolutionRequired} are set to {@code true}
+	 * is rejected since it leads to ambiguity.
 	 * @param defaultOutputChannelName the name of the channel bean for default output.
 	 * @since 6.0
 	 * @see #setChannelKeyFallback(boolean)
@@ -179,9 +188,10 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
 		super.setDefaultOutputChannelName(defaultOutputChannelName);
-		if (!this.isChannelKeyFallbackSetExplicitly) {
+		if (!this.channelKeyFallbackSetExplicitly) {
 			this.channelKeyFallback = false;
 		}
+		this.defaultOutputChannelSet = true;
 	}
 
 	/**
@@ -238,15 +248,14 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		return Collections.unmodifiableSet(this.dynamicChannels.keySet());
 	}
 
-	/**
-	 * Subclasses must implement this method to return the channel keys.
-	 * A "key" might be present in this router's "channelMappings", or it
-	 * could be the channel's name or even the Message Channel instance itself.
-	 * @param message The message.
-	 * @return The channel keys.
-	 */
-	protected abstract List<Object> getChannelKeys(Message<?> message);
-
+	@Override
+	protected void onInit() {
+		super.onInit();
+		Assert.state(this.channelKeyFallback && this.resolutionRequired && this.defaultOutputChannelSet,
+				"The 'defaultOutputChannel' cannot be reached " +
+						"when both 'channelKeyFallback' & 'resolutionRequired' are set to true. " +
+						"See their javadocs for more information.");
+	}
 
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
@@ -255,6 +264,15 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		addToCollection(channels, channelKeys, message);
 		return channels;
 	}
+
+	/**
+	 * Subclasses must implement this method to return the channel keys.
+	 * A "key" might be present in this router's "channelMappings", or it
+	 * could be the channel's name or even the Message Channel instance itself.
+	 * @param message The message.
+	 * @return The channel keys.
+	 */
+	protected abstract List<Object> getChannelKeys(Message<?> message);
 
 	/**
 	 * Convenience method allowing conversion of a list
