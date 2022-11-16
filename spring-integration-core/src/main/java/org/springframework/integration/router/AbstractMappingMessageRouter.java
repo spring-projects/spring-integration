@@ -251,7 +251,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	protected void onInit() {
 		super.onInit();
-		Assert.state(this.channelKeyFallback && this.resolutionRequired && this.defaultOutputChannelSet,
+		Assert.state(!this.channelKeyFallback || !this.resolutionRequired || !this.defaultOutputChannelSet,
 				"The 'defaultOutputChannel' cannot be reached " +
 						"when both 'channelKeyFallback' & 'resolutionRequired' are set to true. " +
 						"See their javadocs for more information.");
