@@ -350,36 +350,37 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean sent = false;
 		ChannelInterceptorList interceptorList = this.interceptors;
+		Message<?> messageToSend = message;
 		try {
-			message = convertPayloadIfNecessary(message);
+			messageToSend = convertPayloadIfNecessary(messageToSend);
 			boolean debugEnabled = this.loggingEnabled && this.logger.isDebugEnabled();
 			if (debugEnabled) {
-				logger.debug("preSend on channel '" + this + "', message: " + message);
+				logger.debug("preSend on channel '" + this + "', message: " + messageToSend);
 			}
 			if (interceptorList.getSize() > 0) {
 				interceptorStack = new ArrayDeque<>();
-				message = interceptorList.preSend(message, this, interceptorStack);
-				if (message == null) {
+				messageToSend = interceptorList.preSend(messageToSend, this, interceptorStack);
+				if (messageToSend == null) {
 					return false;
 				}
 			}
 
-			sent = doSend(message, timeout);
+			sent = doSend(messageToSend, timeout);
 
 			if (debugEnabled) {
-				logger.debug("postSend (sent=" + sent + ") on channel '" + this + "', message: " + message);
+				logger.debug("postSend (sent=" + sent + ") on channel '" + this + "', message: " + messageToSend);
 			}
 			if (interceptorStack != null) {
-				interceptorList.postSend(message, this, sent);
-				interceptorList.afterSendCompletion(message, this, sent, null, interceptorStack);
+				interceptorList.postSend(messageToSend, this, sent);
+				interceptorList.afterSendCompletion(messageToSend, this, sent, null, interceptorStack);
 			}
 			return sent;
 		}
 		catch (Exception ex) {
 			if (interceptorStack != null) {
-				interceptorList.afterSendCompletion(message, this, sent, ex, interceptorStack);
+				interceptorList.afterSendCompletion(messageToSend, this, sent, ex, interceptorStack);
 			}
-			throw IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
+			throw IntegrationUtils.wrapInDeliveryExceptionIfNecessary(messageToSend,
 					() -> "failed to send Message to channel '" + getComponentName() + "'", ex);
 		}
 	}
