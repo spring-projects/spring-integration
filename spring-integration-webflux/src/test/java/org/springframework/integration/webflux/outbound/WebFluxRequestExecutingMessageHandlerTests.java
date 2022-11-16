@@ -16,17 +16,21 @@
 
 package org.springframework.integration.webflux.outbound;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ClientHttpConnector;
@@ -40,16 +44,22 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Shiliang Li
  * @author Artem Bilan
  * @author David Graff
+ * @author Jatin Saxena
  *
  * @since 5.0
  */
@@ -289,15 +299,16 @@ class WebFluxRequestExecutingMessageHandlerTests {
 
 			Flux<DataBuffer> data =
 					Flux.just(
-							bufferFactory.wrap("{".getBytes(StandardCharsets.UTF_8)),
-							bufferFactory.wrap("  \"error\": \"Not Found\",".getBytes(StandardCharsets.UTF_8)),
-							bufferFactory.wrap("  \"message\": \"404 NOT_FOUND\",".getBytes(StandardCharsets.UTF_8)),
-							bufferFactory.wrap("  \"path\": \"/spring-integration\",".getBytes(StandardCharsets.UTF_8)),
-							bufferFactory.wrap("  \"status\": 404,".getBytes(StandardCharsets.UTF_8)),
-							bufferFactory.wrap("  \"timestamp\": \"1970-01-01T00:00:00.000+00:00\",".getBytes(StandardCharsets.UTF_8)),
-							bufferFactory.wrap("  \"trace\": \"some really\nlong\ntrace\",".getBytes(StandardCharsets.UTF_8)),
-							bufferFactory.wrap("}".getBytes(StandardCharsets.UTF_8))
-					);
+									"{",
+									"  \"error\": \"Not Found\",",
+									"  \"message\": \"404 NOT_FOUND\",",
+									"  \"path\": \"/spring-integration\",",
+									"  \"status\": 404,",
+									"  \"timestamp\": \"1970-01-01T00:00:00.000+00:00\",",
+									"  \"trace\": \"some really\nlong\ntrace\",",
+									"}")
+							.map(String::getBytes)
+							.map(bufferFactory::wrap);
 
 			return response.writeWith(data)
 					.then(Mono.defer(response::setComplete));
@@ -374,6 +385,62 @@ class WebFluxRequestExecutingMessageHandlerTests {
 				.isInstanceOf(DataBufferLimitException.class)
 				.extracting("message")
 				.isEqualTo("Exceeded limit on max bytes to buffer : 1");
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void testFluxReplyWithRequestAttribute() {
+		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
+			response.setStatusCode(HttpStatus.OK);
+			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+
+			DataBufferFactory bufferFactory = response.bufferFactory();
+
+			Mono<DataBuffer> data = Mono.just(bufferFactory.wrap("foo\nbar\nbaz".getBytes()));
+
+			return response.writeWith(data)
+					.then(Mono.defer(response::setComplete));
+		});
+
+		class AttributeFilter implements ExchangeFilterFunction {
+
+			final AtomicReference<Object> attributeValueName = new AtomicReference<>();
+
+			@Override
+			public Mono<ClientResponse> filter(ClientRequest request, ExchangeFunction next) {
+				this.attributeValueName.set(request.attribute("name").orElse(null));
+				return next.exchange(request);
+			}
+		}
+
+		AttributeFilter attributeFilter = new AttributeFilter();
+		WebClient webClient = WebClient.builder()
+				.clientConnector(httpConnector)
+				.filter(attributeFilter)
+				.build();
+
+		String destinationUri = "https://www.springsource.org/spring-integration";
+		WebFluxRequestExecutingMessageHandler reactiveHandler =
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
+
+		QueueChannel replyChannel = new QueueChannel();
+		reactiveHandler.setOutputChannel(replyChannel);
+		reactiveHandler.setExpectedResponseType(String.class);
+		reactiveHandler.setReplyPayloadToFlux(true);
+		Expression expr = new SpelExpressionParser().parseExpression("{name:{first:'Nikola'}}");
+		reactiveHandler.setAttributeVariablesExpression(expr);
+		reactiveHandler.setBeanFactory(mock(BeanFactory.class));
+		reactiveHandler.afterPropertiesSet();
+
+		reactiveHandler.handleMessage(MessageBuilder.withPayload(Mono.just("hello, world")).build());
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertThat(attributeFilter.attributeValueName.get()).isNotNull();
+
+		Map<String, String> attributeValueNameMap = (Map<String, String>) attributeFilter.attributeValueName.get();
+		assertThat(attributeValueNameMap.get("first")).isEqualTo("Nikola");
+		assertThat(receive).isNotNull();
 	}
 
 }

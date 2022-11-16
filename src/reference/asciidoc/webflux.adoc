@@ -319,3 +319,11 @@ See <<./http.adoc#http-outbound,HTTP Outbound Components>> for more possible con
 
 Since WebFlux components are fully based on the HTTP protocol, there is no difference in the HTTP headers mapping.
 See <<./http.adoc#http-header-mapping,HTTP Header Mappings>> for more possible options and components to use for mapping headers.
+
+[[webflux-request-attributes]]
+=== WebFlux Request Attributes
+
+Starting with version 6.0, the `WebFluxRequestExecutingMessageHandler` can be configured to evaluate request attributes via `setAttributeVariablesExpression()`.
+This SpEL expression must be evaluated in `Map`.
+Such a map is then propagated to the `WebClient.RequestBodySpec.attributes(Consumer<Map<String, Object>> attributesConsumer)` HTTP request configuration callback.
+This will be helpful if an information in a form of key-value object needs to be passed from `Message` to request and downstream filter will get access to these attributes for further processing.

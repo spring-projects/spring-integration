@@ -202,3 +202,13 @@ See <<./jms.adoc#jms,JMS Support>> for more information.
 The `ChannelSecurityInterceptor` and its annotation `@SecuredChannel` and XML `<secured-channels>` configurations have been deprecated in favor of `AuthorizationChannelInterceptor`.
 
 See <<./security.adoc#security,Security Support>> for more information.
+
+[[x6.0-webflux]]
+=== Webflux Request Attributes Support
+
+Webclient Request attributes support has been added for `WebFluxRequestExecutingMessageHandler`.
+
+See <<./webflux.adoc#webflux-request-attributes,WebFlux Request Attributes>> for more information.
+
+
+
