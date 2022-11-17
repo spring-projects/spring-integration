@@ -35,6 +35,7 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.SerializationHints;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.beans.factory.config.BeanExpressionContext;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -43,7 +44,6 @@ import org.springframework.integration.core.GenericHandler;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.core.Pausable;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.gateway.MethodArgsHolder;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -58,7 +58,6 @@ import org.springframework.integration.store.MessageHolder;
 import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
-import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
@@ -89,8 +88,7 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 						MethodArgsHolder.class,
 						AbstractReplyProducingMessageHandler.RequestHandler.class,
 						ExpressionEvaluatingRoutingSlipRouteStrategy.RequestAndReply.class,
-						Pausable.class,
-						ManageableSmartLifecycle.class)
+						Lifecycle.class)
 				.forEach(type -> reflectionHints.registerType(type, MemberCategory.INVOKE_PUBLIC_METHODS));
 
 		reflectionHints.registerType(JsonPathUtils.class,
