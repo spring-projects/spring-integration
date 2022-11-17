@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.ProxyHints;
 import org.springframework.aot.hint.ReflectionHints;
@@ -35,7 +36,6 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.SerializationHints;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.beans.factory.config.BeanExpressionContext;
-import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -44,7 +44,9 @@ import org.springframework.integration.core.GenericHandler;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.core.Pausable;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.gateway.MethodArgsHolder;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -63,6 +65,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * {@link RuntimeHintsRegistrar} for Spring Integration core module.
@@ -88,7 +91,7 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 						MethodArgsHolder.class,
 						AbstractReplyProducingMessageHandler.RequestHandler.class,
 						ExpressionEvaluatingRoutingSlipRouteStrategy.RequestAndReply.class,
-						Lifecycle.class)
+						Pausable.class)
 				.forEach(type -> reflectionHints.registerType(type, MemberCategory.INVOKE_PUBLIC_METHODS));
 
 		reflectionHints.registerType(JsonPathUtils.class,
@@ -100,11 +103,13 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 		reflectionHints.registerTypeIfPresent(classLoader, "org.springframework.integration.xml.xpath.XPathUtils",
 				MemberCategory.INVOKE_PUBLIC_METHODS);
 
-		Stream.of(
-						"kotlin.jvm.functions.Function0",
-						"kotlin.jvm.functions.Function1")
+		Stream.of("kotlin.jvm.functions.Function0", "kotlin.jvm.functions.Function1")
 				.forEach(type ->
 						reflectionHints.registerTypeIfPresent(classLoader, type, MemberCategory.INVOKE_PUBLIC_METHODS));
+
+		Stream.of("start", "stop", "isRunning")
+				.flatMap((name) -> Stream.ofNullable(ReflectionUtils.findMethod(AbstractEndpoint.class, name)))
+				.forEach(method -> reflectionHints.registerMethod(method, ExecutableMode.INVOKE));
 
 		hints.resources().registerPattern("META-INF/spring.integration.properties");
 

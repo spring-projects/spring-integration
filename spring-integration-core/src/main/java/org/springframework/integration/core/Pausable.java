@@ -16,7 +16,6 @@
 
 package org.springframework.integration.core;
 
-import org.springframework.aot.hint.annotation.Reflective;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -38,14 +37,12 @@ public interface Pausable extends ManageableLifecycle {
 	 * Pause the endpoint.
 	 */
 	@ManagedOperation(description = "Pause the component")
-	@Reflective
 	void pause();
 
 	/**
 	 * Resume the endpoint if paused.
 	 */
 	@ManagedOperation(description = "Resume the component")
-	@Reflective
 	void resume();
 
 	/**
@@ -54,7 +51,6 @@ public interface Pausable extends ManageableLifecycle {
 	 * @since 5.4
 	 */
 	@ManagedAttribute(description = "Is the component paused?")
-	@Reflective
 	default boolean isPaused() {
 		throw new UnsupportedOperationException("This component does not implement this method");
 	}
