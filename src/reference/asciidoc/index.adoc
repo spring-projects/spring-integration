@@ -28,6 +28,7 @@ Welcome to the Spring Integration reference documentation!
 <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>> :: Details about Kotlin DSL for EIP
 <<./system-management.adoc#system-management-chapter,System Management>> :: Message store, control bus, integration graph, metrics, JMX
 <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> :: Details about Reactive Streams support: message channels, channel adapters etc.
+<<./native-aot.adoc#native-images-support,Native Images Support>> :: GraalVM native images and Spring AOT support
 
 [horizontal]
 **Integration Endpoints** ::

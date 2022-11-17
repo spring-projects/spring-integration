@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+import org.springframework.aot.hint.annotation.Reflective;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -138,6 +139,7 @@ public class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandle
 	}
 
 	@SuppressWarnings("unused")
+	@Reflective
 	private void handleConnectionSetup(Message<DataBuffer> connectMessage) {
 		DataBuffer dataBuffer = connectMessage.getPayload();
 		MessageHeaders messageHeaders = connectMessage.getHeaders();

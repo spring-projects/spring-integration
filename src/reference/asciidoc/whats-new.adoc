@@ -52,7 +52,7 @@ The Java DSL (see `org.springframework.integration.smb.dsl.Smb` factory) also ha
 An `SmbStreamingMessageSource` and `SmbOutboundGateway` implementation are introduced.
 See <<./smb.adoc#smb,SMB Support>> for more information.
 
-[[x6.0-jdbc]]
+[[x6.0-postgres]]
 ==== PostgreSQL Push Notification
 
 A `PostgresSubscribableChannel` allows to receive push notifications via `PostgresChannelMessageTableSubscriber` upon new messages add to the `JdbcChannelMessageStore`.
@@ -97,6 +97,12 @@ See <<./cassandra.adoc#cassandra,Apache Cassandra Support>> for more information
 Kotlin Coroutines support has been introduced to the framework.
 
 See <<./kotlin-functions.adoc#kotlin-coroutines,Kotlin Coroutines>> for more information.
+
+[[x6.0-aot]]
+==== Native Images
+
+Support for creating GraalVM native images is provided.
+See <<./native-aot.adoc#native-images-support,Native Images Support>> for more information.
 
 [[x6.0-general]]
 === General Changes
@@ -160,6 +166,7 @@ The `spring-integration-gemfire` module has been removed altogether since there 
 The `#cookies` variable for expression evaluation context, exposed in the `HttpRequestHandlingEndpointSupport`, is now a `MultiValueMap` to carry all the values for cookies set by the client.
 See <<./http.adoc#http,HTTP Support>> for more information.
 
+[[x6.0-kafka]]
 === Apache Kafka Changes
 
 When providing a `RetryTemplate` on the inbound gateway or message-driven channel adapter, if an `errorChannel` is also provided, an `ErrorMessageSendingRecoverer` is automatically configured.
@@ -168,24 +175,28 @@ In addition, the new `KafkaErrorMessageSendingRecoverer` is provided; this can b
 
 See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
 
+[[x6.0-jdbc]]
 === JDBC Changes
 
 The `DefaultLockRepository` can now be supplied with a `PlatformTransactionManager` instead of relying on the primary bean from the application context.
 
 See <<./jdbc.adoc#jdbc-lock-registry,JDBC Lock Registry>> for more information.
 
+[[x6.0-tcp]]
 === TCP/IP Changes
 
 The `lookupHost` property of the `AbstractConnectionFactory` and `DatagramPacketMessageMapper` is now set to `false` by default to avoid delays in the environments where DNS is not configured.
 
 See <<./ip.adoc#ip,TCP and UDP Support>> for more information.
 
+[[x6.0-jms]]
 === JMS Changes
 
 The `JmsOutboundGateway` now creates a `TemporaryTopic` instead of `TemporaryQueue` if `replyPubSubDomain` option is set to `true`.
 
 See <<./jms.adoc#jms,JMS Support>> for more information.
 
+[[x6.0-security]]
 === Security Changes
 
 The `ChannelSecurityInterceptor` and its annotation `@SecuredChannel` and XML `<secured-channels>` configurations have been deprecated in favor of `AuthorizationChannelInterceptor`.
