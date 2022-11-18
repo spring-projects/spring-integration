@@ -188,9 +188,10 @@ The `ChannelSecurityInterceptor` and its annotation `@SecuredChannel` and XML `<
 See <<./security.adoc#security,Security Support>> for more information.
 
 [[x6.0-webflux]]
-
 === Webflux request attribute support
-Webclient Request attribute support has been added for outbound request.See <<./webflux.adoc#webflux-request-attribute,WebFlux Request Attribute>> for more information.
+
+Webclient Request attribute support has been added for outbound request.
+See <<./webflux.adoc#webflux-request-attribute,WebFlux Request Attribute>> for more information.
 
 
 

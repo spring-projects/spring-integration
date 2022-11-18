@@ -323,4 +323,5 @@ See <<./http.adoc#http-header-mapping,HTTP Header Mappings>> for more possible o
 [[webflux-request-attribute]]
 === WebFlux Request Attribute
 
-Starting with Version 6, Webflux outbound request can have request attribute which can be specified in `attribute-variables-expression` attribute. This attribute will take an `expression` that should be evaluated in `Map`.
+Starting with version 6.0, Webflux outbound request `WebFluxRequestExecutingMessageHandler` can have request attribute which can be specified in `setAttributeVariablesExpression()`.
+This will take an `expression` that should be evaluated in `Map`.

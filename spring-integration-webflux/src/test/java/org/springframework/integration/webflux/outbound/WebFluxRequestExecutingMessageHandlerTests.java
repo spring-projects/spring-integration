@@ -401,16 +401,16 @@ class WebFluxRequestExecutingMessageHandlerTests {
 					.then(Mono.defer(response::setComplete));
 		});
 
-		 class AttributeFilter implements ExchangeFilterFunction {
+		class AttributeFilter implements ExchangeFilterFunction {
 
 			Optional<Object> attributeValueName;
 
-			 @Override
-			 public Mono<ClientResponse> filter(ClientRequest request, ExchangeFunction next) {
-				 this.attributeValueName = request.attribute("name");
-				 return next.exchange(request);
-			 }
-		 }
+			@Override
+			public Mono<ClientResponse> filter(ClientRequest request, ExchangeFunction next) {
+				this.attributeValueName = request.attribute("name");
+				return next.exchange(request);
+			}
+		}
 
 		AttributeFilter attributeFilter = new AttributeFilter();
 		WebClient webClient = WebClient.builder()
@@ -437,7 +437,7 @@ class WebFluxRequestExecutingMessageHandlerTests {
 
 		assertThat(attributeFilter.attributeValueName).isPresent();
 
-		Map<String,String> attributeValueNameMap = (Map<String, String>) attributeFilter.attributeValueName.get();
+		Map<String, String> attributeValueNameMap = (Map<String, String>) attributeFilter.attributeValueName.get();
 
 		assertThat(attributeValueNameMap.get("first")).isEqualTo("Nikola");
 

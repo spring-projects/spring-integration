@@ -201,6 +201,12 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		this.publisherElementTypeExpression = publisherElementTypeExpression;
 	}
 
+	/**
+	 * Configure expression to evaluate request attribute which will be added to webclient request attribute.
+	 * @param attributeVariablesExpression the expression to evaluate request attribute.
+	 * @since 6.0
+	 * @see WebFluxRequestExecutingMessageHandler#evaluateAttributeVariables(Message)
+	 */
 	public void setAttributeVariablesExpression(Expression attributeVariablesExpression) {
 		Assert.notNull(attributeVariablesExpression, "'attributeVariablesExpression' must not be null");
 		this.attributeVariablesExpression = attributeVariablesExpression;
@@ -249,9 +255,11 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 		requestSpec = requestSpec.headers(headers -> headers.putAll(httpRequest.getHeaders()));
 
-		if(attributeVariablesExpression != null) {
+		if (this.attributeVariablesExpression != null) {
 			Map<String, Object> attributeMap = evaluateAttributeVariables(requestMessage);
-			requestSpec = requestSpec.attributes(map -> map.putAll(attributeMap));
+			if (attributeMap != null && !attributeMap.isEmpty()) {
+				requestSpec = requestSpec.attributes(map -> map.putAll(attributeMap));
+			}
 		}
 
 		BodyInserter<?, ? super ClientHttpRequest> inserter = buildBodyInserterForRequest(requestMessage, httpRequest);
@@ -393,7 +401,8 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 				.map(this::getReply);
 	}
 
-	private Map<String,Object> evaluateAttributeVariables(Message<?> requestMessage){
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> evaluateAttributeVariables(Message<?> requestMessage) {
 		return this.attributeVariablesExpression.getValue(this.evaluationContext, requestMessage, Map.class);
 	}
 }
