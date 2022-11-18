@@ -27,8 +27,8 @@ import java.util.Map;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSession;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
@@ -48,6 +48,7 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.MimeType;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -64,14 +65,14 @@ public class TcpMessageMapperTests {
 
 	private Codec codec;
 
-	@Before
+	@BeforeEach
 	public void setup() {
-		Map<Class<?>, Codec> codecs = new HashMap<Class<?>, Codec>();
+		Map<Class<?>, Codec> codecs = new HashMap<>();
 		this.codec = new CompositeCodec(codecs, new MessageCodec());
 	}
 
 	@Test
-	public void testToMessage() throws Exception {
+	public void testToMessage() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		TcpConnection connection = mock(TcpConnection.class);
 		Socket socket = mock(Socket.class);
@@ -93,7 +94,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	public void testToMessageWithContentType() throws Exception {
+	public void testToMessageWithContentType() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
 		TcpConnection connection = mock(TcpConnection.class);
@@ -119,7 +120,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	public void testToMessageWithCustomContentType() throws Exception {
+	public void testToMessageWithCustomContentType() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
 		mapper.setContentType("application/octet-stream;charset=ISO-8859-1");
@@ -145,17 +146,13 @@ public class TcpMessageMapperTests {
 		assertThat(parseOk.toString()).isEqualTo(message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testToMessageWithBadContentType() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
-		try {
-			mapper.setContentType("");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).contains("'contentType' could not be parsed");
-			throw e;
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> mapper.setContentType(""))
+				.withMessageContaining("'contentType' could not be parsed");
 	}
 
 	@Test
@@ -415,7 +412,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	public void testCodecMessageConvertingBothWaysJava() throws Exception {
+	public void testCodecMessageConvertingBothWaysJava() {
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
 				.setHeader("bar", "baz")
 				.build();
@@ -439,7 +436,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	public void testWithBytesMapper() throws Exception {
+	public void testWithBytesMapper() {
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
 				.setHeader("bar", "baz")
 				.build();
