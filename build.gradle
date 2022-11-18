@@ -36,9 +36,8 @@ if (isCI) {
     apply plugin: 'io.spring.nohttp'
 
     nohttp {
-        allowlistFile = file('src/nohttp/allowlist.lines')
         source.include '**/src/**'
-        source.exclude '**/*.gif', '**/*.jpg', '**/*.png', '**/*.svg', '**/*.ks'
+        source.exclude '**/bin/**', '**/build/**', '**/out/**', '**/target/**', '**/*.gif', '**/*.jpg', '**/*.png', '**/*.svg', '**/*.ks'
     }
 }
 
