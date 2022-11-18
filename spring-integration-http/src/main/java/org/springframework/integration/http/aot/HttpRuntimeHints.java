@@ -25,7 +25,7 @@ import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.server.WebHandler;
 
 /**
- * {@link RuntimeHintsRegistrar} for Spring Integration core module.
+ * {@link RuntimeHintsRegistrar} for Spring Integration HTTP module.
  *
  * @author Artem Bilan
  *

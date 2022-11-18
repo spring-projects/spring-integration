@@ -41,6 +41,8 @@ include::./system-management.adoc[]
 
 include::./reactive-streams.adoc[]
 
+include::./native-aot.adoc[]
+
 include::./endpoint-summary.adoc[]
 
 include::./amqp.adoc[]

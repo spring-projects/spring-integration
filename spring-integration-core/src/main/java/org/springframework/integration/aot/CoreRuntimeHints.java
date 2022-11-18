@@ -63,6 +63,7 @@ import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ReflectionUtils;
@@ -83,6 +84,7 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 						GenericSelector.class,
 						GenericTransformer.class,
 						GenericHandler.class,
+						ReactiveMessageHandler.class,
 						Function.class,
 						Supplier.class,
 						BeanExpressionContext.class,

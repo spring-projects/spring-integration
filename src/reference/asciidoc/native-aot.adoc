@@ -1,0 +1,57 @@
+[[native-images-support]]
+=== Native Images Support
+
+Starting with version 6.0, GraalVM compilation of Spring Integration applications to native images is supported by https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#aot[Spring AOT] native hints.
+For most common use cases, such as endpoint definitions with `@Bean` methods, Java DSL configuration with lambdas and `@MessagingGateway` interface scanning (importing), the framework provides respective reflection, proxy and serialization hints.
+If configuration uses messaging annotations (`@ServiceActivator`, `@Splitter` etc.) on POJO methods, or POJO methods are used with the `IntegrationFlowBuilder.handle(Object service, String methodName)` API, they have to be also marked with a `@Reflective` annotation since they are invoked by the framework reflectively.
+
+IMPORTANT: XML configuration is not supported for native images.
+
+As stated before, service interfaces with the `@MessagingGateway` annotation, when they are scanned by the `@IntegrationComponentScan` or used in an `@Import` annotation, are processed by the framework and the respective proxy hint is exposed into the AOT contribution.
+When gateways are declared using the `IntegrationFlow.from(Class<?> serviceInterface)` API, the proxy configured for such interfaces have to be exposed manually:
+
+====
+[source,java]
+----
+@Configuration
+@EnableIntegration
+@ImportRuntimeHints(GatewayRuntimeHints.class)
+public class IntegrationConfiguration {
+
+    @Bean
+    IntegrationFlow someFlow() {
+        return IntegrationFlow.from(SomeGateway)
+                  // ...
+                   .get();
+    }
+
+    public interface SomeGateway {
+
+        void doSomething(Object payload);
+
+    }
+
+    private static class GatewayRuntimeHints implements RuntimeHintsRegistrar {
+
+        @Override
+        public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+            hints.proxies().registerJdkProxy(
+                                   AopProxyUtils.completeJdkProxyInterfaces(SomeGateway));
+        }
+
+    }
+
+}
+----
+====
+
+NOTE: The `IntegrationFlow` content is not processed during the AOT processing phase.
+Therefore, some hints, such as the one mentioned above for a gateway proxy, must be provided by the target application.
+
+Of course, configuration is just a piece of an integration solution.
+The most important part is data transferring over the network as well as persistent storage.
+That's where serialization comes handy for many use-cases.
+Spring Integration exposes serialization hints into a native image configuration for these types used by the framework internally: `String`, `Number`, `Long`, `Date`, `ArrayList`, `HashMap`, `Properties`, `Hashtable`, `Exception`, `UUID`, `GenericMessage`, `ErrorMessage`, `MessageHeaders`, `AdviceMessage`, `MutableMessage`, `MutableMessageHeaders`, `MessageGroupMetadata`, `MessageHolder`, `MessageMetadata`, `MessageHistory`, `MessageHistory.Entry`, `DelayHandler.DelayedMessageWrapper`.
+For user specific data, mostly present as a message payload, the serialization hint must be exposed manually via a `RuntimeHintsRegistrar` implementation, as is shown above for a gateway proxy, and the respective `RuntimeHints.serialization().registerType()` API.
+
+NOTE: It is recommended that native integration applications are developed with Spring Boot, using its respective build tools.
