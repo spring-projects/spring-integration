@@ -16,18 +16,21 @@
 
 package org.springframework.integration.webflux.outbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,13 +45,16 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Shiliang Li
@@ -218,10 +224,6 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		reactiveHandler.setExpectedResponseType(String.class);
 		reactiveHandler.setReplyPayloadToFlux(true);
 
-		reactiveHandler.setAttributeVariablesExpression(new SpelExpressionParser().parseExpression("{name:{first:'Nikola',last:'Tesla'},dob:{day:10,month:'July',year:1856}}"));
-		setBeanFactory(reactiveHandler);
-		reactiveHandler.afterPropertiesSet();
-
 		reactiveHandler.handleMessage(MessageBuilder.withPayload(Mono.just("hello, world")).build());
 
 		Message<?> receive = replyChannel.receive(10_000);
@@ -384,8 +386,63 @@ class WebFluxRequestExecutingMessageHandlerTests {
 				.isEqualTo("Exceeded limit on max bytes to buffer : 1");
 	}
 
-	private void setBeanFactory(WebFluxRequestExecutingMessageHandler handler) {
-		handler.setBeanFactory(mock(BeanFactory.class));
+	@Test
+	@SuppressWarnings("unchecked")
+	void testFluxReplyWithRequestAttribute() {
+		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
+			response.setStatusCode(HttpStatus.OK);
+			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+
+			DataBufferFactory bufferFactory = response.bufferFactory();
+
+			Mono<DataBuffer> data = Mono.just(bufferFactory.wrap("foo\nbar\nbaz".getBytes()));
+
+			return response.writeWith(data)
+					.then(Mono.defer(response::setComplete));
+		});
+
+		 class AttributeFilter implements ExchangeFilterFunction {
+
+			Optional<Object> attributeValueName;
+
+			 @Override
+			 public Mono<ClientResponse> filter(ClientRequest request, ExchangeFunction next) {
+				 this.attributeValueName = request.attribute("name");
+				 return next.exchange(request);
+			 }
+		 }
+
+		AttributeFilter attributeFilter = new AttributeFilter();
+		WebClient webClient = WebClient.builder()
+				.clientConnector(httpConnector)
+				.filter(attributeFilter)
+				.build();
+
+		String destinationUri = "https://www.springsource.org/spring-integration";
+		WebFluxRequestExecutingMessageHandler reactiveHandler =
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
+
+		QueueChannel replyChannel = new QueueChannel();
+		reactiveHandler.setOutputChannel(replyChannel);
+		reactiveHandler.setExpectedResponseType(String.class);
+		reactiveHandler.setReplyPayloadToFlux(true);
+		Expression expr = new SpelExpressionParser().parseExpression("{name:{first:'Nikola'}}");
+		reactiveHandler.setAttributeVariablesExpression(expr);
+		reactiveHandler.setBeanFactory(mock(BeanFactory.class));
+		reactiveHandler.afterPropertiesSet();
+
+		reactiveHandler.handleMessage(MessageBuilder.withPayload(Mono.just("hello, world")).build());
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertThat(attributeFilter.attributeValueName).isPresent();
+
+		Map<String,String> attributeValueNameMap = (Map<String, String>) attributeFilter.attributeValueName.get();
+
+		assertThat(attributeValueNameMap.get("first")).isEqualTo("Nikola");
+
+		assertThat(receive).isNotNull();
+
 	}
 
 }

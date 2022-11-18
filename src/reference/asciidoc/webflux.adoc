@@ -319,3 +319,8 @@ See <<./http.adoc#http-outbound,HTTP Outbound Components>> for more possible con
 
 Since WebFlux components are fully based on the HTTP protocol, there is no difference in the HTTP headers mapping.
 See <<./http.adoc#http-header-mapping,HTTP Header Mappings>> for more possible options and components to use for mapping headers.
+
+[[webflux-request-attribute]]
+=== WebFlux Request Attribute
+
+Starting with Version 6, Webflux outbound request can have request attribute which can be specified in `attribute-variables-expression` attribute. This attribute will take an `expression` that should be evaluated in `Map`.

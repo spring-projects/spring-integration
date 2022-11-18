@@ -23,7 +23,6 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
@@ -214,8 +213,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 	@Override
 	protected final void doInit() {
-		BeanFactory beanFactory = getBeanFactory();
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override

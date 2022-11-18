@@ -18,6 +18,7 @@ package org.springframework.integration.webflux.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -79,16 +80,12 @@ public class WebFluxOutboundChannelAdapterParser extends HttpOutboundChannelAdap
 							.getBeanDefinition());
 		}
 
-		String attributeVariablesExpression = element.getAttribute("attribute-variables-expression");
-		boolean hasAttibuteVariablesExpression = StringUtils.hasText(attributeVariablesExpression);
+		BeanDefinition attributeVariablesExpressionDef = IntegrationNamespaceUtils
+				.createExpressionDefIfAttributeDefined("attribute-variables-expression", element);
 
-		if (hasAttibuteVariablesExpression) {
-			builder.addPropertyValue("attributeVariablesExpression",
-					BeanDefinitionBuilder.rootBeanDefinition(ExpressionFactoryBean.class)
-							.addConstructorArgValue(attributeVariablesExpression)
-							.getBeanDefinition());
+		if (attributeVariablesExpressionDef != null) {
+			builder.addPropertyValue("attributeVariablesExpression", attributeVariablesExpressionDef);
 		}
-
 
 		return builder;
 	}
