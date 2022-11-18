@@ -325,3 +325,4 @@ See <<./http.adoc#http-header-mapping,HTTP Header Mappings>> for more possible o
 
 Starting with version 6.0, Webflux outbound request `WebFluxRequestExecutingMessageHandler` can have request attributes which can be specified in `setAttributeVariablesExpression()`.
 This will take an `expression` that should be evaluated in `Map`.
+This will be helpful if an information in form of key-value object needs be passed from `Message` to request and downstream filter will get access to this attribute for further processing.

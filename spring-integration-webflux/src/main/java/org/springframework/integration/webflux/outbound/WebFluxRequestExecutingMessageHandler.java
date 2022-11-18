@@ -42,6 +42,7 @@ import org.springframework.integration.http.outbound.AbstractHttpRequestExecutin
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
@@ -219,6 +220,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 	@Override
 	protected final void doInit() {
+		super.doInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
@@ -257,7 +259,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 		if (this.attributeVariablesExpression != null) {
 			Map<String, Object> attributeMap = evaluateAttributeVariables(requestMessage);
-			if (attributeMap != null && !attributeMap.isEmpty()) {
+			if (!CollectionUtils.isEmpty(attributeMap)) {
 				requestSpec = requestSpec.attributes(map -> map.putAll(attributeMap));
 			}
 		}
