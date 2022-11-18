@@ -205,7 +205,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	 * Configure expression to evaluate request attribute which will be added to webclient request attribute.
 	 * @param attributeVariablesExpression the expression to evaluate request attribute.
 	 * @since 6.0
-	 * @see WebFluxRequestExecutingMessageHandler#evaluateAttributeVariables(Message)
+	 * @see WebClient.RequestBodySpec#attributes
 	 */
 	public void setAttributeVariablesExpression(Expression attributeVariablesExpression) {
 		Assert.notNull(attributeVariablesExpression, "'attributeVariablesExpression' must not be null");
@@ -405,4 +405,5 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	private Map<String, Object> evaluateAttributeVariables(Message<?> requestMessage) {
 		return this.attributeVariablesExpression.getValue(this.evaluationContext, requestMessage, Map.class);
 	}
+
 }
