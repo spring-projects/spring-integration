@@ -225,7 +225,7 @@ You can also use the `recovery-callback` to specify some other action to take in
 When building an `ErrorMessage` (for use in the `error-channel` or `recovery-callback`), you can customize the error message by setting the `error-message-strategy` property.
 By default, a `RawRecordHeaderErrorMessageStrategy` is used, to provide access to the converted message as well as the raw `ConsumerRecord`.
 
-IMPORTANT: This form of retry is blocking and could cause a rebalance if the aggregate retry delays across all polled records might exceed the `{@code `max.poll.interval.ms` consumer property.
+IMPORTANT: This form of retry is blocking and could cause a rebalance if the aggregate retry delays across all polled records might exceed the `max.poll.interval.ms` consumer property.
 Instead, consider adding a `DefaultErrorHandler` to the listener container, configured with a `KafkaErrorSendingMessageRecoverer`.
 
 [[kafka-inbound-adapter-configuration]]
@@ -577,7 +577,7 @@ You can also use the `recovery-callback` to specify some other action to take in
 When building an `ErrorMessage` (for use in the `error-channel` or `recovery-callback`), you can customize the error message by setting the `error-message-strategy` property.
 By default, a `RawRecordHeaderErrorMessageStrategy` is used, to provide access to the converted message as well as the raw `ConsumerRecord`.
 
-IMPORTANT: This form of retry is blocking and could cause a rebalance if the aggregate retry delays across all polled records might exceed the `{@code `max.poll.interval.ms` consumer property.
+IMPORTANT: This form of retry is blocking and could cause a rebalance if the aggregate retry delays across all polled records might exceed the `max.poll.interval.ms` consumer property.
 Instead, consider adding a `DefaultErrorHandler` to the listener container, configured with a `KafkaErrorSendingMessageRecoverer`.
 
 The following example shows how to configure a simple upper case converter with the Java DSL:
