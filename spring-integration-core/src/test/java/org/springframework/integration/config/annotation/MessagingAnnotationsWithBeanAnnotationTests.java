@@ -47,6 +47,7 @@ import org.springframework.integration.aggregator.ExpressionEvaluatingCorrelatio
 import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStrategy;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
+import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
@@ -63,6 +64,7 @@ import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -70,7 +72,10 @@ import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
+import org.springframework.integration.transformer.MessageTransformingHandler;
+import org.springframework.integration.transformer.ObjectToMapTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -150,6 +155,10 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 	@Autowired
 	private CountDownLatch reactiveCustomizerLatch;
+
+	@Autowired
+	@Qualifier("objectToMapEndpoint.handler")
+	private MessageTransformingHandler objectToMapTransformerHandler;
 
 	@Test
 	public void testMessagingAnnotationsFlow() throws InterruptedException {
@@ -253,6 +262,18 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 				.verifyComplete();
 	}
 
+	@Test
+	public void outputChannelIsLazyLoaded() {
+		assertThat(TestUtils.getPropertyValue(this.objectToMapTransformerHandler, "outputChannelName"))
+				.isEqualTo("lazilyCreatedChannel");
+
+		assertThat(TestUtils.getPropertyValue(this.objectToMapTransformerHandler, "outputChannel")).isNull();
+
+		assertThat(this.objectToMapTransformerHandler.getOutputChannel())
+				.isInstanceOf(DirectChannel.class)
+				.extracting("beanName")
+				.isEqualTo("lazilyCreatedChannel");
+	}
 
 	@Configuration
 	@EnableIntegration
@@ -458,6 +479,20 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 				messageMono.tryEmitValue(message);
 				return Mono.empty();
 			};
+		}
+
+		@Bean
+		@Transformer(inputChannel = "toMapChannel", outputChannel = "lazilyCreatedChannel")
+		@EndpointId("objectToMapEndpoint")
+		public ObjectToMapTransformer objectToMapTransformer() {
+			return new ObjectToMapTransformer();
+		}
+
+		@Bean
+		public IntegrationFlow lazyChannelFlow() {
+			return IntegrationFlow.from("lazilyCreatedChannel")
+					.log()
+					.nullChannel();
 		}
 
 	}
