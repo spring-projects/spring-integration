@@ -211,8 +211,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 					new BeanDefinitionPropertiesMapper(handlerBeanDefinition, annotations)
 							.setPropertyValue(SEND_TIMEOUT_ATTRIBUTE)
-							.setPropertyReference("outputChannel")
-							.setPropertyReference("defaultOutputChannel");
+							.setPropertyValue("outputChannel", "outputChannelName")
+							.setPropertyValue("defaultOutputChannel", "defaultOutputChannelName");
 				}
 
 				if (isClassIn(handlerBeanClass, AbstractMessageProducingHandler.class,
