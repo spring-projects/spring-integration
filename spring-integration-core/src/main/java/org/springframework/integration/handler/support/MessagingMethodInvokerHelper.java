@@ -49,8 +49,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.expression.StandardBeanExpressionResolver;
+import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.KotlinDetector;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -143,8 +143,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	private static final ExpressionParser EXPRESSION_PARSER_MIXED =
 			new SpelExpressionParser(new SpelParserConfiguration(SpelCompilerMode.MIXED, null));
 
-	private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER =
-			new LocalVariableTableParameterNameDiscoverer();
+	private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
 
 	private static final Map<SpelCompilerMode, ExpressionParser> SPEL_COMPILERS = new HashMap<>();
 
@@ -1285,8 +1284,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				}
 			}
 
-			Assert.notNull(headerName, "Cannot determine header name. Possible reasons: -debug is "
-					+ "disabled or header name is not explicitly provided via @Header annotation.");
+			Assert.notNull(headerName, "Cannot determine header name. Possible reasons: the -parameters compiler flag "
+					+ "is disabled or header name is not explicitly provided via @Header annotation.");
 			String headerRetrievalExpression = "headers['" + headerName + "']";
 			String fullHeaderExpression = headerRetrievalExpression + relativeExpression;
 			if (annotationAttributes.getBoolean("required")

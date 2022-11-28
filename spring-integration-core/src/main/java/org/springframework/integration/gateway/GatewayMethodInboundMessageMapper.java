@@ -30,7 +30,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -88,6 +88,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	private static final Log LOGGER = LogFactory.getLog(GatewayMethodInboundMessageMapper.class);
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+	private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
 
 	private final Map<String, Expression> parameterPayloadExpressions = new HashMap<>();
 
@@ -242,17 +244,16 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	static String determineHeaderName(Annotation headerAnnotation, MethodParameter methodParameter) {
 		String valueAttribute = (String) AnnotationUtils.getValue(headerAnnotation);
 		String headerName = StringUtils.hasText(valueAttribute) ? valueAttribute : methodParameter.getParameterName();
-		Assert.notNull(headerName, "Cannot determine header name. Possible reasons: -debug is " +
+		Assert.notNull(headerName, "Cannot determine header name. Possible reasons: the -parameters compiler flag is " +
 				"disabled or header name is not explicitly provided via @Header annotation.");
 		return headerName;
 	}
 
 	static List<MethodParameter> getMethodParameterList(Method method) {
 		List<MethodParameter> parameterList = new LinkedList<>();
-		ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 		for (int i = 0; i < method.getParameterCount(); i++) {
 			MethodParameter methodParameter = new SynthesizingMethodParameter(method, i);
-			methodParameter.initParameterNameDiscovery(parameterNameDiscoverer);
+			methodParameter.initParameterNameDiscovery(PARAMETER_NAME_DISCOVERER);
 			parameterList.add(methodParameter);
 		}
 		return parameterList;

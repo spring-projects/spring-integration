@@ -27,7 +27,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -60,7 +60,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
+	private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
 
 	private final PublisherMetadataSource metadataSource;
 
@@ -113,7 +113,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		initMessagingTemplateIfAny();
 		StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
-		final Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
+		Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
 		String[] argumentNames = resolveArgumentNames(method);
 		context.setVariable(PublisherMetadataSource.METHOD_NAME_VARIABLE_NAME, method.getName());
 		if (invocation.getArguments().length > 0 && argumentNames != null) {
