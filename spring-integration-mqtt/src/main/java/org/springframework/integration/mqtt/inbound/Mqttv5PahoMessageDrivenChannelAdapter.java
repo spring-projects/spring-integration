@@ -72,6 +72,7 @@ import org.springframework.util.Assert;
  * @author Mikhail Polivakha
  * @author Lucas Bowler
  * @author Artem Vozhdayenko
+ * @author Matthias Thoma
  *
  * @since 5.5.5
  *
@@ -217,7 +218,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		String[] topics = getTopic();
 		try {
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
-				this.mqttClient.unsubscribe(topics).waitForCompletion(getCompletionTimeout());
+				if (this.connectionOptions.isCleanStart()) {
+					this.mqttClient.unsubscribe(topics).waitForCompletion(getCompletionTimeout());
+				}
 
 				if (getClientManager() == null) {
 					this.mqttClient.disconnect().waitForCompletion(getCompletionTimeout());
