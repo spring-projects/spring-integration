@@ -23,11 +23,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
-import org.eclipse.paho.mqttv5.client.IMqttMessageListener;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
 import org.eclipse.paho.mqttv5.common.MqttException;
-import org.eclipse.paho.mqttv5.common.MqttSubscription;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -56,7 +54,7 @@ public class Mqttv5AdapterTests {
 		adapter.stop();
 
 		verify(client).connect(any(MqttConnectionOptions.class));
-		verify(client).subscribe(any(MqttSubscription[].class), any(), any(), any(IMqttMessageListener[].class), any());
+		verify(client).subscribe(any(String[].class), any(int[].class));
 		verify(client).unsubscribe(any(String[].class));
 	}
 
@@ -70,7 +68,7 @@ public class Mqttv5AdapterTests {
 		adapter.stop();
 
 		verify(client).connect(any(MqttConnectionOptions.class));
-		verify(client).subscribe(any(MqttSubscription[].class), any(), any(), any(IMqttMessageListener[].class), any());
+		verify(client).subscribe(any(String[].class), any(int[].class));
 		verify(client, never()).unsubscribe(any(String[].class));
 	}
 
@@ -85,7 +83,7 @@ public class Mqttv5AdapterTests {
 		IMqttToken token = mock(IMqttToken.class);
 		given(client.disconnect()).willReturn(token);
 		given(client.connect(any(MqttConnectionOptions.class))).willReturn(token);
-		given(client.subscribe(any(MqttSubscription[].class), any(), any(), any(IMqttMessageListener[].class), any()))
+		given(client.subscribe(any(String[].class), any(int[].class)))
 				.willReturn(token);
 		given(client.unsubscribe(any(String[].class))).willReturn(token);
 		Mqttv5PahoMessageDrivenChannelAdapter adapter =
