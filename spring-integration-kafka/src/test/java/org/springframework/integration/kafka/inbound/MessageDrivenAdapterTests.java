@@ -83,7 +83,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.listener.RetryListenerSupport;
+import org.springframework.retry.RetryListener;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
@@ -310,11 +310,12 @@ class MessageDrivenAdapterTests {
 		retryPolicy.setMaxAttempts(2);
 		retryTemplate.setRetryPolicy(retryPolicy);
 		final CountDownLatch retryCountLatch = new CountDownLatch(retryPolicy.getMaxAttempts());
-		retryTemplate.registerListener(new RetryListenerSupport() {
+		retryTemplate.registerListener(new RetryListener() {
 
 			@Override
 			public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
 					Throwable throwable) {
+
 				retryCountLatch.countDown();
 			}
 		});
