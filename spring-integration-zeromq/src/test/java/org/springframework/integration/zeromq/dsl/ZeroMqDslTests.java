@@ -115,7 +115,7 @@ public class ZeroMqDslTests {
 				.forEach(IntegrationFlowContext.IntegrationFlowRegistration::destroy);
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	public static class ContextConfiguration {
 
@@ -125,25 +125,28 @@ public class ZeroMqDslTests {
 		}
 
 		@Bean
-		ZeroMqProxy subPubZeroMqProxy() {
-			return new ZeroMqProxy(context(), ZeroMqProxy.Type.SUB_PUB);
+		ZeroMqProxy subPubZeroMqProxy(ZContext context) {
+			return new ZeroMqProxy(context, ZeroMqProxy.Type.SUB_PUB);
 		}
 
 		@Bean
-		ZeroMqProxy pullPushZeroMqProxy() {
-			return new ZeroMqProxy(context());
+		ZeroMqProxy pullPushZeroMqProxy(ZContext context) {
+			return new ZeroMqProxy(context);
 		}
 
 		@Bean
-		IntegrationFlow publishToZeroMqPubSubFlow(ZeroMqProxy subPubZeroMqProxy) {
+		IntegrationFlow publishToZeroMqPubSubFlow(ZContext context,
+				@Qualifier("subPubZeroMqProxy") ZeroMqProxy subPubZeroMqProxy) {
+
 			return flow ->
-					flow.handle(ZeroMq.outboundChannelAdapter(context(),
-									() -> {
-										await().until(() -> subPubZeroMqProxy.getFrontendPort() > 0);
-										return "tcp://localhost:" + subPubZeroMqProxy.getFrontendPort();
-									},
-									SocketType.PUB)
-							.topic("someTopic"));
+					flow.handle(
+							ZeroMq.outboundChannelAdapter(context,
+											() -> {
+												await().until(() -> subPubZeroMqProxy.getFrontendPort() > 0);
+												return "tcp://localhost:" + subPubZeroMqProxy.getFrontendPort();
+											},
+											SocketType.PUB)
+									.topic("someTopic"));
 		}
 
 	}

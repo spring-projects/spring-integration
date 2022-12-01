@@ -148,6 +148,7 @@ public class ZeroMqMessageHandlerTests {
 		messageHandler.destroy();
 		pullSocket.close();
 		proxy.stop();
+		proxy.destroy();
 	}
 
 }

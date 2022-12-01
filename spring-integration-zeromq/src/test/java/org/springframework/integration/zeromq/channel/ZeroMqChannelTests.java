@@ -174,6 +174,7 @@ public class ZeroMqChannelTests {
 		captureSocket.close();
 
 		proxy.stop();
+		proxy.destroy();
 	}
 
 
@@ -222,6 +223,7 @@ public class ZeroMqChannelTests {
 		channel.destroy();
 		channel2.destroy();
 		proxy.stop();
+		proxy.destroy();
 	}
 
 	@Test
@@ -287,6 +289,7 @@ public class ZeroMqChannelTests {
 
 		channel.destroy();
 		proxy.stop();
+		proxy.destroy();
 	}
 
 }
