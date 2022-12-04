@@ -26,11 +26,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
+import org.springframework.integration.handler.advice.ContextHolderRequestHandlerAdvice;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -102,8 +103,6 @@ public class DelegatingSessionFactoryTests {
 	}
 
 	@Configuration
-	@ImportResource(
-			"classpath:/org/springframework/integration/file/remote/session/delegating-session-factory-context.xml")
 	@EnableIntegration
 	public static class Config {
 
@@ -132,11 +131,21 @@ public class DelegatingSessionFactoryTests {
 			return new DefaultSessionFactoryLocator<>(factories, bar);
 		}
 
-		@ServiceActivator(inputChannel = "c1")
+		@Bean
+		QueueChannel out() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		ContextHolderRequestHandlerAdvice contextHolderRequestHandlerAdvice(DelegatingSessionFactory<String> dsf) {
+			return new ContextHolderRequestHandlerAdvice(Message::getPayload, dsf::setThreadKey, dsf::clearThreadKey);
+		}
+
+		@ServiceActivator(inputChannel = "in", adviceChain = "contextHolderRequestHandlerAdvice")
 		@Bean
 		MessageHandler handler() {
 			AbstractRemoteFileOutboundGateway<String> gateway =
-					new AbstractRemoteFileOutboundGateway<String>(dsf(), "ls", "payload") {
+					new AbstractRemoteFileOutboundGateway<>(dsf(), "ls", "payload") {
 
 						@Override
 						protected boolean isDirectory(String file) {
@@ -172,8 +181,9 @@ public class DelegatingSessionFactoryTests {
 						protected String enhanceNameWithSubDirectory(String file, String directory) {
 							return null;
 						}
+
 					};
-			gateway.setOutputChannelName("c2");
+			gateway.setOutputChannelName("out");
 			gateway.setOptions("-1");
 			return gateway;
 		}

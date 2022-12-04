@@ -231,33 +231,10 @@ private static final class SharedSSLFTPSClient extends FTPSClient {
 
 Version 4.2 introduced the `DelegatingSessionFactory`, which allows the selection of the actual session factory at runtime.
 Prior to invoking the FTP endpoint, call `setThreadKey()` on the factory to associate a key with the current thread.
-That key is then used to lookup the actual session factory to be used.
+That key is then used to look up the actual session factory to be used.
 You can clear the key by calling `clearThreadKey()` after use.
 
-We added convenience methods so that you can easily do use a delegating session factory from a message flow.
-
-The following example shows how to declare a delegating session factory:
-
-====
-[source, xml]
-----
-<bean id="dsf" class="org.springframework.integration.file.remote.session.DelegatingSessionFactory">
-    <constructor-arg>
-        <bean class="o.s.i.file.remote.session.DefaultSessionFactoryLocator">
-            <!-- delegate factories here -->
-        </bean>
-    </constructor-arg>
-</bean>
-
-<int:service-activator input-channel="in" output-channel="c1"
-        expression="@dsf.setThreadKey(#root, headers['factoryToUse'])" />
-
-<int-ftp:outbound-gateway request-channel="c1" reply-channel="c2" ... />
-
-<int:service-activator input-channel="c2" output-channel="out"
-        expression="@dsf.clearThreadKey(#root)" />
-----
-====
+See <<./handler-advice.adoc#context-holder-advice, Context Holder Advice>> for more information how this factory can be used together with a `ContextHolderRequestHandlerAdvice`.
 
 IMPORTANT: When you use session caching (see <<ftp-session-caching>>), each of the delegates should be cached.
 You cannot cache the `DelegatingSessionFactory` itself.
