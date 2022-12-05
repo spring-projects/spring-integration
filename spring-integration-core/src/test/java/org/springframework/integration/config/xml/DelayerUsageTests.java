@@ -80,7 +80,7 @@ public class DelayerUsageTests {
 				});
 
 		assertThat(outputA.receive(10000)).isNotNull();
-		assertThat(System.currentTimeMillis() - start).isCloseTo(1000, withinPercentage(10));
+		assertThat(System.currentTimeMillis() - start).isCloseTo(1000, withinPercentage(20));
 	}
 
 	@Test
@@ -91,7 +91,7 @@ public class DelayerUsageTests {
 		long start = System.currentTimeMillis();
 		inputA.send(builder.build());
 		assertThat(outputA.receive(10000)).isNotNull();
-		assertThat(System.currentTimeMillis() - start).isCloseTo(2000, withinPercentage(10));
+		assertThat(System.currentTimeMillis() - start).isCloseTo(2000, withinPercentage(20));
 	}
 
 	@Test
@@ -124,7 +124,7 @@ public class DelayerUsageTests {
 		delayerInsideChain.send(new GenericMessage<>("Hello"));
 		Message<?> message = outputA.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(System.currentTimeMillis() - start).isCloseTo(1000, withinPercentage(10));
+		assertThat(System.currentTimeMillis() - start).isCloseTo(1000, withinPercentage(20));
 		assertThat(message.getPayload()).isEqualTo("hello");
 	}
 
@@ -134,7 +134,7 @@ public class DelayerUsageTests {
 		this.inputC.send(new GenericMessage<>("test"));
 		Message<?> message = this.outputC.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(System.currentTimeMillis() - start).isCloseTo(1000, withinPercentage(10));
+		assertThat(System.currentTimeMillis() - start).isCloseTo(1000, withinPercentage(20));
 		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
