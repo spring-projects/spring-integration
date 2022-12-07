@@ -292,7 +292,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	public void disconnected(MqttDisconnectResponse disconnectResponse) {
 		MqttException cause = disconnectResponse.getException();
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (cause != null && applicationEventPublisher != null) {
+		if (applicationEventPublisher != null) {
 			applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
 		}
 	}
