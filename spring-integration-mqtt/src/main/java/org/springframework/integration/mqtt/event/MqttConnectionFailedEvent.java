@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,26 @@
 
 package org.springframework.integration.mqtt.event;
 
+import org.springframework.lang.Nullable;
+
 /**
+ * The {@link MqttIntegrationEvent} to notify about lost connection to the server.
+ * When normal disconnection is happened (initiated by the server), the {@code cause} is null.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2.2
  *
  */
 @SuppressWarnings("serial")
 public class MqttConnectionFailedEvent extends MqttIntegrationEvent {
 
-	public MqttConnectionFailedEvent(Object source, Throwable cause) {
+	public MqttConnectionFailedEvent(Object source) {
+		super(source);
+	}
+
+	public MqttConnectionFailedEvent(Object source, @Nullable Throwable cause) {
 		super(source, cause);
 	}
 

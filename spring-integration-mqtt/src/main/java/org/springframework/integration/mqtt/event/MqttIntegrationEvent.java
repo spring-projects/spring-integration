@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@
 package org.springframework.integration.mqtt.event;
 
 import org.springframework.integration.events.IntegrationEvent;
+import org.springframework.lang.Nullable;
 
 /**
- * Base class for Mqtt Events. For {@link #getSourceAsType()}, you should use a sub type
+ * Base class for Mqtt Events. For {@link #getSourceAsType()}, you should use a subtype
  * of {@link org.springframework.integration.mqtt.core.MqttComponent} for the receiving
  * variable.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.1
  */
@@ -33,7 +36,7 @@ public abstract class MqttIntegrationEvent extends IntegrationEvent {
 		super(source);
 	}
 
-	public MqttIntegrationEvent(Object source, Throwable cause) {
+	public MqttIntegrationEvent(Object source, @Nullable Throwable cause) {
 		super(source, cause);
 	}
 

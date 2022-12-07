@@ -299,7 +299,7 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	public void disconnected(MqttDisconnectResponse disconnectResponse) {
 		MqttException cause = disconnectResponse.getException();
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (cause != null && applicationEventPublisher != null) {
+		if (applicationEventPublisher != null) {
 			applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
 		}
 	}
