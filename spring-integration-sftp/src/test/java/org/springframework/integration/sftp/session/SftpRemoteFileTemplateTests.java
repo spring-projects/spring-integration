@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.sshd.sftp.client.SftpClient;
+import org.apache.sshd.sftp.client.SftpVersionSelector;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -44,6 +45,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -133,6 +135,32 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		}
 	}
 
+	@Test
+	public void renameWithOldSftpVersion() {
+		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(false);
+		factory.setHost("localhost");
+		factory.setPort(port);
+		factory.setUser("foo");
+		factory.setPassword("foo");
+		factory.setAllowUnknownKeys(true);
+
+		SftpSession currentVersionSession = factory.getSession();
+		assertThatNoException()
+				.isThrownBy(() ->
+						currentVersionSession.rename("sftpSource/ sftpSource1.txt", "sftpSource/sftpSource2.txt"));
+
+		currentVersionSession.close();
+
+		factory.setSftpVersionSelector(SftpVersionSelector.MINIMUM);
+
+		SftpSession oldVersionSession = factory.getSession();
+		assertThatNoException()
+				.isThrownBy(() ->
+						oldVersionSession.rename("sftpSource/sftpSource2.txt",
+								"sftpSource/subSftpSource/subSftpSource1.txt"));
+
+		oldVersionSession.close();
+	}
 	@Configuration
 	public static class Config {
 
