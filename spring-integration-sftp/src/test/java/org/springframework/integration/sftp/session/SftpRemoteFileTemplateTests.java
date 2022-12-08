@@ -161,6 +161,7 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 
 		oldVersionSession.close();
 	}
+
 	@Configuration
 	public static class Config {
 
