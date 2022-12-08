@@ -25,6 +25,7 @@ import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -57,24 +58,34 @@ public abstract class IntegrationNode {
 
 	private final Map<String, Object> unmodifiableProperties = Collections.unmodifiableMap(this.properties);
 
+	private final transient boolean observed;
+
 	protected IntegrationNode(int nodeId, String name, Object nodeObject) {
 		this.nodeId = nodeId;
 		this.nodeName = name;
 		this.componentType =
-				nodeObject instanceof NamedComponent
-						? ((NamedComponent) nodeObject).getComponentType()
+				nodeObject instanceof NamedComponent namedComponent
+						? namedComponent.getComponentType()
 						: nodeObject.getClass().getSimpleName();
-		if (nodeObject instanceof ExpressionCapable) {
-			Expression expression = ((ExpressionCapable) nodeObject).getExpression();
+
+		if (nodeObject instanceof ExpressionCapable expressionCapable) {
+			Expression expression = expressionCapable.getExpression();
 			if (expression != null) {
 				this.properties.put("expression", expression.getExpressionString());
 			}
 		}
 
+		if (nodeObject instanceof IntegrationManagement integrationManagement) {
+			this.observed = integrationManagement.isObserved();
+		}
+		else {
+			this.observed = false;
+		}
+
 		IntegrationPatternType patternType = null;
 
-		if (nodeObject instanceof IntegrationPattern) {
-			patternType = ((IntegrationPattern) nodeObject).getIntegrationPatternType(); // NOSONAR
+		if (nodeObject instanceof IntegrationPattern integrationPattern) {
+			patternType = integrationPattern.getIntegrationPatternType();
 		}
 		else if (nodeObject instanceof MessageHandler) {
 			patternType = IntegrationPatternType.service_activator;
@@ -140,4 +151,12 @@ public abstract class IntegrationNode {
 		}
 	}
 
+	/**
+	 * Return true if this component is instrumented with an observation.
+	 * @return true if this component is instrumented with an observation.
+	 * @since 6.0.1
+	 */
+	public boolean isObserved() {
+		return this.observed;
+	}
 }

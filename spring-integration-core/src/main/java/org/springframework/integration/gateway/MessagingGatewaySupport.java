@@ -370,6 +370,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		this.observationRegistry = observationRegistry;
 	}
 
+	@Override
+	public boolean isObserved() {
+		return !ObservationRegistry.NOOP.equals(this.observationRegistry);
+	}
+
 	public void setObservationConvention(
 			@Nullable MessageRequestReplyReceiverObservationConvention observationConvention) {
 

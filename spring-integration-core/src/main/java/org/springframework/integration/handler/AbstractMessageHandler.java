@@ -61,9 +61,8 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		if (isLoggingEnabled()) {
 			this.logger.debug(() -> this + " received message: " + message);
 		}
-		ObservationRegistry observationRegistry = getObservationRegistry();
-		if (observationRegistry != null) {
-			handleWithObservation(message, observationRegistry);
+		if (isObserved()) {
+			handleWithObservation(message, getObservationRegistry());
 		}
 		else {
 			MetricsCaptor metricsCaptor = getMetricsCaptor();
