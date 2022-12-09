@@ -27,6 +27,7 @@ import io.micrometer.core.instrument.search.Search;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.observation.DefaultMessageReceiverObservationConvention;
+import org.springframework.integration.support.management.observation.DefaultMessageRequestReplyReceiverObservationConvention;
 import org.springframework.integration.support.management.observation.DefaultMessageSenderObservationConvention;
 import org.springframework.integration.support.management.observation.IntegrationObservation;
 import org.springframework.lang.Nullable;
@@ -75,7 +76,7 @@ public class MicrometerNodeEnhancer {
 			if (node instanceof MessageChannelNode) {
 				enhanceWithTimers(node, "channel");
 			}
-			else if (node instanceof MessageHandlerNode) {
+			else if (node instanceof MessageHandlerNode || node instanceof MessageProducerNode) {
 				enhanceWithTimers(node, "handler");
 			}
 			if (node instanceof PollableChannelNode) {
@@ -83,6 +84,9 @@ public class MicrometerNodeEnhancer {
 			}
 			else if (node instanceof MessageSourceNode) {
 				enhanceWithCounts(node, "source");
+			}
+			else if (node instanceof MessageGatewayNode) {
+				enhanceWithTimers(node, "gateway");
 			}
 		}
 		return node;
@@ -126,19 +130,17 @@ public class MicrometerNodeEnhancer {
 							.tag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer");
 					case "handler" -> this.registry.find(DefaultMessageReceiverObservationConvention.INSTANCE.getName())
 							.tag(IntegrationObservation.HandlerTags.COMPONENT_TYPE.asString(), "handler");
+					case "gateway" ->
+							this.registry.find(DefaultMessageRequestReplyReceiverObservationConvention.INSTANCE.getName())
+									.tag(IntegrationObservation.GatewayTags.COMPONENT_TYPE.asString(), "gateway");
 					default -> null;
 				};
 
 		if (timerSearch != null) {
-			try {
-				return timerSearch
-						.tag(IntegrationObservation.HandlerTags.COMPONENT_NAME.asString(), node.getName())
-						.tag("error", value -> success == "none".equals(value))
-						.timer();
-			}
-			catch (Exception ex) {
-				return null;
-			}
+			return timerSearch
+					.tag(IntegrationObservation.HandlerTags.COMPONENT_NAME.asString(), node.getName())
+					.tag("error", value -> success == "none".equals(value))
+					.timer();
 		}
 
 		return null;
