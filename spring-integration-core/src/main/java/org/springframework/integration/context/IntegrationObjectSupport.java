@@ -268,7 +268,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		return this.conversionService;
 	}
 
-	protected void setConversionService(ConversionService conversionService) {
+	public void setConversionService(ConversionService conversionService) {
 		this.conversionService = conversionService;
 	}
 
