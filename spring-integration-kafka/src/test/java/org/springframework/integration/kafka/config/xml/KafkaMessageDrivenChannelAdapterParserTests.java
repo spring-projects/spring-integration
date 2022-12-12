@@ -21,6 +21,7 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -42,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
- * @author Artem Bilan.
+ * @author Artem Bilan
  * @author Gary Russell
  *
  * @since 5.4
@@ -50,6 +51,9 @@ import static org.mockito.Mockito.mock;
 @SpringJUnitConfig
 @DirtiesContext
 class KafkaMessageDrivenChannelAdapterParserTests {
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Autowired
 	private NullChannel nullChannel;
@@ -91,6 +95,13 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "errorMessageStrategy")).isSameAs(this.ems);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "retryTemplate")).isSameAs(this.retryTemplate);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recoveryCallback")).isSameAs(this.recoveryCallback);
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "onPartitionsAssignedSeekCallback"))
+				.isSameAs(this.context.getBean("onPartitionsAssignedSeekCallback"));
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "bindSourceRecord", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "filterInRetry", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "ackDiscarded", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recordFilterStrategy"))
+				.isSameAs(this.context.getBean("recordFilterStrategy"));
 	}
 
 	@Test

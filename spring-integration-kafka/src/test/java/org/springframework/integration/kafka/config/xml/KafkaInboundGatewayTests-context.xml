@@ -19,7 +19,9 @@
 			payload-type="java.lang.String"
 			error-message-strategy="ems"
 			retry-template="retryTemplate"
-			recovery-callback="recoveryCallback"/>
+			recovery-callback="recoveryCallback"
+			bind-source-record="true"
+			on-partitions-assigned-seek-callback="onPartitionsAssignedSeekCallback"/>
 
 	<bean id="template" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.kafka.core.KafkaTemplate"/>
@@ -42,6 +44,10 @@
 				<constructor-arg name="topics" value="foo"/>
 			</bean>
 		</constructor-arg>
+	</bean>
+
+	<bean id="onPartitionsAssignedSeekCallback" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="java.util.function.BiConsumer"/>
 	</bean>
 
 	<bean id="ems" class="org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy"/>

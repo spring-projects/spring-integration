@@ -373,6 +373,46 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="record-filter-strategy" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Wrap a 'KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener'
+								into 'FilteringMessageListenerAdapter' with the provided 'RecordFilterStrategy'.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.kafka.listener.adapter.RecordFilterStrategy" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="ack-discarded">
+						<xsd:annotation>
+							<xsd:documentation>
+								A boolean flag to indicate if 'FilteringMessageListenerAdapter
+								should acknowledge discarded records or not.
+								Does not make sense if 'record-filter-strategy' isn't specified.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="filter-in-retry">
+						<xsd:annotation>
+							<xsd:documentation>
+								A boolean flag to specify the order in which the filter and retry
+								operations are performed.
+								Does not make sense if only one of 'retry-template' or
+								'record-filter-strategy' is present, or none.
+								When true, the filter is called for each retry; when false, the filter is only
+								 called once for each delivery from the container.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -724,6 +764,30 @@
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="on-partitions-assigned-seek-callback" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					A 'BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback>'
+					bean reference for seeks management.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="java.util.function.BiConsumer" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="bind-source-record">
+			<xsd:annotation>
+				<xsd:documentation>
+					Set to true to bind the source consumer record in the header named
+					'IntegrationMessageHeaderAccessor#SOURCE_DATA'.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attributeGroup ref="errorMessageStrategyGroup" />
 	</xsd:complexType>

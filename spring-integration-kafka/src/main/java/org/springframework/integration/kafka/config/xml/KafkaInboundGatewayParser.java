@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.integration.kafka.inbound.KafkaInboundGateway;
  * Inbound gateway parser.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.4
  *
@@ -48,6 +49,9 @@ public class KafkaInboundGatewayParser extends AbstractInboundGatewayParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-message-strategy");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "retry-template");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "recovery-callback");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				"on-partitions-assigned-seek-callback");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "bind-source-record");
 	}
 
 	@Override
