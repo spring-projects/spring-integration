@@ -96,6 +96,7 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 				remoteDir = remotePath;
 			}
 		}
+		remoteDir = remoteDir.length() == 0 ? this.sftpClient.canonicalPath("") : remoteDir;
 		return StreamSupport.stream(this.sftpClient.readDir(remoteDir).spliterator(), false)
 				.filter((entry) -> !isPattern || PatternMatchUtils.simpleMatch(remoteFile, entry.getFilename()));
 	}

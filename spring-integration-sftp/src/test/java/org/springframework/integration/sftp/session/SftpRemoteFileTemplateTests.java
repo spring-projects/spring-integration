@@ -32,6 +32,7 @@ import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.SftpTestSupport;
@@ -122,6 +123,14 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 				.withStackTraceContaining("he destination file already exists at 'test.file'.");
 
 		sessionFactory.destroy();
+	}
+
+	@Test
+	public void lsUserHome() throws IOException {
+		try (Session<SftpClient.DirEntry> session = this.sessionFactory.getSession()) {
+			String[] entries = session.listNames("");
+			assertThat(entries).contains(".", "sftpSource", "sftpTarget");
+		}
 	}
 
 	@Configuration
