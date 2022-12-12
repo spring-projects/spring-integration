@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,12 @@ public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapt
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-message-strategy");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "retry-template");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "recovery-callback");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "record-filter-strategy");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				"on-partitions-assigned-seek-callback");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ack-discarded");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "filter-in-retry");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "bind-source-record");
 
 		return builder.getBeanDefinition();
 	}

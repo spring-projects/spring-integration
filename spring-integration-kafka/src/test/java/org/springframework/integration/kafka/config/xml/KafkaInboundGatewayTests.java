@@ -30,6 +30,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.4
  *
@@ -58,13 +59,16 @@ public class KafkaInboundGatewayTests {
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "listener.fallbackType"))
 				.isEqualTo(String.class);
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "errorMessageStrategy"))
-			.isSameAs(this.context.getBean("ems"));
+				.isSameAs(this.context.getBean("ems"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "retryTemplate"))
-			.isSameAs(this.context.getBean("retryTemplate"));
+				.isSameAs(this.context.getBean("retryTemplate"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "recoveryCallback"))
-			.isSameAs(this.context.getBean("recoveryCallback"));
+				.isSameAs(this.context.getBean("recoveryCallback"));
+		assertThat(TestUtils.getPropertyValue(this.gateway1, "onPartitionsAssignedSeekCallback"))
+				.isSameAs(this.context.getBean("onPartitionsAssignedSeekCallback"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "messagingTemplate.sendTimeout")).isEqualTo(5000L);
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "replyTimeout")).isEqualTo(43L);
+		assertThat(TestUtils.getPropertyValue(this.gateway1, "bindSourceRecord", Boolean.class)).isTrue();
 	}
 
 }
