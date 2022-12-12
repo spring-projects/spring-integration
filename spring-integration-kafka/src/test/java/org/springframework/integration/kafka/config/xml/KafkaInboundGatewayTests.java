@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.4
  *
@@ -63,8 +64,11 @@ public class KafkaInboundGatewayTests {
 				.isSameAs(this.context.getBean("retryTemplate"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "recoveryCallback"))
 				.isSameAs(this.context.getBean("recoveryCallback"));
+		assertThat(TestUtils.getPropertyValue(this.gateway1, "onPartitionsAssignedSeekCallback"))
+				.isSameAs(this.context.getBean("onPartitionsAssignedSeekCallback"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "messagingTemplate.sendTimeout")).isEqualTo(5000L);
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "replyTimeout")).isEqualTo(43L);
+		assertThat(TestUtils.getPropertyValue(this.gateway1, "bindSourceRecord", Boolean.class)).isTrue();
 	}
 
 }
