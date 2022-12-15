@@ -51,6 +51,11 @@ public class WebFluxOutboundChannelAdapterParser extends HttpOutboundChannelAdap
 
 		String webClientRef = element.getAttribute("web-client");
 		if (StringUtils.hasText(webClientRef)) {
+			if (element.hasAttribute("encoding-mode")) {
+				parserContext.getReaderContext()
+						.error("The 'web-client' and 'encoding-mode' are mutually exclusive.", element);
+			}
+
 			builder.getBeanDefinition()
 					.getConstructorArgumentValues()
 					.addIndexedArgumentValue(1, new RuntimeBeanReference(webClientRef));
