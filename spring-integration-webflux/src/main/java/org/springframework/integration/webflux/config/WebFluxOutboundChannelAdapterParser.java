@@ -53,7 +53,7 @@ public class WebFluxOutboundChannelAdapterParser extends HttpOutboundChannelAdap
 		if (StringUtils.hasText(webClientRef)) {
 			if (element.hasAttribute("encoding-mode")) {
 				parserContext.getReaderContext()
-						.error("The 'web-client' and 'encoding-mode' are mutually exclusive.", element);
+						.error("The 'web-client' and 'encoding-mode' attributes are mutually exclusive.", element);
 			}
 
 			builder.getBeanDefinition()
@@ -72,8 +72,8 @@ public class WebFluxOutboundChannelAdapterParser extends HttpOutboundChannelAdap
 
 		if (hasType && hasTypeExpression) {
 			parserContext.getReaderContext()
-					.error("The 'publisher-element-type' and 'publisher-element-type-expression' " +
-							"are mutually exclusive. You can only have one or the other", element);
+					.error("The 'publisher-element-type' and 'publisher-element-type-expression' attributes " +
+							"are mutually exclusive.", element);
 		}
 
 		if (hasType) {

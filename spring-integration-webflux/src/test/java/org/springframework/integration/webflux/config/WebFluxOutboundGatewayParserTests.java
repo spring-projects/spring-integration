@@ -146,7 +146,7 @@ public class WebFluxOutboundGatewayParserTests {
 				.isThrownBy(() ->
 						new ClassPathXmlApplicationContext("WebFluxOutboundGatewayParser-encoding-mode-fail.xml",
 						getClass()))
-				.withMessageContaining("The 'web-client' and 'encoding-mode' are mutually exclusive");
+				.withMessageContaining("The 'web-client' and 'encoding-mode' attributes are mutually exclusive");
 	}
 
 }
