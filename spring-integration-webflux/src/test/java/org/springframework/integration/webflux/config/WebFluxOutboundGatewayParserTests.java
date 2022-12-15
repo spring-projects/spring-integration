@@ -24,7 +24,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.http.HttpMethod;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -35,8 +37,10 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -132,6 +136,17 @@ public class WebFluxOutboundGatewayParserTests {
 				.isEqualTo(false);
 		assertThat(handlerAccessor.getPropertyValue("attributeVariablesExpression.expression"))
 				.isEqualTo("{name:{first:'Nikola',last:'Tesla'},dob:{day:10,month:'July',year:1856}}");
+		assertThat(handlerAccessor.getPropertyValue("webClient.uriBuilderFactory.encodingMode"))
+				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.NONE);
+	}
+
+	@Test
+	void webClientAndEncodingModeExclusiveness() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("WebFluxOutboundGatewayParser-encoding-mode-fail.xml",
+						getClass()))
+				.withMessageContaining("The 'web-client' and 'encoding-mode' attributes are mutually exclusive");
 	}
 
 }
