@@ -25,6 +25,7 @@
 	<outbound-gateway id="reactiveFullConfig"
 					  url="http://localhost/test2"
 					  http-method="PUT"
+					  encoding-mode="NONE"
 					  request-channel="requests"
 					  reply-timeout="1234"
 					  extract-request-payload="false"

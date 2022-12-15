@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.webflux.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -26,7 +27,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.http.HttpMethod;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -37,6 +40,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * @author Artem Bilan
@@ -129,6 +133,17 @@ public class WebFluxOutboundGatewayParserTests {
 				.isEqualTo("headers.elementType");
 		assertThat(handlerAccessor.getPropertyValue("extractResponseBody"))
 				.isEqualTo(false);
+		assertThat(handlerAccessor.getPropertyValue("webClient.uriBuilderFactory.encodingMode"))
+				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.NONE);
+	}
+
+	@Test
+	void webClientAndEncodingModeExclusiveness() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("WebFluxOutboundGatewayParser-encoding-mode-fail.xml",
+						getClass()))
+				.withMessageContaining("The 'web-client' and 'encoding-mode' attributes are mutually exclusive");
 	}
 
 }
