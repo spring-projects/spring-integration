@@ -44,7 +44,7 @@ public class SftpMessageSourceTests extends SftpTestSupport {
 	private ApplicationContext context;
 
 	@Test
-	public void testMaxFetch() throws Exception {
+	public void testMaxFetch() {
 		SftpInboundFileSynchronizingMessageSource messageSource = buildSource();
 		Message<?> received = messageSource.receive();
 		assertThat(received).isNotNull();
@@ -52,9 +52,9 @@ public class SftpMessageSourceTests extends SftpTestSupport {
 				.isIn(" sftpSource1.txt", "sftpSource2.txt");
 	}
 
-	private SftpInboundFileSynchronizingMessageSource buildSource() throws Exception {
+	private SftpInboundFileSynchronizingMessageSource buildSource() {
 		SftpInboundFileSynchronizer sync = new SftpInboundFileSynchronizer(sessionFactory());
-		sync.setRemoteDirectory("sftpSource/");
+		sync.setRemoteDirectory("/sftpSource/");
 		sync.setBeanFactory(this.context);
 		SftpInboundFileSynchronizingMessageSource messageSource = new SftpInboundFileSynchronizingMessageSource(sync);
 		messageSource.setLocalDirectory(getTargetLocalDirectory());

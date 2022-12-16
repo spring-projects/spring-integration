@@ -78,7 +78,7 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 	}
 
 	public Stream<SftpClient.DirEntry> doList(String path) throws IOException {
-		String remotePath = StringUtils.trimTrailingCharacter(StringUtils.trimLeadingCharacter(path, '/'), '/');
+		String remotePath = StringUtils.trimTrailingCharacter(path, '/');
 		String remoteDir = remotePath;
 		int lastIndex = remotePath.lastIndexOf('/');
 		if (lastIndex > 0) {
@@ -96,7 +96,10 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 				remoteDir = remotePath;
 			}
 		}
-		remoteDir = remoteDir.length() == 0 ? this.sftpClient.canonicalPath("") : remoteDir;
+		remoteDir =
+				remoteDir.length() > 0 && remoteDir.charAt(0) == '/'
+						? remoteDir
+						: this.sftpClient.canonicalPath(remoteDir);
 		return StreamSupport.stream(this.sftpClient.readDir(remoteDir).spliterator(), false)
 				.filter((entry) -> !isPattern || PatternMatchUtils.simpleMatch(remoteFile, entry.getFilename()));
 	}
