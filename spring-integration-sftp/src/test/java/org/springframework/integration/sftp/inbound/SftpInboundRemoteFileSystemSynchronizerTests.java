@@ -189,13 +189,14 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 			try {
 				SftpClient sftpClient = mock(SftpClient.class);
+				when(sftpClient.canonicalPath("remote-test-dir")).thenReturn("/remote-test-dir");
 
 				String[] files = new File("remote-test-dir").list();
 				for (String fileName : files) {
 					when(sftpClient.read("remote-test-dir/" + fileName))
 							.thenReturn(new FileInputStream("remote-test-dir/" + fileName));
 				}
-				when(sftpClient.readDir("remote-test-dir")).thenReturn(this.sftpEntries);
+				when(sftpClient.readDir("/remote-test-dir")).thenReturn(this.sftpEntries);
 
 				return SftpTestSessionFactory.createSftpSession(sftpClient);
 			}

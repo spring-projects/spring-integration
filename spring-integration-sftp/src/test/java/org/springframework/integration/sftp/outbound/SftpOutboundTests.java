@@ -174,14 +174,14 @@ public class SftpOutboundTests {
 		context.close();
 	}
 
-	@Test //INT-2275
+	@Test
 	public void testFtpOutboundGatewayInsideChain() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"SftpOutboundInsideChainTests-context.xml", getClass());
 
 		MessageChannel channel = context.getBean("outboundGatewayInsideChain", MessageChannel.class);
 
-		channel.send(MessageBuilder.withPayload("remote-test-dir").build());
+		channel.send(MessageBuilder.withPayload("/remote-test-dir").build());
 
 		PollableChannel output = context.getBean("replyChannel", PollableChannel.class);
 
@@ -308,7 +308,7 @@ public class SftpOutboundTests {
 						Arrays.stream(files)
 								.map((file) -> new SftpClient.DirEntry(file, file, new SftpClient.Attributes()))
 								.toList();
-				when(sftpClient.readDir("remote-test-dir")).thenReturn(dirEntries);
+				when(sftpClient.readDir("/remote-test-dir")).thenReturn(dirEntries);
 
 				return SftpTestSessionFactory.createSftpSession(sftpClient);
 			}

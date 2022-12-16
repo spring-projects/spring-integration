@@ -945,6 +945,8 @@ When using the recursive option (`-R`), the `fileName` includes any subdirectory
 If you use the `-dirs` option, each recursive directory is also returned as an element in the list.
 In this case, we recommend that you not use the `-1` option, because you would not be able to distinguish files from directories, which you can do when you use `FileInfo` objects.
 
+If remote path to list starts with a `/` symbol, it is treated by SFTP as an absolute path; without - as a relative path in the current user home.
+
 ==== Using `nlst` Command
 
 Version 5 introduced support for the `nlst` command.
@@ -1341,7 +1343,7 @@ Currently, supported events are:
 * `PathRemovedEvent` - a file or directory was removed
 * `SessionClosedEvent` - the client has disconnected
 
-Each of these is a subclass of `ApacheMinaSftpEvent`; you can configure a single listener to receive all of the event types.
+Each of these is a subclass of `ApacheMinaSftpEvent`; you can configure a single listener to receive all the event types.
 The `source` property of each event is a `ServerSession`, from which you can obtain information such as the client address; a convenient `getSession()` method is provided on the abstract event.
 
 To configure the server with the listener (which must be a Spring bean), simply add it to the `SftpSubsystemFactory`:
