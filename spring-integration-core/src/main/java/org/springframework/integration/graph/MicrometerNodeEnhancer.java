@@ -179,7 +179,7 @@ public class MicrometerNodeEnhancer {
 				(long) (failures == null ? 0 : failures.count()));
 	}
 
-	private static TimerStats buildTimerStats(Timer timer) {
+	private static TimerStats buildTimerStats(@Nullable Timer timer) {
 		return timer == null
 				? ZERO_TIMER_STATS
 				: new TimerStats(timer.count(), timer.mean(TimeUnit.MILLISECONDS), timer.max(TimeUnit.MILLISECONDS));
