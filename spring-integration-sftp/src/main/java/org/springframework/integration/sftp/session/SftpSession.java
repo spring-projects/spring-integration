@@ -38,7 +38,7 @@ import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Default SFTP {@link Session} implementation. Wraps a JSCH session instance.
+ * Default SFTP {@link Session} implementation. Wraps a MINA SSHD session instance.
  *
  * @author Josh Long
  * @author Mario Gray
