@@ -19,11 +19,12 @@
 	</int:channel>
 
 	<bean id="cassandraTemplate" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.cassandra.core.ReactiveCassandraOperations"/>
+		<constructor-arg value="org.springframework.data.cassandra.core.ReactiveCassandraOperations"
+						 type="java.lang.Class"/>
 	</bean>
 
 	<bean id="writeOptions" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.cassandra.core.InsertOptions"/>
+		<constructor-arg value="org.springframework.data.cassandra.core.InsertOptions" type="java.lang.Class"/>
 	</bean>
 
 	<int-cassandra:outbound-channel-adapter id="outbound1"
