@@ -26,8 +26,11 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.observation.ObservationRegistry;
 import net.minidev.json.JSONArray;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +52,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
@@ -117,7 +121,7 @@ public class IntegrationGraphServerTests {
 		assertThat(map.size()).isEqualTo(3);
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes).isNotNull();
-		assertThat(nodes.size()).isEqualTo(34);
+		assertThat(nodes.size()).isEqualTo(35);
 
 		JSONArray jsonArray =
 				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.componentType == 'gateway')]");
@@ -166,7 +170,7 @@ public class IntegrationGraphServerTests {
 		assertThat(map.size()).isEqualTo(3);
 		nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes).isNotNull();
-		assertThat(nodes.size()).isEqualTo(34);
+		assertThat(nodes.size()).isEqualTo(35);
 		links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links).isNotNull();
 		assertThat(links.size()).isEqualTo(35);
@@ -239,20 +243,51 @@ public class IntegrationGraphServerTests {
 	@Test
 	void testIncludesDynamic() {
 		Graph graph = this.server.getGraph();
-		assertThat(graph.getNodes().size()).isEqualTo(34);
+		assertThat(graph.getNodes().size()).isEqualTo(35);
 		IntegrationFlow flow = f -> f.handle(m -> {
 		});
 		IntegrationFlowRegistration reg = this.flowContext.registration(flow).register();
 		graph = this.server.rebuild();
-		assertThat(graph.getNodes().size()).isEqualTo(36);
+		assertThat(graph.getNodes().size()).isEqualTo(37);
 		this.flowContext.remove(reg.getId());
 		graph = this.server.rebuild();
-		assertThat(graph.getNodes().size()).isEqualTo(34);
+		assertThat(graph.getNodes().size()).isEqualTo(35);
+	}
+
+	@Autowired
+	MessageChannel filterInputChannel;
+
+	@Test
+	void timersViaObservationArePopulated() {
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		assertThat(messagingTemplate.convertSendAndReceive(this.filterInputChannel, "test", String.class))
+				.isEqualTo("test");
+
+		Graph graph = this.server.getGraph();
+		IntegrationNode myFilter =
+				graph.getNodes()
+						.stream()
+						.filter(node -> node.getName().equals("myFilter"))
+						.findFirst()
+						.get();
+
+		assertThat(myFilter)
+				.asInstanceOf(InstanceOfAssertFactories.type(MessageHandlerNode.class))
+				.extracting(MessageHandlerNode::getSendTimers)
+				.isNotNull()
+				.satisfies(sendTimers -> {
+					assertThat(sendTimers.getFailures().getCount()).isEqualTo(0);
+					assertThat(sendTimers.getFailures().getMax()).isEqualTo(0);
+					assertThat(sendTimers.getFailures().getMean()).isEqualTo(0);
+					assertThat(sendTimers.getSuccesses().getCount()).isEqualTo(1);
+					assertThat(sendTimers.getSuccesses().getMax()).isGreaterThan(0);
+					assertThat(sendTimers.getSuccesses().getMean()).isGreaterThan(0);
+				});
 	}
 
 	@Configuration
 	@EnableIntegration
-	@EnableIntegrationManagement
+	@EnableIntegrationManagement(observationPatterns = "myFilter")
 	@IntegrationComponentScan
 	@ImportResource("org/springframework/integration/graph/integration-graph-context.xml")
 	public static class Config {
@@ -263,13 +298,19 @@ public class IntegrationGraphServerTests {
 		}
 
 		@Bean
+		public ObservationRegistry observationRegistry(MeterRegistry meterRegistry) {
+			ObservationRegistry registry = ObservationRegistry.create();
+			registry.observationConfig().observationHandler(new DefaultMeterObservationHandler(meterRegistry));
+			return registry;
+		}
+
+		@Bean
 		public IntegrationGraphServer server() {
 			IntegrationGraphServer server = new IntegrationGraphServer();
 			server.setApplicationName("myAppName:1.0");
 			server.setAdditionalPropertiesCallback(namedComponent -> {
 				Map<String, Object> properties = null;
-				if (namedComponent instanceof SmartLifecycle) {
-					SmartLifecycle smartLifecycle = (SmartLifecycle) namedComponent;
+				if (namedComponent instanceof SmartLifecycle smartLifecycle) {
 					properties = new HashMap<>();
 					properties.put("auto-startup", smartLifecycle.isAutoStartup());
 					properties.put("running", smartLifecycle.isRunning());

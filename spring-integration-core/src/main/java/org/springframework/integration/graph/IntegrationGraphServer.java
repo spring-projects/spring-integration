@@ -68,13 +68,13 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 	private static final float GRAPH_VERSION = 1.2f;
 
-	private static MicrometerNodeEnhancer micrometerEnhancer;
+	private final NodeFactory nodeFactory = new NodeFactory(this::enhance);
 
-	private final NodeFactory nodeFactory = new NodeFactory();
+	private MicrometerNodeEnhancer micrometerEnhancer;
 
 	private ApplicationContext applicationContext;
 
-	private Graph graph;
+	private volatile Graph graph;
 
 	private String applicationName;
 
@@ -158,9 +158,18 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		return this.applicationContext.getBeansOfType(type, true, false);
 	}
 
+	private <T extends IntegrationNode> T enhance(T node) {
+		if (this.micrometerEnhancer != null) {
+			return this.micrometerEnhancer.enhance(node);
+		}
+		else {
+			return node;
+		}
+	}
+
 	private synchronized Graph buildGraph() {
-		if (micrometerEnhancer == null && MicrometerMetricsCaptorConfiguration.METER_REGISTRY_PRESENT) {
-			micrometerEnhancer = new MicrometerNodeEnhancer(this.applicationContext);
+		if (this.micrometerEnhancer == null && MicrometerMetricsCaptorConfiguration.METER_REGISTRY_PRESENT) {
+			this.micrometerEnhancer = new MicrometerNodeEnhancer(this.applicationContext);
 		}
 		String implementationVersion = IntegrationGraphServer.class.getPackage().getImplementationVersion();
 		if (implementationVersion == null) {
@@ -354,7 +363,10 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 		private final AtomicInteger nodeId = new AtomicInteger();
 
-		NodeFactory() {
+		private final Function<? super IntegrationNode, ? extends IntegrationNode> micrometerEnhancer;
+
+		NodeFactory(Function<IntegrationNode, ? extends IntegrationNode> micrometerEnhancer) {
+			this.micrometerEnhancer = micrometerEnhancer;
 		}
 
 		MessageChannelNode channelNode(String name, MessageChannel channel) {
@@ -365,10 +377,12 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			else {
 				node = new MessageChannelNode(this.nodeId.incrementAndGet(), name, channel);
 			}
-			if (IntegrationGraphServer.micrometerEnhancer != null) {
-				node = IntegrationGraphServer.micrometerEnhancer.enhance(node);
-			}
-			return node;
+			return enhance(node);
+		}
+
+		@SuppressWarnings("unchecked")
+		private <T extends IntegrationNode> T enhance(T node) {
+			return (T) this.micrometerEnhancer.apply(node);
 		}
 
 		MessageGatewayNode gatewayNode(String name, MessagingGatewaySupport gateway) {
@@ -379,16 +393,15 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 		@Nullable
 		private String channelToBeanName(MessageChannel messageChannel) {
-			return messageChannel instanceof NamedComponent
-					? ((NamedComponent) messageChannel).getBeanName()
+			return messageChannel instanceof NamedComponent namedComponent
+					? namedComponent.getBeanName()
 					: Objects.toString(messageChannel, null);
 		}
 
 		MessageProducerNode producerNode(String name, MessageProducerSupport producer) {
 			String errorChannel = channelToBeanName(producer.getErrorChannel());
 			String outputChannel = channelToBeanName(producer.getOutputChannel());
-			return new MessageProducerNode(this.nodeId.incrementAndGet(), name, producer,
-					outputChannel, errorChannel);
+			return new MessageProducerNode(this.nodeId.incrementAndGet(), name, producer, outputChannel, errorChannel);
 		}
 
 		MessageSourceNode sourceNode(String name, SourcePollingChannelAdapter adapter) {
@@ -401,10 +414,8 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			}
 			MessageSourceNode node = new MessageSourceNode(this.nodeId.incrementAndGet(), nameToUse, source,
 					outputChannel, errorChannel);
-			if (IntegrationGraphServer.micrometerEnhancer != null) {
-				node = IntegrationGraphServer.micrometerEnhancer.enhance(node);
-			}
-			return node;
+
+			return enhance(node);
 		}
 
 		MessageHandlerNode handlerNode(String nameArg, IntegrationConsumer consumer) {
@@ -412,34 +423,30 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			MessageHandler handler = consumer.getHandler();
 			MessageHandlerNode node;
 			String name = nameArg;
-			if (handler instanceof NamedComponent) {
-				name = IntegrationUtils.obtainComponentName((NamedComponent) handler);
+			if (handler instanceof NamedComponent namedComponent) {
+				name = IntegrationUtils.obtainComponentName(namedComponent);
 			}
-			if (handler instanceof CompositeMessageHandler) {
-				node = compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName, null,
-						false);
+			if (handler instanceof CompositeMessageHandler compositeMessageHandler) {
+				node = compositeHandler(name, consumer, compositeMessageHandler, outputChannelName, null, false);
 			}
-			else if (handler instanceof DiscardingMessageHandler) {
-				node = discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName, null,
-						false);
+			else if (handler instanceof DiscardingMessageHandler discardingMessageHandler) {
+				node = discardingHandler(name, consumer, discardingMessageHandler, outputChannelName, null, false);
 			}
-			else if (handler instanceof MappingMessageRouterManagement) {
-				node = routingHandler(name, consumer, handler, (MappingMessageRouterManagement) handler,
-						outputChannelName, null, false);
+			else if (handler instanceof MappingMessageRouterManagement mappingMessageRouterManagement) {
+				node = routingHandler(name, consumer, handler, mappingMessageRouterManagement, outputChannelName,
+						null, false);
 			}
-			else if (handler instanceof RecipientListRouterManagement) {
-				node = recipientListRoutingHandler(name, consumer, handler, (RecipientListRouterManagement) handler,
+			else if (handler instanceof RecipientListRouterManagement recipientListRouterManagement) {
+				node = recipientListRoutingHandler(name, consumer, handler, recipientListRouterManagement,
 						outputChannelName, null, false);
 			}
 			else {
 				String inputChannel = channelToBeanName(consumer.getInputChannel());
-				node = new MessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-						inputChannel, outputChannelName);
+				node = new MessageHandlerNode(this.nodeId.incrementAndGet(), name, handler, inputChannel,
+						outputChannelName);
 			}
-			if (IntegrationGraphServer.micrometerEnhancer != null) {
-				node = IntegrationGraphServer.micrometerEnhancer.enhance(node);
-			}
-			return node;
+
+			return enhance(node);
 		}
 
 		MessageHandlerNode polledHandlerNode(String nameArg, PollingConsumer consumer) {
@@ -448,34 +455,30 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			MessageHandler handler = consumer.getHandler();
 			MessageHandlerNode node;
 			String name = nameArg;
-			if (handler instanceof NamedComponent) {
-				name = IntegrationUtils.obtainComponentName((NamedComponent) handler);
+			if (handler instanceof NamedComponent namedComponent) {
+				name = IntegrationUtils.obtainComponentName(namedComponent);
 			}
-			if (handler instanceof CompositeMessageHandler) {
-				node = compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName,
+			if (handler instanceof CompositeMessageHandler compositeMessageHandler) {
+				node = compositeHandler(name, consumer, compositeMessageHandler, outputChannelName, errorChannel, true);
+			}
+			else if (handler instanceof DiscardingMessageHandler discardMessageHandler) {
+				node = discardingHandler(name, consumer, discardMessageHandler, outputChannelName, errorChannel, true);
+			}
+			else if (handler instanceof MappingMessageRouterManagement mappingMessageRouterManagement) {
+				node = routingHandler(name, consumer, handler, mappingMessageRouterManagement, outputChannelName,
 						errorChannel, true);
 			}
-			else if (handler instanceof DiscardingMessageHandler) {
-				node = discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName,
-						errorChannel, true);
-			}
-			else if (handler instanceof MappingMessageRouterManagement) {
-				node = routingHandler(name, consumer, handler, (MappingMessageRouterManagement) handler,
-						outputChannelName, errorChannel, true);
-			}
-			else if (handler instanceof RecipientListRouterManagement) {
-				node = recipientListRoutingHandler(name, consumer, handler, (RecipientListRouterManagement) handler,
+			else if (handler instanceof RecipientListRouterManagement recipientListRouterManagement) {
+				node = recipientListRoutingHandler(name, consumer, handler, recipientListRouterManagement,
 						outputChannelName, errorChannel, true);
 			}
 			else {
 				String inputChannel = channelToBeanName(consumer.getInputChannel());
-				node = new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-						inputChannel, outputChannelName, errorChannel);
+				node = new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler, inputChannel,
+						outputChannelName, errorChannel);
 			}
-			if (IntegrationGraphServer.micrometerEnhancer != null) {
-				node = IntegrationGraphServer.micrometerEnhancer.enhance(node);
-			}
-			return node;
+
+			return enhance(node);
 		}
 
 		MessageHandlerNode compositeHandler(String name, IntegrationConsumer consumer,

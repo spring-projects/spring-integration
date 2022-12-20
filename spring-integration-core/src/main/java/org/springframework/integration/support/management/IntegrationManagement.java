@@ -106,6 +106,15 @@ public interface IntegrationManagement extends NamedComponent, DisposableBean {
 		// no op
 	}
 
+	/**
+	 * True if this implementation is going to deal with a registry other than the {@link  ObservationRegistry#NOOP} instance.
+	 * @return true if this implementation is going to deal with a registry other than the {@link  ObservationRegistry#NOOP} instance.
+	 * @since 6.0.1
+	 */
+	default boolean isObserved() {
+		return false;
+	}
+
 	@Override
 	default void destroy() {
 		// no op

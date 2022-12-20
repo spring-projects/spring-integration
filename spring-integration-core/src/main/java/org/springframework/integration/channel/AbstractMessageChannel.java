@@ -245,6 +245,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
+	public boolean isObserved() {
+		return !ObservationRegistry.NOOP.equals(this.observationRegistry);
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
 		if (this.messageConverter == null) {

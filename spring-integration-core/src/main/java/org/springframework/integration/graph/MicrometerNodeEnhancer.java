@@ -22,14 +22,22 @@ import java.util.concurrent.TimeUnit;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.search.Search;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.support.management.IntegrationManagement;
+import org.springframework.integration.support.management.observation.DefaultMessageReceiverObservationConvention;
+import org.springframework.integration.support.management.observation.DefaultMessageRequestReplyReceiverObservationConvention;
+import org.springframework.integration.support.management.observation.DefaultMessageSenderObservationConvention;
+import org.springframework.integration.support.management.observation.IntegrationObservation;
+import org.springframework.lang.Nullable;
 
 /**
  * Add micrometer metrics to the node.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
@@ -68,7 +76,7 @@ public class MicrometerNodeEnhancer {
 			if (node instanceof MessageChannelNode) {
 				enhanceWithTimers(node, "channel");
 			}
-			else if (node instanceof MessageHandlerNode) {
+			else if (node instanceof MessageHandlerNode || node instanceof MessageProducerNode) {
 				enhanceWithTimers(node, "handler");
 			}
 			if (node instanceof PollableChannelNode) {
@@ -76,6 +84,9 @@ public class MicrometerNodeEnhancer {
 			}
 			else if (node instanceof MessageSourceNode) {
 				enhanceWithCounts(node, "source");
+			}
+			else if (node instanceof MessageGatewayNode) {
+				enhanceWithTimers(node, "gateway");
 			}
 		}
 		return node;
@@ -86,35 +97,53 @@ public class MicrometerNodeEnhancer {
 	}
 
 	private <T extends IntegrationNode> SendTimers retrieveTimers(T node, String type) {
-		Timer successTimer = null;
+		Timer successTimer = obtainTimer(node, type, true);
+		Timer failureTimer = obtainTimer(node, type, false);
+
+		return new SendTimers(buildTimerStats(successTimer), buildTimerStats(failureTimer));
+	}
+
+	@Nullable
+	private <T extends IntegrationNode> Timer obtainTimer(T node, String type, boolean success) {
 		try {
-			successTimer = this.registry.get(IntegrationManagement.SEND_TIMER_NAME)
-					.tag(TAG_TYPE, type)
-					.tag(TAG_NAME, node.getName())
-					.tag(TAG_RESULT, "success")
+			if (node.isObserved()) {
+				return observationTimer(node, type, success);
+			}
+			else {
+				return this.registry.get(IntegrationManagement.SEND_TIMER_NAME)
+						.tag(TAG_TYPE, type)
+						.tag(TAG_NAME, node.getName())
+						.tag(TAG_RESULT, success ? "success" : "failure")
+						.timer();
+			}
+		}
+		catch (Exception ex) {
+			return null;
+		}
+	}
+
+	@Nullable
+	private <T extends IntegrationNode> Timer observationTimer(T node, String type, boolean success) {
+		Search timerSearch =
+				switch (type) {
+					case "channel" -> this.registry.find(DefaultMessageSenderObservationConvention.INSTANCE.getName())
+							.tag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer");
+					case "handler" -> this.registry.find(DefaultMessageReceiverObservationConvention.INSTANCE.getName())
+							.tag(IntegrationObservation.HandlerTags.COMPONENT_TYPE.asString(), "handler");
+					case "gateway" ->
+							this.registry.find(DefaultMessageRequestReplyReceiverObservationConvention.INSTANCE.getName())
+									.tag(IntegrationObservation.GatewayTags.COMPONENT_TYPE.asString(), "gateway");
+					default -> null;
+				};
+
+		if (timerSearch != null) {
+			return timerSearch
+					.tag(IntegrationObservation.HandlerTags.COMPONENT_NAME.asString(), node.getName())
+					.tag("error", value -> success == "none".equals(value))
 					.timer();
 		}
-		catch (@SuppressWarnings(UNUSED) Exception e) { // NOSONAR ignored
-			// NOSONAR empty
-		}
-		Timer failureTimer = null;
-		try {
-			failureTimer = this.registry.get(IntegrationManagement.SEND_TIMER_NAME)
-					.tag(TAG_TYPE, type)
-					.tag(TAG_NAME, node.getName())
-					.tag(TAG_RESULT, "failure")
-					.timer();
-		}
-		catch (@SuppressWarnings(UNUSED) Exception e) { // NOSONAR ignored
-			// NOSONAR empty;
-		}
-		TimerStats successes = successTimer == null ? ZERO_TIMER_STATS
-				: new TimerStats(successTimer.count(), successTimer.mean(TimeUnit.MILLISECONDS),
-				successTimer.max(TimeUnit.MILLISECONDS));
-		TimerStats failures = failureTimer == null ? ZERO_TIMER_STATS
-				: new TimerStats(failureTimer.count(), failureTimer.mean(TimeUnit.MILLISECONDS),
-				failureTimer.max(TimeUnit.MILLISECONDS));
-		return new SendTimers(successes, failures);
+
+		return null;
 	}
 
 	private <T extends IntegrationNode> void enhanceWithCounts(T node, String type) {
@@ -148,6 +177,12 @@ public class MicrometerNodeEnhancer {
 		return new ReceiveCounters(
 				(long) (successes == null ? 0 : successes.count()),
 				(long) (failures == null ? 0 : failures.count()));
+	}
+
+	private static TimerStats buildTimerStats(@Nullable Timer timer) {
+		return timer == null
+				? ZERO_TIMER_STATS
+				: new TimerStats(timer.count(), timer.mean(TimeUnit.MILLISECONDS), timer.max(TimeUnit.MILLISECONDS));
 	}
 
 }

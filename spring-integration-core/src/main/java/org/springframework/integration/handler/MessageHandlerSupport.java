@@ -32,6 +32,7 @@ import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.TimerFacade;
+import org.springframework.util.Assert;
 
 /**
  * Base class for Message handling components that provides basic validation and error
@@ -63,7 +64,7 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 
 	private MetricsCaptor metricsCaptor;
 
-	private ObservationRegistry observationRegistry;
+	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
 	private int order = Ordered.LOWEST_PRECEDENCE;
 
@@ -95,7 +96,13 @@ public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 
 	@Override
 	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
+		Assert.notNull(observationRegistry, "'observationRegistry' must not be null");
 		this.observationRegistry = observationRegistry;
+	}
+
+	@Override
+	public boolean isObserved() {
+		return !ObservationRegistry.NOOP.equals(this.observationRegistry);
 	}
 
 	protected ObservationRegistry getObservationRegistry() {

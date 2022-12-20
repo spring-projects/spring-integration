@@ -15,7 +15,7 @@
 		<int:service-activator expression="payload" />
 	</int:chain>
 
-	<int:filter id="myFilter" input-channel="filterChannel" discard-channel="three" expression="true" />
+	<int:filter id="myFilter" input-channel="filterInputChannel" discard-channel="three" expression="true" />
 
 	<int:aggregator id="myAggregator" input-channel="polledChannel" discard-channel="three" />
 

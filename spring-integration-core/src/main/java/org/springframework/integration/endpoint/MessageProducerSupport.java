@@ -200,6 +200,11 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 	}
 
 	@Override
+	public boolean isObserved() {
+		return !ObservationRegistry.NOOP.equals(this.observationRegistry);
+	}
+
+	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
 		return IntegrationPatternType.inbound_channel_adapter;
 	}
