@@ -1,54 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="
-		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
-		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<int:channel id="in" />
+	<int:channel id="in"/>
 
 	<int:chain input-channel="in" output-channel="out">
 		<int:filter expression="payload == 'singleAnnotatedMethodOnClass'" throw-exception-on-rejection="true"/>
-		<int:service-activator ref="singleAnnotatedMethodOnClass" />
+		<int:service-activator ref="singleAnnotatedMethodOnClass"/>
 	</int:chain>
 
 	<bean id="singleAnnotatedMethodOnClass" class="org.mockito.Mockito"
-		factory-method="mock">
+		  factory-method="mock">
 		<constructor-arg
-			value="org.springframework.integration.handler.ServiceActivatorOnMockitoMockTests.SingleAnnotatedMethodOnClass" />
+				value="org.springframework.integration.handler.ServiceActivatorOnMockitoMockTests.SingleAnnotatedMethodOnClass"
+				type="java.lang.Class"/>
 	</bean>
 
 	<int:chain input-channel="in" output-channel="out">
 		<int:filter expression="payload == 'SingleMethodOnClass'" throw-exception-on-rejection="true"/>
-		<int:service-activator ref="singleMethodOnClass" />
+		<int:service-activator ref="singleMethodOnClass"/>
 	</int:chain>
 
 	<bean id="singleMethodOnClass" class="org.mockito.Mockito"
-		factory-method="mock">
+		  factory-method="mock">
 		<constructor-arg
-			value="org.springframework.integration.handler.ServiceActivatorOnMockitoMockTests.SingleMethodOnClass"
-			type="java.lang.Class"/>
+				value="org.springframework.integration.handler.ServiceActivatorOnMockitoMockTests.SingleMethodOnClass"
+				type="java.lang.Class"/>
 	</bean>
 
 	<int:chain input-channel="in" output-channel="out">
 		<int:filter expression="payload == 'SingleMethodAcceptingHeaderOnClass'" throw-exception-on-rejection="true"/>
-		<int:service-activator ref="singleMethodAcceptingHeaderOnClass" />
+		<int:service-activator ref="singleMethodAcceptingHeaderOnClass"/>
 	</int:chain>
 
 	<bean id="singleMethodAcceptingHeaderOnClass" class="org.mockito.Mockito"
-		factory-method="mock">
+		  factory-method="mock">
 		<constructor-arg
-			value="org.springframework.integration.handler.ServiceActivatorOnMockitoMockTests.SingleMethodAcceptingHeaderOnClass"
-			type="java.lang.Class"/>
+				value="org.springframework.integration.handler.ServiceActivatorOnMockitoMockTests.SingleMethodAcceptingHeaderOnClass"
+				type="java.lang.Class"/>
 	</bean>
 
 	<int:channel id="out">
-		<int:queue capacity="10" />
+		<int:queue capacity="10"/>
 	</int:channel>
 
 </beans>

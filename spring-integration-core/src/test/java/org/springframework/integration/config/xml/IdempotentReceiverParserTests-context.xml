@@ -16,7 +16,8 @@
 	<idempotent-receiver id="selectorInterceptor" endpoint="foo" selector="selector"/>
 
 	<beans:bean id="keyStrategy" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.integration.handler.MessageProcessor"/>
+		<beans:constructor-arg value="org.springframework.integration.handler.MessageProcessor"
+							   type="java.lang.Class"/>
 	</beans:bean>
 
 	<beans:bean id="valueStrategy" class="org.mockito.Mockito" factory-method="mock">

@@ -18,7 +18,8 @@
 	<splitter id="splitter" input-channel="splitterInput" expression="payload.values" send-timeout="123"/>
 
 	<beans:bean id="mock" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.integration.handler.MockHandlerTests$TestInterface"/>
+		<beans:constructor-arg value="org.springframework.integration.handler.MockHandlerTests$TestInterface"
+							   type="java.lang.Class"/>
 	</beans:bean>
 
 </beans:beans>
