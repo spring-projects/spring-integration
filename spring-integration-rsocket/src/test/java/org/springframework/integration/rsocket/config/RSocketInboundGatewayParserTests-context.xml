@@ -13,7 +13,8 @@
 	</bean>
 
 	<bean id="rsocketStrategies" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.messaging.rsocket.RSocketStrategies"/>
+		<constructor-arg value="org.springframework.messaging.rsocket.RSocketStrategies"
+						 type="java.lang.Class"/>
 	</bean>
 
 	<int:channel id="requestChannel"/>
