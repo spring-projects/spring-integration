@@ -119,7 +119,8 @@
 	</chain>
 
 	<beans:bean id="jsonObjectMapper" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.integration.support.json.JsonObjectMapper"/>
+		<beans:constructor-arg value="org.springframework.integration.support.json.JsonObjectMapper"
+							   type="java.lang.Class"/>
 	</beans:bean>
 
 	<chain id="subComponentsIdSupport1" input-channel="subComponentsIdSupport1Channel">

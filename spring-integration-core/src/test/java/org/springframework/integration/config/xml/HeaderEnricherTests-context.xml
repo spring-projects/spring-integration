@@ -77,7 +77,8 @@
 	</header-enricher>
 
 	<beans:bean id="bazRoutingSlip" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.integration.routingslip.RoutingSlipRouteStrategy"/>
+		<beans:constructor-arg value="org.springframework.integration.routingslip.RoutingSlipRouteStrategy"
+							   type="java.lang.Class"/>
 	</beans:bean>
 
 	<channel id="fooChannel"/>
