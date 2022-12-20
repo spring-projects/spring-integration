@@ -154,7 +154,24 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 
 	@Override
 	public void rename(String pathFrom, String pathTo) throws IOException {
-		this.sftpClient.rename(pathFrom, pathTo, SftpClient.CopyMode.Overwrite);
+		if (this.sftpClient.getVersion() >= SftpConstants.SFTP_V5) {
+			this.sftpClient.rename(pathFrom, pathTo, SftpClient.CopyMode.Overwrite);
+		}
+		else {
+			try {
+				this.sftpClient.rename(pathFrom, pathTo);
+			}
+			catch (SftpException sftpex) {
+				if (SftpConstants.SSH_FX_FILE_ALREADY_EXISTS == sftpex.getStatus()) {
+					remove(pathTo);
+					// attempt to rename again
+					this.sftpClient.rename(pathFrom, pathTo);
+				}
+				else {
+					throw sftpex;
+				}
+			}
+		}
 	}
 
 	@Override

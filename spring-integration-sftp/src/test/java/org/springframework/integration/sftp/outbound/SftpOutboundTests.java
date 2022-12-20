@@ -289,6 +289,7 @@ public class SftpOutboundTests {
 			try {
 				SftpClient sftpClient = mock(SftpClient.class);
 
+				when(sftpClient.getVersion()).thenReturn(SftpConstants.SFTP_V6);
 				doAnswer(invocation -> {
 					File file = new File((String) invocation.getArgument(0));
 					assertThat(file.getName()).endsWith(".writing");
