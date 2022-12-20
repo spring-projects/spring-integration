@@ -68,7 +68,7 @@
 	<channel id="failureChannel"/>
 
 	<beans:bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="java.util.Comparator"/>
+		<beans:constructor-arg value="java.util.Comparator" type="java.lang.Class"/>
 	</beans:bean>
 
 	<sftp:inbound-channel-adapter id="sftpAdapter"

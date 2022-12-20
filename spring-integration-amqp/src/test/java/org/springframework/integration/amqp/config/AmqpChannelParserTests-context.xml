@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="rabbitConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
+		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory" type="java.lang.Class"/>
 	</bean>
 
 	<amqp:channel id="channelWithInterceptor"
@@ -47,11 +47,9 @@
 									shutdown-timeout="0"/>
 
 	<bean id="inMapper" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.amqp.support.AmqpHeaderMapper"/>
+		<constructor-arg value="org.springframework.integration.amqp.support.AmqpHeaderMapper" type="java.lang.Class"/>
 	</bean>
 
-	<bean id="outMapper" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.amqp.support.AmqpHeaderMapper"/>
-	</bean>
+	<bean id="outMapper" parent="inMapper"/>
 
 </beans>

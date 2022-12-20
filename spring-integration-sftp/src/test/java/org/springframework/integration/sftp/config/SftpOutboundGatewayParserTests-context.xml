@@ -86,7 +86,7 @@
 		/>
 
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="mputFilter" class="org.springframework.integration.file.filters.RegexPatternFileListFilter">

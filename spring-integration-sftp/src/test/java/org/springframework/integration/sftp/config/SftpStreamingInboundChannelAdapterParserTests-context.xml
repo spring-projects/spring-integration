@@ -32,7 +32,7 @@
 	</int:channel>
 
 	<bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="java.util.Comparator"/>
+		<constructor-arg value="java.util.Comparator" type="java.lang.Class"/>
 	</bean>
 
 	<int-sftp:inbound-streaming-channel-adapter id="contextLoadsWithNoComparator"

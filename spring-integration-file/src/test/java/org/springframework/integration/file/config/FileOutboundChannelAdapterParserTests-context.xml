@@ -63,7 +63,9 @@
 								   directory="${java.io.tmpdir}"/>
 
 	<bean id="predicate" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate" />
+		<constructor-arg
+				value="org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate"
+				type="java.lang.Class"/>
 	</bean>
 
 	<file:outbound-channel-adapter id="usageChannel"

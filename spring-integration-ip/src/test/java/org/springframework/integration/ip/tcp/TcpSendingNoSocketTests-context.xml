@@ -8,7 +8,8 @@
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="mockCf" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory" />
+		<constructor-arg value="org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory"
+						 type="java.lang.Class"/>
 	</bean>
 
 	<int-ip:tcp-outbound-channel-adapter

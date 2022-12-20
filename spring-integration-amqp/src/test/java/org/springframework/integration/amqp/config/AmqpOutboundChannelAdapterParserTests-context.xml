@@ -18,7 +18,7 @@
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
 
 	<bean id="connectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
+		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory" type="java.lang.Class"/>
 	</bean>
 
 	<amqp:outbound-channel-adapter id="withHeaderMapperCustomHeaders" channel="requestChannel"
@@ -29,7 +29,7 @@
 								   mapped-request-headers="foo*"/>
 
 	<bean id="customHeaderMapper" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.amqp.support.AmqpHeaderMapper"/>
+		<constructor-arg value="org.springframework.integration.amqp.support.AmqpHeaderMapper" type="java.lang.Class"/>
 	</bean>
 
 	<amqp:outbound-channel-adapter id="withCustomHeaderMapper"

@@ -58,11 +58,12 @@
 
 
 	<bean id="mockCollectionCallback" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.mongodb.outbound.MessageCollectionCallback"/>
+		<constructor-arg value="org.springframework.integration.mongodb.outbound.MessageCollectionCallback"
+						 type="java.lang.Class"/>
 	</bean>
 
 	<bean id="mongoDbFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.mongodb.MongoDatabaseFactory"/>
+		<constructor-arg value="org.springframework.data.mongodb.MongoDatabaseFactory" type="java.lang.Class"/>
 		<constructor-arg value="#{T(org.mockito.Answers).RETURNS_MOCKS}"/>
 	</bean>
 

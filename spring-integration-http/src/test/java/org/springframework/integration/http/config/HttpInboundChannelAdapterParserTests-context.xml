@@ -21,7 +21,7 @@
 	</si:channel>
 
 	<beans:bean id="validator" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.validation.Validator"/>
+		<beans:constructor-arg value="org.springframework.validation.Validator" type="java.lang.Class"/>
 	</beans:bean>
 
 	<inbound-channel-adapter id="defaultAdapter" channel="requests" error-channel="errorChannel"

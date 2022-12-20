@@ -13,14 +13,15 @@
 							 connection-factory="rabbitConnectionFactory" message-converter="testConverter"/>
 
 	<bean id="rabbitConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
+		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"
+						 type="java.lang.Class"/>
 	</bean>
 
 	<bean id="testConverter"
 		  class="org.springframework.integration.amqp.config.AmqpInboundGatewayParserTests$TestConverter"/>
 
 	<bean id="amqpTemplate" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.amqp.core.AmqpTemplate"/>
+		<constructor-arg value="org.springframework.amqp.core.AmqpTemplate" type="java.lang.Class"/>
 	</bean>
 
 	<si-amqp:inbound-gateway id="autoStartFalseGateway" request-channel="requests" queue-names="test"

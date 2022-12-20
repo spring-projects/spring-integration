@@ -113,11 +113,13 @@
 		socket-factory-support="socketFactorySupport" />
 
 	<bean id="socketSupport" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.ip.tcp.connection.TcpSocketSupport" />
+		<constructor-arg value="org.springframework.integration.ip.tcp.connection.TcpSocketSupport"
+						 type="java.lang.Class"/>
 	</bean>
 
 	<bean id="socketFactorySupport" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport" />
+		<constructor-arg value="org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport"
+						 type="java.lang.Class"/>
 	</bean>
 
 	<ip:tcp-inbound-channel-adapter id="testInTcp"

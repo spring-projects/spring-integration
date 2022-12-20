@@ -8,7 +8,7 @@
 	xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp">
 
 	<bean id="testConnection" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.jivesoftware.smack.XMPPConnection"/>
+		<constructor-arg value="org.jivesoftware.smack.XMPPConnection" type="java.lang.Class"/>
 	</bean>
 
 	<int:channel id="outboundEventChannel"/>

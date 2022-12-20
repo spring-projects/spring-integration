@@ -23,7 +23,7 @@
 	</channel>
 
 	<beans:bean id="stanzaFilter" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.jivesoftware.smack.filter.StanzaFilter"/>
+		<beans:constructor-arg value="org.jivesoftware.smack.filter.StanzaFilter" type="java.lang.Class"/>
 	</beans:bean>
 
 

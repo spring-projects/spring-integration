@@ -12,7 +12,7 @@
 			https://www.springframework.org/schema/integration/stomp/spring-integration-stomp.xsd">
 
 	<bean id="stompSessionManager" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.stomp.StompSessionManager"/>
+		<constructor-arg value="org.springframework.integration.stomp.StompSessionManager"  type="java.lang.Class"/>
 	</bean>
 
 	<bean id="stompHeaderMapper" class="org.springframework.integration.stomp.support.StompHeaderMapper"/>

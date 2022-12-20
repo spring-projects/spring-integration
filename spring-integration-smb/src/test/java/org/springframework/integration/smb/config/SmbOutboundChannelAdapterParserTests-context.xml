@@ -44,7 +44,7 @@
 	<int:publish-subscribe-channel id="smbPubSubChannel"/>
 
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator" type="java.lang.Class"/>
 	</bean>
 
 </beans>
