@@ -31,7 +31,8 @@
 	<bean id="singleMethodOnClass" class="org.mockito.Mockito"
 		factory-method="mock">
 		<constructor-arg
-			value="org.springframework.integration.handler.ServiceActivatorOnMockitoMockTests.SingleMethodOnClass" />
+			value="org.springframework.integration.handler.ServiceActivatorOnMockitoMockTests.SingleMethodOnClass"
+			type="java.lang.Class"/>
 	</bean>
 
 	<int:chain input-channel="in" output-channel="out">
@@ -42,7 +43,8 @@
 	<bean id="singleMethodAcceptingHeaderOnClass" class="org.mockito.Mockito"
 		factory-method="mock">
 		<constructor-arg
-			value="org.springframework.integration.handler.ServiceActivatorOnMockitoMockTests.SingleMethodAcceptingHeaderOnClass" />
+			value="org.springframework.integration.handler.ServiceActivatorOnMockitoMockTests.SingleMethodAcceptingHeaderOnClass"
+			type="java.lang.Class"/>
 	</bean>
 
 	<int:channel id="out">
