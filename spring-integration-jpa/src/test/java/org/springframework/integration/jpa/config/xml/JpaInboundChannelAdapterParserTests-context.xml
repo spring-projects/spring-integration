@@ -12,7 +12,8 @@
 	<int:channel id="out"/>
 
 	<bean id="jpaParameterSource" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.jpa.support.parametersource.ParameterSource"/>
+		<constructor-arg value="org.springframework.integration.jpa.support.parametersource.ParameterSource"
+						 type="java.lang.Class"/>
 	</bean>
 
 	<int-jpa:inbound-channel-adapter id="jpaInboundChannelAdapter1"
