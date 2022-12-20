@@ -163,7 +163,7 @@
 		search-term-strategy="searchTermStrategy"/>
 
 	<bean id="searchTermStrategy" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.mail.SearchTermStrategy"/>
+		<constructor-arg value="org.springframework.integration.mail.SearchTermStrategy" type="java.lang.Class"/>
 	</bean>
 
 	<!-- COMMON CONFIGURATION -->
