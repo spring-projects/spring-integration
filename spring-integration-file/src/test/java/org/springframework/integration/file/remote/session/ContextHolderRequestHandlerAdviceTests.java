@@ -16,76 +16,104 @@
 
 package org.springframework.integration.file.remote.session;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
+/**
+ * @author Adel Haidar
+ *
+ * @since 6.1
+ *
+ */
+@SpringJUnitConfig
 public class ContextHolderRequestHandlerAdviceTests {
 
-	private ContextHolderRequestHandlerAdvice advice;
+	@Autowired
+	TestSessionFactory foo;
 
-	@BeforeEach
-	public void setUp() {
-		advice = new ContextHolderRequestHandlerAdvice();
-	}
+	@Autowired
+	TestSessionFactory bar;
 
-	@Test
-	public void shouldSetKeyProvider() {
-		// given
-		advice.setKeyProvider(message -> message.getHeaders().get("test-key"));
-		final var message = MessageBuilder.withPayload("test-payload").setHeader("test-key", new TestSessionFactory()).build();
+	@Autowired
+	ContextHolderRequestHandlerAdvice advice;
 
-		// when
-		final var sessionFactory = advice.getKeyProvider().apply(message);
+	@Autowired
+	MessageChannel in;
 
-		// then
-		assertThat(sessionFactory).isNotNull();
-		assertThat(sessionFactory).isInstanceOf(TestSessionFactory.class);
-	}
+	@Autowired
+	PollableChannel out;
+
+	@Autowired
+	DefaultSessionFactoryLocator<String> sessionFactoryLocator;
 
 	@Test
-	void shouldSetContextSetHook() {
-		// given
-		final Map<Object, SessionFactory<String>> factories = new HashMap<>();
-		final var testSessionFactory = new TestSessionFactory();
-		factories.put("test-key", testSessionFactory);
-		final var defaultFactory = new TestSessionFactory();
-		factories.put("default", defaultFactory);
-
-		final DelegatingSessionFactory<String> delegatingSessionFactory = new DelegatingSessionFactory<>(factories, testSessionFactory);
-		advice.setContextSetHook(delegatingSessionFactory::setThreadKey);
-
-		// when
-		advice.getContextSetHook().accept("test-key");
-
-		// then
-		assertThat(delegatingSessionFactory.getSession()).isNotEqualTo(defaultFactory.mockSession).isEqualTo(testSessionFactory.mockSession);
+	public void testFlow() throws IOException {
+		given(foo.mockSession.list(anyString()))
+				.willReturn(new String[0]);
+		final Map<String, Object> headers = Map.of("foo", "foo");
+		this.in.send(new GenericMessage<>("foo", headers));
+		verify(foo.mockSession).list("foo/");
 	}
 
-	@Test
-	void shouldSetContextClearHook() {
-		// given
-		final Map<Object, SessionFactory<String>> factories = new HashMap<>();
-		final var testSessionFactory = new TestSessionFactory();
-		factories.put("test-key", testSessionFactory);
-		final var defaultFactory = new TestSessionFactory();
-		factories.put("default", defaultFactory);
+	@Configuration
+	@ImportResource(
+			"classpath:/org/springframework/integration/file/remote/session/context-holder-request-handler-advice-context.xml")
+	@EnableIntegration
+	public static class Config {
 
-		final DelegatingSessionFactory<String> delegatingSessionFactory = new DelegatingSessionFactory<>(factories, defaultFactory);
-		advice.setContextClearHook(key -> delegatingSessionFactory.clearThreadKey());
+		@Bean
+		TestSessionFactory foo() {
+			return new TestSessionFactory();
+		}
 
-		// when
-		advice.getContextClearHook().accept("test-key");
+		@Bean
+		TestSessionFactory bar() {
+			return new TestSessionFactory();
+		}
 
-		// then
-		assertThat(delegatingSessionFactory.getSession()).isNotEqualTo(testSessionFactory.mockSession).isEqualTo(defaultFactory.mockSession);
+		@Bean
+		ContextHolderRequestHandlerAdvice advice() {
+			final DelegatingSessionFactory<String> dsf = dsf();
+			final var contextHolderRequestHandlerAdvice = new ContextHolderRequestHandlerAdvice();
+			contextHolderRequestHandlerAdvice.setKeyProvider(m -> m.getHeaders().get("foo"));
+			contextHolderRequestHandlerAdvice.setContextSetHook(dsf::setThreadKey);
+			contextHolderRequestHandlerAdvice.setContextClearHook(c -> dsf.clearThreadKey());
+			return contextHolderRequestHandlerAdvice;
+		}
+
+		@Bean
+		DelegatingSessionFactory<String> dsf() {
+			SessionFactoryLocator<String> sff = sessionFactoryLocator();
+			return new DelegatingSessionFactory<>(sff);
+		}
+
+		@Bean
+		public SessionFactoryLocator<String> sessionFactoryLocator() {
+			Map<Object, SessionFactory<String>> factories = new HashMap<>();
+			factories.put("foo", foo());
+			TestSessionFactory bar = bar();
+			factories.put("bar", bar);
+			return new DefaultSessionFactoryLocator<>(factories, bar);
+		}
+
 	}
 
 	private static class TestSessionFactory implements SessionFactory<String> {

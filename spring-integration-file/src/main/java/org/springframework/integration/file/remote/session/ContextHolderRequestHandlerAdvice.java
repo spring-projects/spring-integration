@@ -19,15 +19,16 @@ package org.springframework.integration.file.remote.session;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.messaging.Message;
 
 /**
  * Provides a key for the context holder.This key could for example be stored in a message header.
  *
  * @author Adel Haidar
- * @since 6.0
+ * @since 6.1
  */
-public class ContextHolderRequestHandlerAdvice {
+public class ContextHolderRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 	public Function<Message<?>, Object> keyProvider;
 
 	public Consumer<Object> contextSetHook;
@@ -83,4 +84,34 @@ public class ContextHolderRequestHandlerAdvice {
 	public void setContextClearHook(Consumer<Object> contextClearHook) {
 		this.contextClearHook = contextClearHook;
 	}
+
+	@Override
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
+		final var result = callback.execute();
+		applyKeyProvider(message);
+		return result;
+	}
+
+	private void applyKeyProvider(Message<?> message) {
+		if (this.keyProvider != null) {
+			final Object key = this.keyProvider.apply(message);
+			if (key != null) {
+				setContext(key);
+				clearContext(key);
+			}
+		}
+	}
+
+	private void setContext(Object key) {
+		if (this.contextSetHook != null) {
+			this.contextSetHook.accept(key);
+		}
+	}
+
+	private void clearContext(Object key) {
+		if (this.contextClearHook != null) {
+			this.contextClearHook.accept(key);
+		}
+	}
+
 }
