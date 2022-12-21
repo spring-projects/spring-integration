@@ -22,8 +22,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.function.BiPredicate;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,19 +42,19 @@ import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class IdempotentReceiverParserTests {
 
@@ -158,111 +157,72 @@ public class IdempotentReceiverParserTests {
 	}
 
 	@Test
-	public void testWithoutEndpoint() throws Exception {
-		try {
-			bootStrap("without-endpoint");
-			fail("BeanDefinitionParsingException expected");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage()).contains("he 'endpoint' attribute is required");
-		}
+	public void testWithoutEndpoint() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> bootStrap("without-endpoint"))
+				.withMessageContaining("The 'endpoint' attribute is required");
 	}
 
 	@Test
-	public void testSelectorAndStore() throws Exception {
-		try {
-			bootStrap("selector-and-store");
-			fail("BeanDefinitionParsingException expected");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage())
-					.contains("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
-							+ "'compare-values'");
-		}
+	public void testSelectorAndStore() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> bootStrap("selector-and-store"))
+				.withMessageContaining("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
+						"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
+						+ "'compare-values'");
 	}
 
 	@Test
-	public void testSelectorAndKeyStrategy() throws Exception {
-		try {
-			bootStrap("selector-and-key-strategy");
-			fail("BeanDefinitionParsingException expected");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage())
-					.contains("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
-							+ "'compare-values'");
-		}
+	public void testSelectorAndKeyStrategy() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> bootStrap("selector-and-key-strategy"))
+				.withMessageContaining("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
+						"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
+						+ "'compare-values'");
 	}
 
 	@Test
-	public void testSelectorAndKeyExpression() throws Exception {
-		try {
-			bootStrap("selector-and-key-expression");
-			fail("BeanDefinitionParsingException expected");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage())
-					.contains("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
-							+ "'compare-values'");
-		}
+	public void testSelectorAndKeyExpression() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> bootStrap("selector-and-key-expression"))
+				.withMessageContaining("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
+						"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
+						+ "'compare-values'");
 	}
 
 	@Test
-	public void testSelectorAndValueStrategy() throws Exception {
-		try {
-			bootStrap("selector-and-value-strategy");
-			fail("BeanDefinitionParsingException expected");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage())
-					.contains("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
-							+ "'compare-values'");
-		}
+	public void testSelectorAndValueStrategy() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> bootStrap("selector-and-value-strategy"))
+				.withMessageContaining("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
+						"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
+						+ "'compare-values'");
 	}
 
 	@Test
-	public void testSelectorAndValueExpression() throws Exception {
-		try {
-			bootStrap("selector-and-value-expression");
-			fail("BeanDefinitionParsingException expected");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage())
-					.contains("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
-							"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
-							+ "'compare-values'");
-		}
+	public void testSelectorAndValueExpression() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> bootStrap("selector-and-value-expression"))
+				.withMessageContaining("The 'selector' attribute is mutually exclusive with 'metadata-store', " +
+						"'key-strategy', 'key-expression', 'value-strategy', 'value-expression', and "
+						+ "'compare-values'");
 	}
 
 	@Test
-	public void testKeyStrategyAndKeyExpression() throws Exception {
-		try {
-			bootStrap("key-strategy-and-key-expression");
-			fail("BeanDefinitionParsingException expected");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage())
-					.contains("The 'key-strategy' and 'key-expression' attributes are mutually exclusive");
-		}
+	public void testKeyStrategyAndKeyExpression() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> bootStrap("key-strategy-and-key-expression"))
+				.withMessageContaining("The 'key-strategy' and 'key-expression' attributes are mutually exclusive");
 	}
 
 	@Test
-	public void testValueStrategyAndValueExpression() throws Exception {
-		try {
-			bootStrap("value-strategy-and-value-expression");
-			fail("BeanDefinitionParsingException expected");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage())
-					.contains("The 'value-strategy' and 'value-expression' attributes are mutually exclusive");
-		}
+	public void testValueStrategyAndValueExpression() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> bootStrap("value-strategy-and-value-expression"))
+				.withMessageContaining("The 'value-strategy' and 'value-expression' attributes are mutually exclusive");
 	}
 
-	private ApplicationContext bootStrap(String configProperty) throws Exception {
+	private static ApplicationContext bootStrap(String configProperty) throws Exception {
 		PropertiesFactoryBean pfb = new PropertiesFactoryBean();
 		pfb.setLocation(new ClassPathResource(
 				"org/springframework/integration/config/xml/idempotent-receiver-configs.properties"));

@@ -22,8 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -38,10 +37,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
@@ -49,8 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class HeaderEnricherTests {
 
 	@Autowired
@@ -252,10 +250,13 @@ public class HeaderEnricherTests {
 		assertThat(result.getHeaders().get("testHeader")).isEqualTo("testBeanForInnerBeanWithMethod");
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void testFailConfigUnexpectedSubElement() {
-		new ClassPathXmlApplicationContext("HeaderEnricherWithUnexpectedSubElementForHeader-fail-context.xml",
-				this.getClass()).close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"HeaderEnricherWithUnexpectedSubElementForHeader-fail-context.xml",
+								getClass()));
 	}
 
 	@Test

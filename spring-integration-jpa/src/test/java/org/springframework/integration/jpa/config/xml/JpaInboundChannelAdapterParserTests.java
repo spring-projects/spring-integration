@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jpa.config.xml;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -30,7 +29,7 @@ import org.springframework.integration.jpa.core.JpaOperations;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.2
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class JpaInboundChannelAdapterParserTests {
 
@@ -84,7 +83,7 @@ public class JpaInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testJpaInboundChannelAdapterParserWithMaxResults() throws Exception {
+	public void testJpaInboundChannelAdapterParserWithMaxResults() {
 		AbstractMessageChannel outputChannel =
 				TestUtils.getPropertyValue(this.jpaInboundChannelAdapter2, "outputChannel", AbstractMessageChannel.class);
 
@@ -114,7 +113,7 @@ public class JpaInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testJpaInboundChannelAdapterParserWithMaxResultsExpression() throws Exception {
+	public void testJpaInboundChannelAdapterParserWithMaxResultsExpression() {
 		AbstractMessageChannel outputChannel =
 				TestUtils.getPropertyValue(this.jpaInboundChannelAdapter3, "outputChannel", AbstractMessageChannel.class);
 
@@ -142,7 +141,7 @@ public class JpaInboundChannelAdapterParserTests {
 
 
 	@Test
-	public void testJpaExecutorBeanIdNaming() throws Exception {
+	public void testJpaExecutorBeanIdNaming() {
 		JpaExecutor jpaExecutor1 = this.context.getBean("jpaInboundChannelAdapter1.jpaExecutor", JpaExecutor.class);
 		JpaExecutor jpaExecutor2 = this.context.getBean("jpaInboundChannelAdapter2.jpaExecutor", JpaExecutor.class);
 

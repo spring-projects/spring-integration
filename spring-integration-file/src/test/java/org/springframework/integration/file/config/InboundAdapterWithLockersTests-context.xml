@@ -43,6 +43,7 @@
     <int:channel id="input"/>
     
      <bean id="locker" class="org.mockito.Mockito" factory-method="mock">
-    	<constructor-arg value="org.springframework.integration.file.locking.AbstractFileLockerFilter"/>
+    	<constructor-arg value="org.springframework.integration.file.locking.AbstractFileLockerFilter"
+						 type="java.lang.Class"/>
     </bean>
 </beans>

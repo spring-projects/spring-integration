@@ -8,7 +8,8 @@
 		http://www.springframework.org/schema/integration/sftp https://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
 
 	<bean id="sf" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory"/>
+		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory"
+						 type="java.lang.Class"/>
 	</bean>
 
 	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
