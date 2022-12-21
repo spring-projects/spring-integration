@@ -8,7 +8,8 @@
 			https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
 
 	<beans:bean id="preparedStatementSetter" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.integration.jdbc.MessagePreparedStatementSetter"/>
+		<beans:constructor-arg value="org.springframework.integration.jdbc.MessagePreparedStatementSetter"
+							   type="java.lang.Class"/>
 	</beans:bean>
 
 	<!-- Invalid Config

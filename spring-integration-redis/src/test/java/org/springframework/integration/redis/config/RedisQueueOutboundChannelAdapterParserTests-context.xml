@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>
+		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="customRedisConnectionFactory" parent="redisConnectionFactory"/>

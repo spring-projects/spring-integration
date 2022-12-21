@@ -28,7 +28,7 @@
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
 
 	<bean id="connectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
+		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory" type="java.lang.Class"/>
 	</bean>
 
 	<int:channel id="toRabbit0">

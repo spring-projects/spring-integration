@@ -17,6 +17,6 @@
 	</int-jdbc:inbound-channel-adapter>
 
 	<bean id="ops" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.jdbc.core.JdbcOperations"/>
+		<constructor-arg value="org.springframework.jdbc.core.JdbcOperations" type="java.lang.Class"/>
 	</bean>
 </beans>

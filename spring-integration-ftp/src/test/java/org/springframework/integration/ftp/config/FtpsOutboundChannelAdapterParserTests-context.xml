@@ -8,10 +8,10 @@
 		http://www.springframework.org/schema/integration/ftp https://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
 
 	<bean id="keyManager" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="javax.net.ssl.KeyManager"/>
+		<constructor-arg value="javax.net.ssl.KeyManager" type="java.lang.Class"/>
 	</bean>
 	<bean id="trustManager" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="javax.net.ssl.TrustManager"/>
+		<constructor-arg value="javax.net.ssl.TrustManager" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpsSessionFactory">
@@ -44,7 +44,7 @@
 	<int:channel id="ftpChannel"/>
 	
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator" type="java.lang.Class"/>
 	</bean>
 
 </beans>

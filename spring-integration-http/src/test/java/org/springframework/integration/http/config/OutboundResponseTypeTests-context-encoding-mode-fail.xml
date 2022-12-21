@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/integration/http https://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
 	<bean id="restTemplate" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.web.client.RestTemplate"/>
+		<constructor-arg value="org.springframework.web.client.RestTemplate" type="java.lang.Class"/>
 	</bean>
 
 	<int-http:outbound-gateway url="/fake"

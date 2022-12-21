@@ -42,7 +42,7 @@
 	<int:channel id="ftpChannel"/>
 
 	<bean id="entryListFilter" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
+		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter" type="java.lang.Class"/>
 	</bean>
 
 </beans>

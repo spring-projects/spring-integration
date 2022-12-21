@@ -51,7 +51,7 @@
 	<bean id="hashValueSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
 
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>
+		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory" type="java.lang.Class"/>
 	</bean>
 
 </beans>

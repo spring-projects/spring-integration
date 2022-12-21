@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="sf" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory"/>
+		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
@@ -93,7 +93,7 @@
 	</int-ftp:outbound-gateway>
 
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator" type="java.lang.Class"/>
 	</bean>
 
 	<int-ftp:outbound-gateway id="withBeanExpression"

@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/integration/mongodb https://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
 
 	<bean id="mongoDbFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.mongodb.MongoDatabaseFactory"/>
+		<constructor-arg value="org.springframework.data.mongodb.MongoDatabaseFactory" type="java.lang.Class"/>
 	</bean>
 
 	<int-mongodb:outbound-channel-adapter id="fullConfigWithCollectionExpression"

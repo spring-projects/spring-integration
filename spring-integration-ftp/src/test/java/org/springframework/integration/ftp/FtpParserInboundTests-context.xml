@@ -40,7 +40,7 @@
 	</ftp:inbound-channel-adapter>
 	
 	<bean id="filter" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
+		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter" type="java.lang.Class"/>
 	</bean>
 	
 	<int:channel id="ftpIn">

@@ -49,7 +49,7 @@
 	</bean>
 
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>
+		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory" type="java.lang.Class"/>
 	</bean>
 
 	<int-redis:store-outbound-channel-adapter id="withExternalTemplate"

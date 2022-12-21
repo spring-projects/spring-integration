@@ -24,7 +24,7 @@
 			on-partitions-assigned-seek-callback="onPartitionsAssignedSeekCallback"/>
 
 	<bean id="template" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.kafka.core.KafkaTemplate"/>
+		<constructor-arg value="org.springframework.kafka.core.KafkaTemplate" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="messageConverter" class="org.springframework.kafka.support.converter.MessagingMessageConverter"/>
@@ -47,7 +47,7 @@
 	</bean>
 
 	<bean id="onPartitionsAssignedSeekCallback" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="java.util.function.BiConsumer"/>
+		<constructor-arg value="java.util.function.BiConsumer" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="ems" class="org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy"/>

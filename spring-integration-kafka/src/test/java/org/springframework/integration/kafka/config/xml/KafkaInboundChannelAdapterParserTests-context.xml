@@ -60,17 +60,20 @@
 
 	<bean id="ackFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg
-			value="org.springframework.integration.kafka.inbound.KafkaMessageSource$KafkaAckCallbackFactory"/>
+			value="org.springframework.integration.kafka.inbound.KafkaMessageSource$KafkaAckCallbackFactory"
+			type="java.lang.Class"/>
 	</bean>
 
 	<int:channel id="inbound"/>
 
 	<bean id="converter" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.kafka.support.converter.RecordMessageConverter"/>
+		<constructor-arg value="org.springframework.kafka.support.converter.RecordMessageConverter"
+						 type="java.lang.Class"/>
 	</bean>
 
 	<bean id="rebal" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.apache.kafka.clients.consumer.ConsumerRebalanceListener"/>
+		<constructor-arg value="org.apache.kafka.clients.consumer.ConsumerRebalanceListener"
+						 type="java.lang.Class"/>
 	</bean>
 
 </beans>

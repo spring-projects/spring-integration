@@ -58,11 +58,11 @@
 	</bean>
 
 	<bean id="onPartitionsAssignedSeekCallback" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="java.util.function.BiConsumer"/>
+		<constructor-arg value="java.util.function.BiConsumer" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="recordFilterStrategy" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.kafka.listener.adapter.RecordFilterStrategy"/>
+		<constructor-arg value="org.springframework.kafka.listener.adapter.RecordFilterStrategy" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="container2" class="org.springframework.kafka.listener.KafkaMessageListenerContainer">
