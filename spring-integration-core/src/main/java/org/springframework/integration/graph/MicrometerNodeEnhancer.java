@@ -17,6 +17,7 @@
 package org.springframework.integration.graph;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import io.micrometer.core.instrument.Counter;
@@ -126,20 +127,25 @@ public class MicrometerNodeEnhancer {
 	private <T extends IntegrationNode> Timer observationTimer(T node, String type, boolean success) {
 		Search timerSearch =
 				switch (type) {
-					case "channel" -> this.registry.find(DefaultMessageSenderObservationConvention.INSTANCE.getName())
+					case "channel" -> this.registry.find(
+									Objects.requireNonNull(
+											DefaultMessageSenderObservationConvention.INSTANCE.getName()))
 							.tag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer");
-					case "handler" -> this.registry.find(DefaultMessageReceiverObservationConvention.INSTANCE.getName())
+					case "handler" -> this.registry.find(
+									Objects.requireNonNull(
+											DefaultMessageReceiverObservationConvention.INSTANCE.getName()))
 							.tag(IntegrationObservation.HandlerTags.COMPONENT_TYPE.asString(), "handler");
-					case "gateway" ->
-							this.registry.find(DefaultMessageRequestReplyReceiverObservationConvention.INSTANCE.getName())
-									.tag(IntegrationObservation.GatewayTags.COMPONENT_TYPE.asString(), "gateway");
+					case "gateway" -> this.registry.find(
+									Objects.requireNonNull(
+											DefaultMessageRequestReplyReceiverObservationConvention.INSTANCE.getName()))
+							.tag(IntegrationObservation.GatewayTags.COMPONENT_TYPE.asString(), "gateway");
 					default -> null;
 				};
 
 		if (timerSearch != null) {
 			return timerSearch
 					.tag(IntegrationObservation.HandlerTags.COMPONENT_NAME.asString(), node.getName())
-					.tag("error", value -> success == "none".equals(value))
+					.tag("error", (value) -> success == "none".equals(value))
 					.timer();
 		}
 

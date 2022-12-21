@@ -69,6 +69,8 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  */
 public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
 
+	private static final String UNCHECKED = "unchecked";
+
 	private final WebClient webClient;
 
 	private final boolean webClientExplicitlySet;
@@ -271,7 +273,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		return requestSpec;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	private Map<String, Object> evaluateAttributeVariables(Message<?> requestMessage) {
 		return this.attributeVariablesExpression.getValue(this.evaluationContext, requestMessage, Map.class);
 	}
@@ -285,7 +287,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 			return null;
 		}
 
-		BodyInserter<?, ? super ClientHttpRequest> inserter = null;
+		BodyInserter<?, ? super ClientHttpRequest> inserter;
 		if (requestBody instanceof Resource) {
 			inserter = BodyInserters.fromResource((Resource) requestBody);
 		}
@@ -302,7 +304,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		return inserter;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	private <T, P extends Publisher<T>> BodyInserter<P, ? super ClientHttpRequest> buildBodyInserterForPublisher(
 			Message<?> requestMessage, P publisher) {
 
@@ -322,7 +324,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	}
 
 	@Nullable
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	private static BodyInserters.FormInserter<?> buildBodyInserterForMultiValueMap(
 			MultiValueMap<?, ?> requestBody, MediaType contentType) {
 
@@ -345,7 +347,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 				.toEntityFlux(createBodyExtractor(expectedResponseType));
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({UNCHECKED, "rawtypes"})
 	private BodyExtractor<Flux<Object>, ? super ClientHttpResponse> createBodyExtractor(Object expectedResponseType) {
 		if (expectedResponseType != null) {
 			if (this.replyPayloadToFlux) {
