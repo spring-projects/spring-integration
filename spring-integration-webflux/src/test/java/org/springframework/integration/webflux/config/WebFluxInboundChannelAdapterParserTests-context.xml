@@ -11,7 +11,7 @@
 	<si:channel id="requests"/>
 
 	<beans:bean id="validator" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.validation.Validator"/>
+		<beans:constructor-arg value="org.springframework.validation.Validator" type="java.lang.Class"/>
 	</beans:bean>
 
 	<inbound-channel-adapter id="reactiveMinimalConfig" channel="requests" validator="validator"/>
@@ -36,15 +36,16 @@
 	</inbound-channel-adapter>
 
 	<beans:bean id="headerMapper" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.integration.mapping.HeaderMapper"/>
+		<beans:constructor-arg value="org.springframework.integration.mapping.HeaderMapper" type="java.lang.Class"/>
 	</beans:bean>
 
 	<beans:bean id="codecConfigurer" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.http.codec.ServerCodecConfigurer"/>
+		<beans:constructor-arg value="org.springframework.http.codec.ServerCodecConfigurer" type="java.lang.Class"/>
 	</beans:bean>
 
 	<beans:bean id="requestedContentTypeResolver" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.web.reactive.accept.RequestedContentTypeResolver"/>
+		<beans:constructor-arg value="org.springframework.web.reactive.accept.RequestedContentTypeResolver"
+							   type="java.lang.Class"/>
 	</beans:bean>
 
 	<beans:bean id="reactiveAdapterRegistry" class="org.springframework.core.ReactiveAdapterRegistry"/>

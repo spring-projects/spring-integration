@@ -36,7 +36,7 @@
 	</bean>
 
 	<bean id="jmsConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="jakarta.jms.ConnectionFactory"/>
+		<constructor-arg value="jakarta.jms.ConnectionFactory" type="java.lang.Class"/>
 	</bean>
 
 	<!--Email Transport-->
@@ -70,7 +70,7 @@
 	</bean>
 
 	<bean id="xmppConnection" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.jivesoftware.smack.XMPPConnection"/>
+		<constructor-arg value="org.jivesoftware.smack.XMPPConnection" type="java.lang.Class"/>
 	</bean>
 
 </beans>

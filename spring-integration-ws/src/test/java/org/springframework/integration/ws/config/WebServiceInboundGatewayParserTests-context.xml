@@ -45,7 +45,7 @@
 			header-mapper="testHeaderMapper"/>
 
 	<bean id="marshaller" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.oxm.support.AbstractMarshaller" />
+		<constructor-arg value="org.springframework.oxm.support.AbstractMarshaller" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="testHeaderMapper" class="org.springframework.integration.ws.config.WebServiceInboundGatewayParserTests$TestHeaderMapper"/>

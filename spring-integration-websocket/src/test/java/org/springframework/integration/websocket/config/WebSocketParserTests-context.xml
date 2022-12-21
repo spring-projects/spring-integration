@@ -34,15 +34,15 @@
 	</int-websocket:server-container>
 
 	<bean id="handshakeHandler" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.web.socket.server.HandshakeHandler"  type="java.lang.Class"/>
+		<constructor-arg value="org.springframework.web.socket.server.HandshakeHandler" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="handshakeInterceptor" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.web.socket.server.HandshakeInterceptor"  type="java.lang.Class"/>
+		<constructor-arg value="org.springframework.web.socket.server.HandshakeInterceptor" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="sockJsMessageCodec" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.web.socket.sockjs.frame.SockJsMessageCodec"  type="java.lang.Class"/>
+		<constructor-arg value="org.springframework.web.socket.sockjs.frame.SockJsMessageCodec" type="java.lang.Class"/>
 	</bean>
 
 	<bean id="decoratorFactory"
@@ -57,7 +57,7 @@
 										   use-broker="true" />
 
 	<bean id="webSocketClient" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.web.socket.client.WebSocketClient"  type="java.lang.Class"/>
+		<constructor-arg value="org.springframework.web.socket.client.WebSocketClient" type="java.lang.Class"/>
 	</bean>
 
 	<int-websocket:client-container id="clientWebSocketContainer"
