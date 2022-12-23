@@ -36,6 +36,19 @@ public class ContextHolderRequestHandlerAdvice extends AbstractRequestHandlerAdv
 	public Consumer<Object> contextClearHook;
 
 	/**
+	 * Constructor for the ContextHolderRequestHandlerAdvice.
+	 *
+	 * @param keyProvider The key provider function.
+	 * @param contextSetHook The context set hook function.
+	 * @param contextClearHook The context clear hook function.
+	 */
+	public ContextHolderRequestHandlerAdvice(final Function<Message<?>, Object> keyProvider, final Consumer<Object> contextSetHook, final Consumer<Object> contextClearHook) {
+		this.keyProvider = keyProvider;
+		this.contextSetHook = contextSetHook;
+		this.contextClearHook = contextClearHook;
+	}
+
+	/**
 	 * Returns the key provider function.
 	 * @return The key provider function.
 	 *
@@ -90,12 +103,12 @@ public class ContextHolderRequestHandlerAdvice extends AbstractRequestHandlerAdv
 		Object result;
 		final Object key = this.keyProvider.apply(message);
 		try {
-			result = callback.execute();
 			setContext(key);
+			result = callback.execute();
 		}
 		catch (Exception e) {
 			result = e;
-			logger.error("Failure setting context holder for " + message + ": " + e.getMessage());
+			logger.error("Failure setting context for " + message + ": " + e.getMessage());
 		}
 		finally {
 			contextClearHook(key);

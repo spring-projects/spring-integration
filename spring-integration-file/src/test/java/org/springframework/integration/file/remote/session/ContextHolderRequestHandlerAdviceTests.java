@@ -18,6 +18,8 @@ package org.springframework.integration.file.remote.session;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 
@@ -53,31 +55,23 @@ public class ContextHolderRequestHandlerAdviceTests {
 	TestSessionFactory bar;
 
 	@Autowired
-	ContextHolderRequestHandlerAdvice advice;
-
-	@Autowired
-	MessageChannel in;
-
-	@Autowired
-	PollableChannel out;
-
-	@Autowired
-	DefaultSessionFactoryLocator<String> sessionFactoryLocator;
-
-	@Autowired
-	TestService testService;
+	Config config;
 
 	@Test
 	public void testFlow() {
-		final Map<String, Object> headers = Map.of("foo", "foo");
-		this.in.send(new GenericMessage<>("foo", headers));
-		Message<?> received = out.receive(0);
+		final Map<String, Object> headers = Map.of("test-key", "foo");
+		config.in().send(new GenericMessage<>("any-payload", headers));
+		Message<?> received = config.out().receive(0);
 		assertThat(received).isNotNull();
+		assertThat(Config.testSessionDuringHandling).isNotNull().isEqualTo(foo.getSession());
+		assertThat(config.dsf().getSession()).isEqualTo(bar.getSession());
 	}
 
 	@Configuration
 	@EnableIntegration
 	public static class Config {
+
+		public static Session<String> testSessionDuringHandling = null;
 
 		@Bean
 		MessageChannel in() {
@@ -107,11 +101,13 @@ public class ContextHolderRequestHandlerAdviceTests {
 		@Bean
 		ContextHolderRequestHandlerAdvice advice() {
 			final DelegatingSessionFactory<String> dsf = dsf();
-			final var contextHolderRequestHandlerAdvice = new ContextHolderRequestHandlerAdvice();
-			contextHolderRequestHandlerAdvice.setKeyProvider(m -> m.getHeaders().get("foo"));
-			contextHolderRequestHandlerAdvice.setContextSetHook(dsf::setThreadKey);
-			contextHolderRequestHandlerAdvice.setContextClearHook(c -> dsf.clearThreadKey());
-			return contextHolderRequestHandlerAdvice;
+			final Function<Message<?>, Object> keyProviderFn = m -> m.getHeaders().get("test-key");
+			final Consumer<Object> contextSetHookFn = key -> {
+				dsf.setThreadKey(key);
+				testSessionDuringHandling = dsf.getSession();
+			};
+			final Consumer<Object> contextClearHookFn = key -> dsf.clearThreadKey();
+			return new ContextHolderRequestHandlerAdvice(keyProviderFn, contextSetHookFn, contextClearHookFn);
 		}
 
 		@Bean
@@ -133,9 +129,6 @@ public class ContextHolderRequestHandlerAdviceTests {
 
 	@Component
 	public static class TestService {
-
-		@Autowired
-		private ContextHolderRequestHandlerAdvice advice;
 
 		@ServiceActivator(inputChannel = "in", outputChannel = "out", adviceChain = "advice")
 		public String test(Message<String> message) {
