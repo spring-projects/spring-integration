@@ -16,7 +16,6 @@
 
 package org.springframework.integration.file.remote.session;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,17 +24,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 /**
  * @author Adel Haidar
@@ -64,20 +64,35 @@ public class ContextHolderRequestHandlerAdviceTests {
 	@Autowired
 	DefaultSessionFactoryLocator<String> sessionFactoryLocator;
 
+	@Autowired
+	TestService testService;
+
 	@Test
-	public void testFlow() throws IOException {
-		given(foo.mockSession.list(anyString()))
-				.willReturn(new String[0]);
+	public void testFlow() {
 		final Map<String, Object> headers = Map.of("foo", "foo");
 		this.in.send(new GenericMessage<>("foo", headers));
-		verify(foo.mockSession).list("foo/");
+		Message<?> received = out.receive(0);
+		assertThat(received).isNotNull();
 	}
 
 	@Configuration
-	@ImportResource(
-			"classpath:/org/springframework/integration/file/remote/session/context-holder-request-handler-advice-context.xml")
 	@EnableIntegration
 	public static class Config {
+
+		@Bean
+		MessageChannel in() {
+			return MessageChannels.direct("in").get();
+		}
+
+		@Bean
+		PollableChannel out() {
+			return MessageChannels.queue("out").get();
+		}
+
+		@Bean
+		TestService testService() {
+			return new TestService();
+		}
 
 		@Bean
 		TestSessionFactory foo() {
@@ -112,6 +127,19 @@ public class ContextHolderRequestHandlerAdviceTests {
 			TestSessionFactory bar = bar();
 			factories.put("bar", bar);
 			return new DefaultSessionFactoryLocator<>(factories, bar);
+		}
+
+	}
+
+	@Component
+	public static class TestService {
+
+		@Autowired
+		private ContextHolderRequestHandlerAdvice advice;
+
+		@ServiceActivator(inputChannel = "in", outputChannel = "out", adviceChain = "advice")
+		public String test(Message<String> message) {
+			return message.getPayload();
 		}
 
 	}
