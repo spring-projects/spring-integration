@@ -87,31 +87,28 @@ public class ContextHolderRequestHandlerAdvice extends AbstractRequestHandlerAdv
 
 	@Override
 	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
-		final var result = callback.execute();
-		applyKeyProvider(message);
+		Object result;
+		final Object key = this.keyProvider.apply(message);
+		try {
+			result = callback.execute();
+			setContext(key);
+		}
+		catch (Exception e) {
+			result = e;
+			logger.error("Failure setting context holder for " + message + ": " + e.getMessage());
+		}
+		finally {
+			contextClearHook(key);
+		}
 		return result;
 	}
 
-	private void applyKeyProvider(Message<?> message) {
-		if (this.keyProvider != null) {
-			final Object key = this.keyProvider.apply(message);
-			if (key != null) {
-				setContext(key);
-				clearContext(key);
-			}
-		}
-	}
-
 	private void setContext(Object key) {
-		if (this.contextSetHook != null) {
-			this.contextSetHook.accept(key);
-		}
+		this.contextSetHook.accept(key);
 	}
 
-	private void clearContext(Object key) {
-		if (this.contextClearHook != null) {
-			this.contextClearHook.accept(key);
-		}
+	private void contextClearHook(Object key) {
+		this.contextClearHook.accept(key);
 	}
 
 }
