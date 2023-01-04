@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.time.Duration;
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -61,6 +60,7 @@ import org.springframework.util.Assert;
  * @author David Liu
  * @author Pat Turner
  * @author Artem Bilan
+ * @author Krzysztof Debski
  *
  * @since 2.0
  */
@@ -68,7 +68,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 
 	private final SshClient sshClient;
 
-	private final AtomicBoolean initialized = new AtomicBoolean();
+	private volatile boolean initialized;
 
 	private final boolean isSharedSession;
 
@@ -321,41 +321,50 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	}
 
 	private void initClient() throws IOException {
-		if (this.initialized.compareAndSet(false, true)) {
-			if (this.port <= 0) {
-				this.port = SshConstants.DEFAULT_PORT;
-			}
-			ServerKeyVerifier serverKeyVerifier =
-					this.allowUnknownKeys ? AcceptAllServerKeyVerifier.INSTANCE : RejectAllServerKeyVerifier.INSTANCE;
-			if (this.knownHosts != null) {
-				serverKeyVerifier = new ResourceKnownHostsServerKeyVerifier(this.knownHosts);
-			}
-			this.sshClient.setServerKeyVerifier(serverKeyVerifier);
-
-			this.sshClient.setPasswordIdentityProvider(PasswordIdentityProvider.wrapPasswords(this.password));
-			if (this.privateKey != null) {
-				IoResource<Resource> privateKeyResource =
-						new AbstractIoResource<>(Resource.class, this.privateKey) {
-
-							@Override
-							public InputStream openInputStream() throws IOException {
-								return getResourceValue().getInputStream();
-							}
-						};
-				try {
-					Collection<KeyPair> keys =
-							SecurityUtils.getKeyPairResourceParser()
-									.loadKeyPairs(null, privateKeyResource,
-											FilePasswordProvider.of(this.privateKeyPassphrase));
-					this.sshClient.setKeyIdentityProvider(KeyIdentityProvider.wrapKeyPairs(keys));
-				}
-				catch (GeneralSecurityException ex) {
-					throw new IOException("Cannot load private key: " + this.privateKey.getFilename(), ex);
+		if (!this.initialized) {
+			synchronized (this) {
+				if (!this.initialized) {
+					doInitClient();
+					this.initialized = true;
 				}
 			}
-			this.sshClient.setUserInteraction(this.userInteraction);
-			this.sshClient.start();
 		}
+	}
+
+	private void doInitClient() throws IOException {
+		if (this.port <= 0) {
+			this.port = SshConstants.DEFAULT_PORT;
+		}
+		ServerKeyVerifier serverKeyVerifier =
+				this.allowUnknownKeys ? AcceptAllServerKeyVerifier.INSTANCE : RejectAllServerKeyVerifier.INSTANCE;
+		if (this.knownHosts != null) {
+			serverKeyVerifier = new ResourceKnownHostsServerKeyVerifier(this.knownHosts);
+		}
+		this.sshClient.setServerKeyVerifier(serverKeyVerifier);
+
+		this.sshClient.setPasswordIdentityProvider(PasswordIdentityProvider.wrapPasswords(this.password));
+		if (this.privateKey != null) {
+			IoResource<Resource> privateKeyResource =
+					new AbstractIoResource<>(Resource.class, this.privateKey) {
+
+						@Override
+						public InputStream openInputStream() throws IOException {
+							return getResourceValue().getInputStream();
+						}
+					};
+			try {
+				Collection<KeyPair> keys =
+						SecurityUtils.getKeyPairResourceParser()
+									 .loadKeyPairs(null, privateKeyResource,
+											 FilePasswordProvider.of(this.privateKeyPassphrase));
+				this.sshClient.setKeyIdentityProvider(KeyIdentityProvider.wrapKeyPairs(keys));
+			}
+			catch (GeneralSecurityException ex) {
+				throw new IOException("Cannot load private key: " + this.privateKey.getFilename(), ex);
+			}
+		}
+		this.sshClient.setUserInteraction(this.userInteraction);
+		this.sshClient.start();
 	}
 
 	@Override
