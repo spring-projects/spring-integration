@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,24 @@
 package org.springframework.integration.sftp.session;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.ConnectException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.junit.jupiter.api.Test;
+
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Gary Russell
@@ -81,6 +90,39 @@ public class SftpSessionFactoryTests {
 			}
 
 			assertThat(server.getActiveSessions().size()).isEqualTo(0);
+		}
+	}
+
+	@Test
+	public void concurrentGetSessionDoesntCauseFailure() throws IOException {
+		try (SshServer server = SshServer.setUpDefaultServer()) {
+			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
+			server.setPort(0);
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
+			server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
+			server.start();
+
+			DefaultSftpSessionFactory sftpSessionFactory = new DefaultSftpSessionFactory();
+			sftpSessionFactory.setHost("localhost");
+			sftpSessionFactory.setPort(server.getPort());
+			sftpSessionFactory.setUser("user");
+			sftpSessionFactory.setPassword("pass");
+			sftpSessionFactory.setAllowUnknownKeys(true);
+
+			List<SftpSession> concurrentSessions = new ArrayList<>();
+
+			AsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
+			for (int i = 0; i < 3; i++) {
+				asyncTaskExecutor.execute(() -> concurrentSessions.add(sftpSessionFactory.getSession()));
+			}
+
+			await().until(() -> concurrentSessions.size() == 3);
+
+			assertThat(concurrentSessions.get(0))
+					.isNotEqualTo(concurrentSessions.get(1))
+					.isNotEqualTo(concurrentSessions.get(2));
+
+			assertThat(concurrentSessions.get(1)).isNotEqualTo(concurrentSessions.get(2));
 		}
 	}
 
