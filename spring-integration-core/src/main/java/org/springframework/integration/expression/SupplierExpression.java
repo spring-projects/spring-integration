@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.0
  */
 public class SupplierExpression<T> implements Expression {
@@ -55,13 +56,9 @@ public class SupplierExpression<T> implements Expression {
 
 	private final EvaluationContext defaultContext = new StandardEvaluationContext();
 
-	private final EvaluationException readOnlyException;
-
 	public SupplierExpression(Supplier<T> supplier) {
 		Assert.notNull(supplier, "'function' must not be null.");
 		this.supplier = supplier;
-		this.readOnlyException = new EvaluationException(getExpressionString(),
-				"SupplierExpression is a 'read only' Expression implementation");
 	}
 
 	@Override
@@ -108,58 +105,63 @@ public class SupplierExpression<T> implements Expression {
 
 	@Override
 	public Class<?> getValueType() throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public Class<?> getValueType(Object rootObject) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public Class<?> getValueType(EvaluationContext context) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public Class<?> getValueType(EvaluationContext context, Object rootObject) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public TypeDescriptor getValueTypeDescriptor() throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public TypeDescriptor getValueTypeDescriptor(Object rootObject) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context, Object rootObject)
 			throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public void setValue(EvaluationContext context, Object value) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public void setValue(Object rootObject, Object value) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public void setValue(EvaluationContext context, Object rootObject, Object value) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
+	}
+
+	private EvaluationException readOnlyException() {
+		return new EvaluationException(getExpressionString(),
+				"SupplierExpression is a 'read only' Expression implementation");
 	}
 
 	@Override
