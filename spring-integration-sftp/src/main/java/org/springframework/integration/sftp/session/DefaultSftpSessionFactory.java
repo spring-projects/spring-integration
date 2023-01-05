@@ -355,8 +355,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 			try {
 				Collection<KeyPair> keys =
 						SecurityUtils.getKeyPairResourceParser()
-									 .loadKeyPairs(null, privateKeyResource,
-											 FilePasswordProvider.of(this.privateKeyPassphrase));
+									.loadKeyPairs(null, privateKeyResource,
+										FilePasswordProvider.of(this.privateKeyPassphrase));
 				this.sshClient.setKeyIdentityProvider(KeyIdentityProvider.wrapKeyPairs(keys));
 			}
 			catch (GeneralSecurityException ex) {
