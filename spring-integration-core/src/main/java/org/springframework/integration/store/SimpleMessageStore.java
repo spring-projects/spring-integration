@@ -281,9 +281,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				if (group == null) {
 					if (this.groupCapacity > 0 && messages.length > this.groupCapacity) {
-						throw new MessagingException(getClass().getSimpleName() +
-								" was out of capacity (" + this.groupCapacity + ") for group '" + groupId +
-								"', try constructing it with a larger number.");
+						throw outOfCapacityException(groupId);
 					}
 					group = getMessageGroupFactory().create(groupId);
 					this.groupIdToMessageGroup.put(groupId, group);
@@ -301,9 +299,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 						lock.unlock();
 						if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
 							unlocked = true;
-							throw new MessagingException(getClass().getSimpleName() +
-									" was out of capacity (" + this.groupCapacity + ") for group '" + groupId +
-									"', try constructing it with a larger number.");
+							throw outOfCapacityException(groupId);
 						}
 						lock.lockInterruptibly();
 						group.add(message);
@@ -322,6 +318,12 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			Thread.currentThread().interrupt();
 			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
 		}
+	}
+
+	private MessagingException outOfCapacityException(Object groupId) {
+		return new MessagingException(getClass().getSimpleName() +
+				" was out of capacity (" + this.groupCapacity + ") for group '" + groupId +
+				"', try constructing it with a larger number.");
 	}
 
 	@Override
