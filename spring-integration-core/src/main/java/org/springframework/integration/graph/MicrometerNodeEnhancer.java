@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@
 package org.springframework.integration.graph;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import io.micrometer.common.docs.KeyName;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.search.Search;
+import io.micrometer.observation.ObservationConvention;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.support.management.IntegrationManagement;
@@ -127,18 +128,12 @@ public class MicrometerNodeEnhancer {
 	private <T extends IntegrationNode> Timer observationTimer(T node, String type, boolean success) {
 		Search timerSearch =
 				switch (type) {
-					case "channel" -> this.registry.find(
-									Objects.requireNonNull(
-											DefaultMessageSenderObservationConvention.INSTANCE.getName()))
-							.tag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer");
-					case "handler" -> this.registry.find(
-									Objects.requireNonNull(
-											DefaultMessageReceiverObservationConvention.INSTANCE.getName()))
-							.tag(IntegrationObservation.HandlerTags.COMPONENT_TYPE.asString(), "handler");
-					case "gateway" -> this.registry.find(
-									Objects.requireNonNull(
-											DefaultMessageRequestReplyReceiverObservationConvention.INSTANCE.getName()))
-							.tag(IntegrationObservation.GatewayTags.COMPONENT_TYPE.asString(), "gateway");
+					case "channel" -> buildTimerSearch(DefaultMessageSenderObservationConvention.INSTANCE,
+							IntegrationObservation.ProducerTags.COMPONENT_TYPE, "producer");
+					case "handler" -> buildTimerSearch(DefaultMessageReceiverObservationConvention.INSTANCE,
+							IntegrationObservation.HandlerTags.COMPONENT_TYPE, "handler");
+					case "gateway" -> buildTimerSearch(DefaultMessageRequestReplyReceiverObservationConvention.INSTANCE,
+							IntegrationObservation.GatewayTags.COMPONENT_TYPE, "gateway");
 					default -> null;
 				};
 
@@ -150,6 +145,10 @@ public class MicrometerNodeEnhancer {
 		}
 
 		return null;
+	}
+
+	private Search buildTimerSearch(ObservationConvention<?> observationConvention, KeyName tagKey, String tagValue) {
+		return this.registry.find(observationConvention.getName()).tag(tagKey.asString(), tagValue); // NO SONAR
 	}
 
 	private <T extends IntegrationNode> void enhanceWithCounts(T node, String type) {
@@ -192,4 +191,3 @@ public class MicrometerNodeEnhancer {
 	}
 
 }
-
