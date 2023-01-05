@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.store;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -25,9 +24,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -35,7 +33,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Iwein Fuld
@@ -55,13 +53,14 @@ public class SimpleMessageStoreTests {
 		assertThat(store.getMessage(testMessage1.getHeaders().getId())).isEqualTo(testMessage1);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void shouldNotHoldMoreThanCapacity() {
 		SimpleMessageStore store = new SimpleMessageStore(1);
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
 		store.addMessage(testMessage1);
-		store.addMessage(testMessage2);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> store.addMessage(testMessage2));
 	}
 
 	@Test
@@ -70,23 +69,16 @@ public class SimpleMessageStoreTests {
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
 		store.addMessage(testMessage1);
-		try {
-			store.addMessage(testMessage2);
-			fail("Should have thrown");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessagingException.class);
-			assertThat(e.getMessage()).contains("was out of capacity (1)");
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> store.addMessage(testMessage2))
+				.withMessageContaining("was out of capacity (1)");
+
 		store.removeMessage(testMessage2.getHeaders().getId());
-		try {
-			store.addMessage(testMessage2);
-			fail("Should have thrown");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessagingException.class);
-			assertThat(e.getMessage()).contains("was out of capacity (1)");
-		}
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> store.addMessage(testMessage2))
+				.withMessageContaining("was out of capacity (1)");
+
 		store.removeMessage(testMessage1.getHeaders().getId());
 		store.addMessage(testMessage2);
 
@@ -118,23 +110,23 @@ public class SimpleMessageStoreTests {
 		exec.shutdownNow();
 	}
 
-	@Test(expected = MessagingException.class)
-	public void shouldTimeoutAfterWaitIfCapacity() throws InterruptedException {
+	@Test
+	public void shouldTimeoutAfterWaitIfCapacity() {
 		SimpleMessageStore store2 = new SimpleMessageStore(1, 1, 10);
 		store2.addMessage(new GenericMessage<Object>("foo"));
-		// This should throw
-		store2.addMessage(new GenericMessage<Object>("foo"));
-		fail("Should have thrown already");
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> store2.addMessage(new GenericMessage<Object>("foo")));
 	}
 
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void shouldNotHoldMoreThanGroupCapacity() {
 		SimpleMessageStore store = new SimpleMessageStore(0, 1);
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
 		store.addMessageToGroup("foo", testMessage1);
-		store.addMessageToGroup("foo", testMessage2);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> store.addMessageToGroup("foo", testMessage2));
 	}
 
 	@Test
@@ -158,17 +150,17 @@ public class SimpleMessageStoreTests {
 
 		assertThat(message2Latch.await(10, TimeUnit.SECONDS)).isTrue();
 		MessageGroup messageGroup = store2.getMessageGroup("foo");
-		messageGroup.getMessages().contains(testMessage2);
+		assertThat(messageGroup.getMessages()).contains(testMessage2);
 		exec.shutdownNow();
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void shouldTimeoutAfterWaitIfGroupCapacity() {
 		SimpleMessageStore store2 = new SimpleMessageStore(1, 1, 1);
 		store2.addMessageToGroup("foo", MessageBuilder.withPayload("foo").build());
-		// This should throw
-		store2.addMessageToGroup("foo", MessageBuilder.withPayload("bar").build());
-		fail("Should have thrown already");
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> store2.addMessageToGroup("foo", MessageBuilder.withPayload("bar").build()));
 	}
 
 
@@ -187,30 +179,24 @@ public class SimpleMessageStoreTests {
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
 		store.addMessageToGroup("foo", testMessage1);
-		try {
-			store.addMessageToGroup("foo", testMessage2);
-			fail("Should have thrown");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessagingException.class);
-			assertThat(e.getMessage()).contains("was out of capacity (1) for group 'foo'");
-		}
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> store.addMessageToGroup("foo", testMessage2))
+				.withMessageContaining("was out of capacity (1) for group 'foo'");
+
 		store.removeMessagesFromGroup("foo", testMessage2);
-		try {
-			store.addMessageToGroup("foo", testMessage2);
-			fail("Should have thrown");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessagingException.class);
-			assertThat(e.getMessage()).contains("was out of capacity (1) for group 'foo'");
-		}
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> store.addMessageToGroup("foo", testMessage2))
+				.withMessageContaining("was out of capacity (1) for group 'foo'");
+
 		store.removeMessagesFromGroup("foo", testMessage1);
 		store.addMessageToGroup("foo", testMessage2);
 	}
 
 
 	@Test
-	public void shouldListByCorrelation() throws Exception {
+	public void shouldListByCorrelation() {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.addMessageToGroup("bar", testMessage1);
@@ -218,7 +204,7 @@ public class SimpleMessageStoreTests {
 	}
 
 	@Test
-	public void shouldRemoveFromGroup() throws Exception {
+	public void shouldRemoveFromGroup() {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.addMessageToGroup("bar", testMessage1);
@@ -230,7 +216,7 @@ public class SimpleMessageStoreTests {
 	}
 
 	@Test
-	public void testRepeatedAddAndRemoveGroup() throws Exception {
+	public void testRepeatedAddAndRemoveGroup() {
 		SimpleMessageStore store = new SimpleMessageStore(10, 10);
 		for (int i = 0; i < 10; i++) {
 			store.addMessageToGroup("bar", MessageBuilder.withPayload("foo").build());
@@ -242,7 +228,7 @@ public class SimpleMessageStoreTests {
 	}
 
 	@Test
-	public void shouldCopyMessageGroup() throws Exception {
+	public void shouldCopyMessageGroup() {
 		SimpleMessageStore store = new SimpleMessageStore();
 		store.setCopyOnGet(true);
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
@@ -251,18 +237,18 @@ public class SimpleMessageStoreTests {
 	}
 
 	@Test
-	public void shouldRegisterCallbacks() throws Exception {
+	public void shouldRegisterCallbacks() {
 		SimpleMessageStore store = new SimpleMessageStore();
-		store.setExpiryCallbacks(Arrays.<MessageGroupCallback>asList((messageGroupStore, group) -> {
+		store.setExpiryCallbacks(List.of((messageGroupStore, group) -> {
 		}));
-		assertThat(((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks")).size()).isEqualTo(1);
+		assertThat(((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks"))).hasSize(1);
 	}
 
 	@Test
-	public void shouldExpireMessageGroup() throws Exception {
+	public void shouldExpireMessageGroup() {
 
 		SimpleMessageStore store = new SimpleMessageStore();
-		final List<String> list = new ArrayList<String>();
+		final List<String> list = new ArrayList<>();
 		store.registerMessageGroupExpiryCallback((messageGroupStore, group) -> {
 			list.add(group.getOne().getPayload().toString());
 			messageGroupStore.removeMessageGroup(group.getGroupId());
@@ -279,10 +265,10 @@ public class SimpleMessageStoreTests {
 	}
 
 	@Test
-	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
+	public void testAddAndRemoveMessagesFromMessageGroup() {
 		SimpleMessageStore messageStore = new SimpleMessageStore();
 		String groupId = "X";
-		List<Message<?>> messages = new ArrayList<Message<?>>();
+		List<Message<?>> messages = new ArrayList<>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 			messageStore.addMessageToGroup(groupId, message);

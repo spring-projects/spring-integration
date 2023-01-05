@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,6 +127,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 */
 	public SimpleMessageStore(int individualCapacity, int groupCapacity, long upperBoundTimeout,
 			LockRegistry lockRegistry) {
+
 		super(false);
 		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");
 		this.individualUpperBound = new UpperBound(individualCapacity);
@@ -278,13 +279,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			try {
 				UpperBound upperBound;
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				MessagingException outOfCapacityException =
-						new MessagingException(getClass().getSimpleName() +
-								" was out of capacity (" + this.groupCapacity + ") for group '" + groupId +
-								"', try constructing it with a larger capacity.");
 				if (group == null) {
 					if (this.groupCapacity > 0 && messages.length > this.groupCapacity) {
-						throw outOfCapacityException;
+						throw outOfCapacityException(groupId);
 					}
 					group = getMessageGroupFactory().create(groupId);
 					this.groupIdToMessageGroup.put(groupId, group);
@@ -302,7 +299,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 						lock.unlock();
 						if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
 							unlocked = true;
-							throw outOfCapacityException;
+							throw outOfCapacityException(groupId);
 						}
 						lock.lockInterruptibly();
 						group.add(message);
@@ -321,6 +318,12 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			Thread.currentThread().interrupt();
 			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
 		}
+	}
+
+	private MessagingException outOfCapacityException(Object groupId) {
+		return new MessagingException(getClass().getSimpleName() +
+				" was out of capacity (" + this.groupCapacity + ") for group '" + groupId +
+				"', try constructing it with a larger number.");
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,13 +57,9 @@ public class FunctionExpression<S> implements Expression {
 
 	private final EvaluationContext defaultContext = new StandardEvaluationContext();
 
-	private final EvaluationException readOnlyException;
-
 	public FunctionExpression(Function<S, ?> function) {
 		Assert.notNull(function, "'function' must not be null.");
 		this.function = function;
-		this.readOnlyException = new EvaluationException(getExpressionString(),
-				"FunctionExpression is a 'read only' Expression implementation");
 	}
 
 	@Override
@@ -123,60 +119,65 @@ public class FunctionExpression<S> implements Expression {
 
 	@Override
 	public Class<?> getValueType() throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public Class<?> getValueType(@Nullable Object rootObject) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public Class<?> getValueType(EvaluationContext context) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public Class<?> getValueType(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public TypeDescriptor getValueTypeDescriptor() throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public TypeDescriptor getValueTypeDescriptor(@Nullable Object rootObject) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context, @Nullable Object rootObject)
 			throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public void setValue(EvaluationContext context, @Nullable Object value) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public void setValue(@Nullable Object rootObject, @Nullable Object value) throws EvaluationException {
-		throw this.readOnlyException;
+		throw readOnlyException();
 	}
 
 	@Override
 	public void setValue(EvaluationContext context, @Nullable Object rootObject, @Nullable Object value)
 			throws EvaluationException {
 
-		throw this.readOnlyException;
+		throw readOnlyException();
+	}
+
+	private EvaluationException readOnlyException() {
+		return new EvaluationException(getExpressionString(),
+				"FunctionExpression is a 'read only' Expression implementation");
 	}
 
 	@Override
