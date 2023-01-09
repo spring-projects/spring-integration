@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.springframework.integration.support.management.micrometer;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
 import org.springframework.util.ClassUtils;
-
-import io.micrometer.core.instrument.MeterRegistry;
 
 /**
  * A {@link Configuration} to add a {@link MicrometerMetricsCaptor}.

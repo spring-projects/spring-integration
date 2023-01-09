@@ -3,11 +3,9 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:int-mqtt="http://www.springframework.org/schema/integration/mqtt"
-	   xmlns:util="http://www.springframework.org/schema/util"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/mqtt https://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd
-		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+		http://www.springframework.org/schema/integration/mqtt https://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd">
 
 	<int-mqtt:outbound-channel-adapter id="out" client-id="multiOut"
 		client-factory="multiUriClientFactory"

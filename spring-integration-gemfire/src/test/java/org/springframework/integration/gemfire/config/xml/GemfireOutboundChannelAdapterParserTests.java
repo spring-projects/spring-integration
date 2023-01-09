@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  */
 
 package org.springframework.integration.gemfire.config.xml;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.createFakeParserContext;
-import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.loadXMLFrom;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +35,10 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.createFakeParserContext;
+import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.loadXMLFrom;
 
 /**
  * @author Dan Oxlade

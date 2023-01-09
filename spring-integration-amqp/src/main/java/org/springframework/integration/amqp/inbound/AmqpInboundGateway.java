@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.rabbitmq.client.Channel;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Address;
@@ -50,8 +52,6 @@ import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
-
-import com.rabbitmq.client.Channel;
 
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into

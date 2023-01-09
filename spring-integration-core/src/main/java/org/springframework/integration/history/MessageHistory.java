@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -42,8 +43,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
  * @author Mark Fisher

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
+import reactor.core.publisher.Mono;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
@@ -29,11 +34,6 @@ import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
-
-import reactor.core.Disposable;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
-import reactor.core.publisher.Mono;
 
 /**
  * The {@link AbstractMessageProducingHandler} implementation for aggregation logic based

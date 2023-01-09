@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package org.springframework.integration.endpoint;
 
 import java.time.Duration;
 
+import reactor.core.publisher.Flux;
+
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.util.IntegrationReactiveUtils;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
 
 /**
  * The {@link MessageProducerSupport} to adapt a provided {@link MessageSource}

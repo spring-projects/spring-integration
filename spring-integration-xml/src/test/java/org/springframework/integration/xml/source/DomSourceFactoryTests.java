@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.xml.source;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.xmlunit.assertj3.XmlAssert.assertThat;
-
 import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -32,6 +29,9 @@ import org.xml.sax.InputSource;
 
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.MessagingException;
+
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.xmlunit.assertj3.XmlAssert.assertThat;
 
 /**
  * @author Jonas Partner

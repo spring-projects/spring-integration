@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 
 package org.springframework.integration.jmx;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,6 +39,9 @@ import org.springframework.jmx.export.notification.NotificationPublisherAware;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.messaging.Message;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher

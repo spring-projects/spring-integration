@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package org.springframework.integration.groovy;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import groovy.lang.Binding;
+import groovy.lang.MissingPropertyException;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -32,8 +31,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.Repeat;
 
-import groovy.lang.Binding;
-import groovy.lang.MissingPropertyException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Dave Syer

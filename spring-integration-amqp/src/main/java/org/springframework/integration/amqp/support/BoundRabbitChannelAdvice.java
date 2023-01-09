@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.amqp.support;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.time.Duration;
 
+import com.rabbitmq.client.ConfirmCallback;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,8 +29,6 @@ import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-
-import com.rabbitmq.client.ConfirmCallback;
 
 /**
  * An advice that causes all downstream {@link RabbitOperations} operations to be executed

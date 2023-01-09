@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import org.reactivestreams.Subscription;
+import reactor.core.CoreSubscriber;
 
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
@@ -25,8 +26,6 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-
-import reactor.core.CoreSubscriber;
 
 /**
  * Base class for {@link MessageHandler} implementations.

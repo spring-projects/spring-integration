@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.support.management.micrometer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.search.MeterNotFoundException;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +34,8 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.search.MeterNotFoundException;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Gary Russell
@@ -137,4 +136,3 @@ public class MicrometerCustomMetricsTests {
 	}
 
 }
-

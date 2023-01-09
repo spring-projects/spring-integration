@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.syslog.inbound;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +23,8 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.integration.syslog.SyslogHeaders;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Duncan McIntyre

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ package org.springframework.integration.handler.advice;
 
 import java.time.Duration;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
-import org.springframework.util.Assert;
-
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.vavr.CheckedFunction0;
 import io.vavr.control.Try;
+
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+import org.springframework.util.Assert;
 
 /**
  * An {@link AbstractRequestHandlerAdvice} extension for a rate limiting to service method calls.

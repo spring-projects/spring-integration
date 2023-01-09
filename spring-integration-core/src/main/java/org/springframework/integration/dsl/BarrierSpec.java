@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.dsl;
 
+import reactor.util.function.Tuple2;
+
 import org.springframework.core.Ordered;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.BarrierMessageHandler;
@@ -25,8 +27,6 @@ import org.springframework.integration.aggregator.HeaderAttributeCorrelationStra
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.Assert;
-
-import reactor.util.function.Tuple2;
 
 /**
  * A {@link MessageHandlerSpec} for the {@link BarrierMessageHandler}.

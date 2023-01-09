@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -28,6 +26,8 @@ import org.springframework.integration.transaction.DefaultTransactionSynchroniza
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.TransactionSynchronizationProcessor;
 import org.springframework.messaging.MessageChannel;
+
+import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell

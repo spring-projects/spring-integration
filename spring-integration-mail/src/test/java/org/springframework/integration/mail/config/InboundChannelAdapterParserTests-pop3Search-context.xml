@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:mail="http://www.springframework.org/schema/integration/mail"
-	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:mail="http://www.springframework.org/schema/integration/mail"
+	   xmlns:si="http://www.springframework.org/schema/integration"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/mail https://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
-		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd
-		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<!--  INT-2800 -->
 

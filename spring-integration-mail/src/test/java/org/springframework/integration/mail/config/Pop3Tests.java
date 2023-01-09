@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,17 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
 
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.icegreen.greenmail.user.GreenMailUser;
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.GreenMailUtil;
+import com.icegreen.greenmail.util.ServerSetup;
+import com.icegreen.greenmail.util.ServerSetupTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -35,11 +38,7 @@ import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
-import com.icegreen.greenmail.user.GreenMailUser;
-import com.icegreen.greenmail.util.GreenMail;
-import com.icegreen.greenmail.util.GreenMailUtil;
-import com.icegreen.greenmail.util.ServerSetup;
-import com.icegreen.greenmail.util.ServerSetupTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell

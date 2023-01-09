@@ -16,10 +16,6 @@
 
 package org.springframework.integration.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.mock;
-
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,6 +29,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Iwein Fuld

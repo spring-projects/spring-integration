@@ -5,10 +5,10 @@
  */
 package org.springframework.integration.transformer;
 
-import org.apache.avro.specific.SpecificData;
-import org.apache.avro.message.BinaryMessageEncoder;
 import org.apache.avro.message.BinaryMessageDecoder;
+import org.apache.avro.message.BinaryMessageEncoder;
 import org.apache.avro.message.SchemaStore;
+import org.apache.avro.specific.SpecificData;
 
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated

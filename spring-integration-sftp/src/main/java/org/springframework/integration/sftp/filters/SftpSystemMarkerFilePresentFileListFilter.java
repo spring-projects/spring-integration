@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package org.springframework.integration.sftp.filters;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+
 import org.springframework.integration.file.filters.AbstractMarkerFilePresentFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * SFTP implementation of {@link AbstractMarkerFilePresentFileListFilter}.

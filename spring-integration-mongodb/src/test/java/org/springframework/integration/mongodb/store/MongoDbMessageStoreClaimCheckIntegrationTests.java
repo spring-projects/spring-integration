@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.Serializable;
 
 import org.junit.After;
@@ -32,6 +30,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ClaimCheckInTransformer;
 import org.springframework.integration.transformer.ClaimCheckOutTransformer;
 import org.springframework.messaging.Message;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

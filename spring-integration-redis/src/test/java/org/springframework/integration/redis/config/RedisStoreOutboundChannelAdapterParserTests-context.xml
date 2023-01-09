@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:tx="http://www.springframework.org/schema/tx"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
-		http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd
+
 		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
 
 	<context:property-placeholder properties-ref="props" />

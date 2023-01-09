@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
- 	xmlns:si-security="http://www.springframework.org/schema/integration/security"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:security="http://www.springframework.org/schema/security"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:si-security="http://www.springframework.org/schema/integration/security"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			https://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/security
-			https://www.springframework.org/schema/security/spring-security.xsd
+
+
 			http://www.springframework.org/schema/integration
 			https://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/security
-			https://www.springframework.org/schema/integration/security/spring-integration-security.xsd
-			http://www.springframework.org/schema/context
-			https://www.springframework.org/schema/context/spring-context.xsd">
+			https://www.springframework.org/schema/integration/security/spring-integration-security.xsd">
 
 	<beans:import resource="classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml"/>
 

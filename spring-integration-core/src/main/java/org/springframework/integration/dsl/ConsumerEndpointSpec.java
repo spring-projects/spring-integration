@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,9 @@ import java.util.function.Function;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -41,10 +44,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 /**
  * A {@link EndpointSpec} for consumer endpoints.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.channel.DirectChannel;
@@ -27,9 +30,6 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
-
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 /**
  * An {@link IntegrationComponentSpec} for endpoints.

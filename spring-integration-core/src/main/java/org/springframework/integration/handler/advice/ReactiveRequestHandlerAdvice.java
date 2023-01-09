@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,10 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Mono;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Mono;
 
 /**
  * A {@link MethodInterceptor} for message handlers producing a {@link Mono} as a payload for reply.

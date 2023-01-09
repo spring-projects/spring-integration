@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  */
 
 package org.springframework.integration.kafka.inbound;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
-import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -65,6 +60,11 @@ import org.springframework.retry.backoff.NoBackOffPolicy;
 import org.springframework.retry.listener.RetryListenerSupport;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
+import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
 /**
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,14 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import groovy.lang.Binding;
+import groovy.lang.GString;
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
+import groovy.lang.MissingPropertyException;
+import groovy.lang.Script;
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 
@@ -41,15 +49,6 @@ import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-
-import groovy.lang.Binding;
-import groovy.lang.GString;
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyObject;
-import groovy.lang.MetaClass;
-import groovy.lang.MissingPropertyException;
-import groovy.lang.Script;
-import groovy.transform.CompileStatic;
 
 /**
  * The {@link org.springframework.integration.handler.MessageProcessor} implementation

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.xmlunit.assertj3.XmlAssert.assertThat;
-
 import java.util.Properties;
 
 import javax.xml.transform.OutputKeys;
@@ -31,6 +28,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.MessagingException;
 import org.springframework.xml.transform.StringResult;
+
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.xmlunit.assertj3.XmlAssert.assertThat;
 
 /**
  * @author Jonas Partner

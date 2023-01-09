@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,7 @@
 package org.springframework.integration.kafka.dsl.kotlin
 
 import assertk.assertThat
-import assertk.assertions.isEqualTo
-import assertk.assertions.isInstanceOf
-import assertk.assertions.isNotNull
-import assertk.assertions.isNull
-import assertk.assertions.isSameAs
-import assertk.assertions.isTrue
+import assertk.assertions.*
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -47,16 +42,8 @@ import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessage
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.integration.test.util.TestUtils
 import org.springframework.kafka.annotation.EnableKafka
-import org.springframework.kafka.core.ConsumerFactory
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory
-import org.springframework.kafka.core.DefaultKafkaProducerFactory
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.core.ProducerFactory
-import org.springframework.kafka.listener.ConsumerProperties
-import org.springframework.kafka.listener.ContainerProperties
-import org.springframework.kafka.listener.GenericMessageListenerContainer
-import org.springframework.kafka.listener.KafkaMessageListenerContainer
-import org.springframework.kafka.listener.MessageListenerContainer
+import org.springframework.kafka.core.*
+import org.springframework.kafka.listener.*
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper

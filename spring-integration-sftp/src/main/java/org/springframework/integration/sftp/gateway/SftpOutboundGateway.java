@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.SftpException;
+
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.MessageSessionCallback;
@@ -32,10 +36,6 @@ import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.sftp.support.GeneralSftpException;
 import org.springframework.util.ReflectionUtils;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.SftpException;
 
 /**
  * Outbound Gateway for performing remote file operations via SFTP.

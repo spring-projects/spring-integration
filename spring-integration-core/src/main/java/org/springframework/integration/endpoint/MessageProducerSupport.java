@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.endpoint;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
+import reactor.core.publisher.Flux;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -39,8 +40,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import reactor.core.publisher.Flux;
 
 /**
  * A support class for producer endpoints that provides a setter for the

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,10 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mapping.ConvertingBytesMessageMapper;
@@ -41,11 +45,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 /**
  * A {@link MessageProducerSupport} implementation for consuming messages from ZeroMq socket.

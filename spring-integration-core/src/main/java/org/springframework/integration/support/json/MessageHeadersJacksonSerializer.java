@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package org.springframework.integration.support.json;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.springframework.messaging.MessageHeaders;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * A Jackson {@link StdSerializer} implementation to serialize {@link MessageHeaders}

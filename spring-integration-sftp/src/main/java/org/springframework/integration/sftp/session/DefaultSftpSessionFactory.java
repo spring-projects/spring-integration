@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,13 @@ import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Proxy;
+import com.jcraft.jsch.SocketFactory;
+import com.jcraft.jsch.UIKeyboardInteractive;
+import com.jcraft.jsch.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -35,14 +42,6 @@ import org.springframework.integration.file.remote.session.SharedSessionCapable;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Proxy;
-import com.jcraft.jsch.SocketFactory;
-import com.jcraft.jsch.UIKeyboardInteractive;
-import com.jcraft.jsch.UserInfo;
 
 /**
  * Factory for creating {@link SftpSession} instances.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ package org.springframework.integration.sftp.dsl;
 import java.io.File;
 import java.util.Comparator;
 
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
@@ -26,9 +29,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * The factory for SFTP components.

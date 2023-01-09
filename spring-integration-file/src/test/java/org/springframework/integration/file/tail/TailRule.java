@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.file.tail;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,6 +34,8 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Ignores tests annotated with {@link TailAvailable} if 'tail' with the requested options

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,13 @@
 package org.springframework.integration.function
 
 import assertk.assertThat
-import assertk.assertions.containsAll
-import assertk.assertions.isEqualTo
-import assertk.assertions.isNotNull
-import assertk.assertions.isTrue
-import assertk.assertions.size
+import assertk.assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.integration.annotation.EndpointId
-import org.springframework.integration.annotation.InboundChannelAdapter
-import org.springframework.integration.annotation.Poller
-import org.springframework.integration.annotation.ServiceActivator
-import org.springframework.integration.annotation.Transformer
+import org.springframework.integration.annotation.*
 import org.springframework.integration.channel.DirectChannel
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 
 package org.springframework.integration.ws.dsl;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +40,9 @@ import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -221,4 +221,3 @@ public class WsDslTests {
 	}
 
 }
-

@@ -21,6 +21,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -40,10 +44,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-
-import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 /**
  * A {@link BeanFactoryAware} component with an API to customize real beans

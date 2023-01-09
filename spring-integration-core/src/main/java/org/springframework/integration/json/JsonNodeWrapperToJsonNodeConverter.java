@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package org.springframework.integration.json;
 import java.util.Collections;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.integration.json.JsonPropertyAccessor.JsonNodeWrapper;
 import org.springframework.lang.Nullable;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * The {@link org.springframework.core.convert.converter.Converter} implementation for the conversion

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,9 @@ import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.UUID;
 
+import groovy.lang.Binding;
+import groovy.lang.GString;
+
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
@@ -34,9 +37,6 @@ import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-
-import groovy.lang.Binding;
-import groovy.lang.GString;
 
 /**
  * @author Dave Syer

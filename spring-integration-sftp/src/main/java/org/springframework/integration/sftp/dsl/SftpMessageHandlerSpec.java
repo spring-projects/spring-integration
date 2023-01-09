@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.springframework.integration.sftp.dsl;
 
+import com.jcraft.jsch.ChannelSftp;
+
 import org.springframework.integration.file.dsl.FileTransferringMessageHandlerSpec;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
-
-import com.jcraft.jsch.ChannelSftp;
 
 /**
  * @author Artem Bilan

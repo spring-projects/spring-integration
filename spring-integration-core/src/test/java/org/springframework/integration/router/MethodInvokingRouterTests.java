@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  */
 
 package org.springframework.integration.router;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -37,6 +33,10 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.groovy;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import groovy.lang.Script;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,7 +43,7 @@ import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.test.annotation.Repeat;
 
-import groovy.lang.Script;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher

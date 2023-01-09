@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.sftp.dsl;
 
 import java.util.Comparator;
 
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+
 import org.springframework.integration.file.dsl.RemoteFileStreamingInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -27,8 +29,6 @@ import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFile
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpStreamingMessageSource;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Gary Russell

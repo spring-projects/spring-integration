@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  */
 
 package org.springframework.integration.core;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
@@ -38,6 +34,10 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.IdGenerator;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StopWatch;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky

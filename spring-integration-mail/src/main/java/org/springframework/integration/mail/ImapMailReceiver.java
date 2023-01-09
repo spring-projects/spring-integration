@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,11 @@ import javax.mail.search.FlagTerm;
 import javax.mail.search.NotTerm;
 import javax.mail.search.SearchTerm;
 
+import com.sun.mail.imap.IMAPFolder;
+
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
-
-import com.sun.mail.imap.IMAPFolder;
 
 /**
  * A {@link MailReceiver} implementation for receiving mail messages from a

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.jmx.configuration;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
 
@@ -36,6 +34,8 @@ import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell

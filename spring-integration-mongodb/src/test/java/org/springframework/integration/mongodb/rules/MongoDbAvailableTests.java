@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@ package org.springframework.integration.mongodb.rules;
 
 import java.time.Duration;
 
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
@@ -39,11 +43,6 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
 import org.springframework.messaging.Message;
-
-import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
 
 
 /**

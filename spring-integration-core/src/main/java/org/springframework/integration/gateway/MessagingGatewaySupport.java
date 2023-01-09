@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -65,9 +67,6 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
 /**
  * A convenient base class for connecting application code to

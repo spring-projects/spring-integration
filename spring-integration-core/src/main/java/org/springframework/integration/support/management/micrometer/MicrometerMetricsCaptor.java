@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,12 @@ package org.springframework.integration.support.management.micrometer;
 import java.util.concurrent.TimeUnit;
 import java.util.function.ToDoubleFunction;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationContext;
@@ -30,12 +36,6 @@ import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.util.Assert;
-
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 
 /**
  * The Micrometer implementation of {@link MetricsCaptor}.

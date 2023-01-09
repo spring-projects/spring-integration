@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,6 @@
  */
 
 package org.springframework.integration.kafka.outbound;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.springframework.kafka.test.assertj.KafkaConditions.key;
-import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
-import static org.springframework.kafka.test.assertj.KafkaConditions.timestamp;
-import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -109,6 +91,24 @@ import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.kafka.test.assertj.KafkaConditions.key;
+import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
+import static org.springframework.kafka.test.assertj.KafkaConditions.timestamp;
+import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
 /**
  * @author Gary Russell

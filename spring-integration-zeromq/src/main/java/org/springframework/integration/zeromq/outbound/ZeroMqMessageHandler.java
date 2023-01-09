@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,11 @@ import org.zeromq.ZContext;
 import org.zeromq.ZFrame;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
+import reactor.core.Disposable;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
+import zmq.socket.pubsub.Pub;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.EvaluationContext;
@@ -42,12 +47,6 @@ import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
-
-import reactor.core.Disposable;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
-import zmq.socket.pubsub.Pub;
 
 /**
  * The {@link AbstractReactiveMessageHandler} implementation for publishing messages over ZeroMq socket.

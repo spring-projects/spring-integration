@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.mongodb.BasicDBList;
+import com.mongodb.DBObject;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.Binary;
@@ -82,9 +84,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-
-import com.mongodb.BasicDBList;
-import com.mongodb.DBObject;
 
 
 /**

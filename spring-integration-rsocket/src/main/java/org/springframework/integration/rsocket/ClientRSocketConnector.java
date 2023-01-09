@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.messaging.rsocket.RSocketConnectorConfigurer;
-import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.util.Assert;
-import org.springframework.util.MimeType;
-
 import io.rsocket.transport.ClientTransport;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.client.WebsocketClientTransport;
 import reactor.core.publisher.Mono;
+
+import org.springframework.messaging.rsocket.RSocketConnectorConfigurer;
+import org.springframework.messaging.rsocket.RSocketRequester;
+import org.springframework.util.Assert;
+import org.springframework.util.MimeType;
 
 /**
  * A client {@link AbstractRSocketConnector} extension to the RSocket connection.

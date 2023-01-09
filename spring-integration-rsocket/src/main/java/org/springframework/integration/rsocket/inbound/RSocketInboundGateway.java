@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ResolvableType;
@@ -42,9 +44,6 @@ import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.messaging.rsocket.annotation.support.RSocketPayloadReturnValueHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * The {@link MessagingGatewaySupport} implementation for the {@link IntegrationRSocketEndpoint}.

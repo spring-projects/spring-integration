@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpATTRS;
-import com.jcraft.jsch.SftpException;
 
 /**
  * Default SFTP {@link Session} implementation. Wraps a JSCH session instance.

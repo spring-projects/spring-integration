@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package org.springframework.integration.graph;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.integration.support.management.IntegrationManagement;
-
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.integration.support.management.IntegrationManagement;
 
 /**
  * Add micrometer metrics to the node.
@@ -151,4 +151,3 @@ public class MicrometerNodeEnhancer {
 	}
 
 }
-

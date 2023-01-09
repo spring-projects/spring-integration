@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2020 the original author or authors.
+ * Copyright 2007-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,6 @@
  */
 
 package org.springframework.integration.mongodb.outbound;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import org.bson.conversions.Bson;
 import org.junit.Before;
@@ -41,6 +34,13 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Amol Nayak

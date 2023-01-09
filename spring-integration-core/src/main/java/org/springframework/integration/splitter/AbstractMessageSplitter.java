@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.TreeNode;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
@@ -39,10 +42,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-
-import com.fasterxml.jackson.core.TreeNode;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * Base class for Message-splitting handlers.

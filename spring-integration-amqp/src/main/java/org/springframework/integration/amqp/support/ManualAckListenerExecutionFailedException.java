@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.springframework.integration.amqp.support;
 
+import com.rabbitmq.client.Channel;
+
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
-
-import com.rabbitmq.client.Channel;
 
 /**
  * A {@link ListenerExecutionFailedException} enhanced with the channel and delivery tag.

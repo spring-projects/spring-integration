@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.session.SftpFileInfo;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * Message source for streaming SFTP remote file contents.

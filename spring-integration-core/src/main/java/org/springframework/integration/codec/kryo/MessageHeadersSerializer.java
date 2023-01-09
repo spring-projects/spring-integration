@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package org.springframework.integration.codec.kryo;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.messaging.MessageHeaders;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * Kryo Serializer for {@link MessageHeaders}.

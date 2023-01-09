@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,6 @@
 
 package org.springframework.integration.mqtt;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions;
@@ -33,6 +27,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.mqtt.inbound.Mqttv5PahoMessageDrivenChannelAdapter;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Gary Russell

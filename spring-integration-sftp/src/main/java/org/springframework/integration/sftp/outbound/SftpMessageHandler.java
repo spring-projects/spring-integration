@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@
 
 package org.springframework.integration.sftp.outbound;
 
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.SftpException;
+
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
@@ -23,10 +27,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.sftp.support.GeneralSftpException;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.SftpException;
 
 /**
  * Subclass of {@link FileTransferringMessageHandler} for SFTP.

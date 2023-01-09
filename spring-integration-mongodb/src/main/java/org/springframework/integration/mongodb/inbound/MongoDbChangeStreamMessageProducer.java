@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.inbound;
 
 import org.bson.Document;
+import reactor.core.publisher.Flux;
 
 import org.springframework.data.mongodb.core.ChangeStreamOptions;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
@@ -26,8 +27,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
 
 /**
  * A {@link MessageProducerSupport} for MongoDB Change Stream implementation.

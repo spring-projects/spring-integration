@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import reactor.util.function.Tuple2;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
@@ -43,8 +45,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import reactor.util.function.Tuple2;
 
 /**
  * An {@link IntegrationComponentSpec} for a {@link HeaderEnricher}.

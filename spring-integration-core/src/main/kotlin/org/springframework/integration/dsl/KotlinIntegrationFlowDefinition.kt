@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,18 +26,8 @@ import org.springframework.integration.core.MessageSelector
 import org.springframework.integration.dsl.support.MessageChannelReference
 import org.springframework.integration.filter.MessageFilter
 import org.springframework.integration.filter.MethodInvokingSelector
-import org.springframework.integration.handler.BridgeHandler
-import org.springframework.integration.handler.DelayHandler
-import org.springframework.integration.handler.GenericHandler
-import org.springframework.integration.handler.LoggingHandler
-import org.springframework.integration.handler.MessageProcessor
-import org.springframework.integration.handler.MessageTriggerAction
-import org.springframework.integration.handler.ServiceActivatingHandler
-import org.springframework.integration.router.AbstractMessageRouter
-import org.springframework.integration.router.ErrorMessageExceptionTypeRouter
-import org.springframework.integration.router.ExpressionEvaluatingRouter
-import org.springframework.integration.router.MethodInvokingRouter
-import org.springframework.integration.router.RecipientListRouter
+import org.springframework.integration.handler.*
+import org.springframework.integration.router.*
 import org.springframework.integration.scattergather.ScatterGatherHandler
 import org.springframework.integration.splitter.AbstractMessageSplitter
 import org.springframework.integration.splitter.DefaultMessageSplitter
@@ -45,12 +35,7 @@ import org.springframework.integration.splitter.ExpressionEvaluatingSplitter
 import org.springframework.integration.splitter.MethodInvokingSplitter
 import org.springframework.integration.store.MessageStore
 import org.springframework.integration.support.MapBuilder
-import org.springframework.integration.transformer.ClaimCheckInTransformer
-import org.springframework.integration.transformer.ClaimCheckOutTransformer
-import org.springframework.integration.transformer.HeaderFilter
-import org.springframework.integration.transformer.MessageTransformingHandler
-import org.springframework.integration.transformer.MethodInvokingTransformer
-import org.springframework.integration.transformer.Transformer
+import org.springframework.integration.transformer.*
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHandler
