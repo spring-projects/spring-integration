@@ -347,6 +347,8 @@ assertSame(message, messageArgumentCaptor.getValue());
 ----
 ====
 
+NOTE: The regular `MessageHandler` mocking (or `MockMessageHandler`) has to be used even for a `ReactiveStreamsConsumer` with a `ReactiveMessageHandler` configuration.
+
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/test/mock/MockIntegration.html[`MockIntegration`] and https://docs.spring.io/spring-integration/api/org/springframework/integration/test/mock/MockMessageHandler.html[`MockMessageHandler`] Javadoc for more information.
 
 [[testing-other-resources]]

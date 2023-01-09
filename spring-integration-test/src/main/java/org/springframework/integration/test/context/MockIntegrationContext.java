@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,11 @@ import org.springframework.integration.test.mock.MockMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
+import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
@@ -118,9 +120,15 @@ public class MockIntegrationContext implements BeanFactoryAware {
 			directFieldAccessor.setPropertyValue("source", handler);
 		}
 		else if (endpoint instanceof ReactiveStreamsConsumer) {
-			Tuple2<?, ?> value = (Tuple2<?, ?>) handler;
-			directFieldAccessor.setPropertyValue(HANDLER, value.getT1());
-			directFieldAccessor.setPropertyValue("subscriber", value.getT2());
+			if (handler instanceof Tuple2<?, ?>) {
+				Tuple2<?, ?> value = (Tuple2<?, ?>) handler;
+				directFieldAccessor.setPropertyValue(HANDLER, value.getT1());
+				directFieldAccessor.setPropertyValue("reactiveMessageHandler", value.getT2());
+			}
+			else {
+				directFieldAccessor.setPropertyValue(HANDLER, handler);
+				directFieldAccessor.setPropertyValue("reactiveMessageHandler", null);
+			}
 		}
 		else if (endpoint instanceof IntegrationConsumer) {
 			directFieldAccessor.setPropertyValue(HANDLER, handler);
@@ -173,9 +181,13 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		Object targetMessageHandler = directFieldAccessor.getPropertyValue(HANDLER);
 		Assert.notNull(targetMessageHandler, () -> "'handler' must not be null in the: " + endpoint);
 		if (endpoint instanceof ReactiveStreamsConsumer) {
-			Object targetSubscriber = directFieldAccessor.getPropertyValue("subscriber");
-			Assert.notNull(targetSubscriber, () -> "'subscriber' must not be null in the: " + endpoint);
-			this.beans.put(consumerEndpointId, Tuples.of(targetMessageHandler, targetSubscriber));
+			Object targetReactiveMessageHandler = directFieldAccessor.getPropertyValue("reactiveMessageHandler");
+			if (targetReactiveMessageHandler != null) {
+				this.beans.put(consumerEndpointId, Tuples.of(targetMessageHandler, targetReactiveMessageHandler));
+			}
+			else {
+				this.beans.put(consumerEndpointId, targetMessageHandler);
+			}
 		}
 		else {
 			this.beans.put(consumerEndpointId, targetMessageHandler);
@@ -203,7 +215,9 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		directFieldAccessor.setPropertyValue(HANDLER, mockMessageHandler);
 
 		if (endpoint instanceof ReactiveStreamsConsumer) {
-			directFieldAccessor.setPropertyValue("subscriber", mockMessageHandler);
+			ReactiveMessageHandler reactiveMessageHandler =
+					(message) -> Mono.fromRunnable(() -> mockMessageHandler.handleMessage(message));
+			directFieldAccessor.setPropertyValue("reactiveMessageHandler", reactiveMessageHandler);
 		}
 
 		if (autoStartup && endpoint instanceof Lifecycle) {

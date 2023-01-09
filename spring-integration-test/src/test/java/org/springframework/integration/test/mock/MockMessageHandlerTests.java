@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.Reactive;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -56,11 +57,14 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import reactor.core.publisher.Mono;
 
 /**
  * @author Artem Bilan
@@ -269,6 +273,24 @@ public class MockMessageHandlerTests {
 	}
 
 
+	@Autowired
+	private MessageChannel reactiveInputChannel;
+
+	@Test
+	void reactiveMessageHandlerSubstitution() {
+		MockMessageHandler mockMessageHandler =
+				mockMessageHandler()
+						.handleNext(message -> {
+						});
+
+		this.mockIntegrationContext.substituteMessageHandlerFor("reactiveEndpoint", mockMessageHandler);
+
+		this.reactiveInputChannel.send(new GenericMessage<>("test"));
+
+		verify(mockMessageHandler).handleMessage(any(Message.class));
+	}
+
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {
@@ -337,6 +359,14 @@ public class MockMessageHandlerTests {
 		@ServiceActivator(inputChannel = "logChannel")
 		public MessageHandler logHandler() {
 			return new LoggingHandler(LoggingHandler.Level.FATAL);
+		}
+
+
+		@Bean
+		@EndpointId("reactiveEndpoint")
+		@ServiceActivator(inputChannel = "reactiveInputChannel", reactive = @Reactive)
+		public ReactiveMessageHandler reactiveMessageHandler() {
+			return message -> Mono.empty();
 		}
 
 	}
