@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2022 the original author or authors.
+ * Copyright 2009-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -45,17 +45,16 @@ public class SimpleMessageGroupTests {
 
 	private final Object key = new Object();
 
-	private final SimpleMessageGroup group = new SimpleMessageGroup(new ArrayList<Message<?>>(), key);
+	private final SimpleMessageGroup group = new SimpleMessageGroup(new ArrayList<>(), key);
 
 	private MessageGroup sequenceAwareGroup;
 
-	@SuppressWarnings("unchecked")
 	public void prepareForSequenceAwareMessageGroup() throws Exception {
-		Class<SimpleMessageGroup> clazz =
-				(Class<SimpleMessageGroup>) Class.forName("org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler$SequenceAwareMessageGroup");
-		Constructor<SimpleMessageGroup> ctr = clazz.getDeclaredConstructor(MessageGroup.class);
+		Class<?> clazz =
+				Class.forName("org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler$SequenceAwareMessageGroup");
+		Constructor<?> ctr = clazz.getDeclaredConstructor(MessageGroup.class);
 		ctr.setAccessible(true);
-		this.sequenceAwareGroup = ctr.newInstance(this.group);
+		this.sequenceAwareGroup = (MessageGroup) ctr.newInstance(this.group);
 	}
 
 	@Test
@@ -83,13 +82,13 @@ public class SimpleMessageGroupTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // should not fail with NPE (see INT-2666)
-	public void shouldIgnoreNullValuesWhenInitializedWithCollectionContainingNulls() throws Exception {
+	@Test
+	public void shouldIgnoreNullValuesWhenInitializedWithCollectionContainingNulls() {
 		Message<?> m1 = mock(Message.class);
 		willReturn(new MessageHeaders(mock(Map.class))).given(m1).getHeaders();
 		Message<?> m2 = mock(Message.class);
 		willReturn(new MessageHeaders(mock(Map.class))).given(m2).getHeaders();
-		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final List<Message<?>> messages = new ArrayList<>();
 		messages.add(m1);
 		messages.add(null);
 		messages.add(m2);
@@ -99,7 +98,7 @@ public class SimpleMessageGroupTests {
 
 	@Test
 	// This test used to take 2 min and half to run; now ~200 milliseconds.
-	public void testPerformance_INT3846() {
+	public void testPerformance() {
 		Collection<Message<?>> messages = new ArrayList<>();
 		for (int i = 0; i < 100000; i++) {
 			messages.add(new GenericMessage<Object>("foo"));
@@ -108,10 +107,10 @@ public class SimpleMessageGroupTests {
 		StopWatch watch = new StopWatch();
 		watch.start();
 		for (Message<?> message : messages) {
-			group.getMessages().contains(message);
+			assertThat(group.getMessages().contains(message)).isTrue();
 		}
 		watch.stop();
-		assertThat(watch.getTotalTimeMillis() < 5000).isTrue();
+		assertThat(watch.getTotalTimeMillis()).isLessThan(5000);
 	}
 
 }
