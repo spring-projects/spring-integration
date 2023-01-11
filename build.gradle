@@ -872,6 +872,7 @@ project('spring-integration-scripting') {
         }
         optionalApi 'org.jetbrains.kotlin:kotlin-compiler-embeddable'
         providedImplementation "org.graalvm.sdk:graal-sdk:$graalvmVersion"
+        providedImplementation "org.graalvm.js:js:$graalvmVersion"
 
         testImplementation "org.jruby:jruby-complete:$jrubyVersion"
         testImplementation 'org.apache.groovy:groovy-jsr223'
