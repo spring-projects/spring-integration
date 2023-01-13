@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import org.springframework.util.CollectionUtils;
  * distributed query in the cluster and returns results in the light of iteration type.
  *
  * @author Eren Avsarogullari
+ * @author Artem Bilan
+ *
  * @since 6.0
  */
 @SuppressWarnings("rawtypes")
@@ -63,30 +65,20 @@ public class HazelcastDistributedSQLMessageSource extends AbstractMessageSource 
 	@Override
 	@SuppressWarnings("unchecked")
 	protected Collection<?> doReceive() {
-		switch (this.iterationType) {
-			case ENTRY:
-				return getDistributedSQLResultSet(Collections
-						.unmodifiableCollection(this.distributedMap.entrySet(new SqlPredicate(this.distributedSql))));
+		final SqlPredicate predicate = new SqlPredicate(this.distributedSql);
+		Collection<?> collection =
+				switch (this.iterationType) {
+					case ENTRY -> this.distributedMap.entrySet(predicate);
+					case KEY -> this.distributedMap.keySet(predicate);
+					case LOCAL_KEY -> this.distributedMap.localKeySet(predicate);
+					default -> this.distributedMap.values(predicate);
+				};
 
-			case KEY:
-				return getDistributedSQLResultSet(Collections
-						.unmodifiableCollection(this.distributedMap.keySet(new SqlPredicate(this.distributedSql))));
-
-			case LOCAL_KEY:
-				return getDistributedSQLResultSet(Collections
-						.unmodifiableCollection(this.distributedMap.localKeySet(new SqlPredicate(this.distributedSql))));
-
-			default:
-				return getDistributedSQLResultSet(this.distributedMap.values(new SqlPredicate(this.distributedSql)));
-		}
-	}
-
-	private Collection<?> getDistributedSQLResultSet(Collection<?> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return null;
 		}
 
-		return collection;
+		return Collections.unmodifiableCollection(collection);
 	}
 
 }

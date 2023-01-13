@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.ip.udp;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -52,10 +51,10 @@ import org.springframework.util.StringUtils;
  * may be either a byte array or a String. The default charset for converting
  * a String to a byte array is UTF-8, but that may be changed by invoking the
  * {@link #setCharset(String)} method.
- *
+ * <p>
  * By default, the UDP messages will be unreliable (truncation may occur on
  * the receiving end; packets may be lost).
- *
+ * <p>
  * Reliability can be enhanced by one or both of the following techniques:
  * <ul>
  *   <li>including a binary message length at the beginning of the packet</li>
@@ -192,14 +191,13 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	}
 
 	private byte[] getPayloadAsBytes(Message<?> message) {
-		byte[] bytes = null;
 		Object payload = message.getPayload();
 		if (payload instanceof byte[]) {
-			bytes = (byte[]) payload;
+			return (byte[]) payload;
 		}
 		else if (payload instanceof String) {
 			try {
-				bytes = ((String) payload).getBytes(this.charset);
+				return ((String) payload).getBytes(this.charset);
 			}
 			catch (UnsupportedEncodingException e) {
 				throw new UncheckedIOException(e);
@@ -209,7 +207,6 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 			throw new IllegalArgumentException("The datagram packet mapper expects " +
 					"either a byte array or String payload, but received: " + payload.getClass());
 		}
-		return bytes;
 	}
 
 	@Override
@@ -283,7 +280,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	}
 
 	/**
-	 * Peeks at data in the buffer to see if starts with the prefix.
+	 * Peek at data in the buffer to see if starts with the prefix.
 	 */
 	private boolean startsWith(ByteBuffer buffer, String prefix) {
 		int pos = buffer.position();
@@ -305,7 +302,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		}
 		finally {
 			//reposition the buffer
-			((Buffer) buffer).position(pos);
+			buffer.position(pos);
 		}
 	}
 

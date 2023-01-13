@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.Semaphore;
@@ -27,7 +26,6 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
-import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 
@@ -137,7 +135,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			networkBuffer.compact();
 		}
 		else {
-			((Buffer) networkBuffer).clear();
+			networkBuffer.clear();
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("sendToPipe.x " + resultToString(result) + ", remaining: " + networkBuffer.remaining());
@@ -145,7 +143,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	}
 
 	/**
-	 * Performs the actual decryption of a received packet - which may be real
+	 * Perform the actual decryption of a received packet - which may be real
 	 * data, or handshaking data. Appropriate action is taken with the data.
 	 * If this side did not initiate the handshake, any handshaking data sent out
 	 * is handled by the thread running in the {@link SSLChannelOutputStream#doWrite(ByteBuffer)}
@@ -156,19 +154,11 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		HandshakeStatus handshakeStatus = this.sslEngine.getHandshakeStatus();
 		SSLEngineResult result = new SSLEngineResult(Status.OK, handshakeStatus, 0, 0);
 		switch (handshakeStatus) {
-			case NEED_TASK:
-				runTasks();
-				break;
-			case NEED_UNWRAP:
-			case FINISHED:
-			case NOT_HANDSHAKING:
-				result = checkBytesProduced(networkBuffer);
-				break;
-			case NEED_WRAP:
-				result = needWrap(networkBuffer, result);
-				break;
-			default:
+			case NEED_TASK -> runTasks();
+			case NEED_UNWRAP, FINISHED, NOT_HANDSHAKING -> result = checkBytesProduced(networkBuffer);
+			case NEED_WRAP -> result = needWrap(networkBuffer, result);
 		}
+
 		switch (result.getHandshakeStatus()) {
 			case FINISHED:
 				resumeWriterIfNeeded(); //NOSONAR - fall-through intended
@@ -183,31 +173,28 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		return result;
 	}
 
-	private SSLEngineResult checkBytesProduced(ByteBuffer networkBuffer) throws SSLException, IOException {
+	private SSLEngineResult checkBytesProduced(ByteBuffer networkBuffer) throws IOException {
 		SSLEngineResult result;
-		((Buffer) this.decoded).clear();
+		this.decoded.clear();
 		result = this.sslEngine.unwrap(networkBuffer, this.decoded);
 		if (logger.isDebugEnabled()) {
 			logger.debug("After unwrap: " + resultToString(result));
 		}
 		Status status = result.getStatus();
 		if (status == Status.BUFFER_OVERFLOW) {
-			this.decoded =
-					this.allocateEncryptionBuffer(this.sslEngine.getSession().getApplicationBufferSize());
+			this.decoded = this.allocateEncryptionBuffer(this.sslEngine.getSession().getApplicationBufferSize());
 		}
 		if (result.bytesProduced() > 0) {
-			((Buffer) this.decoded).flip();
+			this.decoded.flip();
 			super.sendToPipe(this.decoded);
 		}
 		return result;
 	}
 
-	private SSLEngineResult needWrap(ByteBuffer networkBuffer, SSLEngineResult result)
-			throws SSLException, IOException {
-
+	private SSLEngineResult needWrap(ByteBuffer networkBuffer, SSLEngineResult result) throws IOException {
 		SSLEngineResult engineResult = result;
 		if (!resumeWriterIfNeeded()) {
-			((Buffer) this.encoded).clear();
+			this.encoded.clear();
 			engineResult = this.sslEngine.wrap(networkBuffer, this.encoded);
 			if (logger.isDebugEnabled()) {
 				logger.debug("After wrap: " + resultToString(engineResult));
@@ -216,7 +203,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 				this.encoded = this.allocateEncryptionBuffer(this.sslEngine.getSession().getPacketBufferSize());
 			}
 			else {
-				((Buffer) this.encoded).flip();
+				this.encoded.flip();
 				getSSLChannelOutputStream().writeEncoded(this.encoded);
 			}
 		}
@@ -302,12 +289,9 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	}
 
 	protected SSLChannelOutputStream getSSLChannelOutputStream() {
-		if (this.sslChannelOutputStream == null) {
-			return (SSLChannelOutputStream) getChannelOutputStream();
-		}
-		else {
-			return this.sslChannelOutputStream;
-		}
+		return this.sslChannelOutputStream != null
+				? this.sslChannelOutputStream
+				: (SSLChannelOutputStream) getChannelOutputStream();
 	}
 
 	private String resultToString(SSLEngineResult result) {
@@ -336,14 +320,13 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		}
 
 		/**
-		 * Encrypts the plaintText buffer and writes it to the SocketChannel.
+		 * Encrypt the plaintText buffer and writes it to the SocketChannel.
 		 * Will participate in SSL handshaking as necessary. For very large
 		 * data, the SSL packets will be limited by the engine's buffer sizes
 		 * and multiple writes will be necessary.
 		 */
 		@Override
-		protected synchronized void doWrite(ByteBuffer plainText)
-				throws IOException {
+		protected synchronized void doWrite(ByteBuffer plainText) throws IOException {
 			try {
 				TcpNioSSLConnection.this.writerActive = true;
 				int remaining = plainText.remaining();
@@ -373,7 +356,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		}
 
 		/**
-		 * Handles SSL handshaking; when network data is needed from the peer, suspends
+		 * Handle SSL handshaking; when network data is needed from the peer, suspends
 		 * until that data is received.
 		 */
 		private void doClientSideHandshake(ByteBuffer plainText, SSLEngineResult resultArg) throws IOException {
@@ -409,16 +392,15 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		}
 
 		private void writeEncodedIfAny() throws IOException {
-			((Buffer) TcpNioSSLConnection.this.encoded).flip();
+			TcpNioSSLConnection.this.encoded.flip();
 			writeEncoded(TcpNioSSLConnection.this.encoded);
-			((Buffer) TcpNioSSLConnection.this.encoded).clear();
+			TcpNioSSLConnection.this.encoded.clear();
 		}
 
 		/**
 		 * Suspend processing until data is received from the peer.
 		 */
 		private HandshakeStatus waitForHandshakeData(SSLEngineResult result) throws IOException {
-
 			try {
 				logger.trace("Writer waiting for handshake");
 				if (!TcpNioSSLConnection.this.semaphore.tryAcquire(TcpNioSSLConnection.this.handshakeTimeout,
@@ -443,10 +425,10 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		}
 
 		/**
-		 * Encrypts plain text data. The result may indicate handshaking is needed.
+		 * Encrypt plain text data. The result may indicate handshaking is needed.
 		 */
 		private SSLEngineResult encode(ByteBuffer plainText) throws IOException {
-			((Buffer) TcpNioSSLConnection.this.encoded).clear();
+			TcpNioSSLConnection.this.encoded.clear();
 			SSLEngineResult result =
 					TcpNioSSLConnection.this.sslEngine.wrap(plainText, TcpNioSSLConnection.this.encoded);
 			if (logger.isDebugEnabled()) {

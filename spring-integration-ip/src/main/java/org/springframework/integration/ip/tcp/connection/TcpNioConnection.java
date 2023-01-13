@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
@@ -224,14 +223,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @return The buffer.
 	 */
 	protected ByteBuffer allocate(int length) {
-		ByteBuffer buffer;
-		if (this.usingDirectBuffers) {
-			buffer = ByteBuffer.allocateDirect(length);
-		}
-		else {
-			buffer = ByteBuffer.allocate(length);
-		}
-		return buffer;
+		return this.usingDirectBuffers ? ByteBuffer.allocateDirect(length) : ByteBuffer.allocate(length);
 	}
 
 	/**
@@ -447,7 +439,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			if (logger.isTraceEnabled()) {
 				logger.trace("After read: " + this.rawBuffer.position() + '/' + this.rawBuffer.limit());
 			}
-			((Buffer) this.rawBuffer).flip();
+			this.rawBuffer.flip();
 			if (logger.isTraceEnabled()) {
 				logger.trace("After flip: " + this.rawBuffer.position() + '/' + this.rawBuffer.limit());
 			}
@@ -472,7 +464,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			logger.trace(getConnectionId() + " Sending " + rawBufferToSend.limit() + " to pipe");
 		}
 		this.channelInputStream.write(rawBufferToSend);
-		((Buffer) rawBufferToSend).clear();
+		rawBufferToSend.clear();
 	}
 
 	private void checkForAssembler() {

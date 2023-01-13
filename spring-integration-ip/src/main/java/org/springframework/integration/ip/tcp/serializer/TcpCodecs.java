@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,16 +136,12 @@ public final class TcpCodecs {
 	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader(int bytes) {
-		switch (bytes) {
-			case ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_BYTE:
-				return lengthHeader1();
-			case ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_SHORT:
-				return lengthHeader2();
-			case ByteArrayLengthHeaderSerializer.HEADER_SIZE_INT:
-				return lengthHeader4();
-			default:
-				throw new IllegalArgumentException("Only 1, 2 or 4 byte headers are supported");
-		}
+		return switch (bytes) {
+			case ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_BYTE -> lengthHeader1();
+			case ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_SHORT -> lengthHeader2();
+			case ByteArrayLengthHeaderSerializer.HEADER_SIZE_INT -> lengthHeader4();
+			default -> throw new IllegalArgumentException("Only 1, 2 or 4 byte headers are supported");
+		};
 	}
 
 	/**

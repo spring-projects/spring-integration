@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -274,14 +274,10 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	}
 
 	private Function<String, RedisLock> getRedisLockConstructor(RedisLockType redisLockType) {
-		switch (redisLockType) {
-			case SPIN_LOCK:
-				return RedisSpinLock::new;
-			case PUB_SUB_LOCK:
-				return RedisPubSubLock::new;
-			default:
-				throw new IllegalArgumentException();
-		}
+		return switch (redisLockType) {
+			case SPIN_LOCK -> RedisSpinLock::new;
+			case PUB_SUB_LOCK -> RedisPubSubLock::new;
+		};
 	}
 
 	private abstract class RedisLock implements Lock {

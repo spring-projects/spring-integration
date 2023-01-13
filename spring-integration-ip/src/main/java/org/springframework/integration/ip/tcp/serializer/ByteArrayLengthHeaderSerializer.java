@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,27 +207,24 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	protected void writeHeader(OutputStream outputStream, int length) throws IOException {
 		ByteBuffer lengthPart = ByteBuffer.allocate(this.headerSize);
 		switch (this.headerSize) {
-			case HEADER_SIZE_INT:
-				lengthPart.putInt(length);
-				break;
-			case HEADER_SIZE_UNSIGNED_BYTE:
+			case HEADER_SIZE_INT -> lengthPart.putInt(length);
+			case HEADER_SIZE_UNSIGNED_BYTE -> {
 				if (length > MAX_UNSIGNED_BYTE) {
 					throw new IllegalArgumentException("Length header: "
 							+ this.headerSize
 							+ " too short to accommodate message length: " + length);
 				}
 				lengthPart.put((byte) length);
-				break;
-			case HEADER_SIZE_UNSIGNED_SHORT:
+			}
+			case HEADER_SIZE_UNSIGNED_SHORT -> {
 				if (length > MAX_UNSIGNED_SHORT) {
 					throw new IllegalArgumentException("Length header: "
 							+ this.headerSize
 							+ " too short to accommodate message length: " + length);
 				}
 				lengthPart.putShort((short) length);
-				break;
-			default:
-				throw new IllegalArgumentException("Bad header size: " + this.headerSize);
+			}
+			default -> throw new IllegalArgumentException("Bad header size: " + this.headerSize);
 		}
 		outputStream.write(lengthPart.array());
 	}
@@ -249,22 +246,18 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 			}
 			int messageLength;
 			switch (this.headerSize) {
-				case HEADER_SIZE_INT:
+				case HEADER_SIZE_INT -> {
 					messageLength = ByteBuffer.wrap(lengthPart).getInt();
 					if (messageLength < 0) {
 						throw new IllegalArgumentException("Length header: "
 								+ messageLength
 								+ " is negative");
 					}
-					break;
-				case HEADER_SIZE_UNSIGNED_BYTE:
-					messageLength = ByteBuffer.wrap(lengthPart).get() & MAX_UNSIGNED_BYTE;
-					break;
-				case HEADER_SIZE_UNSIGNED_SHORT:
-					messageLength = ByteBuffer.wrap(lengthPart).getShort() & MAX_UNSIGNED_SHORT;
-					break;
-				default:
-					throw new IllegalArgumentException("Bad header size: " + this.headerSize);
+				}
+				case HEADER_SIZE_UNSIGNED_BYTE -> messageLength = ByteBuffer.wrap(lengthPart).get() & MAX_UNSIGNED_BYTE;
+				case HEADER_SIZE_UNSIGNED_SHORT ->
+						messageLength = ByteBuffer.wrap(lengthPart).getShort() & MAX_UNSIGNED_SHORT;
+				default -> throw new IllegalArgumentException("Bad header size: " + this.headerSize);
 			}
 			return messageLength;
 		}

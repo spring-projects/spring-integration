@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -579,24 +579,16 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	@Override
 	protected Object handleRequestMessage(final Message<?> requestMessage) {
 		if (this.command != null) {
-			switch (this.command) {
-				case LS:
-					return doLs(requestMessage);
-				case NLST:
-					return doNlst(requestMessage);
-				case GET:
-					return doGet(requestMessage);
-				case MGET:
-					return doMget(requestMessage);
-				case RM:
-					return doRm(requestMessage);
-				case MV:
-					return doMv(requestMessage);
-				case PUT:
-					return doPut(requestMessage);
-				case MPUT:
-					return doMput(requestMessage);
-			}
+			return switch (this.command) {
+				case LS -> doLs(requestMessage);
+				case NLST -> doNlst(requestMessage);
+				case GET -> doGet(requestMessage);
+				case MGET -> doMget(requestMessage);
+				case RM -> doRm(requestMessage);
+				case MV -> doMv(requestMessage);
+				case PUT -> doPut(requestMessage);
+				case MPUT -> doMput(requestMessage);
+			};
 		}
 		return this.remoteFileTemplate.execute(session ->
 				AbstractRemoteFileOutboundGateway.this.messageSessionCallback.doInSession(session, requestMessage));

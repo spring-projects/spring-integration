@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -276,17 +276,11 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 			try {
 				long deliveryTag = this.ackInfo.getGetResponse().getEnvelope().getDeliveryTag();
 				switch (status) {
-					case ACCEPT:
-						this.ackInfo.getChannel().basicAck(deliveryTag, false);
-						break;
-					case REJECT:
-						this.ackInfo.getChannel().basicReject(deliveryTag, false);
-						break;
-					case REQUEUE:
-						this.ackInfo.getChannel().basicReject(deliveryTag, true);
-						break;
-					default:
-						break;
+					case ACCEPT -> this.ackInfo.getChannel().basicAck(deliveryTag, false);
+					case REJECT -> this.ackInfo.getChannel().basicReject(deliveryTag, false);
+					case REQUEUE -> this.ackInfo.getChannel().basicReject(deliveryTag, true);
+					default -> {
+					}
 				}
 				if (this.ackInfo.isTransacted()) {
 					this.ackInfo.getChannel().txCommit();

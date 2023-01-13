@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,7 +151,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	/**
 	 * Specify whether to log the full Message. Otherwise, only the payload will be logged. This value is
-	 * <code>false</code> by default.
+	 * {@code false} by default.
 	 * @param shouldLogFullMessage true if the complete message should be logged.
 	 */
 	public void setShouldLogFullMessage(boolean shouldLogFullMessage) {
@@ -178,26 +178,13 @@ public class LoggingHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) {
 		Supplier<CharSequence> logMessage = () -> createLogMessage(message);
 		switch (this.level) {
-			case FATAL:
-				this.messageLogger.fatal(logMessage);
-				break;
-			case ERROR:
-				this.messageLogger.error(logMessage);
-				break;
-			case WARN:
-				this.messageLogger.warn(logMessage);
-				break;
-			case INFO:
-				this.messageLogger.info(logMessage);
-				break;
-			case DEBUG:
-				this.messageLogger.debug(logMessage);
-				break;
-			case TRACE:
-				this.messageLogger.trace(logMessage);
-				break;
-			default:
-				throw new IllegalStateException("Level '" + this.level + "' is not supported");
+			case FATAL -> this.messageLogger.fatal(logMessage);
+			case ERROR -> this.messageLogger.error(logMessage);
+			case WARN -> this.messageLogger.warn(logMessage);
+			case INFO -> this.messageLogger.info(logMessage);
+			case DEBUG -> this.messageLogger.debug(logMessage);
+			case TRACE -> this.messageLogger.trace(logMessage);
+			default -> throw new IllegalStateException("Level '" + this.level + "' is not supported");
 		}
 	}
 
@@ -209,7 +196,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 				: Objects.toString(logMessage);
 	}
 
-	private String createLogMessage(Throwable throwable) {
+	private static String createLogMessage(Throwable throwable) {
 		StringWriter stringWriter = new StringWriter();
 		if (throwable instanceof AggregateMessageDeliveryException) {
 			stringWriter.append(throwable.getMessage());
@@ -223,7 +210,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 		return stringWriter.toString();
 	}
 
-	private void printStackTrace(Throwable throwable, Writer writer) {
+	private static void printStackTrace(Throwable throwable, Writer writer) {
 		throwable.printStackTrace(new PrintWriter(writer, true));
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,21 +78,15 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	}
 
 	private boolean tryEmitMessage(Message<?> message) {
-		switch (this.sink.tryEmitNext(message)) {
-			case OK:
-				return true;
-			case FAIL_NON_SERIALIZED:
-			case FAIL_OVERFLOW:
-				return false;
-			case FAIL_ZERO_SUBSCRIBER:
-				throw new IllegalStateException("The [" + this + "] doesn't have subscribers to accept messages");
-			case FAIL_TERMINATED:
-			case FAIL_CANCELLED:
-				throw new IllegalStateException("Cannot emit messages into the cancelled or terminated sink: "
-						+ this.sink);
-			default:
-				throw new UnsupportedOperationException();
-		}
+		return switch (this.sink.tryEmitNext(message)) {
+			case OK -> true;
+			case FAIL_NON_SERIALIZED, FAIL_OVERFLOW -> false;
+			case FAIL_ZERO_SUBSCRIBER ->
+					throw new IllegalStateException("The [" + this + "] doesn't have subscribers to accept messages");
+			case FAIL_TERMINATED, FAIL_CANCELLED ->
+					throw new IllegalStateException("Cannot emit messages into the cancelled or terminated sink: "
+							+ this.sink);
+		};
 	}
 
 	@Override

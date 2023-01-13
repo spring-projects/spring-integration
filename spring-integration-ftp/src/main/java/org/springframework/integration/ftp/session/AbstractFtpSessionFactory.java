@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -216,18 +216,12 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	}
 
 	/**
-	 * Sets the mode of the connection. Only local modes are supported.
+	 * Set the mode of the connection. Only local modes are supported.
 	 */
 	private void updateClientMode(FTPClient client) {
 		switch (this.clientMode) {
-			case FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE:
-				client.enterLocalActiveMode();
-				break;
-			case FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE:
-				client.enterLocalPassiveMode();
-				break;
-			default:
-				break;
+			case FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE -> client.enterLocalActiveMode();
+			case FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE -> client.enterLocalPassiveMode();
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,18 +158,13 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 	protected Mono<Void> handleMessageInternal(Message<?> message) {
 		Assert.isTrue(this.initialized, "The instance is not yet initialized. Invoke its afterPropertiesSet() method");
 		return Mono.fromSupplier(() -> this.queryTypeExpression.getValue(this.evaluationContext, message, Type.class))
-				.flatMap(mode -> {
-					switch (mode) {
-						case INSERT:
-							return handleInsert(message);
-						case UPDATE:
-							return handleUpdate(message);
-						case DELETE:
-							return handleDelete(message);
-						default:
-							return Mono.error(new IllegalArgumentException());
-					}
-				}).then();
+				.flatMap(mode ->
+						switch (mode) {
+							case INSERT -> handleInsert(message);
+							case UPDATE -> handleUpdate(message);
+							case DELETE -> handleDelete(message);
+						})
+				.then();
 	}
 
 
