@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -309,9 +309,12 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		try {
 			channel = getChannelResolver().resolveDestination(channelName);
 		}
-		catch (DestinationResolutionException e) {
+		catch (DestinationResolutionException ex) {
 			if (this.resolutionRequired) {
-				throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'", e);
+				throw new MessagingException(message, "Failed to resolve a channel for name '" + channelName + "'", ex);
+			}
+			else {
+				logger.debug(() -> "Failed to resolve a channel for name '" + channelName + "'. Ignored");
 			}
 		}
 		return channel;
@@ -397,7 +400,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 			}
 		}
 		else {
-			throw new MessagingException("unsupported return type for router [" + channelKey.getClass() + "]");
+			throw new MessagingException("Unsupported return type for router [" + channelKey.getClass() + "]");
 		}
 	}
 
