@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.SerializationHints;
-import org.springframework.aot.hint.TypeReference;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
@@ -66,6 +65,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -96,10 +96,10 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 						Pausable.class)
 				.forEach(type -> reflectionHints.registerType(type, MemberCategory.INVOKE_PUBLIC_METHODS));
 
-		reflectionHints.registerType(JsonPathUtils.class,
-				builder ->
-						builder.onReachableType(TypeReference.of("com.jayway.jsonpath.JsonPath"))
-								.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
+
+		if (ClassUtils.isPresent("com.jayway.jsonpath.JsonPath", classLoader)) {
+			reflectionHints.registerType(JsonPathUtils.class, MemberCategory.INVOKE_PUBLIC_METHODS);
+		}
 
 		// For #xpath() SpEL function
 		reflectionHints.registerTypeIfPresent(classLoader, "org.springframework.integration.xml.xpath.XPathUtils",
