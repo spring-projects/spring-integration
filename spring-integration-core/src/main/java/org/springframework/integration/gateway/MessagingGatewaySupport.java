@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,10 +43,12 @@ import org.springframework.integration.history.HistoryWritingMessagePostProcesso
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
@@ -71,7 +73,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -263,7 +264,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	/**
 	 * Provide an {@link InboundMessageMapper} for creating request Messages
-	 * from any object passed in a send or sendAndReceive operation.
+	 * from any object passed in a {@code send} or {@code sendAndReceive} operation.
 	 * @param requestMapper The request mapper.
 	 */
 	@SuppressWarnings("unchecked")
@@ -725,7 +726,12 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 					MonoReplyChannel replyChan = new MonoReplyChannel();
 
-					Message<?> messageToSend = MutableMessageBuilder.fromMessage(requestMessage)
+					AbstractIntegrationMessageBuilder<?> messageBuilder =
+							requestMessage instanceof ErrorMessage
+									? MessageBuilder.fromMessage(requestMessage)
+									: MutableMessageBuilder.fromMessage(requestMessage);
+
+					Message<?> messageToSend = messageBuilder
 							.setReplyChannel(replyChan)
 							.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
 							.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
@@ -734,16 +740,15 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 					sendMessageForReactiveFlow(requestChannel, messageToSend);
 
-					return buildReplyMono(requestMessage, replyChan.replyMono.asMono(), error, originalReplyChannelHeader,
-							originalErrorChannelHeader);
+					return buildReplyMono(requestMessage, replyChan.replyMono.asMono(), error,
+							originalReplyChannelHeader, originalErrorChannelHeader);
 				})
 				.onErrorResume(t -> error ? Mono.error(t) : handleSendError(requestMessage, t));
 	}
 
 	private void sendMessageForReactiveFlow(MessageChannel requestChannel, Message<?> requestMessage) {
-		if (requestChannel instanceof ReactiveStreamsSubscribableChannel) {
-			((ReactiveStreamsSubscribableChannel) requestChannel)
-					.subscribeTo(Mono.just(requestMessage));
+		if (requestChannel instanceof ReactiveStreamsSubscribableChannel reactiveChannel) {
+			reactiveChannel.subscribeTo(Mono.just(requestMessage));
 		}
 		else {
 			long sendTimeout = sendTimeout(requestMessage);
@@ -771,9 +776,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 						captor.start().stop(sendTimer());
 					}
 				})
-				.<Message<?>>map(replyMessage -> {
-					if (!error && replyMessage instanceof ErrorMessage) {
-						ErrorMessage em = (ErrorMessage) replyMessage;
+				.map(replyMessage -> {
+					if (!error && replyMessage instanceof ErrorMessage em) {
 						if (em.getPayload() instanceof MessagingException) {
 							throw (MessagingException) em.getPayload();
 						}
