@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ public class MailTests {
 		assertThat(message.getFrom()).containsOnly(new InternetAddress("foo@bar"));
 		assertThat(message.getRecipients(RecipientType.TO)).containsOnly(new InternetAddress("bar@baz"));
 		assertThat(message.getSubject()).isEqualTo("foo");
-		assertThat(message.getContent()).asString().isEqualTo("foo\r\n");
+		assertThat(message.getContent()).asString().isEqualTo("foo");
 
 	}
 
