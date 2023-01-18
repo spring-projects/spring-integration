@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -335,7 +335,7 @@ public class TcpOutboundGatewayTests {
 
 	/**
 	 * Sends 2 concurrent messages on a shared connection. The GW single threads
-	 * these requests. The first will timeout; the second should receive its
+	 * these requests. The first will time out; the second should receive its
 	 * own response, not that for the first.
 	 * @throws Exception
 	 */
@@ -415,7 +415,7 @@ public class TcpOutboundGatewayTests {
 		}
 		// wait until the server side has processed both requests
 		assertThat(serverLatch.await(30, TimeUnit.SECONDS)).isTrue();
-		List<String> replies = new ArrayList<String>();
+		List<String> replies = new ArrayList<>();
 		int timeouts = 0;
 		for (int i = 0; i < 2; i++) {
 			try {
@@ -433,7 +433,6 @@ public class TcpOutboundGatewayTests {
 					assertThat(e.getCause()).isInstanceOf(MessageTimeoutException.class);
 				}
 				timeouts++;
-				continue;
 			}
 		}
 		assertThat(timeouts).as("Expected exactly one ExecutionException").isEqualTo(1);
@@ -969,8 +968,9 @@ public class TcpOutboundGatewayTests {
 			replyChannel.addInterceptor(new ChannelInterceptor() {
 
 				@Override
-				public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+				public Message<?> preSend(Message<?> message, MessageChannel channel) {
 					thread.set(Thread.currentThread());
+					return message;
 				}
 
 			});
