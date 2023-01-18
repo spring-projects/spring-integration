@@ -1026,6 +1026,7 @@ project('spring-integration-ws') {
         api 'org.springframework:spring-webmvc'
         api('org.springframework.ws:spring-ws-core') {
             exclude group: 'org.springframework'
+            exclude group: 'org.glassfish.jaxb'
         }
 
         providedImplementation "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
