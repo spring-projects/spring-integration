@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -77,6 +78,8 @@ public class IntegrationGraphControllerTests {
 
 	@Test
 	public void testIntegrationGraphGet() throws Exception {
+		assertThat(this.wac.findAnnotationOnBean("integrationGraphServer", ImportRuntimeHints.class)).isNotNull();
+
 		this.mockMvc.perform(get("/testIntegration")
 						.header(HttpHeaders.ORIGIN, "https://foo.bar.com")
 						.accept(MediaType.APPLICATION_JSON))
@@ -96,6 +99,7 @@ public class IntegrationGraphControllerTests {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"IntegrationGraphControllerParserTests-context.xml", getClass());
 
+		assertThat(context.findAnnotationOnBean("integrationGraphServer", ImportRuntimeHints.class)).isNotNull();
 
 		HandlerMapping handlerMapping =
 				context.getBean(RequestMappingHandlerMapping.class.getName(), HandlerMapping.class);
