@@ -50,7 +50,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
-import org.springframework.util.concurrent.SettableListenableFuture;
+import org.springframework.util.concurrent.CompletableToListenableFutureAdapter;
 
 /**
  * TCP outbound gateway that uses a client connection factory. If the factory is configured
@@ -239,7 +239,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				connection.shutdownOutput();
 			}
 			if (async) {
-				return reply.getFuture();
+				return new CompletableToListenableFutureAdapter<>(reply.getFuture());
 			}
 			else {
 				return getReply(requestMessage, connection, connectionId, reply);
@@ -353,7 +353,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			}
 		}
 		if (isAsync()) {
-			reply.getFuture().set(message);
+			reply.getFuture().complete(message);
 			cleanUp(reply.isHaveSemaphore(), reply.getConnection(), connectionId);
 		}
 		else {
@@ -524,7 +524,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			return this.reply;
 		}
 
-		SettableListenableFuture<Message<?>> getFuture() {
+		CompletableFuture<Message<?>> getFuture() {
 			return this.future;
 		}
 
