@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,13 @@ import net.minidev.json.JSONArray;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -90,6 +92,9 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 @SpringJUnitConfig
 @DirtiesContext
 public class IntegrationGraphServerTests {
+
+	@Autowired
+	private ListableBeanFactory beanFactory;
 
 	@Autowired
 	private IntegrationGraphServer server;
@@ -238,6 +243,8 @@ public class IntegrationGraphServerTests {
 		assertThat(serviceActivator)
 				.containsEntry("integrationPatternType", "service_activator")
 				.containsEntry("integrationPatternCategory", "messaging_endpoint");
+
+		assertThat(this.beanFactory.findAnnotationOnBean("server", ImportRuntimeHints.class)).isNotNull();
 	}
 
 	@Test
