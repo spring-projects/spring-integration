@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2022 the original author or authors.
+ * Copyright 2001-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -58,7 +59,6 @@ import org.springframework.util.Assert;
  * supported - use a pair of outbound/inbound adapters for that use case.
  * <p>
  * {@link org.springframework.context.Lifecycle} methods delegate to the underlying {@link AbstractConnectionFactory}.
- *
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -223,7 +223,17 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.pendingReplies.put(connectionId, reply);
 			String connectionIdToLog = connectionId;
 			logger.debug(() -> "Added pending reply " + connectionIdToLog);
-			connection.send(requestMessage);
+			try {
+				connection.send(requestMessage);
+			}
+			catch (Exception ex) {
+				// If it cannot send, then no reply for this connection.
+				// Therefor release resources for subsequent requests.
+				if (async) {
+					cleanUp(haveSemaphore, connection, connectionId);
+				}
+				throw ex;
+			}
 			if (this.closeStreamAfterSend) {
 				connection.shutdownOutput();
 			}
@@ -326,7 +336,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		if (reply == null) {
 			if (message instanceof ErrorMessage) {
 				/*
-				 * Socket errors are sent here so they can be conveyed to any waiting thread.
+				 * Socket errors are sent here, so they can be conveyed to any waiting thread.
 				 * If there's not one, simply ignore.
 				 */
 				return false;
@@ -427,7 +437,11 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		private final boolean haveSemaphore;
 
-		private final CompletableFuture<Message<?>> future = new CompletableFuture<>();
+		private final ScheduledFuture<?> noResponseFuture;
+
+		private final CompletableFuture<Message<?>> future =
+				new CompletableFuture<Message<?>>()
+						.thenApply(this::cancelNoResponseFutureIfAny);
 
 		private volatile Message<?> reply;
 
@@ -440,13 +454,27 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			this.connection = connection;
 			this.haveSemaphore = haveSemaphore;
 			if (async && remoteTimeout > 0) {
-				getTaskScheduler()
-						.schedule(() -> {
-							TcpOutboundGateway.this.pendingReplies.remove(connection.getConnectionId());
-							this.future.completeExceptionally(
-									new MessageTimeoutException(requestMessage, "Timed out waiting for response"));
-						}, Instant.now().plusMillis(remoteTimeout));
+				this.noResponseFuture =
+						getTaskScheduler()
+								.schedule(() -> {
+									if (this.future.completeExceptionally(
+											new MessageTimeoutException(requestMessage,
+													"Timed out waiting for response"))) {
+
+										cleanUp(this.haveSemaphore, this.connection, this.connection.getConnectionId());
+									}
+								}, Instant.now().plusMillis(remoteTimeout));
 			}
+			else {
+				this.noResponseFuture = null;
+			}
+		}
+
+		private Message<?> cancelNoResponseFutureIfAny(Message<?> message) {
+			if (this.noResponseFuture != null) {
+				this.noResponseFuture.cancel(true);
+			}
+			return message;
 		}
 
 		TcpConnection getConnection() {

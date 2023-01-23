@@ -61,6 +61,7 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
@@ -80,9 +81,14 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -397,7 +403,7 @@ public class TcpOutboundGatewayTests {
 
 		Expression remoteTimeoutExpression = Mockito.mock(Expression.class);
 
-		when(remoteTimeoutExpression.getValue(Mockito.any(EvaluationContext.class), Mockito.any(Message.class),
+		when(remoteTimeoutExpression.getValue(any(EvaluationContext.class), any(Message.class),
 				Mockito.eq(Long.class))).thenReturn(50L, 60000L);
 
 		gateway.setRemoteTimeoutExpression(remoteTimeoutExpression);
@@ -488,7 +494,7 @@ public class TcpOutboundGatewayTests {
 		TcpConnectionSupport mockConn1 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(mockConn1);
 		doThrow(new UncheckedIOException(new IOException("fail")))
-				.when(mockConn1).send(Mockito.any(Message.class));
+				.when(mockConn1).send(any(Message.class));
 
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
@@ -521,7 +527,7 @@ public class TcpOutboundGatewayTests {
 		assertThat(reply.getPayload()).isEqualTo("bar");
 		done.set(true);
 		gateway.stop();
-		verify(mockConn1).send(Mockito.any(Message.class));
+		verify(mockConn1).send(any(Message.class));
 		factory2.stop();
 		serverSocket.get().close();
 	}
@@ -571,7 +577,7 @@ public class TcpOutboundGatewayTests {
 		when(factory1.getConnection()).thenReturn(mockConn1);
 		when(factory1.isSingleUse()).thenReturn(true);
 		doThrow(new UncheckedIOException(new IOException("fail")))
-				.when(mockConn1).send(Mockito.any(Message.class));
+				.when(mockConn1).send(any(Message.class));
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 1);
 
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost",
@@ -606,7 +612,7 @@ public class TcpOutboundGatewayTests {
 		assertThat(reply.getPayload()).isEqualTo("bar");
 		done.set(true);
 		gateway.stop();
-		verify(mockConn1).send(Mockito.any(Message.class));
+		verify(mockConn1).send(any(Message.class));
 		factory2.stop();
 		serverSocket.get().close();
 	}
@@ -1079,6 +1085,39 @@ public class TcpOutboundGatewayTests {
 			}
 			sched.shutdown();
 		}
+	}
+
+	@Test
+	void semaphoreIsReleasedOnAsyncSendFailure() throws InterruptedException {
+		AbstractClientConnectionFactory ccf = mock(AbstractClientConnectionFactory.class);
+
+		TcpConnection connection = mock(TcpConnectionSupport.class);
+
+		given(connection.getConnectionId()).willReturn("testId");
+		willThrow(new RuntimeException("intentional"))
+				.given(connection)
+						.send(any(Message.class));
+
+		willReturn(connection)
+				.given(ccf)
+				.getConnection();
+
+		TcpOutboundGateway gateway = new TcpOutboundGateway();
+		gateway.setConnectionFactory(ccf);
+		gateway.setAsync(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setRemoteTimeout(-1);
+		gateway.afterPropertiesSet();
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("Test1")))
+				.withCauseExactlyInstanceOf(RuntimeException.class)
+				.withStackTraceContaining("intentional");
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("Test2")))
+				.withCauseExactlyInstanceOf(RuntimeException.class)
+				.withStackTraceContaining("intentional");
 	}
 
 }
