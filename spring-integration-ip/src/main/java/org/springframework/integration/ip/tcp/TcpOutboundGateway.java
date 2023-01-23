@@ -457,10 +457,12 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				this.noResponseFuture =
 						getTaskScheduler()
 								.schedule(() -> {
-									cleanUp(this.haveSemaphore, this.connection, this.connection.getConnectionId());
-									this.future.completeExceptionally(
+									if (this.future.completeExceptionally(
 											new MessageTimeoutException(requestMessage,
-													"Timed out waiting for response"));
+													"Timed out waiting for response"))) {
+
+										cleanUp(this.haveSemaphore, this.connection, this.connection.getConnectionId());
+									}
 								}, Instant.now().plusMillis(remoteTimeout));
 			}
 			else {
