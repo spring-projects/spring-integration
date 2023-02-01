@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.micrometer.context.ContextSnapshot;
 import io.micrometer.observation.ObservationRegistry;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -720,7 +721,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			throw new MessageMappingException("Cannot map to message: " + object, e);
 		}
 
-		return Mono.defer(() -> {
+		return Mono.deferContextual(contextView -> {
 					Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
 					Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
 
@@ -738,7 +739,10 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 							.setErrorChannel(replyChan)
 							.build();
 
-					sendMessageForReactiveFlow(requestChannel, messageToSend);
+					var scope = ContextSnapshot.setAllThreadLocalsFrom(contextView);
+					try (scope) {
+						sendMessageForReactiveFlow(requestChannel, messageToSend);
+					}
 
 					return buildReplyMono(requestMessage, replyChan.replyMono.asMono(), error,
 							originalReplyChannelHeader, originalErrorChannelHeader);

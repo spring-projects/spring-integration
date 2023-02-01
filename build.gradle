@@ -87,8 +87,9 @@ ext {
     lettuceVersion = '6.2.2.RELEASE'
     log4jVersion = '2.19.0'
     mailVersion = '1.0.0'
-    micrometerVersion = '1.10.3'
-    micrometerTracingVersion = '1.0.1'
+    micrometerPropagationVersion = '1.0.1-SNAPSHOT'
+    micrometerTracingVersion = '1.0.2-SNAPSHOT'
+    micrometerVersion = '1.10.4-SNAPSHOT'
     mockitoVersion = '4.10.0'
     mongoDriverVersion = '4.8.2'
     mysqlVersion = '8.0.31'
@@ -532,6 +533,7 @@ project('spring-integration-core') {
         }
         api 'io.projectreactor:reactor-core'
         api 'io.micrometer:micrometer-observation'
+        api "io.micrometer:context-propagation:$micrometerPropagationVersion"
 
         optionalApi 'com.fasterxml.jackson.core:jackson-databind'
         optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
@@ -992,6 +994,12 @@ project('spring-integration-webflux') {
             exclude group: 'org.springframework'
         }
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'io.micrometer:micrometer-observation-test'
+        testImplementation ('io.micrometer:micrometer-tracing-integration-test') {
+            exclude group: 'io.opentelemetry'
+            exclude group: 'com.wavefront'
+            exclude group: 'io.micrometer', module: 'micrometer-tracing-bridge-otel'
+        }
 
         testRuntimeOnly "com.jayway.jsonpath:json-path:$jsonpathVersion"
     }

@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
+import io.micrometer.context.ContextSnapshot;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactor.core.Disposable;
@@ -111,17 +112,20 @@ public class FluxMessageChannel extends AbstractMessageChannel
 				Flux.from(publisher)
 						.delaySubscription(this.subscribedSignal.asFlux().filter(Boolean::booleanValue).next())
 						.publishOn(this.scheduler)
-						.doOnNext((message) -> {
-							try {
-								if (!send(message)) {
-									throw new MessageDeliveryException(message,
-											"Failed to send message to channel '" + this);
-								}
-							}
-							catch (Exception ex) {
-								logger.warn(ex, () -> "Error during processing event: " + message);
-							}
-						})
+						.transformDeferredContextual((flux, contextView) ->
+								flux.doOnNext((message) -> {
+									var scope = ContextSnapshot.setAllThreadLocalsFrom(contextView);
+									try (scope) {
+										if (!send(message)) {
+											throw new MessageDeliveryException(message,
+													"Failed to send message to channel '" + this);
+										}
+									}
+									catch (Exception ex) {
+										logger.warn(ex, () -> "Error during processing event: " + message);
+									}
+								}))
+						.contextCapture()
 						.subscribe());
 	}
 
