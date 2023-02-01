@@ -158,6 +158,7 @@ IMPORTANT: If you specify, for example, the `requestChannel` in `<int:method/>` 
 
 NOTE: If a no-argument gateway is specified in XML, and the interface method has both a `@Payload` and `@Gateway` annotation (with a `payloadExpression` or a `payload-expression` in an `<int:method/>` element), the `@Payload` value is ignored.
 
+[[gateway-expressions]]
 ===== Expressions and "`Global`" Headers
 
 The `<header/>` element supports `expression` as an alternative to `value`.
@@ -254,7 +255,7 @@ public interface MyGateway {
 <1> Note that, in this example, the SpEL variable, `#this`, refers to the argument -- in this case, the value of `s`.
 
 The XML equivalent looks a little different, since there is no `#this` context for the method argument.
-However, expressions can refer to method arguments by using the `args` property for the `MethodArgsHolder` root object, as the following example shows:
+However, expressions can refer to method arguments by using the `args` property for the `MethodArgsHolder` root object (see <<gateway-expressions>> for more information), as the following example shows:
 
 ====
 [source,xml]
@@ -522,7 +523,7 @@ String lateReply(String payload, long requestTimeout, long replyTimeout);
 ====
 
 The evaluation context has a `BeanResolver` (use `@someBean` to reference other beans), and the `args` array property from the `#root` object is available.
-
+See <<gateway-expressions>> for more information about this root object.
 When configuring with XML, the timeout attributes can be a long value or a SpEL expression, as the following example shows:
 
 ====
