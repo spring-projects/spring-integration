@@ -158,6 +158,7 @@ IMPORTANT: If you specify, for example, the `requestChannel` in `<int:method/>` 
 
 NOTE: If a no-argument gateway is specified in XML, and the interface method has both a `@Payload` and `@Gateway` annotation (with a `payloadExpression` or a `payload-expression` in an `<int:method/>` element), the `@Payload` value is ignored.
 
+[[gateway-expressions]]
 ===== Expressions and "`Global`" Headers
 
 The `<header/>` element supports `expression` as an alternative to `value`.
@@ -225,10 +226,10 @@ public interface MyGateway {
 
     void twoMapsAndOneAnnotatedWithPayload(@Payload Map<String, Object> payload, Map<String, Object> headers);
 
-    @Payload("#args[0] + #args[1] + '!'")
+    @Payload("args[0] + args[1] + '!'")
     void payloadAnnotationAtMethodLevel(String a, String b);
 
-    @Payload("@someBean.exclaim(#args[0])")
+    @Payload("@someBean.exclaim(args[0])")
     void payloadAnnotationAtMethodLevelUsingBeanResolver(String s);
 
     void payloadAnnotationWithExpression(@Payload("toUpperCase()") String s);
@@ -254,17 +255,17 @@ public interface MyGateway {
 <1> Note that, in this example, the SpEL variable, `#this`, refers to the argument -- in this case, the value of `s`.
 
 The XML equivalent looks a little different, since there is no `#this` context for the method argument.
-However, expressions can refer to method arguments by using the `#args` variable, as the following example shows:
+However, expressions can refer to method arguments by using the `args` property for the `MethodArgsHolder` root object (see <<gateway-expressions>> for more information), as the following example shows:
 
 ====
 [source,xml]
 ----
 <int:gateway id="myGateway" service-interface="org.something.MyGateway">
-  <int:method name="send1" payload-expression="#args[0] + 'thing2'"/>
-  <int:method name="send2" payload-expression="@someBean.sum(#args[0])"/>
-  <int:method name="send3" payload-expression="#method"/>
+  <int:method name="send1" payload-expression="args[0] + 'thing2'"/>
+  <int:method name="send2" payload-expression="@someBean.sum(args[0])"/>
+  <int:method name="send3" payload-expression="method"/>
   <int:method name="send4">
-    <int:header name="thing1" expression="#args[2].toUpperCase()"/>
+    <int:header name="thing1" expression="args[2].toUpperCase()"/>
   </int:method>
 </int:gateway>
 ----
@@ -515,23 +516,23 @@ Starting with version 5.0, the timeouts can be defined as expressions, as the fo
 ====
 [source, java]
 ----
-@Gateway(payloadExpression = "#args[0]", requestChannel = "someChannel",
-        requestTimeoutExpression = "#args[1]", replyTimeoutExpression = "#args[2]")
+@Gateway(payloadExpression = "args[0]", requestChannel = "someChannel",
+        requestTimeoutExpression = "args[1]", replyTimeoutExpression = "args[2]")
 String lateReply(String payload, long requestTimeout, long replyTimeout);
 ----
 ====
 
-The evaluation context has a `BeanResolver` (use `@someBean` to reference other beans), and the `#args` array variable is available.
-
+The evaluation context has a `BeanResolver` (use `@someBean` to reference other beans), and the `args` array property from the `#root` object is available.
+See <<gateway-expressions>> for more information about this root object.
 When configuring with XML, the timeout attributes can be a long value or a SpEL expression, as the following example shows:
 
 ====
 [source, xml]
 ----
 <method name="someMethod" request-channel="someRequestChannel"
-                      payload-expression="#args[0]"
+                      payload-expression="args[0]"
                       request-timeout="1000"
-                      reply-timeout="#args[1]">
+                      reply-timeout="args[1]">
 </method>
 ----
 ====
