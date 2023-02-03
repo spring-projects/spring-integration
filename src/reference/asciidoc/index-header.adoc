@@ -2,7 +2,7 @@
 = Spring Integration Reference Guide
 Mark Fisher; Marius Bogoevici; Iwein Fuld; Jonas Partner; Oleg Zhurakousky; Gary Russell; Dave Syer; Josh Long; David Turanski; Gunnar Hillert; Artem Bilan; Amol Nayak; Jay Bryant
 
-(C) 2009 - 2022 VMware, Inc.
+(C) 2009 - 2023 VMware, Inc.
 All rights reserved.
 
 Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.

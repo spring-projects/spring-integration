@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package org.springframework.integration.handler.advice;
 
+import java.io.Serial;
 import java.time.Duration;
 
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
-import io.vavr.CheckedFunction0;
-import io.vavr.control.Try;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -128,10 +127,8 @@ public class RateLimiterRequestHandlerAdvice extends AbstractRequestHandlerAdvic
 
 	@Override
 	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
-		CheckedFunction0<Object> restrictedCall =
-				RateLimiter.decorateCheckedSupplier(this.rateLimiter, callback::execute);
 		try {
-			return Try.of(restrictedCall).get();
+			return RateLimiter.decorateSupplier(this.rateLimiter, callback::execute).get();
 		}
 		catch (RequestNotPermitted ex) {
 			throw new RateLimitExceededException(message, "Rate limit exceeded for: " + target, ex);
@@ -145,6 +142,7 @@ public class RateLimiterRequestHandlerAdvice extends AbstractRequestHandlerAdvic
 	 */
 	public static class RateLimitExceededException extends MessagingException {
 
+		@Serial
 		private static final long serialVersionUID = 1L;
 
 		RateLimitExceededException(Message<?> message, String description, RequestNotPermitted cause) {

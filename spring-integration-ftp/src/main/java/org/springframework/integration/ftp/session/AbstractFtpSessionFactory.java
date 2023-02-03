@@ -17,6 +17,7 @@
 package org.springframework.integration.ftp.session;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -186,7 +187,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 			client.setDefaultTimeout(this.defaultTimeout);
 		}
 		if (this.dataTimeout != null) {
-			client.setDataTimeout(this.dataTimeout);
+			client.setDataTimeout(Duration.ofMillis(this.dataTimeout));
 		}
 		client.setControlEncoding(this.controlEncoding);
 

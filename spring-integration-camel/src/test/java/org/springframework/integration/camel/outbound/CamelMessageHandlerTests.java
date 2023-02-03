@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 		camelMessageHandler.handleMessage(messageUnderTest);
 		camelMessageHandler.handleMessage(messageUnderTest2);
 
-		assertMockEndpointsSatisfied();
+		mockEndpoint.assertIsSatisfied();
 	}
 
 	@Test
@@ -104,7 +104,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 
 		Message<?> receive = replyChannel.receive(10_000);
 
-		assertMockEndpointsSatisfied();
+		mockEndpoint.assertIsSatisfied();
 
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("Reply for: test data");
@@ -121,10 +121,10 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 						.setHeader(MessageHeaders.ERROR_CHANNEL, errorChannel)
 						.build();
 
-		getMockEndpoint("mock:result")
-				.whenAnyExchangeReceived(exchange -> {
-					throw new RuntimeException("intentional");
-				});
+		MockEndpoint mockEndpoint = getMockEndpoint("mock:result");
+		mockEndpoint.whenAnyExchangeReceived(exchange -> {
+			throw new RuntimeException("intentional");
+		});
 
 		CamelMessageHandler camelMessageHandler = new CamelMessageHandler(template());
 		camelMessageHandler.setEndpointUri("direct:simple");
@@ -135,7 +135,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 		camelMessageHandler.handleMessage(messageUnderTest);
 		Message<?> receive = errorChannel.receive(10_000);
 
-		assertMockEndpointsSatisfied();
+		mockEndpoint.assertIsSatisfied();
 
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload())
@@ -169,7 +169,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 
 		Message<?> receive = replyChannel.receive(10_000);
 
-		assertMockEndpointsSatisfied();
+		mockEndpoint.assertIsSatisfied();
 
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("Async reply for: test async data");

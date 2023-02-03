@@ -1,6 +1,6 @@
 ext {
-	backendVersion = '0.0.3'
-	micrometerDocsVersion='1.0.0'
+	backendVersion = '0.0.4'
+	micrometerDocsVersion='1.0.1'
 }
 
 configurations {
