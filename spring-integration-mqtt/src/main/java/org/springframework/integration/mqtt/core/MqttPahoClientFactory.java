@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,10 @@ public interface MqttPahoClientFactory {
 	 * Get the consumer stop action.
 	 * @return the consumer stop action.
 	 * @since 4.3
+	 * @deprecated since 5.5.17 in favor of standard {@link MqttConnectOptions#setCleanSession(boolean)}.
+	 * Will be removed in 6.1.0.
 	 */
+	@Deprecated
 	ConsumerStopAction getConsumerStopAction();
 
 }

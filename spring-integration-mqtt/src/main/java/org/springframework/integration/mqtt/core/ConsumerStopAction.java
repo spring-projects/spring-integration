@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,17 @@
 package org.springframework.integration.mqtt.core;
 
 /**
- * Action to take regarding subscrptions when consumer stops.
+ * Action to take regarding subscriptions when consumer stops.
  *
  * @author Gary Russell
+ *
  * @since 4.2.3
  *
+ * @deprecated since 5.5.17
+ * in favor of standard {@link org.eclipse.paho.client.mqttv3.MqttConnectOptions#setCleanSession(boolean)}.
+ * Will be removed in 6.1.0.
  */
+@Deprecated
 public enum ConsumerStopAction {
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.Mqttv3ClientManager;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
@@ -373,7 +372,7 @@ public class MqttAdapterTests {
 	@Test
 	public void testStopActionDefault() throws Exception {
 		final IMqttAsyncClient client = mock(IMqttAsyncClient.class);
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null, null);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null);
 
 		adapter.start();
 		adapter.connectComplete(false, null);
@@ -384,30 +383,7 @@ public class MqttAdapterTests {
 	@Test
 	public void testStopActionDefaultNotClean() throws Exception {
 		final IMqttAsyncClient client = mock(IMqttAsyncClient.class);
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, false, null);
-
-		adapter.start();
-		adapter.connectComplete(false, null);
-		adapter.stop();
-		verifyNotUnsubscribe(client);
-	}
-
-	@Test
-	public void testStopActionAlways() throws Exception {
-		final IMqttAsyncClient client = mock(IMqttAsyncClient.class);
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, false,
-				ConsumerStopAction.UNSUBSCRIBE_ALWAYS);
-
-		adapter.start();
-		adapter.connectComplete(false, null);
-		adapter.stop();
-		verifyUnsubscribe(client);
-	}
-
-	@Test
-	public void testStopActionNever() throws Exception {
-		final IMqttAsyncClient client = mock(IMqttAsyncClient.class);
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null, ConsumerStopAction.UNSUBSCRIBE_NEVER);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, false);
 
 		adapter.start();
 		adapter.connectComplete(false, null);
@@ -539,8 +515,8 @@ public class MqttAdapterTests {
 		verify(client).disconnectForcibly(5_000L);
 	}
 
-	private MqttPahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttAsyncClient client, Boolean cleanSession,
-			ConsumerStopAction action) throws MqttException {
+	private MqttPahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttAsyncClient client, Boolean cleanSession)
+			throws MqttException {
 
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory() {
 
@@ -554,9 +530,6 @@ public class MqttAdapterTests {
 		connectOptions.setServerURIs(new String[] {"tcp://localhost:1883"});
 		if (cleanSession != null) {
 			connectOptions.setCleanSession(cleanSession);
-		}
-		if (action != null) {
-			factory.setConsumerStopAction(action);
 		}
 		factory.setConnectionOptions(connectOptions);
 		given(client.isConnected()).willReturn(true);
