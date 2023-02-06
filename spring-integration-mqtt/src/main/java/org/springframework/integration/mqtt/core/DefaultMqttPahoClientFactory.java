@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
 	private MqttClientPersistence persistence;
 
+	@SuppressWarnings("deprecation")
 	private ConsumerStopAction consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
 
 	/**
@@ -55,7 +56,10 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	 * Get the consumer stop action.
 	 * @return the consumer stop action.
 	 * @since 4.2.3
+	 * @deprecated since 5.5.17 in favor of standard {@link MqttConnectOptions#setCleanSession(boolean)}.
+	 * Will be removed in 6.1.0.
 	 */
+	@Deprecated
 	@Override
 	public ConsumerStopAction getConsumerStopAction() {
 		return this.consumerStopAction;
@@ -66,7 +70,10 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	 * Default: {@link ConsumerStopAction#UNSUBSCRIBE_CLEAN}.
 	 * @param consumerStopAction the consumer stop action.
 	 * @since 4.2.3.
+	 * @deprecated since 5.5.17 in favor of standard {@link MqttConnectOptions#setCleanSession(boolean)}.
+	 * Will be removed in 6.1.0.
 	 */
+	@Deprecated
 	public void setConsumerStopAction(ConsumerStopAction consumerStopAction) {
 		this.consumerStopAction = consumerStopAction;
 	}

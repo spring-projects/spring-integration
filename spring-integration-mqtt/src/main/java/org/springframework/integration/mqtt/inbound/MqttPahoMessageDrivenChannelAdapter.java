@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.SimpleAcknowledgment;
 import org.springframework.integration.mqtt.core.ClientManager;
-import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoComponent;
@@ -78,7 +77,8 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	private volatile boolean cleanSession;
 
-	private volatile ConsumerStopAction consumerStopAction;
+	@SuppressWarnings("deprecation")
+	private volatile org.springframework.integration.mqtt.core.ConsumerStopAction consumerStopAction;
 
 	/**
 	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
@@ -195,11 +195,14 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected synchronized void doStop() {
 		try {
-			if (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
-					|| (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_CLEAN)
+			if (this.consumerStopAction
+					.equals(org.springframework.integration.mqtt.core.ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
+					|| (this.consumerStopAction
+					.equals(org.springframework.integration.mqtt.core.ConsumerStopAction.UNSUBSCRIBE_CLEAN)
 					&& this.cleanSession)) {
 
 				this.client.unsubscribe(getTopic());
@@ -270,12 +273,13 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private synchronized void connect() throws MqttException { // NOSONAR
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 		this.cleanSession = connectionOptions.isCleanSession();
 		this.consumerStopAction = this.clientFactory.getConsumerStopAction();
 		if (this.consumerStopAction == null) {
-			this.consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
+			this.consumerStopAction = org.springframework.integration.mqtt.core.ConsumerStopAction.UNSUBSCRIBE_CLEAN;
 		}
 
 		var clientManager = getClientManager();
