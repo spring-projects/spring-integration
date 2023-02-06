@@ -18,7 +18,6 @@ package org.springframework.integration.mqtt;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -62,7 +61,6 @@ import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
@@ -124,7 +122,7 @@ public class MqttAdapterTests {
 	public void testCloseOnBadConnectIn() throws Exception {
 		final IMqttClient client = mock(IMqttClient.class);
 		willThrow(new MqttException(0)).given(client).connect(any());
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null, ConsumerStopAction.UNSUBSCRIBE_NEVER);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null);
 		adapter.start();
 		verify(client).close();
 		adapter.stop();
@@ -370,7 +368,7 @@ public class MqttAdapterTests {
 	@Test
 	public void testStopActionDefault() throws Exception {
 		final IMqttClient client = mock(IMqttClient.class);
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null, null);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null);
 
 		adapter.start();
 		adapter.stop();
@@ -380,35 +378,7 @@ public class MqttAdapterTests {
 	@Test
 	public void testStopActionDefaultNotClean() throws Exception {
 		final IMqttClient client = mock(IMqttClient.class);
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, false, null);
-
-		adapter.start();
-		adapter.stop();
-		verifyNotUnsubscribe(client);
-	}
-
-	@Test
-	public void testStopActionAlways() throws Exception {
-		final IMqttClient client = mock(IMqttClient.class);
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, false,
-				ConsumerStopAction.UNSUBSCRIBE_ALWAYS);
-
-		adapter.start();
-		adapter.stop();
-		verifyUnsubscribe(client);
-
-		adapter.connectionLost(new RuntimeException("Intentional"));
-
-		TaskScheduler taskScheduler = TestUtils.getPropertyValue(adapter, "taskScheduler", TaskScheduler.class);
-
-		verify(taskScheduler, never())
-				.schedule(any(Runnable.class), any(Date.class));
-	}
-
-	@Test
-	public void testStopActionNever() throws Exception {
-		final IMqttClient client = mock(IMqttClient.class);
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null, ConsumerStopAction.UNSUBSCRIBE_NEVER);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, false);
 
 		adapter.start();
 		adapter.stop();
@@ -439,7 +409,7 @@ public class MqttAdapterTests {
 	@Test
 	public void testReconnect() throws Exception {
 		final IMqttClient client = mock(IMqttClient.class);
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null, ConsumerStopAction.UNSUBSCRIBE_NEVER);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null);
 		adapter.setRecoveryInterval(10);
 		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
@@ -576,7 +546,7 @@ public class MqttAdapterTests {
 	@Test
 	public void testNoNPEOnReconnectAndStopRaceCondition() throws Exception {
 		final IMqttClient client = mock(IMqttClient.class);
-		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null, ConsumerStopAction.UNSUBSCRIBE_NEVER);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapterIn(client, null);
 		adapter.setRecoveryInterval(10);
 
 		MqttException mqttException = new MqttException(MqttException.REASON_CODE_SUBSCRIBE_FAILED);
@@ -615,8 +585,8 @@ public class MqttAdapterTests {
 		taskScheduler.destroy();
 	}
 
-	private MqttPahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttClient client, Boolean cleanSession,
-			ConsumerStopAction action) {
+	private MqttPahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttClient client, Boolean cleanSession)
+			throws MqttException {
 
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory() {
 
@@ -630,9 +600,6 @@ public class MqttAdapterTests {
 		connectOptions.setServerURIs(new String[]{ "tcp://localhost:1883" });
 		if (cleanSession != null) {
 			connectOptions.setCleanSession(cleanSession);
-		}
-		if (action != null) {
-			factory.setConsumerStopAction(action);
 		}
 		factory.setConnectionOptions(connectOptions);
 		given(client.isConnected()).willReturn(true);
