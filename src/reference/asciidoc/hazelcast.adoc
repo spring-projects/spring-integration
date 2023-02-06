@@ -619,8 +619,8 @@ PollableChannel hazelcastQueueChannel(HazelcastInstance hazelcastInstance) {
 Placing this config on several nodes in Hazelcast cluster of the application, will make the `QueueChannel` as distributed and only one node will be able to poll a single `Message` from that `IQueue`.
 This works similar to <<./jms.adoc#jms-channel,`PollableJmsChannel`>>, <<./kafka.adoc#kafka-channels,`PollableKafkaChannel`>> or <<./amqp.adoc#amqp-channels,`PollableAmqpChannel`>>.
 
-If the producer side is not a Spring Integration, there is no way to configure a `QueueChannel`, and rather a plain Hazelcast `IQueue` API is used to produce the data.
-In this case a `QueueChannel` approach is wrong on the consumer side: an <<./channel-adapter.adoc#channel-adapter-namespace-inbound,Inbound Channel Adapter>> solution must be used instead:
+If the producer side is not a Spring Integration application, there is no way to configure a `QueueChannel`, and therefore the plain Hazelcast `IQueue` API is used to produce the data.
+In this case, the `QueueChannel` approach is wrong on the consumer side: an <<./channel-adapter.adoc#channel-adapter-namespace-inbound,Inbound Channel Adapter>> solution must be used instead:
 
 ====
 [source,java]
@@ -638,8 +638,8 @@ Supplier<String> fromHzIQueueSource(IQueue<String> myStringHzQueue) {
 ----
 ====
 
-An `ITopic` abstraction in Hazelcast has similar semantics to a `Topic` in JMS: all subscribers receive published messages.
-With a pair of simple `MessageChannel` beans this mechanism as an out-of-the-box feature:
+The `ITopic` abstraction in Hazelcast has similar semantics to a `Topic` in JMS: all subscribers receive published messages.
+With a pair of simple `MessageChannel` beans this mechanism is supported as an out-of-the-box feature:
 
 ====
 [source,java]
@@ -669,7 +669,7 @@ The `FixedSubscriberChannel` is an optimized variant of `DirectChannel`, which r
 Since the `MessageHandler` is a functional interface a simple lambda for the `handleMessage` method can be provided.
 When a message is sent to the `publishToHazelcastTopicChannel` it is just published onto the Hazelcast `ITopic`.
 The `com.hazelcast.topic.MessageListener` is a functional interface, too, hence a lambda to the `ITopic#addMessageListener` can be provided.
-So, when ever in the Hazelcast the `fromHazelcastTopicChannel` is subscribed, it is going to consume a message sent to the mentioned `ITopic`.
+So, a subscriber to the `fromHazelcastTopicChannel` will consume all messages sent to the mentioned `ITopic`.
 
 An `ExecutorChannel` can be supplied with an `IExecutorService`.
 For example, with respective configuration a cluster-wide singleton can be achieved:
