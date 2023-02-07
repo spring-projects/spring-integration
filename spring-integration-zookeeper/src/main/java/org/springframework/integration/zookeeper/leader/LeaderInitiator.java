@@ -16,12 +16,16 @@
 
 package org.springframework.integration.zookeeper.leader;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
+import org.apache.curator.framework.recipes.leader.Participant;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.leader.Candidate;
@@ -38,6 +42,7 @@ import org.springframework.util.StringUtils;
  * @author Janne Valkealahti
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ivan Zaitsev
  *
  * @since 4.2
  */
@@ -49,6 +54,8 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	private final CuratorContext context = new CuratorContext();
 
+	private final CuratorContext nullContext = new NullCuratorContext();
+
 	/**
 	 * Curator client.
 	 */
@@ -58,20 +65,6 @@ public class LeaderInitiator implements SmartLifecycle {
 	 * Candidate for leader election.
 	 */
 	private final Candidate candidate;
-
-	private final Context nullContext = new Context() {
-
-		@Override
-		public boolean isLeader() {
-			return false;
-		}
-
-		@Override
-		public String getRole() {
-			return LeaderInitiator.this.candidate.getRole();
-		}
-
-	};
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -214,7 +207,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	 * @return the context.
 	 * @since 5.0
 	 */
-	public Context getContext() {
+	public CuratorContext getContext() {
 		if (this.leaderSelector == null) {
 			return this.nullContext;
 		}
@@ -283,7 +276,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	/**
 	 * Implementation of leadership context backed by Curator.
 	 */
-	private class CuratorContext implements Context {
+	public class CuratorContext implements Context {
 
 		CuratorContext() {
 		}
@@ -303,11 +296,53 @@ public class LeaderInitiator implements SmartLifecycle {
 			return LeaderInitiator.this.candidate.getRole();
 		}
 
+		/**
+		 * Get the leader
+		 * @return the leader.
+		 * @since 6.0.3
+		 */
+		public Participant getLeader() throws Exception {
+			return LeaderInitiator.this.leaderSelector.getLeader();
+		}
+
+		/**
+		 * Get the list of participants
+		 * @return list of participants.
+		 * @since 6.0.3
+		 */
+		public Collection<Participant> getParticipants() throws Exception {
+			return LeaderInitiator.this.leaderSelector.getParticipants();
+		}
+
 		@Override
 		public String toString() {
 			return "CuratorContext{role=" + LeaderInitiator.this.candidate.getRole() +
 					", id=" + LeaderInitiator.this.candidate.getId() +
 					", isLeader=" + isLeader() + "}";
+		}
+
+	}
+
+	private class NullCuratorContext extends CuratorContext {
+
+		@Override
+		public boolean isLeader() {
+			return false;
+		}
+
+		@Override
+		public String getRole() {
+			return LeaderInitiator.this.candidate.getRole();
+		}
+
+		@Override
+		public Participant getLeader() throws Exception {
+			return null;
+		}
+
+		@Override
+		public Collection<Participant> getParticipants() throws Exception {
+			return List.of();
 		}
 
 	}
