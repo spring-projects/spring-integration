@@ -23,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.leader.Participant;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ivan Zaitsev
  *
  * @since 4.2
  *
@@ -88,6 +90,8 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 	public void testExceptionFromEvent() throws Exception {
 		CountDownLatch onGranted = new CountDownLatch(1);
 
+		Participant participant = new Participant("foo", true);
+
 		LeaderInitiator initiator = new LeaderInitiator(client, new DefaultCandidate("foo", "bar"));
 
 		initiator.setLeaderEventPublisher(new DefaultLeaderEventPublisher() {
@@ -110,6 +114,8 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 		assertThat(onGranted.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(initiator.getContext().isLeader()).isTrue();
 		assertThat(initiator.getContext().getRole()).isEqualTo("bar");
+		assertThat(initiator.getContext().getLeader()).isEqualTo(participant);
+		assertThat(initiator.getContext().getParticipants()).contains(participant);
 
 		initiator.stop();
 	}
