@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,48 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 /**
  * An {@link AbstractConnectionFactorySpec} for {@link AbstractServerConnectionFactory}s.
  *
+ * @param <S> the target {@link TcpServerConnectionFactorySpec} implementation type.
+ * @param <C> the target {@link AbstractServerConnectionFactory} implementation type.
+ *
  * @author Gary Russell
  * @author Artem Bilan
  *
  * @since 5.0
  *
  */
-public class TcpServerConnectionFactorySpec
-		extends AbstractConnectionFactorySpec<TcpServerConnectionFactorySpec, AbstractServerConnectionFactory> {
+public abstract class TcpServerConnectionFactorySpec
+				<S extends TcpServerConnectionFactorySpec<S, C>, C extends AbstractServerConnectionFactory>
+		extends AbstractConnectionFactorySpec<S, C> {
 
+	/**
+	 * Create an instance.
+	 * @param cf the connection factory.
+	 * @since 6.0.3
+	 */
+	protected TcpServerConnectionFactorySpec(C cf) {
+		super(cf);
+	}
+
+	/**
+	 * Create an instance.
+	 * @param port the port.
+	 * @deprecated since 6.0.3; use a subclass.
+	 */
+	@Deprecated
 	protected TcpServerConnectionFactorySpec(int port) {
 		this(port, false);
 	}
 
+	/**
+	 * Create an instance.
+	 * @param port the port.
+	 * @param nio true for NIO.
+	 * @deprecated since 6.0.3; use a subclass.
+	 */
+	@Deprecated
+	@SuppressWarnings("unchecked")
 	protected TcpServerConnectionFactorySpec(int port, boolean nio) {
-		super(nio ? new TcpNioServerConnectionFactory(port) : new TcpNetServerConnectionFactory(port));
+		super(nio ? (C) new TcpNioServerConnectionFactory(port) : (C) new TcpNetServerConnectionFactory(port));
 	}
 
 	/**
@@ -45,7 +72,7 @@ public class TcpServerConnectionFactorySpec
 	 * @return the spec.
 	 * @see AbstractServerConnectionFactory#setLocalAddress(String)
 	 */
-	public TcpServerConnectionFactorySpec localAddress(String localAddress) {
+	public S localAddress(String localAddress) {
 		this.target.setLocalAddress(localAddress);
 		return _this();
 	}
@@ -55,7 +82,7 @@ public class TcpServerConnectionFactorySpec
 	 * @return the spec.
 	 * @see AbstractServerConnectionFactory#setBacklog(int)
 	 */
-	public TcpServerConnectionFactorySpec backlog(int backlog) {
+	public S backlog(int backlog) {
 		this.target.setBacklog(backlog);
 		return _this();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ public final class Tcp {
 	 * @param port the port to listen on.
 	 * @return the spec.
 	 */
-	public static TcpServerConnectionFactorySpec nioServer(int port) {
-		return new TcpServerConnectionFactorySpec(port, true);
+	public static TcpNioServerConnectionFactorySpec nioServer(int port) {
+		return new TcpNioServerConnectionFactorySpec(port);
 	}
 
 	/**
@@ -48,8 +48,8 @@ public final class Tcp {
 	 * @param port the port to listen on.
 	 * @return the spec.
 	 */
-	public static TcpServerConnectionFactorySpec netServer(int port) {
-		return new TcpServerConnectionFactorySpec(port, false);
+	public static TcpNetServerConnectionFactorySpec netServer(int port) {
+		return new TcpNetServerConnectionFactorySpec(port);
 	}
 
 	/**
@@ -58,8 +58,8 @@ public final class Tcp {
 	 * @param port the port to connect to.
 	 * @return the spec.
 	 */
-	public static TcpClientConnectionFactorySpec nioClient(String host, int port) {
-		return new TcpClientConnectionFactorySpec(host, port, true);
+	public static TcpNioClientConnectionFactorySpec nioClient(String host, int port) {
+		return new TcpNioClientConnectionFactorySpec(host, port);
 	}
 
 	/**
@@ -68,8 +68,8 @@ public final class Tcp {
 	 * @param port the port to connect to.
 	 * @return the spec.
 	 */
-	public static TcpClientConnectionFactorySpec netClient(String host, int port) {
-		return new TcpClientConnectionFactorySpec(host, port, false);
+	public static TcpNetClientConnectionFactorySpec netClient(String host, int port) {
+		return new TcpNetClientConnectionFactorySpec(host, port);
 	}
 
 	/**
@@ -127,7 +127,7 @@ public final class Tcp {
 	 * @param connectionFactory the connection factory spec.
 	 * @return the spec.
 	 */
-	public static TcpOutboundGatewaySpec outboundGateway(TcpClientConnectionFactorySpec connectionFactory) {
+	public static TcpOutboundGatewaySpec outboundGateway(TcpClientConnectionFactorySpec<?, ?> connectionFactory) {
 		return new TcpOutboundGatewaySpec(connectionFactory);
 	}
 
