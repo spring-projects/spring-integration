@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,27 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNetConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNioConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.TcpSocketSupport;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -87,6 +93,64 @@ public class ConnectionFacforyTests {
 
 		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).get();
 		assertThat(client instanceof TcpNetClientConnectionFactory).isTrue();
+	}
+
+	@Test
+	void netCustomServer() {
+		TcpSocketSupport sockSupp = mock(TcpSocketSupport.class);
+		TcpNetConnectionSupport conSupp = mock(TcpNetConnectionSupport.class);
+		TcpSocketFactorySupport factSupp = mock(TcpSocketFactorySupport.class);
+		TcpNetServerConnectionFactory server = Tcp.netServer(0)
+				.socketSupport(sockSupp)
+				.connectionSupport(conSupp)
+				.socketFactorySupport(factSupp)
+				.get();
+		assertThat(TestUtils.getPropertyValue(server, "tcpSocketSupport")).isSameAs(sockSupp);
+		assertThat(TestUtils.getPropertyValue(server, "tcpNetConnectionSupport")).isSameAs(conSupp);
+		assertThat(TestUtils.getPropertyValue(server, "tcpSocketFactorySupport")).isSameAs(factSupp);
+	}
+
+	@Test
+	void nioCustomServer() {
+		TcpSocketSupport sockSupp = mock(TcpSocketSupport.class);
+		TcpNioConnectionSupport conSupp = mock(TcpNioConnectionSupport.class);
+		TcpNioServerConnectionFactory server = Tcp.nioServer(0)
+				.socketSupport(sockSupp)
+				.directBuffers(true)
+				.connectionSupport(conSupp)
+				.get();
+		assertThat(TestUtils.getPropertyValue(server, "tcpSocketSupport")).isSameAs(sockSupp);
+		assertThat(TestUtils.getPropertyValue(server, "usingDirectBuffers", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(server, "tcpNioConnectionSupport")).isSameAs(conSupp);
+	}
+
+	@Test
+	void netCustomClient() {
+		TcpSocketSupport sockSupp = mock(TcpSocketSupport.class);
+		TcpNetConnectionSupport conSupp = mock(TcpNetConnectionSupport.class);
+		TcpSocketFactorySupport factSupp = mock(TcpSocketFactorySupport.class);
+		TcpNetClientConnectionFactory client = Tcp.netClient("localhost", 0)
+				.socketSupport(sockSupp)
+				.connectionSupport(conSupp)
+				.socketFactorySupport(factSupp)
+				.get();
+		assertThat(TestUtils.getPropertyValue(client, "tcpSocketSupport")).isSameAs(sockSupp);
+		assertThat(TestUtils.getPropertyValue(client, "tcpNetConnectionSupport")).isSameAs(conSupp);
+		assertThat(TestUtils.getPropertyValue(client, "tcpSocketFactorySupport")).isSameAs(factSupp);
+	}
+
+	@Test
+	void nioCustomClient() {
+		TcpSocketSupport sockSupp = mock(TcpSocketSupport.class);
+		TcpNioConnectionSupport conSupp = mock(TcpNioConnectionSupport.class);
+		TcpNioClientConnectionFactory client = Tcp.nioClient("localhost", 0)
+				.socketSupport(sockSupp)
+				.directBuffers(true)
+				.connectionSupport(conSupp)
+				.get();
+		assertThat(TestUtils.getPropertyValue(client, "tcpSocketSupport")).isSameAs(sockSupp);
+		assertThat(TestUtils.getPropertyValue(client, "usingDirectBuffers", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(client, "tcpNioConnectionSupport")).isSameAs(conSupp);
 	}
 
 }

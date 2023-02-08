@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -314,10 +314,18 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		super.stop();
 	}
 
+	/**
+	 * Set to true to use direct buffers.
+	 * @param usingDirectBuffers true for direct.
+	 */
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
 		this.usingDirectBuffers = usingDirectBuffers;
 	}
 
+	/**
+	 * Set the {@link TcpNioConnectionSupport} to use.
+	 * @param tcpNioSupport the {@link TcpNioConnectionSupport}.
+	 */
 	public void setTcpNioConnectionSupport(TcpNioConnectionSupport tcpNioSupport) {
 		Assert.notNull(tcpNioSupport, "TcpNioSupport must not be null");
 		this.tcpNioConnectionSupport = tcpNioSupport;
