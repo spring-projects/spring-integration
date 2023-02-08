@@ -101,9 +101,9 @@ public class ConnectionFacforyTests {
 		TcpNetConnectionSupport conSupp = mock(TcpNetConnectionSupport.class);
 		TcpSocketFactorySupport factSupp = mock(TcpSocketFactorySupport.class);
 		TcpNetServerConnectionFactory server = Tcp.netServer(0)
-				.tcpSocketSupport(sockSupp)
-				.tcpNetConnectionSupport(conSupp)
-				.tcpSocketFactorySupport(factSupp)
+				.socketSupport(sockSupp)
+				.connectionSupport(conSupp)
+				.socketFactorySupport(factSupp)
 				.get();
 		assertThat(TestUtils.getPropertyValue(server, "tcpSocketSupport")).isSameAs(sockSupp);
 		assertThat(TestUtils.getPropertyValue(server, "tcpNetConnectionSupport")).isSameAs(conSupp);
@@ -115,9 +115,9 @@ public class ConnectionFacforyTests {
 		TcpSocketSupport sockSupp = mock(TcpSocketSupport.class);
 		TcpNioConnectionSupport conSupp = mock(TcpNioConnectionSupport.class);
 		TcpNioServerConnectionFactory server = Tcp.nioServer(0)
-				.tcpSocketSupport(sockSupp)
-				.usingDirectBuffers(true)
-				.tcpNioConnectionSupport(conSupp)
+				.socketSupport(sockSupp)
+				.directBuffers(true)
+				.connectionSupport(conSupp)
 				.get();
 		assertThat(TestUtils.getPropertyValue(server, "tcpSocketSupport")).isSameAs(sockSupp);
 		assertThat(TestUtils.getPropertyValue(server, "usingDirectBuffers", Boolean.class)).isTrue();
@@ -130,9 +130,9 @@ public class ConnectionFacforyTests {
 		TcpNetConnectionSupport conSupp = mock(TcpNetConnectionSupport.class);
 		TcpSocketFactorySupport factSupp = mock(TcpSocketFactorySupport.class);
 		TcpNetClientConnectionFactory client = Tcp.netClient("localhost", 0)
-				.tcpSocketSupport(sockSupp)
-				.tcpNetConnectionSupport(conSupp)
-				.tcpSocketFactorySupport(factSupp)
+				.socketSupport(sockSupp)
+				.connectionSupport(conSupp)
+				.socketFactorySupport(factSupp)
 				.get();
 		assertThat(TestUtils.getPropertyValue(client, "tcpSocketSupport")).isSameAs(sockSupp);
 		assertThat(TestUtils.getPropertyValue(client, "tcpNetConnectionSupport")).isSameAs(conSupp);
@@ -144,9 +144,9 @@ public class ConnectionFacforyTests {
 		TcpSocketSupport sockSupp = mock(TcpSocketSupport.class);
 		TcpNioConnectionSupport conSupp = mock(TcpNioConnectionSupport.class);
 		TcpNioClientConnectionFactory client = Tcp.nioClient("localhost", 0)
-				.tcpSocketSupport(sockSupp)
-				.usingDirectBuffers(true)
-				.tcpNioConnectionSupport(conSupp)
+				.socketSupport(sockSupp)
+				.directBuffers(true)
+				.connectionSupport(conSupp)
 				.get();
 		assertThat(TestUtils.getPropertyValue(client, "tcpSocketSupport")).isSameAs(sockSupp);
 		assertThat(TestUtils.getPropertyValue(client, "usingDirectBuffers", Boolean.class)).isTrue();

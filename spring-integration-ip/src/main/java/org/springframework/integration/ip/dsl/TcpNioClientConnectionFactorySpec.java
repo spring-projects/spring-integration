@@ -38,7 +38,7 @@ public class TcpNioClientConnectionFactorySpec
 	 * @return the spec.
 	 * @see TcpNioClientConnectionFactory#setUsingDirectBuffers(boolean)
 	 */
-	public TcpNioClientConnectionFactorySpec usingDirectBuffers(boolean usingDirectBuffers) {
+	public TcpNioClientConnectionFactorySpec directBuffers(boolean usingDirectBuffers) {
 		this.target.setUsingDirectBuffers(usingDirectBuffers);
 		return this;
 	}
@@ -49,7 +49,7 @@ public class TcpNioClientConnectionFactorySpec
 	 * @return the spec.
 	 * @see TcpNioClientConnectionFactory#setTcpNioConnectionSupport(TcpNioConnectionSupport)
 	 */
-	public TcpNioClientConnectionFactorySpec tcpNioConnectionSupport(TcpNioConnectionSupport tcpNioSupport) {
+	public TcpNioClientConnectionFactorySpec connectionSupport(TcpNioConnectionSupport tcpNioSupport) {
 		this.target.setTcpNioConnectionSupport(tcpNioSupport);
 		return this;
 	}

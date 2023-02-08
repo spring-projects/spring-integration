@@ -39,7 +39,7 @@ public class TcpNetServerConnectionFactorySpec
 	 * @return the spec.
 	 * @see TcpNetServerConnectionFactory#setTcpNetConnectionSupport(TcpNetConnectionSupport)
 	 */
-	public TcpNetServerConnectionFactorySpec tcpNetConnectionSupport(TcpNetConnectionSupport connectionSupport) {
+	public TcpNetServerConnectionFactorySpec connectionSupport(TcpNetConnectionSupport connectionSupport) {
 		this.target.setTcpNetConnectionSupport(connectionSupport);
 		return this;
 	}
@@ -50,7 +50,7 @@ public class TcpNetServerConnectionFactorySpec
 	 * @return the spec.
 	 * @see TcpNetServerConnectionFactory#setTcpSocketFactorySupport(TcpSocketFactorySupport)
 	 */
-	public TcpNetServerConnectionFactorySpec tcpSocketFactorySupport(TcpSocketFactorySupport tcpSocketFactorySupport) {
+	public TcpNetServerConnectionFactorySpec socketFactorySupport(TcpSocketFactorySupport tcpSocketFactorySupport) {
 		this.target.setTcpSocketFactorySupport(tcpSocketFactorySupport);
 		return this;
 	}

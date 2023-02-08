@@ -215,9 +215,20 @@ public abstract class AbstractConnectionFactorySpec
 	/**
 	 * @param tcpSocketSupport the {@link TcpSocketSupport}.
 	 * @return the spec.
+	 * @deprecated in favor of {@link #socketSupport(TcpSocketSupport)}.
 	 * @see AbstractConnectionFactory#setTcpSocketSupport(TcpSocketSupport)
 	 */
+	@Deprecated
 	public S tcpSocketSupport(TcpSocketSupport tcpSocketSupport) {
+		return socketSupport(tcpSocketSupport);
+	}
+
+	/**
+	 * @param tcpSocketSupport the {@link TcpSocketSupport}.
+	 * @return the spec.
+	 * @see AbstractConnectionFactory#setTcpSocketSupport(TcpSocketSupport)
+	 */
+	public S socketSupport(TcpSocketSupport tcpSocketSupport) {
 		this.target.setTcpSocketSupport(tcpSocketSupport);
 		return _this();
 	}
