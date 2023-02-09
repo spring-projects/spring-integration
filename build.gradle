@@ -94,6 +94,7 @@ ext {
     mysqlVersion = '8.0.32'
     pahoMqttClientVersion = '1.2.5'
     postgresVersion = '42.5.4'
+    protobufVersion = '3.21.12'
     r2dbch2Version = '1.0.0.RELEASE'
     reactorVersion = '2022.0.3'
     resilience4jVersion = '2.0.2'
@@ -525,6 +526,7 @@ project('spring-integration-core') {
     apply plugin: 'org.jetbrains.dokka'
 
     dependencies {
+        api "com.google.protobuf:protobuf-java:$protobufVersion"
         api 'org.springframework:spring-aop'
         api 'org.springframework:spring-context'
         api 'org.springframework:spring-messaging'
