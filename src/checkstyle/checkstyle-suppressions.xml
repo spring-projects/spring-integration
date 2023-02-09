@@ -13,4 +13,5 @@
 	<suppress files="[\\/]test[\\/]" checks="EqualsHashCode"/>
 	<suppress files="[\\/]test[\\/]" checks="Atclause*"/>
 	<suppress files="[\\/]test[\\/]" checks="InterfaceIsType"/>
+	<suppress files="org[\\/]springframework[\\/]integration[\\/]transformer[\\/]proto" checks=".*"/>
 </suppressions>

@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+package tutorial;
+
+option java_multiple_files = true;
+option java_package = "org.springframework.integration.transformer.proto";
+option java_outer_classname = "TestProtos";
+
+message TestClass1 {
+  optional string bar = 1;
+  optional int32 qux = 2;
+}
+
+message TestClass2 {
+  optional string bar = 1;
+  optional int32 qux = 2;
+}

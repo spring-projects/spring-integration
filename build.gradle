@@ -94,6 +94,7 @@ ext {
     mysqlVersion = '8.0.32'
     pahoMqttClientVersion = '1.2.5'
     postgresVersion = '42.5.4'
+    protobufVersion = '3.21.12'
     r2dbch2Version = '1.0.0.RELEASE'
     reactorVersion = '2022.0.3'
     resilience4jVersion = '2.0.2'
@@ -542,7 +543,7 @@ project('spring-integration-core') {
         optionalApi('com.fasterxml.jackson.module:jackson-module-kotlin') {
             exclude group: 'org.jetbrains.kotlin'
         }
-
+        optionalApi "com.google.protobuf:protobuf-java:$protobufVersion"
         optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
         optionalApi "com.esotericsoftware:kryo:$kryoVersion"
         optionalApi 'io.micrometer:micrometer-core'
@@ -553,6 +554,7 @@ project('spring-integration-core') {
         optionalApi "org.apache.avro:avro:$avroVersion"
         optionalApi 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
 
+        testImplementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
         testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
         testImplementation 'io.micrometer:micrometer-observation-test'
         testImplementation ('io.micrometer:micrometer-tracing-integration-test') {
