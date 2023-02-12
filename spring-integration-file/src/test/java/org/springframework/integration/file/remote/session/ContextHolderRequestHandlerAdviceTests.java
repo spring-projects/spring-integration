@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -61,17 +62,15 @@ public class ContextHolderRequestHandlerAdviceTests {
 	public void testFlow() {
 		final Map<String, Object> headers = Map.of("test-key", "foo");
 		config.in().send(new GenericMessage<>("any-payload", headers));
+
 		Message<?> received = config.out().receive(0);
 		assertThat(received).isNotNull();
-		assertThat(Config.testSessionDuringHandling).isNotNull().isEqualTo(foo.getSession());
-		assertThat(config.dsf().getSession()).isEqualTo(bar.getSession());
+		assertThat(TestUtils.getPropertyValue(config.dsf(), "threadKey", ThreadLocal.class).get()).isNull();
 	}
 
 	@Configuration
 	@EnableIntegration
 	public static class Config {
-
-		public static Session<String> testSessionDuringHandling = null;
 
 		@Bean
 		MessageChannel in() {
@@ -102,10 +101,7 @@ public class ContextHolderRequestHandlerAdviceTests {
 		ContextHolderRequestHandlerAdvice advice() {
 			final DelegatingSessionFactory<String> dsf = dsf();
 			final Function<Message<?>, Object> keyProviderFn = m -> m.getHeaders().get("test-key");
-			final Consumer<Object> contextSetHookFn = key -> {
-				dsf.setThreadKey(key);
-				testSessionDuringHandling = dsf.getSession();
-			};
+			final Consumer<Object> contextSetHookFn = dsf::setThreadKey;
 			final Consumer<Object> contextClearHookFn = key -> dsf.clearThreadKey();
 			return new ContextHolderRequestHandlerAdvice(keyProviderFn, contextSetHookFn, contextClearHookFn);
 		}

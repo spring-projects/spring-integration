@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,107 +21,48 @@ import java.util.function.Function;
 
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
- * Provides a key for the context holder.This key could for example be stored in a message header.
- *
+ * Provides a key for the context holder.
+ * This key could for example be stored in a message header.
  * @author Adel Haidar
  * @since 6.1
  */
 public class ContextHolderRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
-	public Function<Message<?>, Object> keyProvider;
 
-	public Consumer<Object> contextSetHook;
+	public final Function<Message<?>, Object> keyProvider;
 
-	public Consumer<Object> contextClearHook;
+	public final Consumer<Object> contextSetHook;
+
+	public final Consumer<Object> contextClearHook;
 
 	/**
 	 * Constructor for the ContextHolderRequestHandlerAdvice.
-	 *
 	 * @param keyProvider The key provider function.
 	 * @param contextSetHook The context set hook function.
 	 * @param contextClearHook The context clear hook function.
 	 */
-	public ContextHolderRequestHandlerAdvice(final Function<Message<?>, Object> keyProvider, final Consumer<Object> contextSetHook, final Consumer<Object> contextClearHook) {
+	public ContextHolderRequestHandlerAdvice(Function<Message<?>, Object> keyProvider, Consumer<Object> contextSetHook, Consumer<Object> contextClearHook) {
+		Assert.notNull(keyProvider, "'keyProvider' must not be null");
+		Assert.notNull(contextSetHook, "'contextSetHook' must not be null");
+		Assert.notNull(contextClearHook, "'contextClearHook' must not be null");
 		this.keyProvider = keyProvider;
 		this.contextSetHook = contextSetHook;
-		this.contextClearHook = contextClearHook;
-	}
-
-	/**
-	 * Returns the key provider function.
-	 * @return The key provider function.
-	 *
-	 */
-	public Function<Message<?>, Object> getKeyProvider() {
-		return this.keyProvider;
-	}
-
-	/**
-	 * Sets the key provider function.
-	 * @param keyProvider the key provider.
-	 */
-	public void setKeyProvider(Function<Message<?>, Object> keyProvider) {
-		this.keyProvider = keyProvider;
-	}
-
-	/**
-	 * Returns the context set hook function.
-	 * @return The context set hook function.
-	 *
-	 */
-	public Consumer<Object> getContextSetHook() {
-		return this.contextSetHook;
-	}
-
-	/**
-	 * Sets the context set hook function.
-	 * @param contextSetHook the context set hook function.
-	 */
-	public void setContextSetHook(Consumer<Object> contextSetHook) {
-		this.contextSetHook = contextSetHook;
-	}
-
-	/**
-	 * Returns the context clear hook function.
-	 * @return The context clear hook function.
-	 */
-	public Consumer<Object> getContextClearHook() {
-		return this.contextClearHook;
-	}
-
-	/**
-	 * Sets the context clear hook function.
-	 * @param contextClearHook the context clear hook function.
-	 */
-	public void setContextClearHook(Consumer<Object> contextClearHook) {
 		this.contextClearHook = contextClearHook;
 	}
 
 	@Override
 	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
-		Object result;
 		final Object key = this.keyProvider.apply(message);
+		logger.trace("Setting context key to: " + key + " message: " + message);
 		try {
-			setContext(key);
-			result = callback.execute();
-		}
-		catch (Exception e) {
-			result = e;
-			logger.error("Failure setting context for " + message + ": " + e.getMessage());
+			this.contextSetHook.accept(key);
+			return callback.execute();
 		}
 		finally {
-			contextClearHook(key);
+			this.contextClearHook.accept(key);
 		}
-		return result;
-	}
-
-	private void setContext(Object key) {
-		this.contextSetHook.accept(key);
-	}
-
-	private void contextClearHook(Object key) {
-		this.contextClearHook.accept(key);
 	}
 
 }
