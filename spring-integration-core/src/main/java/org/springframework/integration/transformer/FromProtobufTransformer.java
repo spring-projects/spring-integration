@@ -35,8 +35,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
 /**
- * An Protocol Buffer transformer to instantiate {@link com.google.protobuf.Message} objects from {@code byte[]}.
- * 
+ * A Protocol Buffer transformer to instantiate {@link com.google.protobuf.Message} objects from {@code byte[]}.
+ *
  * @author Christian Tzolov
  * @since 6.1
  */
@@ -65,29 +65,6 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = classLoader;
-	}
-
-	/**
-	 * Set the expression to evaluate against the message to determine the type. Default {@code headers['proto_type']}.
-	 * @param expression the expression.
-	 * @return the transformer
-	 */
-	public FromProtobufTransformer typeExpression(Expression expression) {
-		assertExpressionNotNull(expression);
-		this.typeIdExpression = expression;
-		return this;
-	}
-
-	/**
-	 * Set the expression to evaluate against the message to determine the type id. Default
-	 * {@code headers['proto_type']}.
-	 * @param expression the expression.
-	 * @return the transformer
-	 */
-	public FromProtobufTransformer typeExpression(String expression) {
-		assertExpressionNotNull(expression);
-		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
-		return this;
 	}
 
 	/**
@@ -141,10 +118,9 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 		}
 
 		try {
-			Builder messageBuilder = this.getMessageBuilder(type);
+			Builder messageBuilder = getMessageBuilder(type);
 			byte[] payload = (byte[]) message.getPayload();
-			com.google.protobuf.Message boza = messageBuilder.mergeFrom(payload).build();
-			return boza;
+			return messageBuilder.mergeFrom(payload).build();
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -157,12 +133,20 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	 * This method uses a ConcurrentReferenceHashMap for caching method lookups.
 	 */
 	private com.google.protobuf.Message.Builder getMessageBuilder(Class<? extends com.google.protobuf.Message> clazz) {
-		try {
-			Method method = methodCache.get(clazz);
-			if (method == null) {
-				method = clazz.getMethod("newBuilder");
-				methodCache.put(clazz, method);
+
+		Method method = methodCache.computeIfAbsent(clazz, clz -> {
+			try {
+				// The com.google.protobuf.Message interface doesn't define an explicit newBuilder method.
+				// But all generated message classes that implement the Message interface implement the
+				// newBuilder method as well.
+				return clz.getMethod("newBuilder");
 			}
+			catch (Exception ex) {
+				throw new RuntimeException("No newBuilder() method fond for Class: " + clazz, ex);
+			}
+		});
+
+		try {
 			return (com.google.protobuf.Message.Builder) method.invoke(clazz);
 		}
 		catch (Exception ex) {

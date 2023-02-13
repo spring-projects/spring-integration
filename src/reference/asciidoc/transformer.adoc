@@ -249,8 +249,8 @@ Spring Integration provides namespace support for Map-to-Object, as the followin
 ====
 [source,xml]
 ----
-<int:map-to-object-transformer input-channel="input" 
-                         output-channel="output" 
+<int:map-to-object-transformer input-channel="input"
+                         output-channel="output"
                          type="org.something.Person"/>
 ----
 ====
@@ -258,7 +258,7 @@ Spring Integration provides namespace support for Map-to-Object, as the followin
 Alternatively, you could use a `ref` attribute and a prototype-scoped bean, as the following example shows:
 [source,xml]
 ----
-<int:map-to-object-transformer input-channel="inputA" 
+<int:map-to-object-transformer input-channel="inputA"
                                output-channel="outputA"
                                ref="person"/>
 <bean id="person" class="org.something.Person" scope="prototype"/>
@@ -267,7 +267,7 @@ Alternatively, you could use a `ref` attribute and a prototype-scoped bean, as t
 
 NOTE: The 'ref' and 'type' attributes are mutually exclusive.
 Also, if you use the 'ref' attribute, you must point to a 'prototype' scoped bean.
-Otherwise, a `BeanCreationException` is thrown. 
+Otherwise, a `BeanCreationException` is thrown.
 
 Starting with version 5.0, you can supply the `ObjectToMapTransformer` with a customized `JsonObjectMapper` -- for when you need special formats for dates or nulls for empty collections (and other uses).
 See <<json-transformers>> for more information about `JsonObjectMapper` implementations.
@@ -436,6 +436,22 @@ This logic is present as an expression because `JsonHeaders` may not have real c
 Version 5.2 added simple transformers to transform to/from Apache Avro.
 
 They are unsophisticated in that there is no schema registry; the transformers simply use the schema embedded in the `SpecificRecord` implementation generated from the Avro schema.
+
+Messages sent to the `SimpleToAvroTransformer` must have a payload that implements `SpecificRecord`; the transformer can handle multiple types.
+The `SimpleFromAvroTransformer` must be configured with a `SpecificRecord` class which is used as the default type to deserialize.
+You can also specify a SpEL expression to determine the type to deserialize using the `setTypeExpression` method.
+The default SpEL expression is `headers[avro_type]` (`AvroHeaders.TYPE`) which, by default, is populated by the `SimpleToAvroTransformer` with the fully qualified class name of the source class.
+If the expression returns `null`, the `defaultType` is used.
+
+The `SimpleToAvroTransformer` also has a `setTypeExpression` method.
+This allows decoupling of the producer and consumer where the sender can set the header to some token representing the type and the consumer then maps that token to a type.
+
+[[Protobuf-transformers]]
+===== Protocol Buffers Transformers
+
+Version 6.1 added support for transforming to/from Protocol Buffers.
+
+The transformers simply use the schema embedded in the `SpecificRecord` implementation generated from the Avro schema.
 
 Messages sent to the `SimpleToAvroTransformer` must have a payload that implements `SpecificRecord`; the transformer can handle multiple types.
 The `SimpleFromAvroTransformer` must be configured with a `SpecificRecord` class which is used as the default type to deserialize.

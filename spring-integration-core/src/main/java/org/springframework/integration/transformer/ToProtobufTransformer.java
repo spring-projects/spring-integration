@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 
 /**
  * An Protocol Buffer transformer for generated {@link com.google.protobuf.Message} objects.
- * 
+ *
  * @author Christian Tzolov
  * @since 6.1
  */
@@ -36,30 +36,6 @@ public class ToProtobufTransformer extends AbstractTransformer {
             (message) -> message.getPayload().getClass());
 
     private EvaluationContext evaluationContext;
-
-    /**
-     * Set the expression to evaluate against the message to determine the value for the {@link ProtoHeaders#TYPE}
-     * header.
-     * @param expression the expression.
-     * @return the transformer
-     */
-    public ToProtobufTransformer typeExpression(Expression expression) {
-        assertExpressionNotNull(expression);
-        this.typeIdExpression = expression;
-        return this;
-    }
-
-    /**
-     * Set the expression to evaluate against the message to determine the value for the {@link ProtoHeaders#TYPE}
-     * header.
-     * @param expression the expression.
-     * @return the transformer
-     */
-    public ToProtobufTransformer typeExpression(String expression) {
-        assertExpressionNotNull(expression);
-        this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
-        return this;
-    }
 
     /**
      * Set the expression to evaluate against the message to determine the value for the {@link ProtoHeaders#TYPE}
@@ -92,8 +68,9 @@ public class ToProtobufTransformer extends AbstractTransformer {
 
     @Override
     protected Object doTransform(Message<?> message) {
-        Assert.state(message.getPayload() instanceof com.google.protobuf.Message,
+        Assert.isInstanceOf(com.google.protobuf.Message.class, message.getPayload(),
                 "Payload must be an implementation of 'com.google.protobuf.Message'");
+
         com.google.protobuf.Message protobufMessage = (com.google.protobuf.Message) message.getPayload();
 
         return getMessageBuilderFactory().withPayload(protobufMessage.toByteArray())

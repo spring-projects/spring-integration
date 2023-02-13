@@ -526,7 +526,6 @@ project('spring-integration-core') {
     apply plugin: 'org.jetbrains.dokka'
 
     dependencies {
-        api "com.google.protobuf:protobuf-java:$protobufVersion"
         api 'org.springframework:spring-aop'
         api 'org.springframework:spring-context'
         api 'org.springframework:spring-messaging'
@@ -544,7 +543,7 @@ project('spring-integration-core') {
         optionalApi('com.fasterxml.jackson.module:jackson-module-kotlin') {
             exclude group: 'org.jetbrains.kotlin'
         }
-
+        optionalApi "com.google.protobuf:protobuf-java:$protobufVersion"
         optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
         optionalApi "com.esotericsoftware:kryo:$kryoVersion"
         optionalApi 'io.micrometer:micrometer-core'
