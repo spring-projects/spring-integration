@@ -451,15 +451,15 @@ This allows decoupling of the producer and consumer where the sender can set the
 
 Version 6.1 added support for transforming to/from Protocol Buffers.
 
-The transformers simply use the schema embedded in the `SpecificRecord` implementation generated from the Avro schema.
+The transformers simply the `com.google.protobuf.Message` classes generated from the Protocol Buffers IDL schema.
 
-Messages sent to the `SimpleToAvroTransformer` must have a payload that implements `SpecificRecord`; the transformer can handle multiple types.
-The `SimpleFromAvroTransformer` must be configured with a `SpecificRecord` class which is used as the default type to deserialize.
+Messages sent to the `ToProtobufTransformer` must have a payload that implements `com.google.protobuf.Message`; the transformer can handle multiple types.
+The `FromProtobufTransformer` must be configured with a `com.google.protobuf.Message` class which is used as the default type to deserialize.
 You can also specify a SpEL expression to determine the type to deserialize using the `setTypeExpression` method.
-The default SpEL expression is `headers[avro_type]` (`AvroHeaders.TYPE`) which, by default, is populated by the `SimpleToAvroTransformer` with the fully qualified class name of the source class.
+The default SpEL expression is `headers[proto_type]` (`ProtoHeaders.TYPE`) which, by default, is populated by the `ToProtobufTransformer` with the fully qualified class name of the source class.
 If the expression returns `null`, the `defaultType` is used.
 
-The `SimpleToAvroTransformer` also has a `setTypeExpression` method.
+The `ToProtobufTransformer` also has a `setTypeExpression` method.
 This allows decoupling of the producer and consumer where the sender can set the header to some token representing the type and the consumer then maps that token to a type.
 
 [[transformer-annotation]]
