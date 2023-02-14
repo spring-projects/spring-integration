@@ -154,9 +154,14 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		HandshakeStatus handshakeStatus = this.sslEngine.getHandshakeStatus();
 		SSLEngineResult result = new SSLEngineResult(Status.OK, handshakeStatus, 0, 0);
 		switch (handshakeStatus) {
-			case NEED_TASK -> runTasks();
-			case NEED_UNWRAP, FINISHED, NOT_HANDSHAKING -> result = checkBytesProduced(networkBuffer);
-			case NEED_WRAP -> result = needWrap(networkBuffer, result);
+			case NEED_TASK:
+				runTasks();
+				break;
+			case NEED_WRAP:
+				result = needWrap(networkBuffer, result);
+				break;
+			default:
+				result = checkBytesProduced(networkBuffer);
 		}
 
 		switch (result.getHandshakeStatus()) {
@@ -165,8 +170,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 				// switch fall-through intended
 			case NOT_HANDSHAKING:
 			case NEED_UNWRAP:
-				this.needMoreNetworkData = result.getStatus() == Status.BUFFER_UNDERFLOW || networkBuffer
-						.remaining() == 0;
+				this.needMoreNetworkData =
+						result.getStatus() == Status.BUFFER_UNDERFLOW || networkBuffer.remaining() == 0;
 				break;
 			default:
 		}

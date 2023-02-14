@@ -161,7 +161,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	}
 
 	private <T extends IntegrationNode> T enhance(T node) {
-		if (this.micrometerEnhancer != null) {
+		if (this.micrometerEnhancer != null) { // NOSONAR - synchronized inconsistency
 			return this.micrometerEnhancer.enhance(node);
 		}
 		else {

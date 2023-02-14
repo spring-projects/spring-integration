@@ -244,22 +244,22 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 			if (status < 0) {
 				throw new SoftEndOfStreamException("Stream closed between payloads");
 			}
-			int messageLength;
 			switch (this.headerSize) {
-				case HEADER_SIZE_INT -> {
-					messageLength = ByteBuffer.wrap(lengthPart).getInt();
+				case HEADER_SIZE_INT:
+					int messageLength = ByteBuffer.wrap(lengthPart).getInt();
 					if (messageLength < 0) {
 						throw new IllegalArgumentException("Length header: "
 								+ messageLength
 								+ " is negative");
 					}
-				}
-				case HEADER_SIZE_UNSIGNED_BYTE -> messageLength = ByteBuffer.wrap(lengthPart).get() & MAX_UNSIGNED_BYTE;
-				case HEADER_SIZE_UNSIGNED_SHORT ->
-						messageLength = ByteBuffer.wrap(lengthPart).getShort() & MAX_UNSIGNED_SHORT;
-				default -> throw new IllegalArgumentException("Bad header size: " + this.headerSize);
+					return messageLength;
+				case HEADER_SIZE_UNSIGNED_BYTE:
+					return ByteBuffer.wrap(lengthPart).get() & MAX_UNSIGNED_BYTE;
+				case HEADER_SIZE_UNSIGNED_SHORT:
+					return ByteBuffer.wrap(lengthPart).getShort() & MAX_UNSIGNED_SHORT;
+				default:
+					throw new IllegalArgumentException("Bad header size: " + this.headerSize);
 			}
-			return messageLength;
 		}
 		catch (SoftEndOfStreamException e) { // NOSONAR catch and throw
 			throw e; // it's an IO exception and we don't want an event for this

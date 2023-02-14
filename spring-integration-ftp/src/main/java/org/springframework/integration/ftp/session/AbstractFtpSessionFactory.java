@@ -222,6 +222,10 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		switch (this.clientMode) {
 			case FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE -> client.enterLocalActiveMode();
 			case FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE -> client.enterLocalPassiveMode();
+			default -> {
+				throw new IllegalArgumentException("Only 'FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE' " +
+						"and 'FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE' are supported for 'clientMode'");
+			}
 		}
 	}
 

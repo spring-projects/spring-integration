@@ -148,7 +148,7 @@ public class MicrometerNodeEnhancer {
 	}
 
 	private Search buildTimerSearch(ObservationConvention<?> observationConvention, KeyName tagKey, String tagValue) {
-		return this.registry.find(observationConvention.getName()).tag(tagKey.asString(), tagValue); // NO SONAR
+		return this.registry.find(observationConvention.getName()).tag(tagKey.asString(), tagValue); // NOSONAR
 	}
 
 	private <T extends IntegrationNode> void enhanceWithCounts(T node, String type) {

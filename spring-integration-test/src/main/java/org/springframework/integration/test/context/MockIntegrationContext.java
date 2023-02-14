@@ -68,6 +68,8 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 
 	private static final String HANDLER = "handler";
 
+	private static final String REACTIVE_MESSAGE_HANDLER = "reactiveMessageHandler";
+
 	/**
 	 * The bean name for the mock integration context.
 	 */
@@ -153,14 +155,13 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 			directFieldAccessor.setPropertyValue("source", handler);
 		}
 		else if (endpoint instanceof ReactiveStreamsConsumer) {
-			if (handler instanceof Tuple2<?, ?>) {
-				Tuple2<?, ?> value = (Tuple2<?, ?>) handler;
+			if (handler instanceof Tuple2<?, ?> value) {
 				directFieldAccessor.setPropertyValue(HANDLER, value.getT1());
-				directFieldAccessor.setPropertyValue("reactiveMessageHandler", value.getT2());
+				directFieldAccessor.setPropertyValue(REACTIVE_MESSAGE_HANDLER, value.getT2());
 			}
 			else {
 				directFieldAccessor.setPropertyValue(HANDLER, handler);
-				directFieldAccessor.setPropertyValue("reactiveMessageHandler", null);
+				directFieldAccessor.setPropertyValue(REACTIVE_MESSAGE_HANDLER, null);
 			}
 		}
 		else if (endpoint instanceof IntegrationConsumer) {
@@ -214,7 +215,7 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 		Object targetMessageHandler = directFieldAccessor.getPropertyValue(HANDLER);
 		Assert.notNull(targetMessageHandler, () -> "'handler' must not be null in the: " + endpoint);
 		if (endpoint instanceof ReactiveStreamsConsumer) {
-			Object targetReactiveMessageHandler = directFieldAccessor.getPropertyValue("reactiveMessageHandler");
+			Object targetReactiveMessageHandler = directFieldAccessor.getPropertyValue(REACTIVE_MESSAGE_HANDLER);
 			if (targetReactiveMessageHandler != null) {
 				this.beans.put(consumerEndpointId, Tuples.of(targetMessageHandler, targetReactiveMessageHandler));
 			}
@@ -250,7 +251,7 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 		if (endpoint instanceof ReactiveStreamsConsumer) {
 			ReactiveMessageHandler reactiveMessageHandler =
 					(message) -> Mono.fromRunnable(() -> mockMessageHandler.handleMessage(message));
-			directFieldAccessor.setPropertyValue("reactiveMessageHandler", reactiveMessageHandler);
+			directFieldAccessor.setPropertyValue(REACTIVE_MESSAGE_HANDLER, reactiveMessageHandler);
 		}
 
 		if (autoStartup && endpoint instanceof Lifecycle) {
