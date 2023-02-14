@@ -418,9 +418,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (!reconnect) {
-			subscribe();
-		}
+		subscribe();
 	}
 
 	/**

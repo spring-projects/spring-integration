@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 the original author or authors.
+ * Copyright 2021-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,15 +57,15 @@ import org.springframework.util.Assert;
 
 /**
  * The {@link AbstractMqttMessageDrivenChannelAdapter} implementation for MQTT v5.
- *
+ * <p>
  * The {@link MqttProperties} are mapped via the provided {@link HeaderMapper};
  * meanwhile the regular {@link MqttMessage} properties are always mapped into headers.
- *
+ * <p>
  * It is recommended to have the {@link MqttConnectionOptions#setAutomaticReconnect(boolean)}
  * set to true to let an internal {@link IMqttAsyncClient} instance to handle reconnects.
  * Otherwise, only the manual restart of this component can handle reconnects, e.g. via
  * {@link MqttConnectionFailedEvent} handling on disconnection.
- *
+ * <p>
  * See {@link #setPayloadType} for more information about type conversion.
  *
  * @author Artem Bilan
@@ -348,9 +348,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (reconnect) {
-			return;
-		}
 		var clientManager = getClientManager();
 		if (clientManager != null && this.mqttClient == null) {
 			this.mqttClient = clientManager.getClient();
