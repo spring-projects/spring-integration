@@ -64,21 +64,14 @@ public class MqttPahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectOptions>
 		implements MqttCallbackExtended, MqttPahoComponent {
 
-	/**
-	 * The default disconnect completion timeout in milliseconds.
-	 */
-	public static final long DISCONNECT_COMPLETION_TIMEOUT = 5_000L;
-
 	private final MqttPahoClientFactory clientFactory;
-
-	private long disconnectCompletionTimeout = DISCONNECT_COMPLETION_TIMEOUT;
 
 	private volatile IMqttAsyncClient client;
 
-	private volatile boolean cleanSession;
-
 	@SuppressWarnings("deprecation")
 	private volatile org.springframework.integration.mqtt.core.ConsumerStopAction consumerStopAction;
+
+	private volatile boolean readyToSubscribeOnStart;
 
 	/**
 	 * Use this constructor when you don't need additional {@link MqttConnectOptions}.
@@ -138,16 +131,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 		this.clientFactory = factory;
 	}
 
-	/**
-	 * Set the completion timeout when disconnecting. Not settable using the namespace.
-	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
-	 * @param completionTimeout The timeout.
-	 * @since 5.1.10
-	 */
-	public synchronized void setDisconnectCompletionTimeout(long completionTimeout) {
-		this.disconnectCompletionTimeout = completionTimeout;
-	}
-
 	@Override
 	public MqttConnectOptions getConnectionInfo() {
 		MqttConnectOptions options = this.clientFactory.getConnectionOptions();
@@ -175,6 +158,9 @@ public class MqttPahoMessageDrivenChannelAdapter
 	protected void doStart() {
 		try {
 			connect();
+			if (this.readyToSubscribeOnStart) {
+				subscribe();
+			}
 		}
 		catch (Exception ex) {
 			if (getConnectionInfo().isAutomaticReconnect()) {
@@ -196,14 +182,37 @@ public class MqttPahoMessageDrivenChannelAdapter
 	}
 
 	@SuppressWarnings("deprecation")
+	private synchronized void connect() throws MqttException {
+		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
+		this.consumerStopAction = this.clientFactory.getConsumerStopAction();
+		if (this.consumerStopAction == null) {
+			this.consumerStopAction = org.springframework.integration.mqtt.core.ConsumerStopAction.UNSUBSCRIBE_CLEAN;
+		}
+
+		var clientManager = getClientManager();
+		if (clientManager == null) {
+			Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
+					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
+			this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
+			this.client.setCallback(this);
+			this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
+			this.client.setManualAcks(isManualAcks());
+		}
+		else {
+			this.client = clientManager.getClient();
+		}
+	}
+
+	@SuppressWarnings("deprecation")
 	@Override
 	protected synchronized void doStop() {
+		this.readyToSubscribeOnStart = false;
 		try {
 			if (this.consumerStopAction
 					.equals(org.springframework.integration.mqtt.core.ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
 					|| (this.consumerStopAction
 					.equals(org.springframework.integration.mqtt.core.ConsumerStopAction.UNSUBSCRIBE_CLEAN)
-					&& this.cleanSession)) {
+					&& this.clientFactory.getConnectionOptions().isCleanSession())) {
 
 				this.client.unsubscribe(getTopic());
 			}
@@ -217,7 +226,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 
 		try {
-			this.client.disconnectForcibly(this.disconnectCompletionTimeout);
+			this.client.disconnectForcibly(getDisconnectCompletionTimeout());
 		}
 		catch (MqttException ex) {
 			logger.error(ex, "Exception while disconnecting");
@@ -270,29 +279,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 		finally {
 			this.topicLock.unlock();
-		}
-	}
-
-	@SuppressWarnings("deprecation")
-	private synchronized void connect() throws MqttException { // NOSONAR
-		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
-		this.cleanSession = connectionOptions.isCleanSession();
-		this.consumerStopAction = this.clientFactory.getConsumerStopAction();
-		if (this.consumerStopAction == null) {
-			this.consumerStopAction = org.springframework.integration.mqtt.core.ConsumerStopAction.UNSUBSCRIBE_CLEAN;
-		}
-
-		var clientManager = getClientManager();
-		if (clientManager == null) {
-			Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
-					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-			this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
-			this.client.setCallback(this);
-			this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
-			this.client.setManualAcks(isManualAcks());
-		}
-		else {
-			this.client = clientManager.getClient();
 		}
 	}
 
@@ -418,8 +404,11 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (!reconnect) {
+		if (isRunning()) {
 			subscribe();
+		}
+		else {
+			this.readyToSubscribeOnStart = true;
 		}
 	}
 

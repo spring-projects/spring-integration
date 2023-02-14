@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,10 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	private int phase = DEFAULT_MANAGER_PHASE;
 
+	private long completionTimeout = ClientManager.DEFAULT_COMPLETION_TIMEOUT;
+
+	private long disconnectCompletionTimeout = ClientManager.DISCONNECT_COMPLETION_TIMEOUT;
+
 	private boolean manualAcks;
 
 	private ApplicationEventPublisher applicationEventPublisher;
@@ -96,6 +100,34 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 		return this.connectCallbacks;
 	}
 
+	/**
+	 * Set the completion timeout for operations.
+	 * Default {@value #DEFAULT_COMPLETION_TIMEOUT} milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 6.0.3
+	 */
+	public void setCompletionTimeout(long completionTimeout) {
+		this.completionTimeout = completionTimeout;
+	}
+
+	protected long getCompletionTimeout() {
+		return this.completionTimeout;
+	}
+
+	/**
+	 * Set the completion timeout when disconnecting.
+	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 6.0.3
+	 */
+	public synchronized void setDisconnectCompletionTimeout(long completionTimeout) {
+		this.disconnectCompletionTimeout = completionTimeout;
+	}
+
+	protected long getDisconnectCompletionTimeout() {
+		return this.disconnectCompletionTimeout;
+	}
+
 	@Override
 	public boolean isManualAcks() {
 		return this.manualAcks;
@@ -123,7 +155,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	}
 
 	/**
-	 * The phase of component autostart in {@link SmartLifecycle}.
+	 * The phase of component auto-start in {@link SmartLifecycle}.
 	 * If the custom one is required, note that for the correct behavior it should be less than phase of
 	 * {@link AbstractMqttMessageDrivenChannelAdapter} implementations.
 	 * The default phase is {@link #DEFAULT_MANAGER_PHASE}.

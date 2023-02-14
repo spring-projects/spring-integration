@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,16 @@ import org.springframework.context.SmartLifecycle;
  * @since 6.0
  */
 public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
+
+	/**
+	 * The default completion timeout in milliseconds.
+	 */
+	long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
+
+	/**
+	 * The default disconnect completion timeout in milliseconds.
+	 */
+	long DISCONNECT_COMPLETION_TIMEOUT = 5_000L;
 
 	/**
 	 * Return the managed client.

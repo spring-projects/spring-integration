@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import org.springframework.util.Assert;
  * {@link MqttConnectionFailedEvent} and reconnect the MQTT client manually.
  *
  * @author Artem Vozhdayenko
+ * @author Artem Bilan
+ *
  * @since 6.0
  */
 public class Mqttv3ClientManager
@@ -97,10 +99,9 @@ public class Mqttv3ClientManager
 		}
 		setClient(client);
 		try {
-			client.connect(this.connectionOptions)
-					.waitForCompletion(this.connectionOptions.getConnectionTimeout());
+			client.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 		}
-		catch (MqttException e) {
+		catch (MqttException ex) {
 			// See GH-3822
 			if (this.connectionOptions.isAutomaticReconnect()) {
 				try {
@@ -113,10 +114,10 @@ public class Mqttv3ClientManager
 			else {
 				var applicationEventPublisher = getApplicationEventPublisher();
 				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 				}
 				else {
-					logger.error("Could not start client manager, client_id=" + getClientId(), e);
+					logger.error("Could not start client manager, client_id=" + getClientId(), ex);
 				}
 			}
 		}
@@ -138,7 +139,7 @@ public class Mqttv3ClientManager
 			return;
 		}
 		try {
-			client.disconnectForcibly(this.connectionOptions.getConnectionTimeout());
+			client.disconnectForcibly(getDisconnectCompletionTimeout());
 		}
 		catch (MqttException e) {
 			logger.error("Could not disconnect from the client", e);
