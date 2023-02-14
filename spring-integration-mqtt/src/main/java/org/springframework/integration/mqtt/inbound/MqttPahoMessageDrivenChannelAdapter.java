@@ -66,12 +66,12 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	/**
 	 * The default disconnect completion timeout in milliseconds.
+	 * @deprecated As of release 6.0.3, replaced by {@link AbstractMqttMessageDrivenChannelAdapter#DEFAULT_COMPLETION_TIMEOUT}
 	 */
-	public static final long DISCONNECT_COMPLETION_TIMEOUT = 5_000L;
+	@Deprecated(since = "6.0.3")
+	public static final long DISCONNECT_COMPLETION_TIMEOUT = DEFAULT_COMPLETION_TIMEOUT;
 
 	private final MqttPahoClientFactory clientFactory;
-
-	private long disconnectCompletionTimeout = DISCONNECT_COMPLETION_TIMEOUT;
 
 	private volatile IMqttAsyncClient client;
 
@@ -143,9 +143,11 @@ public class MqttPahoMessageDrivenChannelAdapter
 	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
 	 * @param completionTimeout The timeout.
 	 * @since 5.1.10
+	 * @deprecated As of release 6.0.3, replaced by {@link #setCompletionTimeout(long)}
 	 */
+	@Deprecated(since = "6.0.3")
 	public synchronized void setDisconnectCompletionTimeout(long completionTimeout) {
-		this.disconnectCompletionTimeout = completionTimeout;
+		setCompletionTimeout(completionTimeout);
 	}
 
 	@Override
@@ -217,7 +219,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 
 		try {
-			this.client.disconnectForcibly(this.disconnectCompletionTimeout);
+			this.client.disconnectForcibly(getCompletionTimeout());
 		}
 		catch (MqttException ex) {
 			logger.error(ex, "Exception while disconnecting");

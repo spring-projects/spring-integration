@@ -43,6 +43,13 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T, C>, ApplicationEventPublisherAware {
 
+	/**
+	 * The default completion timeout in milliseconds.
+	 * @since 6.0.3
+	 * @author Jiří Patera
+	 */
+	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
+
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
 	private static final int DEFAULT_MANAGER_PHASE = 0;
@@ -62,6 +69,8 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	private String beanName;
 
 	private T client;
+
+	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
 	protected AbstractMqttClientManager(String clientId) {
 		Assert.notNull(clientId, "'clientId' is required");
@@ -120,6 +129,21 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	@Override
 	public String getBeanName() {
 		return this.beanName;
+	}
+
+	/**
+	 * Set the completion timeout for operations. Not settable using the namespace.
+	 * Default {@value #DEFAULT_COMPLETION_TIMEOUT} milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 6.0.3
+	 * @author Jiří Patera
+	 */
+	public void setCompletionTimeout(long completionTimeout) {
+		this.completionTimeout = completionTimeout;
+	}
+
+	protected long getCompletionTimeout() {
+		return this.completionTimeout;
 	}
 
 	/**

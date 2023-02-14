@@ -102,7 +102,7 @@ public class Mqttv5ClientManager
 		setClient(client);
 		try {
 			client.connect(this.connectionOptions)
-					.waitForCompletion(this.connectionOptions.getConnectionTimeout());
+					.waitForCompletion(getCompletionTimeout());
 		}
 		catch (MqttException ex) {
 			if (this.connectionOptions.isAutomaticReconnect()) {
@@ -142,7 +142,7 @@ public class Mqttv5ClientManager
 		}
 
 		try {
-			client.disconnectForcibly(this.connectionOptions.getConnectionTimeout());
+			client.disconnectForcibly(getCompletionTimeout());
 		}
 		catch (MqttException e) {
 			logger.error("Could not disconnect from the client", e);

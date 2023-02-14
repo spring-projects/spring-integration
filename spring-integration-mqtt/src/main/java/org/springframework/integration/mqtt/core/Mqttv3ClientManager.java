@@ -98,7 +98,7 @@ public class Mqttv3ClientManager
 		setClient(client);
 		try {
 			client.connect(this.connectionOptions)
-					.waitForCompletion(this.connectionOptions.getConnectionTimeout());
+					.waitForCompletion(getCompletionTimeout());
 		}
 		catch (MqttException e) {
 			// See GH-3822
@@ -138,7 +138,7 @@ public class Mqttv3ClientManager
 			return;
 		}
 		try {
-			client.disconnectForcibly(this.connectionOptions.getConnectionTimeout());
+			client.disconnectForcibly(getCompletionTimeout());
 		}
 		catch (MqttException e) {
 			logger.error("Could not disconnect from the client", e);
