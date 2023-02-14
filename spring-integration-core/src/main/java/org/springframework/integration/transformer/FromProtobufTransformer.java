@@ -98,7 +98,7 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	@SuppressWarnings("unchecked")
 	@Override
 	protected Object doTransform(Message<?> message) {
-		Assert.state(message.getPayload() instanceof byte[], "Payload must be a byte[]");
+		Assert.isInstanceOf(byte[].class, message.getPayload(),"Payload must be a byte[]");
 		Class<? extends com.google.protobuf.Message> type = null;
 		Object value = this.typeIdExpression.getValue(this.evaluationContext, message);
 		if (value instanceof Class) {

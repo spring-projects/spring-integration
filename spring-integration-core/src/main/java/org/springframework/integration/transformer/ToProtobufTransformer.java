@@ -16,10 +16,6 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.transformer.support.ProtoHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -32,40 +28,6 @@ import org.springframework.util.Assert;
  */
 public class ToProtobufTransformer extends AbstractTransformer {
 
-    private Expression typeIdExpression = new FunctionExpression<Message<?>>(
-            (message) -> message.getPayload().getClass());
-
-    private EvaluationContext evaluationContext;
-
-    /**
-     * Set the expression to evaluate against the message to determine the value for the {@link ProtoHeaders#TYPE}
-     * header.
-     * @param expression the expression.
-     */
-    public void setTypeExpression(Expression expression) {
-        assertExpressionNotNull(expression);
-        this.typeIdExpression = expression;
-    }
-
-    /**
-     * Set the expression to evaluate against the message to determine the value for the {@link ProtoHeaders#TYPE}
-     * header.
-     * @param expression the expression.
-     */
-    public void setTypeExpressionString(String expression) {
-        assertExpressionNotNull(expression);
-        this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
-    }
-
-    private void assertExpressionNotNull(Object expression) {
-        Assert.notNull(expression, "'expression' must not be null");
-    }
-
-    @Override
-    protected void onInit() {
-        this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
-    }
-
     @Override
     protected Object doTransform(Message<?> message) {
         Assert.isInstanceOf(com.google.protobuf.Message.class, message.getPayload(),
@@ -75,7 +37,7 @@ public class ToProtobufTransformer extends AbstractTransformer {
 
         return getMessageBuilderFactory().withPayload(protobufMessage.toByteArray())
                 .copyHeaders(message.getHeaders())
-                .setHeader(ProtoHeaders.TYPE, this.typeIdExpression.getValue(this.evaluationContext, message))
+                .setHeader(ProtoHeaders.TYPE, protobufMessage.getClass())
                 .build();
     }
 }

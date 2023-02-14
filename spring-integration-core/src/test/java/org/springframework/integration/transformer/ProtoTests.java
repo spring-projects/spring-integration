@@ -139,46 +139,6 @@ public class ProtoTests {
                 assertThat(received.getHeaders().get("flow")).isEqualTo("flow4");
         }
 
-        @Test
-        void testTransformWithTypeMappingExpressions(@Autowired ProtoConfig config) {
-                TestClass1 test = TestClass1.newBuilder()
-                                .setBar("foo")
-                                .setQux(678)
-                                .build();
-                config.in5().send(new GenericMessage<>(test));
-                assertThat(config.tapped().receive(0))
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isInstanceOf(byte[].class);
-                Message<?> received = config.out().receive(0);
-                assertThat(received)
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isNotEqualTo(test)
-                                .isInstanceOf(TestClass2.class);
-                assertThat(received.getHeaders().get("flow")).isEqualTo("flow5");
-        }
-
-        @Test
-        void testTransformersFallbackWhenNoTypeMappingMatch(@Autowired ProtoConfig config) {
-                TestClass1 test = TestClass1.newBuilder()
-                                .setBar("foo")
-                                .setQux(678)
-                                .build();
-                config.in6().send(new GenericMessage<>(test));
-                assertThat(config.tapped().receive(0))
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isInstanceOf(byte[].class);
-                Message<?> received = config.out().receive(0);
-                assertThat(received)
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isEqualTo(test)
-                                .isNotSameAs(test);
-                assertThat(received.getHeaders().get("flow")).isEqualTo("flow6");
-        }
-
         @Configuration
         @EnableIntegration
         public static class ProtoConfig {
@@ -233,38 +193,6 @@ public class ProtoTests {
                 }
 
                 @Bean
-                public IntegrationFlow flow5() {
-                        ToProtobufTransformer toProtoTransformer = new ToProtobufTransformer();
-                        toProtoTransformer.setTypeExpressionString("'protoTest'");
-                        FromProtobufTransformer fromProtoTransformer = new FromProtobufTransformer(TestClass1.class);
-                        fromProtoTransformer.setTypeExpressionString("'protoTest' == headers[proto_type] ? '"
-                                        + TestClass2.class.getName() + "' : null");
-                        return IntegrationFlow.from(in5())
-                                        .transform(toProtoTransformer)
-                                        .wireTap(tapped())
-                                        .transform(fromProtoTransformer)
-                                        .enrichHeaders(h -> h.header("flow", "flow5"))
-                                        .channel(out())
-                                        .get();
-                }
-
-                @Bean
-                public IntegrationFlow flow6() {
-                        ToProtobufTransformer toProtoTransformer = new ToProtobufTransformer();
-                        toProtoTransformer.setTypeExpressionString("'wontFindThisHeader'");
-                        FromProtobufTransformer fromProtoTransformer = new FromProtobufTransformer(TestClass1.class);
-                        fromProtoTransformer.setTypeExpressionString("'protoTest' == headers[proto_type] ? '"
-                                        + TestClass2.class.getName() + "' : null");
-                        return IntegrationFlow.from(in6())
-                                        .transform(toProtoTransformer)
-                                        .wireTap(tapped())
-                                        .transform(fromProtoTransformer)
-                                        .enrichHeaders(h -> h.header("flow", "flow6"))
-                                        .channel(out())
-                                        .get();
-                }
-
-                @Bean
                 public FromProtobufTransformer fromTransformer() {
                         return new FromProtobufTransformer(TestClass1.class);
                 }
@@ -286,16 +214,6 @@ public class ProtoTests {
 
                 @Bean
                 public DirectChannel in4() {
-                        return new DirectChannel();
-                }
-
-                @Bean
-                public DirectChannel in5() {
-                        return new DirectChannel();
-                }
-
-                @Bean
-                public DirectChannel in6() {
                         return new DirectChannel();
                 }
 

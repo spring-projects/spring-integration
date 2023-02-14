@@ -451,7 +451,7 @@ This allows decoupling of the producer and consumer where the sender can set the
 
 Version 6.1 added support for transforming to/from Protocol Buffers.
 
-The transformers simply the `com.google.protobuf.Message` classes generated from the Protocol Buffers IDL schema.
+The transformers can convert byte array to and from `com.google.protobuf.Message` classes generated from the Protocol Buffers schema.
 
 Messages sent to the `ToProtobufTransformer` must have a payload that implements `com.google.protobuf.Message`; the transformer can handle multiple types.
 The `FromProtobufTransformer` must be configured with a `com.google.protobuf.Message` class which is used as the default type to deserialize.
@@ -459,8 +459,38 @@ You can also specify a SpEL expression to determine the type to deserialize usin
 The default SpEL expression is `headers[proto_type]` (`ProtoHeaders.TYPE`) which, by default, is populated by the `ToProtobufTransformer` with the fully qualified class name of the source class.
 If the expression returns `null`, the `defaultType` is used.
 
-The `ToProtobufTransformer` also has a `setTypeExpression` method.
-This allows decoupling of the producer and consumer where the sender can set the header to some token representing the type and the consumer then maps that token to a type.
+For example, compiling the following IDL
+
+====
+[source,proto]
+----
+syntax = "proto2";
+package tutorial;
+
+option java_multiple_files = true;
+option java_package = "org.example";
+option java_outer_classname = "MyProtos";
+
+message MyMessageClass {
+  optional string foo = 1;
+  optional string bar = 2;
+}
+----
+====
+
+will generate a new `org.example.MyMessageClass` class.
+
+Then use the:
+====
+[source,java]
+----
+// Transforms a byte array payload into MyMessageClass instance.
+FromProtobufTransformer fromTransformer = new FromProtobufTransformer(MyMessageClass.class);
+
+// Transforms a MyMessageClass instance into byte array.
+ToProtobufTransformer toTransformer = new ToProtobufTransformer();
+----
+====
 
 [[transformer-annotation]]
 ==== Configuring a Transformer with Annotations
