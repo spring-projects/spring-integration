@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 the original author or authors.
+ * Copyright 2021-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		super(url, clientId, topic);
 		this.connectionOptions = new MqttConnectionOptions();
-		this.connectionOptions.setServerURIs(new String[]{ url });
+		this.connectionOptions.setServerURIs(new String[] {url});
 		this.connectionOptions.setAutomaticReconnect(true);
 	}
 
@@ -312,30 +312,28 @@ public class Mqttv5PahoMessageDrivenChannelAdapter extends AbstractMqttMessageDr
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (!reconnect) {
-			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-			String[] topics = getTopic();
-			this.topicLock.lock();
-			try {
-				if (topics.length > 0) {
-					int[] requestedQos = getQos();
-					this.mqttClient.subscribe(topics, requestedQos).waitForCompletion(getCompletionTimeout());
-					String message = "Connected and subscribed to " + Arrays.toString(topics);
-					logger.debug(message);
-					if (applicationEventPublisher != null) {
-						applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
-					}
-				}
-			}
-			catch (MqttException ex) {
+		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+		String[] topics = getTopic();
+		this.topicLock.lock();
+		try {
+			if (topics.length > 0) {
+				int[] requestedQos = getQos();
+				this.mqttClient.subscribe(topics, requestedQos).waitForCompletion(getCompletionTimeout());
+				String message = "Connected and subscribed to " + Arrays.toString(topics);
+				logger.debug(message);
 				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+					applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
 				}
-				logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
 			}
-			finally {
-				this.topicLock.unlock();
+		}
+		catch (MqttException ex) {
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			}
+			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
+		}
+		finally {
+			this.topicLock.unlock();
 		}
 	}
 
