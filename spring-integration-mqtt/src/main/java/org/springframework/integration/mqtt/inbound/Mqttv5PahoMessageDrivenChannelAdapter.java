@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 the original author or authors.
+ * Copyright 2021-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,15 +57,15 @@ import org.springframework.util.Assert;
 
 /**
  * The {@link AbstractMqttMessageDrivenChannelAdapter} implementation for MQTT v5.
- *
+ * <p>
  * The {@link MqttProperties} are mapped via the provided {@link HeaderMapper};
  * meanwhile the regular {@link MqttMessage} properties are always mapped into headers.
- *
+ * <p>
  * It is recommended to have the {@link MqttConnectionOptions#setAutomaticReconnect(boolean)}
  * set to true to let an internal {@link IMqttAsyncClient} instance to handle reconnects.
  * Otherwise, only the manual restart of this component can handle reconnects, e.g. via
  * {@link MqttConnectionFailedEvent} handling on disconnection.
- *
+ * <p>
  * See {@link #setPayloadType} for more information about type conversion.
  *
  * @author Artem Bilan
@@ -93,6 +93,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	private Class<?> payloadType = byte[].class;
 
 	private HeaderMapper<MqttProperties> headerMapper = new MqttHeaderMapper();
+
+	private volatile boolean readyToSubscribeOnStart;
 
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		super(url, clientId, topic);
@@ -184,28 +186,35 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	protected void doStart() {
+		try {
+			connect();
+			if (this.readyToSubscribeOnStart) {
+				subscribe();
+			}
+		}
+		catch (MqttException ex) {
+			if (getConnectionInfo().isAutomaticReconnect()) {
+				try {
+					this.mqttClient.reconnect();
+				}
+				catch (MqttException re) {
+					logger.error(re, "MQTT client failed to connect. Never happens.");
+				}
+			}
+			else {
+				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+				}
+				logger.error(ex, "MQTT client failed to connect.");
+			}
+		}
+	}
+
+	private synchronized void connect() throws MqttException {
 		var clientManager = getClientManager();
 		if (clientManager == null) {
-			try {
-				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
-			}
-			catch (MqttException ex) {
-				if (getConnectionInfo().isAutomaticReconnect()) {
-					try {
-						this.mqttClient.reconnect();
-					}
-					catch (MqttException re) {
-						logger.error(re, "MQTT client failed to connect. Never happens.");
-					}
-				}
-				else {
-					ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-					if (applicationEventPublisher != null) {
-						applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
-					}
-					logger.error(ex, "MQTT client failed to connect.");
-				}
-			}
+			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
 		}
 		else {
 			this.mqttClient = clientManager.getClient();
@@ -214,6 +223,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	protected void doStop() {
+		this.readyToSubscribeOnStart = false;
 		this.topicLock.lock();
 		String[] topics = getTopic();
 		try {
@@ -223,7 +233,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 				}
 
 				if (getClientManager() == null) {
-					this.mqttClient.disconnect().waitForCompletion(getCompletionTimeout());
+					this.mqttClient.disconnectForcibly(getDisconnectCompletionTimeout());
 				}
 			}
 		}
@@ -348,9 +358,15 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (reconnect) {
-			return;
+		if (isRunning()) {
+			subscribe();
 		}
+		else {
+			this.readyToSubscribeOnStart = true;
+		}
+	}
+
+	private void subscribe() {
 		var clientManager = getClientManager();
 		if (clientManager != null && this.mqttClient == null) {
 			this.mqttClient = clientManager.getClient();

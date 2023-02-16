@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -301,8 +301,13 @@ public class LeaderInitiator implements SmartLifecycle {
 		 * @return the leader.
 		 * @since 6.0.3
 		 */
-		public Participant getLeader() throws Exception {
-			return LeaderInitiator.this.leaderSelector.getLeader();
+		public Participant getLeader() {
+			try {
+				return LeaderInitiator.this.leaderSelector.getLeader();
+			}
+			catch (Exception ex) {
+				throw new IllegalStateException(ex);
+			}
 		}
 
 		/**
@@ -310,8 +315,13 @@ public class LeaderInitiator implements SmartLifecycle {
 		 * @return list of participants.
 		 * @since 6.0.3
 		 */
-		public Collection<Participant> getParticipants() throws Exception {
-			return LeaderInitiator.this.leaderSelector.getParticipants();
+		public Collection<Participant> getParticipants() {
+			try {
+				return LeaderInitiator.this.leaderSelector.getParticipants();
+			}
+			catch (Exception ex) {
+				throw new IllegalStateException(ex);
+			}
 		}
 
 		@Override
@@ -336,12 +346,12 @@ public class LeaderInitiator implements SmartLifecycle {
 		}
 
 		@Override
-		public Participant getLeader() throws Exception {
+		public Participant getLeader() {
 			return null;
 		}
 
 		@Override
-		public Collection<Participant> getParticipants() throws Exception {
+		public Collection<Participant> getParticipants() {
 			return List.of();
 		}
 

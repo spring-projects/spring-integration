@@ -335,7 +335,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 						DefaultMessageSenderObservationConvention.INSTANCE,
 						() -> new MessageSenderContext(messageToSend, getComponentName()),
 						this.observationRegistry)
-				.parentObservation(this.observationRegistry.getCurrentObservation()) // TODO until the fix in micrometer-observation
 				.observe(() -> sendInternal(messageToSend, timeout));
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,14 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	/**
 	 * The default completion timeout in milliseconds.
 	 */
-	public static final long DEFAULT_COMPLETION_TIMEOUT = 30_000L;
+	@Deprecated(since = "6.0.3", forRemoval = true)
+	public static final long DEFAULT_COMPLETION_TIMEOUT = ClientManager.DEFAULT_COMPLETION_TIMEOUT;
+
+	/**
+	 * The default disconnect completion timeout in milliseconds.
+	 */
+	@Deprecated(since = "6.0.3", forRemoval = true)
+	public static final long DISCONNECT_COMPLETION_TIMEOUT = ClientManager.DISCONNECT_COMPLETION_TIMEOUT;
 
 	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
 
@@ -73,7 +80,9 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	private final ClientManager<T, C> clientManager;
 
-	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+	private long completionTimeout = ClientManager.DEFAULT_COMPLETION_TIMEOUT;
+
+	private long disconnectCompletionTimeout = ClientManager.DISCONNECT_COMPLETION_TIMEOUT;
 
 	private boolean manualAcks;
 
@@ -179,6 +188,20 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		}
 	}
 
+	/**
+	 * Set the completion timeout when disconnecting.
+	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
+	 * @param completionTimeout The timeout.
+	 * @since 5.1.10
+	 */
+	public synchronized void setDisconnectCompletionTimeout(long completionTimeout) {
+		this.disconnectCompletionTimeout = completionTimeout;
+	}
+
+	protected long getDisconnectCompletionTimeout() {
+		return this.disconnectCompletionTimeout;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -223,8 +246,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	}
 
 	/**
-	 * Set the completion timeout for operations. Not settable using the namespace.
-	 * Default {@value #DEFAULT_COMPLETION_TIMEOUT} milliseconds.
+	 * Set the completion timeout for operations.
+	 * Default {@value ClientManager#DEFAULT_COMPLETION_TIMEOUT} milliseconds.
 	 * @param completionTimeout The timeout.
 	 * @since 4.1
 	 */

@@ -63,17 +63,17 @@ ext {
     derbyVersion = '10.16.1.1'
     findbugsVersion = '3.0.1'
     ftpServerVersion = '1.2.0'
-    graalvmVersion = '22.3.0'
+    graalvmVersion = '22.3.1'
     greenmailVersion = '2.0.0-alpha-3'
-    groovyVersion = '4.0.7'
+    groovyVersion = '4.0.9'
     hamcrestVersion = '2.2'
     hazelcastVersion = '5.2.1'
-    hibernateVersion = '6.1.6.Final'
+    hibernateVersion = '6.1.7.Final'
     hsqldbVersion = '2.7.1'
     h2Version = '2.1.214'
-    jacksonVersion = '2.14.1'
+    jacksonVersion = '2.14.2'
     jaxbVersion = '4.0.1'
-    jcifsVersion = '2.1.32'
+    jcifsVersion = '2.1.33'
     jeroMqVersion = '0.5.3'
     jmsApiVersion = '3.1.0'
     jpaApiVersion = '3.1.0'
@@ -87,16 +87,16 @@ ext {
     lettuceVersion = '6.2.2.RELEASE'
     log4jVersion = '2.19.0'
     mailVersion = '1.0.0'
-    micrometerPropagationVersion = '1.0.1-SNAPSHOT'
-    micrometerTracingVersion = '1.0.2-SNAPSHOT'
-    micrometerVersion = '1.10.4-SNAPSHOT'
+    micrometerPropagationVersion = '1.0.2'
+    micrometerTracingVersion = '1.0.2'
+    micrometerVersion = '1.10.4'
     mockitoVersion = '4.10.0'
     mongoDriverVersion = '4.8.2'
-    mysqlVersion = '8.0.31'
+    mysqlVersion = '8.0.32'
     pahoMqttClientVersion = '1.2.5'
     postgresVersion = '42.5.1'
     r2dbch2Version = '1.0.0.RELEASE'
-    reactorVersion = '2022.0.2'
+    reactorVersion = '2022.0.3'
     resilience4jVersion = '1.7.1'
     romeToolsVersion = '1.18.0'
     rsocketVersion = '1.1.3'
@@ -249,7 +249,7 @@ configure(javaProjects) { subproject ->
     }
 
     jacoco {
-        toolVersion = '0.8.7'
+        toolVersion = '0.8.8'
     }
 
     // dependencies that are common across all java projects
@@ -371,7 +371,7 @@ configure(javaProjects) { subproject ->
 
     checkstyle {
         configDirectory.set(rootProject.file('src/checkstyle'))
-        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '10.5.0'
+        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '10.7.0'
     }
 
     jar {
