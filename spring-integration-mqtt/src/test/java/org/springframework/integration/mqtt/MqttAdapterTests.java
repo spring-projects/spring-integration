@@ -512,7 +512,7 @@ public class MqttAdapterTests {
 
 		new DirectFieldAccessor(adapter).setPropertyValue("running", Boolean.TRUE);
 		adapter.stop();
-		verify(client).disconnectForcibly(5_000L);
+		verify(client).disconnectForcibly(30_000L);
 	}
 
 	private MqttPahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttAsyncClient client, Boolean cleanSession)
