@@ -1,0 +1,4 @@
+# Tooling related information for the integration Zip namespace
+http\://www.springframework.org/schema/integration/zip@name=integration Zip Namespace
+http\://www.springframework.org/schema/integration/zip@prefix=int-zip
+http\://www.springframework.org/schema/integration/zip@icon=org/springframework/integration/zip/config/spring-integration-zip.gif

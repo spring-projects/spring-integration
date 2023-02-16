@@ -1,0 +1,1 @@
+http\://www.springframework.org/schema/integration/zip=org.springframework.integration.zip.config.xml.ZipNamespaceHandler

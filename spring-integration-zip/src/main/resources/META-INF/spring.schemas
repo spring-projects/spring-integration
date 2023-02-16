@@ -1,0 +1,4 @@
+http\://www.springframework.org/schema/integration/zip/spring-integration-zip-1.0.xsd=org/springframework/integration/zip/config/spring-integration-zip.xsd
+http\://www.springframework.org/schema/integration/zip/spring-integration-zip.xsd=org/springframework/integration/zip/config/spring-integration-zip.xsd
+https\://www.springframework.org/schema/integration/zip/spring-integration-zip-1.0.xsd=org/springframework/integration/zip/config/spring-integration-zip.xsd
+https\://www.springframework.org/schema/integration/zip/spring-integration-zip.xsd=org/springframework/integration/zip/config/spring-integration-zip.xsd

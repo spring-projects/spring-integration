@@ -17,6 +17,11 @@ In general the project has been moved to the latest dependency versions.
 [[x6.1-new-components]]
 === New Components
 
+[[x6.1-zip]]
+==== Zip Support
+
+The Zip Spring Integration Extension project has been migrated as the `spring-integration-zip` module.
+See <<./zip.adoc#zip,Zip Support>>  for more information.
 
 
 [[x6.1-general]]

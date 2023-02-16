@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-zip="http://www.springframework.org/schema/integration/zip"
+	xmlns:int-file="http://www.springframework.org/schema/integration/file"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/integration/file https://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		http://www.springframework.org/schema/integration/zip https://www.springframework.org/schema/integration/zip/spring-integration-zip.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<context:property-placeholder/>
+
+	<int:channel id="input"/>
+
+	<int-zip:zip-transformer input-channel="input" output-channel="write-file" result-type="BYTE_ARRAY">
+		<int-zip:request-handler-advice-chain>
+			<int:retry-advice/>
+		</int-zip:request-handler-advice-chain>
+	</int-zip:zip-transformer>
+
+	<int-file:outbound-channel-adapter id="write-file" directory="${workDir}" auto-create-directory="true"/>
+
+</beans>
