@@ -56,14 +56,4 @@ public interface MqttPahoClientFactory {
 	 */
 	MqttConnectOptions getConnectionOptions();
 
-	/**
-	 * Get the consumer stop action.
-	 * @return the consumer stop action.
-	 * @since 4.3
-	 * @deprecated since 5.5.17 in favor of standard {@link MqttConnectOptions#setCleanSession(boolean)}.
-	 * Will be removed in 6.1.0.
-	 */
-	@Deprecated
-	ConsumerStopAction getConsumerStopAction();
-
 }

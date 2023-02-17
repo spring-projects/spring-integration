@@ -41,41 +41,12 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
 	private MqttClientPersistence persistence;
 
-	@SuppressWarnings("deprecation")
-	private ConsumerStopAction consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
-
 	/**
 	 * Set the persistence to pass into the client constructor.
 	 * @param persistence the persistence to set.
 	 */
 	public void setPersistence(MqttClientPersistence persistence) {
 		this.persistence = persistence;
-	}
-
-	/**
-	 * Get the consumer stop action.
-	 * @return the consumer stop action.
-	 * @since 4.2.3
-	 * @deprecated since 5.5.17 in favor of standard {@link MqttConnectOptions#setCleanSession(boolean)}.
-	 * Will be removed in 6.1.0.
-	 */
-	@Deprecated
-	@Override
-	public ConsumerStopAction getConsumerStopAction() {
-		return this.consumerStopAction;
-	}
-
-	/**
-	 * Set the consumer stop action. Determines whether we unsubscribe when the consumer stops.
-	 * Default: {@link ConsumerStopAction#UNSUBSCRIBE_CLEAN}.
-	 * @param consumerStopAction the consumer stop action.
-	 * @since 4.2.3.
-	 * @deprecated since 5.5.17 in favor of standard {@link MqttConnectOptions#setCleanSession(boolean)}.
-	 * Will be removed in 6.1.0.
-	 */
-	@Deprecated
-	public void setConsumerStopAction(ConsumerStopAction consumerStopAction) {
-		this.consumerStopAction = consumerStopAction;
 	}
 
 	@Override

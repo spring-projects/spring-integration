@@ -68,9 +68,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	private volatile IMqttAsyncClient client;
 
-	@SuppressWarnings("deprecation")
-	private volatile org.springframework.integration.mqtt.core.ConsumerStopAction consumerStopAction;
-
 	private volatile boolean readyToSubscribeOnStart;
 
 	/**
@@ -184,11 +181,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 	@SuppressWarnings("deprecation")
 	private synchronized void connect() throws MqttException {
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
-		this.consumerStopAction = this.clientFactory.getConsumerStopAction();
-		if (this.consumerStopAction == null) {
-			this.consumerStopAction = org.springframework.integration.mqtt.core.ConsumerStopAction.UNSUBSCRIBE_CLEAN;
-		}
-
 		var clientManager = getClientManager();
 		if (clientManager == null) {
 			Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
@@ -203,17 +195,11 @@ public class MqttPahoMessageDrivenChannelAdapter
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected synchronized void doStop() {
 		this.readyToSubscribeOnStart = false;
 		try {
-			if (this.consumerStopAction
-					.equals(org.springframework.integration.mqtt.core.ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
-					|| (this.consumerStopAction
-					.equals(org.springframework.integration.mqtt.core.ConsumerStopAction.UNSUBSCRIBE_CLEAN)
-					&& this.clientFactory.getConnectionOptions().isCleanSession())) {
-
+			if (this.clientFactory.getConnectionOptions().isCleanSession()) {
 				this.client.unsubscribe(getTopic());
 				// Have to re-subscribe on next start if connection is not lost.
 				this.readyToSubscribeOnStart = true;
