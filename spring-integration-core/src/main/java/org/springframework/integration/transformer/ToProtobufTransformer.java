@@ -18,6 +18,9 @@ package org.springframework.integration.transformer;
 
 import org.springframework.integration.transformer.support.ProtoHeaders;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.converter.ProtobufMessageConverter;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
 
 /**
@@ -28,16 +31,27 @@ import org.springframework.util.Assert;
  */
 public class ToProtobufTransformer extends AbstractTransformer {
 
+    private final ProtobufMessageConverter protobufMessageConverter;
+
+    public ToProtobufTransformer() {
+        this(new ProtobufMessageConverter());
+    }
+
+    public ToProtobufTransformer(ProtobufMessageConverter protobufMessageConverter) {
+        this.protobufMessageConverter = protobufMessageConverter;
+    }
+
     @Override
     protected Object doTransform(Message<?> message) {
         Assert.isInstanceOf(com.google.protobuf.Message.class, message.getPayload(),
                 "Payload must be an implementation of 'com.google.protobuf.Message'");
 
-        com.google.protobuf.Message protobufMessage = (com.google.protobuf.Message) message.getPayload();
+        MessageHeaderAccessor accessor = new MessageHeaderAccessor(message);
+        accessor.setHeader(ProtoHeaders.TYPE, message.getPayload().getClass().getName());
+        if (!message.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE)) {
+            accessor.setContentType(ProtobufMessageConverter.PROTOBUF);
+        }
 
-        return getMessageBuilderFactory().withPayload(protobufMessage.toByteArray())
-                .copyHeaders(message.getHeaders())
-                .setHeader(ProtoHeaders.TYPE, protobufMessage.getClass())
-                .build();
+        return this.protobufMessageConverter.toMessage(message.getPayload(), accessor.getMessageHeaders());
     }
 }

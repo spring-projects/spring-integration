@@ -16,13 +16,6 @@
 
 package org.springframework.integration.transformer;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.lang.reflect.Method;
-import java.util.Map;
-
-import com.google.protobuf.Message.Builder;
-
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -30,9 +23,9 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.transformer.support.ProtoHeaders;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.ProtobufMessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ConcurrentReferenceHashMap;
 
 /**
  * A Protocol Buffer transformer to instantiate {@link com.google.protobuf.Message} objects from {@code byte[]}.
@@ -42,7 +35,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  */
 public class FromProtobufTransformer extends AbstractTransformer implements BeanClassLoaderAware {
 
-	private static final Map<Class<?>, Method> methodCache = new ConcurrentReferenceHashMap<>();
+	private final ProtobufMessageConverter protobufMessageConverter;
 
 	private final Class<? extends com.google.protobuf.Message> defaultType;
 
@@ -58,8 +51,19 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	 * @param defaultType the type.
 	 */
 	public FromProtobufTransformer(Class<? extends com.google.protobuf.Message> defaultType) {
+		this(defaultType, new ProtobufMessageConverter());
+	}
+
+	/**
+	 * Construct an instance with the supplied default type and ProtobufMessageConverter instance.
+	 * @param defaultType the type.
+	 * @param protobufMessageConverter the message converter used.
+	 */
+	public FromProtobufTransformer(Class<? extends com.google.protobuf.Message> defaultType,
+			ProtobufMessageConverter protobufMessageConverter) {
 		Assert.notNull(defaultType, "'defaultType' must not be null");
 		this.defaultType = defaultType;
+		this.protobufMessageConverter = protobufMessageConverter;
 	}
 
 	@Override
@@ -98,60 +102,25 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	@SuppressWarnings("unchecked")
 	@Override
 	protected Object doTransform(Message<?> message) {
-		Assert.isInstanceOf(byte[].class, message.getPayload(),"Payload must be a byte[]");
-		Class<? extends com.google.protobuf.Message> type = null;
+
+		Class<? extends com.google.protobuf.Message> targetClass = null;
 		Object value = this.typeIdExpression.getValue(this.evaluationContext, message);
 		if (value instanceof Class) {
-			type = (Class<? extends com.google.protobuf.Message>) value;
+			targetClass = (Class<? extends com.google.protobuf.Message>) value;
 		}
 		else if (value instanceof String) {
 			try {
-				type = (Class<? extends com.google.protobuf.Message>) ClassUtils.forName((String) value,
+				targetClass = (Class<? extends com.google.protobuf.Message>) ClassUtils.forName((String) value,
 						this.beanClassLoader);
 			}
 			catch (ClassNotFoundException | LinkageError e) {
 				throw new IllegalStateException(e);
 			}
 		}
-		if (type == null) {
-			type = this.defaultType;
+		if (targetClass == null) {
+			targetClass = this.defaultType;
 		}
 
-		try {
-			Builder messageBuilder = getMessageBuilder(type);
-			byte[] payload = (byte[]) message.getPayload();
-			return messageBuilder.mergeFrom(payload).build();
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
-
-	/**
-	 * Create a new {@code Message.Builder} instance for the given class.
-	 * <p>
-	 * This method uses a ConcurrentReferenceHashMap for caching method lookups.
-	 */
-	private com.google.protobuf.Message.Builder getMessageBuilder(Class<? extends com.google.protobuf.Message> clazz) {
-
-		Method method = methodCache.computeIfAbsent(clazz, clz -> {
-			try {
-				// The com.google.protobuf.Message interface doesn't define an explicit newBuilder method.
-				// But all generated message classes that implement the Message interface implement the
-				// newBuilder method as well.
-				return clz.getMethod("newBuilder");
-			}
-			catch (Exception ex) {
-				throw new RuntimeException("No newBuilder() method fond for Class: " + clazz, ex);
-			}
-		});
-
-		try {
-			return (com.google.protobuf.Message.Builder) method.invoke(clazz);
-		}
-		catch (Exception ex) {
-			throw new RuntimeException(
-					"Invalid Protobuf Message type: no invocable newBuilder() method on " + clazz, ex);
-		}
+		return this.protobufMessageConverter.fromMessage(message, targetClass);
 	}
 }

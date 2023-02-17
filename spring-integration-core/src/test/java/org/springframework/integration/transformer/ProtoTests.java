@@ -16,6 +16,8 @@
 
 package org.springframework.integration.transformer;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -34,6 +36,7 @@ import org.springframework.integration.transformer.proto.TestClass1;
 import org.springframework.integration.transformer.proto.TestClass2;
 import org.springframework.integration.transformer.support.ProtoHeaders;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -66,6 +69,36 @@ public class ProtoTests {
                                 .isNotNull()
                                 .extracting(msg -> msg.getPayload())
                                 .isInstanceOf(byte[].class);
+                Message<?> received = config.out().receive(0);
+                assertThat(received)
+                                .isNotNull()
+                                .extracting(msg -> msg.getPayload())
+                                .isEqualTo(test)
+                                .isNotSameAs(test);
+                assertThat(received.getHeaders().get("flow")).isEqualTo("flow1");
+                ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+                verify(spied, atLeastOnce()).debug(captor.capture());
+                assertThat(captor.getAllValues()).anyMatch(s -> s.contains("preSend on channel"));
+                assertThat(captor.getAllValues()).anyMatch(s -> s.contains("postSend (sent=true) on channel"));
+        }
+
+        @Test
+        @LogLevels(classes = DirectChannel.class, categories = "bar", level = "DEBUG")
+        void testTransformersJson(@Autowired ProtoConfig config) {
+                TestClass1 test = TestClass1.newBuilder()
+                                .setBar("foo")
+                                .setQux(678)
+                                .build();
+                LogAccessor spied = spy(TestUtils.getPropertyValue(config.in1(), "logger", LogAccessor.class));
+                new DirectFieldAccessor(config.in1()).setPropertyValue("logger", spied);
+
+                config.in1().send(new GenericMessage<>(test,
+                                Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json")));
+                assertThat(config.tapped().receive(0))
+                                .isNotNull()
+                                .extracting(msg -> msg.getPayload())
+                                .isInstanceOf(String.class)
+                                .isEqualTo("{\n  \"bar\": \"foo\",\n  \"qux\": 678\n}");
                 Message<?> received = config.out().receive(0);
                 assertThat(received)
                                 .isNotNull()
