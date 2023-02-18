@@ -544,7 +544,6 @@ project('spring-integration-core') {
             exclude group: 'org.jetbrains.kotlin'
         }
         optionalApi "com.google.protobuf:protobuf-java:$protobufVersion"
-        optionalApi "com.google.protobuf:protobuf-java-util:$protobufVersion"
         optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
         optionalApi "com.esotericsoftware:kryo:$kryoVersion"
         optionalApi 'io.micrometer:micrometer-core'
@@ -555,6 +554,7 @@ project('spring-integration-core') {
         optionalApi "org.apache.avro:avro:$avroVersion"
         optionalApi 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
 
+        optionalApi "com.google.protobuf:protobuf-java-util:$protobufVersion"
         testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
         testImplementation 'io.micrometer:micrometer-observation-test'
         testImplementation ('io.micrometer:micrometer-tracing-integration-test') {

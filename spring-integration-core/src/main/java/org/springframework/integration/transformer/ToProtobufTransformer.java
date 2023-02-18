@@ -27,7 +27,10 @@ import org.springframework.util.Assert;
  * An Protocol Buffer transformer for generated {@link com.google.protobuf.Message} objects.
  *
  * If the content type is set to application/x-protobuf (default if no content type) then the output message payload is
- * of type byte array. If the content type is set to application/json the output message payload if of type String.
+ * of type byte array.
+ *
+ * If the content type is set to application/json and the com.google.protobuf:protobuf-java-util dependency is on the
+ * classpath the output message payload if of type String.
  *
  * @author Christian Tzolov
  * @since 6.1
