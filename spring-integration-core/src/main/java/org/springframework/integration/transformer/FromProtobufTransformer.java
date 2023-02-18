@@ -62,6 +62,7 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	public FromProtobufTransformer(Class<? extends com.google.protobuf.Message> defaultType,
 			ProtobufMessageConverter protobufMessageConverter) {
 		Assert.notNull(defaultType, "'defaultType' must not be null");
+		Assert.notNull(protobufMessageConverter, "'protobufMessageConverter' must not be null");
 		this.defaultType = defaultType;
 		this.protobufMessageConverter = protobufMessageConverter;
 	}
@@ -76,7 +77,7 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	 * @param expression the expression.
 	 */
 	public void setTypeExpression(Expression expression) {
-		assertExpressionNotNull(expression);
+		Assert.notNull(expression, "'expression' must not be null");
 		this.typeIdExpression = expression;
 	}
 
@@ -86,12 +87,8 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	 * @param expression the expression.
 	 */
 	public void setTypeExpressionString(String expression) {
-		assertExpressionNotNull(expression);
-		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
-	}
-
-	private void assertExpressionNotNull(Object expression) {
 		Assert.notNull(expression, "'expression' must not be null");
+		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
 	}
 
 	@Override
@@ -118,6 +115,7 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 			}
 		}
 		if (targetClass == null) {
+			this.logger.trace("Empty SpEL type expression. Fallback to the defaultType!");
 			targetClass = this.defaultType;
 		}
 

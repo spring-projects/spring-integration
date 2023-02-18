@@ -52,7 +52,6 @@ import static org.mockito.Mockito.verify;
  * @since 6.1
  */
 @SpringJUnitConfig
-@LogLevels(categories = "foo", level = "DEBUG")
 public class ProtoTests {
 
         @Test
