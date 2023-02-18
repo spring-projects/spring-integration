@@ -223,15 +223,17 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	protected void doStop() {
-		this.readyToSubscribeOnStart = false;
 		this.topicLock.lock();
+		this.readyToSubscribeOnStart = false;
 		String[] topics = getTopic();
 		try {
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				if (this.connectionOptions.isCleanStart()) {
 					this.mqttClient.unsubscribe(topics).waitForCompletion(getCompletionTimeout());
-				}
+					// Have to re-subscribe on next start if connection is not lost.
+					this.readyToSubscribeOnStart = true;
 
+				}
 				if (getClientManager() == null) {
 					this.mqttClient.disconnectForcibly(getDisconnectCompletionTimeout());
 				}
@@ -331,10 +333,16 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	public void disconnected(MqttDisconnectResponse disconnectResponse) {
-		MqttException cause = disconnectResponse.getException();
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+		if (isRunning()) {
+			MqttException cause = disconnectResponse.getException();
+			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+			}
+		}
+		else {
+			// The 'connectComplete()' re-subscribes or sets this flag otherwise.
+			this.readyToSubscribeOnStart = false;
 		}
 	}
 
@@ -358,7 +366,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (isRunning()) {
+		// The 'running' flag is set after 'doStart()', so possible a race condition
+		// when start is not finished yet, but server answers with successful connection.
+		if (isActive()) {
 			subscribe();
 		}
 		else {

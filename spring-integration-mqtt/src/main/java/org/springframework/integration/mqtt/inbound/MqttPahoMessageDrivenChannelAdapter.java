@@ -215,6 +215,9 @@ public class MqttPahoMessageDrivenChannelAdapter
 					&& this.clientFactory.getConnectionOptions().isCleanSession())) {
 
 				this.client.unsubscribe(getTopic());
+				// Have to re-subscribe on next start if connection is not lost.
+				this.readyToSubscribeOnStart = true;
+
 			}
 		}
 		catch (MqttException ex1) {
@@ -341,6 +344,10 @@ public class MqttPahoMessageDrivenChannelAdapter
 				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
 			}
 		}
+		else {
+			// The 'connectComplete()' re-subscribes or sets this flag otherwise.
+			this.readyToSubscribeOnStart = false;
+		}
 	}
 
 	@Override
@@ -404,7 +411,9 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
-		if (isRunning()) {
+		// The 'running' flag is set after 'doStart()', so possible a race condition
+		// when start is not finished yet, but server answers with successful connection.
+		if (isActive()) {
 			subscribe();
 		}
 		else {
