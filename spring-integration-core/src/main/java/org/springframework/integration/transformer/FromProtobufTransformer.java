@@ -28,7 +28,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
- * A Protocol Buffer transformer to instantiate {@link com.google.protobuf.Message} objects from {@code byte[]}.
+ * A Protocol Buffer transformer to instantiate {@link com.google.protobuf.Message} objects
+ * from either {@code byte[]} in case of application/x-protobuf content type or from {@code String}
+ * in case of application/json.
  *
  * @author Christian Tzolov
  * @since 6.1
@@ -115,7 +117,7 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 			}
 		}
 		if (targetClass == null) {
-			this.logger.trace("Empty SpEL type expression. Fallback to the defaultType!");
+			this.logger.trace(() -> "The 'typeIdExpression' (" + this.typeIdExpression + ") returned 'null' for: " + message + ". Falling back to the defaultType: " + this.defaultType);
 			targetClass = this.defaultType;
 		}
 

@@ -453,12 +453,13 @@ Version 6.1 adds support for transforming from and to https://protobuf.dev/[Prot
 
 The `ToProtobufTransformer` transforms `com.google.protobuf.Message` message payloads into native byte array or json text payloads.
 The `application/x-protobuf` content type (default) produces byte array output payload.
-Set the `application/json` content type and add the `com.google.protobuf:protobuf-java-util` on the classpath to output text message payload. If the content type header is not set the `ToProtobufTransformer` defaults to `application/x-protobuf`.
+Set the `application/json` content type and add the `com.google.protobuf:protobuf-java-util` on the classpath to output text message payload.
+If the content type header is not set the `ToProtobufTransformer` defaults to `application/x-protobuf`.
 
-The `FromProtobufTransformer` transforms byte array or text protobuf payload (depending on the content type) back into `com.google.protobuf.Message` instances. You can also specify a `SpEL expression` to determine the type to deserialize using the `setTypeExpression` method.
+The `FromProtobufTransformer` transforms byte array or text protobuf payload (depending on the content type) back into `com.google.protobuf.Message` instances. You can also specify a SpEL expression to determine the type to deserialize using the `setTypeExpression` method.
 The default SpEL expression is `headers[proto_type]` (`ProtoHeaders.TYPE`) which is populated by the `ToProtobufTransformer` with the fully qualified class name of the source `com.google.protobuf.Message` class. If the expression returns `null`, the `defaultType` is used.
 
-For example, compiling the following IDL
+For example, compiling the following IDL.
 
 ====
 [source,proto]
