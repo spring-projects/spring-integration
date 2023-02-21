@@ -87,7 +87,6 @@ ext {
     lettuceVersion = '6.2.2.RELEASE'
     log4jVersion = '2.19.0'
     mailVersion = '1.0.0'
-    micrometerPropagationVersion = '1.0.2'
     micrometerTracingVersion = '1.0.2'
     micrometerVersion = '1.10.4'
     mockitoVersion = '4.10.0'
@@ -533,7 +532,6 @@ project('spring-integration-core') {
         }
         api 'io.projectreactor:reactor-core'
         api 'io.micrometer:micrometer-observation'
-        api "io.micrometer:context-propagation:$micrometerPropagationVersion"
 
         optionalApi 'com.fasterxml.jackson.core:jackson-databind'
         optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'

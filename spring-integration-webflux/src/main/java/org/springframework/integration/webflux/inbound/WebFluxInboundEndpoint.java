@@ -27,7 +27,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import io.micrometer.context.ContextSnapshot;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -152,20 +151,20 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 						new RequestEntity<>(body, exchange.getRequest().getHeaders(),
 								exchange.getRequest().getMethod(), exchange.getRequest().getURI()))
 				.flatMap(entity -> buildMessage(entity, exchange))
-				.flatMap(requestTuple ->
-						Mono.deferContextual(contextView -> {
-							if (isExpectReply()) {
-								return sendAndReceiveMessageReactive(requestTuple.getT1())
-										.flatMap(replyMessage -> populateResponse(exchange, replyMessage));
-							}
-							else {
-								var scope = ContextSnapshot.setAllThreadLocalsFrom(contextView);
-								try (scope) {
-									send(requestTuple.getT1());
-								}
-								return setStatusCode(exchange, requestTuple.getT2());
-							}
-						}))
+				.flatMap(requestTuple -> {
+					if (isExpectReply()) {
+						return sendAndReceiveMessageReactive(requestTuple.getT1())
+								.flatMap(replyMessage -> populateResponse(exchange, replyMessage));
+					}
+					else {
+						return Mono.just(requestTuple.getT1())
+								.handle((objectMessage, synchronousSink) -> {
+									send(objectMessage);
+									synchronousSink.complete();
+								})
+								.then(setStatusCode(exchange, requestTuple.getT2()));
+					}
+				})
 				.doOnTerminate(this.activeCount::decrementAndGet);
 
 	}
