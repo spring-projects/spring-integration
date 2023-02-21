@@ -61,11 +61,17 @@ public class ResubscribeAfterAutomaticReconnectTests implements MosquittoContain
 	private MqttConnectionOptions connectionOptions;
 
 	@Autowired
+	Mqttv5PahoMessageDrivenChannelAdapter pahoMessageDrivenChannelAdapter;
+
+	@Autowired
 	Config config;
 
 	@Test
 	void messageReceivedAfterResubscriptionOnLostConnection() throws InterruptedException {
 		GenericMessage<String> testMessage = new GenericMessage<>("test");
+
+		assertThat(this.config.subscribeFirstLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
 		this.mqttOutFlowInput.send(testMessage);
 		assertThat(this.fromMqttChannel.receive(10_000)).isNotNull();
 
@@ -73,7 +79,16 @@ public class ResubscribeAfterAutomaticReconnectTests implements MosquittoContain
 		MOSQUITTO_CONTAINER.start();
 		connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 
-		assertThat(this.config.subscribeLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.config.subscribeSecondLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		this.mqttOutFlowInput.send(testMessage);
+		assertThat(this.fromMqttChannel.receive(10_000)).isNotNull();
+
+		// Re-subscription on channel adapter restart with cleanStart
+		this.pahoMessageDrivenChannelAdapter.stop();
+		this.pahoMessageDrivenChannelAdapter.start();
+
+		assertThat(this.config.subscribeThirdLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		this.mqttOutFlowInput.send(testMessage);
 		assertThat(this.fromMqttChannel.receive(10_000)).isNotNull();
@@ -83,13 +98,18 @@ public class ResubscribeAfterAutomaticReconnectTests implements MosquittoContain
 	@EnableIntegration
 	public static class Config {
 
-		CountDownLatch subscribeLatch = new CountDownLatch(2);
+		CountDownLatch subscribeFirstLatch = new CountDownLatch(1);
+
+		CountDownLatch subscribeSecondLatch = new CountDownLatch(2);
+
+		CountDownLatch subscribeThirdLatch = new CountDownLatch(3);
 
 		@Bean
 		public MqttConnectionOptions mqttConnectOptions() {
 			return new MqttConnectionOptionsBuilder()
 					.serverURI(MosquittoContainerTest.mqttUrl())
 					.automaticReconnect(true)
+					.cleanStart(true)
 					.build();
 		}
 
@@ -105,7 +125,6 @@ public class ResubscribeAfterAutomaticReconnectTests implements MosquittoContain
 		public IntegrationFlow mqttInFlow(MqttConnectionOptions mqttConnectOptions) {
 			Mqttv5PahoMessageDrivenChannelAdapter messageProducer =
 					new Mqttv5PahoMessageDrivenChannelAdapter(mqttConnectOptions, "mqttInClient", "siTest");
-
 			return IntegrationFlow.from(messageProducer)
 					.channel(c -> c.queue("fromMqttChannel"))
 					.get();
@@ -113,7 +132,9 @@ public class ResubscribeAfterAutomaticReconnectTests implements MosquittoContain
 
 		@EventListener(MqttSubscribedEvent.class)
 		public void mqttEvents() {
-			this.subscribeLatch.countDown();
+			this.subscribeFirstLatch.countDown();
+			this.subscribeSecondLatch.countDown();
+			this.subscribeThirdLatch.countDown();
 		}
 
 	}
