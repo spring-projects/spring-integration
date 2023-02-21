@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.webflux.outbound;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -282,9 +283,7 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.TEXT_PLAIN);
 
-		StepVerifier.create(
-						response.getBody()
-								.map(dataBuffer -> new String(dataBuffer.toByteBuffer().array())))
+		StepVerifier.create(response.getBody().map(dataBuffer -> dataBuffer.toString(StandardCharsets.UTF_8)))
 				.expectNext("foo", "bar", "baz")
 				.verifyComplete();
 	}
