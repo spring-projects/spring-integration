@@ -37,11 +37,10 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * {@link Transformer} implementation that applies a Zip transformation to the
- * message payload. Keep in mind that Zip entry timestamps are recorded only to
- * two 2 second precision:
+ * {@link Transformer} implementation that applies a Zip transformation to the message payload.
+ * Keep in mind that Zip entry timestamps are recorded only to 2 second precision:
  * <p>
- * See also: <a href="http://mindprod.com/jgloss/zip.html"/>
+ * See also: <a href="https://www.mindprod.com/jgloss/zip.html"/>
  * <p>
  * If you want to generate Zip files larger than {@code 4GB}, you must use Java 7:
  * <p>
