@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -42,6 +42,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -57,14 +59,14 @@ public class MessagingGatewayTests {
 
 	private volatile MessagingGatewaySupport messagingGateway;
 
-	private volatile MessageChannel requestChannel = Mockito.mock(MessageChannel.class);
+	private final MessageChannel requestChannel = Mockito.mock(MessageChannel.class);
 
-	private volatile PollableChannel replyChannel = Mockito.mock(PollableChannel.class);
+	private final PollableChannel replyChannel = Mockito.mock(PollableChannel.class);
 
 	@SuppressWarnings("rawtypes")
-	private volatile Message messageMock = Mockito.mock(Message.class);
+	private final Message messageMock = Mockito.mock(Message.class);
 
-	@Before
+	@BeforeEach
 	public void initializeSample() {
 		this.messagingGateway = new MessagingGatewaySupport() {
 
@@ -79,7 +81,7 @@ public class MessagingGatewayTests {
 		Mockito.when(this.messageMock.getHeaders()).thenReturn(new MessageHeaders(Collections.emptyMap()));
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.messagingGateway.stop();
 		this.applicationContext.close();
@@ -92,15 +94,14 @@ public class MessagingGatewayTests {
 		Mockito.when(requestChannel.send(messageMock, 1000L)).thenReturn(true);
 		this.messagingGateway.send(messageMock);
 		Mockito.verify(requestChannel).send(messageMock, 1000L);
-		// TODO Micrometer counter
-//		assertThat(this.messagingGateway.getMessageCount()).isEqualTo(1);
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void sendMessage_failure() {
 		Mockito.when(messageMock.getHeaders()).thenReturn(new MessageHeaders(null));
 		Mockito.when(requestChannel.send(messageMock, 1000L)).thenReturn(false);
-		this.messagingGateway.send(messageMock);
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.messagingGateway.send(messageMock));
 	}
 
 	@Test
@@ -114,19 +115,21 @@ public class MessagingGatewayTests {
 		Mockito.verify(requestChannel).send(Mockito.any(Message.class), Mockito.eq(1000L));
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void sendObject_failure() {
 		Mockito.doAnswer(invocation -> {
 			assertThat(((Message<?>) invocation.getArguments()[0]).getPayload()).isEqualTo("test");
 			return false;
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.eq(1000L));
 
-		this.messagingGateway.send("test");
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.messagingGateway.send("test"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void sendMessage_null() {
-		this.messagingGateway.send(null);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> this.messagingGateway.send(null));
 	}
 
 	/* receive tests */
@@ -159,7 +162,6 @@ public class MessagingGatewayTests {
 			return true;
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.anyLong());
 
-		// TODO: if timeout is 0, this will fail occasionally
 		this.messagingGateway.setReplyTimeout(100);
 		Object test = this.messagingGateway.sendAndReceive("test");
 		assertThat(test).isEqualTo("test");
@@ -186,9 +188,10 @@ public class MessagingGatewayTests {
 		assertThat(o).isEqualTo("foo");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void sendNullAndReceiveObject() {
-		this.messagingGateway.sendAndReceive(null);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> this.messagingGateway.sendAndReceive(null));
 	}
 
 	@Test
@@ -227,13 +230,13 @@ public class MessagingGatewayTests {
 		assertThat(receiveMessage).isSameAs(messageMock);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void sendNullAndReceiveMessage() {
-		this.messagingGateway.sendAndReceiveMessage(null);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> this.messagingGateway.sendAndReceiveMessage(null));
 	}
 
-	// should fail but it doesn't now
-	@Test(expected = MessagingException.class)
+	@Test
 	public void validateErrorMessageCanNotBeReplyMessage() {
 		DirectChannel reqChannel = new DirectChannel();
 		reqChannel.subscribe(message -> {
@@ -256,7 +259,8 @@ public class MessagingGatewayTests {
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 
-		this.messagingGateway.sendAndReceiveMessage("hello");
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.messagingGateway.sendAndReceiveMessage("hello"));
 	}
 
 	@Test

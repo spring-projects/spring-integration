@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package org.springframework.integration.http.multipart;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -63,10 +65,13 @@ public class MultipartHttpInputMessage extends ServletServerHttpRequest implemen
 		return this.multipartServletRequest.getFiles(name);
 	}
 
-	// TODO: return MultiValueMap?
-	@SuppressWarnings("rawtypes")
-	public Map getParameterMap() {
-		return this.multipartServletRequest.getParameterMap();
+	public MultiValueMap<String, String> getParameterMap() {
+		return this.multipartServletRequest.getParameterMap()
+				.entrySet()
+				.stream()
+				.collect(LinkedMultiValueMap::new,
+						(params, entry) -> params.addAll(entry.getKey(), Arrays.asList(entry.getValue())),
+						LinkedMultiValueMap::addAll);
 	}
 
 	public String getMultipartContentType(String paramOrFileName) {

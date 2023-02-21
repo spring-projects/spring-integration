@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 
 
 	/**
-	 * Sets the character set used for writing form data.
+	 * Set the character set used for writing form data.
 	 * @param charset The charset.
 	 */
 	public void setCharset(Charset charset) {
@@ -112,8 +112,8 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 
 	private MultiValueMap<String, ?> readMultipart(MultipartHttpInputMessage multipartRequest) throws IOException {
 		MultiValueMap<String, Object> resultMap = new LinkedMultiValueMap<>();
-		Map<?, ?> parameterMap = multipartRequest.getParameterMap();
-		parameterMap.forEach((key, value) -> resultMap.add((String) key, value));
+		MultiValueMap<String, String> parameterMap = multipartRequest.getParameterMap();
+		parameterMap.forEach(resultMap::addAll);
 
 		for (Map.Entry<String, List<MultipartFile>> entry : multipartRequest.getMultiFileMap().entrySet()) {
 			List<MultipartFile> multipartFiles = entry.getValue();

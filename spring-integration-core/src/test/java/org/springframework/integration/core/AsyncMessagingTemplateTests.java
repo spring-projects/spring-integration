@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
@@ -35,19 +35,17 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.Assert;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class AsyncMessagingTemplateTests {
-
-	// TODO: changed from 0 because of recurrent failure: is this right?
-	private final long safety = 100;
 
 	@Test
 	public void asyncSendWithDefaultChannel() throws Exception {
@@ -85,15 +83,17 @@ public class AsyncMessagingTemplateTests {
 		assertThat(future.get(10000, TimeUnit.MILLISECONDS)).isNull();
 		Message<?> result = channel.receive(0);
 		assertThat(result).isEqualTo(message);
+		context.close();
 	}
 
-	@Test(expected = TimeoutException.class)
-	public void asyncSendWithTimeoutException() throws Exception {
+	@Test
+	public void asyncSendWithTimeoutException() {
 		QueueChannel channel = new QueueChannel(1);
 		channel.send(MessageBuilder.withPayload("blocker").build());
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		Future<?> result = template.asyncSend(channel, MessageBuilder.withPayload("test").build());
-		result.get(100, TimeUnit.MILLISECONDS);
+		assertThatExceptionOfType(TimeoutException.class)
+				.isThrownBy(() -> result.get(100, TimeUnit.MILLISECONDS));
 	}
 
 	@Test
@@ -131,13 +131,14 @@ public class AsyncMessagingTemplateTests {
 		assertThat(result.getPayload()).isEqualTo("test");
 	}
 
-	@Test(expected = TimeoutException.class)
-	public void asyncConvertAndSendWithTimeoutException() throws Exception {
+	@Test
+	public void asyncConvertAndSendWithTimeoutException() {
 		QueueChannel channel = new QueueChannel(1);
 		channel.send(MessageBuilder.withPayload("blocker").build());
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		Future<?> result = template.asyncConvertAndSend(channel, "test");
-		result.get(100, TimeUnit.MILLISECONDS);
+		assertThatExceptionOfType(TimeoutException.class)
+				.isThrownBy(() -> result.get(100, TimeUnit.MILLISECONDS));
 	}
 
 	@Test
@@ -146,12 +147,12 @@ public class AsyncMessagingTemplateTests {
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncReceive();
-		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		sendMessageAfterDelay(channel, new GenericMessage<>("test"), 200);
 		long start = System.currentTimeMillis();
 		assertThat(result.get(100000, TimeUnit.MILLISECONDS)).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 		assertThat(result.get().getPayload()).isEqualTo("test");
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 	}
 
 	@Test
@@ -159,12 +160,12 @@ public class AsyncMessagingTemplateTests {
 		QueueChannel channel = new QueueChannel();
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		Future<Message<?>> result = template.asyncReceive(channel);
-		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		sendMessageAfterDelay(channel, new GenericMessage<>("test"), 200);
 		long start = System.currentTimeMillis();
 		assertThat(result.get(10000, TimeUnit.MILLISECONDS)).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 		assertThat(result.get().getPayload()).isEqualTo("test");
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 	}
 
 	@Test
@@ -176,20 +177,21 @@ public class AsyncMessagingTemplateTests {
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setBeanFactory(context);
 		Future<Message<?>> result = template.asyncReceive("testChannel");
-		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		sendMessageAfterDelay(channel, new GenericMessage<>("test"), 200);
 		long start = System.currentTimeMillis();
 		assertThat(result.get(10000, TimeUnit.MILLISECONDS)).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 		assertThat(result.get().getPayload()).isEqualTo("test");
 	}
 
-	@Test(expected = TimeoutException.class)
-	public void asyncReceiveWithTimeoutException() throws Exception {
+	@Test
+	public void asyncReceiveWithTimeoutException() {
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		Future<Message<?>> result = template.asyncReceive(new QueueChannel());
-		result.get(100, TimeUnit.MILLISECONDS);
+		assertThatExceptionOfType(TimeoutException.class)
+				.isThrownBy(() -> result.get(100, TimeUnit.MILLISECONDS));
 	}
 
 	@Test
@@ -198,13 +200,13 @@ public class AsyncMessagingTemplateTests {
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setDefaultDestination(channel);
 		Future<?> result = template.asyncReceiveAndConvert();
-		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		sendMessageAfterDelay(channel, new GenericMessage<>("test"), 200);
 		long start = System.currentTimeMillis();
 		assertThat(result.get(10000, TimeUnit.MILLISECONDS)).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 		assertThat(result.get()).isEqualTo("test");
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 	}
 
 	@Test
@@ -212,13 +214,13 @@ public class AsyncMessagingTemplateTests {
 		QueueChannel channel = new QueueChannel();
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		Future<?> result = template.asyncReceiveAndConvert(channel);
-		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		sendMessageAfterDelay(channel, new GenericMessage<>("test"), 200);
 		long start = System.currentTimeMillis();
 		assertThat(result.get(10000, TimeUnit.MILLISECONDS)).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 		assertThat(result.get()).isEqualTo("test");
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 	}
 
 	@Test
@@ -230,20 +232,21 @@ public class AsyncMessagingTemplateTests {
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setBeanFactory(context);
 		Future<?> result = template.asyncReceiveAndConvert("testChannel");
-		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		sendMessageAfterDelay(channel, new GenericMessage<>("test"), 200);
 		long start = System.currentTimeMillis();
 		assertThat(result.get(10000, TimeUnit.MILLISECONDS)).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 		assertThat(result.get()).isEqualTo("test");
 	}
 
-	@Test(expected = TimeoutException.class)
-	public void asyncReceiveAndConvertWithTimeoutException() throws Exception {
+	@Test
+	public void asyncReceiveAndConvertWithTimeoutException() {
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		Future<?> result = template.asyncReceiveAndConvert(new QueueChannel());
-		result.get(100, TimeUnit.MILLISECONDS);
+		assertThatExceptionOfType(TimeoutException.class)
+				.isThrownBy(() -> result.get(100, TimeUnit.MILLISECONDS));
 	}
 
 	@Test
@@ -257,7 +260,7 @@ public class AsyncMessagingTemplateTests {
 		assertThat(result.get()).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 	}
 
 	@Test
@@ -266,11 +269,11 @@ public class AsyncMessagingTemplateTests {
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		long start = System.currentTimeMillis();
-		Future<Message<?>> result = template.asyncSendAndReceive(channel, MessageBuilder.withPayload("test").build());
+		Future<Message<?>> result = template.asyncSendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result.get()).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 		assertThat(result.get().getPayload()).isEqualTo("TEST");
 	}
 
@@ -284,11 +287,11 @@ public class AsyncMessagingTemplateTests {
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setBeanFactory(context);
 		long start = System.currentTimeMillis();
-		Future<Message<?>> result = template.asyncSendAndReceive("testChannel", MessageBuilder.withPayload("test").build());
+		Future<Message<?>> result = template.asyncSendAndReceive("testChannel", new GenericMessage<>("test"));
 		assertThat(result.get()).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 		assertThat(result.get().getPayload()).isEqualTo("TEST");
 	}
 
@@ -303,7 +306,7 @@ public class AsyncMessagingTemplateTests {
 		assertThat(result.get()).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 		assertThat(result.get()).isEqualTo("TEST");
 	}
 
@@ -317,7 +320,7 @@ public class AsyncMessagingTemplateTests {
 		assertThat(result.get()).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 		assertThat(result.get()).isEqualTo("TEST");
 	}
 
@@ -335,7 +338,7 @@ public class AsyncMessagingTemplateTests {
 		assertThat(result.get()).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 		assertThat(result.get()).isEqualTo("TEST");
 	}
 
@@ -350,7 +353,7 @@ public class AsyncMessagingTemplateTests {
 		assertThat(result.get()).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 		assertThat(result.get()).isEqualTo("123-bar");
 	}
 
@@ -364,7 +367,7 @@ public class AsyncMessagingTemplateTests {
 		assertThat(result.get()).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 		assertThat(result.get()).isEqualTo("TEST-bar");
 	}
 
@@ -382,37 +385,34 @@ public class AsyncMessagingTemplateTests {
 		assertThat(result.get()).isNotNull();
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertThat(elapsed >= 200 - safety).isTrue();
+		assertThat(elapsed).isGreaterThanOrEqualTo(200);
 		assertThat(result.get()).isEqualTo("TEST-bar");
 	}
 
-	@Test(expected = TimeoutException.class)
-	public void timeoutException() throws Exception {
+	@Test
+	public void timeoutException() {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(10000));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
-		result.get(10, TimeUnit.MILLISECONDS);
+		assertThatExceptionOfType(TimeoutException.class)
+				.isThrownBy(() -> result.get(100, TimeUnit.MILLISECONDS));
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void executionException() throws Throwable {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(-1));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
-		try {
-			result.get(10, TimeUnit.SECONDS);
-			fail("ExecutionException expected");
-		}
-		catch (ExecutionException e) {
-			throw e.getCause();
-		}
+		assertThatExceptionOfType(ExecutionException.class)
+				.isThrownBy(() -> result.get(100, TimeUnit.MILLISECONDS))
+				.withCauseInstanceOf(MessagingException.class);
 	}
 
-	@Test(expected = CancellationException.class)
+	@Test
 	public void cancellationException() throws Throwable {
 		DirectChannel channel = new DirectChannel();
 		EchoHandler handler = new EchoHandler(10000);
@@ -420,31 +420,29 @@ public class AsyncMessagingTemplateTests {
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
-		try {
-			Thread.sleep(200);
-			result.cancel(true);
-			result.get();
-			fail("ExecutionException expected");
-		}
-		catch (ExecutionException e) {
-			Assert.isTrue(handler.interrupted, "handler should have been interrupted");
-			throw e.getCause();
-		}
+
+		Thread.sleep(200);
+		result.cancel(true);
+
+		assertThatExceptionOfType(CancellationException.class)
+				.isThrownBy(result::get);
+
+		assertThat(handler.interrupted).as("handler should have been interrupted").isTrue();
 	}
 
 
-	private static void sendMessageAfterDelay(final MessageChannel channel, final GenericMessage<String> message,
-			final int delay) {
-		Executors.newSingleThreadExecutor().execute(() -> {
-			try {
-				Thread.sleep(delay);
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				return;
-			}
-			channel.send(message);
-		});
+	private static void sendMessageAfterDelay(MessageChannel channel, GenericMessage<String> message, int delay) {
+		Executors.newSingleThreadExecutor()
+				.execute(() -> {
+					try {
+						Thread.sleep(delay);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						return;
+					}
+					channel.send(message);
+				});
 	}
 
 	private static class EchoHandler extends AbstractReplyProducingMessageHandler {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,11 +122,6 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 	private boolean bindSourceMessage;
 
 	private BatchMode batchMode = BatchMode.MESSAGES;
-
-	// TODO Remove in 6.0
-	public AmqpInboundChannelAdapter(AbstractMessageListenerContainer listenerContainer) {
-		this((MessageListenerContainer) listenerContainer);
-	}
 
 	/**
 	 * Construct an instance using the provided container.
