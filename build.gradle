@@ -224,14 +224,7 @@ configure(javaProjects) { subproject ->
         kotlinOptions {
             languageVersion = '1.7'
             apiVersion = '1.7'
-            freeCompilerArgs = ['-Xjsr305=strict', '-Xsuppress-version-warnings', '-opt-in=kotlin.RequiresOptIn']
             allWarningsAsErrors = true
-        }
-    }
-    compileTestKotlin {
-        kotlinOptions {
-            languageVersion = '1.8'
-            freeCompilerArgs = ['-Xjsr305=strict', '-opt-in=kotlin.RequiresOptIn']
         }
     }
 
