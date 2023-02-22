@@ -411,11 +411,32 @@ Starting with version 5.1, when the endpoint is stopped while the application re
 Previously, the connection and consumers remained open.
 To revert to the previous behavior, set the `shutdownContainerOnStop` on the `JmsInboundGateway` to `false`.
 
+By default, the `JmsInboundGateway` looks for a `jakarta.jms.Message.getJMSReplyTo()` property in the received message to determine where to send a reply.
+Otherwise, it can be configured with a static `defaultReplyDestination`, or `defaultReplyQueueName` or `defaultReplyTopicName`.
+In addition, starting with version 6.1, a `replyToExpression` can be configured on a provided `ChannelPublishingJmsMessageListener` to determine the reply destination dynamically, if the standard `JMSReplyTo` property is `null` on the request.
+The received `jakarta.jms.Message` is used the root evaluation context object.
+The following example demonstrates how to use Java DSL API to configure an inbound JMS gateway with a custom reply destination resolved from the request message:
+
+====
+[source,java]
+----
+@Bean
+public IntegrationFlow jmsInboundGatewayFlow(ConnectionFactory connectionFactory) {
+    return IntegrationFlow.from(
+                    Jms.inboundGateway(connectionFactory)
+                            .requestDestination("requestDestination")
+                            .replyToFunction(message -> message.getStringProperty("myReplyTo")))
+            .<String, String>transform(String::toUpperCase)
+            .get();
+}
+----
+====
+
 [[jms-outbound-gateway]]
 === Outbound Gateway
 
-The outbound gateway creates JMS messages from Spring Integration messages and sends them to a 'request-destination'.
-It then handles the JMS reply message either by using a selector to receive from the 'reply-destination' that you configure or, if no 'reply-destination' is provided, by creating JMS `TemporaryQueue` (or `TemporaryTopic` if `replyPubSubDomain= true`) instances.
+The outbound gateway creates JMS messages from Spring Integration messages and sends them to a `request-destination`.
+It then handles the JMS reply message either by using a selector to receive from the `reply-destination` that you configure or, if no `reply-destination` is provided, by creating JMS `TemporaryQueue` (or `TemporaryTopic` if `replyPubSubDomain= true`) instances.
 
 [[jms-outbound-gateway-memory-caution]]
 [CAUTION]

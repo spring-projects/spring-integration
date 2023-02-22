@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import jakarta.jms.JMSException;
+import jakarta.jms.TextMessage;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -136,6 +138,9 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	private CountDownLatch redeliveryLatch;
+
+	@Autowired
+	JmsTemplate jmsTemplate;
 
 	@Test
 	public void testPollingFlow() {
@@ -264,6 +269,19 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		this.jmsMessageDrivenRedeliveryFlowContainer.stop();
 	}
 
+	@Test
+	public void customReplyToHeader() throws JMSException {
+		this.jmsTemplate.send("jmsPipelineTest", session -> {
+			TextMessage message = session.createTextMessage("test data");
+			message.setStringProperty("myReplyTo", "replyToQueue");
+			return message;
+		});
+
+		jakarta.jms.Message replyMessage = this.jmsTemplate.receive("replyToQueue");
+		assertThat(replyMessage).isNotNull();
+		assertThat(replyMessage.getBody(String.class)).isEqualTo("TEST DATA");
+	}
+
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
 	private interface ControlBusGateway {
 
@@ -278,7 +296,9 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public JmsTemplate jmsTemplate() {
-			return new JmsTemplate(connectionFactory);
+			JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
+			jmsTemplate.setReceiveTimeout(10_000);
+			return jmsTemplate;
 		}
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
@@ -422,6 +442,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 									}))
 									.requestDestination("jmsPipelineTest")
+									.replyToFunction(message -> message.getStringProperty("myReplyTo"))
 									.configureListenerContainer(c ->
 											c.transactionManager(mock(PlatformTransactionManager.class))))
 					.filter(payload -> !"junk".equals(payload))

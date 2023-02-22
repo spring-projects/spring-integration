@@ -27,9 +27,14 @@ See <<./zip.adoc#zip,Zip Support>>  for more information.
 [[x6.1-general]]
 === General Changes
 
-
 [[x6.1-web-sockets]]
 === Web Sockets Changes
 
 A `ClientWebSocketContainer` can now be configured with a predefined `URI` instead of a combination of `uriTemplate` and `uriVariables`.
 See <<./web-sockets.adoc#web-socket-overview, WebSocket Overview>> for more information.
+
+[[x6.1-jms]]
+=== JMS Changes
+
+The `JmsInboundGateway`, via its `ChannelPublishingJmsMessageListener`, can now be configured with a `replyToExpression` to resolve a reply destination against the request message at runtime.
+See <<./jms.adoc#jms-inbound-gateway, JMS Inbound Gateway>> for more information.
