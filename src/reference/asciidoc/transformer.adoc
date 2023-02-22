@@ -452,12 +452,13 @@ This allows decoupling of the producer and consumer where the sender can set the
 Version 6.1 adds support for transforming from and to https://protobuf.dev/[Protocol Buffers] data content.
 
 The `ToProtobufTransformer` transforms `com.google.protobuf.Message` message payloads into native byte array or json text payloads.
-The `application/x-protobuf` content type (default) produces byte array output payload.
-Set the `application/json` content type and add the `com.google.protobuf:protobuf-java-util` on the classpath to output text message payload.
+The `application/x-protobuf` content type (used by default) produces byte array output payload.
+If the content type is `application/json` add the `com.google.protobuf:protobuf-java-util` if found on the classpath, then the output is text json payload.
 If the content type header is not set the `ToProtobufTransformer` defaults to `application/x-protobuf`.
 
-The `FromProtobufTransformer` transforms byte array or text protobuf payload (depending on the content type) back into `com.google.protobuf.Message` instances. You can also specify a SpEL expression to determine the type to deserialize using the `setTypeExpression` method.
-The default SpEL expression is `headers[proto_type]` (`ProtoHeaders.TYPE`) which is populated by the `ToProtobufTransformer` with the fully qualified class name of the source `com.google.protobuf.Message` class. If the expression returns `null`, the `defaultType` is used.
+The `FromProtobufTransformer` transforms byte array or text protobuf payload (depending on the content type) back into `com.google.protobuf.Message` instances.
+The `FromProtobufTransformer` should specify either the expect class type explicitly (use the `setExpectedType` method) or use a SpEL expression to determine the type to deserialize using the `setTypeExpression` method.
+The default SpEL expression is `headers[proto_type]` (`ProtoHeaders.TYPE`) which is populated by the `ToProtobufTransformer` with the fully qualified class name of the source `com.google.protobuf.Message` class.
 
 For example, compiling the following IDL.
 
