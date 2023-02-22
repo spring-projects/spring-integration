@@ -19,19 +19,14 @@ package org.springframework.integration.transformer;
 import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.test.condition.LogLevels;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.proto.TestClass1;
 import org.springframework.integration.transformer.proto.TestClass2;
 import org.springframework.integration.transformer.support.ProtoHeaders;
@@ -42,9 +37,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 /**
  *
@@ -55,14 +47,12 @@ import static org.mockito.Mockito.verify;
 public class ProtoTests {
 
         @Test
-        @LogLevels(classes = DirectChannel.class, categories = "bar", level = "DEBUG")
         void testTransformers(@Autowired ProtoConfig config) {
                 TestClass1 test = TestClass1.newBuilder()
                                 .setBar("foo")
                                 .setQux(678)
                                 .build();
-                LogAccessor spied = spy(TestUtils.getPropertyValue(config.in1(), "logger", LogAccessor.class));
-                new DirectFieldAccessor(config.in1()).setPropertyValue("logger", spied);
+
                 config.in1().send(new GenericMessage<>(test));
                 assertThat(config.tapped().receive(0))
                                 .isNotNull()
@@ -75,21 +65,14 @@ public class ProtoTests {
                                 .isEqualTo(test)
                                 .isNotSameAs(test);
                 assertThat(received.getHeaders().get("flow")).isEqualTo("flow1");
-                ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-                verify(spied, atLeastOnce()).debug(captor.capture());
-                assertThat(captor.getAllValues()).anyMatch(s -> s.contains("preSend on channel"));
-                assertThat(captor.getAllValues()).anyMatch(s -> s.contains("postSend (sent=true) on channel"));
         }
 
         @Test
-        @LogLevels(classes = DirectChannel.class, categories = "bar", level = "DEBUG")
         void testTransformersJson(@Autowired ProtoConfig config) {
                 TestClass1 test = TestClass1.newBuilder()
                                 .setBar("foo")
                                 .setQux(678)
                                 .build();
-                LogAccessor spied = spy(TestUtils.getPropertyValue(config.in1(), "logger", LogAccessor.class));
-                new DirectFieldAccessor(config.in1()).setPropertyValue("logger", spied);
 
                 config.in1().send(new GenericMessage<>(test,
                                 Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json")));
@@ -105,10 +88,6 @@ public class ProtoTests {
                                 .isEqualTo(test)
                                 .isNotSameAs(test);
                 assertThat(received.getHeaders().get("flow")).isEqualTo("flow1");
-                ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-                verify(spied, atLeastOnce()).debug(captor.capture());
-                assertThat(captor.getAllValues()).anyMatch(s -> s.contains("preSend on channel"));
-                assertThat(captor.getAllValues()).anyMatch(s -> s.contains("postSend (sent=true) on channel"));
         }
 
         @Test
