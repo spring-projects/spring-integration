@@ -46,193 +46,193 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig
 public class ProtoTests {
 
-        @Test
-        void testTransformers(@Autowired ProtoConfig config) {
-                TestClass1 test = TestClass1.newBuilder()
-                                .setBar("foo")
-                                .setQux(678)
-                                .build();
+	@Test
+	void testTransformers(@Autowired ProtoConfig config) {
+		TestClass1 test = TestClass1.newBuilder()
+				.setBar("foo")
+				.setQux(678)
+				.build();
 
-                config.in1().send(new GenericMessage<>(test));
-                assertThat(config.tapped().receive(0))
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isInstanceOf(byte[].class);
-                Message<?> received = config.out().receive(0);
-                assertThat(received)
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isEqualTo(test)
-                                .isNotSameAs(test);
-                assertThat(received.getHeaders().get("flow")).isEqualTo("flow1");
-        }
+		config.in1().send(new GenericMessage<>(test));
+		assertThat(config.tapped().receive(0))
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(byte[].class);
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isEqualTo(test)
+				.isNotSameAs(test);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow1");
+	}
 
-        @Test
-        void testTransformersJson(@Autowired ProtoConfig config) {
-                TestClass1 test = TestClass1.newBuilder()
-                                .setBar("foo")
-                                .setQux(678)
-                                .build();
+	@Test
+	void testTransformersJson(@Autowired ProtoConfig config) {
+		TestClass1 test = TestClass1.newBuilder()
+				.setBar("foo")
+				.setQux(678)
+				.build();
 
-                config.in1().send(new GenericMessage<>(test,
-                                Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json")));
-                assertThat(config.tapped().receive(0))
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isInstanceOf(String.class)
-                                .isEqualTo("{\n  \"bar\": \"foo\",\n  \"qux\": 678\n}");
-                Message<?> received = config.out().receive(0);
-                assertThat(received)
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isEqualTo(test)
-                                .isNotSameAs(test);
-                assertThat(received.getHeaders().get("flow")).isEqualTo("flow1");
-        }
+		config.in1().send(new GenericMessage<>(test,
+				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json")));
+		assertThat(config.tapped().receive(0))
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(String.class)
+				.isEqualTo("{\n  \"bar\": \"foo\",\n  \"qux\": 678\n}");
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isEqualTo(test)
+				.isNotSameAs(test);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow1");
+	}
 
-        @Test
-        void testMultiTypeTransformers(@Autowired ProtoConfig config) {
-                TestClass1 test = TestClass1.newBuilder()
-                                .setBar("foo")
-                                .setQux(678)
-                                .build();
-                config.in2().send(new GenericMessage<>(test));
-                assertThat(config.tapped().receive(0))
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isInstanceOf(byte[].class);
-                Message<?> received = config.out().receive(0);
-                assertThat(received)
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isNotEqualTo(test)
-                                .isInstanceOf(TestClass2.class);
-                assertThat(received.getHeaders().get("flow")).isEqualTo("flow2");
-        }
+	@Test
+	void testMultiTypeTransformers(@Autowired ProtoConfig config) {
+		TestClass1 test = TestClass1.newBuilder()
+				.setBar("foo")
+				.setQux(678)
+				.build();
+		config.in2().send(new GenericMessage<>(test));
+		assertThat(config.tapped().receive(0))
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(byte[].class);
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isNotEqualTo(test)
+				.isInstanceOf(TestClass2.class);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow2");
+	}
 
-        @Test
-        void testMultiTypeTransformersClassName(@Autowired ProtoConfig config) {
-                TestClass1 test = TestClass1.newBuilder()
-                                .setBar("foo")
-                                .setQux(678)
-                                .build();
-                config.in3().send(new GenericMessage<>(test));
-                assertThat(config.tapped().receive(0))
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isInstanceOf(byte[].class);
-                Message<?> received = config.out().receive(0);
-                assertThat(received)
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isNotEqualTo(test)
-                                .isInstanceOf(TestClass2.class);
-                assertThat(received.getHeaders().get("flow")).isEqualTo("flow3");
-        }
+	@Test
+	void testMultiTypeTransformersClassName(@Autowired ProtoConfig config) {
+		TestClass1 test = TestClass1.newBuilder()
+				.setBar("foo")
+				.setQux(678)
+				.build();
+		config.in3().send(new GenericMessage<>(test));
+		assertThat(config.tapped().receive(0))
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(byte[].class);
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isNotEqualTo(test)
+				.isInstanceOf(TestClass2.class);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow3");
+	}
 
-        @Test
-        void testTransformersNoHeaderPresent(@Autowired ProtoConfig config) {
-                TestClass1 test = TestClass1.newBuilder()
-                                .setBar("foo")
-                                .setQux(678)
-                                .build();
-                config.in4().send(new GenericMessage<>(test));
-                assertThat(config.tapped().receive(0))
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isInstanceOf(byte[].class);
-                Message<?> received = config.out().receive(0);
-                assertThat(received)
-                                .isNotNull()
-                                .extracting(msg -> msg.getPayload())
-                                .isEqualTo(test)
-                                .isNotSameAs(test);
-                assertThat(received.getHeaders().get("flow")).isEqualTo("flow4");
-        }
+	@Test
+	void testTransformersNoHeaderPresent(@Autowired ProtoConfig config) {
+		TestClass1 test = TestClass1.newBuilder()
+				.setBar("foo")
+				.setQux(678)
+				.build();
+		config.in4().send(new GenericMessage<>(test));
+		assertThat(config.tapped().receive(0))
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isInstanceOf(byte[].class);
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
+				.isNotNull()
+				.extracting(msg -> msg.getPayload())
+				.isEqualTo(test)
+				.isNotSameAs(test);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow4");
+	}
 
-        @Configuration
-        @EnableIntegration
-        public static class ProtoConfig {
+	@Configuration
+	@EnableIntegration
+	public static class ProtoConfig {
 
-                @Bean
-                public IntegrationFlow flow1() {
-                        return IntegrationFlow.from(in1())
-                                        .transform(new ToProtobufTransformer())
-                                        .wireTap(tapped())
-                                        .transform(new FromProtobufTransformer())
-                                        .enrichHeaders(h -> h.header("flow", "flow1"))
-                                        .channel(out())
-                                        .get();
-                }
+		@Bean
+		public IntegrationFlow flow1() {
+			return IntegrationFlow.from(in1())
+					.transform(new ToProtobufTransformer())
+					.wireTap(tapped())
+					.transform(new FromProtobufTransformer())
+					.enrichHeaders(h -> h.header("flow", "flow1"))
+					.channel(out())
+					.get();
+		}
 
-                @Bean
-                public IntegrationFlow flow2() {
-                        return IntegrationFlow.from(in2())
-                                        .transform(new ToProtobufTransformer())
-                                        .wireTap(tapped())
-                                        .enrichHeaders(h -> h.header(ProtoHeaders.TYPE, TestClass2.class, true))
-                                        .transform(new FromProtobufTransformer())
-                                        .enrichHeaders(h -> h.header("flow", "flow2"))
-                                        .channel(out())
-                                        .get();
-                }
+		@Bean
+		public IntegrationFlow flow2() {
+			return IntegrationFlow.from(in2())
+					.transform(new ToProtobufTransformer())
+					.wireTap(tapped())
+					.enrichHeaders(h -> h.header(ProtoHeaders.TYPE, TestClass2.class, true))
+					.transform(new FromProtobufTransformer())
+					.enrichHeaders(h -> h.header("flow", "flow2"))
+					.channel(out())
+					.get();
+		}
 
-                @Bean
-                public IntegrationFlow flow3() {
-                        return IntegrationFlow.from(in3())
-                                        .transform(new ToProtobufTransformer())
-                                        .wireTap(tapped())
-                                        .enrichHeaders(h -> h.header(ProtoHeaders.TYPE, TestClass2.class.getName(),
-                                                        true))
-                                        .transform(new FromProtobufTransformer())
-                                        .enrichHeaders(h -> h.header("flow", "flow3"))
-                                        .channel(out())
-                                        .get();
-                }
+		@Bean
+		public IntegrationFlow flow3() {
+			return IntegrationFlow.from(in3())
+					.transform(new ToProtobufTransformer())
+					.wireTap(tapped())
+					.enrichHeaders(h -> h.header(ProtoHeaders.TYPE, TestClass2.class.getName(),
+							true))
+					.transform(new FromProtobufTransformer())
+					.enrichHeaders(h -> h.header("flow", "flow3"))
+					.channel(out())
+					.get();
+		}
 
-                @Bean
-                public IntegrationFlow flow4() {
-                        return IntegrationFlow.from(in4())
-                                        .transform(new ToProtobufTransformer())
-                                        .wireTap(tapped())
-                                        .enrichHeaders(h -> h.header(ProtoHeaders.TYPE, null, true)
-                                                        .shouldSkipNulls(false))
-                                        .transform(new FromProtobufTransformer()
-                                                        .setExpectedType(TestClass1.class))
-                                        .enrichHeaders(h -> h.header("flow", "flow4"))
-                                        .channel(out())
-                                        .get();
-                }
+		@Bean
+		public IntegrationFlow flow4() {
+			return IntegrationFlow.from(in4())
+					.transform(new ToProtobufTransformer())
+					.wireTap(tapped())
+					.enrichHeaders(h -> h.header(ProtoHeaders.TYPE, null, true)
+							.shouldSkipNulls(false))
+					.transform(new FromProtobufTransformer()
+							.setExpectedType(TestClass1.class))
+					.enrichHeaders(h -> h.header("flow", "flow4"))
+					.channel(out())
+					.get();
+		}
 
-                @Bean
-                public DirectChannel in1() {
-                        return new DirectChannel();
-                }
+		@Bean
+		public DirectChannel in1() {
+			return new DirectChannel();
+		}
 
-                @Bean
-                public DirectChannel in2() {
-                        return new DirectChannel();
-                }
+		@Bean
+		public DirectChannel in2() {
+			return new DirectChannel();
+		}
 
-                @Bean
-                public DirectChannel in3() {
-                        return new DirectChannel();
-                }
+		@Bean
+		public DirectChannel in3() {
+			return new DirectChannel();
+		}
 
-                @Bean
-                public DirectChannel in4() {
-                        return new DirectChannel();
-                }
+		@Bean
+		public DirectChannel in4() {
+			return new DirectChannel();
+		}
 
-                @Bean
-                public PollableChannel tapped() {
-                        return new QueueChannel();
-                }
+		@Bean
+		public PollableChannel tapped() {
+			return new QueueChannel();
+		}
 
-                @Bean
-                public PollableChannel out() {
-                        return new QueueChannel();
-                }
+		@Bean
+		public PollableChannel out() {
+			return new QueueChannel();
+		}
 
-        }
+	}
 }

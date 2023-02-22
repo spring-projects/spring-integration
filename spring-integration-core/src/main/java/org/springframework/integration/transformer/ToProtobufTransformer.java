@@ -37,27 +37,27 @@ import org.springframework.util.Assert;
  */
 public class ToProtobufTransformer extends AbstractTransformer {
 
-    private final ProtobufMessageConverter protobufMessageConverter;
+	private final ProtobufMessageConverter protobufMessageConverter;
 
-    public ToProtobufTransformer() {
-        this(new ProtobufMessageConverter());
-    }
+	public ToProtobufTransformer() {
+		this(new ProtobufMessageConverter());
+	}
 
-    public ToProtobufTransformer(ProtobufMessageConverter protobufMessageConverter) {
-        this.protobufMessageConverter = protobufMessageConverter;
-    }
+	public ToProtobufTransformer(ProtobufMessageConverter protobufMessageConverter) {
+		this.protobufMessageConverter = protobufMessageConverter;
+	}
 
-    @Override
-    protected Object doTransform(Message<?> message) {
-        Assert.isInstanceOf(com.google.protobuf.Message.class, message.getPayload(),
-                "Payload must be an implementation of 'com.google.protobuf.Message'");
+	@Override
+	protected Object doTransform(Message<?> message) {
+		Assert.isInstanceOf(com.google.protobuf.Message.class, message.getPayload(),
+				"Payload must be an implementation of 'com.google.protobuf.Message'");
 
-        MessageHeaderAccessor accessor = new MessageHeaderAccessor(message);
-        accessor.setHeader(ProtoHeaders.TYPE, message.getPayload().getClass().getName());
-        if (!message.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE)) {
-            accessor.setContentType(ProtobufMessageConverter.PROTOBUF);
-        }
+		MessageHeaderAccessor accessor = new MessageHeaderAccessor(message);
+		accessor.setHeader(ProtoHeaders.TYPE, message.getPayload().getClass().getName());
+		if (!message.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE)) {
+			accessor.setContentType(ProtobufMessageConverter.PROTOBUF);
+		}
 
-        return this.protobufMessageConverter.toMessage(message.getPayload(), accessor.getMessageHeaders());
-    }
+		return this.protobufMessageConverter.toMessage(message.getPayload(), accessor.getMessageHeaders());
+	}
 }
