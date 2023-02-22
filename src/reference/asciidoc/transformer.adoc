@@ -457,7 +457,7 @@ If the content type is `application/json` add the `com.google.protobuf:protobuf-
 If the content type header is not set the `ToProtobufTransformer` defaults to `application/x-protobuf`.
 
 The `FromProtobufTransformer` transforms byte array or text protobuf payload (depending on the content type) back into `com.google.protobuf.Message` instances.
-The `FromProtobufTransformer` should specify either the expect class type explicitly (use the `setExpectedType` method) or use a SpEL expression to determine the type to deserialize using the `setTypeExpression` method.
+The `FromProtobufTransformer` should specify either the expect class type explicitly (use the `setExpectedType` method) or use a SpEL expression to determine the type to deserialize using the `setExpectedTypeExpression` method.
 The default SpEL expression is `headers[proto_type]` (`ProtoHeaders.TYPE`) which is populated by the `ToProtobufTransformer` with the fully qualified class name of the source `com.google.protobuf.Message` class.
 
 For example, compiling the following IDL.
@@ -485,9 +485,6 @@ Then use the:
 ====
 [source,java]
 ----
-// Transforms a byte array payload into MyMessageClass instance.
-FromProtobufTransformer fromTransformer = new FromProtobufTransformer(MyMessageClass.class);
-
 // Transforms a MyMessageClass instance into byte array.
 ToProtobufTransformer toTransformer = new ToProtobufTransformer();
 
@@ -497,6 +494,10 @@ MyMessageClass test = MyMessageClass.newBuilder()
                                 .build();
 // message1 payload is byte array protocol buffer wire format.
 Message message1 =  toTransformer.transform(new GenericMessage<>(test));
+
+// Transforms a byte array payload into MyMessageClass instance.
+FromProtobufTransformer fromTransformer = new FromProtobufTransformer();
+
 // message2 payload == test
 Message message2 =  fromTransformer.transform(message1);
 
