@@ -21,8 +21,8 @@ import java.util.function.Function;
 /**
  * A Function-like interface which allows throwing Error.
  *
-* @param <T> the input type.
-* @param <R> the output type.
+ * @param <T> the input type.
+ * @param <R> the output type.
  *
  * @author Artem Bilan
  *
@@ -31,22 +31,25 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface CheckedFunction<T, R> {
 
-	R apply(T t) throws Throwable;
+	R apply(T t) throws Throwable; // NOSONAR
 
 	default Function<T, R> unchecked() {
 		return t1 -> {
 			try {
 				return apply(t1);
 			}
-			catch (Throwable t) {
-				return sneakyThrow(t);
+			catch (Throwable t) { // NOSONAR
+				if (t instanceof RuntimeException runtimeException) {
+					throw runtimeException;
+				}
+				else if (t instanceof Error error) {
+					throw error;
+				}
+				else {
+					throw new IllegalStateException(t);
+				}
 			}
 		};
-	}
-
-	@SuppressWarnings("unchecked")
-	private static <T extends Throwable, R> R sneakyThrow(Throwable t) throws T {
-		throw (T) t;
 	}
 
 }

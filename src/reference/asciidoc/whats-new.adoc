@@ -36,5 +36,5 @@ See <<./web-sockets.adoc#web-socket-overview, WebSocket Overview>> for more info
 [[x6.1-jms]]
 === JMS Changes
 
-A `JmsInboundGateway`, via its `ChannelPublishingJmsMessageListener`, can now be configured with a `replyToExpression` to resolve a reply destination against request message at runtime.
+The `JmsInboundGateway`, via its `ChannelPublishingJmsMessageListener`, can now be configured with a `replyToExpression` to resolve a reply destination against the request message at runtime.
 See <<./jms.adoc#jms-inbound-gateway, JMS Inbound Gateway>> for more information.

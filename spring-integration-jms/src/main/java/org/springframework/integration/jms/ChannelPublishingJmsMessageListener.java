@@ -270,8 +270,9 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	/**
-	 * Set a SpEL expression to resolve a 'replyTo' destination from a request {@link jakarta.jms.Message}
-	 * as a root evaluation object if {@link jakarta.jms.Message#getJMSReplyTo()} is null.
+	 * Set a SpEL expression to resolve a 'replyTo' destination from a request
+	 * {@link jakarta.jms.Message} as a root evaluation object
+	 * if {@link jakarta.jms.Message#getJMSReplyTo()} is null.
 	 * @param replyToExpression the SpEL expression for 'replyTo' destination.
 	 * @since 6.1
 	 */
@@ -436,9 +437,11 @@ public class ChannelPublishingJmsMessageListener
 
 	/**
 	 * Determine a reply destination for the given message.
-	 * It will first check the JMS Reply-To {@link Destination} of the supplied request message;
-	 * if that is null, then the configured {@link #replyToExpression} is evaluated (if any), then a
-	 * {@link #resolveDefaultReplyDestination default reply destination} is returned; if this too is null,
+	 * It will first check the JMS Reply-To {@link Destination}
+	 * of the supplied request message;
+	 * if that is null, then the configured {@link #replyToExpression} is evaluated
+	 * (if any), then a{@link #resolveDefaultReplyDestination default reply destination}
+	 * is returned; if this too is null,
 	 * then an {@link InvalidDestinationException} is thrown.
 	 * @param request the original incoming JMS message
 	 * @param session the JMS Session to operate on
