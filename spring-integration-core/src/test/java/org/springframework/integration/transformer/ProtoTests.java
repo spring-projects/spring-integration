@@ -159,7 +159,7 @@ public class ProtoTests {
                         return IntegrationFlow.from(in1())
                                         .transform(new ToProtobufTransformer())
                                         .wireTap(tapped())
-                                        .transform(fromTransformer())
+                                        .transform(new FromProtobufTransformer())
                                         .enrichHeaders(h -> h.header("flow", "flow1"))
                                         .channel(out())
                                         .get();
@@ -171,7 +171,7 @@ public class ProtoTests {
                                         .transform(new ToProtobufTransformer())
                                         .wireTap(tapped())
                                         .enrichHeaders(h -> h.header(ProtoHeaders.TYPE, TestClass2.class, true))
-                                        .transform(fromTransformer())
+                                        .transform(new FromProtobufTransformer())
                                         .enrichHeaders(h -> h.header("flow", "flow2"))
                                         .channel(out())
                                         .get();
@@ -184,7 +184,7 @@ public class ProtoTests {
                                         .wireTap(tapped())
                                         .enrichHeaders(h -> h.header(ProtoHeaders.TYPE, TestClass2.class.getName(),
                                                         true))
-                                        .transform(fromTransformer())
+                                        .transform(new FromProtobufTransformer())
                                         .enrichHeaders(h -> h.header("flow", "flow3"))
                                         .channel(out())
                                         .get();
@@ -197,15 +197,11 @@ public class ProtoTests {
                                         .wireTap(tapped())
                                         .enrichHeaders(h -> h.header(ProtoHeaders.TYPE, null, true)
                                                         .shouldSkipNulls(false))
-                                        .transform(fromTransformer())
+                                        .transform(new FromProtobufTransformer()
+                                                        .setExpectedType(TestClass1.class))
                                         .enrichHeaders(h -> h.header("flow", "flow4"))
                                         .channel(out())
                                         .get();
-                }
-
-                @Bean
-                public FromProtobufTransformer fromTransformer() {
-                        return new FromProtobufTransformer(TestClass1.class);
                 }
 
                 @Bean

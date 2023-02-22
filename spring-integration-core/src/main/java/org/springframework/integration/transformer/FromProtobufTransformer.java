@@ -21,6 +21,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.transformer.support.ProtoHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.ProtobufMessageConverter;
@@ -38,8 +39,6 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 
 	private final ProtobufMessageConverter protobufMessageConverter;
 
-	private Class<? extends com.google.protobuf.Message> expectedType;
-
 	private ClassLoader beanClassLoader;
 
 	private Expression expectedTypeExpression = new FunctionExpression<Message<?>>(
@@ -51,15 +50,7 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	 * Construct an instance with the supplied default type to create.
 	 */
 	public FromProtobufTransformer() {
-		this(null, new ProtobufMessageConverter());
-	}
-
-	/**
-	 * Construct an instance with the supplied default type to create.
-	 * @param expectedType the type.
-	 */
-	public FromProtobufTransformer(Class<? extends com.google.protobuf.Message> expectedType) {
-		this(expectedType, new ProtobufMessageConverter());
+		this(new ProtobufMessageConverter());
 	}
 
 	/**
@@ -67,11 +58,8 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	 * @param expectedType the type.
 	 * @param protobufMessageConverter the message converter used.
 	 */
-	public FromProtobufTransformer(Class<? extends com.google.protobuf.Message> expectedType,
-			ProtobufMessageConverter protobufMessageConverter) {
-		Assert.notNull(expectedType, "'defaultType' must not be null");
+	public FromProtobufTransformer(ProtobufMessageConverter protobufMessageConverter) {
 		Assert.notNull(protobufMessageConverter, "'protobufMessageConverter' must not be null");
-		this.expectedType = expectedType;
 		this.protobufMessageConverter = protobufMessageConverter;
 	}
 
@@ -81,38 +69,39 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	}
 
 	/**
-	 * Set the expected protobuf class type.
+	 * Set the expected protobuf class type. Mutually exclusive with {@code setExpectedTypeExpression()} and
+	 * {@code setExpectedTypeExpressionString()}.
 	 * @param expectedType expected protobuf class type.
+	 * @return updated FromProtobufTransformer instance.
 	 */
-	public void setExpectedType(Class<? extends com.google.protobuf.Message> expectedType) {
-		this.expectedType = expectedType;
-	}
-
-	/**
-	 * Get the Protobuf expected class, if configured.
-	 * @return returns the expected Protocol Buffer class.
-	 */
-	public Class<? extends com.google.protobuf.Message> getExpectedType() {
-		return expectedType;
+	public FromProtobufTransformer setExpectedType(Class<? extends com.google.protobuf.Message> expectedType) {
+		this.setExpectedTypeExpression(new ValueExpression<Class<? extends com.google.protobuf.Message>>(expectedType));
+		return this;
 	}
 
 	/**
 	 * Set the expression to evaluate against the message to determine the type. Default {@code headers['proto_type']}.
+	 * Mutually exclusive with {@code setExpectedType()} and {@code setExpectedTypeExpressionString()}.
 	 * @param expression the expression.
+	 * @return updated FromProtobufTransformer instance.
 	 */
-	public void setExpectedTypeExpression(Expression expression) {
+	public FromProtobufTransformer setExpectedTypeExpression(Expression expression) {
 		Assert.notNull(expression, "'expression' must not be null");
 		this.expectedTypeExpression = expression;
+		return this;
 	}
 
 	/**
 	 * Set the expression to evaluate against the message to determine the type id. Default
-	 * {@code headers['proto_type']}.
+	 * {@code headers['proto_type']}. Mutually exclusive with {@code setExpectedType()} and
+	 * {@code setExpectedTypeExpression()}.
 	 * @param expression the expression.
+	 * @return updated FromProtobufTransformer instance.
 	 */
-	public void setExpectedTypeExpressionString(String expression) {
+	public FromProtobufTransformer setExpectedTypeExpressionString(String expression) {
 		Assert.notNull(expression, "'expression' must not be null");
 		this.expectedTypeExpression = EXPRESSION_PARSER.parseExpression(expression);
+		return this;
 	}
 
 	@Override
@@ -138,15 +127,9 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 				throw new IllegalStateException(e);
 			}
 		}
-		if (targetClass == null) {
-			targetClass = this.expectedType;
-		}
 
 		if (targetClass == null) {
-			this.logger.error(() -> "The 'expectedTypeExpression' (" + this.expectedTypeExpression
-					+ ") returned 'null' for: "
-					+ message + ". No falling back expectedType is configured. Consider setting the expectedType.");
-			throw new RuntimeException("The 'expectedTypeExpression' (" + this.expectedTypeExpression
+			throw new MessageTransformationException("The 'expectedTypeExpression' (" + this.expectedTypeExpression
 					+ ") returned 'null' for: "
 					+ message + ". No falling back expectedType is configured. Consider setting the expectedType.");
 		}
