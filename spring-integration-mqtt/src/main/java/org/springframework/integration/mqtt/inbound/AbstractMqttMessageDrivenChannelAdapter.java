@@ -194,7 +194,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	 * @param completionTimeout The timeout.
 	 * @since 5.1.10
 	 */
-	public synchronized void setDisconnectCompletionTimeout(long completionTimeout) {
+	public void setDisconnectCompletionTimeout(long completionTimeout) {
 		this.disconnectCompletionTimeout = completionTimeout;
 	}
 

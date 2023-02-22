@@ -120,7 +120,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	 * @param completionTimeout The timeout.
 	 * @since 6.0.3
 	 */
-	public synchronized void setDisconnectCompletionTimeout(long completionTimeout) {
+	public void setDisconnectCompletionTimeout(long completionTimeout) {
 		this.disconnectCompletionTimeout = completionTimeout;
 	}
 
