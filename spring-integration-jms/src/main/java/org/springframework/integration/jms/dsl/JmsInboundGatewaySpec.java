@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,15 @@ package org.springframework.integration.jms.dsl;
 import java.util.function.Consumer;
 
 import jakarta.jms.Destination;
+import jakarta.jms.Message;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
 import org.springframework.integration.jms.JmsHeaderMapper;
 import org.springframework.integration.jms.JmsInboundGateway;
+import org.springframework.integration.util.CheckedFunction;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
@@ -134,6 +138,44 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 	 */
 	public S destinationResolver(DestinationResolver destinationResolver) {
 		this.target.getListener().setDestinationResolver(destinationResolver);
+		return _this();
+	}
+
+
+	/**
+	 * Set a SpEL expression to resolve a 'replyTo' destination from a request {@link jakarta.jms.Message}
+	 * as a root evaluation object if {@link jakarta.jms.Message#getJMSReplyTo()} is null.
+	 * @param replyToExpression the SpEL expression for 'replyTo' destination.
+	 * @return the spec.
+	 * @since 6.1
+	 * @see ChannelPublishingJmsMessageListener#setReplyToExpression(Expression)
+	 */
+	public S replyToExpression(String replyToExpression) {
+		return replyToExpression(PARSER.parseExpression(replyToExpression));
+	}
+
+	/**
+	 * Set a function to resolve a 'replyTo' destination from a request {@link jakarta.jms.Message}
+	 * as a root evaluation object if {@link jakarta.jms.Message#getJMSReplyTo()} is null.
+	 * @param replyToFunction the function for 'replyTo' destination.
+	 * @return the spec.
+	 * @since 6.1
+	 * @see ChannelPublishingJmsMessageListener#setReplyToExpression(Expression)
+	 */
+	public S replyToFunction(CheckedFunction<Message, ?> replyToFunction) {
+		return replyToExpression(new FunctionExpression<>(replyToFunction.unchecked()));
+	}
+
+	/**
+	 * Set a SpEL expression to resolve a 'replyTo' destination from a request {@link jakarta.jms.Message}
+	 * as a root evaluation object if {@link jakarta.jms.Message#getJMSReplyTo()} is null.
+	 * @param replyToExpression the SpEL expression for 'replyTo' destination.
+	 * @return the spec.
+	 * @since 6.1
+	 * @see ChannelPublishingJmsMessageListener#setReplyToExpression(Expression)
+	 */
+	public S replyToExpression(Expression replyToExpression) {
+		this.target.getListener().setReplyToExpression(replyToExpression);
 		return _this();
 	}
 

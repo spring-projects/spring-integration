@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,10 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
@@ -42,6 +45,7 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -90,11 +94,15 @@ public class ChannelPublishingJmsMessageListener
 
 	private DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
+	private Expression replyToExpression;
+
 	private JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
 	private BeanFactory beanFactory;
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	private StandardEvaluationContext evaluationContext;
 
 	/**
 	 * Specify whether a JMS reply Message is expected.
@@ -262,6 +270,16 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	/**
+	 * Set a SpEL expression to resolve a 'replyTo' destination from a request {@link jakarta.jms.Message}
+	 * as a root evaluation object if {@link jakarta.jms.Message#getJMSReplyTo()} is null.
+	 * @param replyToExpression the SpEL expression for 'replyTo' destination.
+	 * @since 6.1
+	 */
+	public void setReplyToExpression(Expression replyToExpression) {
+		this.replyToExpression = replyToExpression;
+	}
+
+	/**
 	 * Provide a {@link MessageConverter} implementation to use when
 	 * converting between JMS Messages and Spring Integration Messages.
 	 * If none is provided, a {@link SimpleMessageConverter} will
@@ -382,6 +400,7 @@ public class ChannelPublishingJmsMessageListener
 		}
 		this.gatewayDelegate.afterPropertiesSet();
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
 
 	protected void start() {
@@ -417,26 +436,43 @@ public class ChannelPublishingJmsMessageListener
 
 	/**
 	 * Determine a reply destination for the given message.
-	 * <p> This implementation first checks the boolean 'error' flag which signifies that the reply is an error message.
-	 * If reply is not an error it will first check the JMS Reply-To {@link Destination} of the supplied request message;
-	 * if that is not <code>null</code> it is returned; if it is <code>null</code>, then the configured
-	 * {@link #resolveDefaultReplyDestination default reply destination} is returned; if this too is <code>null</code>,
+	 * It will first check the JMS Reply-To {@link Destination} of the supplied request message;
+	 * if that is null, then the configured {@link #replyToExpression} is evaluated (if any), then a
+	 * {@link #resolveDefaultReplyDestination default reply destination} is returned; if this too is null,
 	 * then an {@link InvalidDestinationException} is thrown.
 	 * @param request the original incoming JMS message
 	 * @param session the JMS Session to operate on
-	 * @return the reply destination (never <code>null</code>)
+	 * @return the reply destination (never null)
 	 * @throws JMSException if thrown by JMS API methods
 	 * @throws InvalidDestinationException if no {@link Destination} can be determined
 	 * @see #setDefaultReplyDestination
 	 * @see jakarta.jms.Message#getJMSReplyTo()
 	 */
 	private Destination getReplyDestination(jakarta.jms.Message request, Session session) throws JMSException {
-		Destination replyTo = request.getJMSReplyTo();
+		Destination replyTo = resolveReplyTo(request, session);
 		if (replyTo == null) {
 			replyTo = resolveDefaultReplyDestination(session);
 			if (replyTo == null) {
 				throw new InvalidDestinationException("Cannot determine reply destination: " +
 						"Request message does not contain reply-to destination, and no default reply destination set.");
+			}
+		}
+		return replyTo;
+
+	}
+
+	@Nullable
+	private Destination resolveReplyTo(jakarta.jms.Message request, Session session) throws JMSException {
+		Destination replyTo = request.getJMSReplyTo();
+		if (replyTo == null) {
+			if (this.replyToExpression != null) {
+				Object replyToValue = this.replyToExpression.getValue(this.evaluationContext, request);
+				if (replyToValue instanceof Destination destination) {
+					return destination;
+				}
+				else if (replyToValue instanceof String destinationName) {
+					return this.destinationResolver.resolveDestinationName(session, destinationName, false);
+				}
 			}
 		}
 		return replyTo;
