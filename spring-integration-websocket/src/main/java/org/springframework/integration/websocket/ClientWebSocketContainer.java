@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.websocket;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -56,19 +57,30 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	private final IntegrationWebSocketConnectionManager connectionManager;
 
+	private int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
+
 	private volatile CountDownLatch connectionLatch;
 
 	private volatile WebSocketSession clientSession;
 
 	private volatile Throwable openConnectionException;
 
-	private volatile int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
-
 	private volatile boolean connecting;
 
 	public ClientWebSocketContainer(WebSocketClient client, String uriTemplate, Object... uriVariables) {
 		Assert.notNull(client, "'client' must not be null");
 		this.connectionManager = new IntegrationWebSocketConnectionManager(client, uriTemplate, uriVariables);
+	}
+
+	/**
+	 * Constructor with a prepared {@link URI}.
+	 * @param client the {@link WebSocketClient} to use.
+	 * @param uri the url to connect to
+	 * @since 6.1
+	 */
+	public ClientWebSocketContainer(WebSocketClient client, URI uri) {
+		Assert.notNull(client, "'client' must not be null");
+		this.connectionManager = new IntegrationWebSocketConnectionManager(client, uri);
 	}
 
 	public void setOrigin(String origin) {
@@ -204,9 +216,14 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 		private final boolean syncClientLifecycle;
 
-		IntegrationWebSocketConnectionManager(WebSocketClient client, String uriTemplate,
-				Object... uriVariables) {
+		IntegrationWebSocketConnectionManager(WebSocketClient client, String uriTemplate, Object... uriVariables) {
 			super(uriTemplate, uriVariables);
+			this.client = client;
+			this.syncClientLifecycle = ((client instanceof Lifecycle) && !((Lifecycle) client).isRunning());
+		}
+
+		IntegrationWebSocketConnectionManager(WebSocketClient client, URI uri) {
+			super(uri);
 			this.client = client;
 			this.syncClientLifecycle = ((client instanceof Lifecycle) && !((Lifecycle) client).isRunning());
 		}

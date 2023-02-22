@@ -87,6 +87,10 @@ It does so under the provided `paths` and other server WebSocket options (such a
 This registration is achieved with an infrastructural `WebSocketIntegrationConfigurationInitializer` component, which does the same as the `@EnableWebSocket` annotation.
 This means that, by using `@EnableIntegration` (or any Spring Integration namespace in the application context), you can omit the `@EnableWebSocket` declaration, because the Spring Integration infrastructure detects all WebSocket endpoints.
 
+Starting with version 6.1, the `ClientWebSocketContainer` can be configured with provided `URI` instead of `uriTemplate` and `uriVariables` combination.
+This is useful in cases when custom encoding is required for some parts of the uri.
+See an `UriComponentsBuilder` API for convenience.
+
 [[web-socket-inbound-adapter]]
 === WebSocket Inbound Channel Adapter
 

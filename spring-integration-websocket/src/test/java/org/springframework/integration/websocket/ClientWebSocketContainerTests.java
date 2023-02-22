@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ public class ClientWebSocketContainerTests {
 		webSocketClient.setUserProperties(userProperties);
 
 		ClientWebSocketContainer container =
-				new ClientWebSocketContainer(webSocketClient, server.getWsBaseUrl() + "/ws/websocket");
+				new ClientWebSocketContainer(webSocketClient, new URI(server.getWsBaseUrl() + "/ws/websocket"));
 
 		TestWebSocketListener messageListener = new TestWebSocketListener();
 		container.setMessageListener(messageListener);

@@ -26,3 +26,10 @@ See <<./zip.adoc#zip,Zip Support>>  for more information.
 
 [[x6.1-general]]
 === General Changes
+
+
+[[x6.1-web-sockets]]
+=== Web Sockets Changes
+
+A `ClientWebSocketContainer` can now be configured with predefined `URI` instead of `uriTemplate` and `uriVariables` combination.
+See <<./web-sockets.adoc#web-socket-overview, WebSocket Overview>> for more information.
