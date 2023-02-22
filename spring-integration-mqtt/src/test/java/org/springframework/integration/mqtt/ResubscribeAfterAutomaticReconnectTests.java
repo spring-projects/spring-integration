@@ -40,6 +40,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
@@ -81,7 +82,7 @@ public class ResubscribeAfterAutomaticReconnectTests implements MosquittoContain
 
 		assertThat(this.config.subscribeSecondLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		this.mqttOutFlowInput.send(testMessage);
+		await().untilAsserted(() -> this.mqttOutFlowInput.send(testMessage));
 		assertThat(this.fromMqttChannel.receive(10_000)).isNotNull();
 
 		// Re-subscription on channel adapter restart with cleanStart
