@@ -38,6 +38,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Mark Fisher
@@ -401,7 +402,7 @@ public class AsyncMessagingTemplateTests {
 	}
 
 	@Test
-	public void executionException() throws Throwable {
+	public void executionException() {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(-1));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
@@ -427,7 +428,7 @@ public class AsyncMessagingTemplateTests {
 		assertThatExceptionOfType(CancellationException.class)
 				.isThrownBy(result::get);
 
-		assertThat(handler.interrupted).as("handler should have been interrupted").isTrue();
+		await().until(() -> handler.interrupted);
 	}
 
 
