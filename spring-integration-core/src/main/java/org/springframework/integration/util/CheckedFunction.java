@@ -21,6 +21,9 @@ import java.util.function.Function;
 /**
  * A Function-like interface which allows throwing Error.
  *
+* @param <T> the input type.
+* @param <R> the output type.
+ *
  * @author Artem Bilan
  *
  * @since 6.1
