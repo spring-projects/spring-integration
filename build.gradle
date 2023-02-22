@@ -554,7 +554,7 @@ project('spring-integration-core') {
         optionalApi "org.apache.avro:avro:$avroVersion"
         optionalApi 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
 
-        optionalApi "com.google.protobuf:protobuf-java-util:$protobufVersion"
+        testImplementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
         testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
         testImplementation 'io.micrometer:micrometer-observation-test'
         testImplementation ('io.micrometer:micrometer-tracing-integration-test') {

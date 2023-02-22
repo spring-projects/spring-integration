@@ -75,7 +75,7 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 	 * @return updated FromProtobufTransformer instance.
 	 */
 	public FromProtobufTransformer setExpectedType(Class<? extends com.google.protobuf.Message> expectedType) {
-		this.setExpectedTypeExpression(new ValueExpression<Class<? extends com.google.protobuf.Message>>(expectedType));
+		this.setExpectedTypeExpression(new ValueExpression<>(expectedType));
 		return this;
 	}
 
@@ -129,15 +129,11 @@ public class FromProtobufTransformer extends AbstractTransformer implements Bean
 		}
 
 		if (targetClass == null) {
-			throw new MessageTransformationException("The 'expectedTypeExpression' (" + this.expectedTypeExpression
-					+ ") returned 'null' for: "
-					+ message + ". No falling back expectedType is configured. Consider setting the expectedType.");
+			throw new MessageTransformationException(message, "The 'expectedTypeExpression' ("
+					+ this.expectedTypeExpression + ") returned 'null'. No falling back expectedType is configured."
+					+ " Consider setting the expectedType.");
 		}
 
 		return this.protobufMessageConverter.fromMessage(message, targetClass);
-	}
-
-	public void setEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
 	}
 }
