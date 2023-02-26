@@ -57,6 +57,9 @@ In addition to providing the general mechanism to apply AOP advice classes, Spri
 * `RateLimiterRequestHandlerAdvice` (described in <<rate-limiter-advice>>)
 * `CacheRequestHandlerAdvice` (described in <<cache-advice>>)
 * `ReactiveRequestHandlerAdvice` (described in <<reactive-advice>>)
+* `ContextHolderRequestHandlerAdvice` (described in <<context-holder-advice>>)
+
+[[expression-advice]]
 
 [[retry-advice]]
 ===== Retry Advice
@@ -571,6 +574,29 @@ The `message` argument is the request message for the message handler and can be
 The `mono` argument is the result of this message handler's `handleRequestMessage()` method implementation.
 A nested `Mono.transform()` can also be called from this function to apply, for example, a https://spring.io/projects/spring-cloud-circuitbreaker[Reactive Circuit Breaker].
 
+[[context-holder-advice]]
+==== Context Holder Advice
+Starting with version 6.1, the `ContextHolderRequestHandlerAdvice` has been introduced.
+Similar to the functionality introduced by the `DelegatingSessionFactory`, this advice provides the ability
+to take a specific key from the request message and store it in the context holder.
+The value of this key is then used in the `MessageHandler` implementation to perform some predefined logic.
+This key/value pair can be cleared from the context holder after the operation has been completed.
+
+====
+[source, java]
+----
+@Bean
+ContextHolderRequestHandlerAdvice contextHolderRequestHandlerAdvice() {
+    final Map<Object, SessionFactory<String>> factories = new HashMap<>();
+    final DefaultSessionFactoryLocator<String> sff = new DefaultSessionFactoryLocator<>(factories, foo);
+    final DelegatingSessionFactory<String> dsf = new DelegatingSessionFactory<>(sff);
+    final Function<Message<?>, Object> keyProviderFn = m -> m.getHeaders().get("<KEY_NAME>");
+    final Consumer<Object> contextSetHookFn = dsf::setThreadKey;
+    final Consumer<Object> contextClearHookFn = key -> dsf.clearThreadKey();
+    return new ContextHolderRequestHandlerAdvice(keyProviderFn, contextSetHookFn, contextClearHookFn);
+}
+----
+====
 [[custom-advice]]
 ==== Custom Advice Classes
 
