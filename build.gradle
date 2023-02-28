@@ -98,7 +98,7 @@ ext {
     r2dbch2Version = '1.0.0.RELEASE'
     reactorVersion = '2022.0.3'
     resilience4jVersion = '2.0.2'
-    romeToolsVersion = '1.18.0'
+    romeToolsVersion = '2.0.0'
     rsocketVersion = '1.1.3'
     servletApiVersion = '6.0.0'
     smackVersion = '4.4.6'

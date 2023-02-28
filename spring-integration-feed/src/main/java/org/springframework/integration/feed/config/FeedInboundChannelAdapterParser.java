@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.feed.inbound.FeedEntryMessageSource;
@@ -50,18 +51,21 @@ public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChann
 		boolean hasResource = StringUtils.hasText(resource);
 
 		if (hasUrl == hasResource) {
-			parserContext.getReaderContext().error(
-					"Exactly one of the 'url', 'reader' or 'resource' is required.", element);
+			parserContext.getReaderContext().error("Exactly one of the 'url' or 'resource' is required.", element);
 		}
 
 		if (hasUrl) {
 			sourceBuilder.addConstructorArgValue(url);
 		}
-		else if (hasResource) {
-			sourceBuilder.addConstructorArgValue(resource);
+		else {
+			sourceBuilder.getBeanDefinition()
+					.getConstructorArgumentValues()
+					.addIndexedArgumentValue(0, resource, Resource.class.getName());
 		}
 
-		sourceBuilder.addConstructorArgValue(element.getAttribute(ID_ATTRIBUTE));
+		sourceBuilder.getBeanDefinition()
+				.getConstructorArgumentValues()
+				.addIndexedArgumentValue(1, element.getAttribute(ID_ATTRIBUTE));
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "metadata-store");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "feed-input", "syndFeedInput");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 
 package org.springframework.integration.feed.inbound;
 
-import java.io.Reader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -26,6 +31,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
@@ -220,10 +226,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	private SyndFeed getFeed() {
 		try {
 			synchronized (this.feedMonitor) {
-				Reader reader = this.feedUrl != null
-						? new XmlReader(this.feedUrl)
-						: new XmlReader(this.feedResource.getInputStream());
-				SyndFeed feed = this.syndFeedInput.build(reader);
+				SyndFeed feed = buildSyndFeed();
 				logger.debug(() -> "Retrieved feed for [" + this + "]");
 				if (feed == null) {
 					logger.debug(() -> "No feeds updated for [" + this + "], returning null");
@@ -233,6 +236,29 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		}
 		catch (Exception e) {
 			throw new MessagingException("Failed to retrieve feed for '" + this + "'", e);
+		}
+	}
+
+	private SyndFeed buildSyndFeed() throws IOException, URISyntaxException, InterruptedException, FeedException {
+		InputStream inputStream;
+		if (this.feedResource != null) {
+			inputStream = this.feedResource.getInputStream();
+		}
+		else {
+			HttpRequest request =
+					HttpRequest.newBuilder()
+							.GET()
+							.uri(this.feedUrl.toURI())
+							.build();
+
+			inputStream =
+					HttpClient.newHttpClient()
+							.send(request, HttpResponse.BodyHandlers.ofInputStream())
+							.body();
+		}
+
+		try (inputStream) {
+			return this.syndFeedInput.build(new XmlReader(inputStream));
 		}
 	}
 
