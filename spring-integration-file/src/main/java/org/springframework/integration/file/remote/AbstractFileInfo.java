@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.file.remote;
 
-import java.util.Date;
-
 import org.springframework.integration.json.SimpleJsonSerializer;
 
 /**
@@ -27,6 +25,7 @@ import org.springframework.integration.json.SimpleJsonSerializer;
  * @param <F> The target protocol file type.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.1
  */
@@ -57,10 +56,9 @@ public abstract class AbstractFileInfo<F> implements FileInfo<F>, Comparable<Fil
 
 	@Override
 	public String toString() {
-		return "FileInfo [isDirectory=" + isDirectory() + ", isLink=" + isLink()
-				+ ", Size=" + getSize() + ", ModifiedTime="
-				+ new Date(getModified()) + ", Filename=" + getFilename()
-				+ ", RemoteDirectory=" + getRemoteDirectory() + ", Permissions=" + getPermissions() + "]";
+		return "FileInfo [isLink=" + isLink()
+				+ ", Filename=" + getFilename()
+				+ ", RemoteDirectory=" + getRemoteDirectory() + "]";
 	}
 
 }

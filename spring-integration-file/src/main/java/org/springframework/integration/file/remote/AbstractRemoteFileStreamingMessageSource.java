@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,8 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	 */
 	private FileListFilter<F> filter;
 
+	private boolean strictOrder;
+
 	protected AbstractRemoteFileStreamingMessageSource(RemoteFileTemplate<? extends F> template,
 			@Nullable Comparator<? extends F> comparator) {
 
@@ -133,7 +135,8 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	}
 
 	/**
-	 * Set to false to add the {@link FileHeaders#REMOTE_FILE_INFO} header to the raw {@link FileInfo}.
+	 * Set to {@code false} to add the {@link FileHeaders#REMOTE_FILE_INFO}
+	 * header to the raw {@link FileInfo}.
 	 * Default is true meaning that common file information properties are provided
 	 * in that header as JSON.
 	 * @param fileInfoJson false to set the raw object.
@@ -141,6 +144,18 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	 */
 	public void setFileInfoJson(boolean fileInfoJson) {
 		this.fileInfoJson = fileInfoJson;
+	}
+
+	/**
+	 * The flag indicating if the local cache has to be fully clear on failure
+	 * to preserve a processing order of remote files on the next {@link #receive()} attempt.
+	 * By default, only the failed file will be re-fetched from remote directory,
+	 * but only when local cache is already empty, essential out of order.
+	 * @param strictOrder if cached files has to be cleared on failure.
+	 * @since 5.5.17
+	 */
+	public void setStrictOrder(boolean strictOrder) {
+		this.strictOrder = strictOrder;
 	}
 
 	protected RemoteFileTemplate<? extends F> getRemoteFileTemplate() {
@@ -235,9 +250,19 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 				throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
 			}
 		}
-		catch (RuntimeException e) {
-			resetFilterIfNecessary(file);
-			throw e;
+		catch (RuntimeException ex) {
+			if (this.strictOrder) {
+				// If we could not fetch the file content, then it is fatal.
+				// Clear local queue to be refreshed on the next 'receive()' call.
+				List<AbstractFileInfo<F>> filesToReset = new ArrayList<>();
+				filesToReset.add(file);
+				this.toBeReceived.drainTo(filesToReset);
+				filesToReset.forEach(this::resetFilterIfNecessary);
+			}
+			else {
+				resetFilterIfNecessary(file);
+			}
+			throw ex;
 		}
 	}
 
@@ -250,8 +275,9 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	private void resetFilterIfNecessary(AbstractFileInfo<F> file) {
 		if (this.filter instanceof ResettableFileListFilter) {
-			this.logger.info(LogMessage.format("Removing the remote file '%s' from"
-					+ "the filterfor a subsequent transfer attempt", file));
+			this.logger.info(
+					LogMessage.format("Removing the remote file '%s' from the filter for a subsequent transfer attempt",
+							file.getFilename()));
 			((ResettableFileListFilter<F>) this.filter).remove(file.getFileInfo());
 		}
 	}

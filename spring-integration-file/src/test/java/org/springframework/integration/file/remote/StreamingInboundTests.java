@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -243,6 +243,10 @@ public class StreamingInboundTests {
 				.isThrownBy(streamer::receive);
 		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(1);
 		assertThat(streamer.metadataMap).hasSize(0);
+		streamer.setStrictOrder(true);
+		assertThatExceptionOfType(UncheckedIOException.class)
+				.isThrownBy(streamer::receive);
+		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(0);
 	}
 
 	public static class Streamer extends AbstractRemoteFileStreamingMessageSource<String> {
