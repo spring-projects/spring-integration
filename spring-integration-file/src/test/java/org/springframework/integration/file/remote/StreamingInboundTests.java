@@ -243,6 +243,10 @@ public class StreamingInboundTests {
 				.isThrownBy(streamer::receive);
 		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(1);
 		assertThat(streamer.metadataMap).hasSize(0);
+		streamer.setStrictOrder(true);
+		assertThatExceptionOfType(UncheckedIOException.class)
+				.isThrownBy(streamer::receive);
+		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(0);
 	}
 
 	public static class Streamer extends AbstractRemoteFileStreamingMessageSource<String> {
