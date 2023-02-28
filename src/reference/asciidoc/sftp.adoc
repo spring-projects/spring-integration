@@ -75,6 +75,9 @@ Under the covers, the SFTP Session Factory relies on the https://mina.apache.org
 However, Spring Integration also supports the caching of SFTP sessions.
 See <<sftp-session-caching>> for more information.
 
+NOTE: The `DefaultSftpSessionFactory` can use an externally configured or extended `SshClient`.
+For example, the `org.eclipse.jgit.internal.transport.sshd.JGitSshClient` extension from the `org.eclipse.jgit:org.eclipse.jgit.ssh.apache` library may be used to provide support for HTTP/SOCKS proxies.
+
 [IMPORTANT]
 =====
 The `SshClient` supports multiple channels (operations) over a connection to the server.

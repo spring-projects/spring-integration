@@ -115,8 +115,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	}
 
 	/**
-	 * Intended for use in tests so the MINA SSHD can be mocked.
-	 * @param sshClient The SshClient instance.
+	 * Instantiate based on the provided {@link SshClient}, e.g. some extension for HTTP/SOCKS.
+	 * @param sshClient the {@link SshClient} instance.
 	 * @param isSharedSession true if the session is to be shared.
 	 */
 	public DefaultSftpSessionFactory(SshClient sshClient, boolean isSharedSession) {
