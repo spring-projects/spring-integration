@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,7 @@ import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.util.Assert;
 
 /**
- * A {@link org.springframework.integration.file.remote.FileInfo} implementation for
- * SMB.
+ * An {@link AbstractFileInfo} implementation for SMB protocol.
  *
  * @author Gregory Bragg
  * @author Artem Bilan
@@ -156,13 +155,18 @@ public class SmbFileInfo extends AbstractFileInfo<SmbFile> {
 		return sb.toString();
 	}
 
-	private static String aceToAllowFlag(ACE ace) {
-		return ace.isAllow() ? "Allow " : "Deny ";
-	}
-
 	@Override
 	public SmbFile getFileInfo() {
 		return this.smbFile;
+	}
+
+	@Override
+	public String toString() {
+		return "SmbFileInfo{smbFile=" + this.smbFile + '}';
+	}
+
+	private static String aceToAllowFlag(ACE ace) {
+		return ace.isAllow() ? "Allow " : "Deny ";
 	}
 
 }
