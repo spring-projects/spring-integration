@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -49,6 +48,7 @@ import org.springframework.integration.http.management.IntegrationGraphControlle
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Chris Bono
  *
  * @since 4.3
  */
@@ -73,7 +73,7 @@ public class IntegrationGraphControllerRegistrar implements ImportBeanDefinition
 
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME)) {
 			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME,
-					new RootBeanDefinition(IntegrationGraphServer.class, IntegrationGraphServer::new));
+					new RootBeanDefinition(IntegrationGraphServer.class));
 		}
 
 		String path = (String) annotationAttributes.get("value");
@@ -91,20 +91,14 @@ public class IntegrationGraphControllerRegistrar implements ImportBeanDefinition
 			String graphControllerPath) {
 
 		AbstractBeanDefinition controllerPropertiesPopulator =
-				BeanDefinitionBuilder.genericBeanDefinition(GraphControllerPropertiesPopulator.class,
-								() -> new GraphControllerPropertiesPopulator(graphControllerPath))
+				BeanDefinitionBuilder.genericBeanDefinition(GraphControllerPropertiesPopulator.class)
 						.addConstructorArgValue(graphControllerPath)
 						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
 						.getBeanDefinition();
 		BeanDefinitionReaderUtils.registerWithGeneratedName(controllerPropertiesPopulator, registry);
 
 		BeanDefinition graphController =
-				BeanDefinitionBuilder.rootBeanDefinition(IntegrationGraphController.class,
-								() ->
-										new IntegrationGraphController(
-												((BeanFactory) registry)
-														.getBean(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME,
-																IntegrationGraphServer.class)))
+				BeanDefinitionBuilder.rootBeanDefinition(IntegrationGraphController.class)
 						.addConstructorArgReference(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME)
 						.getBeanDefinition();
 
@@ -132,16 +126,14 @@ public class IntegrationGraphControllerRegistrar implements ImportBeanDefinition
 	}
 
 	private static AbstractBeanDefinition webMvcControllerCorsConfigurerBean(String path, String[] allowedOrigins) {
-		return BeanDefinitionBuilder.genericBeanDefinition(WebMvcIntegrationGraphCorsConfigurer.class,
-						() -> new WebMvcIntegrationGraphCorsConfigurer(path, allowedOrigins))
+		return BeanDefinitionBuilder.genericBeanDefinition(WebMvcIntegrationGraphCorsConfigurer.class)
 				.addConstructorArgValue(path)
 				.addConstructorArgValue(allowedOrigins)
 				.getBeanDefinition();
 	}
 
 	private static AbstractBeanDefinition webFluxControllerCorsConfigurerBean(String path, String[] allowedOrigins) {
-		return BeanDefinitionBuilder.genericBeanDefinition(WebFluxIntegrationGraphCorsConfigurer.class,
-						() -> new WebFluxIntegrationGraphCorsConfigurer(path, allowedOrigins))
+		return BeanDefinitionBuilder.genericBeanDefinition(WebFluxIntegrationGraphCorsConfigurer.class)
 				.addConstructorArgValue(path)
 				.addConstructorArgValue(allowedOrigins)
 				.getBeanDefinition();

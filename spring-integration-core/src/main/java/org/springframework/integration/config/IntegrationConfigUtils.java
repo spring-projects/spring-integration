@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.integration.channel.DirectChannel;
  * Shared utility methods for Integration configuration.
  *
  * @author Artem Bilan
+ * @author Chris Bono
  *
  * @since 4.0
  */
@@ -57,15 +58,14 @@ public final class IntegrationConfigUtils {
 			String methodSignature) {
 
 		BeanDefinitionBuilder builder =
-				BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class,
-								() -> new SpelFunctionFactoryBean(aClass, methodSignature))
+				BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)
 						.addConstructorArgValue(aClass)
 						.addConstructorArgValue(methodSignature);
 		registry.registerBeanDefinition(functionId, builder.getBeanDefinition());
 	}
 
 	public static void autoCreateDirectChannel(String channelName, BeanDefinitionRegistry registry) {
-		registry.registerBeanDefinition(channelName, new RootBeanDefinition(DirectChannel.class, DirectChannel::new));
+		registry.registerBeanDefinition(channelName, new RootBeanDefinition(DirectChannel.class));
 	}
 
 	public static BeanNameGenerator annotationBeanNameGenerator(BeanDefinitionRegistry registry) {

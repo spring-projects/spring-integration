@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Chris Bono
  *
  * @since 4.0
  */
@@ -52,8 +53,7 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 						: (String) annotationAttributes.get("defaultChannel");
 
 		BeanDefinitionBuilder builder =
-				BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class,
-								PublisherAnnotationBeanPostProcessor::new)
+				BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class)
 						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 		if (StringUtils.hasText(defaultChannel)) {

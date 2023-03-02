@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Chris Bono
  * @since 5.0
  *
  * @see org.springframework.integration.config.IntegrationConfigurationBeanFactoryPostProcessor
@@ -60,13 +61,11 @@ public class DslIntegrationConfigurationInitializer implements IntegrationConfig
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) configurableListableBeanFactory;
 		if (!registry.containsBeanDefinition(INTEGRATION_FLOW_BPP_BEAN_NAME)) {
 			registry.registerBeanDefinition(INTEGRATION_FLOW_BPP_BEAN_NAME,
-					new RootBeanDefinition(IntegrationFlowBeanPostProcessor.class,
-							IntegrationFlowBeanPostProcessor::new));
+					new RootBeanDefinition(IntegrationFlowBeanPostProcessor.class));
 			registry.registerBeanDefinition(INTEGRATION_FLOW_CONTEXT_BEAN_NAME,
-					new RootBeanDefinition(StandardIntegrationFlowContext.class, StandardIntegrationFlowContext::new));
+					new RootBeanDefinition(StandardIntegrationFlowContext.class));
 			registry.registerBeanDefinition(INTEGRATION_FLOW_REPLY_PRODUCER_CLEANER_BEAN_NAME,
-					new RootBeanDefinition(IntegrationFlowDefinition.ReplyProducerCleaner.class,
-							IntegrationFlowDefinition.ReplyProducerCleaner::new));
+					new RootBeanDefinition(IntegrationFlowDefinition.ReplyProducerCleaner.class));
 		}
 	}
 

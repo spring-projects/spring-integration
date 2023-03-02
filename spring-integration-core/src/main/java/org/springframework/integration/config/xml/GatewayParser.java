@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -269,7 +269,7 @@ public class GatewayParser implements BeanDefinitionParser {
 			Map<String, Object>[] defaultHeaders) {
 
 		BeanDefinitionBuilder methodMetadataBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodMetadata.class, GatewayMethodMetadata::new);
+				BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodMetadata.class);
 
 		if (StringUtils.hasText(defaultPayloadExpression)) {
 			methodMetadataBuilder.addPropertyValue("payloadExpression",
