@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,8 @@ import org.springframework.ws.server.endpoint.adapter.MessageEndpointAdapter;
  * registers only the {@link org.springframework.ws.server.endpoint.adapter.DefaultMethodEndpointAdapter},
  * which isn't appropriate for the {@link org.springframework.ws.server.endpoint.MessageEndpoint} implementations.
  *
- *
  * @author Artem Bilan
+ * @author Chris Bono
  *
  * @since 4.3
  *
@@ -56,8 +56,7 @@ public class WsIntegrationConfigurationInitializer implements IntegrationConfigu
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			if (beanFactory.getBeanNamesForType(EndpointAdapter.class, false, false).length > 0) {
 				BeanDefinitionBuilder requestMappingBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(MessageEndpointAdapter.class,
-										MessageEndpointAdapter::new)
+						BeanDefinitionBuilder.genericBeanDefinition(MessageEndpointAdapter.class)
 								.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 				((BeanDefinitionRegistry) beanFactory).registerBeanDefinition(MESSAGE_ENDPOINT_ADAPTER_BEAN_NAME,
 						requestMappingBuilder.getBeanDefinition());

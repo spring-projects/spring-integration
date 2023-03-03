@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ import org.springframework.util.ClassUtils;
  * @author Gary Russell
  * @author Michael Wiles
  * @author Pierre Lakreb
+ * @author Chris Bono
  *
  * @see IntegrationContextUtils
  */
@@ -153,14 +154,14 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerBeanFactoryChannelResolver() {
 		if (!this.beanFactory.containsBeanDefinition(ChannelResolverUtils.CHANNEL_RESOLVER_BEAN_NAME)) {
 			this.registry.registerBeanDefinition(ChannelResolverUtils.CHANNEL_RESOLVER_BEAN_NAME,
-					new RootBeanDefinition(BeanFactoryChannelResolver.class, BeanFactoryChannelResolver::new));
+					new RootBeanDefinition(BeanFactoryChannelResolver.class));
 		}
 	}
 
 	private void registerMessagePublishingErrorHandler() {
 		if (!this.beanFactory.containsBeanDefinition(ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)) {
 			this.registry.registerBeanDefinition(ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME,
-					new RootBeanDefinition(MessagePublishingErrorHandler.class, MessagePublishingErrorHandler::new));
+					new RootBeanDefinition(MessagePublishingErrorHandler.class));
 		}
 	}
 
@@ -173,8 +174,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 			BeanDefinition nullChannelDefinition = null;
 			BeanFactory beanFactoryToUse = this.beanFactory;
 			do {
-				if (beanFactoryToUse instanceof ConfigurableListableBeanFactory) {
-					ConfigurableListableBeanFactory listable = (ConfigurableListableBeanFactory) beanFactoryToUse;
+				if (beanFactoryToUse instanceof ConfigurableListableBeanFactory listable) {
 					if (listable.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
 						nullChannelDefinition =
 								listable.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
@@ -193,7 +193,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 		}
 		else {
 			this.registry.registerBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME,
-					new RootBeanDefinition(NullChannel.class, NullChannel::new));
+					new RootBeanDefinition(NullChannel.class));
 		}
 	}
 
@@ -208,9 +208,8 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 			LOGGER.info(() -> "No bean named '" + IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME +
 					"' has been explicitly defined. " +
 					"Therefore, a default PublishSubscribeChannel will be created.");
-
 			this.registry.registerBeanDefinition(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME,
-					BeanDefinitionBuilder.rootBeanDefinition(PublishSubscribeChannel.class, this::createErrorChannel)
+					BeanDefinitionBuilder.rootBeanDefinition(PublishSubscribeChannel.class)
 							.addConstructorArgValue(IntegrationProperties.getExpressionFor(
 									IntegrationProperties.ERROR_CHANNEL_REQUIRE_SUBSCRIBERS))
 							.addPropertyValue("ignoreFailures", IntegrationProperties.getExpressionFor(
@@ -220,15 +219,13 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 			String errorLoggerBeanName =
 					IntegrationContextUtils.ERROR_LOGGER_BEAN_NAME + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
 			this.registry.registerBeanDefinition(errorLoggerBeanName,
-					BeanDefinitionBuilder.genericBeanDefinition(LoggingHandler.class,
-									() -> new LoggingHandler(LoggingHandler.Level.ERROR))
+					BeanDefinitionBuilder.genericBeanDefinition(LoggingHandler.class)
 							.addConstructorArgValue(LoggingHandler.Level.ERROR)
 							.addPropertyValue(IntegrationNamespaceUtils.ORDER, Ordered.LOWEST_PRECEDENCE - 100)
 							.getBeanDefinition());
 
 			BeanDefinitionBuilder loggingEndpointBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class,
-									ConsumerEndpointFactoryBean::new)
+					BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class)
 							.addPropertyValue("inputChannelName", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)
 							.addPropertyReference("handler", errorLoggerBeanName);
 
@@ -239,11 +236,6 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 		}
 	}
 
-	private PublishSubscribeChannel createErrorChannel() {
-		IntegrationProperties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
-		return new PublishSubscribeChannel(integrationProperties.isErrorChannelRequireSubscribers());
-	}
-
 	/**
 	 * Register {@link IntegrationEvaluationContextFactoryBean}
 	 * and {@link IntegrationSimpleEvaluationContextFactoryBean} beans, if necessary.
@@ -251,8 +243,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerIntegrationEvaluationContext() {
 		if (!this.registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)) {
 			BeanDefinitionBuilder integrationEvaluationContextBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(IntegrationEvaluationContextFactoryBean.class,
-									IntegrationEvaluationContextFactoryBean::new)
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationEvaluationContextFactoryBean.class)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
@@ -263,8 +254,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 				IntegrationContextUtils.INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME)) {
 
 			BeanDefinitionBuilder integrationEvaluationContextBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(IntegrationSimpleEvaluationContextFactoryBean.class,
-									IntegrationSimpleEvaluationContextFactoryBean::new)
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationSimpleEvaluationContextFactoryBean.class)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME,
@@ -286,7 +276,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 				return;
 			}
 		}
-		RootBeanDefinition beanDefinition = new RootBeanDefinition(clazz, IdGeneratorConfigurer::new);
+		RootBeanDefinition beanDefinition = new RootBeanDefinition(clazz);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinition, this.registry);
 	}
@@ -300,8 +290,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 					"' has been explicitly defined. " +
 					"Therefore, a default ThreadPoolTaskScheduler will be created.");
 			BeanDefinition scheduler =
-					BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskScheduler.class,
-									ThreadPoolTaskScheduler::new)
+					BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskScheduler.class)
 							.addPropertyValue("poolSize", IntegrationProperties.getExpressionFor(
 									IntegrationProperties.TASK_SCHEDULER_POOL_SIZE))
 							.addPropertyValue("threadNamePrefix", "task-scheduler-")
@@ -319,7 +308,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerIntegrationProperties() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)) {
 			BeanDefinition userProperties =
-					BeanDefinitionBuilder.genericBeanDefinition(PropertiesFactoryBean.class, PropertiesFactoryBean::new)
+					BeanDefinitionBuilder.genericBeanDefinition(PropertiesFactoryBean.class)
 							.addPropertyValue("locations", "classpath*:META-INF/spring.integration.properties")
 							.getBeanDefinition();
 
@@ -374,7 +363,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerRoleController() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER)) {
 			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
-					new RootBeanDefinition(SmartLifecycleRoleController.class, SmartLifecycleRoleController::new));
+					new RootBeanDefinition(SmartLifecycleRoleController.class));
 		}
 	}
 
@@ -384,7 +373,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerMessageBuilderFactory() {
 		if (!this.beanFactory.containsBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME)) {
 			BeanDefinitionBuilder mbfBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(DefaultMessageBuilderFactory.class, DefaultMessageBuilderFactory::new)
+					.genericBeanDefinition(DefaultMessageBuilderFactory.class)
 					.addPropertyValue("readOnlyHeaders",
 							IntegrationProperties.getExpressionFor(IntegrationProperties.READ_ONLY_HEADERS));
 			this.registry.registerBeanDefinition(
@@ -401,7 +390,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 					"' has been explicitly defined. Therefore, a default DefaultHeaderChannelRegistry will be created.");
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
-					new RootBeanDefinition(DefaultHeaderChannelRegistry.class, DefaultHeaderChannelRegistry::new));
+					new RootBeanDefinition(DefaultHeaderChannelRegistry.class));
 		}
 	}
 
@@ -412,8 +401,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 		if (!this.registry.containsBeanDefinition(
 				IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME)) {
 			BeanDefinitionBuilder builder =
-					BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorProcessor.class,
-									GlobalChannelInterceptorProcessor::new)
+					BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorProcessor.class)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME,
@@ -430,8 +418,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 
 			this.registry.registerBeanDefinition(
 					IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
-					new RootBeanDefinition(DefaultDatatypeChannelMessageConverter.class,
-							DefaultDatatypeChannelMessageConverter::new));
+					new RootBeanDefinition(DefaultDatatypeChannelMessageConverter.class));
 		}
 	}
 
@@ -442,8 +429,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerArgumentResolverMessageConverter() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
 			this.registry.registerBeanDefinition(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
-					new RootBeanDefinition(ConfigurableCompositeMessageConverter.class,
-							ConfigurableCompositeMessageConverter::new));
+					new RootBeanDefinition(ConfigurableCompositeMessageConverter.class));
 		}
 	}
 
@@ -466,8 +452,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 	}
 
 	private static BeanDefinitionBuilder createMessageHandlerMethodFactoryBeanDefinition(boolean listCapable) {
-		return BeanDefinitionBuilder.genericBeanDefinition(IntegrationMessageHandlerMethodFactory.class,
-						() -> new IntegrationMessageHandlerMethodFactory(listCapable))
+		return BeanDefinitionBuilder.genericBeanDefinition(IntegrationMessageHandlerMethodFactory.class)
 				.addConstructorArgValue(listCapable)
 				.addPropertyReference("messageConverter",
 						IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);

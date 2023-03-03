@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Chris Bono
  *
  * @since 4.1
  */
@@ -85,8 +86,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 			if (!registry.containsBeanDefinition("defaultSockJsTaskScheduler")) {
 
 				BeanDefinitionBuilder beanDefinitionBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskScheduler.class,
-										ThreadPoolTaskScheduler::new)
+						BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskScheduler.class)
 								.addPropertyValue("threadNamePrefix", "SockJS-")
 								.addPropertyValue("poolSize", Runtime.getRuntime().availableProcessors())
 								.addPropertyValue("removeOnCancelPolicy", true);
@@ -97,19 +97,16 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 					!registry.containsBeanDefinition(WEB_SOCKET_HANDLER_MAPPING_BEAN_NAME)) {
 
 				registry.registerBeanDefinition("integrationServletWebSocketHandlerRegistry",
-						new RootBeanDefinition(IntegrationServletWebSocketHandlerRegistry.class,
-								IntegrationServletWebSocketHandlerRegistry::new));
+						new RootBeanDefinition(IntegrationServletWebSocketHandlerRegistry.class));
 
 				BeanDefinitionBuilder beanDefinitionBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(IntegrationDynamicWebSocketHandlerMapping.class,
-										IntegrationDynamicWebSocketHandlerMapping::new)
+						BeanDefinitionBuilder.genericBeanDefinition(IntegrationDynamicWebSocketHandlerMapping.class)
 								.addPropertyValue("patternParser", new PathPatternParser())
 								.addPropertyValue("order", 0);
 				BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(), registry);
 
 				BeanDefinitionBuilder enableWebSocketBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(WebSocketHandlerMappingFactoryBean.class,
-										WebSocketHandlerMappingFactoryBean::new)
+						BeanDefinitionBuilder.genericBeanDefinition(WebSocketHandlerMappingFactoryBean.class)
 								.addPropertyReference("registry", "integrationServletWebSocketHandlerRegistry")
 								.addPropertyReference("sockJsTaskScheduler", "defaultSockJsTaskScheduler")
 								.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
