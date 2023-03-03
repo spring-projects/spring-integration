@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Chris Bono
  *
  * @since 4.0
  */
@@ -73,8 +74,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 	private void registerDefaultConfiguringBeanFactoryPostProcessor(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME)) {
 			BeanDefinitionBuilder postProcessorBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class,
-									DefaultConfiguringBeanFactoryPostProcessor::new)
+					BeanDefinitionBuilder.genericBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(IntegrationContextUtils.DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME,
 					postProcessorBuilder.getBeanDefinition());
@@ -90,8 +90,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 				IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME)) {
 
 			BeanDefinitionBuilder postProcessorBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigurationBeanFactoryPostProcessor.class,
-									IntegrationConfigurationBeanFactoryPostProcessor::new)
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigurationBeanFactoryPostProcessor.class)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME,
 					postProcessorBuilder.getBeanDefinition());
@@ -108,8 +107,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 	private void registerMessagingAnnotationPostProcessors(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)) {
 			BeanDefinitionBuilder builder =
-					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class,
-									MessagingAnnotationPostProcessor::new)
+					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME,

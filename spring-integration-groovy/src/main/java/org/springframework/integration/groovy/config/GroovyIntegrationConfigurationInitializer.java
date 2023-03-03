@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.integration.scripting.config.ScriptExecutingProcessor
  * The Groovy Module Integration infrastructure {@code beanFactory} initializer.
  *
  * @author Artem Bilan
+ * @author Chris Bono
  *
  * @since 5.0
  */
@@ -52,8 +53,7 @@ public class GroovyIntegrationConfigurationInitializer implements IntegrationCon
 	protected void registerScriptExecutorProviderIfNecessary(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(ScriptExecutingProcessorFactory.BEAN_NAME)) {
 			registry.registerBeanDefinition(ScriptExecutingProcessorFactory.BEAN_NAME,
-					new RootBeanDefinition(GroovyAwareScriptExecutingProcessorFactory.class,
-							GroovyAwareScriptExecutingProcessorFactory::new));
+					new RootBeanDefinition(GroovyAwareScriptExecutingProcessorFactory.class));
 		}
 	}
 

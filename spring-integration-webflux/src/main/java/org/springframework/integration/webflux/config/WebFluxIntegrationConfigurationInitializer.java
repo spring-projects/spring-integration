@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.integration.webflux.support.WebFluxContextUtils;
  * The WebFlux Integration infrastructure {@code beanFactory} initializer.
  *
  * @author Artem Bilan
+ * @author Chris Bono
  *
  * @since 5.0
  */
@@ -70,15 +71,14 @@ public class WebFluxIntegrationConfigurationInitializer implements IntegrationCo
 				!registry.containsBeanDefinition(WebFluxContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
 
 			BeanDefinitionBuilder requestMappingBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(WebFluxIntegrationRequestMappingHandlerMapping.class,
-									WebFluxIntegrationRequestMappingHandlerMapping::new)
+					BeanDefinitionBuilder.genericBeanDefinition(WebFluxIntegrationRequestMappingHandlerMapping.class)
 							.addPropertyValue("order", 0)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(WebFluxContextUtils.HANDLER_MAPPING_BEAN_NAME,
 					requestMappingBuilder.getBeanDefinition());
 
 			BeanDefinitionReaderUtils.registerWithGeneratedName(
-					new RootBeanDefinition(IntegrationHandlerResultHandler.class, IntegrationHandlerResultHandler::new),
+					new RootBeanDefinition(IntegrationHandlerResultHandler.class),
 					registry);
 		}
 	}
