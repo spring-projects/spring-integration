@@ -20,7 +20,7 @@ plugins {
     id 'org.ajoberstar.grgit' version '4.1.1'
     id 'io.spring.dependency-management' version '1.1.0'
     id 'com.jfrog.artifactory' version '4.31.4' apply false
-    id 'org.jetbrains.dokka' version '1.7.20'
+    id 'org.jetbrains.dokka' version "$kotlinVersion"
     id 'org.asciidoctor.jvm.pdf' version '3.3.2'
     id 'org.asciidoctor.jvm.gems' version '3.3.2'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
@@ -322,10 +322,9 @@ configure(javaProjects) { subproject ->
 
     jacocoTestReport {
         reports {
-            xml.required = true
             csv.required = false
             html.required = false
-            xml.destination file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+            xml.outputLocation = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
         }
     }
 
@@ -366,7 +365,7 @@ configure(javaProjects) { subproject ->
 
     checkstyle {
         configDirectory.set(rootProject.file('src/checkstyle'))
-        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '10.7.0'
+        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '10.8.0'
     }
 
     jar {
