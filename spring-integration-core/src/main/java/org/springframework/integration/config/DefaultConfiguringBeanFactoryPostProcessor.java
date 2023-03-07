@@ -454,7 +454,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 		return BeanDefinitionBuilder.genericBeanDefinition(IntegrationMessageHandlerMethodFactory.class)
 				.addConstructorArgValue(listCapable)
 				.addPropertyReference("messageConverter",
-                        IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
+						IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
 	}
 
 }
