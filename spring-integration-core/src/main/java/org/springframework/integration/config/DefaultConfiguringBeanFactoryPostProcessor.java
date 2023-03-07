@@ -174,14 +174,13 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 			BeanDefinition nullChannelDefinition = null;
 			BeanFactory beanFactoryToUse = this.beanFactory;
 			do {
-				if (beanFactoryToUse instanceof ConfigurableListableBeanFactory listable) {
-					if (listable.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
-						nullChannelDefinition =
-								listable.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
-					}
+				if (beanFactoryToUse instanceof ConfigurableListableBeanFactory listable &&
+						listable.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
+
+					nullChannelDefinition = listable.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
 				}
-				if (beanFactoryToUse instanceof HierarchicalBeanFactory) {
-					beanFactoryToUse = ((HierarchicalBeanFactory) beanFactoryToUse).getParentBeanFactory();
+				if (beanFactoryToUse instanceof HierarchicalBeanFactory hierarchicalBeanFactory) {
+					beanFactoryToUse = hierarchicalBeanFactory.getParentBeanFactory();
 				}
 			}
 			while (nullChannelDefinition == null);
@@ -455,7 +454,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 		return BeanDefinitionBuilder.genericBeanDefinition(IntegrationMessageHandlerMethodFactory.class)
 				.addConstructorArgValue(listCapable)
 				.addPropertyReference("messageConverter",
-						IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
+                        IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
 	}
 
 }

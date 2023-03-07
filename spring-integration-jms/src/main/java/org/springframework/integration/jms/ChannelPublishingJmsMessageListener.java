@@ -467,15 +467,13 @@ public class ChannelPublishingJmsMessageListener
 	@Nullable
 	private Destination resolveReplyTo(jakarta.jms.Message request, Session session) throws JMSException {
 		Destination replyTo = request.getJMSReplyTo();
-		if (replyTo == null) {
-			if (this.replyToExpression != null) {
-				Object replyToValue = this.replyToExpression.getValue(this.evaluationContext, request);
-				if (replyToValue instanceof Destination destination) {
-					return destination;
-				}
-				else if (replyToValue instanceof String destinationName) {
-					return this.destinationResolver.resolveDestinationName(session, destinationName, false);
-				}
+		if (replyTo == null && this.replyToExpression != null) {
+			Object replyToValue = this.replyToExpression.getValue(this.evaluationContext, request);
+			if (replyToValue instanceof Destination destination) {
+				return destination;
+			}
+			else if (replyToValue instanceof String destinationName) {
+				return this.destinationResolver.resolveDestinationName(session, destinationName, false);
 			}
 		}
 		return replyTo;

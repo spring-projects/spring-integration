@@ -39,10 +39,10 @@ public interface CheckedFunction<T, R> {
 				return apply(t1);
 			}
 			catch (Throwable t) { // NOSONAR
-				if (t instanceof RuntimeException runtimeException) {
+				if (t instanceof RuntimeException runtimeException) { // NOSONAR
 					throw runtimeException;
 				}
-				else if (t instanceof Error error) {
+				else if (t instanceof Error error) { // NOSONAR
 					throw error;
 				}
 				else {

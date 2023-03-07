@@ -335,7 +335,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 						DefaultMessageSenderObservationConvention.INSTANCE,
 						() -> new MessageSenderContext(messageToSend, getComponentName()),
 						this.observationRegistry)
-				.observe(() -> sendInternal(messageToSend, timeout));
+				.observe(() -> sendInternal(messageToSend, timeout)); // NOSONAR - never null
 	}
 
 	private boolean sendWithMetrics(Message<?> message, long timeout) {
