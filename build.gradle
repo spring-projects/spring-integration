@@ -1130,12 +1130,12 @@ project('spring-integration-bom') {
         }
     }
 
-    sonarqube {
+    sonar {
         skipProject = true
     }
 }
 
-sonarqube {
+sonar {
     properties {
         property 'sonar.links.homepage', linkHomepage
         property 'sonar.links.ci', linkCi
