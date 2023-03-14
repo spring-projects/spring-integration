@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -353,6 +353,10 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		public Void call() {
 			try {
 				while (isRunning()) {
+					if (Thread.currentThread().isInterrupted()) {
+						restartSelectorBecauseOfError(new InterruptedException());
+						return null;
+					}
 					try {
 						tryAcquireLock();
 					}
@@ -373,7 +377,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 						LOGGER.debug("Could not unlock during stop for " + this.context
 								+ " - treat as broken. Revoking...", e);
 					}
-					// We are stopping, therefore not leading any more
+					// We are stopping, therefore not leading anymore
 					handleRevoked();
 				}
 			}
@@ -385,8 +389,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 				LOGGER.debug("Acquiring the lock for " + this.context);
 			}
 			// We always try to acquire the lock, in case it expired
-			boolean acquired = this.lock.tryLock(LockRegistryLeaderInitiator.this.heartBeatMillis,
-					TimeUnit.MILLISECONDS);
+			boolean acquired =
+					this.lock.tryLock(LockRegistryLeaderInitiator.this.heartBeatMillis, TimeUnit.MILLISECONDS);
 			if (!this.locked) {
 				if (acquired) {
 					// Success: we are now leader
@@ -398,8 +402,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 				}
 			}
 			else if (acquired) {
-				// If we were able to acquire it but we were already locked we
-				// should release it
+				// If we were able to acquire it, but we were already locked, we should release it
 				this.lock.unlock();
 				if (isRunning()) {
 					// Give it a chance to expire.
@@ -408,7 +411,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			}
 			else {
 				this.locked = false;
-				// We were not able to acquire it, therefore not leading any more
+				// We were not able to acquire it, therefore not leading anymore
 				handleRevoked();
 				if (isRunning()) {
 					// Try again quickly in case the lock holder dropped it
@@ -446,7 +449,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 						Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
 					}
 					catch (InterruptedException e1) {
-						// Ignore interruption and let it to be caught on the next cycle.
+						// Ignore interruption and let it be caught on the next cycle.
 						Thread.currentThread().interrupt();
 					}
 				}
