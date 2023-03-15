@@ -235,7 +235,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			this.locks.entrySet()
 					.removeIf(entry -> {
 						RedisLock lock = entry.getValue();
-						return now - lock.getLockedAt() > age && !lock.isAcquiredInThisProcess();
+						long lockedAt = lock.getLockedAt();
+						return now - lockedAt > age
+								// 'lockedAt = 0' means that the lock is still not acquired!
+								&& lockedAt > 0
+								&& !lock.isAcquiredInThisProcess();
 					});
 		}
 	}
