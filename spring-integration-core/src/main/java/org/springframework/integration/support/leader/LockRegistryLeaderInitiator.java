@@ -344,6 +344,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 		private volatile boolean locked = false;
 
+		private volatile boolean yielding = false;
+
 		LeaderSelector(String lockKey) {
 			this.lock = LockRegistryLeaderInitiator.this.locks.obtain(lockKey);
 			this.lockKey = lockKey;
@@ -354,14 +356,21 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			try {
 				while (isRunning()) {
 					if (Thread.currentThread().isInterrupted()) {
+						// No need to try to lock in the interrupted thread, and we might not be able to unlock
 						restartSelectorBecauseOfError(new InterruptedException());
 						return null;
+					}
+					if (this.yielding) {
+						this.yielding = false;
+						// When yielding, we have to unlock and continue after busyWaitMillis to elect
+						unlockAndHandleException(null);
+						continue;
 					}
 					try {
 						tryAcquireLock();
 					}
 					catch (Exception e) {
-						if (handleLockException(e)) {
+						if (unlockAndHandleException(e)) {
 							return null;
 						}
 					}
@@ -420,7 +429,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			}
 		}
 
-		private boolean handleLockException(Exception ex) { // NOSONAR
+		private boolean unlockAndHandleException(Exception ex) { // NOSONAR
 			if (this.locked) {
 				this.locked = false;
 				try {
@@ -537,9 +546,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Yielding leadership from " + this);
 			}
-			if (LockRegistryLeaderInitiator.this.future != null) {
-				LockRegistryLeaderInitiator.this.future.cancel(true);
-			}
+			LockRegistryLeaderInitiator.this.leaderSelector.yielding = true;
 		}
 
 		@Override
