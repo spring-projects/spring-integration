@@ -81,6 +81,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Artem Bilan
  * @author Vedran Pavic
  * @author Unseok Kim
+ * @author Anton Gabov
  *
  * @since 4.0
  *

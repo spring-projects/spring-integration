@@ -60,6 +60,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  * @author Vedran Pavic
  * @author Unseok Kim
  * @author Artem Vozhdayenko
+ * @author Anton Gabov
  *
  * @since 4.0
  *
