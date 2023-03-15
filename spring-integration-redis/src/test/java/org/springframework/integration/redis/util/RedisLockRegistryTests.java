@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -59,6 +60,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  * @author Vedran Pavic
  * @author Unseok Kim
  * @author Artem Vozhdayenko
+ * @author Anton Gabov
  *
  * @since 4.0
  *
@@ -809,6 +811,68 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		registry1.destroy();
 		registry2.destroy();
 		registry3.destroy();
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testTwoThreadsRemoveAndObtainSameLockSimultaneously(RedisLockType testRedisLockType) throws Exception {
+		final int TEST_CNT = 200;
+		final long EXPIRATION_TIME_MILLIS = 10000;
+		final long LOCK_WAIT_TIME_MILLIS = 500;
+		final String testKey = "testKey";
+
+		final RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(testRedisLockType);
+
+		for (int i = 0; i < TEST_CNT; i++) {
+			final String lockKey = testKey + i;
+			final CountDownLatch latch = new CountDownLatch(1);
+			final AtomicReference<Lock> lock1 = new AtomicReference<>();
+			final AtomicReference<Lock> lock2 = new AtomicReference<>();
+
+			Thread thread1 = new Thread(() -> {
+				try {
+					latch.await();
+					// remove lock
+					registry.expireUnusedOlderThan(EXPIRATION_TIME_MILLIS);
+					// obtain new lock and try to acquire
+					Lock lock = registry.obtain(lockKey);
+					lock.tryLock(LOCK_WAIT_TIME_MILLIS, TimeUnit.MILLISECONDS);
+					lock.unlock();
+
+					lock1.set(lock);
+				}
+				catch (InterruptedException ignore) {
+				}
+			});
+
+			Thread thread2 = new Thread(() -> {
+				try {
+					latch.await();
+					// remove lock
+					registry.expireUnusedOlderThan(EXPIRATION_TIME_MILLIS);
+					// obtain new lock and try to acquire
+					Lock lock = registry.obtain(lockKey);
+					lock.tryLock(LOCK_WAIT_TIME_MILLIS, TimeUnit.MILLISECONDS);
+					lock.unlock();
+
+					lock2.set(lock);
+				}
+				catch (InterruptedException ignore) {
+				}
+			});
+
+			thread1.start();
+			thread2.start();
+			latch.countDown();
+			thread1.join();
+			thread2.join();
+
+			// locks must be the same!
+			assertThat(lock1.get()).isEqualTo(lock2.get());
+		}
+
+		registry.destroy();
 	}
 
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
