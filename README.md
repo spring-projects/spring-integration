@@ -11,7 +11,7 @@ Spring Integration’s primary goal is to provide a simple model for building en
 Using the Spring Framework encourages developers to code using interfaces and use dependency injection (DI) to provide a Plain Old Java Object (POJO) with the dependencies it needs to perform its tasks. 
 Spring Integration takes this concept one step further, where POJOs are wired together using a messaging paradigm and individual components may not be aware of other components in the application. 
 Such an application is built by assembling fine-grained reusable components to form a higher level of functionality. 
-WIth careful design, these flows can be modularized and also reused at an even higher level.
+With careful design, these flows can be modularized and also reused at an even higher level.
 
 In addition to wiring together fine-grained components, Spring Integration provides a wide selection of channel adapters and gateways to communicate with external systems. 
 Channel Adapters are used for one-way integration (send or receive); gateways are used for request/reply scenarios (inbound or outbound). 
