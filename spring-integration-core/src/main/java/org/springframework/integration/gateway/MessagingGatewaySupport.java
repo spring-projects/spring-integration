@@ -589,19 +589,18 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 	}
 
+	@Nullable
 	private Message<?> sendAndReceiveWithObservation(MessageChannel requestChannel, Object object,
 			Message<?> requestMessage) {
 
-		MessageRequestReplyReceiverContext context =
-				new MessageRequestReplyReceiverContext(requestMessage, getComponentName());
-
 		return IntegrationObservation.GATEWAY.observation(this.observationConvention,
 						DefaultMessageRequestReplyReceiverObservationConvention.INSTANCE,
-						() -> context, this.observationRegistry)
-				.observe(() -> {
+						() -> new MessageRequestReplyReceiverContext(requestMessage, getComponentName()),
+						this.observationRegistry)
+				.<MessageRequestReplyReceiverContext, Message<?>>observeWithContext((ctx) -> {
 					Message<?> replyMessage = doSendAndReceive(requestChannel, object, requestMessage);
 					if (replyMessage != null) {
-						context.setResponse(replyMessage);
+						ctx.setResponse(replyMessage);
 					}
 					return replyMessage;
 				});
