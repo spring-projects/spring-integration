@@ -321,22 +321,21 @@ configure(javaProjects) { subproject ->
     compileKotlin.dependsOn updateCopyrights
 
     jacocoTestReport {
+        onlyIf { System.properties['sonar.host.url'] }
+        dependsOn test
         reports {
-            csv.required = false
+            xml.required = true
             html.required = false
-            xml.outputLocation = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
         }
     }
+
+    rootProject.tasks['sonarqube'].dependsOn jacocoTestReport
 
     test {
         maxHeapSize = '2g'
         jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
         jacoco {
             destinationFile = file("$buildDir/jacoco.exec")
-        }
-
-        if (System.properties['sonar.host.url']) {
-            finalizedBy jacocoTestReport
         }
     }
 
