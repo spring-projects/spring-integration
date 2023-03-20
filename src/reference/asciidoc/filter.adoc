@@ -88,6 +88,8 @@ If you want rejected messages to be routed to a specific channel, provide that r
 ----
 ====
 
+If the `throwExceptionOnRejection == false` and no `discardChannel` provided, the message is silently dropped and an `o.s.i.filter.MessageFilter` instance just emits a warning into logs (starting with version 6.1) about this discarded message.
+
 See also <<./handler-advice.adoc#advising-filters,Advising Filters>>.
 
 NOTE: Message filters are commonly used in conjunction with a publish-subscribe channel.

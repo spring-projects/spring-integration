@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
@@ -33,11 +34,11 @@ import org.springframework.util.Assert;
 /**
  * Message Handler that delegates to a {@link MessageSelector}. If and only if
  * the selector {@link MessageSelector#accept(Message) accepts} the Message, it
- * will be passed to this filter's output channel. Otherwise the message will
- * either be silently dropped (the default) or will trigger the throwing of a
- * {@link MessageRejectedException} depending on the value of its
- * {@link #throwExceptionOnRejection} property. If a discard channel is
- * provided, the rejected Messages will be sent to that channel.
+ * will be passed to this filter's output channel. Otherwise, the message will
+ * either be silently dropped (the default) with a warning into logs,
+ * or will trigger the throwing of a {@link MessageRejectedException}
+ * depending on the value of its {@link #throwExceptionOnRejection} property.
+ * If a discard channel is provided, the rejected Messages will be sent to that channel.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -71,7 +72,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	 * {@link MessageRejectedException} when its selector does not accept a
 	 * Message. The default value is <code>false</code> meaning that rejected
 	 * Messages will be quietly dropped or sent to the discard channel if
-	 * available. Typically this value would not be <code>true</code> when
+	 * available. Typically, this value would not be <code>true</code> when
 	 * a discard channel is provided, but if so, it will still apply
 	 * (in such a case, the Message will be sent to the discard channel,
 	 * and <em>then</em> the exception will be thrown).
@@ -179,12 +180,15 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	@Override
 	public Object postProcess(Message<?> message, Object result) {
 		if (result == null) {
-			MessageChannel channel = getDiscardChannel();
-			if (channel != null) {
-				this.messagingTemplate.send(channel, message);
+			MessageChannel channelToDiscard = getDiscardChannel();
+			if (channelToDiscard != null) {
+				this.messagingTemplate.send(channelToDiscard, message);
 			}
 			if (this.throwExceptionOnRejection) {
 				throw new MessageRejectedException(message, "message has been rejected in filter: " + this);
+			}
+			else if (channelToDiscard == null) {
+				logger.warn(LogMessage.format("The message [%s] has been rejected in filter: %s", message, this));
 			}
 		}
 		return result;
