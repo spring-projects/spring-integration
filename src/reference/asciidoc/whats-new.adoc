@@ -30,6 +30,8 @@ See <<./zip.adoc#zip,Zip Support>>  for more information.
  - Added support for transforming to/from Protocol Buffers.
  See <<./transformer.adoc#Protobuf-transformers, Protocol Buffers Transformers>> for more information.
 
+ - The `MessageFilter` now emits a warning into logs when message is silently discarded and dropped.
+See <<./filter.adoc#filter, Filter>> for more information.
 
 [[x6.1-web-sockets]]
 === Web Sockets Changes
