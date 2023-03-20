@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import org.springframework.core.annotation.AliasFor;
  * to scan interfaces annotated with {@link MessagingGateway}, because the
  * standard {@link org.springframework.context.annotation.ComponentScan}
  * ignores interfaces.
+ * <p>
+ * The {@link Gateway} annotation can be used for the per interface method configuration.
  *
  * @author Artem Bilan
  * @author Gary Russell
@@ -42,6 +44,7 @@ import org.springframework.core.annotation.AliasFor;
  *
  * @see IntegrationComponentScan
  * @see MessageEndpoint
+ * @see Gateway
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -68,6 +71,7 @@ public @interface MessagingGateway {
 	/**
 	 * Identifies the default channel to which messages will be sent upon invocation
 	 * of methods of the gateway proxy.
+	 * See {@link Gateway#requestChannel()} for per-method configuration.
 	 * @return the suggested channel name, if any
 	 */
 	String defaultRequestChannel() default "";
@@ -76,6 +80,7 @@ public @interface MessagingGateway {
 	 * Identifies the default channel the gateway proxy will subscribe to, to receive reply
 	 * {@code Message}s, the payloads of
 	 * which will be converted to the return type of the method signature.
+	 * See {@link Gateway#replyChannel()} for per-method configuration.
 	 * @return the suggested channel name, if any
 	 */
 	String defaultReplyChannel() default "";
@@ -95,6 +100,7 @@ public @interface MessagingGateway {
 	 * example if this gateway is hooked up to a {@code QueueChannel}. Value is specified
 	 * in milliseconds; it can be a simple long value or a SpEL expression; array variable
 	 * #args is available.
+	 * See {@link Gateway#requestTimeout()} for per-method configuration.
 	 * @return the suggested timeout in milliseconds, if any
 	 */
 	String defaultRequestTimeout() default "-9223372036854775808";
@@ -104,6 +110,7 @@ public @interface MessagingGateway {
 	 * before returning. By default, it will wait indefinitely. {@code null} is returned if
 	 * the gateway times out. Value is specified in milliseconds; it can be a simple long
 	 * value or a SpEL expression; array variable #args is available.
+	 * See {@link Gateway#replyTimeout()} for per-method configuration.
 	 * @return the suggested timeout in milliseconds, if any
 	 */
 	String defaultReplyTimeout() default "-9223372036854775808";
@@ -124,6 +131,7 @@ public @interface MessagingGateway {
 	 * unless explicitly overridden by a method declaration. Variables include {@code #args}, {@code #methodName},
 	 * {@code #methodString} and {@code #methodObject};
 	 * a bean resolver is also available, enabling expressions like {@code @someBean(#args)}.
+	 * See {@link Gateway#payloadExpression()} for per-method configuration.
 	 * @return the suggested payload expression, if any
 	 */
 	String defaultPayloadExpression() default "";
@@ -131,6 +139,7 @@ public @interface MessagingGateway {
 	/**
 	 * Provides custom message headers. These default headers are created for
 	 * all methods on the service-interface (unless overridden by a specific method).
+	 * See {@link Gateway#headers()} for per-method configuration.
 	 * @return the suggested payload expression, if any
 	 */
 	GatewayHeader[] defaultHeaders() default {};
