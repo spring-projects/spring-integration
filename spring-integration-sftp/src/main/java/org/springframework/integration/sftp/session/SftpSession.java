@@ -132,7 +132,10 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 	public void append(InputStream inputStream, String destination) throws IOException {
 		synchronized (this.sftpClient) {
 			OutputStream outputStream =
-					this.sftpClient.write(destination, SftpClient.OpenMode.Create, SftpClient.OpenMode.Append);
+					this.sftpClient.write(destination,
+							SftpClient.OpenMode.Create,
+							SftpClient.OpenMode.Write,
+							SftpClient.OpenMode.Append);
 			FileCopyUtils.copy(inputStream, outputStream);
 		}
 	}
