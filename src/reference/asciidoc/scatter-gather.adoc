@@ -139,13 +139,12 @@ By default, the `send()` blocks for one second.
 It applies only if the output channel has some 'sending' limitations -- for example, a `QueueChannel` with a fixed 'capacity' that is full.
 In this case, a `MessageDeliveryException` is thrown.
 The `send-timeout` is ignored for `AbstractSubscribableChannel` implementations.
-For `group-timeout(-expression)`, the `MessageDeliveryException` from the scheduled expire task leads this task to be rescheduled.
+For `group-timeout(-expression)`, the `MessageDeliveryException` from the scheduled expired task leads this task to be rescheduled.
 Optional.
 <10> Lets you specify how long the scatter-gather waits for the reply message before returning.
-By default, it waits indefinitely.
+By default, it waits for `30` seconds.
 'null' is returned if the reply times out.
 Optional.
-It defaults to `-1`, meaning to wait indefinitely.
 <11> Specifies whether the scatter-gather must return a non-null value.
 This value is `true` by default.
 Consequently, a `ReplyRequiredException` is thrown when the underlying aggregator returns a null value after `gather-timeout`.
@@ -214,4 +213,3 @@ This way errors from the `AggregatingMessageHandler` are going to be propagated 
 For successful operation, a `gatherResultChannel`, `originalReplyChannel` and `originalErrorChannel` headers must be transferred back to replies from scatter recipient subflows.
 In this case a reasonable, finite `gatherTimeout` must be configured for the `ScatterGatherHandler`.
 Otherwise, it is going to be blocked waiting for a reply from the gatherer forever, by default.
-

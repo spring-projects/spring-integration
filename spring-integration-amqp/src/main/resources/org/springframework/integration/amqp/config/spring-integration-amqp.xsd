@@ -721,7 +721,7 @@ property set to TRUE.
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="reply-timeout" type="xsd:string">
+				<xsd:attribute name="reply-timeout" type="xsd:string" default="30000">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
 								Allows you to specify how long this gateway will wait for
@@ -738,9 +738,7 @@ property set to TRUE.
 								The "reply-timeout" attribute maps to the "sendTimeout" property of the
 								underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
 
-								The attribute will default, if not specified, to '-1', meaning that
-								by default, the Gateway will wait indefinitely. The value is
-								specified in milliseconds.
+								The value is specified in milliseconds.
 							]]></xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -752,7 +750,7 @@ property set to TRUE.
 		which itself is a Map.
 		This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 		this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
-		A special token 'STANDARD_REPLY_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
+		A special token 'STANDARD_REPLY_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc.);
 		it is included by default. If you wish to add your own headers, you must also include this token if you wish the
 		standard headers to also be mapped. To map all non-standard headers the 'NON_STANDARD_HEADERS' token can be used.
 							]]></xsd:documentation>

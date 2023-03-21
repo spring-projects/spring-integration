@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ public class GatewayProxySpec {
 
 	/**
 	 * Allows to specify how long this gateway will wait for the reply {@code Message}
-	 * before returning. By default, it will wait indefinitely. {@code null} is returned if
+	 * before returning. By default, it will wait 30 seconds. {@code null} is returned if
 	 * the gateway times out. Value is specified in milliseconds.
 	 * @param replyTimeout the timeout for replies in milliseconds.
 	 * @return current {@link GatewayProxySpec}.

@@ -687,24 +687,24 @@
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
-						<xsd:attribute name="request-timeout" type="xsd:string">
+						<xsd:attribute name="request-timeout" type="xsd:string" default="30000">
 							<xsd:annotation>
 								<xsd:documentation>
 									<![CDATA[
 								Provides the amount of time dispatcher would wait to send a message.
 								This timeout would only apply if there is a potential to block in the send call.
-								For example if this gateway is hooked up to a Queue channel. 
+								For example if this gateway is hooked up to a Queue channel.
 								Value is specified in milliseconds.
 										]]>
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
-						<xsd:attribute name="reply-timeout" type="xsd:string">
+						<xsd:attribute name="reply-timeout" type="xsd:string" default="30000">
 							<xsd:annotation>
 								<xsd:documentation>
 									<![CDATA[
 								Allows you to specify how long this gateway will wait for the reply message
-								before returning. By default it will wait indefinitely. 'null' is returned
+								before returning. 'null' is returned
 								if the gateway times out.
 								Value is specified in milliseconds.
 										]]>
@@ -779,26 +779,25 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="default-request-timeout" type="xsd:string">
+			<xsd:attribute name="default-request-timeout" type="xsd:string" default="30000">
 				<xsd:annotation>
 					<xsd:documentation>
 						<![CDATA[
 					Provides the amount of time dispatcher would wait to send a message.
 					This timeout would only apply if there is a potential to block in the send call.
-					For example if this gateway is hooked up to a Queue channel. 
+					For example if this gateway is hooked up to a Queue channel.
 					Value is specified in milliseconds; it can be a simple long value or a SpEL
 					expression; array variable #args is available.
 							]]>
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="default-reply-timeout" type="xsd:string">
+			<xsd:attribute name="default-reply-timeout" type="xsd:string" default="30000">
 				<xsd:annotation>
 					<xsd:documentation>
 						<![CDATA[
 					Allows you to specify how long this gateway will wait for the reply message
-					before returning. By default it will wait indefinitely. 'null' is returned
-					if the gateway times out.
+					before returning. The 'null' is returned if the gateway times out.
 					Value is specified in milliseconds; it can be a simple long value or a SpEL
 					expression; array variable #args is available.
 					Also used for receive-only operations as the receive timeout.
@@ -910,13 +909,13 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="request-timeout" type="xsd:string">
+		<xsd:attribute name="request-timeout" type="xsd:string" default="30000">
 			<xsd:annotation>
 				<xsd:documentation>
 					<![CDATA[
 					Provides the amount of time dispatcher would wait to send a message.
 					This timeout would only apply if there is a potential to block in the send call.
-					For example if this gateway is hooked up to a Queue channel. 
+					For example if this gateway is hooked up to a Queue channel.
 					Value is specified in milliseconds; it can be a simple long value or a SpEL
 					expression; array variable '#args' is available.
 							]]>
@@ -932,13 +931,12 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="reply-timeout" type="xsd:string">
+		<xsd:attribute name="reply-timeout" type="xsd:string" default="30000">
 			<xsd:annotation>
 				<xsd:documentation>
 					<![CDATA[
 					Specifies how long this gateway will wait for the reply message
-					before returning. By default it will wait indefinitely. 'null' is returned
-					if the gateway times out.
+					before returning. The 'null' is returned if the gateway times out.
 					Value is specified in milliseconds; it can be a simple long value or a SpEL
 					expression; array variable '#args' is available.
 					Also used for receive-only operations as the receive timeout.
@@ -993,14 +991,13 @@
 			</xsd:sequence>
 			<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes"/>
 			<xsd:attributeGroup ref="channelAdapterAttributes"/>
-			<xsd:attribute name="send-timeout" type="xsd:string">
+			<xsd:attribute name="send-timeout" type="xsd:string" default="30000">
 				<xsd:annotation>
 					<xsd:documentation>
 						Maximum amount of time in milliseconds to wait when sending a message to the channel
 						if such channel may block.
 						For example, a Queue Channel can block until space is available if its maximum capacity
 						has been reached.
-						Defaults to '-1' - blocking indefinitely.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -3640,8 +3637,7 @@
 					Specify the maximum amount of time in milliseconds to wait
 					when sending Messages to the target MessageChannels if blocking
 					is possible (e.g. a bounded queue channel that is currently full).
-					By default the send will block indefinitely.
-					Synonym for 'timeout' - only one can be supplied.
+					Defaults to 30 seconds to not block the process indefinitely.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -4775,11 +4771,11 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="gather-timeout" type="xsd:string">
+		<xsd:attribute name="gather-timeout" type="xsd:string" default="30000">
 			<xsd:annotation>
 				<xsd:documentation>
 					Allows to specify how long the Scatter-Gather will wait for reply Messages for gathering.
-					By default it will wait indefinitely. Value is specified in milliseconds.
+					Value is specified in milliseconds.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -4789,8 +4785,8 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 					Specify whether the Scatter-Gather must return a non-null value. This value is
 					'true' by default, hence a ReplyRequiredException will be thrown when
 					the underlying aggregator returns a null value after 'gather-timeout'.
-					Note, if 'null' is a possibility, the 'gather-timeout' should be specified to avoid an indefinite
-					wait.
+					Note, if 'null' is a possibility, the 'gather-timeout' should not be specified as negative
+					to avoid an indefinite wait.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -4807,7 +4803,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 			<xsd:attribute name="endpoint" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
-						Consumer Endpoint name(s) or patterns. To specify more than one name(pattern) use ',' 
+						Consumer Endpoint name(s) or patterns. To specify more than one name(pattern) use ','
 						(e.g. endpoint="xxx, xxx*, *xxx, *xxx*, xxx*yyy").
 						The endpoint 'id' is used to retrieve the target endpoint's
 						'MessageHandler' bean (using its '.handler' suffix),
@@ -5070,10 +5066,11 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 			<xsd:annotation>
 				<xsd:documentation>
 					Specify the maximum amount of time in milliseconds to wait when sending a reply
-					Message to the output channel. Defaults to '-1' - blocking indefinitely.
+					Message to the output channel.
 					It is applied only if the output channel has some 'sending' limitations, e.g. QueueChannel with
 					fixed a 'capacity'. In this case a MessageDeliveryException is thrown. The 'send-timeout'
 					is ignored in case of AbstractSubscribableChannel implementations.
+					Defaults to 30 seconds to not block the process indefinitely.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

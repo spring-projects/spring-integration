@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -782,14 +782,9 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		Expression requestTimeout = this.defaultRequestTimeout;
 
 		if (gatewayAnnotation != null) {
-			/*
-			 * INT-2636 Unspecified annotation attributes should not
-			 * override the default values supplied by explicit configuration.
-			 * There is a small risk that someone has used Long.MIN_VALUE explicitly
-			 * to indicate an indefinite timeout on a gateway method and that will
-			 * no longer work as expected; they will need to use, say, -1 instead.
-			 */
-			if (requestTimeout == null || gatewayAnnotation.requestTimeout() != Long.MIN_VALUE) {
+			if (requestTimeout == null ||
+					gatewayAnnotation.requestTimeout() != IntegrationContextUtils.DEFAULT_TIMEOUT) {
+
 				requestTimeout = new ValueExpression<>(gatewayAnnotation.requestTimeout());
 			}
 			if (StringUtils.hasText(gatewayAnnotation.requestTimeoutExpression())) {
@@ -813,14 +808,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		Expression replyTimeout = this.defaultReplyTimeout;
 
 		if (gatewayAnnotation != null) {
-			/*
-			 * INT-2636 Unspecified annotation attributes should not
-			 * override the default values supplied by explicit configuration.
-			 * There is a small risk that someone has used Long.MIN_VALUE explicitly
-			 * to indicate an indefinite timeout on a gateway method and that will
-			 * no longer work as expected; they will need to use, say, -1 instead.
-			 */
-			if (replyTimeout == null || gatewayAnnotation.replyTimeout() != Long.MIN_VALUE) {
+			if (replyTimeout == null || gatewayAnnotation.replyTimeout() != IntegrationContextUtils.DEFAULT_TIMEOUT) {
 				replyTimeout = new ValueExpression<>(gatewayAnnotation.replyTimeout());
 			}
 			if (StringUtils.hasText(gatewayAnnotation.replyTimeoutExpression())) {
@@ -968,31 +956,27 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 
 	private void timeouts(@Nullable Expression requestTimeout, @Nullable Expression replyTimeout,
 			GatewayMethodInboundMessageMapper messageMapper, MethodInvocationGateway gateway) {
-		if (requestTimeout == null) {
-			gateway.setRequestTimeout(-1);
-		}
-		else if (requestTimeout instanceof ValueExpression) {
-			Long timeout = requestTimeout.getValue(Long.class);
-			if (timeout != null) {
-				gateway.setRequestTimeout(timeout);
+		if (requestTimeout != null) {
+			if (requestTimeout instanceof ValueExpression) {
+				Long timeout = requestTimeout.getValue(Long.class);
+				if (timeout != null) {
+					gateway.setRequestTimeout(timeout);
+				}
 			}
-		}
-		else {
-			messageMapper.setSendTimeoutExpression(requestTimeout);
-		}
-		if (replyTimeout == null) {
-			gateway.setReplyTimeout(-1);
-		}
-		else if (replyTimeout instanceof ValueExpression) {
-			Long timeout = replyTimeout.getValue(Long.class);
-			if (timeout != null) {
-				gateway.setReplyTimeout(timeout);
+			else {
+				messageMapper.setSendTimeoutExpression(requestTimeout);
 			}
-		}
-		else {
-			messageMapper.setReplyTimeoutExpression(replyTimeout);
 		}
 		if (replyTimeout != null) {
+			if (replyTimeout instanceof ValueExpression) {
+				Long timeout = replyTimeout.getValue(Long.class);
+				if (timeout != null) {
+					gateway.setReplyTimeout(timeout);
+				}
+			}
+			else {
+				messageMapper.setReplyTimeoutExpression(replyTimeout);
+			}
 			gateway.setReceiveTimeoutExpression(replyTimeout);
 		}
 	}

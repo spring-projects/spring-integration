@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,14 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.internal.stubbing.answers.ThrowsException;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -42,50 +37,53 @@ import org.springframework.messaging.MessageHandlingException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
  * @author Iwein Fuld
  * @author Dave Syer
+ * @author Artme Bilan
  */
-@RunWith(MockitoJUnitRunner.class)
 public class CorrelatingMessageHandlerTests {
 
 	private AggregatingMessageHandler handler;
 
-	@Mock
 	private CorrelationStrategy correlationStrategy;
 
 	private final ReleaseStrategy ReleaseStrategy = new SequenceSizeReleaseStrategy();
 
-	@Mock
 	private MessageGroupProcessor processor;
 
-	@Mock
 	private MessageChannel outputChannel;
 
 	private final MessageGroupStore store = new SimpleMessageStore();
 
 
-	@Before
+	@BeforeEach
 	public void initializeSubject() {
+		correlationStrategy = mock(CorrelationStrategy.class);
+		processor = mock(MessageGroupProcessor.class);
+		outputChannel = mock(MessageChannel.class);
 		handler = new AggregatingMessageHandler(processor, store, correlationStrategy, ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
 	}
 
 
 	@Test
-	public void bufferCompletesNormally() throws Exception {
+	public void bufferCompletesNormally() {
 		String correlationKey = "key";
 		Message<?> message1 = testMessage(correlationKey, 1, 2);
 		Message<?> message2 = testMessage(correlationKey, 2, 2);
 
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
-		when(processor.processMessageGroup(any(MessageGroup.class))).thenReturn(MessageBuilder.withPayload("grouped").build());
-		when(outputChannel.send(any(Message.class))).thenReturn(true);
+		when(processor.processMessageGroup(any(MessageGroup.class)))
+				.thenReturn(MessageBuilder.withPayload("grouped").build());
+		when(outputChannel.send(any(Message.class), eq(30000L))).thenReturn(true);
 
 		handler.handleMessage(message1);
 
@@ -135,21 +133,19 @@ public class CorrelatingMessageHandlerTests {
 		String correlationKey = "key";
 		final Message<?> message1 = testMessage(correlationKey, 1, 2);
 		final Message<?> message2 = testMessage(correlationKey, 2, 2);
-		final List<Message<?>> storedMessages = new ArrayList<Message<?>>();
 
 		final CountDownLatch bothMessagesHandled = new CountDownLatch(2);
 
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
-		when(processor.processMessageGroup(any(MessageGroup.class))).thenReturn(MessageBuilder.withPayload("grouped").build());
-		when(outputChannel.send(any(Message.class))).thenReturn(true);
+		when(processor.processMessageGroup(any(MessageGroup.class)))
+				.thenReturn(MessageBuilder.withPayload("grouped").build());
+		when(outputChannel.send(any(Message.class), eq(30000L))).thenReturn(true);
 
 		handler.handleMessage(message1);
 		bothMessagesHandled.countDown();
-		storedMessages.add(message1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.submit(() -> {
 			handler.handleMessage(message2);
-			storedMessages.add(message2);
 			bothMessagesHandled.countDown();
 		});
 
@@ -160,7 +156,7 @@ public class CorrelatingMessageHandlerTests {
 	}
 
 	@Test
-	public void testNullCorrelationKey() throws Exception {
+	public void testNullCorrelationKey() {
 		final Message<?> message1 = MessageBuilder.withPayload("foo").build();
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(null);
 		try {
@@ -169,7 +165,8 @@ public class CorrelatingMessageHandlerTests {
 		}
 		catch (MessageHandlingException e) {
 			Throwable cause = e.getCause();
-			boolean pass = cause instanceof IllegalStateException && cause.getMessage().toLowerCase().contains("null correlation");
+			boolean pass = cause instanceof IllegalStateException
+					&& cause.getMessage().toLowerCase().contains("null correlation");
 			if (!pass) {
 				throw e;
 			}
@@ -178,8 +175,11 @@ public class CorrelatingMessageHandlerTests {
 
 
 	private Message<?> testMessage(String correlationKey, int sequenceNumber, int sequenceSize) {
-		return MessageBuilder.withPayload("test" + sequenceNumber).setCorrelationId(correlationKey).setSequenceNumber(
-				sequenceNumber).setSequenceSize(sequenceSize).build();
+		return MessageBuilder.withPayload("test" + sequenceNumber)
+				.setCorrelationId(correlationKey)
+				.setSequenceNumber(sequenceNumber)
+				.setSequenceSize(sequenceSize)
+				.build();
 	}
 
 }

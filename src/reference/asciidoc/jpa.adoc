@@ -926,7 +926,6 @@ If this attribute is not defined, the request message must have a `replyChannel`
 Optional.
 <3> Specifies the time the gateway waits to send the result to the reply channel.
 Only applies when the reply channel itself might block the send operation (for example, a bounded `QueueChannel` that is currently full).
-By default, the gateway waits indefinitely.
 The value is specified in milliseconds.
 Optional.
 ====

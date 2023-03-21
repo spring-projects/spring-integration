@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,9 @@ package org.springframework.integration.handler;
 
 import java.util.Collections;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -32,8 +30,10 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Iwein Fuld
@@ -43,7 +43,6 @@ import static org.mockito.BDDMockito.willReturn;
  * @author Artem Bilan
  * @author Oleg Zhurakousky
  */
-@RunWith(MockitoJUnitRunner.class)
 public class AbstractReplyProducingMessageHandlerTests {
 
 	private final AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
@@ -57,9 +56,12 @@ public class AbstractReplyProducingMessageHandlerTests {
 
 	private final Message<?> message = MessageBuilder.withPayload("test").build();
 
-	@Mock
-	private final MessageChannel channel = null;
+	private MessageChannel channel;
 
+	@BeforeEach
+	void setup() {
+		channel = mock(MessageChannel.class);
+	}
 
 	@Test
 	public void errorMessageShouldContainChannelName() {
@@ -91,7 +93,7 @@ public class AbstractReplyProducingMessageHandlerTests {
 		handler.setOutputChannel(this.channel);
 		assertThat(handler.getNotPropagatedHeaders()).contains("f*", "*r");
 		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
-		willReturn(true).given(this.channel).send(captor.capture());
+		willReturn(true).given(this.channel).send(captor.capture(), eq(30000L));
 		handler.handleMessage(MessageBuilder.withPayload("hello")
 				.setHeader("foo", "FOO")
 				.setHeader("bar", "BAR")
@@ -119,7 +121,7 @@ public class AbstractReplyProducingMessageHandlerTests {
 		assertThat(handler.getNotPropagatedHeaders()).contains("boom");
 		handler.setOutputChannel(this.channel);
 		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
-		willReturn(true).given(this.channel).send(captor.capture());
+		willReturn(true).given(this.channel).send(captor.capture(), eq(30000L));
 		handler.handleMessage(MessageBuilder.withPayload("hello")
 				.setHeader("boom", "FOO")
 				.setHeader("bar", "BAR")
@@ -149,7 +151,7 @@ public class AbstractReplyProducingMessageHandlerTests {
 		handler.setOutputChannel(this.channel);
 		assertThat(handler.getNotPropagatedHeaders()).contains("foo", "b*r");
 		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
-		willReturn(true).given(this.channel).send(captor.capture());
+		willReturn(true).given(this.channel).send(captor.capture(), eq(30000L));
 		handler.handleMessage(
 				MessageBuilder.withPayload("hello")
 						.setHeader("foo", "FOO")

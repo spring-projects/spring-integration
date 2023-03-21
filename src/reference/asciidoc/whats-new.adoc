@@ -33,6 +33,9 @@ See <<./zip.adoc#zip,Zip Support>>  for more information.
  - The `MessageFilter` now emits a warning into logs when message is silently discarded and dropped.
 See <<./filter.adoc#filter, Filter>> for more information.
 
+ - The default timeout for send and receive operations in gateways and replying channel adapters has been changed from infinity to `30` seconds.
+Only one left as a `1` second is a `receiveTimeout` for `PollingConsumer` to not block a scheduler thread too long and let other queued tasks to be performed with the `TaskScheduler`.
+
 [[x6.1-web-sockets]]
 === Web Sockets Changes
 

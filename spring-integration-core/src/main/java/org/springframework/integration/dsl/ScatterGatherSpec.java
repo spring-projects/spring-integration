@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class ScatterGatherSpec extends ConsumerEndpointSpec<ScatterGatherSpec, S
 	 * Specify a timeout (in milliseconds) for the
 	 * {@link org.springframework.messaging.PollableChannel#receive(long)} operation
 	 * to wait for gathering results to output.
-	 * Defaults to {@code -1} - to wait indefinitely.
+	 * Defaults to {@code 30} seconds.
 	 * @param gatherTimeout the {@link org.springframework.messaging.PollableChannel} receive timeout.
 	 * @return the current {@link ScatterGatherSpec} instance.
 	 */

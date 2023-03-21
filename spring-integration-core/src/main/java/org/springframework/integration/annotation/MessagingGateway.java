@@ -22,6 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
  * A stereotype annotation to provide an Integration Messaging Gateway Proxy
@@ -103,17 +104,17 @@ public @interface MessagingGateway {
 	 * See {@link Gateway#requestTimeout()} for per-method configuration.
 	 * @return the suggested timeout in milliseconds, if any
 	 */
-	String defaultRequestTimeout() default "-9223372036854775808";
+	String defaultRequestTimeout() default IntegrationContextUtils.DEFAULT_TIMEOUT_STRING;
 
 	/**
 	 * Allows to specify how long this gateway will wait for the reply {@code Message}
-	 * before returning. By default, it will wait indefinitely. {@code null} is returned if
-	 * the gateway times out. Value is specified in milliseconds; it can be a simple long
+	 * before returning. The {@code null} is returned if the gateway times out.
+	 * Value is specified in milliseconds; it can be a simple long
 	 * value or a SpEL expression; array variable #args is available.
 	 * See {@link Gateway#replyTimeout()} for per-method configuration.
 	 * @return the suggested timeout in milliseconds, if any
 	 */
-	String defaultReplyTimeout() default "-9223372036854775808";
+	String defaultReplyTimeout() default IntegrationContextUtils.DEFAULT_TIMEOUT_STRING;
 
 	/**
 	 * Provide a reference to an implementation of {@link java.util.concurrent.Executor}

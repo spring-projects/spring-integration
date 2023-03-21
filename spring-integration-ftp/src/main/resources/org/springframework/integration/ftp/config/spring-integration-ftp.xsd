@@ -343,7 +343,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="reply-timeout" type="xsd:string">
+					<xsd:attribute name="reply-timeout" type="xsd:string" default="30000">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 								Allows you to specify how long this gateway will wait for
@@ -360,9 +360,7 @@
 								The "reply-timeout" attribute maps to the "sendTimeout" property of the
 								underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
 
-								The attribute will default, if not specified, to '-1', meaning that
-								by default, the Gateway will wait indefinitely. The value is
-								specified in milliseconds.
+								The value is specified in milliseconds.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

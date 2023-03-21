@@ -328,7 +328,7 @@ Optional.
 <9> Maximum amount of time in milliseconds to wait when sending a message to the channel, if the channel might block.
 For example, a queue channel can block until space is available, if its maximum capacity has been reached.
 Internally, the `send()` timeout is set on the `MessagingTemplate` and ultimately applied when invoking the send operation on the `MessageChannel`.
-By default, the `send() timeout is set to '-1', which can cause the send operation on the `MessageChannel`, depending on the implementation, to block indefinitely.
+By default, the `send()` timeout is set to '30'.
 Optional.
 <10> Boolean value indicating whether any payload that implements `Cloneable` should be cloned prior to sending the message to the request channel for acquiring the enriching data.
 The cloned version would be used as the target payload for the ultimate reply.

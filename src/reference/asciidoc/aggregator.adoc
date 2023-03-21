@@ -431,7 +431,7 @@ It serves only as an indicator of whether to discard or send to the output or re
 Optional (the default is `false`).
 NOTE: This attribute might more properly be called `send-partial-result-on-timeout`, because the group may not actually expire if `expire-groups-upon-timeout` is set to `false`.
 <9> The timeout interval to wait when sending a reply `Message` to the `output-channel` or `discard-channel`.
-Defaults to `-1`, which results in blocking indefinitely.
+Defaults to `30` seconds.
 It is applied only if the output channel has some 'sending' limitations, such as a `QueueChannel` with a fixed 'capacity'.
 In this case, a `MessageDeliveryException` is thrown.
 For `AbstractSubscribableChannel` implementations, the `send-timeout` is ignored .

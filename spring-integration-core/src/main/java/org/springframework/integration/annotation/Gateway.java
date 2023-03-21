@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
  * Indicates that an interface method is capable of mapping its parameters
@@ -82,7 +84,7 @@ public @interface Gateway {
 	 * @return the timeout.
 	 * @see #requestTimeoutExpression()
 	 */
-	long requestTimeout() default Long.MIN_VALUE;
+	long requestTimeout() default IntegrationContextUtils.DEFAULT_TIMEOUT;
 
 	/**
 	 * Specify a SpEL Expression to determine the timeout (ms) when sending to the request
@@ -101,10 +103,10 @@ public @interface Gateway {
 	 * @return the timeout.
 	 * @see #replyTimeoutExpression()
 	 */
-	long replyTimeout() default Long.MIN_VALUE;
+	long replyTimeout() default IntegrationContextUtils.DEFAULT_TIMEOUT;
 
 	/**
-	 * Specify a SpEL Expression to determine the the time (ms) that the thread sending
+	 * Specify a SpEL Expression to determine the time (ms) that the thread sending
 	 * the request will wait for a reply. The timer starts when the thread returns to the
 	 * gateway, not when the request message is sent. Overrides the encompassing gateway's
 	 * default reply timeout. Overrides {@link #replyTimeout()}.
