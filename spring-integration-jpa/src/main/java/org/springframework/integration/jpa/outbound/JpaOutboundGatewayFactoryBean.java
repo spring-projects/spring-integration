@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jpa.outbound;
 
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
 
@@ -43,7 +44,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractSimpleMessageHandlerF
 
 	private boolean producesReply = true;
 
-	private long replyTimeout;
+	private long replyTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
 
 	private boolean requiresReply = false;
 
@@ -61,9 +62,8 @@ public class JpaOutboundGatewayFactoryBean extends AbstractSimpleMessageHandlerF
 
 	/**
 	 * Specifies the time the gateway will wait to send the result to the reply channel.
-	 * Only applies when the reply channel itself might block the send
+	 * Only applies when the reply channel itself might block the 'send' operation
 	 * (for example a bounded QueueChannel that is currently full).
-	 * By default the Gateway will wait indefinitely.
 	 * @param replyTimeout The timeout in milliseconds
 	 */
 	public void setReplyTimeout(long replyTimeout) {

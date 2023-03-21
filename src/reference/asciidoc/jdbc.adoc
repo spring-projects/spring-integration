@@ -985,7 +985,6 @@ Optional.
 <3> Lets you specify how long this gateway waits for the reply message to be sent successfully before throwing an exception.
 Keep in mind that, when sending to a `DirectChannel`, the invocation occurs in the sender's thread.
 Consequently, the failing of the send operation may be caused by other components further downstream.
-By default, the gateway waits indefinitely.
 The value is specified in milliseconds.
 Optional.
 <4> Indicates whether this procedure's return value should be included.

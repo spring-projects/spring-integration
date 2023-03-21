@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,14 +50,14 @@ public class DefaultRouterParser extends AbstractDelegatingConsumerEndpointParse
 	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		List<Element> mappingElements = DomUtils.getChildElementsByTagName(element, "mapping");
 		if (!CollectionUtils.isEmpty(mappingElements)) {
-			ManagedMap<String, String> channelMappings = new ManagedMap<String, String>();
+			ManagedMap<String, String> channelMappings = new ManagedMap<>();
 			for (Element mappingElement : mappingElements) {
 				channelMappings.put(mappingElement.getAttribute("value"), mappingElement.getAttribute("channel"));
 			}
 			builder.addPropertyValue("channelMappings", channelMappings);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-send-failures");

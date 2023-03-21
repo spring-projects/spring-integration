@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
@@ -51,7 +51,7 @@ public class AggregatorAnnotationTests {
 		assertThat(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy)
 				.isTrue();
 		assertThat(getPropertyValue(aggregator, "outputChannel")).isNull();
-		assertThat(getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(-1L);
+		assertThat(getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(30000L);
 		assertThat(getPropertyValue(aggregator, "sendPartialResultOnExpiry")).isEqualTo(false);
 		context.close();
 	}
@@ -98,8 +98,8 @@ public class AggregatorAnnotationTests {
 		Object correlationStrategy = getPropertyValue(aggregator, "correlationStrategy");
 		assertThat(correlationStrategy instanceof MethodInvokingCorrelationStrategy).isTrue();
 		MethodInvokingCorrelationStrategy releaseStrategyAdapter = (MethodInvokingCorrelationStrategy) correlationStrategy;
-		DirectFieldAccessor processorAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategyAdapter)
-				.getPropertyValue("processor")).getPropertyValue("delegate"));
+		DirectFieldAccessor processorAccessor =
+				new DirectFieldAccessor(TestUtils.getPropertyValue(releaseStrategyAdapter, "processor.delegate"));
 		Object targetObject = processorAccessor.getPropertyValue("targetObject");
 		assertThat(targetObject).isSameAs(context.getBean(endpointName));
 		assertThat(processorAccessor.getPropertyValue("handlerMethods")).isNull();

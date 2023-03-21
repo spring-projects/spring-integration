@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,8 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -40,6 +37,7 @@ import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -50,22 +48,16 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Iwein Fuld
+ * @author Artem Bilan
  */
-@RunWith(MockitoJUnitRunner.class)
 public class SimpleWebServiceInboundGatewayTests {
 
 	private final SimpleWebServiceInboundGateway gateway = new SimpleWebServiceInboundGateway();
 
-	@Mock
 	private MessageContext context;
 
-	@Mock
 	private WebServiceMessage request;
 
-	@Mock
-	private WebServiceMessage response;
-
-	@Mock
 	private MessageChannel requestChannel;
 
 	private final MessageChannel replyChannel = new DirectChannel();
@@ -78,13 +70,17 @@ public class SimpleWebServiceInboundGatewayTests {
 
 	private final Result payloadResult = new StreamResult(output);
 
-	@Before
+	@BeforeEach
 	public void setup() {
+		this.context = mock(MessageContext.class);
+		this.request = mock(WebServiceMessage.class);
+		this.requestChannel = mock(MessageChannel.class);
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyChannel(replyChannel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.start();
 
+		WebServiceMessage response = mock(WebServiceMessage.class);
 		when(context.getResponse()).thenReturn(response);
 		when(response.getPayloadResult()).thenReturn(payloadResult);
 		when(context.getRequest()).thenReturn(request);
@@ -92,22 +88,23 @@ public class SimpleWebServiceInboundGatewayTests {
 
 	@Test
 	public void invokePoxSourceWithReply() throws Exception {
-		when(requestChannel.send(isA(Message.class), eq(1000L))).thenAnswer(
-				withReplyTo(replyChannel));
+		when(requestChannel.send(isA(Message.class), eq(30000L)))
+				.thenAnswer(withReplyTo(replyChannel));
 		when(request.getPayloadSource()).thenReturn(payloadSource);
 		gateway.start();
 		gateway.invoke(context);
-		verify(requestChannel).send(argThat(m -> m.getPayload().equals(payloadSource)), eq(1000L));
+		verify(requestChannel).send(argThat(m -> m.getPayload().equals(payloadSource)), eq(30000L));
 		assertThat(output.toString().endsWith(input)).isTrue();
 	}
 
-	@Test(expected = MessageDeliveryException.class)
-	public void invokePoxSourceTimeout() throws Exception {
+	@Test
+	public void invokePoxSourceTimeout() {
 		gateway.setRequestTimeout(10);
 		gateway.setReplyTimeout(10);
 		when(requestChannel.send(isA(Message.class), anyLong())).thenReturn(false);
 		when(request.getPayloadSource()).thenReturn(payloadSource);
-		gateway.invoke(context);
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> gateway.invoke(context));
 	}
 
 

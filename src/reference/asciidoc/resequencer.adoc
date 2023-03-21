@@ -69,16 +69,15 @@ Optional.
 <6> A reference to a `MessageGroupStore` that can be used to store groups of messages under their correlation key until they are complete.
 Optional.
 (The default is a volatile in-memory store.)
-<7> Whether, upon the expiration of the group, the ordered group should be sent out (even if some of the messages are missing).
+<7> Whether, upon the expiration of the group, the ordered group should be sent out (even if some messages are missing).
 Optional.
 (The default is false.)
 See <<./aggregator.adoc#reaper,Managing State in an Aggregator: `MessageGroupStore`>>.
 <8> The timeout interval to wait when sending a reply `Message` to the `output-channel` or `discard-channel`.
-Defaults to `-1`, which blocks indefinitely.
 It is applied only if the output channel has some 'sending' limitations, such as a  `QueueChannel` with a fixed 'capacity'.
 In this case, a `MessageDeliveryException` is thrown.
 The `send-timeout` is ignored for `AbstractSubscribableChannel` implementations.
-For `group-timeout(-expression)`, the `MessageDeliveryException` from the scheduled expire task leads this task to be rescheduled.
+For `group-timeout(-expression)`, the `MessageDeliveryException` from the scheduled expired task leads this task to be rescheduled.
 Optional.
 <9> A reference to a bean that implements the message correlation (grouping) algorithm.
 The bean can be an implementation of the `CorrelationStrategy` interface or a POJO.

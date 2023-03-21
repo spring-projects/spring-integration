@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,18 @@ public abstract class IntegrationContextUtils {
 	public static final String MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationMessageHandlerMethodFactory";
 
 	public static final String LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationListMessageHandlerMethodFactory";
+
+	/**
+	 * The default timeout for blocking operations like send and receive messages.
+	 * @since 6.1
+	 */
+	public static final long DEFAULT_TIMEOUT = 30000L;
+
+	/**
+	 * A string representation for {@link #DEFAULT_TIMEOUT}, e.g. for annotation attributes.
+	 * @since 6.1
+	 */
+	public static final String DEFAULT_TIMEOUT_STRING = "" + DEFAULT_TIMEOUT;
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.

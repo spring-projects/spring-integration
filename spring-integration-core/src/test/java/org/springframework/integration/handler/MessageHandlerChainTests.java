@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,9 @@ package org.springframework.integration.handler;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -35,6 +32,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -43,21 +42,12 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@RunWith(MockitoJUnitRunner.class)
 public class MessageHandlerChainTests {
 
 	private final Message<String> message = MessageBuilder.withPayload("foo").build();
 
-	@Mock
 	private MessageChannel outputChannel;
 
-	@Mock
-	private MessageHandler handler1;
-
-	@Mock
-	private MessageHandler handler2;
-
-	@Mock
 	private MessageHandler handler3;
 
 	private ProducingHandlerStub producer1;
@@ -66,9 +56,13 @@ public class MessageHandlerChainTests {
 
 	private ProducingHandlerStub producer3;
 
-	@Before
+	@BeforeEach
 	public void setup() {
-		Mockito.when(outputChannel.send(Mockito.any(Message.class))).thenReturn(true);
+		outputChannel = mock(MessageChannel.class);
+		MessageHandler handler1 = mock(MessageHandler.class);
+		MessageHandler handler2 = mock(MessageHandler.class);
+		handler3 = mock(MessageHandler.class);
+		Mockito.when(outputChannel.send(Mockito.any(Message.class), eq(30000L))).thenReturn(true);
 		producer1 = new ProducingHandlerStub(handler1);
 		producer2 = new ProducingHandlerStub(handler2);
 		producer3 = new ProducingHandlerStub(handler3);
@@ -76,7 +70,7 @@ public class MessageHandlerChainTests {
 
 	@Test
 	public void chainWithOutputChannel() {
-		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
+		List<MessageHandler> handlers = new ArrayList<>();
 		handlers.add(producer1);
 		handlers.add(producer2);
 		handlers.add(producer3);
@@ -86,12 +80,12 @@ public class MessageHandlerChainTests {
 		chain.setOutputChannel(outputChannel);
 		chain.setBeanFactory(mock(BeanFactory.class));
 		chain.handleMessage(message);
-		Mockito.verify(outputChannel).send(Mockito.eq(message));
+		Mockito.verify(outputChannel).send(Mockito.eq(message), eq(30000L));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void chainWithOutputChannelButLastHandlerDoesNotProduceReplies() {
-		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
+		List<MessageHandler> handlers = new ArrayList<>();
 		handlers.add(producer1);
 		handlers.add(producer2);
 		handlers.add(handler3);
@@ -100,12 +94,12 @@ public class MessageHandlerChainTests {
 		chain.setHandlers(handlers);
 		chain.setOutputChannel(outputChannel);
 		chain.setBeanFactory(mock(BeanFactory.class));
-		chain.afterPropertiesSet();
+		assertThatIllegalArgumentException().isThrownBy(chain::afterPropertiesSet);
 	}
 
 	@Test
 	public void chainWithoutOutputChannelButLastHandlerDoesNotProduceReplies() {
-		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
+		List<MessageHandler> handlers = new ArrayList<>();
 		handlers.add(producer1);
 		handlers.add(producer2);
 		handlers.add(handler3);
@@ -119,7 +113,7 @@ public class MessageHandlerChainTests {
 	@Test
 	public void chainForwardsToReplyChannel() {
 		Message<String> message = MessageBuilder.withPayload("test").setReplyChannel(outputChannel).build();
-		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
+		List<MessageHandler> handlers = new ArrayList<>();
 		handlers.add(producer1);
 		handlers.add(producer2);
 		handlers.add(producer3);
@@ -128,7 +122,7 @@ public class MessageHandlerChainTests {
 		chain.setHandlers(handlers);
 		chain.setBeanFactory(mock(BeanFactory.class));
 		chain.handleMessage(message);
-		Mockito.verify(outputChannel).send(Mockito.any(Message.class));
+		Mockito.verify(outputChannel).send(Mockito.any(Message.class), eq(30000L));
 	}
 
 	@Test
@@ -136,7 +130,7 @@ public class MessageHandlerChainTests {
 		Message<String> message = MessageBuilder.withPayload("test").setReplyChannelName("testChannel").build();
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("testChannel", outputChannel);
-		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
+		List<MessageHandler> handlers = new ArrayList<>();
 		handlers.add(producer1);
 		handlers.add(producer2);
 		handlers.add(producer3);
@@ -145,14 +139,14 @@ public class MessageHandlerChainTests {
 		chain.setHandlers(handlers);
 		chain.setBeanFactory(beanFactory);
 		chain.handleMessage(message);
-		Mockito.verify(outputChannel).send(Mockito.eq(message));
+		Mockito.verify(outputChannel).send(Mockito.eq(message), eq(30000L));
 	}
 
-	@Test(expected = IllegalArgumentException.class) // INT-1175
+	@Test
 	public void chainRejectsDuplicateHandlers() {
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("testChannel", outputChannel);
-		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
+		List<MessageHandler> handlers = new ArrayList<>();
 		handlers.add(producer1);
 		handlers.add(producer2);
 		handlers.add(producer1);
@@ -160,10 +154,11 @@ public class MessageHandlerChainTests {
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
 		chain.setBeanFactory(beanFactory);
-		chain.afterPropertiesSet();
+		assertThatIllegalArgumentException().isThrownBy(chain::afterPropertiesSet);
 	}
 
-	private static class ProducingHandlerStub extends IntegrationObjectSupport implements MessageHandler, MessageProducer {
+	private static class ProducingHandlerStub extends IntegrationObjectSupport
+			implements MessageHandler, MessageProducer {
 
 		private volatile MessageChannel output;
 

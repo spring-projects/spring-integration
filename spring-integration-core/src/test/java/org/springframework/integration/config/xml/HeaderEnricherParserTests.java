@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ class HeaderEnricherParserTests {
 	void sendTimeoutDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
 		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
-		assertThat(sendTimeout).isEqualTo(-1L);
+		assertThat(sendTimeout).isEqualTo(30000L);
 	}
 
 	@Test

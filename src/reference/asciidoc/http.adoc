@@ -899,7 +899,7 @@ For the _HTTP Outbound Gateway_, the XML Schema defines only the _reply-timeout_
 The _reply-timeout_ maps to the _sendTimeout_ property of the _org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler_ class.
 More precisely, the property is set on the extended `AbstractReplyProducingMessageHandler` class, which ultimately sets the property on the `MessagingTemplate`.
 
-The value of the _sendTimeout_ property defaults to "-1" and will be applied to the connected `MessageChannel`.
+The value of the _sendTimeout_ property defaults to `30` seconds and will be applied to the connected `MessageChannel`.
 This means, that depending on the implementation, the Message Channel's _send_ method may block indefinitely.
 Furthermore, the _sendTimeout_ property is only used, when the actual MessageChannel implementation has a blocking send (such as 'full' bounded QueueChannel).
 

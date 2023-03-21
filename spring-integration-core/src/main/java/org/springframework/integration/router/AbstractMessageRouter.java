@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.IntegrationPatternType;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -47,6 +48,8 @@ import org.springframework.util.Assert;
 @IntegrationManagedResource
 public abstract class AbstractMessageRouter extends AbstractMessageHandler implements MessageRouter {
 
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+
 	private volatile MessageChannel defaultOutputChannel;
 
 	private volatile String defaultOutputChannelName;
@@ -55,8 +58,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 
 	private volatile boolean applySequence;
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-
+	{
+		this.messagingTemplate.setSendTimeout(IntegrationContextUtils.DEFAULT_TIMEOUT);
+	}
 
 	/**
 	 * Set the default channel where Messages should be sent if channel resolution
@@ -96,7 +100,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 
 	/**
 	 * Set the timeout for sending a message to the resolved channel.
-	 * By default, there is no timeout, meaning the send will block indefinitely.
+	 * By default, 30 seconds timeout.
 	 * @param timeout The timeout.
 	 * @since 4.3
 	 */

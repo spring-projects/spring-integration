@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +28,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,8 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 1.0.3
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 public class RecipientListRouterParserTests {
 
 	@Autowired
@@ -76,8 +73,7 @@ public class RecipientListRouterParserTests {
 		assertThat(handler.getClass()).isEqualTo(RecipientListRouter.class);
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
-		assertThat(new DirectFieldAccessor(
-				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout")).isEqualTo(-1L);
+		assertThat(TestUtils.getPropertyValue(router, "messagingTemplate.sendTimeout")).isEqualTo(30000L);
 		assertThat(accessor.getPropertyValue("applySequence")).isEqualTo(Boolean.FALSE);
 		assertThat(accessor.getPropertyValue("ignoreSendFailures")).isEqualTo(Boolean.FALSE);
 	}

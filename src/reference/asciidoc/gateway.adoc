@@ -48,7 +48,7 @@ With this configuration defined, the `cafeService` can now be injected into othe
 See the <<./samples.adoc#samples,"`Samples`">> Appendix for an example that uses the `gateway` element (in the Cafe demo).
 
 The defaults in the preceding configuration are applied to all methods on the gateway interface.
-If a reply timeout is not specified, the calling thread waits indefinitely for a reply.
+If a reply timeout is not specified, the calling thread waits for a reply for 30 seconds.
 See <<gateway-no-response>>.
 
 The defaults can be overridden for individual methods.
@@ -480,14 +480,16 @@ This means that there might be a chance that a message that was initiated by a g
 Some service activator method might result in an exception, thus providing no reply (as we do not generate null messages).
 In other words, multiple scenarios can cause a reply message to never come.
 That is perfectly natural in messaging systems.
-However, think about the implication on the gateway method. The gateway's method input arguments were incorporated into a message and sent downstream.
+However, think about the implication on the gateway method.
+The gateway's method input arguments were incorporated into a message and sent downstream.
 The reply message would be converted to a return value of the gateway's method.
 So you might want to ensure that, for each gateway call, there is always a reply message.
-Otherwise, your gateway method might never return and hang indefinitely.
+Otherwise, your gateway method might never return and hang indefinitely if `reply-timeout` is set to negative value.
 One way to handle this situation is by using an asynchronous gateway (explained later in this section).
-Another way of handling it is to explicitly set the `reply-timeout` attribute.
+Another way of handling it is to rely on a default `reply-timeout` as a `30` seconds.
 That way, the gateway does not hang any longer than the time specified by the `reply-timeout` and returns 'null' if that timeout does elapse.
-Finally, you might want to consider setting downstream flags, such as 'requires-reply', on a service-activator or 'throw-exceptions-on-rejection' on a filter. These options are discussed in more detail in the final section of this chapter.
+Finally, you might want to consider setting downstream flags, such as 'requires-reply', on a service-activator or 'throw-exceptions-on-rejection' on a filter.
+These options are discussed in more detail in the final section of this chapter.
 
 NOTE: If the downstream flow returns an `ErrorMessage`, its `payload` (a `Throwable`) is treated as a regular downstream error.
 If there is an `error-channel` configured, it is sent to the error flow.
@@ -841,7 +843,7 @@ You should understand that the reply message (if produced) is sent to a reply ch
 ===== Downstream Component Returns 'null'
 
 Sync Gateway -- single-threaded::
-If a component downstream returns 'null' and no `reply-timeout` has been configured, the gateway method call hangs indefinitely, unless a `reply-timeout` has been configured or the `requires-reply` attribute has been set on the downstream component (for example, a service activator) that might return 'null'.
+If a component downstream returns 'null' and the `reply-timeout` has been configured to negative value, the gateway method call hangs indefinitely, unless the `requires-reply` attribute has been set on the downstream component (for example, a service activator) that might return 'null'.
 In this case, an exception would be thrown and propagated to the gateway.
 Sync Gateway -- multi-threaded::
 The behavior is the same as the previous case.
@@ -849,7 +851,7 @@ The behavior is the same as the previous case.
 ===== Downstream Component Return Signature is 'void' While Gateway Method Signature Is Non-void
 
 Sync Gateway -- single-threaded::
-If a component downstream returns 'void' and no `reply-timeout` has been configured, the gateway method call hangs indefinitely unless a `reply-timeout` has been configured.
+If a component downstream returns 'void' and the `reply-timeout` has been configured to negative value, the gateway method call hangs indefinitely.
 Sync Gateway -- multi-threaded::
 The behavior is the same as the previous case.
 
@@ -861,8 +863,9 @@ Sync Gateway -- multi-threaded::
 The behavior is the same as the previous case.
 
 IMPORTANT: You should understand that, by default, `reply-timeout` is unbounded.
-Consequently, if you do not explicitly set the `reply-timeout`, your gateway method invocation might hang indefinitely.
+Consequently, if you set the `reply-timeout` to negative value, your gateway method invocation might hang indefinitely.
 So, to make sure you analyze your flow and if there is even a remote possibility of one of these scenarios to occur, you should set the `reply-timeout` attribute to a "'safe'" value.
+It is `30` seconds by default.
 Even better, you can set the `requires-reply` attribute of the downstream component to 'true' to ensure a timely response, as produced by the throwing of an exception as soon as that downstream component returns null internally.
 However, you should also realize that there are some scenarios (see <<long-running-process-downstream,the first one>>) where `reply-timeout` does not help.
 That means it is also important to analyze your message flow and decide when to use a synchronous gateway rather than an asynchronous gateway.
@@ -872,11 +875,6 @@ Also, when dealing with a router, you should remember that setting the `resoluti
 Likewise, when dealing with a Filter, you can set the `throw-exception-on-rejection` attribute.
 In both of these cases, the resulting flow behaves like it contain a service activator with the 'requires-reply' attribute.
 In other words, it helps to ensure a timely response from the gateway method invocation.
-
-NOTE: `reply-timeout` is unbounded for `<gateway/>` elements (created by the `GatewayProxyFactoryBean`).
-Inbound gateways for external integration (WS, HTTP, and so on) share many characteristics and attributes with these gateways.
-However, for those inbound gateways, the default `reply-timeout` is 1000 milliseconds (one second).
-If a downstream asynchronous hand-off is made to another thread, you may need to increase this attribute to allow enough time for the flow to complete before the gateway times out.
 
 IMPORTANT: You should understand that the timer starts when the thread returns to the gateway -- that is, when the flow completes or a message is handed off to another thread.
 At that time, the calling thread starts waiting for the reply.

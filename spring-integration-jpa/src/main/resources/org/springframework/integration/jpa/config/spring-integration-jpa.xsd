@@ -54,7 +54,7 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attributeGroup ref="commonRetrievingJpaAttributes"/>
-			<xsd:attribute name="send-timeout" type="xsd:string">
+			<xsd:attribute name="send-timeout" type="xsd:string" default="30000">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 						Allows you to specify how long this inbound-channel-adapter
@@ -65,8 +65,7 @@
 						Keep in mind that when sending to a DirectChannel, the
 						invocation will occur in the sender's thread so the failing
 						of the send operation may be caused by other components
-						further downstream. By default the Inbound Channel Adapter
-						will wait indefinitely. The value is specified in milliseconds.
+						further downstream. The value is specified in milliseconds.
 					]]>
 					</xsd:documentation>
 				</xsd:annotation>
@@ -367,7 +366,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="reply-timeout" type="xsd:string">
+		<xsd:attribute name="reply-timeout" type="xsd:string" default="30000">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 					Allows you to specify how long this gateway will wait for
@@ -384,9 +383,7 @@
 					The "reply-timeout" attribute maps to the "sendTimeout" property of the
 					underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
 
-					The attribute will default, if not specified, to '-1', meaning that
-					by default, the Gateway will wait indefinitely. The value is
-					specified in milliseconds.
+					The value is specified in milliseconds.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

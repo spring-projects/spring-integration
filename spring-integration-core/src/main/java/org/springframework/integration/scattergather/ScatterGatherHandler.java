@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 	private String errorChannelName = IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME;
 
-	private long gatherTimeout = -1;
+	private long gatherTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
 
 	private AbstractEndpoint gatherEndpoint;
 

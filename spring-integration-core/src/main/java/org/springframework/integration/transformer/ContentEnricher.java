@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,7 +187,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	/**
 	 * Set the timeout value for sending request messages. If not explicitly configured,
-	 * the default is one second.
+	 * the default is 30 seconds.
 	 * @param requestTimeout the timeout value in milliseconds. Must not be null.
 	 */
 	public void setRequestTimeout(Long requestTimeout) {
@@ -197,7 +197,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	/**
 	 * Set the timeout value for receiving reply messages. If not explicitly configured,
-	 * the default is one second.
+	 * the default is 30 seconds.
 	 * @param replyTimeout the timeout value in milliseconds. Must not be null.
 	 */
 	public void setReplyTimeout(Long replyTimeout) {

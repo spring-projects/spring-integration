@@ -33,6 +33,7 @@ import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -91,8 +92,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		implements org.springframework.integration.support.management.TrackableComponent,
 		IntegrationInboundManagement, IntegrationPattern {
 
-	private static final long DEFAULT_TIMEOUT = 1000L;
-
 	protected final ConvertingMessagingTemplate messagingTemplate; // NOSONAR
 
 	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
@@ -122,7 +121,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private String errorChannelName;
 
-	private long replyTimeout = DEFAULT_TIMEOUT;
+	private long replyTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
 
 	private InboundMessageMapper<Object> requestMapper = new DefaultRequestMapper();
 
@@ -165,7 +164,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	public MessagingGatewaySupport(boolean errorOnTimeout) {
 		ConvertingMessagingTemplate template = new ConvertingMessagingTemplate();
 		template.setMessageConverter(this.messageConverter);
-		template.setSendTimeout(DEFAULT_TIMEOUT);
+		template.setSendTimeout(IntegrationContextUtils.DEFAULT_TIMEOUT);
 		template.setReceiveTimeout(this.replyTimeout);
 		this.messagingTemplate = template;
 		this.errorOnTimeout = errorOnTimeout;
@@ -908,9 +907,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 					correlator = new EventDrivenConsumer((SubscribableChannel) replyChan, handler);
 				}
 				else if (replyChan instanceof PollableChannel) {
-					PollingConsumer endpoint = new PollingConsumer((PollableChannel) replyChan, handler);
-					endpoint.setReceiveTimeout(this.replyTimeout);
-					correlator = endpoint;
+					correlator = new PollingConsumer((PollableChannel) replyChan, handler);
 				}
 				else if (replyChan instanceof ReactiveStreamsSubscribableChannel) {
 					correlator = new ReactiveStreamsConsumer(replyChan, (Subscriber<Message<?>>) handler);

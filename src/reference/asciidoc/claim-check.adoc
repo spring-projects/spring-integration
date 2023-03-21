@@ -80,7 +80,7 @@ Optional.
 This attribute is not available inside a `Chain` element.
 Optional.
 <7> Specifies the maximum amount of time (in milliseconds) to wait when sending a reply message to the output channel.
-Defaults to `-1` -- blocking indefinitely.
+Defaults to `30` seconds.
 This attribute is not available inside a `Chain` element.
 Optional.
 <8> Defines a poller.
@@ -150,7 +150,7 @@ This setting is useful when Message can be "`claimed`" only once.
 It defaults to `false`.
 Optional.
 <8> Specifies the maximum amount of time (in milliseconds) to wait when sending a reply message to the output channel.
-It defaults to `-1` -- blocking indefinitely.
+It defaults to `30` seconds.
 This attribute is not available inside a `Chain` element.
 Optional.
 <9> Defines a poller.

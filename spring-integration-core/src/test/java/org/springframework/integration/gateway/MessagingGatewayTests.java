@@ -91,9 +91,9 @@ public class MessagingGatewayTests {
 
 	@Test
 	public void sendMessage() {
-		Mockito.when(requestChannel.send(messageMock, 1000L)).thenReturn(true);
+		Mockito.when(requestChannel.send(messageMock, 30000L)).thenReturn(true);
 		this.messagingGateway.send(messageMock);
-		Mockito.verify(requestChannel).send(messageMock, 1000L);
+		Mockito.verify(requestChannel).send(messageMock, 30000L);
 	}
 
 	@Test
@@ -109,10 +109,10 @@ public class MessagingGatewayTests {
 		Mockito.doAnswer(invocation -> {
 			assertThat(((Message<?>) invocation.getArguments()[0]).getPayload()).isEqualTo("test");
 			return true;
-		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.eq(1000L));
+		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.eq(30000L));
 
 		this.messagingGateway.send("test");
-		Mockito.verify(requestChannel).send(Mockito.any(Message.class), Mockito.eq(1000L));
+		Mockito.verify(requestChannel).send(Mockito.any(Message.class), Mockito.eq(30000L));
 	}
 
 	@Test
@@ -136,17 +136,17 @@ public class MessagingGatewayTests {
 
 	@Test
 	public void receiveMessage() {
-		Mockito.when(replyChannel.receive(1000L)).thenReturn(messageMock);
+		Mockito.when(replyChannel.receive(30000L)).thenReturn(messageMock);
 		Mockito.when(messageMock.getPayload()).thenReturn("test");
 		assertThat(this.messagingGateway.receive()).isEqualTo("test");
-		Mockito.verify(replyChannel).receive(1000L);
+		Mockito.verify(replyChannel).receive(30000L);
 	}
 
 	@Test
 	public void receiveMessage_null() {
-		Mockito.when(replyChannel.receive(1000L)).thenReturn(null);
+		Mockito.when(replyChannel.receive(30000L)).thenReturn(null);
 		assertThat(this.messagingGateway.receive()).isNull();
-		Mockito.verify(replyChannel).receive(1000L);
+		Mockito.verify(replyChannel).receive(30000L);
 	}
 
 	/* send and receive tests */

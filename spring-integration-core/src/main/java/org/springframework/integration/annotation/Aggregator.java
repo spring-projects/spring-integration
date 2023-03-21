@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public @interface Aggregator {
 	/**
 	 * Specify the maximum amount of time in milliseconds to wait when sending a reply
 	 * {@link org.springframework.messaging.Message} to the {@link #outputChannel()}.
-	 * Defaults to {@code -1} - blocking indefinitely.
+	 * Defaults to {@code 30} seconds.
 	 * It is applied only if the output channel has some 'sending' limitations, e.g.
 	 * {@link org.springframework.integration.channel.QueueChannel} with
 	 * a fixed 'capacity' and is currently full.
@@ -78,7 +78,7 @@ public @interface Aggregator {
 	 * or {@code replyChannel} from message headers. Messages are expired when their containing
 	 * {@link org.springframework.integration.store.MessageGroup} expires. One of the ways of expiring MessageGroups
 	 * is by configuring a {@link org.springframework.integration.store.MessageGroupStoreReaper}.
-	 * However MessageGroups can alternatively be expired by simply calling
+	 * However, MessageGroups can alternatively be expired by simply calling
 	 * {@code MessageGroupStore.expireMessageGroup(groupId)}. That could be accomplished via a ControlBus operation
 	 * or by simply invoking that method if you have a reference to the
 	 * {@link org.springframework.integration.store.MessageGroupStore} instance.

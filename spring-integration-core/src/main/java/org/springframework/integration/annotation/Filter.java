@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ public @interface Filter {
 	/**
 	 * Specify the maximum amount of time in milliseconds to wait when sending a reply
 	 * {@link org.springframework.messaging.Message} to the {@link #outputChannel()}.
-	 * Defaults to {@code -1} - blocking indefinitely.
+	 * Defaults to {@code 30} seconds.
 	 * It is applied only if the output channel has some 'sending' limitations, e.g.
 	 * {@link org.springframework.integration.channel.QueueChannel} with
 	 * fixed a 'capacity'. In this case a {@link org.springframework.messaging.MessageDeliveryException} is thrown.

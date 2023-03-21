@@ -380,7 +380,6 @@ This attribute defaults to `false`.
 
 `timeout`::
 The `timeout` attribute specifies the maximum amount of time in milliseconds to wait when sending messages to the target Message Channels.
-By default, the send operation blocks indefinitely.
 
 [[router-common-parameters-top]]
 ===== Top-Level (Outside a Chain)
