@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -57,9 +58,11 @@ public class MultipartAsRawByteArrayTests {
 		gw.afterPropertiesSet();
 		gw.start();
 
+		String testData = "test data";
+
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		ServletInputStream sis = mock(ServletInputStream.class);
-		doReturn("test data".getBytes()).when(sis).readAllBytes();
+		doReturn(testData.getBytes()).when(sis).readNBytes(anyInt());
 		when(request.getInputStream()).thenReturn(sis);
 		when(request.getMethod()).thenReturn("POST");
 		when(request.getHeaderNames()).thenReturn(mock(Enumeration.class));
@@ -70,7 +73,7 @@ public class MultipartAsRawByteArrayTests {
 		Message<?> received = requestChannel.receive(10000);
 		assertThat(received).isNotNull();
 		assertThat(received.getPayload()).isInstanceOf(byte[].class);
-		assertThat(new String((byte[]) received.getPayload())).isEqualTo("test data");
+		assertThat(new String((byte[]) received.getPayload())).isEqualTo(testData);
 	}
 
 }
