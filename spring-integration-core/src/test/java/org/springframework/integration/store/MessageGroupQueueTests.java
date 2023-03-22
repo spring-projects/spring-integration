@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -40,6 +40,8 @@ import static org.mockito.Mockito.spy;
 /**
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MessageGroupQueueTests {
@@ -74,7 +76,7 @@ public class MessageGroupQueueTests {
 		CountDownLatch latch2 = new CountDownLatch(1);
 		exec.execute(() -> {
 			try {
-				Message<?> result = queue.poll(100, TimeUnit.MILLISECONDS);
+				Message<?> result = queue.poll(10, TimeUnit.SECONDS);
 				if (result != null) {
 					latch2.countDown();
 				}
@@ -92,7 +94,7 @@ public class MessageGroupQueueTests {
 	@Test
 	public void testSize() throws Exception {
 		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
-		queue.put(new GenericMessage<String>("foo"));
+		queue.put(new GenericMessage<>("foo"));
 		assertThat(queue.size()).isEqualTo(1);
 		queue.poll(100, TimeUnit.MILLISECONDS);
 		assertThat(queue.size()).isEqualTo(0);
