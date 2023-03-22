@@ -85,7 +85,7 @@ MailReceiver receiver = new Pop3MailReceiver("pop3://usr:pwd@localhost/INBOX");
 
 Another option for receiving mail is the IMAP `idle` command (if supported by your mail server).
 Spring Integration provides the `ImapIdleChannelAdapter`, which is itself a message-producing endpoint.
-It delegates to an instance of the `ImapMailReceiver` but enables asynchronous reception of mail messages.
+It delegates to an instance of the `ImapMailReceiver`.
 The next section has examples of configuring both types of inbound channel adapter with Spring Integration's namespace support in the 'mail' schema.
 
 [[imap-format-important]]
@@ -142,6 +142,10 @@ In this case, the only header populated is the mentioned above `IntegrationMessa
 
 Starting with version 5.5.11, the folder is closed automatically after `AbstractMailReceiver.receive()` if no messages received or all of them are filtered out independently of the `autoCloseFolder` flag.
 In this case there is nothing to produce downstream for possible logic around `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header.
+
+Starting with version 6.1, the `ImapIdleChannelAdapter` doesn't do an asynchronous message publishing anymore and respective `sendingTaskExecutor` option is deprecated for removal in the next version.
+This is necessary to block the idle listener loop for messages processing downstream (e.g. with big attachments) for which the mail folder must remain opened.
+If an async hand-off is appropriate, an `ExecutorChannel` as an output channel for this adapter is a recommended way from now on.
 
 [[mail-mapping]]
 === Inbound Mail Message Mapping
@@ -428,7 +432,7 @@ IMPORTANT: In both configurations, `channel` and `should-delete-messages` are re
 You should understand why `should-delete-messages` is required.
 The issue is with the POP3 protocol, which does not have any knowledge of messages that were read.
 It can only know what has been read within a single session.
-This means that, when your POP3 mail adapter runs, emails are successfully consumed as as they become available during each poll and no single email message is delivered more then once.
+This means that, when your POP3 mail adapter runs, emails are successfully consumed as they become available during each poll and no single email message is delivered more then once.
 However, as soon as you restart your adapter and begin a new session, all the email messages that might have been retrieved in the previous session are retrieved again.
 That is the nature of POP3.
 Some might argue that `should-delete-messages` should be `true` by default.
@@ -563,7 +567,7 @@ The following example shows what the `Mover` class might look like:
 ----
 public class Mover {
 
-    public void process(MimeMessage message) throws Exception{
+    public void process(MimeMessage message) throws Exception {
         Folder folder = message.getFolder();
         folder.open(Folder.READ_WRITE);
         String messageId = message.getMessageID();
@@ -581,7 +585,7 @@ public class Mover {
             }
         }
 
-        Folder somethingFolder = store.getFolder("SOMETHING"));
+        Folder somethingFolder = store.getFolder("SOMETHING");
         somethingFolder.appendMessages(new MimeMessage[]{message});
         folder.expunge();
         folder.close(true);
@@ -634,7 +638,7 @@ public class MailApplication {
                 .handle(Mail.outboundAdapter("gmail")
                             .port(smtpServer.getPort())
                             .credentials("user", "pw")
-                            .protocol("smtp")),
+                            .protocol("smtp"),
                     e -> e.id("sendMailEndpoint"))
                 .get();
     }

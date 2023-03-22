@@ -167,10 +167,11 @@
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-								Reference to a bean that implements
+								[DEPRECATED] Reference to a bean that implements
 								org.springframework.core.task.TaskExecutor which is used
 								to send Messages received by this adapter.
 								If not provided, the adapter uses a single-threaded executor.
+								Deprecated since 6.1 in favor of async hand-off downstream in the flow.
 							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
