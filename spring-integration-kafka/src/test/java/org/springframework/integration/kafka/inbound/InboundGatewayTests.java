@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
 import org.springframework.retry.backoff.NoBackOffPolicy;
-import org.springframework.retry.listener.RetryListenerSupport;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
@@ -392,7 +392,7 @@ class InboundGatewayTests {
 		retryTemplate.setRetryPolicy(retryPolicy);
 		retryTemplate.setBackOffPolicy(new NoBackOffPolicy());
 		final CountDownLatch retryCountLatch = new CountDownLatch(retryPolicy.getMaxAttempts());
-		retryTemplate.registerListener(new RetryListenerSupport() {
+		retryTemplate.registerListener(new RetryListener() {
 
 			@Override
 			public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
