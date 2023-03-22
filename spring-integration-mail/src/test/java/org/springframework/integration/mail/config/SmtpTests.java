@@ -82,7 +82,7 @@ public class SmtpTests {
 		assertThat(message.getFrom()).containsOnly(new InternetAddress("foo@bar"));
 		assertThat(message.getRecipients(RecipientType.TO)).containsOnly(new InternetAddress("bar@baz"));
 		assertThat(message.getSubject()).isEqualTo("foo");
-		assertThat(message.getContent()).asString().isEqualTo("foo\r\n");
+		assertThat(message.getContent()).asString().isEqualTo("foo");
 	}
 
 }
