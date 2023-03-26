@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.sshd.client.SshClient;
+import org.apache.sshd.client.auth.password.PasswordIdentityProvider;
+import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
@@ -35,10 +38,12 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Auke Zaaiman
  *
  * @since 3.0.2
  */
@@ -126,4 +131,25 @@ public class SftpSessionFactoryTests {
 		}
 	}
 
+	@Test
+	void externallyProvidedSshClientShouldNotHaveItsConfigurationOverwritten() throws IOException {
+		try (SshServer server = SshServer.setUpDefaultServer()) {
+			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
+			server.setPort(0);
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
+			server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
+			server.start();
+
+			SshClient externalClient = SshClient.setUpDefaultClient();
+			externalClient.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
+			externalClient.setPasswordIdentityProvider(PasswordIdentityProvider.wrapPasswords("pass"));
+
+			DefaultSftpSessionFactory sftpSessionFactory = new DefaultSftpSessionFactory(externalClient, false);
+			sftpSessionFactory.setHost("localhost");
+			sftpSessionFactory.setPort(server.getPort());
+			sftpSessionFactory.setUser("user");
+
+			assertDoesNotThrow(() -> sftpSessionFactory.getSession().connect());
+		}
+	}
 }
