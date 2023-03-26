@@ -61,6 +61,7 @@ import org.springframework.util.Assert;
  * @author Pat Turner
  * @author Artem Bilan
  * @author Krzysztof Debski
+ * @author Auke Zaaiman
  *
  * @since 2.0
  */
@@ -335,36 +336,45 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 		if (this.port <= 0) {
 			this.port = SshConstants.DEFAULT_PORT;
 		}
-		ServerKeyVerifier serverKeyVerifier =
-				this.allowUnknownKeys ? AcceptAllServerKeyVerifier.INSTANCE : RejectAllServerKeyVerifier.INSTANCE;
-		if (this.knownHosts != null) {
-			serverKeyVerifier = new ResourceKnownHostsServerKeyVerifier(this.knownHosts);
-		}
-		this.sshClient.setServerKeyVerifier(serverKeyVerifier);
 
-		this.sshClient.setPasswordIdentityProvider(PasswordIdentityProvider.wrapPasswords(this.password));
-		if (this.privateKey != null) {
-			IoResource<Resource> privateKeyResource =
-					new AbstractIoResource<>(Resource.class, this.privateKey) {
+		doInitInnerClient();
 
-						@Override
-						public InputStream openInputStream() throws IOException {
-							return getResourceValue().getInputStream();
-						}
-					};
-			try {
-				Collection<KeyPair> keys =
-						SecurityUtils.getKeyPairResourceParser()
-									.loadKeyPairs(null, privateKeyResource,
-										FilePasswordProvider.of(this.privateKeyPassphrase));
-				this.sshClient.setKeyIdentityProvider(KeyIdentityProvider.wrapKeyPairs(keys));
-			}
-			catch (GeneralSecurityException ex) {
-				throw new IOException("Cannot load private key: " + this.privateKey.getFilename(), ex);
-			}
-		}
-		this.sshClient.setUserInteraction(this.userInteraction);
 		this.sshClient.start();
+	}
+
+	private void doInitInnerClient() throws IOException {
+		if (this.isInnerClient) {
+			ServerKeyVerifier serverKeyVerifier =
+					this.allowUnknownKeys ? AcceptAllServerKeyVerifier.INSTANCE : RejectAllServerKeyVerifier.INSTANCE;
+			if (this.knownHosts != null) {
+				serverKeyVerifier = new ResourceKnownHostsServerKeyVerifier(this.knownHosts);
+			}
+			this.sshClient.setServerKeyVerifier(serverKeyVerifier);
+
+			this.sshClient.setPasswordIdentityProvider(PasswordIdentityProvider.wrapPasswords(this.password));
+			if (this.privateKey != null) {
+				IoResource<Resource> privateKeyResource =
+						new AbstractIoResource<>(Resource.class, this.privateKey) {
+
+							@Override
+							public InputStream openInputStream() throws IOException {
+								return getResourceValue().getInputStream();
+							}
+
+						};
+				try {
+					Collection<KeyPair> keys =
+							SecurityUtils.getKeyPairResourceParser()
+									.loadKeyPairs(null, privateKeyResource,
+											FilePasswordProvider.of(this.privateKeyPassphrase));
+					this.sshClient.setKeyIdentityProvider(KeyIdentityProvider.wrapKeyPairs(keys));
+				}
+				catch (GeneralSecurityException ex) {
+					throw new IOException("Cannot load private key: " + this.privateKey.getFilename(), ex);
+				}
+			}
+			this.sshClient.setUserInteraction(this.userInteraction);
+		}
 	}
 
 	@Override
