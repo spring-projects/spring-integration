@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.springframework.integration.jdbc.channel;
 
+import java.util.Optional;
 import java.util.concurrent.Executor;
 
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.AbstractSubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
@@ -25,6 +27,9 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.retry.support.RetryTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -39,11 +44,14 @@ import org.springframework.util.Assert;
  *
  * @author Rafael Winterhalter
  * @author Artem Bilan
+ * @author Igor Lovich
  *
  * @since 6.0
  */
 public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 		implements PostgresChannelMessageTableSubscriber.Subscription {
+
+	private static final LogAccessor LOGGER = new LogAccessor(PostgresSubscribableChannel.class);
 
 	private final JdbcChannelMessageStore jdbcChannelMessageStore;
 
@@ -51,7 +59,13 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	private final PostgresChannelMessageTableSubscriber messageTableSubscriber;
 
-	private UnicastingDispatcher dispatcher = new UnicastingDispatcher(new SimpleAsyncTaskExecutor());
+	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
+
+	private TransactionTemplate transactionTemplate;
+
+	private RetryTemplate retryTemplate = RetryTemplate.builder().maxAttempts(1).build();
+
+	private Executor executor = new SimpleAsyncTaskExecutor();
 
 	/**
 	 * Create a subscribable channel for a Postgres database.
@@ -75,7 +89,30 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 	 */
 	public void setDispatcherExecutor(Executor executor) {
 		Assert.notNull(executor, "An executor must be provided.");
-		this.dispatcher = new UnicastingDispatcher(executor);
+		this.executor = executor;
+	}
+
+	/**
+	 * Set the transaction manager to use for message processing. Each message will be processed in a
+	 * separate transaction
+	 * @param transactionManager The transaction manager to use
+	 * @since 6.0.5
+	 * @see PlatformTransactionManager
+	 */
+	public void setTransactionManager(PlatformTransactionManager transactionManager) {
+		Assert.notNull(transactionManager, "A platform transaction manager must be provided.");
+		this.transactionTemplate = new TransactionTemplate(transactionManager);
+	}
+
+	/**
+	 * Set the retry template to use for retries in case of exception in downstream processing
+	 * @param retryTemplate The retry template to use
+	 * @since 6.0.5
+	 * @see RetryTemplate
+	 */
+	public void setRetryTemplate(RetryTemplate retryTemplate) {
+		Assert.notNull(retryTemplate, "A retry template must be provided.");
+		this.retryTemplate = retryTemplate;
 	}
 
 	@Override
@@ -110,10 +147,37 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	@Override
 	public void notifyUpdate() {
-		Message<?> message;
-		while ((message = this.jdbcChannelMessageStore.pollMessageFromGroup(this.groupId)) != null) {
-			this.dispatcher.dispatch(message);
-		}
+		this.executor.execute(() -> {
+			try {
+				Optional<Message<?>> dispatchedMessage;
+				do {
+					if (this.transactionTemplate != null) {
+						dispatchedMessage =
+								this.retryTemplate.execute(context ->
+										this.transactionTemplate.execute(status ->
+												pollMessage()
+														.map(this::dispatch)));
+					}
+					else {
+						dispatchedMessage =
+								pollMessage()
+										.map(message -> this.retryTemplate.execute(context -> dispatch(message)));
+					}
+				} while (dispatchedMessage.isPresent());
+			}
+			catch (Exception ex) {
+				LOGGER.error(ex, "Exception during message dispatch");
+			}
+		});
+	}
+
+	private Optional<Message<?>> pollMessage() {
+		return Optional.ofNullable(this.jdbcChannelMessageStore.pollMessageFromGroup(this.groupId));
+	}
+
+	private Message<?> dispatch(Message<?> message) {
+		this.dispatcher.dispatch(message);
+		return message;
 	}
 
 	@Override
