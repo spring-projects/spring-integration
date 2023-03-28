@@ -36,9 +36,9 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /**
  * @author Gary Russell
@@ -149,7 +149,7 @@ public class SftpSessionFactoryTests {
 			sftpSessionFactory.setPort(server.getPort());
 			sftpSessionFactory.setUser("user");
 
-			assertDoesNotThrow(() -> sftpSessionFactory.getSession().connect());
+			assertThatNoException().isThrownBy(() -> sftpSessionFactory.getSession());
 		}
 	}
 }
