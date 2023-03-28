@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -352,8 +352,11 @@ public class ImapIdleChannelAdapterSpec
 	 * Specify a task executor to be used to send messages to the downstream flow.
 	 * @param sendingTaskExecutor the sendingTaskExecutor.
 	 * @return the spec.
-	 * @see ImapIdleChannelAdapter#setSendingTaskExecutor(Executor)
+	 * @deprecated since 6.1 in favor of async hands-off downstream in the flow,
+	 * e.g. {@link  org.springframework.integration.channel.ExecutorChannel}.
 	 */
+	@Deprecated(since = "6.0.5", forRemoval = true)
+	@SuppressWarnings("removal")
 	public ImapIdleChannelAdapterSpec sendingTaskExecutor(Executor sendingTaskExecutor) {
 		this.target.setSendingTaskExecutor(sendingTaskExecutor);
 		return this;

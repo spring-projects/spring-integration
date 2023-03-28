@@ -143,6 +143,8 @@ In this case, the only header populated is the mentioned above `IntegrationMessa
 Starting with version 5.5.11, the folder is closed automatically after `AbstractMailReceiver.receive()` if no messages received or all of them are filtered out independently of the `autoCloseFolder` flag.
 In this case there is nothing to produce downstream for possible logic around `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header.
 
+Starting with version 6.0.5, an `ImapIdleChannelAdapter.sendingTaskExecutor` option is deprecated in favor of an asynchronous message handling in downstream flow, e.g. via an `ExecutorChannel` as an output channel of this channel adapter.
+
 [[mail-mapping]]
 === Inbound Mail Message Mapping
 
