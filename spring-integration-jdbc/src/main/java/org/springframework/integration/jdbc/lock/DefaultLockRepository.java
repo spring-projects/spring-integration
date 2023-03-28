@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,22 +78,43 @@ public class DefaultLockRepository
 
 	private String region = "DEFAULT";
 
-	private String deleteQuery = "DELETE FROM %sLOCK WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?";
+	private String deleteQuery = """
+			DELETE FROM %sLOCK
+			WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?
+			""";
 
-	private String deleteExpiredQuery = "DELETE FROM %sLOCK WHERE REGION=? AND CREATED_DATE<?";
+	private String deleteExpiredQuery = """
+			DELETE FROM %sLOCK
+			WHERE REGION=? AND CREATED_DATE<?
+			""";
 
-	private String deleteAllQuery = "DELETE FROM %sLOCK WHERE REGION=? AND CLIENT_ID=?";
+	private String deleteAllQuery = """
+			DELETE FROM %sLOCK
+			WHERE REGION=? AND CLIENT_ID=?
+			""";
 
-	private String updateQuery =
-			"UPDATE %sLOCK SET CLIENT_ID=?, CREATED_DATE=? WHERE REGION=? AND LOCK_KEY=? " +
-					"AND (CLIENT_ID=? OR CREATED_DATE<?)";
+	private String updateQuery = """
+			UPDATE %sLOCK
+			SET CLIENT_ID=?, CREATED_DATE=?
+			WHERE REGION=? AND LOCK_KEY=? AND (CLIENT_ID=? OR CREATED_DATE<?)
+			""";
 
-	private String insertQuery = "INSERT INTO %sLOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE) VALUES (?, ?, ?, ?)";
+	private String insertQuery = """
+			INSERT INTO %sLOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE)
+			VALUES (?, ?, ?, ?)
+			""";
 
-	private String countQuery =
-			"SELECT COUNT(REGION) FROM %sLOCK WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=? AND CREATED_DATE>=?";
+	private String countQuery = """
+			SELECT COUNT(REGION)
+			FROM %sLOCK
+			WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=? AND CREATED_DATE>=?
+			""";
 
-	private String renewQuery = "UPDATE %sLOCK SET CREATED_DATE=? WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?";
+	private String renewQuery = """
+			UPDATE %sLOCK
+			SET CREATED_DATE=?
+			WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?
+			""";
 
 	private ApplicationContext applicationContext;
 

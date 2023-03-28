@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 
 import jakarta.xml.soap.MessageFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -60,6 +60,7 @@ import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
@@ -74,24 +75,26 @@ public class SimpleWebServiceOutboundGatewayTests {
 
 	private static final String response = "<response><name>Test Name</name></response>";
 
-	public static final String responseSoapMessage =
-			"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
-					"<soap:Body> " +
-					response +
-					"</soap:Body> " +
-					"</soap:Envelope>";
+	public static final String responseSoapMessage = """
+			<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+				<soap:Body>
+				$response
+				</soap:Body>
+			</soap:Envelope>
+			""".replace("$response", response);
 
-	public static final String responseEmptyBodySoapMessage =
-			"<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
-					"<SOAP:Header/>\n" +
-					"<SOAP:Body/>\n" +
-					"</SOAP:Envelope>";
+	public static final String responseEmptyBodySoapMessage = """
+			<SOAP:Envelope xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/">
+				<SOAP:Header/>
+				<SOAP:Body/>
+			</SOAP:Envelope>
+			""";
 
-	@Test // INT-1051
+	@Test
 	public void soapActionAndCustomCallback() {
 		String uri = "https://www.example.org";
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(new TestDestinationProvider(uri));
-		final AtomicReference<String> soapActionFromCallback = new AtomicReference<String>();
+		final AtomicReference<String> soapActionFromCallback = new AtomicReference<>();
 		gateway.setRequestCallback(message -> {
 			SoapMessage soapMessage = (SoapMessage) message;
 			soapActionFromCallback.set(soapMessage.getSoapAction());
@@ -126,13 +129,14 @@ public class SimpleWebServiceOutboundGatewayTests {
 		context.close();
 	}
 
-	@Test(expected = ReplyRequiredException.class)
+	@Test
 	public void testInt3022EmptyResponseBody() throws Exception {
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway("http://testInt3022");
 		gateway.setRequiresReply(true);
 		WebServiceMessageSender messageSender = createMockMessageSender(responseEmptyBodySoapMessage);
 		gateway.setMessageSenders(messageSender);
-		gateway.handleMessage(new GenericMessage<String>("<test>foo</test>"));
+		assertThatExceptionOfType(ReplyRequiredException.class)
+				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("<test>foo</test>")));
 	}
 
 	@Test
@@ -247,8 +251,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 		Mockito.when(messageSender.supports(Mockito.any(URI.class))).thenReturn(true);
 
 		Mockito.doAnswer(invocation -> {
-			Object[] args = invocation.getArguments();
-			WebServiceMessageFactory factory = (WebServiceMessageFactory) args[0];
+			WebServiceMessageFactory factory = invocation.getArgument(0);
 			return factory.createWebServiceMessage(new ByteArrayInputStream(mockResponseMessage.getBytes()));
 		}).when(wsConnection).receive(Mockito.any(WebServiceMessageFactory.class));
 

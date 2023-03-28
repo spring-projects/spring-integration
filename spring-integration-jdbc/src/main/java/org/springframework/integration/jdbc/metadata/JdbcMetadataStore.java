@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,22 +58,40 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 
 	private String lockHint = "FOR UPDATE";
 
-	private String getValueQuery = "SELECT METADATA_VALUE FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=?";
+	private String getValueQuery = """
+			SELECT METADATA_VALUE FROM %sMETADATA_STORE
+			WHERE METADATA_KEY=? AND REGION=?
+			""";
 
-	private String getValueForUpdateQuery =
-			"SELECT METADATA_VALUE FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? %s";
+	private String getValueForUpdateQuery = """
+			SELECT METADATA_VALUE FROM %sMETADATA_STORE
+			WHERE METADATA_KEY=? AND REGION=? %s
+			""";
 
-	private String replaceValueQuery =
-			"UPDATE %sMETADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND METADATA_VALUE=? AND REGION=?";
+	private String replaceValueQuery = """
+			UPDATE %sMETADATA_STORE
+			SET METADATA_VALUE=?
+			WHERE METADATA_KEY=? AND METADATA_VALUE=? AND REGION=?
+			""";
 
-	private String replaceValueByKeyQuery =
-			"UPDATE %sMETADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND REGION=?";
+	private String replaceValueByKeyQuery = """
+			UPDATE %sMETADATA_STORE
+			SET METADATA_VALUE=?
+			WHERE METADATA_KEY=? AND REGION=?
+			""";
 
-	private String removeValueQuery = "DELETE FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=?";
+	private String removeValueQuery = """
+			DELETE FROM %sMETADATA_STORE
+			WHERE METADATA_KEY=? AND REGION=?
+			""";
 
-	private String putIfAbsentValueQuery =
-			"INSERT INTO %sMETADATA_STORE(METADATA_KEY, METADATA_VALUE, REGION) "
-					+ "SELECT ?, ?, ? FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? HAVING COUNT(*)=0";
+	private String putIfAbsentValueQuery = """
+			INSERT INTO %sMETADATA_STORE(METADATA_KEY, METADATA_VALUE, REGION)
+			SELECT ?, ?, ?
+				FROM %sMETADATA_STORE
+				WHERE METADATA_KEY=? AND REGION=?
+			HAVING COUNT(*)=0
+			""";
 
 	/**
 	 * Instantiate a {@link JdbcMetadataStore} using provided dataSource {@link DataSource}.

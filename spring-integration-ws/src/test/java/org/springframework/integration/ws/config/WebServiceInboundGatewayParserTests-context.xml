@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:ws="http://www.springframework.org/schema/integration/ws"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:si="http://www.springframework.org/schema/integration"
+	   xmlns:ws="http://www.springframework.org/schema/integration/ws"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			https://www.springframework.org/schema/integration/spring-integration.xsd
@@ -22,12 +22,18 @@
 
 	<si:channel id="requestsVerySimple"/>
 
-	<ws:inbound-gateway id="extractsPayload" request-channel="requestsSimple" extract-payload="false"/>
+	<ws:inbound-gateway id="extractsPayload"
+						request-channel="requestsSimple"
+						extract-payload="false"
+						reply-timeout="0"/>
 
-	<ws:inbound-gateway id="marshalling" request-channel="requestsMarshalling" error-channel="customErrorChannel"
-		marshaller="marshaller" unmarshaller="marshaller"
-		mapped-request-headers="testRequest"
-		mapped-reply-headers="testReply"/>
+	<ws:inbound-gateway id="marshalling"
+						request-channel="requestsMarshalling"
+						error-channel="customErrorChannel"
+						marshaller="marshaller"
+						mapped-request-headers="testRequest"
+						mapped-reply-headers="testReply"
+						reply-timeout="0"/>
 
 	<si:channel id="requestsMarshalling">
 		<si:queue/>
@@ -42,19 +48,20 @@
 	</si:channel>
 
 	<ws:inbound-gateway id="headerMappingGateway" request-channel="headerMappingRequests"
-			header-mapper="testHeaderMapper"/>
+						header-mapper="testHeaderMapper"/>
 
 	<bean id="marshaller" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.oxm.support.AbstractMarshaller" type="java.lang.Class"/>
 	</bean>
 
-	<bean id="testHeaderMapper" class="org.springframework.integration.ws.config.WebServiceInboundGatewayParserTests$TestHeaderMapper"/>
+	<bean id="testHeaderMapper"
+		  class="org.springframework.integration.ws.config.WebServiceInboundGatewayParserTests$TestHeaderMapper"/>
 
 	<si:channel id="replyTimeoutRequests">
 		<si:queue/>
 	</si:channel>
 
 	<ws:inbound-gateway id="replyTimeoutGateway" request-channel="replyTimeoutRequests"
-			reply-timeout="1234"/>
+						reply-timeout="1234"/>
 
 </beans>
