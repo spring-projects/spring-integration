@@ -51,5 +51,5 @@ See <<./jms.adoc#jms-inbound-gateway, JMS Inbound Gateway>> for more information
 [[x6.1-mail]]
 === Mail Changes
 
-The `ImapIdleChannelAdapter` doesn't do an asynchronous message publishing anymore and respective `sendingTaskExecutor` option is deprecated.
+Previously deprecated `ImapIdleChannelAdapter.sendingTaskExecutor` property has been removed in favor of an asynchronous message process downstream in the flow.
 See <<./mail.adoc#mail-inbound, Mail-receiving Channel Adapter>> for more information.

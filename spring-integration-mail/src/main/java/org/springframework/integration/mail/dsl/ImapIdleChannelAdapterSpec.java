@@ -22,7 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -346,18 +345,6 @@ public class ImapIdleChannelAdapterSpec
 		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder(false).build();
 		this.componentsToRegister.put(transactionInterceptor, null);
 		return transactional(transactionInterceptor);
-	}
-
-	/**
-	 * Specify a task executor to be used to send messages to the downstream flow.
-	 * @param sendingTaskExecutor the sendingTaskExecutor.
-	 * @return the spec.
-	 * @deprecated since 6.1 in favor of async hands-off downstream in the flow,
-	 * e.g. {@link  org.springframework.integration.channel.ExecutorChannel}.
-	 */
-	@Deprecated(since = "6.1", forRemoval = true)
-	public ImapIdleChannelAdapterSpec sendingTaskExecutor(Executor sendingTaskExecutor) {
-		return this;
 	}
 
 	/**

@@ -19,7 +19,6 @@ package org.springframework.integration.mail;
 import java.io.Serial;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -102,16 +101,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	}
 
 	/**
-	 * Specify an {@link Executor} used to send messages received by the adapter.
-	 * @param sendingTaskExecutor the sendingTaskExecutor to set
-	 * @deprecated since 6.1 in favor of async hands-off downstream in the flow,
-	 * e.g. {@link  org.springframework.integration.channel.ExecutorChannel}.
-	 */
-	@Deprecated(since = "6.1", forRemoval = true)
-	public void setSendingTaskExecutor(Executor sendingTaskExecutor) {
-	}
-
-	/**
 	 * Specify whether the IDLE task should reconnect automatically after
 	 * catching a {@link jakarta.mail.MessagingException} while waiting for messages. The
 	 * default value is true.
@@ -179,7 +168,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	@Override
 	// guarded by super#lifecycleLock
 	protected void doStop() {
-		this.receivingTask.cancel(true);
+		if (this.receivingTask != null) {
+			this.receivingTask.cancel(true);
+			this.receivingTask = null;
+		}
 		this.mailReceiver.cancelPing();
 	}
 
