@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import org.springframework.util.Assert;
  *
  * @author Rafael Winterhalter
  * @author Artem Bilan
+ * @author Igor Lovich
  *
  * @since 6.0
  */
@@ -149,6 +150,8 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 			this.executor = executorToUse;
 		}
 		this.latch = new CountDownLatch(1);
+
+		CountDownLatch startingLatch = new CountDownLatch(1);
 		this.future = executorToUse.submit(() -> {
 			try {
 				while (isActive()) {
@@ -171,6 +174,8 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 						try {
 							this.connection = conn;
 							while (isActive()) {
+								startingLatch.countDown();
+
 								PGNotification[] notifications = conn.getNotifications(0);
 								// Unfortunately, there is no good way of interrupting a notification
 								// poll but by closing its connection.
@@ -208,6 +213,18 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 				this.latch.countDown();
 			}
 		});
+
+		try {
+			if (!startingLatch.await(5, TimeUnit.SECONDS)) {
+				throw new IllegalStateException("Failed to start "
+						+ PostgresChannelMessageTableSubscriber.class.getName());
+			}
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Failed to start "
+					+ PostgresChannelMessageTableSubscriber.class.getName(), e);
+		}
 	}
 
 	private boolean isActive() {
