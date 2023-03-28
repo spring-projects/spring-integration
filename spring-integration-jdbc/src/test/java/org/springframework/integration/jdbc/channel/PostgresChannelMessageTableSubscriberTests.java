@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.postgresql.jdbc.PgConnection;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,18 +41,22 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Rafael Winterhalter
  * @author Artem Bilan
+ * @author Igor Lovich
  *
  * @since 6.0
  */
@@ -92,41 +101,49 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 	@Autowired
 	private JdbcChannelMessageStore messageStore;
 
+	@Autowired
+	private PlatformTransactionManager transactionManager;
+
 	private PostgresChannelMessageTableSubscriber postgresChannelMessageTableSubscriber;
 
+	private PostgresSubscribableChannel postgresSubscribableChannel;
+
+	private String groupId;
+
 	@BeforeEach
-	void setUp() {
+	void setUp(TestInfo testInfo) {
 		// Not initiated as a bean to allow for registrations prior and post the life cycle
-		this.postgresChannelMessageTableSubscriber = new PostgresChannelMessageTableSubscriber(
-				() -> DriverManager.getConnection(POSTGRES_CONTAINER.getJdbcUrl(),
-								POSTGRES_CONTAINER.getUsername(),
-								POSTGRES_CONTAINER.getPassword())
-						.unwrap(PgConnection.class)
-		);
+		this.postgresChannelMessageTableSubscriber =
+				new PostgresChannelMessageTableSubscriber(() ->
+						DriverManager.getConnection(POSTGRES_CONTAINER.getJdbcUrl(),
+										POSTGRES_CONTAINER.getUsername(),
+										POSTGRES_CONTAINER.getPassword())
+								.unwrap(PgConnection.class));
+
+		this.groupId = testInfo.getDisplayName();
+
+		this.postgresSubscribableChannel =
+				new PostgresSubscribableChannel(messageStore, groupId, postgresChannelMessageTableSubscriber);
 	}
+
+	@AfterEach
+	void tearDown() {
+		this.postgresChannelMessageTableSubscriber.stop();
+	}
+
 
 	@Test
 	public void testMessagePollMessagesAddedAfterStart() throws Exception {
 		CountDownLatch latch = new CountDownLatch(2);
 		List<Object> payloads = new ArrayList<>();
 		postgresChannelMessageTableSubscriber.start();
-		try {
-			PostgresSubscribableChannel channel = new PostgresSubscribableChannel(messageStore,
-					"testMessagePollMessagesAddedAfterStart",
-					postgresChannelMessageTableSubscriber);
-			channel.subscribe(message -> {
-				payloads.add(message.getPayload());
-				latch.countDown();
-			});
-			messageStore.addMessageToGroup("testMessagePollMessagesAddedAfterStart", new GenericMessage<>("1"));
-			messageStore.addMessageToGroup("testMessagePollMessagesAddedAfterStart", new GenericMessage<>("2"));
-			assertThat(latch.await(3, TimeUnit.SECONDS))
-					.as("Expected Postgres notification within 3 seconds")
-					.isTrue();
-		}
-		finally {
-			postgresChannelMessageTableSubscriber.stop();
-		}
+		postgresSubscribableChannel.subscribe(message -> {
+			payloads.add(message.getPayload());
+			latch.countDown();
+		});
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(payloads).containsExactly("1", "2");
 	}
 
@@ -134,26 +151,78 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 	public void testMessagePollMessagesAddedBeforeStart() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(2);
 		List<Object> payloads = new ArrayList<>();
-		PostgresSubscribableChannel channel =
-				new PostgresSubscribableChannel(messageStore,
-						"testMessagePollMessagesAddedBeforeStart",
-						postgresChannelMessageTableSubscriber);
-		channel.subscribe(message -> {
+
+		postgresSubscribableChannel.subscribe(message -> {
 			payloads.add(message.getPayload());
 			latch.countDown();
 		});
-		messageStore.addMessageToGroup("testMessagePollMessagesAddedBeforeStart", new GenericMessage<>("1"));
-		messageStore.addMessageToGroup("testMessagePollMessagesAddedBeforeStart", new GenericMessage<>("2"));
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
 		postgresChannelMessageTableSubscriber.start();
-		try {
-			assertThat(latch.await(3, TimeUnit.SECONDS))
-					.as("Expected Postgres notification within 3 seconds")
-					.isTrue();
-		}
-		finally {
-			postgresChannelMessageTableSubscriber.stop();
-		}
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(payloads).containsExactly("1", "2");
+	}
+
+	@Test
+	void testMessagesDispatchedInTransaction() throws InterruptedException {
+		CountDownLatch latch = new CountDownLatch(2);
+		postgresSubscribableChannel.setTransactionManager(transactionManager);
+
+		postgresChannelMessageTableSubscriber.start();
+		postgresSubscribableChannel.subscribe(message -> {
+			try {
+				throw new RuntimeException("An error has occurred");
+			}
+			finally {
+				latch.countDown();
+			}
+		});
+
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
+
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		assertThat(messageStore.messageGroupSize(groupId)).isEqualTo(2);
+		assertThat(messageStore.pollMessageFromGroup(groupId).getPayload()).isEqualTo("1");
+		assertThat(messageStore.pollMessageFromGroup(groupId).getPayload()).isEqualTo("2");
+	}
+
+	@ParameterizedTest
+	@ValueSource(booleans = {true, false})
+	void testRetryOnErrorDuringDispatch(boolean transactionsEnabled) throws InterruptedException {
+		CountDownLatch latch = new CountDownLatch(2);
+		List<Object> payloads = new ArrayList<>();
+		AtomicInteger actualTries = new AtomicInteger();
+
+		int maxAttempts = 2;
+		postgresSubscribableChannel.setRetryTemplate(RetryTemplate.builder().maxAttempts(maxAttempts).build());
+
+		if (transactionsEnabled) {
+			postgresSubscribableChannel.setTransactionManager(transactionManager);
+		}
+
+		postgresChannelMessageTableSubscriber.start();
+
+		postgresSubscribableChannel.subscribe(message -> {
+			try {
+				//fail once
+				if (actualTries.getAndIncrement() == 0) {
+					throw new RuntimeException("An error has occurred");
+				}
+				payloads.add(message.getPayload());
+			}
+			finally {
+				latch.countDown();
+			}
+		});
+
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		assertThat(actualTries.get()).isEqualTo(maxAttempts);
+		assertThat(payloads).containsExactly("1");
 	}
 
 	@Configuration
@@ -179,6 +248,11 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 			dataSourceInitializer.setDatabasePopulator(
 					databasePopulator);
 			return dataSourceInitializer;
+		}
+
+		@Bean
+		PlatformTransactionManager transactionManager(DataSource dataSource) {
+			return new DataSourceTransactionManager(dataSource);
 		}
 
 		@Bean

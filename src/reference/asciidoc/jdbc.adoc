@@ -621,6 +621,18 @@ public PostgresSubscribableChannel channel(
   return new PostgresSubscribableChannel(messageStore, "some group", subscriber);
 }
 ----
+
+*Transaction support*
+
+Starting with version 6.0.5, specifying a `PlatformTransactionManager` on a `PostgresSubscribableChannel` will notify subscribers in a transaction.
+An exception in a subscriber will cause the transaction to be rolled back and the message to be put back in the message store.
+Transactional support is not activated by default.
+
+*Retries*
+
+Starting with version 6.0.5, a retry policy can be specified by providing a `RetryTemplate` to the `PostgresSubscribableChannel`.
+By default, no retries are performed.
+
 ====
 
 [IMPORTANT]
@@ -631,6 +643,7 @@ Such connection pools do normally expect that issued connections are closed with
 
 For this need of an exclusive connection, it is also recommended that a JVM only runs a single `PostgresChannelMessageTableSubscriber` which can be used to register any number of subscriptions.
 ====
+
 
 [[stored-procedures]]
 === Stored Procedures
