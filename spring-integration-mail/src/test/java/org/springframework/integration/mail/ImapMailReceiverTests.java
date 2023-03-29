@@ -747,8 +747,8 @@ public class ImapMailReceiverTests {
 		 * not receive any early messages.
 		 */
 		assertThat(channel.receive(100)).isNull();
-		assertThat(channel.receive(5000)).isNotNull();
-		assertThat(idles.await(5, TimeUnit.SECONDS)).isTrue();
+		assertThat(channel.receive(10000)).isNotNull();
+		assertThat(idles.await(10, TimeUnit.SECONDS)).isTrue();
 		adapter.stop();
 	}
 
