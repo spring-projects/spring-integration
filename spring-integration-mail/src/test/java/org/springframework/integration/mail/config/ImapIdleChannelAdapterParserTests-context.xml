@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:util="http://www.springframework.org/schema/util"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:mail="http://www.springframework.org/schema/integration/mail"
 	xmlns:integration="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			https://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/task
-			https://www.springframework.org/schema/task/spring-task.xsd
 			http://www.springframework.org/schema/context
 			https://www.springframework.org/schema/context/spring-context.xsd
 			http://www.springframework.org/schema/util
@@ -78,8 +75,7 @@
 			store-uri="imap:foo"
 			channel="channel"
 			auto-startup="false"
-			should-delete-messages="true"
-			task-executor="executor">
+			should-delete-messages="true">
 		<mail:transactional synchronization-factory="syncFactory" />
 	</mail:imap-idle-channel-adapter>
 
@@ -94,8 +90,6 @@
 	<util:properties id="javaMailProperties">
 		<prop key="foo">bar</prop>
 	</util:properties>
-
-	<task:executor id="executor" pool-size="5"/>
 
 	<mail:imap-idle-channel-adapter
 			id="autoChannel"

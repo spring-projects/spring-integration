@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 
 import jakarta.mail.Folder;
@@ -33,6 +32,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mail.event.MailIntegrationEvent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
@@ -78,7 +78,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private boolean shouldReconnectAutomatically = true;
 
-	private Executor sendingTaskExecutor = Executors.newFixedThreadPool(1);
+	private Executor sendingTaskExecutor = new SyncTaskExecutor();
 
 	private boolean sendingTaskExecutorSet;
 
@@ -107,7 +107,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	 * Specify an {@link Executor} used to send messages received by the
 	 * adapter.
 	 * @param sendingTaskExecutor the sendingTaskExecutor to set
+	 * @deprecated since 6.0.5 in favor of async hands-off downstream in the flow,
+	 * e.g. {@link org.springframework.integration.channel.ExecutorChannel}.
 	 */
+	@Deprecated(since = "6.0.5", forRemoval = true)
 	public void setSendingTaskExecutor(Executor sendingTaskExecutor) {
 		Assert.notNull(sendingTaskExecutor, "'sendingTaskExecutor' must not be null");
 		this.sendingTaskExecutor = sendingTaskExecutor;
