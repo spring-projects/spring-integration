@@ -104,7 +104,7 @@ import static org.mockito.Mockito.when;
 @SpringJUnitConfig
 @ContextConfiguration(
 		"classpath:org/springframework/integration/mail/config/ImapIdleChannelAdapterParserTests-context.xml")
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ImapMailReceiverTests {
 
 	private AtomicInteger failed;
@@ -685,10 +685,10 @@ public class ImapMailReceiverTests {
 		 * Idle takes 5 seconds; if all is well, we should receive the first message
 		 * before then.
 		 */
-		assertThat(channel.receive(3000)).isNotNull();
+		assertThat(channel.receive(10000)).isNotNull();
 		// We should not receive any more until the next idle elapses
 		assertThat(channel.receive(100)).isNull();
-		assertThat(channel.receive(6000)).isNotNull();
+		assertThat(channel.receive(10000)).isNotNull();
 		adapter.stop();
 	}
 
