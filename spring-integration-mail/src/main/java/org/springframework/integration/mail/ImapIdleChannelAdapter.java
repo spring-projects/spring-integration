@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,12 @@ package org.springframework.integration.mail;
 import java.io.Serial;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
@@ -38,6 +36,7 @@ import org.springframework.integration.mail.event.MailIntegrationEvent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.IntegrationResourceHolderSynchronization;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
+import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -78,11 +77,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private boolean shouldReconnectAutomatically = true;
 
-	private Executor sendingTaskExecutor = Executors.newFixedThreadPool(1);
-
-	private boolean sendingTaskExecutorSet;
-
 	private List<Advice> adviceChain;
+
+	private Consumer<Object> messageSender;
 
 	private long reconnectDelay = DEFAULT_RECONNECT_DELAY; // milliseconds
 
@@ -104,20 +101,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	}
 
 	/**
-	 * Specify an {@link Executor} used to send messages received by the
-	 * adapter.
-	 * @param sendingTaskExecutor the sendingTaskExecutor to set
-	 */
-	public void setSendingTaskExecutor(Executor sendingTaskExecutor) {
-		Assert.notNull(sendingTaskExecutor, "'sendingTaskExecutor' must not be null");
-		this.sendingTaskExecutor = sendingTaskExecutor;
-		this.sendingTaskExecutorSet = true;
-	}
-
-	/**
 	 * Specify whether the IDLE task should reconnect automatically after
-	 * catching a {@link jakarta.mail.FolderClosedException} while waiting for messages. The
-	 * default value is <code>true</code>.
+	 * catching a {@link jakarta.mail.MessagingException} while waiting for messages. The
+	 * default value is true.
 	 * @param shouldReconnectAutomatically true to reconnect.
 	 */
 	public void setShouldReconnectAutomatically(boolean shouldReconnectAutomatically) {
@@ -148,6 +134,26 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	protected void onInit() {
+		super.onInit();
+
+		Consumer<?> messageSenderToUse = new MessageSender();
+
+		if (!CollectionUtils.isEmpty(this.adviceChain)) {
+			ProxyFactory proxyFactory = new ProxyFactory(messageSenderToUse);
+			this.adviceChain.forEach(proxyFactory::addAdvice);
+			for (Advice advice : this.adviceChain) {
+				proxyFactory.addAdvice(advice);
+			}
+			messageSenderToUse = (Consumer<?>) proxyFactory.getProxy(this.classLoader);
+		}
+
+		this.messageSender = (Consumer<Object>) messageSenderToUse;
+	}
+
+
 	/*
 	 * Lifecycle implementation
 	 */
@@ -162,7 +168,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	@Override
 	// guarded by super#lifecycleLock
 	protected void doStop() {
-		this.receivingTask.cancel(true);
+		if (this.receivingTask != null) {
+			this.receivingTask.cancel(true);
+			this.receivingTask = null;
+		}
 		this.mailReceiver.cancelPing();
 	}
 
@@ -170,58 +179,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	public void destroy() {
 		super.destroy();
 		this.mailReceiver.destroy();
-		// If we're running with the default executor, shut it down.
-		if (!this.sendingTaskExecutorSet && this.sendingTaskExecutor != null) {
-			((ExecutorService) this.sendingTaskExecutor).shutdown();
-		}
-	}
-
-	private Runnable createMessageSendingTask(Object mailMessage) {
-		Runnable sendingTask = prepareSendingTask(mailMessage);
-
-		// wrap in the TX proxy if necessary
-		if (!CollectionUtils.isEmpty(this.adviceChain)) {
-			ProxyFactory proxyFactory = new ProxyFactory(sendingTask);
-			if (!CollectionUtils.isEmpty(this.adviceChain)) {
-				for (Advice advice : this.adviceChain) {
-					proxyFactory.addAdvice(advice);
-				}
-			}
-			sendingTask = (Runnable) proxyFactory.getProxy(this.classLoader);
-		}
-		return sendingTask;
-	}
-
-	private Runnable prepareSendingTask(Object mailMessage) {
-		return () -> {
-			@SuppressWarnings("unchecked")
-			org.springframework.messaging.Message<?> message =
-					mailMessage instanceof Message
-							? getMessageBuilderFactory().withPayload(mailMessage).build()
-							: (org.springframework.messaging.Message<Object>) mailMessage;
-
-			if (TransactionSynchronizationManager.isActualTransactionActive()
-					&& this.transactionSynchronizationFactory != null) {
-
-				TransactionSynchronization synchronization = this.transactionSynchronizationFactory.create(this);
-				if (synchronization != null) {
-					TransactionSynchronizationManager.registerSynchronization(synchronization);
-
-					if (synchronization instanceof IntegrationResourceHolderSynchronization
-							&& !TransactionSynchronizationManager.hasResource(this)) {
-
-						TransactionSynchronizationManager.bindResource(this,
-								((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder());
-					}
-
-					Object resourceHolder = TransactionSynchronizationManager.getResource(this);
-					if (resourceHolder instanceof IntegrationResourceHolder) {
-						((IntegrationResourceHolder) resourceHolder).setMessage(message);
-					}
-				}
-			}
-			sendMessage(message);
-		};
 	}
 
 	private void publishException(Exception ex) {
@@ -233,6 +190,42 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 	}
 
+	private class MessageSender implements Consumer<Object> {
+
+		MessageSender() {
+		}
+
+		@Override
+		public void accept(Object mailMessage) {
+			org.springframework.messaging.Message<?> messageToSend =
+					mailMessage instanceof Message
+							? getMessageBuilderFactory().withPayload(mailMessage).build()
+							: (org.springframework.messaging.Message<?>) mailMessage;
+
+			if (TransactionSynchronizationManager.isActualTransactionActive()
+					&& ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null) {
+
+				TransactionSynchronization synchronization =
+						ImapIdleChannelAdapter.this.transactionSynchronizationFactory.create(this);
+				if (synchronization != null) {
+					TransactionSynchronizationManager.registerSynchronization(synchronization);
+
+					if (synchronization instanceof IntegrationResourceHolderSynchronization integrationSync
+							&& !TransactionSynchronizationManager.hasResource(this)) {
+
+						TransactionSynchronizationManager.bindResource(this, integrationSync.getResourceHolder());
+					}
+
+					Object resourceHolder = TransactionSynchronizationManager.getResource(this);
+					if (resourceHolder instanceof IntegrationResourceHolder integrationResourceHolder) {
+						integrationResourceHolder.setMessage(messageToSend);
+					}
+				}
+			}
+			sendMessage(messageToSend);
+		}
+
+	}
 
 	private class ReceivingTask implements Runnable {
 
@@ -246,10 +239,23 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 					ImapIdleChannelAdapter.this.idleTask.run();
 					logger.debug("Task completed successfully. Re-scheduling it again right away.");
 				}
-				catch (Exception ex) { //run again after a delay
-					logger.warn(ex, () -> "Failed to execute IDLE task. Will attempt to resubmit in "
-							+ ImapIdleChannelAdapter.this.reconnectDelay + " milliseconds.");
-					ImapIdleChannelAdapter.this.receivingTaskTrigger.delayNextExecution();
+				catch (Exception ex) {
+					if (ImapIdleChannelAdapter.this.shouldReconnectAutomatically
+							&& ex.getCause() instanceof jakarta.mail.MessagingException messagingException) {
+
+						//run again after a delay
+						logger.info(messagingException,
+								() -> "Failed to execute IDLE task. Will attempt to resubmit in "
+										+ ImapIdleChannelAdapter.this.reconnectDelay + " milliseconds.");
+						ImapIdleChannelAdapter.this.receivingTaskTrigger.delayNextExecution();
+					}
+					else {
+						logger.warn(ex,
+								"Failed to execute IDLE task. " +
+										"Won't resubmit since not a 'shouldReconnectAutomatically'" +
+										"or not a 'jakarta.mail.MessagingException'");
+						ImapIdleChannelAdapter.this.receivingTaskTrigger.stop();
+					}
 					publishException(ex);
 				}
 			}
@@ -274,21 +280,19 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 						Object[] mailMessages = ImapIdleChannelAdapter.this.mailReceiver.receive();
 						logger.debug(() -> "received " + mailMessages.length + " mail messages");
 						for (Object mailMessage : mailMessages) {
-							Runnable messageSendingTask = createMessageSendingTask(mailMessage);
 							if (isRunning()) {
-								ImapIdleChannelAdapter.this.sendingTaskExecutor.execute(messageSendingTask);
+								ImapIdleChannelAdapter.this.messageSender.accept(mailMessage);
 							}
 						}
 					}
 				}
-				catch (MessagingException ex) {
+				catch (jakarta.mail.MessagingException ex) {
 					logger.warn(ex, "error occurred in idle task");
 					if (ImapIdleChannelAdapter.this.shouldReconnectAutomatically) {
 						throw new IllegalStateException("Failure in 'idle' task. Will resubmit.", ex);
 					}
 					else {
-						throw new org.springframework.messaging.MessagingException(
-								"Failure in 'idle' task. Will NOT resubmit.", ex);
+						throw new MessagingException("Failure in 'idle' task. Will NOT resubmit.", ex);
 					}
 				}
 			}
@@ -298,7 +302,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private class ExceptionAwarePeriodicTrigger implements Trigger {
 
-		private volatile boolean delayNextExecution;
+		private final AtomicBoolean delayNextExecution = new AtomicBoolean();
+
+		private final AtomicBoolean stop = new AtomicBoolean();
 
 
 		ExceptionAwarePeriodicTrigger() {
@@ -306,8 +312,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 		@Override
 		public Instant nextExecution(TriggerContext triggerContext) {
-			if (this.delayNextExecution) {
-				this.delayNextExecution = false;
+			if (this.stop.getAndSet(false)) {
+				return null;
+			}
+			if (this.delayNextExecution.getAndSet(false)) {
 				return Instant.now().plusMillis(ImapIdleChannelAdapter.this.reconnectDelay);
 			}
 			else {
@@ -316,7 +324,11 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 
 		void delayNextExecution() {
-			this.delayNextExecution = true;
+			this.delayNextExecution.set(true);
+		}
+
+		void stop() {
+			this.stop.set(true);
 		}
 
 	}

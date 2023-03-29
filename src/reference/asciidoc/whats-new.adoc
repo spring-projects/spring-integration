@@ -47,3 +47,9 @@ See <<./web-sockets.adoc#web-socket-overview, WebSocket Overview>> for more info
 
 The `JmsInboundGateway`, via its `ChannelPublishingJmsMessageListener`, can now be configured with a `replyToExpression` to resolve a reply destination against the request message at runtime.
 See <<./jms.adoc#jms-inbound-gateway, JMS Inbound Gateway>> for more information.
+
+[[x6.1-mail]]
+=== Mail Changes
+
+The (previously deprecated) `ImapIdleChannelAdapter.sendingTaskExecutor` property has been removed in favor of an asynchronous message process downstream in the flow.
+See <<./mail.adoc#mail-inbound, Mail-receiving Channel Adapter>> for more information.

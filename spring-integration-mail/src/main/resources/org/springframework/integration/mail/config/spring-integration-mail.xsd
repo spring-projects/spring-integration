@@ -164,21 +164,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="task-executor" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
-								Reference to a bean that implements
-								org.springframework.core.task.TaskExecutor which is used
-								to send Messages received by this adapter.
-								If not provided, the adapter uses a single-threaded executor.
-							]]></xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="cancel-idle-interval" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -197,7 +182,7 @@
 		<xsd:attribute name="store-uri" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	The URI for the Mail Store. Typically of the form: [pop3|imap]://user:password@host:port/INBOX
+	The URI for the Mail Store. Typically, of the form: [pop3|imap]://user:password@host:port/INBOX
 	If this is not provided, then the store will be retrieved via the no-arg Session.getStore()
 	instead of the Session.getStore(url) method.
 				]]></xsd:documentation>
@@ -206,7 +191,8 @@
 		<xsd:attribute name="mail-filter-expression" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Allows you to provide a SpEL expression which defines a fine grained filtering criteria for the mail messages to be processed by this adapter.
+	Allows you to provide a SpEL expression which defines a fine-grained
+	filtering criteria for the mail messages to be processed by this adapter.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -346,17 +345,6 @@ public class ImapIdleChannelAdapterSpec
 		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder(false).build();
 		this.componentsToRegister.put(transactionInterceptor, null);
 		return transactional(transactionInterceptor);
-	}
-
-	/**
-	 * Specify a task executor to be used to send messages to the downstream flow.
-	 * @param sendingTaskExecutor the sendingTaskExecutor.
-	 * @return the spec.
-	 * @see ImapIdleChannelAdapter#setSendingTaskExecutor(Executor)
-	 */
-	public ImapIdleChannelAdapterSpec sendingTaskExecutor(Executor sendingTaskExecutor) {
-		this.target.setSendingTaskExecutor(sendingTaskExecutor);
-		return this;
 	}
 
 	/**

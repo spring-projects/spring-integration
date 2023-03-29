@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,6 +209,7 @@ public class ImapMailReceiverTests {
 		adapter.setOutputChannel(channel);
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.setReconnectDelay(1);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		MimeMessage message =
 				GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n",
@@ -698,6 +699,7 @@ public class ImapMailReceiverTests {
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		adapter.setReconnectDelay(1);
+		adapter.afterPropertiesSet();
 
 		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
 		receiver.setCancelIdleInterval(1);

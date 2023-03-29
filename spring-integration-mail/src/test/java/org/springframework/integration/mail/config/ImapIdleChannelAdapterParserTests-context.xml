@@ -78,8 +78,7 @@
 			store-uri="imap:foo"
 			channel="channel"
 			auto-startup="false"
-			should-delete-messages="true"
-			task-executor="executor">
+			should-delete-messages="true">
 		<mail:transactional synchronization-factory="syncFactory" />
 	</mail:imap-idle-channel-adapter>
 
