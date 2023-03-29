@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.amqp.inbound;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -494,6 +493,7 @@ public class InboundEndpointTests {
 		QueueChannel out = new QueueChannel();
 		gateway.setRequestChannel(out);
 		gateway.setBindSourceMessage(true);
+		gateway.setReplyTimeout(0);
 		gateway.afterPropertiesSet();
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		SimpleBatchingStrategy bs = new SimpleBatchingStrategy(2, 10_000, 10_000L);
@@ -784,41 +784,7 @@ public class InboundEndpointTests {
 		assertThat(recoveredMessages.get()).isSameAs(messages);
 	}
 
-	public static class Foo {
-
-		private String bar;
-
-		public Foo() {
-		}
-
-		public Foo(String bar) {
-			this.bar = bar;
-		}
-
-		public String getBar() {
-			return bar;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-
-			Foo foo = (Foo) o;
-
-			return Objects.equals(bar, foo.bar);
-
-		}
-
-		@Override
-		public int hashCode() {
-			return bar != null ? bar.hashCode() : 0;
-		}
-
+	public record Foo(String bar) {
 	}
 
 }

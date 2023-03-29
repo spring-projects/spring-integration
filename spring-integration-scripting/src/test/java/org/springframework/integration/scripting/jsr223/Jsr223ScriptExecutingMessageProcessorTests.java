@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package org.springframework.integration.scripting.jsr223;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -35,49 +34,50 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author David Turanski
+ * @author Artem Bilan
  *
  */
 public class Jsr223ScriptExecutingMessageProcessorTests {
 
-	ScriptExecutor executor;
-
-	@Before
-	public void setUp() {
-		executor = ScriptExecutorFactory.getScriptExecutor("jruby");
-	}
+	private static final ScriptExecutor SCRIPT_EXECUTOR = ScriptExecutorFactory.getScriptExecutor("jruby");
 
 	@Test
 	public void testExecuteWithVariables() {
-		Map<String, Object> vars = new HashMap<String, Object>();
+		Map<String, Object> vars = new HashMap<>();
 		vars.put("one", 1);
 		vars.put("two", "two");
 		vars.put("three", 3);
 
-		ScriptSource scriptSource = new ResourceScriptSource(new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb"));
+		ScriptSource scriptSource =
+				new ResourceScriptSource(
+						new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb"));
 
-		ScriptExecutingMessageProcessor messageProcessor = new ScriptExecutingMessageProcessor(scriptSource, executor, vars);
+		ScriptExecutingMessageProcessor messageProcessor =
+				new ScriptExecutingMessageProcessor(scriptSource, SCRIPT_EXECUTOR, vars);
 		messageProcessor.setBeanFactory(Mockito.mock(BeanFactory.class));
 
-		Message<?> message = new GenericMessage<String>("hello");
+		Message<?> message = new GenericMessage<>("hello");
 
 		Object obj = messageProcessor.processMessage(message);
 
-		assertThat(obj.toString().substring(0, "hello modified".length())).isEqualTo("hello modified");
+		assertThat(obj.toString()).contains("hello modified 1 two 3");
 	}
 
 	@Test
 	public void testWithNoVars() {
-		ScriptSource scriptSource = new ResourceScriptSource(new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb"));
+		ScriptSource scriptSource =
+				new ResourceScriptSource(
+						new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb"));
 
-		ScriptExecutingMessageProcessor messageProcessor = new ScriptExecutingMessageProcessor(scriptSource, executor);
+		ScriptExecutingMessageProcessor messageProcessor =
+				new ScriptExecutingMessageProcessor(scriptSource, SCRIPT_EXECUTOR);
 		messageProcessor.setBeanFactory(Mockito.mock(BeanFactory.class));
 
-		Message<?> message = new GenericMessage<String>("hello");
+		Message<?> message = new GenericMessage<>("hello");
 
 		Object obj = messageProcessor.processMessage(message);
 
-		assertThat(obj.toString().substring(0, "hello modified".length())).isEqualTo("hello modified");
+		assertThat(obj.toString()).contains("hello modified");
 	}
 
 }
-

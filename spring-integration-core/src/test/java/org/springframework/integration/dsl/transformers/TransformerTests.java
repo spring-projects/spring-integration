@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -292,6 +292,7 @@ public class TransformerTests {
 							.errorChannel(enricherErrorChannel())
 							.requestPayloadExpression("payload")
 							.shouldClonePayload(false)
+							.replyTimeout(1L)
 							.propertyExpression("name", "payload['name']")
 							.propertyFunction("date", m -> new Date())
 							.headerExpression("foo", "payload['name']")
