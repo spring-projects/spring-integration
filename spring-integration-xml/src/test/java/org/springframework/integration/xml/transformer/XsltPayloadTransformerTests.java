@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,17 @@ public class XsltPayloadTransformerTests {
 
 	private XsltPayloadTransformer testTransformer;
 
-	private final String docAsString =
-			"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+	private final String docAsString = """
+			<?xml version="1.0" encoding="ISO-8859-1"?>
+			<order>
+				<orderItem>test</orderItem>
+			</order>
+			""";
 
-	private final String outputAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><bob>test</bob>";
+	private final String outputAsString = """
+			<?xml version="1.0" encoding="UTF-8"?>
+			<bob>test</bob>
+			""";
 
 	@TempDir
 	public File temporaryFolder;
@@ -88,7 +95,7 @@ public class XsltPayloadTransformerTests {
 	}
 
 	@Test
-	public void testSourceAsPayload() throws Exception {
+	public void testSourceAsPayload() {
 		GenericMessage<?> message = new GenericMessage<>(new StringSource(this.docAsString));
 		Object transformed = testTransformer.doTransform(message);
 
@@ -118,7 +125,7 @@ public class XsltPayloadTransformerTests {
 	}
 
 	@Test
-	public void testStringAsPayloadUseResultFactoryTrue() throws Exception {
+	public void testStringAsPayloadUseResultFactoryTrue() {
 		this.testTransformer.setAlwaysUseResultFactory(true);
 		Object transformed = testTransformer.doTransform(new GenericMessage<>(this.docAsString));
 
@@ -189,7 +196,7 @@ public class XsltPayloadTransformerTests {
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
 		Object transformed = transformer.doTransform(new GenericMessage<>(this.docAsString));
-		assertThat(transformed).isEqualTo(this.outputAsString);
+		assertThat(transformed).and(this.outputAsString).areIdentical();
 	}
 
 
@@ -242,22 +249,26 @@ public class XsltPayloadTransformerTests {
 	private Templates getXslTemplates() throws Exception {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 
-		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
-				"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
-				"   <xsl:template match=\"order\">" +
-				"     <bob>test</bob>" +
-				"   </xsl:template>" +
-				"</xsl:stylesheet>";
+		String xsl = """
+				<?xml version="1.0" encoding="ISO-8859-1"?>
+				<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+					<xsl:template match="order">
+						<bob>test</bob>
+					</xsl:template>
+				</xsl:stylesheet>
+				""";
 
 		return transformerFactory.newTemplates(new StringSource(xsl));
 	}
 
 	private Resource getXslResourceThatOutputsText() throws IOException {
-		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
-				"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
-				"   <xsl:output method=\"text\" encoding=\"UTF-8\" />" +
-				"   <xsl:template match=\"order\">hello world</xsl:template>" +
-				"</xsl:stylesheet>";
+		String xsl = """
+				<?xml version="1.0" encoding="ISO-8859-1"?>
+				<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+					<xsl:output method="text" encoding="UTF-8" />
+					<xsl:template match="order">hello world</xsl:template>
+				</xsl:stylesheet>
+				""";
 
 		this.temporaryFolder.mkdir();
 		File xsltFile = File.createTempFile("test", null, this.temporaryFolder);

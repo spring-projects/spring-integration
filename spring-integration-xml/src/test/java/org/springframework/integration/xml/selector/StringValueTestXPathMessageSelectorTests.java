@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.xml.selector;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.support.GenericMessage;
 
@@ -24,44 +24,45 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Jonas Partner
+ * @author Artem Bilan
  */
 public class StringValueTestXPathMessageSelectorTests {
 
 	@Test
 	public void testMatchWithSimpleString() {
 		StringValueTestXPathMessageSelector selector = new StringValueTestXPathMessageSelector("/one/two", "red");
-		assertThat(selector.accept(new GenericMessage<String>("<one><two>red</two></one>"))).isTrue();
+		assertThat(selector.accept(new GenericMessage<>("<one><two>red</two></one>"))).isTrue();
 	}
 
 	@Test
 	public void testNoMatchWithSimpleString() {
 		StringValueTestXPathMessageSelector selector = new StringValueTestXPathMessageSelector("/one/two", "red");
-		assertThat(selector.accept(new GenericMessage<String>("<one><two>yellow</two></one>"))).isFalse();
+		assertThat(selector.accept(new GenericMessage<>("<one><two>yellow</two></one>"))).isFalse();
 	}
 
 	@Test
 	public void testMatchWithSimpleStringAndNamespace() {
-		StringValueTestXPathMessageSelector selector = new StringValueTestXPathMessageSelector("/ns1:one/ns1:two", "ns1", "www.example.org", "red");
+		var selector = new StringValueTestXPathMessageSelector("/ns1:one/ns1:two", "ns1", "www.example.org", "red");
 		assertThat(selector
-				.accept(new GenericMessage<String>("<ns1:one xmlns:ns1='www.example" +
-						".org'><ns1:two>red</ns1:two></ns1:one>")))
+				.accept(new GenericMessage<>("<ns1:one xmlns:ns1='www.example.org'><ns1:two>red</ns1:two></ns1:one>")))
 				.isTrue();
 	}
 
 	@Test
 	public void testCaseSensitiveByDefault() {
-		StringValueTestXPathMessageSelector selector = new StringValueTestXPathMessageSelector("/ns1:one/ns1:two", "ns1", "www.example.org", "red");
-		assertThat(selector
-				.accept(new GenericMessage<String>("<ns1:one xmlns:ns1='www.example.org'><ns1:two>RED</ns1:two></ns1:one>")))
+		var selector = new StringValueTestXPathMessageSelector("/ns1:one/ns1:two", "ns1", "www.example.org", "red");
+		assertThat(
+				selector.accept(
+						new GenericMessage<>("<ns1:one xmlns:ns1='www.example.org'><ns1:two>RED</ns1:two></ns1:one>")))
 				.isFalse();
 	}
 
 	@Test
 	public void testNotCaseSensitive() {
-		StringValueTestXPathMessageSelector selector = new StringValueTestXPathMessageSelector("/ns1:one/ns1:two", "ns1", "www.example.org", "red");
+		var selector = new StringValueTestXPathMessageSelector("/ns1:one/ns1:two", "ns1", "www.example.org", "red");
 		selector.setCaseSensitive(false);
 		assertThat(selector
-				.accept(new GenericMessage<String>("<ns1:one xmlns:ns1='www.example.org'><ns1:two>RED</ns1:two></ns1:one>")))
+				.accept(new GenericMessage<>("<ns1:one xmlns:ns1='www.example.org'><ns1:two>RED</ns1:two></ns1:one>")))
 				.isTrue();
 	}
 

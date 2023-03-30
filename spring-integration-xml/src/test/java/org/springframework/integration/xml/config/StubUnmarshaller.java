@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.xml.config;
 
-import java.io.IOException;
 import java.util.LinkedList;
 
 import javax.xml.transform.Source;
@@ -27,19 +26,19 @@ import org.springframework.oxm.XmlMappingException;
 /**
  *
  * @author Jonas Partner
+ * @author Artem Bilan
  *
  */
 public class StubUnmarshaller implements Unmarshaller {
 
-	public LinkedList<Source> sourcesPassed = new LinkedList<Source>();
+	public final LinkedList<Source> sourcesPassed = new LinkedList<>();
 
-	@SuppressWarnings("rawtypes")
-	public boolean supports(Class clazz) {
+	public boolean supports(Class<?> clazz) {
 		return true;
 	}
 
-	public Object unmarshal(Source source) throws XmlMappingException, IOException {
-		sourcesPassed.addFirst(source);
+	public Object unmarshal(Source source) throws XmlMappingException {
+		this.sourcesPassed.addFirst(source);
 		return "unmarshalled";
 	}
 

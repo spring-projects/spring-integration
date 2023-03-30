@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.io.IOException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class UnmarshallingTransformerTests {
 
@@ -76,13 +77,7 @@ public class UnmarshallingTransformerTests {
 	}
 
 
-	private static class TestUnmarshaller implements Unmarshaller {
-
-		private final boolean returnMessage;
-
-		TestUnmarshaller(boolean returnMessage) {
-			this.returnMessage = returnMessage;
-		}
+	private record TestUnmarshaller(boolean returnMessage) implements Unmarshaller {
 
 		@Override
 		public Object unmarshal(Source source) throws XmlMappingException, IOException {
@@ -90,7 +85,7 @@ public class UnmarshallingTransformerTests {
 				char[] chars = new char[8];
 				((StringSource) source).getReader().read(chars);
 				if (returnMessage) {
-					return new GenericMessage<String>("message: " + new String(chars).trim());
+					return new GenericMessage<>("message: " + new String(chars).trim());
 				}
 				return "hello " + new String(chars).trim();
 			}
@@ -98,7 +93,7 @@ public class UnmarshallingTransformerTests {
 				byte[] bytes = new byte[8];
 				((StreamSource) source).getInputStream().read(bytes);
 				if (returnMessage) {
-					return new GenericMessage<String>("message: " + new String(bytes).trim());
+					return new GenericMessage<>("message: " + new String(bytes).trim());
 				}
 				return "hello " + new String(bytes).trim();
 			}
@@ -109,6 +104,7 @@ public class UnmarshallingTransformerTests {
 		public boolean supports(Class<?> clazz) {
 			return true;
 		}
+
 	}
 
 }

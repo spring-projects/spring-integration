@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.List;
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.messaging.Message;
@@ -36,15 +36,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MarshallingTransformerTests {
 
 	@Test
-	public void testStringToStringResult() throws Exception {
+	public void testStringToStringResult() {
 		TestMarshaller marshaller = new TestMarshaller();
 		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
 		transformer.setResultFactory(new StringResultFactory());
-		Message<?> resultMessage = transformer.transform(new GenericMessage<String>("world"));
+		Message<?> resultMessage = transformer.transform(new GenericMessage<>("world"));
 		Object resultPayload = resultMessage.getPayload();
 		assertThat(resultPayload.getClass()).isEqualTo(StringResult.class);
 		assertThat(resultPayload.toString()).isEqualTo("hello world");
@@ -52,21 +53,21 @@ public class MarshallingTransformerTests {
 	}
 
 	@Test
-	public void testDefaultResultFactory() throws Exception {
+	public void testDefaultResultFactory() {
 		TestMarshaller marshaller = new TestMarshaller();
 		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
-		Message<?> resultMessage = transformer.transform(new GenericMessage<String>("world"));
+		Message<?> resultMessage = transformer.transform(new GenericMessage<>("world"));
 		Object resultPayload = resultMessage.getPayload();
 		assertThat(resultPayload.getClass()).isEqualTo(DOMResult.class);
 		assertThat(marshaller.payloads.get(0)).isEqualTo("world");
 	}
 
 	@Test
-	public void testMarshallingEntireMessage() throws Exception {
+	public void testMarshallingEntireMessage() {
 		TestMarshaller marshaller = new TestMarshaller();
 		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
 		transformer.setExtractPayload(false);
-		Message<?> message = new GenericMessage<String>("test");
+		Message<?> message = new GenericMessage<>("test");
 		transformer.transform(message);
 		assertThat(marshaller.payloads.size()).isEqualTo(0);
 		assertThat(marshaller.messages.size()).isEqualTo(1);
@@ -76,9 +77,9 @@ public class MarshallingTransformerTests {
 
 	private static class TestMarshaller implements Marshaller {
 
-		private final List<Message<?>> messages = new ArrayList<Message<?>>();
+		private final List<Message<?>> messages = new ArrayList<>();
 
-		private final List<Object> payloads = new ArrayList<Object>();
+		private final List<Object> payloads = new ArrayList<>();
 
 		TestMarshaller() {
 			super();

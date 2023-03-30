@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.xml.splitter;
 
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -32,6 +32,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Jonas Partner
@@ -44,7 +45,7 @@ public class XPathMessageSplitterTests {
 	private final QueueChannel replyChannel = new QueueChannel();
 
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		String splittingXPath = "/orders/order";
 		this.splitter = new XPathMessageSplitter(splittingXPath);
@@ -55,7 +56,13 @@ public class XPathMessageSplitterTests {
 
 	@Test
 	public void splitDocument() throws Exception {
-		Document doc = XmlTestUtil.getDocumentForString("<orders><order>one</order><order>two</order><order>three</order></orders>");
+		Document doc = XmlTestUtil.getDocumentForString("""
+				<orders>
+					<order>one</order>
+					<order>two</order>
+					<order>three</order>
+				</orders>
+				""");
 		this.splitter.handleMessage(new GenericMessage<>(doc));
 		List<Message<?>> docMessages = this.replyChannel.clear();
 		assertThat(docMessages.size()).as("Wrong number of messages").isEqualTo(3);
@@ -66,16 +73,23 @@ public class XPathMessageSplitterTests {
 		}
 	}
 
-	@Test(expected = ReplyRequiredException.class)
+	@Test
 	public void splitDocumentThatDoesNotMatch() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<wrongDocument/>");
-		this.splitter.handleMessage(new GenericMessage<>(doc));
+		assertThatExceptionOfType(ReplyRequiredException.class)
+				.isThrownBy(() -> this.splitter.handleMessage(new GenericMessage<>(doc)));
 	}
 
 	@Test
 	public void splitDocumentWithCreateDocumentsTrue() throws Exception {
 		this.splitter.setCreateDocuments(true);
-		Document doc = XmlTestUtil.getDocumentForString("<orders><order>one</order><order>two</order><order>three</order></orders>");
+		Document doc = XmlTestUtil.getDocumentForString("""
+				<orders>
+					<order>one</order>
+					<order>two</order>
+					<order>three</order>
+				</orders>
+				""");
 		this.splitter.handleMessage(new GenericMessage<>(doc));
 		List<Message<?>> docMessages = this.replyChannel.clear();
 		assertThat(docMessages.size()).as("Wrong number of messages").isEqualTo(3);
@@ -88,8 +102,14 @@ public class XPathMessageSplitterTests {
 	}
 
 	@Test
-	public void splitStringXml() throws Exception {
-		String payload = "<orders><order>one</order><order>two</order><order>three</order></orders>";
+	public void splitStringXml() {
+		String payload = """
+				<orders>
+					<order>one</order>
+					<order>two</order>
+					<order>three</order>
+				</orders>
+				""";
 		this.splitter.handleMessage(new GenericMessage<>(payload));
 		List<Message<?>> docMessages = this.replyChannel.clear();
 		assertThat(docMessages.size()).as("Wrong number of messages").isEqualTo(3);
@@ -99,9 +119,10 @@ public class XPathMessageSplitterTests {
 		}
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void invalidPayloadType() {
-		this.splitter.handleMessage(new GenericMessage<>(123));
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.splitter.handleMessage(new GenericMessage<>(123)));
 	}
 
 }

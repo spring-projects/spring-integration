@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.xml.config;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXParseException;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -24,8 +24,14 @@ import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.xpath.XPathExpression;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
+/**
+ * @author Jonas Partner
+ * @author Artem Bilan
+ *
+ */
 public class XPathExpressionParserTests {
 
 	@Test
@@ -38,7 +44,12 @@ public class XPathExpressionParserTests {
 
 	@Test
 	public void testNamespacedStringExpression() throws Exception {
-		String xmlDoc = "<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' ns-uri='www.example.org' />";
+		String xmlDoc = """
+				<si-xml:xpath-expression id='xpathExpression'
+								expression='/ns1:name'
+								ns-prefix='ns1'
+								ns-uri='www.example.org' />
+				""";
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc);
 		assertThat(xPathExpression.evaluateAsString(XmlTestUtil
 				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")))
@@ -49,9 +60,13 @@ public class XPathExpressionParserTests {
 
 	@Test
 	public void testStringExpressionWithNamespaceMapReference() throws Exception {
-		StringBuffer xmlDoc = new StringBuffer("<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' namespace-map='myNamespaces' />");
-		xmlDoc.append("<util:map id='myNamespaces'><entry key='ns1' value='www.example.org' /></util:map>");
-		XPathExpression xPathExpression = getXPathExpression(xmlDoc.toString());
+		XPathExpression xPathExpression = getXPathExpression("""
+				<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' namespace-map='myNamespaces' />
+
+				<util:map id='myNamespaces'>
+					<entry key='ns1' value='www.example.org' />
+				</util:map>
+				""");
 		assertThat(xPathExpression.evaluateAsString(XmlTestUtil
 				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")))
 				.isEqualTo("outputOne");
@@ -61,12 +76,15 @@ public class XPathExpressionParserTests {
 
 	@Test
 	public void testStringExpressionWithNamespaceInnerBean() throws Exception {
+		String xmlDoc = """
+				<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name'>
+					<map>
+						<entry key='ns1' value='www.example.org' />
+					</map>
+				</si-xml:xpath-expression>
+				""";
 
-		StringBuilder xmlDoc = new StringBuilder("<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name'>")
-				.append("    <map><entry key='ns1' value='www.example.org' /></map>")
-				.append("</si-xml:xpath-expression>");
-
-		XPathExpression xPathExpression = getXPathExpression(xmlDoc.toString());
+		XPathExpression xPathExpression = getXPathExpression(xmlDoc);
 		assertThat(xPathExpression.evaluateAsString(XmlTestUtil
 				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")))
 				.isEqualTo("outputOne");
@@ -75,16 +93,21 @@ public class XPathExpressionParserTests {
 	}
 
 	@Test
-	public void testStringExpressionWithMultipleNamespaceInnerBean() throws Exception {
+	public void testStringExpressionWithMultipleNamespaceInnerBean() {
 
-		StringBuilder xmlDoc = new StringBuilder(
-				"<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' >")
-				.append("    <map><entry key='ns1' value='www.example.org'  /></map>")
-				.append("    <map><entry key='ns2' value='www.example2.org' /></map>")
-				.append("</si-xml:xpath-expression>");
+		String xmlDoc = """
+				<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name'>
+					<map>
+						<entry key='ns1' value='www.example.org' />
+					</map>
+					<map>
+						<entry key='ns2' value='www.example2.org' />
+					</map>
+				</si-xml:xpath-expression>
+				""";
 
 		try {
-			getXPathExpression(xmlDoc.toString());
+			getXPathExpression(xmlDoc);
 		}
 		catch (BeanDefinitionStoreException e) {
 			assertThat(e.getCause() instanceof SAXParseException).isTrue();
@@ -95,79 +118,74 @@ public class XPathExpressionParserTests {
 
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void testNamespacePrefixButNoUri() throws Exception {
 		String xmlDoc = "<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' />";
-		XPathExpression xPathExpression = getXPathExpression(xmlDoc);
-		assertThat(xPathExpression.evaluateAsString(XmlTestUtil
-				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")))
-				.isEqualTo("outputOne");
-		assertThat(xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")))
-				.isEqualTo("");
-
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> getXPathExpression(xmlDoc))
+				.withStackTraceContaining("Both 'ns-prefix' and 'ns-uri' must be specified if one is specified.");
 	}
 
 	@Test
-	public void testNamespacedStringExpressionWithNamespaceMapReference() throws Exception {
-		StringBuilder xmlDoc = new StringBuilder("<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' ns-uri='www.example.org' namespace-map='myNamespaces'/>");
-		xmlDoc.append("<util:map id='myNamespaces'><entry key='ns1' value='www.example.org' /></util:map>");
+	public void testNamespacedStringExpressionWithNamespaceMapReference() {
+		String xmlDoc = """
+				<si-xml:xpath-expression id='xpathExpression'
+						expression='/ns1:name'
+						ns-prefix='ns1'
+						ns-uri='www.example.org'
+						namespace-map='myNamespaces'/>
 
-		try {
-			getXPathExpression(xmlDoc.toString());
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage())
-					.isEqualTo("It is not valid to specify both, the namespace attributes ('ns-prefix' and 'ns-uri') " +
-							"and the 'namespace-map' attribute.");
-			return;
-		}
+				<util:map id='myNamespaces'>
+					<entry key='ns1' value='www.example.org' />
+				</util:map>
+				""";
 
-		fail("Expected an Exceptions");
-
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> getXPathExpression(xmlDoc))
+				.withStackTraceContaining("It is not valid to specify both, the namespace attributes " +
+						"('ns-prefix' and 'ns-uri') and the 'namespace-map' attribute.");
 	}
 
 	@Test
-	public void testNamespacedStringExpressionWithNamespaceInnerBean() throws Exception {
-		StringBuilder xmlDoc = new StringBuilder(
-				"<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' ns-uri='www.example.org'>")
-				.append("    <map><entry key='ns1' value='www.example.org' /></map>")
-				.append("</si-xml:xpath-expression>");
-		try {
-			getXPathExpression(xmlDoc.toString());
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage())
-					.isEqualTo("It is not valid to specify both, the namespace attributes ('ns-prefix' and 'ns-uri') and the 'map' sub-element.");
-			return;
-		}
-
-		fail("Expected an Exceptions");
-
+	public void testNamespacedStringExpressionWithNamespaceInnerBean() {
+		String xmlDoc = """
+				<si-xml:xpath-expression id='xpathExpression'
+									expression='/ns1:name'
+									ns-prefix='ns1'
+									ns-uri='www.example.org'>
+					<map>
+						<entry key='ns1' value='www.example.org' />
+					</map>
+				</si-xml:xpath-expression>
+				""";
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> getXPathExpression(xmlDoc))
+				.withStackTraceContaining("It is not valid to specify both, the namespace " +
+						"attributes ('ns-prefix' and 'ns-uri') and the 'map' sub-element.");
 	}
 
 	@Test
-	public void testStringExpressionWithNamespaceInnerBeanAndWithNamespaceMapReference() throws Exception {
-		StringBuilder xmlDoc = new StringBuilder(
-				"<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' namespace-map='myNamespaces'>")
-				.append("    <map><entry key='ns1' value='www.example.org' /></map>")
-				.append("</si-xml:xpath-expression>")
-				.append("<util:map id='myNamespaces'><entry key='ns1' value='www.example.org' /></util:map>");
-		try {
-			getXPathExpression(xmlDoc.toString());
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage())
-					.isEqualTo("It is not valid to specify both, the 'namespace-map' attribute and the 'map' sub-element.");
-			return;
-		}
+	public void testStringExpressionWithNamespaceInnerBeanAndWithNamespaceMapReference() {
+		String xmlDoc = """
+				<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' namespace-map='myNamespaces'>
+					<map>
+						<entry key='ns1' value='www.example.org' />
+					</map>
+				</si-xml:xpath-expression>
 
-		fail("Expected an Exceptions");
-
+				<util:map id='myNamespaces'>
+					<entry key='ns1' value='www.example.org' />
+				</util:map>
+				""";
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> getXPathExpression(xmlDoc))
+				.withStackTraceContaining(
+						"It is not valid to specify both, the 'namespace-map' attribute and the 'map' sub-element.");
 	}
 
 	public XPathExpression getXPathExpression(String contextXml) {
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(contextXml);
-		return (XPathExpression) ctx.getBean("xpathExpression");
+		return ctx.getBean("xpathExpression", XPathExpression.class);
 	}
 
 }

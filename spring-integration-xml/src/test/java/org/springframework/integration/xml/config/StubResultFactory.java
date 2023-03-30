@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ public class StubResultFactory implements ResultFactory {
 		return new StubStringResult();
 	}
 
-	public class StubStringResult extends StringResult {
+	public static class StubStringResult extends StringResult {
 
 	}
 

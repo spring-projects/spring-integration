@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,12 @@ public class ResultToStringTransformerTests {
 
 	private ResultToStringTransformer transformer;
 
-	private static final String doc = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><order><orderItem>test</orderItem></order>";
+	private static final String doc = """
+			<?xml version="1.0" encoding="UTF-8"?>
+			<order>
+				<orderItem>test</orderItem>
+			</order>
+			""";
 
 
 	@BeforeEach
@@ -61,7 +66,11 @@ public class ResultToStringTransformerTests {
 
 	@Test
 	public void testWithOutputProperties() throws Exception {
-		String formattedDoc = "<order><orderItem>test</orderItem></order>";
+		String formattedDoc = """
+				<order>
+					<orderItem>test</orderItem>
+				</order>
+				""";
 		DOMResult domResult = XmlTestUtil.getDomResultForString(doc);
 		Properties outputProperties = new Properties();
 		outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
@@ -69,7 +78,7 @@ public class ResultToStringTransformerTests {
 		Object transformed = transformer.transformResult(domResult);
 		assertThat(transformed).isInstanceOf(String.class);
 		String transformedString = (String) transformed;
-		assertThat(transformedString).isEqualTo(formattedDoc);
+		assertThat(transformedString).and(formattedDoc).areIdentical();
 	}
 
 	@Test

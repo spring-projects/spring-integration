@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xml.transformer.support.XPathExpressionEvaluatingHeaderValueMessageProcessor;
@@ -34,17 +34,23 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Jonas Partner
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class XPathHeaderEnricherTests {
 
 	@Test
 	public void simpleStringEvaluation() {
-		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap =
-				new HashMap<String, XPathExpressionEvaluatingHeaderValueMessageProcessor>();
+		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap = new HashMap<>();
 		expressionMap.put("one", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementOne"));
 		expressionMap.put("two", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"));
-		String docAsString = "<root><elementOne>1</elementOne><elementTwo>2</elementTwo></root>";
+		String docAsString = """
+				<root>
+					<elementOne>1</elementOne>
+					<elementTwo>2</elementTwo>
+				</root>
+				""";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 		MessageHeaders headers = result.getHeaders();
@@ -54,13 +60,15 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void convertedEvaluation() {
-		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap =
-				new HashMap<String, XPathExpressionEvaluatingHeaderValueMessageProcessor>();
-		XPathExpressionEvaluatingHeaderValueMessageProcessor processor = new XPathExpressionEvaluatingHeaderValueMessageProcessor(
-				"/root/elementOne");
+		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap = new HashMap<>();
+		var processor = new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementOne");
 		processor.setHeaderType(TimeZone.class);
 		expressionMap.put("one", processor);
-		String docAsString = "<root><elementOne>America/New_York</elementOne></root>";
+		String docAsString = """
+				<root>
+					<elementOne>America/New_York</elementOne>
+				</root>
+				""";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 		MessageHeaders headers = result.getHeaders();
@@ -70,8 +78,7 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void nullValuesSkippedByDefault() {
-		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap
-				= new HashMap<String, XPathExpressionEvaluatingHeaderValueMessageProcessor>();
+		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap = new HashMap<>();
 		expressionMap.put("two", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"));
 		String docAsString = "<root><elementOne>1</elementOne></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
@@ -82,8 +89,7 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void notSkippingNullValues() {
-		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap =
-				new HashMap<String, XPathExpressionEvaluatingHeaderValueMessageProcessor>();
+		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap = new HashMap<>();
 		expressionMap.put("two", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"));
 		String docAsString = "<root><elementOne>1</elementOne></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
@@ -97,8 +103,7 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void numberEvaluationResult() {
-		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap =
-				new HashMap<String, XPathExpressionEvaluatingHeaderValueMessageProcessor>();
+		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap = new HashMap<>();
 		XPathExpressionEvaluatingHeaderValueMessageProcessor expression1 =
 				new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementOne");
 		XPathExpressionEvaluatingHeaderValueMessageProcessor expression2 =
@@ -106,7 +111,7 @@ public class XPathHeaderEnricherTests {
 		expression2.setEvaluationType(XPathEvaluationType.NUMBER_RESULT);
 		expressionMap.put("one", expression1);
 		expressionMap.put("two", expression2);
-		Map<String, XPathEvaluationType> evalTypeMap = new HashMap<String, XPathEvaluationType>();
+		Map<String, XPathEvaluationType> evalTypeMap = new HashMap<>();
 		evalTypeMap.put("two", XPathEvaluationType.NUMBER_RESULT);
 		String docAsString = "<root><elementOne>1</elementOne><elementTwo>2</elementTwo></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);

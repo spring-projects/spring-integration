@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,15 +38,19 @@ public class StringSourceTests {
 
 	private static final StringSourceFactory sourceFactory = new StringSourceFactory();
 
+	private static final String testDoc = """
+			<?xml version="1.0" encoding="UTF-8"?>
+			<item>one</item>
+			""";
+
 	@Test
 	public void testWithDocument() throws Exception {
-		String docString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>";
-		Document doc = XmlTestUtil.getDocumentForString(docString);
+		Document doc = XmlTestUtil.getDocumentForString(testDoc);
 		StringSource source = (StringSource) sourceFactory.createSource(doc);
 		BufferedReader reader = new BufferedReader(source.getReader());
 		String docAsString = reader.readLine();
 
-		assertThat(docAsString).and(docString).areIdentical();
+		assertThat(docAsString).and(testDoc).areIdentical();
 	}
 
 
@@ -63,8 +67,7 @@ public class StringSourceTests {
 
 	@Test
 	public void testWithUnsupportedPayload() {
-		String docString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>";
-		StringBuffer buffer = new StringBuffer(docString);
+		StringBuffer buffer = new StringBuffer(testDoc);
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> sourceFactory.createSource(buffer));
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,9 @@ import java.util.Locale;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +41,11 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Jonas Partner
@@ -56,20 +54,19 @@ import static org.assertj.core.api.Assertions.fail;
  * @author Artem Bilan
  * @author Gary Russell
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class XmlPayloadValidatingFilterParserTests {
 
 	private Locale localeBeforeTest;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		localeBeforeTest = Locale.getDefault();
 		Locale.setDefault(new Locale("en", "US"));
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		Locale.setDefault(localeBeforeTest);
 	}
@@ -91,7 +88,7 @@ public class XmlPayloadValidatingFilterParserTests {
 	private ApplicationContext ac;
 
 	@Test
-	public void testParse() throws Exception {
+	public void testParse() {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) ac.getBean("parseOnly");
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
@@ -101,13 +98,16 @@ public class XmlPayloadValidatingFilterParserTests {
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list).containsExactly((SmartLifecycle) consumer);
+		assertThat(list).containsExactly(consumer);
 	}
 
 	@Test
-	public void testValidMessage() throws Exception {
+	public void testValidMessage() {
 		Message<String> docMessage =
-				new GenericMessage<>("<!DOCTYPE greeting SYSTEM \"greeting.dtd\"><greeting>hello</greeting>");
+				new GenericMessage<>("""
+						<!DOCTYPE greeting SYSTEM "greeting.dtd">
+						<greeting>hello</greeting>
+						""");
 		PollableChannel validChannel = this.ac.getBean("validOutputChannel", PollableChannel.class);
 		MessageChannel inputChannel = this.ac.getBean("inputChannelA", MessageChannel.class);
 		inputChannel.send(docMessage);
@@ -117,7 +117,7 @@ public class XmlPayloadValidatingFilterParserTests {
 	@Test
 	public void testInvalidMessageWithDiscardChannel() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<greeting><other/></greeting>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		GenericMessage<Document> docMessage = new GenericMessage<>(doc);
 		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
 		PollableChannel invalidChannel = ac.getBean("invalidOutputChannel", PollableChannel.class);
 		MessageChannel inputChannel = ac.getBean("inputChannelA", MessageChannel.class);
@@ -129,28 +129,21 @@ public class XmlPayloadValidatingFilterParserTests {
 	@Test
 	public void testInvalidMessageWithThrowException() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<greeting ping=\"pong\"><other/></greeting>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		GenericMessage<Document> docMessage = new GenericMessage<>(doc);
 		MessageChannel inputChannel = ac.getBean("inputChannelB", MessageChannel.class);
-		try {
-			inputChannel.send(docMessage);
-			fail("MessageRejectedException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageRejectedException.class);
-			Throwable cause = e.getCause();
-			assertThat(cause).isInstanceOf(AggregatedXmlMessageValidationException.class);
-			assertThat(cause.getMessage())
-					.contains(
-							"Element 'greeting' is a simple type, so it must have no element information item [children].");
-			assertThat(cause.getMessage())
-					.contains("Element 'greeting' is a simple type, so it cannot have attributes,");
-		}
+
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> inputChannel.send(docMessage))
+				.withCauseInstanceOf(AggregatedXmlMessageValidationException.class)
+				.withStackTraceContaining(
+						"Element 'greeting' is a simple type, so it must have no element information item [children].")
+				.withStackTraceContaining("Element 'greeting' is a simple type, so it cannot have attributes,");
 	}
 
 	@Test
 	public void testValidMessageWithValidator() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<greeting>hello</greeting>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		GenericMessage<Document> docMessage = new GenericMessage<>(doc);
 		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
 		MessageChannel inputChannel = ac.getBean("inputChannelC", MessageChannel.class);
 		inputChannel.send(docMessage);
@@ -160,7 +153,7 @@ public class XmlPayloadValidatingFilterParserTests {
 	@Test
 	public void testInvalidMessageWithValidatorAndDiscardChannel() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<greeting><other/></greeting>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		GenericMessage<Document> docMessage = new GenericMessage<>(doc);
 		PollableChannel invalidChannel = ac.getBean("invalidOutputChannel", PollableChannel.class);
 		MessageChannel inputChannel = ac.getBean("inputChannelC", MessageChannel.class);
 		inputChannel.send(docMessage);

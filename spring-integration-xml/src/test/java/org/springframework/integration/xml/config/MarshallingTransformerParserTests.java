@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,12 @@ import java.util.List;
 
 import javax.xml.transform.dom.DOMResult;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
@@ -35,6 +34,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xml.transform.StringResult;
 
@@ -44,23 +44,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
+@SpringJUnitConfig
 public class MarshallingTransformerParserTests {
 
+	@Autowired
 	private ApplicationContext appContext;
 
+	@Autowired
 	private PollableChannel output;
 
-
-	@Before
-	public void setUp() {
-		this.appContext = new ClassPathXmlApplicationContext("MarshallingTransformerParserTests-context.xml", getClass());
-		this.output = (PollableChannel) appContext.getBean("output");
-	}
-
-
 	@Test
-	public void testParse() throws Exception {
+	public void testParse() {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) appContext.getBean("parseOnly");
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
 		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
@@ -70,13 +66,13 @@ public class MarshallingTransformerParserTests {
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list).containsExactly((SmartLifecycle) consumer);
+		assertThat(list).containsExactly(consumer);
 	}
 
 	@Test
-	public void testDefault() throws Exception {
+	public void testDefault() {
 		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerNoResultFactory");
-		GenericMessage<Object> message = new GenericMessage<Object>("hello");
+		GenericMessage<Object> message = new GenericMessage<>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
 		assertThat(result.getPayload() instanceof DOMResult).as("Wrong payload type").isTrue();
@@ -85,9 +81,9 @@ public class MarshallingTransformerParserTests {
 	}
 
 	@Test
-	public void testDefaultWithResultTransformer() throws Exception {
+	public void testDefaultWithResultTransformer() {
 		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerWithResultTransformer");
-		GenericMessage<Object> message = new GenericMessage<Object>("hello");
+		GenericMessage<Object> message = new GenericMessage<>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
 		assertThat(result.getPayload() instanceof String).as("Wrong payload type").isTrue();
@@ -96,9 +92,9 @@ public class MarshallingTransformerParserTests {
 	}
 
 	@Test
-	public void testDOMResult() throws Exception {
+	public void testDOMResult() {
 		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerDOMResultFactory");
-		GenericMessage<Object> message = new GenericMessage<Object>("hello");
+		GenericMessage<Object> message = new GenericMessage<>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
 		assertThat(result.getPayload() instanceof DOMResult).as("Wrong payload type ").isTrue();
@@ -107,27 +103,27 @@ public class MarshallingTransformerParserTests {
 	}
 
 	@Test
-	public void testStringResult() throws Exception {
+	public void testStringResult() {
 		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerStringResultFactory");
-		GenericMessage<Object> message = new GenericMessage<Object>("hello");
+		GenericMessage<Object> message = new GenericMessage<>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertThat(result.getPayload() instanceof StringResult).as("Wrong payload type").isTrue();
+		assertThat(result.getPayload()).as("Wrong payload type").isInstanceOf(StringResult.class);
 	}
 
 	@Test
-	public void testCustomResultFactory() throws Exception {
+	public void testCustomResultFactory() {
 		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerCustomResultFactory");
-		GenericMessage<Object> message = new GenericMessage<Object>("hello");
+		GenericMessage<Object> message = new GenericMessage<>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertThat(result.getPayload() instanceof StubStringResult).as("Wrong payload type").isTrue();
+		assertThat(result.getPayload()).as("Wrong payload type").isInstanceOf(StubStringResult.class);
 	}
 
 	@Test
-	public void testFullMessage() throws Exception {
+	public void testFullMessage() {
 		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerWithFullMessage");
-		GenericMessage<Object> message = new GenericMessage<Object>("hello");
+		GenericMessage<Object> message = new GenericMessage<>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
 		assertThat(result.getPayload() instanceof DOMResult).as("Wrong payload type").isTrue();

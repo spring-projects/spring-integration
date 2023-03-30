@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package org.springframework.integration.xml.transformer;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.sax.SAXResult;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 
 import org.springframework.integration.xml.util.XmlTestUtil;
@@ -28,22 +27,21 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.xml.transform.StringResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Jonas Partner
+ * @author Artme Bilan
  */
 public class ResultToDocumentTransformerTests {
 
-	private String startDoc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+	private static final String startDoc = """
+			<?xml version="1.0" encoding="ISO-8859-1"?>
+			<order>
+			</order>
+			""";
 
-	private ResultToDocumentTransformer resToDocTransformer;
-
-
-	@Before
-	public void setUp() {
-		resToDocTransformer = new ResultToDocumentTransformer();
-	}
-
+	private final ResultToDocumentTransformer resToDocTransformer = new ResultToDocumentTransformer();
 
 	@Test
 	public void testWithDomResult() throws Exception {
@@ -63,10 +61,11 @@ public class ResultToDocumentTransformerTests {
 		assertThat(doc.getDocumentElement().getNodeName()).as("Wrong root element name").isEqualTo("order");
 	}
 
-	@Test(expected = MessagingException.class)
-	public void testWithUnsupportedSaxResult() throws Exception {
+	@Test
+	public void testWithUnsupportedSaxResult() {
 		SAXResult result = new SAXResult();
-		resToDocTransformer.transformResult(result);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> resToDocTransformer.transformResult(result));
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.xml.config;
 
-import java.io.IOException;
-
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -29,14 +27,17 @@ import org.springframework.xml.transform.StringSource;
 /**
  *
  * @author Jonas Partner
+ * @author Artem Bilan
  *
  */
 public class StubMarshaller implements Marshaller {
 
-	public void marshal(Object graph, Result result) throws XmlMappingException, IOException {
+	public void marshal(Object graph, Result result) throws XmlMappingException {
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
-			StringSource stringSource = new StringSource("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><root>" + graph.toString() + "</root>");
+			StringSource stringSource = new StringSource("""
+					<?xml version="1.0" encoding="ISO-8859-1"?>
+					<root>""" + graph + "</root>");
 			transformer.transform(stringSource, result);
 		}
 		catch (Exception e) {
@@ -45,8 +46,7 @@ public class StubMarshaller implements Marshaller {
 
 	}
 
-	@SuppressWarnings("rawtypes")
-	public boolean supports(Class clazz) {
+	public boolean supports(Class<?> clazz) {
 		return true;
 	}
 

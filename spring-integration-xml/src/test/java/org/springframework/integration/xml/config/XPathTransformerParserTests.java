@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -40,8 +39,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xml.xpath.NodeMapper;
 
@@ -50,10 +48,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class XPathTransformerParserTests {
 
@@ -90,10 +89,11 @@ public class XPathTransformerParserTests {
 	@Autowired
 	SmartLifecycleRoleController roleController;
 
-	private final Message<?> message = MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();
+	private final Message<?> message =
+			MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();
 
 	@Test
-	public void testParse() throws Exception {
+	public void testParse() {
 		assertThat(TestUtils.getPropertyValue(this.parseOnly, "handler.order")).isEqualTo(2);
 		assertThat(TestUtils.getPropertyValue(this.parseOnly, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
 		assertThat(TestUtils.getPropertyValue(this.parseOnly, "phase")).isEqualTo(-1);
@@ -101,7 +101,7 @@ public class XPathTransformerParserTests {
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list).containsExactly((SmartLifecycle) this.parseOnly);
+		assertThat(list).containsExactly(this.parseOnly);
 	}
 
 	@Test
@@ -136,7 +136,7 @@ public class XPathTransformerParserTests {
 	public void nodeListResult() {
 		this.nodeListInput.send(message);
 		Object payload = output.receive(0).getPayload();
-		assertThat(List.class.isAssignableFrom(payload.getClass())).isTrue();
+		assertThat(payload).isInstanceOf(List.class);
 		List<Node> nodeList = (List<Node>) payload;
 		assertThat(nodeList.size()).isEqualTo(3);
 	}
@@ -193,6 +193,7 @@ public class XPathTransformerParserTests {
 		public Document convertToDocument(Object object) {
 			throw new UnsupportedOperationException();
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package org.springframework.integration.xml.xpath;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -33,23 +32,27 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.xml.xpath.NodeMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class XPathTests {
 
-	private static final String XML = "<parent><child name='test' age='42' married='true'/></parent>";
+	private static final String XML = """
+			<parent>
+				<child name='test' age='42' married='true'/>
+			</parent>
+			""";
 
 	@Autowired
 	private PollableChannel channelA;
@@ -107,7 +110,12 @@ public class XPathTests {
 		assertThat(node2.getLocalName()).isEqualTo("child");
 		assertThat(node2.getAttributes().getNamedItem("name").getTextContent()).isEqualTo("bar");
 
-		result = XPathUtils.evaluate("<parent><child name='foo'/><child name='bar'/></parent>", "/parent/child", "document_list");
+		result = XPathUtils.evaluate("""
+				<parent>
+					<child name='foo'/>
+					<child name='bar'/>
+				</parent>
+				""", "/parent/child", "document_list");
 		assertThat(result).isInstanceOf(List.class);
 		List<Document> documentList = (List<Document>) result;
 		assertThat(documentList.size()).isEqualTo(2);
@@ -121,34 +129,19 @@ public class XPathTests {
 		result = XPathUtils.evaluate(XML, "/parent/child/@name", new TestNodeMapper());
 		assertThat(result).isEqualTo("test-mapped");
 
-		try {
-			XPathUtils.evaluate(new Date(), "/parent/child");
-			fail("MessagingException expected.");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessagingException.class);
-			assertThat(e.getMessage()).contains("unsupported payload type");
-		}
 
-		try {
-			XPathUtils.evaluate(XML, "/parent/child", "string", "number");
-			fail("MessagingException expected.");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getMessage()).isEqualTo("'resultArg' can contains only one element.");
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> XPathUtils.evaluate(new Date(), "/parent/child"))
+				.withMessageContaining("unsupported payload type");
 
-		try {
-			XPathUtils.evaluate(XML, "/parent/child", "foo");
-			fail("MessagingException expected.");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getMessage()).isEqualTo("'resultArg[0]' can be an instance of 'NodeMapper<?>' or " +
-					"one of supported String constants: [string, boolean, number, node, node_list, document_list]");
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> XPathUtils.evaluate(XML, "/parent/child", "string", "number"))
+				.withMessage("'resultArg' can contains only one element.");
 
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> XPathUtils.evaluate(XML, "/parent/child", "foo"))
+				.withMessage("'resultArg[0]' can be an instance of 'NodeMapper<?>' or " +
+						"one of supported String constants: [string, boolean, number, node, node_list, document_list]");
 	}
 
 	@Test
