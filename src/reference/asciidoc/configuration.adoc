@@ -684,7 +684,7 @@ See also <<./overview.adoc#endpoint-bean-names,Endpoint Bean Names>>.
 The bean name for this wrapper is generated with the following pattern: `[@Bean name].[decapitalizedAnnotationClassShortName].[handler (or source)]`.
 
 IMPORTANT: When using these annotations on `@Bean` definitions, the `inputChannel` must reference a declared bean.
-Channels are automatically declared iif not present in the application context yet.
+Channels are automatically declared if not present in the application context yet.
 
 [NOTE]
 =====
