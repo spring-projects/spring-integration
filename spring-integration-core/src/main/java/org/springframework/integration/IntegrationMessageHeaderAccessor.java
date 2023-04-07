@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
+
+import reactor.util.context.ContextView;
 
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.lang.Nullable;
@@ -76,6 +78,12 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * Raw source message.
 	 */
 	public static final String SOURCE_DATA = "sourceData";
+
+	/**
+	 * Raw source message.
+	 */
+	public static final String REACTOR_CONTEXT = "reactorContext";
+
 
 	private static final BiFunction<String, String, String> TYPE_VERIFY_MESSAGE_FUNCTION =
 			(name, trailer) -> "The '" + name + trailer;
@@ -173,6 +181,16 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	@Nullable
 	public <T> T getSourceData() {
 		return (T) getHeader(SOURCE_DATA);
+	}
+
+	/**
+	 * Get a {@link ContextView} header if present.
+	 * @return the {@link ContextView} header if present.
+	 * @since 6.0.5
+	 */
+	@Nullable
+	public ContextView getReactorContext() {
+		return getHeader(REACTOR_CONTEXT, ContextView.class);
 	}
 
 	@SuppressWarnings("unchecked")

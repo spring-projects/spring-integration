@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.context.ContextView;
 import reactor.util.function.Tuple2;
 
 import org.springframework.core.ReactiveAdapter;
@@ -47,6 +48,7 @@ import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
@@ -99,7 +101,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 	/**
 	 * A {@link ServerCodecConfigurer} for the request readers and response writers.
-	 * By default the {@link ServerCodecConfigurer#create()} factory is used.
+	 * By default, the {@link ServerCodecConfigurer#create()} factory is used.
 	 * @param codecConfigurer the {@link ServerCodecConfigurer} to use.
 	 */
 	public void setCodecConfigurer(ServerCodecConfigurer codecConfigurer) {
@@ -133,9 +135,9 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
-		return Mono.defer(() -> {
+		return Mono.deferContextual((context) -> {
 			if (isRunning()) {
-				return doHandle(exchange);
+				return doHandle(exchange, context);
 			}
 			else {
 				return Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Endpoint is stopped"))
@@ -144,13 +146,13 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		});
 	}
 
-	private Mono<Void> doHandle(ServerWebExchange exchange) {
+	private Mono<Void> doHandle(ServerWebExchange exchange, ContextView context) {
 		return extractRequestBody(exchange)
 				.doOnSubscribe(s -> this.activeCount.incrementAndGet())
 				.map(body ->
 						new RequestEntity<>(body, exchange.getRequest().getHeaders(),
 								exchange.getRequest().getMethod(), exchange.getRequest().getURI()))
-				.flatMap(entity -> buildMessage(entity, exchange))
+				.flatMap(entity -> buildMessage(entity, exchange, context))
 				.flatMap(requestTuple -> {
 					if (isExpectReply()) {
 						return sendAndReceiveMessageReactive(requestTuple.getT1())
@@ -253,7 +255,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	private Mono<Tuple2<Message<Object>, RequestEntity<?>>> buildMessage(RequestEntity<?> httpEntity,
-			ServerWebExchange exchange) {
+			ServerWebExchange exchange, ContextView context) {
 
 		ServerHttpRequest request = exchange.getRequest();
 		MultiValueMap<String, String> requestParams = request.getQueryParams();
@@ -282,6 +284,10 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 		AbstractIntegrationMessageBuilder<Object> messageBuilder =
 				prepareRequestMessageBuilder(request, payload, headers);
+
+		if (!context.isEmpty()) {
+			messageBuilder.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, context);
+		}
 
 		return exchange.getPrincipal()
 				.map(principal -> messageBuilder.setHeader(HttpHeaders.USER_PRINCIPAL, principal))

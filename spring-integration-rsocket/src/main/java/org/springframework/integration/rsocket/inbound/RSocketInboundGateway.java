@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.context.ContextView;
 
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ResolvableType;
@@ -29,6 +30,7 @@ import org.springframework.core.codec.Decoder;
 import org.springframework.core.codec.Encoder;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.rsocket.AbstractRSocketConnector;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
@@ -151,7 +153,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	/**
 	 * Specify the type of payload to be generated when the inbound RSocket request
 	 * content is read by the converters/encoders.
-	 * By default this value is null which means at runtime any "text" Content-Type will
+	 * By default, this value is null which means at runtime any "text" Content-Type will
 	 * result in String while all others default to {@code byte[].class}.
 	 * @param requestElementType The payload type.
 	 */
@@ -212,9 +214,22 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 		}
 		else {
 			return requestMono
-					.doOnNext(this::send)
-					.then();
+					.flatMap((message) ->
+							Mono.deferContextual((context) ->
+									Mono.just(message)
+											.handle((messageToSend, sink) ->
+													send(messageWithReactorContextIfAny(messageToSend, context)))));
 		}
+	}
+
+	private Message<?> messageWithReactorContextIfAny(Message<?> message, ContextView context) {
+		if (!context.isEmpty()) {
+			return getMessageBuilderFactory()
+					.fromMessage(message)
+					.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, context)
+					.build();
+		}
+		return message;
 	}
 
 	private Mono<Message<?>> decodeRequestMessage(Message<?> requestMessage) {

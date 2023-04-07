@@ -105,7 +105,7 @@ The subscription for this `Mono` is done using `Schedulers.boundedElastic()` to 
 When the message source returns `null` (no data to pull), the `Mono` is turned into a `repeatWhenEmpty()` state with a `delay` for a subsequent re-subscription based on a `IntegrationReactiveUtils.DELAY_WHEN_EMPTY_KEY` `Duration` entry from the subscriber context.
 By default, it is 1 second.
 If the `MessageSource` produces messages with a `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` information in the headers, it is acknowledged (if necessary) in the `doOnSuccess()` of the original `Mono` and rejected in the `doOnError()` if the downstream flow throws a `MessagingException` with the failed message to reject.
-This `ReactiveMessageSourceProducer` could be used for any use-case when a a polling channel adapter's features should be turned into a reactive, on demand solution for any existing `MessageSource<?>` implementation.
+This `ReactiveMessageSourceProducer` could be used for any use-case when a polling channel adapter's features should be turned into a reactive, on demand solution for any existing `MessageSource<?>` implementation.
 
 === Splitter and Aggregator
 
@@ -332,3 +332,53 @@ Currently, Spring Integration provides channel adapter (or gateway) implementati
 The <<./redis.adoc#redis-stream-outbound,Redis Stream Channel Adapters>> are also reactive and uses `ReactiveStreamOperations` from Spring Data.
 More reactive channel adapters are coming, for example for Apache Kafka in <<./kafka.adoc#kafka,Kafka>> based on the `ReactiveKafkaProducerTemplate` and `ReactiveKafkaConsumerTemplate` from https://spring.io/projects/spring-kafka[Spring for Apache Kafka] etc.
 For many other non-reactive channel adapters thread pools are recommended to avoid blocking during reactive stream processing.
+
+[[context-propagation]]
+=== Reactive to Imperative Context Propagation
+
+When the https://github.com/micrometer-metrics/context-propagation[Context Propagation] library is on the classpath, the Project Reactor can take `ThreadLocal` values (e.g. https://micrometer.io/docs/observation[Micrometer Observation] or `SecurityContextHolder`) and stores it into a `Subscriber` context.
+The opposite operation is also possible, when we need to populate a logging MDC for tracing or let services we call from the reactive stream to restore an observation from the scope.
+See more information in the Project Reactor https://projectreactor.io/docs/core/release/reference/#context.propagation[documentation] about its special operators for context propagation.
+The storing and restoring context works smoothly if our whole solution is a single reactive stream composition since a `Subscriber` context is visible from downstream up to the beginning of the composition(`Flux` or `Mono`).
+But if the application switches between different `Flux` instances or into an imperative processing and back, then context tied to the `Subscriber` might not be available.
+For such a use-case Spring Integration provides an additional functionality (starting with version `6.0.5`) to store a Reactor `ContextView` into an `IntegrationMessageHeaderAccessor.REACTOR_CONTEXT` message header produced from the reactive stream, e.g. when we perform direct `send()` operation.
+This header is used then in the `FluxMessageChannel.subscribeTo()` to restore a Reactor context for the `Message` this channel is going to emit.
+Currently, this header is populated from the `WebFluxInboundEndpoint` and `RSocketInboundGateway` components, but can be used in any solution where reactive to imperative integration is done.
+The logic to populate this header is like this:
+
+====
+[source, java]
+----
+return requestMono
+        .flatMap((message) ->
+                Mono.deferContextual((context) ->
+                        Mono.just(message)
+                                .handle((messageToSend, sink) ->
+                                        send(messageWithReactorContextIfAny(messageToSend, context)))));
+...
+
+private Message<?> messageWithReactorContextIfAny(Message<?> message, ContextView context) {
+    if (!context.isEmpty()) {
+        return getMessageBuilderFactory()
+                .fromMessage(message)
+                .setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, context)
+                .build();
+    }
+    return message;
+}
+----
+====
+
+Note, that we still need to use a `handle()` operator to make Reactor to restore `ThreadLocal` values from context.
+Even if it is sent as a header, the framework cannot make an assumption if it is going to be to restore onto `ThreadLocal` values downstream.
+
+To restore the context from a `Message` on the other `Flux` or `Mono` composition, this logic can be performed:
+
+====
+[source, java]
+----
+Mono.just(message)
+        .handle((messageToHandle, sink) -> ...)
+        .contextWrite(StaticMessageHeaderAccessor.getReactorContext(message)));
+----
+====
