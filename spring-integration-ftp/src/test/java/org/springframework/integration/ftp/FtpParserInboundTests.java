@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky
@@ -45,32 +44,28 @@ public class FtpParserInboundTests {
 	}
 
 	@Test
-	public void testLocalFilesAutoCreationTrue() throws Exception {
-		assertThat(!new File("target/foo").exists()).isTrue();
+	public void testLocalFilesAutoCreationTrue() {
+		assertThat(new File("target/foo").exists()).isFalse();
 		new ClassPathXmlApplicationContext("FtpParserInboundTests-context.xml", this.getClass()).close();
 		assertThat(new File("target/foo").exists()).isTrue();
-		assertThat(!new File("target/bar").exists()).isTrue();
+		assertThat(new File("target/bar").exists()).isFalse();
 	}
 
 	@Test
-	public void testLocalFilesAutoCreationFalse() throws Exception {
-		assertThat(!new File("target/bar").exists()).isTrue();
-		try {
-			new ClassPathXmlApplicationContext("FtpParserInboundTests-fail-context.xml", this.getClass()).close();
-			fail("BeansException expected.");
-		}
-		catch (BeansException e) {
-			assertThat(e).isInstanceOf(BeanCreationException.class);
-			Throwable cause = e.getCause();
-			assertThat(cause).isInstanceOf(BeanInitializationException.class);
-			cause = cause.getCause();
-			assertThat(cause).isInstanceOf(FileNotFoundException.class);
-			assertThat(cause.getMessage()).isEqualTo("bar");
-		}
+	public void testLocalFilesAutoCreationFalse() {
+		assertThat(new File("target/bar").exists()).isFalse();
+
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("FtpParserInboundTests-fail-context.xml", this.getClass()))
+				.withCauseInstanceOf(BeanInitializationException.class)
+				.withRootCauseInstanceOf(FileNotFoundException.class)
+				.withStackTraceContaining("bar");
 	}
 
 	@AfterEach
-	public void cleanUp() throws Exception {
+	public void cleanUp() {
 		new File("target/foo").delete();
 	}
+
 }

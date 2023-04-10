@@ -15,34 +15,31 @@
 		<property name="clientMode" value="2"/>
 		<property name="fileType" value="2"/>
 	</bean>
-	
-	<ftp:inbound-channel-adapter id="adapterFtp" 
+
+	<ftp:inbound-channel-adapter id="adapterFtp"
 								 session-factory="ftpSessionFactory"
 								 channel="ftpIn"
 								 filename-pattern="foo"
 								 local-directory="target/foo"
 								 remote-directory="foo/bar"
 								 auto-create-local-directory="true"
-								 delete-remote-files="false">
+								 delete-remote-files="false"
+								 auto-startup="false">
 		<int:poller fixed-rate="1000"/>
 	</ftp:inbound-channel-adapter>
-	
-	
-	<ftp:inbound-channel-adapter id="adapterFtp2" 
-		                         session-factory="ftpSessionFactory"
+
+
+	<ftp:inbound-channel-adapter id="adapterFtp2"
+								 session-factory="ftpSessionFactory"
 								 channel="ftpIn"
-								 filter="filter" 
 								 local-directory="target"
 								 remote-directory="foo/bar"
 								 auto-create-local-directory="true"
-								 delete-remote-files="false">
+								 delete-remote-files="false"
+								 auto-startup="false">
 		<int:poller fixed-rate="1000"/>
 	</ftp:inbound-channel-adapter>
-	
-	<bean id="filter" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter" type="java.lang.Class"/>
-	</bean>
-	
+
 	<int:channel id="ftpIn">
 		<int:queue/>
 	</int:channel>

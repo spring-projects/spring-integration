@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSe
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 
@@ -113,7 +112,7 @@ public class TcpNioConnectionReadTests {
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			responses.add(message);
 			try {
-				Thread.sleep(10);
+				Thread.sleep(1);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
@@ -241,7 +240,6 @@ public class TcpNioConnectionReadTests {
 	}
 
 	@Test
-	@LogLevels(categories = "org.springframework.integration.ip", level = "DEBUG")
 	public void testReadStxEtxOverflow() throws Exception {
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		serializer.setMaxMessageSize(1024);

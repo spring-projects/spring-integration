@@ -3,14 +3,12 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:ftp="http://www.springframework.org/schema/integration/ftp"
 	   xmlns:int="http://www.springframework.org/schema/integration"
-	   xmlns:context="http://www.springframework.org/schema/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/integration  https://www.springframework.org/schema/integration/spring-integration.xsd
-       http://www.springframework.org/schema/integration/ftp https://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd 
-       http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+       http://www.springframework.org/schema/integration/ftp https://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
 
 	<int:message-history/>
-	
+
 	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
@@ -20,16 +18,17 @@
 		<property name="fileType" value="2"/>
 	</bean>
 
-	<ftp:inbound-channel-adapter id="adapterFtp" 
-				session-factory="ftpSessionFactory"
-				channel="ftpIn" 
-				auto-create-local-directory="true"
-				local-directory="file:target/foo"
-				remote-directory="foo/bar"
-				delete-remote-files="false">
+	<ftp:inbound-channel-adapter id="adapterFtp"
+								 session-factory="ftpSessionFactory"
+								 channel="ftpIn"
+								 auto-create-local-directory="true"
+								 local-directory="file:target/foo"
+								 remote-directory="foo/bar"
+								 delete-remote-files="false"
+								 auto-startup="false">
 		<int:poller fixed-rate="1000"/>
 	</ftp:inbound-channel-adapter>
-	
+
 	<int:channel id="ftpIn">
 		<int:queue/>
 	</int:channel>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,38 +22,56 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  */
+@SpringJUnitConfig
+@DirtiesContext
 public class ConsoleInboundChannelAdapterParserTests {
 
-	@Before
-	public void writeTestInput() {
-		ByteArrayInputStream stream = new ByteArrayInputStream("foo".getBytes());
+	private static final ByteArrayInputStream stream = new ByteArrayInputStream("foo".getBytes());
+
+	@Autowired
+	ApplicationContext context;
+
+	@BeforeAll
+	public static void setTestInputStream() {
 		System.setIn(stream);
 	}
 
+	@BeforeEach
+	void resetStream() {
+		stream.reset();
+	}
+
+
 	@Test
 	public void adapterWithDefaultCharset() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"consoleInboundChannelAdapterParserTests.xml", ConsoleInboundChannelAdapterParserTests.class);
 		SourcePollingChannelAdapter adapter = context.getBean("adapterWithDefaultCharset.adapter",
 				SourcePollingChannelAdapter.class);
 		MessageSource<?> source = (MessageSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
@@ -75,13 +93,10 @@ public class ConsoleInboundChannelAdapterParserTests {
 		adapter = context.getBean("pipedAdapterNoCharset.adapter", SourcePollingChannelAdapter.class);
 		source = adapter.getMessageSource();
 		assertThat(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class)).isTrue();
-		context.close();
 	}
 
 	@Test
 	public void adapterWithProvidedCharset() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"consoleInboundChannelAdapterParserTests.xml", ConsoleInboundChannelAdapterParserTests.class);
 		SourcePollingChannelAdapter adapter = context.getBean("adapterWithProvidedCharset.adapter",
 				SourcePollingChannelAdapter.class);
 		MessageSource<?> source = adapter.getMessageSource();
@@ -93,7 +108,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 		Reader reader = (Reader) bufferedReaderAccessor.getPropertyValue("in");
 		assertThat(reader.getClass()).isEqualTo(InputStreamReader.class);
 		Charset readerCharset = Charset.forName(((InputStreamReader) reader).getEncoding());
-		assertThat(readerCharset).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(readerCharset).isEqualTo(StandardCharsets.UTF_8);
 		Message<?> message = source.receive();
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("foo");
@@ -106,22 +121,16 @@ public class ConsoleInboundChannelAdapterParserTests {
 		reader = (Reader) bufferedReaderAccessor.getPropertyValue("in");
 		assertThat(reader.getClass()).isEqualTo(InputStreamReader.class);
 		readerCharset = Charset.forName(((InputStreamReader) reader).getEncoding());
-		assertThat(readerCharset).isEqualTo(Charset.forName("UTF-8"));
-		context.close();
+		assertThat(readerCharset).isEqualTo(StandardCharsets.UTF_8);
 	}
 
 	@Test
 	public void testConsoleSourceWithInvalidCharset() {
-		BeanCreationException beanCreationException = null;
-		try {
-			new ClassPathXmlApplicationContext("invalidConsoleInboundChannelAdapterParserTests.xml",
-					ConsoleInboundChannelAdapterParserTests.class).close();
-		}
-		catch (BeanCreationException e) {
-			beanCreationException = e;
-		}
-		Throwable rootCause = beanCreationException.getRootCause();
-		assertThat(rootCause.getClass()).isEqualTo(UnsupportedEncodingException.class);
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("invalidConsoleInboundChannelAdapterParserTests.xml",
+								ConsoleInboundChannelAdapterParserTests.class))
+				.withRootCauseInstanceOf(UnsupportedEncodingException.class);
 	}
 
 }

@@ -19,17 +19,13 @@
 	<ftp:inbound-channel-adapter id="adapterFtpDontAutoCreate"
 								 channel="ftpIn"
 								 session-factory="ftpSessionFactory"
-								 filter="filter"
 								 local-directory="file:target/bar"
 								 remote-directory="foo/bar"
 								 auto-create-local-directory="false"
-								 delete-remote-files="false">
+								 delete-remote-files="false"
+								 auto-startup="false">
 		<int:poller fixed-rate="1000"/>
 	</ftp:inbound-channel-adapter>
-
-	<bean id="filter" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter" type="java.lang.Class"/>
-	</bean>
 
 	<int:channel id="ftpIn">
 		<int:queue/>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -80,17 +80,19 @@ public class PriorityChannelTests {
 		assertThat(channel.receive(0).getPayload()).isEqualTo("test:-99");
 	}
 
-	// although this test has no assertions it results in ConcurrentModificationException
-	// if executed before changes for INT-2508
 	@Test
-	public void testPriorityChannelWithConcurrentModification() {
+	public void testPriorityChannelWithConcurrentModification() throws InterruptedException {
+		ExecutorService executorService = Executors.newCachedThreadPool();
 		final PriorityChannel channel = new PriorityChannel();
 		final Message<String> message = new GenericMessage<>("hello");
 		for (int i = 0; i < 1000; i++) {
 			channel.send(message);
-			new Thread(() -> channel.receive()).start();
-			new Thread(() -> message.getHeaders().toString()).start();
+			executorService.execute(channel::receive);
+			executorService.execute(() -> message.getHeaders().toString());
 		}
+
+		executorService.shutdown();
+		assertThat(executorService.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -244,7 +246,7 @@ public class PriorityChannelTests {
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-		channel.send(new GenericMessage<String>("test-1"));
+		channel.send(new GenericMessage<>("test-1"));
 		executor.execute(() -> {
 			sentSecondMessage.set(channel.send(new GenericMessage<>("test-2"), 3000));
 			latch.countDown();
@@ -267,7 +269,7 @@ public class PriorityChannelTests {
 		final PriorityChannel channel = new PriorityChannel(1);
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
 		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-		channel.send(new GenericMessage<String>("test-1"));
+		channel.send(new GenericMessage<>("test-1"));
 		executor.execute(() -> sentSecondMessage.set(channel.send(new GenericMessage<>("test-2"), -1)));
 		assertThat(sentSecondMessage.get()).isFalse();
 		Thread.sleep(10);
