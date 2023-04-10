@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ package org.springframework.integration;
 import java.io.Closeable;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import reactor.util.context.Context;
+import reactor.util.context.ContextView;
 
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.acks.SimpleAcknowledgment;
@@ -118,6 +121,21 @@ public final class StaticMessageHeaderAccessor {
 	@Nullable
 	public static <T> T getSourceData(Message<?> message) {
 		return (T) message.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA);
+	}
+
+	/**
+	 * Get a {@link ContextView} header if present.
+	 * @param message the message to get a header from.
+	 * @return the {@link ContextView} header if present.
+	 * @since 6.0.5
+	 */
+	public static ContextView getReactorContext(Message<?> message) {
+		ContextView reactorContext = message.getHeaders()
+				.get(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, ContextView.class);
+		if (reactorContext == null) {
+			reactorContext = Context.empty();
+		}
+		return reactorContext;
 	}
 
 }
