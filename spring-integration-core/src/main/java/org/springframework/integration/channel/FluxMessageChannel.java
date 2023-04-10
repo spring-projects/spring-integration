@@ -30,6 +30,10 @@ import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import org.springframework.core.log.LogMessage;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.util.Assert;
@@ -111,20 +115,33 @@ public class FluxMessageChannel extends AbstractMessageChannel
 				Flux.from(publisher)
 						.delaySubscription(this.subscribedSignal.asFlux().filter(Boolean::booleanValue).next())
 						.publishOn(this.scheduler)
-						.handle((message, synchronousSink) -> {
-							try {
-								if (!send(message)) {
-									logger.warn(new MessageDeliveryException(message,
-											"Failed to send message to channel '" + this),
-											"Message was not delivered");
-								}
-							}
-							catch (Exception ex) {
-								logger.warn(ex, () -> "Error during processing event: " + message);
-							}
-						})
+						.flatMap((message) ->
+								Mono.just(message)
+										.handle((messageToHandle, sink) -> sendReactiveMessage(messageToHandle))
+										.contextWrite(StaticMessageHeaderAccessor.getReactorContext(message)))
 						.contextCapture()
 						.subscribe());
+	}
+
+	private void sendReactiveMessage(Message<?> message) {
+		Message<?> messageToSend = message;
+		// We have just restored Reactor context, so no need in a header anymore.
+		if (messageToSend.getHeaders().containsKey(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT)) {
+			messageToSend =
+					MessageBuilder.fromMessage(message)
+							.removeHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT)
+							.build();
+		}
+		try {
+			if (!send(messageToSend)) {
+				logger.warn(
+						new MessageDeliveryException(messageToSend, "Failed to send message to channel '" + this),
+						"Message was not delivered");
+			}
+		}
+		catch (Exception ex) {
+			logger.warn(ex, LogMessage.format("Error during processing event: %s", messageToSend));
+		}
 	}
 
 	@Override
