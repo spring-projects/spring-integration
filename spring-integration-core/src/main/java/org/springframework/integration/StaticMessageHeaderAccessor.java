@@ -124,7 +124,6 @@ public final class StaticMessageHeaderAccessor {
 	}
 
 	/**
-	 /**
 	 * Get a {@link ContextView} header if present.
 	 * @param message the message to get a header from.
 	 * @return the {@link ContextView} header if present.

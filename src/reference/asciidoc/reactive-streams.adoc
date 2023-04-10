@@ -336,14 +336,14 @@ For many other non-reactive channel adapters thread pools are recommended to avo
 [[context-propagation]]
 === Reactive to Imperative Context Propagation
 
-When the https://github.com/micrometer-metrics/context-propagation[Context Propagation] library is on the classpath, the Project Reactor can take `ThreadLocal` values (e.g. https://micrometer.io/docs/observation[Micrometer Observation] or `SecurityContextHolder`) and stores it into a `Subscriber` context.
+When the https://github.com/micrometer-metrics/context-propagation[Context Propagation] library is on the classpath, the Project Reactor can take `ThreadLocal` values (e.g. https://micrometer.io/docs/observation[Micrometer Observation] or `SecurityContextHolder`) and store them into a `Subscriber` context.
 The opposite operation is also possible, when we need to populate a logging MDC for tracing or let services we call from the reactive stream to restore an observation from the scope.
-See more information in the Project Reactor https://projectreactor.io/docs/core/release/reference/#context.propagation[documentation] about its special operators for context propagation.
+See more information in Project Reactor https://projectreactor.io/docs/core/release/reference/#context.propagation[documentation] about its special operators for context propagation.
 The storing and restoring context works smoothly if our whole solution is a single reactive stream composition since a `Subscriber` context is visible from downstream up to the beginning of the composition(`Flux` or `Mono`).
-But if the application switches between different `Flux` instances or into an imperative processing and back, then context tied to the `Subscriber` might not be available.
-For such a use-case Spring Integration provides an additional functionality (starting with version `6.0.5`) to store a Reactor `ContextView` into an `IntegrationMessageHeaderAccessor.REACTOR_CONTEXT` message header produced from the reactive stream, e.g. when we perform direct `send()` operation.
-This header is used then in the `FluxMessageChannel.subscribeTo()` to restore a Reactor context for the `Message` this channel is going to emit.
-Currently, this header is populated from the `WebFluxInboundEndpoint` and `RSocketInboundGateway` components, but can be used in any solution where reactive to imperative integration is done.
+But, if the application switches between different `Flux` instances or into imperative processing and back, then the context tied to the `Subscriber` might not be available.
+For such a use case, Spring Integration provides an additional capability (starting with version `6.0.5`) to store a Reactor `ContextView` into the `IntegrationMessageHeaderAccessor.REACTOR_CONTEXT` message header produced from the reactive stream, e.g. when we perform direct `send()` operation.
+This header is used then in the `FluxMessageChannel.subscribeTo()` to restore a Reactor context for the `Message` that this channel is going to emit.
+Currently, this header is populated from the `WebFluxInboundEndpoint` and `RSocketInboundGateway` components, but can be used in any solution where reactive to imperative integration is performed.
 The logic to populate this header is like this:
 
 ====
@@ -369,7 +369,7 @@ private Message<?> messageWithReactorContextIfAny(Message<?> message, ContextVie
 ----
 ====
 
-Note, that we still need to use a `handle()` operator to make Reactor to restore `ThreadLocal` values from context.
+Note, that we still need to use a `handle()` operator to make Reactor restore `ThreadLocal` values from the context.
 Even if it is sent as a header, the framework cannot make an assumption if it is going to be to restore onto `ThreadLocal` values downstream.
 
 To restore the context from a `Message` on the other `Flux` or `Mono` composition, this logic can be performed:
