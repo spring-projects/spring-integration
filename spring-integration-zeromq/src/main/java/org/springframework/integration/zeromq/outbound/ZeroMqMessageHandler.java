@@ -68,7 +68,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 		implements ManageableLifecycle {
 
 	private static final List<SocketType> VALID_SOCKET_TYPES =
-			Arrays.asList(SocketType.PAIR, SocketType.PUSH, SocketType.PUB);
+			List.of(SocketType.PAIR, SocketType.PUSH, SocketType.PUB);
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
@@ -202,7 +202,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	protected void onInit() {
 		super.onInit();
 		BeanFactory beanFactory = getBeanFactory();
-		this.evaluationContext = ExpressionUtils.createSimpleEvaluationContext(beanFactory);
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 		if (this.messageMapper == null) {
 			ConfigurableCompositeMessageConverter messageConverter = new ConfigurableCompositeMessageConverter();
 			messageConverter.setBeanFactory(beanFactory);
