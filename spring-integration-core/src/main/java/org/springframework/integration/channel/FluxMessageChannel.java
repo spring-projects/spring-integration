@@ -117,7 +117,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 						.publishOn(this.scheduler)
 						.flatMap((message) ->
 								Mono.just(message)
-										.handle((messageToHandle, sink) -> sendReactiveMessage(messageToHandle))
+										.handle((messageToHandle, syncSink) -> sendReactiveMessage(messageToHandle))
 										.contextWrite(StaticMessageHeaderAccessor.getReactorContext(message)))
 						.contextCapture()
 						.subscribe());

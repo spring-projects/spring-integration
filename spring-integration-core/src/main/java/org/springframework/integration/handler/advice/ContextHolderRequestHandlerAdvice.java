@@ -40,8 +40,6 @@ public class ContextHolderRequestHandlerAdvice extends AbstractRequestHandlerAdv
 
 	public final Runnable contextClearHook;
 
-	private boolean enableContextPropagation;
-
 	/**
 	 * Construct an instance based on the provided hooks.
 	 * @param valueProvider The key provider function.
