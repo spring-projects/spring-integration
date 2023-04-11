@@ -1400,7 +1400,7 @@ Notice that the same `RabbitTemplate` (which implements `RabbitOperations`) is u
 The advice runs the downstream flow within the template's `invoke` method so that all operations run on the same channel.
 If the optional timeout is provided, when the flow completes, the advice calls the `waitForConfirmsOrDie` method, which throws an exception if the confirmations are not received within the specified time.
 
-IMPORTANT: There must be no thread handoffs in the downstream flow (`QueueChannel`, `ExecutorChannel`, and others).
+IMPORTANT: There must be no thread hands-off in the downstream flow (`QueueChannel`, `ExecutorChannel`, and others).
 
 === AMQP Samples
 
@@ -1416,9 +1416,10 @@ For detailed RabbitMQ installation procedures, see https://www.rabbitmq.com/inst
 Once the sample application is started, enter some text on the command prompt and a message containing that entered text is dispatched to the AMQP queue.
 In return, that message is retrieved by Spring Integration and printed to the console.
 
-The following image illustrates the basic set of Spring Integration components used in this sample.
+The following image illustrates the basic set of Spring Integration components used in this sample:
 
-.The Spring Integration graph of the AMQP sample image::images/spring-integration-amqp-sample-graph.png[]
+.The Spring Integration graph of the AMQP sample
+image::images/spring-integration-amqp-sample-graph.png[align="center"]
 
 [[rmq-streams]]
 === RabbitMQ Stream Queue Support
