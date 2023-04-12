@@ -26,6 +26,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.kafka.inbound.KafkaInboundGateway;
+import org.springframework.integration.support.ObjectStringMapBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConsumerSeekAware;
@@ -163,9 +164,10 @@ public class KafkaInboundGatewaySpec<K, V, R, S extends KafkaInboundGatewaySpec<
 
 		@Override
 		public Map<Object, String> getComponentsToRegister() {
-			return Map.of(
-					this.containerSpec.getObject(), this.containerSpec.getId(),
-					this.templateSpec.getObject(), this.templateSpec.getId());
+			return new ObjectStringMapBuilder()
+					.put(this.containerSpec.getObject(), this.containerSpec.getId())
+					.put(this.templateSpec.getObject(), this.templateSpec.getId())
+					.get();
 		}
 
 	}
