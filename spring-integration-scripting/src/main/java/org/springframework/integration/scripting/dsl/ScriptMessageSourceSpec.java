@@ -67,7 +67,7 @@ public class ScriptMessageSourceSpec extends MessageSourceSpec<ScriptMessageSour
 	 * The {@link ScriptVariableGenerator} to use.
 	 * @param variableGenerator the {@link ScriptVariableGenerator}
 	 * @return the current spec
-	 * @see ScriptSpec#variableGenerator(ScriptVariableGenerator) 
+	 * @see ScriptSpec#variableGenerator(ScriptVariableGenerator)
 	 */
 	public ScriptMessageSourceSpec variableGenerator(ScriptVariableGenerator variableGenerator) {
 		this.delegate.variableGenerator(variableGenerator);
