@@ -45,16 +45,18 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Tim Ysewyn
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
-public class ConnectionFacforyTests {
+public class ConnectionFactoryTests {
 
 	@Test
 	public void test() throws Exception {
 		ApplicationEventPublisher publisher = e -> {
 		};
-		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).get();
+		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).getObject();
 		final AtomicReference<Message<?>> received = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(m -> {
@@ -66,7 +68,7 @@ public class ConnectionFacforyTests {
 		server.afterPropertiesSet();
 		server.start();
 		TestingUtilities.waitListening(server, null);
-		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).get();
+		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).getObject();
 		client.setApplicationEventPublisher(publisher);
 		client.afterPropertiesSet();
 		client.start();
@@ -78,20 +80,20 @@ public class ConnectionFacforyTests {
 	}
 
 	@Test
-	public void shouldReturnNioFlavor() throws Exception {
-		AbstractServerConnectionFactory server = Tcp.nioServer(0).get();
+	public void shouldReturnNioFlavor() {
+		AbstractServerConnectionFactory server = Tcp.nioServer(0).getObject();
 		assertThat(server instanceof TcpNioServerConnectionFactory).isTrue();
 
-		AbstractClientConnectionFactory client = Tcp.nioClient("localhost", server.getPort()).get();
+		AbstractClientConnectionFactory client = Tcp.nioClient("localhost", server.getPort()).getObject();
 		assertThat(client instanceof TcpNioClientConnectionFactory).isTrue();
 	}
 
 	@Test
-	public void shouldReturnNetFlavor() throws Exception {
-		AbstractServerConnectionFactory server = Tcp.netServer(0).get();
+	public void shouldReturnNetFlavor() {
+		AbstractServerConnectionFactory server = Tcp.netServer(0).getObject();
 		assertThat(server instanceof TcpNetServerConnectionFactory).isTrue();
 
-		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).get();
+		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).getObject();
 		assertThat(client instanceof TcpNetClientConnectionFactory).isTrue();
 	}
 
@@ -104,7 +106,7 @@ public class ConnectionFacforyTests {
 				.socketSupport(sockSupp)
 				.connectionSupport(conSupp)
 				.socketFactorySupport(factSupp)
-				.get();
+				.getObject();
 		assertThat(TestUtils.getPropertyValue(server, "tcpSocketSupport")).isSameAs(sockSupp);
 		assertThat(TestUtils.getPropertyValue(server, "tcpNetConnectionSupport")).isSameAs(conSupp);
 		assertThat(TestUtils.getPropertyValue(server, "tcpSocketFactorySupport")).isSameAs(factSupp);
@@ -118,7 +120,7 @@ public class ConnectionFacforyTests {
 				.socketSupport(sockSupp)
 				.directBuffers(true)
 				.connectionSupport(conSupp)
-				.get();
+				.getObject();
 		assertThat(TestUtils.getPropertyValue(server, "tcpSocketSupport")).isSameAs(sockSupp);
 		assertThat(TestUtils.getPropertyValue(server, "usingDirectBuffers", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(server, "tcpNioConnectionSupport")).isSameAs(conSupp);
@@ -133,7 +135,7 @@ public class ConnectionFacforyTests {
 				.socketSupport(sockSupp)
 				.connectionSupport(conSupp)
 				.socketFactorySupport(factSupp)
-				.get();
+				.getObject();
 		assertThat(TestUtils.getPropertyValue(client, "tcpSocketSupport")).isSameAs(sockSupp);
 		assertThat(TestUtils.getPropertyValue(client, "tcpNetConnectionSupport")).isSameAs(conSupp);
 		assertThat(TestUtils.getPropertyValue(client, "tcpSocketFactorySupport")).isSameAs(factSupp);
@@ -147,7 +149,7 @@ public class ConnectionFacforyTests {
 				.socketSupport(sockSupp)
 				.directBuffers(true)
 				.connectionSupport(conSupp)
-				.get();
+				.getObject();
 		assertThat(TestUtils.getPropertyValue(client, "tcpSocketSupport")).isSameAs(sockSupp);
 		assertThat(TestUtils.getPropertyValue(client, "usingDirectBuffers", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(client, "tcpNioConnectionSupport")).isSameAs(conSupp);

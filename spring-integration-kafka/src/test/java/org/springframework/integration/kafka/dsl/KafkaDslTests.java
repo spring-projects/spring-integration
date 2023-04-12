@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,12 +38,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.kafka.channel.PollableKafkaChannel;
+import org.springframework.integration.kafka.channel.PublishSubscribeKafkaChannel;
 import org.springframework.integration.kafka.inbound.KafkaErrorSendingMessageRecoverer;
 import org.springframework.integration.kafka.inbound.KafkaInboundGateway;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
@@ -427,10 +427,11 @@ public class KafkaDslTests {
 		@Bean
 		public IntegrationFlow channels(KafkaTemplate<Integer, String> template,
 				ConcurrentKafkaListenerContainerFactory<Integer, String> containerFactory,
-				KafkaMessageSource<?, ?> channelSource) {
+				KafkaMessageSource<?, ?> channelSource,
+				PublishSubscribeKafkaChannel publishSubscribeKafkaChannel) {
 
 			return IntegrationFlow.from(topic6Channel(template, containerFactory))
-					.publishSubscribeChannel(pubSub(template, containerFactory), channel -> channel
+					.publishSubscribeChannel(publishSubscribeKafkaChannel, channel -> channel
 							.subscribe(f -> f.channel(
 									Kafka.pollableChannel(template, channelSource).id("topic8Channel")))
 							.subscribe(f -> f.channel(
@@ -439,11 +440,10 @@ public class KafkaDslTests {
 		}
 
 		@Bean
-		public BroadcastCapableChannel pubSub(KafkaTemplate<Integer, String> template,
+		public KafkaPublishSubscribeChannelSpec pubSub(KafkaTemplate<Integer, String> template,
 				ConcurrentKafkaListenerContainerFactory<Integer, String> containerFactory) {
 
-			return Kafka.publishSubscribeChannel(template, containerFactory, TEST_TOPIC7)
-					.get();
+			return Kafka.publishSubscribeChannel(template, containerFactory, TEST_TOPIC7);
 		}
 
 		@Bean

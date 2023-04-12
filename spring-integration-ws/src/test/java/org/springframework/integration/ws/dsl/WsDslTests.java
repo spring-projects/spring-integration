@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,12 +59,12 @@ public class WsDslTests {
 		Unmarshaller unmarshaller = mock(Unmarshaller.class);
 		MarshallingWebServiceInboundGateway gateway = Ws.marshallingInboundGateway(marshaller)
 				.unmarshaller(unmarshaller)
-				.get();
+				.getObject();
 		assertThat(TestUtils.getPropertyValue(gateway, "marshaller")).isSameAs(marshaller);
 		assertThat(TestUtils.getPropertyValue(gateway, "unmarshaller")).isSameAs(unmarshaller);
 
 		marshaller = mock(Both.class);
-		gateway = Ws.marshallingInboundGateway(marshaller).get();
+		gateway = Ws.marshallingInboundGateway(marshaller).getObject();
 		assertThat(TestUtils.getPropertyValue(gateway, "marshaller")).isSameAs(marshaller);
 		assertThat(TestUtils.getPropertyValue(gateway, "unmarshaller")).isSameAs(marshaller);
 	}
@@ -73,7 +73,7 @@ public class WsDslTests {
 	void simpleInbound() {
 		SimpleWebServiceInboundGateway gateway = Ws.simpleInboundGateway()
 				.extractPayload(false)
-				.get();
+				.getObject();
 		assertThat(TestUtils.getPropertyValue(gateway, "extractPayload", Boolean.class)).isFalse();
 	}
 
@@ -104,7 +104,7 @@ public class WsDslTests {
 						.messageSenders(messageSender)
 						.requestCallback(requestCallback)
 						.uriVariableExpressions(uriVariableExpressions)
-						.get();
+						.getObject();
 		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller")).isSameAs(marshaller);
 		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller")).isSameAs(unmarshaller);
 		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory")).isSameAs(messageFactory);
@@ -147,7 +147,7 @@ public class WsDslTests {
 						.requestCallback(requestCallback)
 						.uriVariableExpressions(uriVariableExpressions)
 						.extractPayload(false)
-						.get();
+						.getObject();
 		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory")).isSameAs(messageFactory);
 		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.faultMessageResolver"))
 				.isSameAs(faultMessageResolver);
@@ -178,7 +178,7 @@ public class WsDslTests {
 						.ignoreEmptyResponses(true)
 						.requestCallback(requestCallback)
 						.uriVariableExpressions(uriVariableExpressions)
-						.get();
+						.getObject();
 		assertThat(TestUtils.getPropertyValue(gateway, "uri")).isSameAs(uri);
 		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
 		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
@@ -209,7 +209,7 @@ public class WsDslTests {
 						.requestCallback(requestCallback)
 						.uriVariableExpressions(uriVariableExpressions)
 						.extractPayload(false)
-						.get();
+						.getObject();
 		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(headerMapper);
 		assertThat(TestUtils.getPropertyValue(gateway, "requestCallback")).isSameAs(requestCallback);
 		assertThat(TestUtils.getPropertyValue(gateway, "uriVariableExpressions")).isEqualTo(uriVariableExpressions);
@@ -225,4 +225,3 @@ public class WsDslTests {
 	}
 
 }
-

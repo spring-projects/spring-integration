@@ -31,11 +31,12 @@ import org.springframework.util.Assert;
  * Registers {@link IntegrationFlowBeanPostProcessor} and checks if all
  * {@link org.springframework.integration.dsl.IntegrationComponentSpec} are extracted to
  * the target object using
- * {@link org.springframework.integration.dsl.IntegrationComponentSpec#get()}.
+ * {@link org.springframework.integration.dsl.IntegrationComponentSpec#getObject()}.
  *
  * @author Artem Bilan
  * @author Gary Russell
  * @author Chris Bono
+ *
  * @since 5.0
  *
  * @see org.springframework.integration.config.IntegrationConfigurationBeanFactoryPostProcessor

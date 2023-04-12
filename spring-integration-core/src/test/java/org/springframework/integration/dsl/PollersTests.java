@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,19 +35,19 @@ public class PollersTests {
 
 	@Test
 	public void testDurations() {
-		PeriodicTrigger trigger = (PeriodicTrigger) Pollers.fixedDelay(Duration.ofMinutes(1L)).get().getTrigger();
+		PeriodicTrigger trigger = (PeriodicTrigger) Pollers.fixedDelay(Duration.ofMinutes(1L)).getObject().getTrigger();
 		assertThat(trigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(trigger.isFixedRate()).isFalse();
 		trigger = (PeriodicTrigger) Pollers.fixedDelay(Duration.ofMinutes(1L), Duration.ofSeconds(10L))
-				.get().getTrigger();
+				.getObject().getTrigger();
 		assertThat(trigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(trigger.getInitialDelayDuration()).isEqualTo(Duration.ofSeconds(10));
 		assertThat(trigger.isFixedRate()).isFalse();
-		trigger = (PeriodicTrigger) Pollers.fixedRate(Duration.ofMinutes(1L)).get().getTrigger();
+		trigger = (PeriodicTrigger) Pollers.fixedRate(Duration.ofMinutes(1L)).getObject().getTrigger();
 		assertThat(trigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(trigger.isFixedRate()).isTrue();
 		trigger = (PeriodicTrigger) Pollers.fixedRate(Duration.ofMinutes(1L), Duration.ofSeconds(10L))
-				.get().getTrigger();
+				.getObject().getTrigger();
 		assertThat(trigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(trigger.getInitialDelayDuration()).isEqualTo(Duration.ofSeconds(10));
 		assertThat(trigger.isFixedRate()).isTrue();

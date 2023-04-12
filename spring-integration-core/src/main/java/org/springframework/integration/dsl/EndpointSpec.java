@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 		if (components != null) {
 			this.componentsToRegister.putAll(components);
 		}
-		return poller(pollerMetadataSpec.get());
+		return poller(pollerMetadataSpec.getObject());
 	}
 
 	/**

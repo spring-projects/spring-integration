@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -208,7 +208,7 @@ public final class Jms {
 	public static JmsMessageDrivenChannelAdapterSpec<?> messageDrivenChannelAdapter(
 			JmsListenerContainerSpec<?, ? extends AbstractMessageListenerContainer> jmsListenerContainerSpec) {
 
-		return new JmsMessageDrivenChannelAdapterSpec<>(jmsListenerContainerSpec.get());
+		return new JmsMessageDrivenChannelAdapterSpec<>(jmsListenerContainerSpec.getObject());
 	}
 
 	/**
@@ -216,7 +216,9 @@ public final class Jms {
 	 * @param listenerContainer the {@link AbstractMessageListenerContainer} to build on
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */
-	public static JmsMessageDrivenChannelAdapterSpec<?> messageDrivenChannelAdapter(AbstractMessageListenerContainer listenerContainer) {
+	public static JmsMessageDrivenChannelAdapterSpec<?> messageDrivenChannelAdapter(
+			AbstractMessageListenerContainer listenerContainer) {
+
 		return new JmsMessageDrivenChannelAdapterSpec<>(listenerContainer);
 	}
 
@@ -227,14 +229,10 @@ public final class Jms {
 	 */
 	public static JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>
 	messageDrivenChannelAdapter(ConnectionFactory connectionFactory) {
-		try {
-			return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<>(
-					new JmsDefaultListenerContainerSpec()
-							.connectionFactory(connectionFactory));
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+
+		return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<>(
+				new JmsDefaultListenerContainerSpec()
+						.connectionFactory(connectionFactory));
 	}
 
 	/**
@@ -249,15 +247,11 @@ public final class Jms {
 	public static <C extends AbstractMessageListenerContainer>
 	JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<?, C>
 	messageDrivenChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {
-		try {
-			JmsListenerContainerSpec<?, C> spec =
-					new JmsListenerContainerSpec<>(containerClass)
-							.connectionFactory(connectionFactory);
-			return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec(spec);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+
+		JmsListenerContainerSpec<?, C> spec =
+				new JmsListenerContainerSpec<>(containerClass)
+						.connectionFactory(connectionFactory);
+		return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec(spec);
 	}
 
 	/**
@@ -268,14 +262,10 @@ public final class Jms {
 	 */
 	public static JmsDefaultListenerContainerSpec container(ConnectionFactory connectionFactory,
 			Destination destination) {
-		try {
-			return new JmsDefaultListenerContainerSpec()
-					.connectionFactory(connectionFactory)
-					.destination(destination);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+
+		return new JmsDefaultListenerContainerSpec()
+				.connectionFactory(connectionFactory)
+				.destination(destination);
 	}
 
 	/**
@@ -286,14 +276,10 @@ public final class Jms {
 	 */
 	public static JmsDefaultListenerContainerSpec container(ConnectionFactory connectionFactory,
 			String destinationName) {
-		try {
-			return new JmsDefaultListenerContainerSpec()
-					.connectionFactory(connectionFactory)
-					.destination(destinationName);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+
+		return new JmsDefaultListenerContainerSpec()
+				.connectionFactory(connectionFactory)
+				.destination(destinationName);
 	}
 
 	private Jms() {

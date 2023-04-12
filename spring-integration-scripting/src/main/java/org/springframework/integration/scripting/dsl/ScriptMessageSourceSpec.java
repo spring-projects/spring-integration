@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class ScriptMessageSourceSpec extends MessageSourceSpec<ScriptMessageSour
 	 * The {@link ScriptVariableGenerator} to use.
 	 * @param variableGenerator the {@link ScriptVariableGenerator}
 	 * @return the current spec
-	 * @see ScriptSpec#variableGenerator
+	 * @see ScriptSpec#variableGenerator(ScriptVariableGenerator) 
 	 */
 	public ScriptMessageSourceSpec variableGenerator(ScriptVariableGenerator variableGenerator) {
 		this.delegate.variableGenerator(variableGenerator);
@@ -121,12 +121,12 @@ public class ScriptMessageSourceSpec extends MessageSourceSpec<ScriptMessageSour
 
 	@Override
 	protected MessageSource<?> doGet() {
-		return new MessageProcessorMessageSource(this.delegate.get());
+		return new MessageProcessorMessageSource(this.delegate.getObject());
 	}
 
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
-		return Collections.singletonMap(this.delegate.get(), this.delegate.getId());
+		return Collections.singletonMap(this.delegate.getObject(), this.delegate.getId());
 	}
 
 }

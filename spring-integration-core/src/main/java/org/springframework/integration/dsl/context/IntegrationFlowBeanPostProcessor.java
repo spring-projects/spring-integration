@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,14 +113,14 @@ public class IntegrationFlowBeanPostProcessor
 
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof StandardIntegrationFlow) {
-			return processStandardIntegrationFlow((StandardIntegrationFlow) bean, beanName);
+		if (bean instanceof StandardIntegrationFlow standardIntegrationFlow) {
+			return processStandardIntegrationFlow(standardIntegrationFlow, beanName);
 		}
-		else if (bean instanceof IntegrationFlow) {
-			return processIntegrationFlowImpl((IntegrationFlow) bean, beanName);
+		else if (bean instanceof IntegrationFlow integrationFlow) {
+			return processIntegrationFlowImpl(integrationFlow, beanName);
 		}
-		if (bean instanceof IntegrationComponentSpec) {
-			processIntegrationComponentSpec(beanName, (IntegrationComponentSpec<?, ?>) bean);
+		if (bean instanceof IntegrationComponentSpec<?, ?> integrationComponentSpec) {
+			processIntegrationComponentSpec(beanName, integrationComponentSpec);
 		}
 		return bean;
 	}
@@ -156,8 +156,8 @@ public class IntegrationFlowBeanPostProcessor
 		for (Map.Entry<Object, String> entry : integrationComponents.entrySet()) {
 			Object component = entry.getKey();
 			if (component instanceof ConsumerEndpointSpec<?, ?> endpointSpec) {
-				MessageHandler messageHandler = endpointSpec.get().getT2();
-				ConsumerEndpointFactoryBean endpoint = endpointSpec.get().getT1();
+				MessageHandler messageHandler = endpointSpec.getObject().getT2();
+				ConsumerEndpointFactoryBean endpoint = endpointSpec.getObject().getT1();
 				String id = endpointSpec.getId();
 
 				if (id == null) {
@@ -177,8 +177,8 @@ public class IntegrationFlowBeanPostProcessor
 				registerComponent(endpoint, id, flowBeanName);
 				targetIntegrationComponents.put(endpoint, id);
 			}
-			else if (component instanceof MessageChannelReference) {
-				String channelBeanName = ((MessageChannelReference) component).getName();
+			else if (component instanceof MessageChannelReference messageChannelReference) {
+				String channelBeanName = messageChannelReference.getName();
 				if (!this.beanFactory.containsBean(channelBeanName)) {
 					DirectChannel directChannel = new DirectChannel();
 					registerComponent(directChannel, channelBeanName, flowBeanName);
@@ -196,7 +196,7 @@ public class IntegrationFlowBeanPostProcessor
 											generateBeanName(o.getKey(), flowNamePrefix, o.getValue(),
 													useFlowIdAsPrefix)));
 				}
-				SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean = spec.get().getT1();
+				SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean = spec.getObject().getT1();
 				String id = spec.getId();
 				if (id == null) {
 					id = generateBeanName(pollingChannelAdapterFactoryBean, flowNamePrefix, entry.getValue(),
@@ -209,12 +209,13 @@ public class IntegrationFlowBeanPostProcessor
 				registerComponent(pollingChannelAdapterFactoryBean, id, flowBeanName);
 				targetIntegrationComponents.put(pollingChannelAdapterFactoryBean, id);
 
-				MessageSource<?> messageSource = spec.get().getT2();
+				MessageSource<?> messageSource = spec.getObject().getT2();
 				if (noBeanPresentForComponent(messageSource, flowBeanName)) {
 					String messageSourceId = id + ".source";
-					if (messageSource instanceof NamedComponent
-							&& ((NamedComponent) messageSource).getComponentName() != null) {
-						messageSourceId = ((NamedComponent) messageSource).getComponentName();
+					if (messageSource instanceof NamedComponent namedComponent
+							&& namedComponent.getComponentName() != null) {
+
+						messageSourceId = namedComponent.getComponentName();
 					}
 					registerComponent(messageSource, messageSourceId, flowBeanName);
 				}
@@ -342,7 +343,7 @@ public class IntegrationFlowBeanPostProcessor
 	}
 
 	private void processIntegrationComponentSpec(String beanName, IntegrationComponentSpec<?, ?> bean) {
-		Object target = bean.get();
+		Object target = bean.getObject();
 
 		invokeBeanInitializationHooks(beanName, target);
 

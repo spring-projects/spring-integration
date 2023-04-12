@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,13 @@ public abstract class AmqpInboundChannelAdapterSpec
 	protected final MessageListenerContainerSpec<?, C> listenerContainerSpec; // NOSONAR final
 
 	protected AmqpInboundChannelAdapterSpec(MessageListenerContainerSpec<?, C> listenerContainerSpec) {
-		super(new AmqpInboundChannelAdapter(listenerContainerSpec.get()));
+		super(new AmqpInboundChannelAdapter(listenerContainerSpec.getObject()));
 		this.listenerContainerSpec = listenerContainerSpec;
 	}
 
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
-		return Collections.singletonMap(this.listenerContainerSpec.get(), this.listenerContainerSpec.getId());
+		return Collections.singletonMap(this.listenerContainerSpec.getObject(), this.listenerContainerSpec.getId());
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.dsl;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -233,7 +232,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * at the current {@link IntegrationFlow} chain position.
 	 * The provided {@code messageChannelName} is used for the bean registration
 	 * ({@link org.springframework.integration.channel.DirectChannel}), if there is no such a bean
-	 * in the application context. Otherwise the existing {@link MessageChannel} bean is used
+	 * in the application context. Otherwise, the existing {@link MessageChannel} bean is used
 	 * to wire integration endpoints.
 	 * @param messageChannelName the bean name to use.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
@@ -252,7 +251,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public B channel(MessageChannelSpec<?, ?> messageChannelSpec) {
 		Assert.notNull(messageChannelSpec, "'messageChannelSpec' must not be null");
-		return channel(messageChannelSpec.get());
+		return channel(messageChannelSpec.getObject());
 	}
 
 	/**
@@ -367,7 +366,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * }
 	 * </pre>
 	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
-	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * but with the caution do not impact existing {@link ChannelInterceptor}s.
 	 * @param wireTapChannel the {@link MessageChannel} bean name to wire-tap.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
@@ -377,8 +376,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@code Wire Tap} EI Pattern specific
-	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
-	 * to the current {@link #currentMessageChannel}.
+	 * {@link ChannelInterceptor} implementation to the current {@link #currentMessageChannel}.
 	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
 	 * <pre class="code">
 	 * {@code
@@ -388,7 +386,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * }
 	 * </pre>
 	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
-	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * but with the caution do not impact existing {@link ChannelInterceptor}s.
 	 * @param wireTapChannel the {@link MessageChannel} to wire-tap.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
@@ -398,8 +396,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@code Wire Tap} EI Pattern specific
-	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
-	 * to the current {@link #currentMessageChannel}.
+	 * {@link ChannelInterceptor} implementation to the current {@link #currentMessageChannel}.
 	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
 	 * <pre class="code">
 	 * {@code
@@ -409,7 +406,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * }
 	 * </pre>
 	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
-	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * but with the caution do not impact existing {@link ChannelInterceptor}s.
 	 * @param flow the {@link IntegrationFlow} for wire-tap subflow as an alternative to the {@code wireTapChannel}.
 	 * @param wireTapConfigurer the {@link Consumer} to accept options for the {@link WireTap}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
@@ -438,8 +435,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@code Wire Tap} EI Pattern specific
-	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
-	 * to the current {@link #currentMessageChannel}.
+	 * {@link ChannelInterceptor} implementation to the current {@link #currentMessageChannel}.
 	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
 	 * <pre class="code">
 	 * {@code
@@ -449,7 +445,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * }
 	 * </pre>
 	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
-	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * but with the caution do not impact existing {@link ChannelInterceptor}s.
 	 * @param wireTapChannel the {@link MessageChannel} bean name to wire-tap.
 	 * @param wireTapConfigurer the {@link Consumer} to accept options for the {@link WireTap}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
@@ -462,8 +458,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@code Wire Tap} EI Pattern specific
-	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
-	 * to the current {@link #currentMessageChannel}.
+	 * {@link ChannelInterceptor} implementation to the current {@link #currentMessageChannel}.
 	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
 	 * <pre class="code">
 	 * {@code
@@ -473,7 +468,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * }
 	 * </pre>
 	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
-	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * but with the caution do not impact existing {@link ChannelInterceptor}s.
 	 * @param wireTapChannel the {@link MessageChannel} to wire-tap.
 	 * @param wireTapConfigurer the {@link Consumer} to accept options for the {@link WireTap}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
@@ -489,8 +484,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@code Wire Tap} EI Pattern specific
-	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
-	 * to the current {@link #currentMessageChannel}.
+	 * {@link ChannelInterceptor} implementation to the current {@link #currentMessageChannel}.
 	 * <p> It is useful when an implicit {@link MessageChannel} is used between endpoints:
 	 * <pre class="code">
 	 * {@code
@@ -500,14 +494,16 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * }
 	 * </pre>
 	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
-	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * but with the caution do not impact existing {@link ChannelInterceptor}s.
 	 * @param wireTapSpec the {@link WireTapSpec} to use.
-	 * <p> When this EIP-method is used in the end of flow, it appends {@code nullChannel} to terminate flow properly,
-	 * Otherwise {@code Dispatcher has no subscribers} exception is thrown for implicit {@link DirectChannel}.
+	 * <p> When this EIP-method is used in the end of flow,
+	 * it appends a {@code nullChannel} to terminate flow properly,
+	 * Otherwise a {@code Dispatcher has no subscribers} exception
+	 * is thrown for implicit {@link DirectChannel}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B wireTap(WireTapSpec wireTapSpec) {
-		WireTap interceptor = wireTapSpec.get();
+		WireTap interceptor = wireTapSpec.getObject();
 		InterceptableChannel currentChannel = currentInterceptableChannel();
 		addComponent(wireTapSpec);
 		currentChannel.addInterceptor(interceptor);
@@ -613,7 +609,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the
-	 * {@link org.springframework.integration.handler.MessageProcessor} from provided {@link MessageProcessorSpec}.
+	 * {@link MessageProcessor} from provided {@link MessageProcessorSpec}.
 	 * <pre class="code">
 	 * {@code
 	 *  .transform(Scripts.script("classpath:myScript.py").variable("foo", bar()))
@@ -629,7 +625,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the
-	 * {@link org.springframework.integration.handler.MessageProcessor} from provided {@link MessageProcessorSpec}.
+	 * {@link MessageProcessor} from provided {@link MessageProcessorSpec}.
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * <pre class="code">
 	 * {@code
@@ -646,7 +642,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
-		MessageProcessor<?> processor = messageProcessorSpec.get();
+		MessageProcessor<?> processor = messageProcessorSpec.getObject();
 		return addComponent(processor)
 				.transform(null, new MethodInvokingTransformer(processor), endpointConfigurer);
 	}
@@ -832,7 +828,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public B filter(MessageProcessorSpec<?> messageProcessorSpec, Consumer<FilterEndpointSpec> endpointConfigurer) {
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
-		MessageProcessor<?> processor = messageProcessorSpec.get();
+		MessageProcessor<?> processor = messageProcessorSpec.getObject();
 		return addComponent(processor)
 				.filter(null, new MethodInvokingSelector(processor), endpointConfigurer);
 	}
@@ -1089,7 +1085,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
-		MessageProcessor<?> processor = messageProcessorSpec.get();
+		MessageProcessor<?> processor = messageProcessorSpec.getObject();
 		return addComponent(processor)
 				.handle(new ServiceActivatingHandler(processor), endpointConfigurer);
 	}
@@ -1118,7 +1114,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		if (messageHandlerSpec instanceof ComponentsRegistration) {
 			addComponents(((ComponentsRegistration) messageHandlerSpec).getComponentsToRegister());
 		}
-		return handle(messageHandlerSpec.get(), endpointConfigurer);
+		return handle(messageHandlerSpec.getObject(), endpointConfigurer);
 	}
 
 	/**
@@ -1287,7 +1283,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 		HeaderEnricherSpec headerEnricherSpec = new HeaderEnricherSpec();
 		headerEnricherSpec.headers(headers);
-		Tuple2<ConsumerEndpointFactoryBean, MessageTransformingHandler> tuple2 = headerEnricherSpec.get();
+		Tuple2<ConsumerEndpointFactoryBean, MessageTransformingHandler> tuple2 = headerEnricherSpec.getObject();
 		return addComponents(headerEnricherSpec.getComponentsToRegister())
 				.handle(tuple2.getT2(), endpointConfigurer);
 	}
@@ -1478,7 +1474,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
-		MessageProcessor<?> processor = messageProcessorSpec.get();
+		MessageProcessor<?> processor = messageProcessorSpec.getObject();
 		return addComponent(processor)
 				.split(new MethodInvokingSplitter(processor), endpointConfigurer);
 	}
@@ -1569,7 +1565,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec,
 			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
 		Assert.notNull(splitterMessageHandlerSpec, "'splitterMessageHandlerSpec' must not be null");
-		return split(splitterMessageHandlerSpec.get(), endpointConfigurer);
+		return split(splitterMessageHandlerSpec.getObject(), endpointConfigurer);
 	}
 
 	/**
@@ -1960,7 +1956,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
 
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
-		MessageProcessor<?> processor = messageProcessorSpec.get();
+		MessageProcessor<?> processor = messageProcessorSpec.getObject();
 		addComponent(processor);
 
 		return route(new RouterSpec<>(new MethodInvokingRouter(processor)), routerConfigurer);
@@ -2713,7 +2709,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		if (gatherer != null) {
 			gatherer.accept(aggregatorSpec);
 		}
-		AggregatingMessageHandler aggregatingMessageHandler = aggregatorSpec.get().getT2();
+		AggregatingMessageHandler aggregatingMessageHandler = aggregatorSpec.getObject().getT2();
 		addComponent(aggregatingMessageHandler);
 		ScatterGatherHandler messageHandler = new ScatterGatherHandler(scatterChannel, aggregatingMessageHandler);
 		return register(new ScatterGatherSpec(messageHandler), scatterGather);
@@ -2766,10 +2762,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		if (gatherer != null) {
 			gatherer.accept(aggregatorSpec);
 		}
-		RecipientListRouter recipientListRouter = recipientListRouterSpec.get().getT2();
+		RecipientListRouter recipientListRouter = recipientListRouterSpec.getObject().getT2();
 		addComponent(recipientListRouter)
 				.addComponents(recipientListRouterSpec.getComponentsToRegister());
-		AggregatingMessageHandler aggregatingMessageHandler = aggregatorSpec.get().getT2();
+		AggregatingMessageHandler aggregatingMessageHandler = aggregatorSpec.getObject().getT2();
 		addComponent(aggregatingMessageHandler);
 		ScatterGatherHandler messageHandler = new ScatterGatherHandler(recipientListRouter, aggregatingMessageHandler);
 		return register(new ScatterGatherSpec(messageHandler), scatterGather);
@@ -2974,16 +2970,16 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			this.registerOutputChannelIfCan(inputChannel);
 		}
 
-		Tuple2<ConsumerEndpointFactoryBean, ? extends MessageHandler> factoryBeanTuple2 = endpointSpec.get();
+		Tuple2<ConsumerEndpointFactoryBean, ? extends MessageHandler> factoryBeanTuple2 = endpointSpec.getObject();
 
 		addComponents(endpointSpec.getComponentsToRegister());
 
-		if (inputChannel instanceof MessageChannelReference) {
-			factoryBeanTuple2.getT1().setInputChannelName(((MessageChannelReference) inputChannel).getName());
+		if (inputChannel instanceof MessageChannelReference messageChannelReference) {
+			factoryBeanTuple2.getT1().setInputChannelName(messageChannelReference.getName());
 		}
 		else {
-			if (inputChannel instanceof FixedSubscriberChannelPrototype) {
-				String beanName = ((FixedSubscriberChannelPrototype) inputChannel).getName();
+			if (inputChannel instanceof FixedSubscriberChannelPrototype fixedSubscriberChannel) {
+				String beanName = fixedSubscriberChannel.getName();
 				inputChannel = new FixedSubscriberChannel(factoryBeanTuple2.getT2());
 				if (beanName != null) {
 					((FixedSubscriberChannel) inputChannel).setBeanName(beanName);
@@ -3002,8 +2998,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			Object currComponent = getCurrentComponent();
 			if (currComponent != null) {
 				String channelName = null;
-				if (outputChannel instanceof MessageChannelReference) {
-					channelName = ((MessageChannelReference) outputChannel).getName();
+				if (outputChannel instanceof MessageChannelReference channelReference) {
+					channelName = channelReference.getName();
 				}
 
 				if (currComponent instanceof MessageProducer messageProducer) {
@@ -3015,9 +3011,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 						messageProducer.setOutputChannel(outputChannel);
 					}
 				}
-				else if (currComponent instanceof SourcePollingChannelAdapterSpec) {
+				else if (currComponent instanceof SourcePollingChannelAdapterSpec sourcePollingChannelAdapterSpec) {
 					SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean =
-							((SourcePollingChannelAdapterSpec) currComponent).get().getT1();
+							sourcePollingChannelAdapterSpec.getObject().getT1();
 					if (channelName != null) {
 						pollingChannelAdapterFactoryBean.setOutputChannelName(channelName);
 					}
@@ -3081,13 +3077,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			}
 
 			if (isImplicitChannel()) {
-				Optional<Object> lastComponent =
-						components.keySet()
-								.stream()
-								.reduce((first, second) -> second);
-				if (lastComponent.get() instanceof WireTapSpec) {
-					bridge();
-				}
+				components.keySet()
+						.stream()
+						.reduce((first, second) -> second)
+						.filter(WireTapSpec.class::isInstance)
+						.ifPresent((wireTap) -> bridge());
 			}
 
 			this.integrationFlow = new StandardIntegrationFlow(components);

@@ -36,7 +36,6 @@ import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Poller;
-import org.springframework.integration.channel.BroadcastCapableChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -46,11 +45,14 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.dsl.QueueChannelSpec;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.JmsDestinationPollingSource;
+import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -302,8 +304,8 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		}
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
-		public PollerMetadata poller() {
-			return Pollers.fixedDelay(1000).get();
+		public PollerSpec poller() {
+			return Pollers.fixedDelay(1000);
 		}
 
 		@Bean
@@ -338,30 +340,29 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		}
 
 		@Bean
-		public MessageChannel jmsOutboundInboundReplyChannel() {
-			return MessageChannels.queue().get();
+		public QueueChannelSpec jmsOutboundInboundReplyChannel() {
+			return MessageChannels.queue();
 		}
 
 		@Bean
-		public IntegrationFlow jmsInboundFlow() {
+		public IntegrationFlow jmsInboundFlow(QueueChannel jmsOutboundInboundReplyChannel) {
 			return IntegrationFlow
 					.from(Jms.inboundAdapter(amqFactory).destination("jmsInbound"))
 					.<String, String>transform(String::toUpperCase)
-					.channel(this.jmsOutboundInboundReplyChannel())
+					.channel(jmsOutboundInboundReplyChannel)
 					.get();
 		}
 
 		@Bean
-		public BroadcastCapableChannel jmsPublishSubscribeChannel() {
+		public JmsPublishSubscribeMessageChannelSpec jmsPublishSubscribeChannel() {
 			return Jms.publishSubscribeChannel(amqFactory)
-					.destination("pubsub")
-					.get();
+					.destination("pubsub");
 		}
 
 		@Bean
-		public IntegrationFlow pubSubFlow() {
+		public IntegrationFlow pubSubFlow(SubscribableJmsChannel jmsPublishSubscribeChannel) {
 			return f -> f
-					.publishSubscribeChannel(jmsPublishSubscribeChannel(),
+					.publishSubscribeChannel(jmsPublishSubscribeChannel,
 							pubsub -> pubsub
 									.subscribe(subFlow -> subFlow
 											.channel(c -> c.queue("jmsPubSubBridgeChannel")))
@@ -408,8 +409,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 					.from(Jms.messageDrivenChannelAdapter(
 							Jms.container(amqFactory, "containerSpecDestination")
 									.pubSubDomain(false)
-									.taskExecutor(Executors.newCachedThreadPool())
-									.get()))
+									.taskExecutor(Executors.newCachedThreadPool())))
 					.transform(String::trim)
 					.channel(jmsOutboundInboundReplyChannel())
 					.get();

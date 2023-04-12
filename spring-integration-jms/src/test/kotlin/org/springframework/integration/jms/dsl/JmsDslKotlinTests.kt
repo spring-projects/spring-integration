@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.integration.IntegrationMessageHeaderAccessor
+import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.MessageChannels
 import org.springframework.integration.dsl.integrationFlow
@@ -112,10 +113,10 @@ class JmsDslKotlinTests : ActiveMQMultiContextTests() {
 		}
 
 		@Bean
-		fun jmsOutboundInboundReplyChannel() = MessageChannels.queue().get()
+		fun jmsOutboundInboundReplyChannel() = MessageChannels.queue()
 
 		@Bean
-		fun jmsMessageDrivenFlowWithContainer() =
+		fun jmsMessageDrivenFlowWithContainer(jmsOutboundInboundReplyChannel: QueueChannel) =
 			integrationFlow(
 				Jms.messageDrivenChannelAdapter(
 					Jms.container(amqFactory, "containerSpecDestination")
@@ -125,7 +126,7 @@ class JmsDslKotlinTests : ActiveMQMultiContextTests() {
 					.headerMapper(jmsHeaderMapper())
 			) {
 				transform { it: String -> it.trim { it <= ' ' } }
-				channel(jmsOutboundInboundReplyChannel())
+				channel(jmsOutboundInboundReplyChannel)
 			}
 
 	}
