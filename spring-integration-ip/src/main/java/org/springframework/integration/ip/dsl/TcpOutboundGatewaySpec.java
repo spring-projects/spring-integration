@@ -58,7 +58,7 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	 */
 	public TcpOutboundGatewaySpec(TcpClientConnectionFactorySpec<?, ?> connectionFactorySpec) {
 		this.target = new TcpOutboundGateway();
-		this.connectionFactory = connectionFactorySpec.get();
+		this.connectionFactory = connectionFactorySpec.getObject();
 		this.target.setConnectionFactory(this.connectionFactory);
 	}
 
@@ -120,8 +120,21 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	 * @param channelName the name.
 	 * @return the spec.
 	 * @since 5.4
+	 * @deprecated in favor of {@link #unsolicitedMessageChannelName(String)}
+	 * due to the typo in method name.
 	 */
+	@Deprecated(since = "6.1", forRemoval = true)
 	public TcpOutboundGatewaySpec unsolictedMessageChannelName(String channelName) {
+		return unsolicitedMessageChannelName(channelName);
+	}
+
+	/**
+	 * Set the unsolicited message channel name.
+	 * @param channelName the name.
+	 * @return the spec.
+	 * @since 6.1
+	 */
+	public TcpOutboundGatewaySpec unsolicitedMessageChannelName(String channelName) {
 		this.target.setUnsolicitedMessageChannelName(channelName);
 		return this;
 	}
@@ -131,8 +144,21 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	 * @param channel the channel.
 	 * @return the spec.
 	 * @since 5.4
+	 * @deprecated in favor of {@link #unsolicitedMessageChannel(MessageChannel)}
+	 * due to the typo in method name.
 	 */
+	@Deprecated(since = "6.1", forRemoval = true)
 	public TcpOutboundGatewaySpec unsolictedMessageChannelName(MessageChannel channel) {
+		return unsolicitedMessageChannel(channel);
+	}
+
+	/**
+	 * Set the unsolicited message channel.
+	 * @param channel the channel.
+	 * @return the spec.
+	 * @since 6.1
+	 */
+	public TcpOutboundGatewaySpec unsolicitedMessageChannel(MessageChannel channel) {
 		this.target.setUnsolicitedMessageChannel(channel);
 		return this;
 	}
@@ -141,7 +167,7 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	public Map<Object, String> getComponentsToRegister() {
 		return this.connectionFactory != null
 				? Collections.singletonMap(this.connectionFactory, this.connectionFactory.getComponentName())
-				: null;
+				: Collections.emptyMap();
 	}
 
 }

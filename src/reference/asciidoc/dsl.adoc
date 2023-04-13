@@ -39,8 +39,8 @@ public class MyConfiguration {
     }
 
     @Bean
-    public IntegrationFlow myFlow() {
-        return IntegrationFlow.fromSupplier(integerSource()::getAndIncrement,
+    public IntegrationFlow myFlow(AtomicInteger integerSource) {
+        return IntegrationFlow.fromSupplier(integerSource::getAndIncrement,
                                          c -> c.poller(Pollers.fixedRate(100)))
                     .channel("inputChannel")
                     .filter((Integer p) -> p > 0)
@@ -62,6 +62,10 @@ You need not replace all of your existing XML configuration to use Java configur
 
 The `org.springframework.integration.dsl` package contains the `IntegrationFlowBuilder` API mentioned earlier and a number of `IntegrationComponentSpec` implementations, which are also builders and provide the fluent API to configure concrete endpoints.
 The `IntegrationFlowBuilder` infrastructure provides common https://www.enterpriseintegrationpatterns.com/[enterprise integration patterns] (EIP) for message-based applications, such as channels, endpoints, pollers, and channel interceptors.
+
+IMPORTANT:: The `IntegrationComponentSpec` is a `FactoryBean` implementation, therefore its `getObject()` method must not be called from bean definitions.
+The `IntegrationComponentSpec` implementation must be left as is for bean definitions and the framework will manage its lifecycle.
+Bean method parameter injection for the target `IntegrationComponentSpec` type (a `FactoryBean` value) must be used for `IntegrationFlow` bean definitions instead of bean method references.
 
 Endpoints are expressed as verbs in the DSL to improve readability.
 The following list includes the common DSL method names and the associated EIP endpoint:
@@ -163,10 +167,9 @@ The following example shows how to use it:
 [source,java]
 ----
 @Bean
-public MessageChannel priorityChannel() {
+public PriorityChannelSpec priorityChannel() {
     return MessageChannels.priority(this.mongoDbChannelMessageStore, "priorityGroup")
-                        .interceptor(wireTap())
-                        .get();
+                        .interceptor(wireTap());
 }
 ----
 ====
@@ -181,13 +184,13 @@ The following example shows the possible ways to use the `channel()` EIP method:
 [source,java]
 ----
 @Bean
-public MessageChannel queueChannel() {
-    return MessageChannels.queue().get();
+public QueueChannelSpec queueChannel() {
+    return MessageChannels.queue();
 }
 
 @Bean
-public MessageChannel publishSubscribe() {
-    return MessageChannels.publishSubscribe().get();
+public PublishSubscribeChannelSpec<?> publishSubscribe() {
+    return MessageChannels.publishSubscribe();
 }
 
 @Bean
@@ -261,7 +264,7 @@ public PollerSpec poller() {
 
 See https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/Pollers.html[`Pollers`] and https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/PollerSpec.html[`PollerSpec`] in the Javadoc for more information.
 
-IMPORTANT: If you use the DSL to construct a `PollerSpec` as a `@Bean`, do not call the `get()` method in the bean definition.
+IMPORTANT: If you use the DSL to construct a `PollerSpec` as a `@Bean`, do not call the `getObject()` method in the bean definition.
 The `PollerSpec` is a `FactoryBean` that generates the `PollerMetadata` object from the specification and initializes all of its properties.
 
 [[java-dsl-reactive]]
@@ -833,30 +836,21 @@ For example, we now can configure several subscribers as sub-flows on the `Jms.p
 [source,java]
 ----
 @Bean
-public BroadcastCapableChannel jmsPublishSubscribeChannel() {
+public JmsPublishSubscribeMessageChannelSpec jmsPublishSubscribeChannel() {
     return Jms.publishSubscribeChannel(jmsConnectionFactory())
-                .destination("pubsub")
-                .get();
+                .destination("pubsub");
 }
 
 @Bean
-public IntegrationFlow pubSubFlow() {
+public IntegrationFlow pubSubFlow(BroadcastCapableChannel jmsPublishSubscribeChannel) {
     return f -> f
-            .publishSubscribeChannel(jmsPublishSubscribeChannel(),
+            .publishSubscribeChannel(jmsPublishSubscribeChannel,
                     pubsub -> pubsub
                             .subscribe(subFlow -> subFlow
                                 .channel(c -> c.queue("jmsPubSubBridgeChannel1")))
                             .subscribe(subFlow -> subFlow
                                 .channel(c -> c.queue("jmsPubSubBridgeChannel2"))));
 }
-
-@Bean
-public BroadcastCapableChannel jmsPublishSubscribeChannel(ConnectionFactory jmsConnectionFactory) {
-    return (BroadcastCapableChannel) Jms.publishSubscribeChannel(jmsConnectionFactory)
-            .destination("pubsub")
-            .get();
-}
-
 ----
 ====
 

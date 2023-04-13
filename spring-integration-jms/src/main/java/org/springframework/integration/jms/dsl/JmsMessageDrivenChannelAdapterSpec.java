@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,9 +80,9 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 	}
 
 	/**
-	 * Set to false to prevent listener container shutdown when the endpoint is stopped.
+	 * Set to 'false' to prevent listener container shutdown when the endpoint is stopped.
 	 * Then, if so configured, any cached consumer(s) in the container will remain.
-	 * Otherwise the shared connection and will be closed and the listener invokers shut
+	 * Otherwise, the shared connection and will be closed and the listener invokers shut
 	 * down; this behavior is new starting with version 5.1. Default: true.
 	 * @param shutdown false to not shutdown.
 	 * @return the spec.
@@ -106,9 +106,9 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		private final S spec;
 
 		protected JmsMessageDrivenChannelAdapterListenerContainerSpec(S spec) {
-			super(spec.get());
+			super(spec.getObject());
 			this.spec = spec;
-			this.spec.get().setAutoStartup(false);
+			this.spec.getObject().setAutoStartup(false);
 
 		}
 
@@ -141,6 +141,7 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		 */
 		public JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C> configureListenerContainer(
 				Consumer<S> configurer) {
+
 			Assert.notNull(configurer, "'configurer' must not be null");
 			configurer.accept(this.spec);
 			return _this();
@@ -148,7 +149,7 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 
 		@Override
 		public Map<Object, String> getComponentsToRegister() {
-			return Collections.singletonMap(this.spec.get(), this.spec.getId());
+			return Collections.singletonMap(this.spec.getObject(), this.spec.getId());
 		}
 
 	}

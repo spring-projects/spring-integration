@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,21 @@
 
 package org.springframework.integration.dsl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
- * The common Builder abstraction. The {@link #get()} method returns the final component.
+ * The common Builder abstraction.
+ * If used as a bean definition, must be treated as an {@link FactoryBean},
+ * therefore its {@link #getObject()} method must not be called in the target configuration.
  *
  * @param <S> the target {@link IntegrationComponentSpec} implementation type.
  * @param <T> the target type.
@@ -35,10 +41,11 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  */
 @IntegrationDsl
 public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpec<S, T>, T>
-		extends AbstractFactoryBean<T>
-		implements SmartLifecycle {
+		implements FactoryBean<T>, InitializingBean, DisposableBean, SmartLifecycle {
 
 	protected static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
 	protected volatile T target; // NOSONAR
 
@@ -61,8 +68,25 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 
 	/**
 	 * @return the configured component.
+	 * @deprecated since 6.1 with no-op for end-user:
+	 * the {@link #getObject()} is called by the framework at the appropriate phase.
 	 */
+	@Deprecated(since = "6.1", forRemoval = true)
 	public T get() {
+		return getObject();
+	}
+
+	@Override
+	public Class<?> getObjectType() {
+		return getObject().getClass();
+	}
+
+	/**
+	 * !!! This method must not be called from the target configuration !!!
+	 * @return the object backed by this factory bean.
+	 */
+	@Override
+	public T getObject() {
 		if (this.target == null) {
 			this.target = doGet();
 		}
@@ -70,69 +94,57 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	}
 
 	@Override
-	public Class<?> getObjectType() {
-		return get().getClass();
-	}
-
-	@Override
-	protected T createInstance() {
-		T instance = get();
-		if (instance instanceof InitializingBean) {
-			try {
-				((InitializingBean) instance).afterPropertiesSet();
-			}
-			catch (Exception e) {
-				throw new IllegalStateException("Cannot initialize bean: " + instance, e);
+	public void afterPropertiesSet() {
+		try {
+			if (this.target instanceof InitializingBean initializingBean) {
+				initializingBean.afterPropertiesSet();
 			}
 		}
-		return instance;
+		catch (Exception ex) {
+			throw new BeanInitializationException("Cannot initialize bean: " + this.target, ex);
+		}
 	}
 
 	@Override
-	protected void destroyInstance(T instance) {
-		if (instance instanceof DisposableBean) {
+	public void destroy() {
+		if (this.target instanceof DisposableBean disposableBean) {
 			try {
-				((DisposableBean) instance).destroy();
+				disposableBean.destroy();
 			}
 			catch (Exception e) {
-				throw new IllegalStateException("Cannot destroy bean: " + instance, e);
+				throw new IllegalStateException("Cannot destroy bean: " + this.target, e);
 			}
 		}
 	}
 
 	@Override
 	public void start() {
-		T instance = get();
-		if (instance instanceof Lifecycle) {
-			((Lifecycle) instance).start();
+		if (this.target instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		T instance = get();
-		if (instance instanceof Lifecycle) {
-			((Lifecycle) instance).stop();
+		if (this.target instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		T instance = get();
-		return !(instance instanceof Lifecycle) || ((Lifecycle) instance).isRunning();
+		return !(this.target instanceof Lifecycle lifecycle) || lifecycle.isRunning();
 	}
 
 	@Override
 	public boolean isAutoStartup() {
-		T instance = get();
-		return instance instanceof SmartLifecycle && ((SmartLifecycle) instance).isAutoStartup();
+		return this.target instanceof SmartLifecycle lifecycle && lifecycle.isAutoStartup();
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		T instance = get();
-		if (instance instanceof SmartLifecycle) {
-			((SmartLifecycle) instance).stop(callback);
+		if (this.target instanceof SmartLifecycle lifecycle) {
+			lifecycle.stop(callback);
 		}
 		else {
 			callback.run();
@@ -141,9 +153,8 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 
 	@Override
 	public int getPhase() {
-		T instance = get();
-		if (instance instanceof SmartLifecycle) {
-			return ((SmartLifecycle) instance).getPhase();
+		if (this.target instanceof SmartLifecycle lifecycle) {
+			return lifecycle.getPhase();
 		}
 		else {
 			return 0;

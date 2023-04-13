@@ -41,6 +41,11 @@ See <<./filter.adoc#filter, Filter>> for more information.
  - The default timeout for send and receive operations in gateways and replying channel adapters has been changed from infinity to `30` seconds.
 Only one left as a `1` second is a `receiveTimeout` for `PollingConsumer` to not block a scheduler thread too long and let other queued tasks to be performed with the `TaskScheduler`.
 
+ - The `IntegrationComponentSpec.get()` method has been deprecated with removal planned for the next version.
+Since `IntegrationComponentSpec` is a `FactoryBean`, its bean definition must stay as is without any target object resolutions.
+The Java DSL and the framework by itself will manage the `IntegrationComponentSpec` lifecycle.
+See <<./dsl.adoc#java-dsl, Java DSL>> for more information.
+
 [[x6.1-web-sockets]]
 === Web Sockets Changes
 

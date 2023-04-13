@@ -539,7 +539,7 @@ class MessageDrivenAdapterTests {
 				.messageDrivenChannelAdapter(container, ListenerMode.record)
 				.recordMessageConverter(new StringJsonMessageConverter())
 				.payloadType(Foo.class)
-				.get();
+				.getObject();
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
 		adapter.afterPropertiesSet();

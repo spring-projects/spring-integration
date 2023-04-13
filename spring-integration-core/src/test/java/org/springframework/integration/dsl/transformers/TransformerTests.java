@@ -30,12 +30,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.codec.Codec;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
@@ -423,7 +423,7 @@ public class TransformerTests {
 
 		@Bean
 		public MessageChannel enricherReplyChannel() {
-			return MessageChannels.direct().get();
+			return new DirectChannel();
 		}
 
 		@Bean

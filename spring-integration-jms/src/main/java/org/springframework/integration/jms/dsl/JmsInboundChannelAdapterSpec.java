@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,8 @@ public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec
 	}
 
 	private JmsInboundChannelAdapterSpec(ConnectionFactory connectionFactory) {
-		this.target = new JmsDestinationPollingSource(this.jmsTemplateSpec.connectionFactory(connectionFactory).get());
+		this.target =
+				new JmsDestinationPollingSource(this.jmsTemplateSpec.connectionFactory(connectionFactory).getObject());
 	}
 
 	/**
@@ -118,7 +119,7 @@ public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec
 
 		@Override
 		public Map<Object, String> getComponentsToRegister() {
-			return Collections.singletonMap(this.jmsTemplateSpec.get(), this.jmsTemplateSpec.getId());
+			return Collections.singletonMap(this.jmsTemplateSpec.getObject(), this.jmsTemplateSpec.getId());
 		}
 
 	}

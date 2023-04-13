@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +31,7 @@ import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.DirectChannelSpec;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.messaging.Message;
@@ -39,7 +39,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 public class ContentTypeConversionTests {
 
 	@Autowired
@@ -91,7 +91,7 @@ public class ContentTypeConversionTests {
 		}
 
 		@Bean
-		public MessageChannel serviceChannel(final AtomicReference<Object> sendData) {
+		public DirectChannelSpec serviceChannel(AtomicReference<Object> sendData) {
 			return MessageChannels.direct()
 					.interceptor(new ChannelInterceptor() {
 
@@ -101,8 +101,7 @@ public class ContentTypeConversionTests {
 							return message;
 						}
 
-					})
-					.get();
+					});
 		}
 
 		@Bean

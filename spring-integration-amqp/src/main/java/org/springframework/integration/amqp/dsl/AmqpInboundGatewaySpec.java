@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public abstract class AmqpInboundGatewaySpec
 	protected final AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec; // NOSONAR final
 
 	protected AmqpInboundGatewaySpec(AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec) {
-		super(new AmqpInboundGateway(listenerContainerSpec.get()));
+		super(new AmqpInboundGateway(listenerContainerSpec.getObject()));
 		this.listenerContainerSpec = listenerContainerSpec;
 	}
 
@@ -53,16 +53,16 @@ public abstract class AmqpInboundGatewaySpec
 	 * @param listenerContainerSpec the {@link AbstractMessageListenerContainerSpec} to use.
 	 * @param amqpTemplate the {@link AmqpTemplate} to use.
 	 */
-	AmqpInboundGatewaySpec(
-			AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec,
+	AmqpInboundGatewaySpec(AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec,
 			AmqpTemplate amqpTemplate) {
-		super(new AmqpInboundGateway(listenerContainerSpec.get(), amqpTemplate));
+
+		super(new AmqpInboundGateway(listenerContainerSpec.getObject(), amqpTemplate));
 		this.listenerContainerSpec = listenerContainerSpec;
 	}
 
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
-		return Collections.singletonMap(this.listenerContainerSpec.get(), this.listenerContainerSpec.getId());
+		return Collections.singletonMap(this.listenerContainerSpec.getObject(), this.listenerContainerSpec.getId());
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,6 +102,7 @@ public class KafkaInboundGatewaySpec<K, V, R, S extends KafkaInboundGatewaySpec<
 	 */
 	public S onPartitionsAssignedSeekCallback(
 			BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedCallback) {
+
 		this.target.setOnPartitionsAssignedSeekCallback(onPartitionsAssignedCallback);
 		return _this();
 	}
@@ -128,7 +129,7 @@ public class KafkaInboundGatewaySpec<K, V, R, S extends KafkaInboundGatewaySpec<
 		KafkaInboundGatewayListenerContainerSpec(KafkaMessageListenerContainerSpec<K, V> containerSpec,
 				KafkaTemplateSpec<K, R> templateSpec) {
 
-			super(containerSpec.get(), templateSpec.getTemplate());
+			super(containerSpec.getObject(), templateSpec.getTemplate());
 			this.containerSpec = containerSpec;
 			this.templateSpec = templateSpec;
 		}
@@ -164,8 +165,8 @@ public class KafkaInboundGatewaySpec<K, V, R, S extends KafkaInboundGatewaySpec<
 		@Override
 		public Map<Object, String> getComponentsToRegister() {
 			return new ObjectStringMapBuilder()
-					.put(this.containerSpec.get(), this.containerSpec.getId())
-					.put(this.templateSpec.get(), this.templateSpec.getId())
+					.put(this.containerSpec.getObject(), this.containerSpec.getId())
+					.put(this.templateSpec.getObject(), this.templateSpec.getId())
 					.get();
 		}
 

@@ -216,7 +216,7 @@ class GroovyDslTests {
 
 		@Bean(PollerMetadata.DEFAULT_POLLER)
 		poller() {
-			Pollers.fixedDelay(1000).get()
+			Pollers.fixedDelay(1000)
 		}
 
 

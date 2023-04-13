@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,7 +151,7 @@ public interface IntegrationFlow {
 	 */
 	static IntegrationFlowBuilder from(MessageChannelSpec<?, ?> messageChannelSpec) {
 		Assert.notNull(messageChannelSpec, "'messageChannelSpec' must not be null");
-		return from(messageChannelSpec.get());
+		return from(messageChannelSpec.getObject());
 	}
 
 	/**
@@ -217,7 +217,7 @@ public interface IntegrationFlow {
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
 		Assert.notNull(messageSourceSpec, "'messageSourceSpec' must not be null");
-		return from(messageSourceSpec.get(), endpointConfigurer, registerComponents(messageSourceSpec));
+		return from(messageSourceSpec.getObject(), endpointConfigurer, registerComponents(messageSourceSpec));
 	}
 
 	/**
@@ -321,7 +321,7 @@ public interface IntegrationFlow {
 	 * @see MessageProducerSpec
 	 */
 	static IntegrationFlowBuilder from(MessageProducerSpec<?, ?> messageProducerSpec) {
-		return from(messageProducerSpec.get(), registerComponents(messageProducerSpec));
+		return from(messageProducerSpec.getObject(), registerComponents(messageProducerSpec));
 	}
 
 	/**
@@ -362,7 +362,7 @@ public interface IntegrationFlow {
 	 * @since 6.0
 	 */
 	static IntegrationFlowBuilder from(MessagingGatewaySpec<?, ?> inboundGatewaySpec) {
-		return from(inboundGatewaySpec.get(), registerComponents(inboundGatewaySpec));
+		return from(inboundGatewaySpec.getObject(), registerComponents(inboundGatewaySpec));
 	}
 
 	/**
@@ -445,14 +445,14 @@ public interface IntegrationFlow {
 						"' must be declared as a bean in the application context");
 		Object lastIntegrationComponentFromOther =
 				integrationComponents.keySet().stream().reduce((prev, next) -> next).orElse(null);
-		if (lastIntegrationComponentFromOther instanceof MessageChannel) {
-			return from((MessageChannel) lastIntegrationComponentFromOther);
+		if (lastIntegrationComponentFromOther instanceof MessageChannel messageChannel) {
+			return from(messageChannel);
 		}
-		else if (lastIntegrationComponentFromOther instanceof ConsumerEndpointFactoryBean) {
-			MessageHandler handler = ((ConsumerEndpointFactoryBean) lastIntegrationComponentFromOther).getHandler();
+		else if (lastIntegrationComponentFromOther instanceof ConsumerEndpointFactoryBean factoryBean) {
+			MessageHandler handler = factoryBean.getHandler();
 			handler = extractProxyTarget(handler);
-			if (handler instanceof AbstractMessageProducingHandler) {
-				return buildFlowFromOutputChannel((AbstractMessageProducingHandler) handler);
+			if (handler instanceof AbstractMessageProducingHandler producingHandler) {
+				return buildFlowFromOutputChannel(producingHandler);
 			}
 			lastIntegrationComponentFromOther = handler; // for the exception message below
 		}
@@ -489,9 +489,9 @@ public interface IntegrationFlow {
 	}
 
 	private static IntegrationFlowBuilder registerComponents(Object spec) {
-		if (spec instanceof ComponentsRegistration) {
+		if (spec instanceof ComponentsRegistration componentsRegistration) {
 			return new IntegrationFlowBuilder()
-					.addComponents(((ComponentsRegistration) spec).getComponentsToRegister());
+					.addComponents(componentsRegistration.getComponentsToRegister());
 		}
 		return null;
 	}

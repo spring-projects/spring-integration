@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,13 +54,16 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.dsl.QueueChannelSpec;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -575,8 +578,8 @@ public class IntegrationFlowTests {
 		}
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
-		public PollerMetadata poller() {
-			return Pollers.fixedRate(100).get();
+		public PollerSpec poller() {
+			return Pollers.fixedRate(100);
 		}
 
 		@Bean(name = IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)
@@ -588,8 +591,8 @@ public class IntegrationFlowTests {
 
 
 		@Bean
-		public MessageChannel suppliedChannel() {
-			return MessageChannels.queue(10).get();
+		public QueueChannelSpec suppliedChannel() {
+			return MessageChannels.queue(10);
 		}
 
 	}
@@ -608,8 +611,8 @@ public class IntegrationFlowTests {
 		}
 
 		@Bean
-		public MessageChannel suppliedChannel2() {
-			return MessageChannels.queue(10).get();
+		public QueueChannelSpec suppliedChannel2() {
+			return MessageChannels.queue(10);
 		}
 
 	}
@@ -627,12 +630,12 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public MessageChannel inputChannel() {
-			return MessageChannels.direct().get();
+			return new DirectChannel();
 		}
 
 		@Bean
 		public MessageChannel foo() {
-			return MessageChannels.publishSubscribe().get();
+			return new PublishSubscribeChannel();
 		}
 
 	}
@@ -682,7 +685,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public MessageChannel publishSubscribeChannel() {
-			return MessageChannels.publishSubscribe().get();
+			return new PublishSubscribeChannel();
 		}
 
 		@Bean
@@ -784,8 +787,8 @@ public class IntegrationFlowTests {
 		private MethodInterceptor delayedAdvice;
 
 		@Bean
-		public QueueChannel successChannel() {
-			return MessageChannels.queue().get();
+		public QueueChannelSpec successChannel() {
+			return MessageChannels.queue();
 		}
 
 		@Bean

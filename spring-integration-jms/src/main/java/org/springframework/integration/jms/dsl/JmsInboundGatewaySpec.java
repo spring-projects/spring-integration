@@ -246,9 +246,9 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		private final S spec;
 
 		protected JmsInboundGatewayListenerContainerSpec(S spec) {
-			super(spec.get());
+			super(spec.getObject());
 			this.spec = spec;
-			this.spec.get().setAutoStartup(false);
+			this.spec.getObject().setAutoStartup(false);
 		}
 
 		/**

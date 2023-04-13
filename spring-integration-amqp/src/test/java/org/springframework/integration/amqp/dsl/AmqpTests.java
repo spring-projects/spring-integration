@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
+import org.springframework.integration.amqp.channel.PollableAmqpChannel;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter.BatchMode;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
@@ -472,15 +473,16 @@ public class AmqpTests {
 		}
 
 		@Bean
-		public AbstractAmqpChannel unitChannel(ConnectionFactory rabbitConnectionFactory) {
+		public AmqpPollableMessageChannelSpec<?, PollableAmqpChannel> unitChannel(
+				ConnectionFactory rabbitConnectionFactory) {
+
 			return Amqp.pollableChannel(rabbitConnectionFactory)
 					.queueName("si.dsl.test")
 					.channelTransacted(true)
 					.extractPayload(true)
 					.inboundHeaderMapper(mapperIn())
 					.outboundHeaderMapper(mapperOut())
-					.defaultDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
-					.get();
+					.defaultDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
 		}
 
 		@Bean

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,8 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 	}
 
 	private JmsOutboundChannelAdapterSpec(ConnectionFactory connectionFactory) {
-		this.target = new JmsSendingMessageHandler(this.jmsTemplateSpec.connectionFactory(connectionFactory).get());
+		this.target =
+				new JmsSendingMessageHandler(this.jmsTemplateSpec.connectionFactory(connectionFactory).getObject());
 	}
 
 	/**
@@ -101,7 +102,7 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 	 * which a message will be sent.
 	 * @param destination the destination name.
 	 * @return the current {@link JmsOutboundChannelAdapterSpec}.
-	 * @see JmsSendingMessageHandler#setDestinationExpression(Expression)
+	 * @see JmsSendingMessageHandler#setDestinationExpression
 	 */
 	public S destinationExpression(String destination) {
 		this.target.setDestinationExpression(PARSER.parseExpression(destination));
@@ -119,7 +120,7 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 	 * @param destinationFunction the destination function.
 	 * @param <P> the expected payload type.
 	 * @return the current {@link JmsOutboundChannelAdapterSpec}.
-	 * @see JmsSendingMessageHandler#setDestinationExpression(Expression)
+	 * @see JmsSendingMessageHandler#setDestinationExpression
 	 * @see FunctionExpression
 	 */
 	public <P> S destination(Function<Message<P>, ?> destinationFunction) {
@@ -194,7 +195,7 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 
 		@Override
 		public Map<Object, String> getComponentsToRegister() {
-			return Collections.singletonMap(this.jmsTemplateSpec.get(), this.jmsTemplateSpec.getId());
+			return Collections.singletonMap(this.jmsTemplateSpec.getObject(), this.jmsTemplateSpec.getId());
 		}
 
 	}

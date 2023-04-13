@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 the original author or authors.
+ * Copyright 2021-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -142,8 +143,8 @@ public class IntegrationFlowCompositionTests {
 	public static class ContextConfiguration {
 
 		@Bean(PollerMetadata.DEFAULT_POLLER)
-		PollerMetadata defaultPoller() {
-			return Pollers.fixedDelay(100).get();
+		PollerSpec defaultPoller() {
+			return Pollers.fixedDelay(100);
 		}
 
 		@Bean

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionServerListeningEvent;
+import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
 import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
@@ -126,21 +128,21 @@ public class IpIntegrationTests {
 	void testTcpAdapters() {
 		ApplicationEventPublisher publisher = e -> {
 		};
-		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).id("server").get();
+		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).id("server").getObject();
 		assertThat(server.getComponentName()).isEqualTo("server");
 		server.setApplicationEventPublisher(publisher);
 		server.afterPropertiesSet();
-		TcpReceivingChannelAdapter inbound = Tcp.inboundAdapter(server).get();
+		TcpReceivingChannelAdapter inbound = Tcp.inboundAdapter(server).getObject();
 		QueueChannel received = new QueueChannel();
 		inbound.setOutputChannel(received);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		TestingUtilities.waitListening(server, null);
-		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).id("client").get();
+		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).id("client").getObject();
 		assertThat(client.getComponentName()).isEqualTo("client");
 		client.setApplicationEventPublisher(publisher);
 		client.afterPropertiesSet();
-		TcpSendingMessageHandler handler = Tcp.outboundAdapter(client).get();
+		TcpSendingMessageHandler handler = Tcp.outboundAdapter(client).getObject();
 		handler.start();
 		handler.handleMessage(new GenericMessage<>("foo"));
 		Message<?> receivedMessage = received.receive(10000);
@@ -193,7 +195,8 @@ public class IpIntegrationTests {
 		UdpMulticastOutboundChannelAdapterSpec udpMulticastOutboundChannelAdapterSpec2 =
 				udpMulticastOutboundChannelAdapterSpec1.timeToLive(10);
 
-		assertThat(udpMulticastOutboundChannelAdapterSpec2.get()).isInstanceOf(MulticastSendingMessageHandler.class);
+		assertThat(udpMulticastOutboundChannelAdapterSpec2.getObject())
+				.isInstanceOf(MulticastSendingMessageHandler.class);
 	}
 
 	@Test
@@ -249,17 +252,16 @@ public class IpIntegrationTests {
 		private volatile String connectionId;
 
 		@Bean
-		public AbstractServerConnectionFactory server1() {
+		public TcpNetServerConnectionFactorySpec server1() {
 			return Tcp.netServer(0)
 					.serializer(TcpCodecs.lengthHeader1())
-					.deserializer(TcpCodecs.crlf())
-					.get();
+					.deserializer(TcpCodecs.crlf());
 		}
 
 		@Bean
-		public IntegrationFlow inTcpGateway() {
+		public IntegrationFlow inTcpGateway(TcpNetServerConnectionFactory server1) {
 			return IntegrationFlow.from(
-							Tcp.inboundGateway(server1())
+							Tcp.inboundGateway(server1)
 									.replyTimeout(1)
 									.errorOnTimeout(true)
 									.errorChannel("inTcpGatewayErrorFlow.input"))
@@ -276,8 +278,8 @@ public class IpIntegrationTests {
 		}
 
 		@Bean
-		public IntegrationFlow unsolicitedServerSide() {
-			return f -> f.handle(Tcp.outboundAdapter(server1()));
+		public IntegrationFlow unsolicitedServerSide(TcpNetServerConnectionFactory server1) {
+			return f -> f.handle(Tcp.outboundAdapter(server1));
 		}
 
 		@Bean
@@ -321,19 +323,17 @@ public class IpIntegrationTests {
 		}
 
 		@Bean
-		public AbstractClientConnectionFactory client1() {
-			return Tcp.netClient("localhost", server1().getPort())
+		public TcpNetClientConnectionFactorySpec client1(TcpNetServerConnectionFactory server1) {
+			return Tcp.netClient("localhost", server1.getPort())
 					.serializer(TcpCodecs.crlf())
-					.deserializer(TcpCodecs.lengthHeader1())
-					.get();
+					.deserializer(TcpCodecs.lengthHeader1());
 		}
 
 		@Bean
-		public TcpOutboundGateway tcpOut() {
-			return Tcp.outboundGateway(client1())
+		public TcpOutboundGatewaySpec tcpOut(TcpNetClientConnectionFactory client1) {
+			return Tcp.outboundGateway(client1)
 					.remoteTimeout(m -> 5000)
-					.unsolictedMessageChannelName("unsolicited")
-					.get();
+					.unsolicitedMessageChannelName("unsolicited");
 		}
 
 		@Bean
@@ -342,19 +342,17 @@ public class IpIntegrationTests {
 		}
 
 		@Bean
-		public AbstractClientConnectionFactory client2() {
-			return Tcp.netClient("localhost", server1().getPort())
+		public TcpNetClientConnectionFactorySpec client2(TcpNetServerConnectionFactory server1) {
+			return Tcp.netClient("localhost", server1.getPort())
 					.serializer(TcpCodecs.crlf())
-					.deserializer(TcpCodecs.lengthHeader1())
-					.get();
+					.deserializer(TcpCodecs.lengthHeader1());
 		}
 
 		@Bean
-		public TcpOutboundGateway tcpOutAsync() {
-			return Tcp.outboundGateway(client2())
+		public TcpOutboundGatewaySpec tcpOutAsync(TcpNetClientConnectionFactory client2) {
+			return Tcp.outboundGateway(client2)
 					.async(true)
-					.remoteTimeout(m -> 5000)
-					.get();
+					.remoteTimeout(m -> 5000);
 		}
 
 		@Bean
@@ -371,9 +369,9 @@ public class IpIntegrationTests {
 		}
 
 		@Bean
-		public IntegrationFlow clientTcpFlow() {
+		public IntegrationFlow clientTcpFlow(TcpOutboundGateway tcpOut) {
 			return f -> f
-					.handle(tcpOut(), e -> e.advice(testAdvice()))
+					.handle(tcpOut, e -> e.advice(testAdvice()))
 					.transform(Transformers.objectToString());
 		}
 

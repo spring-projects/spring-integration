@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 
 	KafkaMessageDrivenChannelAdapterSpec(AbstractMessageListenerContainer<K, V> messageListenerContainer,
 			KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
+
 		super(new KafkaMessageDrivenChannelAdapter<>(messageListenerContainer, listenerMode));
 		this.container = messageListenerContainer;
 	}
@@ -174,6 +175,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	 */
 	public S onPartitionsAssignedSeekCallback(
 			BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedCallback) {
+
 		this.target.setOnPartitionsAssignedSeekCallback(onPartitionsAssignedCallback);
 		return _this();
 	}
@@ -196,7 +198,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 
 		KafkaMessageDrivenChannelAdapterListenerContainerSpec(KafkaMessageListenerContainerSpec<K, V> spec,
 				KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
-			super(spec.get(), listenerMode);
+			super(spec.getObject(), listenerMode);
 			this.spec = spec;
 		}
 
@@ -208,6 +210,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 		 */
 		public KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> configureListenerContainer(
 				Consumer<KafkaMessageListenerContainerSpec<K, V>> configurer) {
+
 			Assert.notNull(configurer, "The 'configurer' cannot be null");
 			configurer.accept(this.spec);
 			return _this();
@@ -215,7 +218,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 
 		@Override
 		public Map<Object, String> getComponentsToRegister() {
-			return Collections.singletonMap(this.spec.get(), this.spec.getId());
+			return Collections.singletonMap(this.spec.getObject(), this.spec.getId());
 		}
 
 	}

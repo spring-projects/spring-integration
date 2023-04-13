@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ public class RabbitStreamMessageHandlerSpec
 	 * Set to true to wait for a confirmation.
 	 * @param sync true to wait.
 	 * @return this spec.
-	 * @see #setConfirmTimeout(long)
+	 * @see #confirmTimeout(long)
 	 */
 	public RabbitStreamMessageHandlerSpec sync(boolean sync) {
 		this.target.setSync(sync);
