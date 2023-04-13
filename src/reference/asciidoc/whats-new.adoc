@@ -63,3 +63,9 @@ See <<./jms.adoc#jms-inbound-gateway, JMS Inbound Gateway>> for more information
 
 The (previously deprecated) `ImapIdleChannelAdapter.sendingTaskExecutor` property has been removed in favor of an asynchronous message process downstream in the flow.
 See <<./mail.adoc#mail-inbound, Mail-receiving Channel Adapter>> for more information.
+
+[[x6.1-file]]
+=== Files Changes
+
+The `FileReadingMessageSource` now exposes `watchMaxDepth` and `watchDirPredicate` options for the `WatchService`.
+See <<./file.adoc#watch-service-directory-scanner, `WatchServiceDirectoryScanner`>> for more information.
