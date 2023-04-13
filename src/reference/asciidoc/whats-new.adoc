@@ -67,5 +67,5 @@ See <<./mail.adoc#mail-inbound, Mail-receiving Channel Adapter>> for more inform
 [[x6.1-file]]
 === Files Changes
 
-The `FileReadingMessageSource` exposes now `watchMaxDepth` and `watchDirPredicate` options for the `WatchService`.
+The `FileReadingMessageSource` now exposes `watchMaxDepth` and `watchDirPredicate` options for the `WatchService`.
 See <<./file.adoc#watch-service-directory-scanner, `WatchServiceDirectoryScanner`>> for more information.
