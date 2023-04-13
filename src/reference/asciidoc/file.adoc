@@ -386,6 +386,11 @@ The following example shows how to configure different logic for create and modi
 ----
 ====
 
+Starting with version 6.1, the `FileReadingMessageSource` exposes two new `WatchService`-related options:
+
+* `watchMaxDepth` - an argument for the `Files.walkFileTree(Path root, Set attributes, int maxDepth, FileVisitor visitor)` API;
+* `watchDirPredicate` - a `Predicate<Path>` to test if directory in the scanned tree should be walked and registered for `WatchService` with its modification events.
+
 ==== Limiting Memory Consumption
 
 You can use a `HeadDirectoryScanner` to limit the number of files retained in memory.

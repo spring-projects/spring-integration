@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,9 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.file.filters.ChainFileListFilter;
@@ -44,13 +43,14 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
 public class WatchServiceDirectoryScannerTests {
 
-	@Rule
-	public TemporaryFolder folder = new TemporaryFolder();
+	@TempDir
+	public File rootDir;
 
 	private File foo;
 
@@ -62,24 +62,33 @@ public class WatchServiceDirectoryScannerTests {
 
 	private File bar1;
 
-	@Before
+	private File skipped;
+
+	private File skippedFile;
+
+	@BeforeEach
 	public void setUp() throws IOException {
-		this.foo = this.folder.newFolder("foo");
-		this.bar = this.folder.newFolder("bar");
-		this.top1 = this.folder.newFile();
+		this.foo = new File(rootDir, "foo");
+		this.foo.mkdir();
+		this.bar = new File(rootDir, "bar");
+		this.bar.mkdir();
+		this.top1 = File.createTempFile("tmp", null, this.rootDir);
 		this.foo1 = File.createTempFile("foo", ".txt", this.foo);
 		this.bar1 = File.createTempFile("bar", ".txt", this.bar);
+		this.skipped = new File(rootDir, "skipped");
+		this.skipped.mkdir();
+		this.skippedFile = File.createTempFile("skippedFile", null, this.skipped);
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testWatchServiceDirectoryScanner() throws Exception {
 		FileReadingMessageSource fileReadingMessageSource = new FileReadingMessageSource();
-		fileReadingMessageSource.setDirectory(folder.getRoot());
+		fileReadingMessageSource.setDirectory(this.rootDir);
 		fileReadingMessageSource.setUseWatchService(true);
 		fileReadingMessageSource.setWatchEvents(FileReadingMessageSource.WatchEventType.CREATE,
 				FileReadingMessageSource.WatchEventType.MODIFY,
 				FileReadingMessageSource.WatchEventType.DELETE);
+		fileReadingMessageSource.setWatchDirPredicate(path -> !path.getFileName().toString().equals("skipped"));
 		fileReadingMessageSource.setBeanFactory(mock(BeanFactory.class));
 
 		final CountDownLatch removeFileLatch = new CountDownLatch(1);
@@ -107,35 +116,36 @@ public class WatchServiceDirectoryScannerTests {
 		assertThat(scanner.getClass().getName()).contains("FileReadingMessageSource$WatchServiceDirectoryScanner");
 
 		// Files are skipped by the LastModifiedFileListFilter
-		List<File> files = scanner.listFiles(folder.getRoot());
-		assertThat(files.size()).isEqualTo(0);
+		List<File> files = scanner.listFiles(this.rootDir);
+		assertThat(files).hasSize(0);
 		// Consider all the files as one day old
 		fileLastModifiedFileListFilter.setAge(-60 * 60 * 24);
-		files = scanner.listFiles(folder.getRoot());
-		assertThat(files.size()).isEqualTo(3);
-		assertThat(files.contains(top1)).isTrue();
-		assertThat(files.contains(foo1)).isTrue();
-		assertThat(files.contains(bar1)).isTrue();
+		files = scanner.listFiles(this.rootDir);
+		assertThat(files).hasSize(3);
+		assertThat(files).contains(top1);
+		assertThat(files).contains(foo1);
+		assertThat(files).contains(bar1);
+		assertThat(files).doesNotContain(this.skippedFile);
 		fileReadingMessageSource.start();
-		File top2 = this.folder.newFile();
+		File top2 = File.createTempFile("tmp", null, this.rootDir);
 		File foo2 = File.createTempFile("foo", ".txt", this.foo);
 		File bar2 = File.createTempFile("bar", ".txt", this.bar);
 		File baz = new File(this.foo, "baz");
 		baz.mkdir();
 		File baz1 = File.createTempFile("baz", ".txt", baz);
-		files = scanner.listFiles(folder.getRoot());
+		files = scanner.listFiles(this.rootDir);
 		int n = 0;
-		Set<File> accum = new HashSet<File>(files);
+		Set<File> accum = new HashSet<>(files);
 		while (n++ < 300 && accum.size() != 4) {
 			Thread.sleep(100);
-			files = scanner.listFiles(folder.getRoot());
+			files = scanner.listFiles(this.rootDir);
 			accum.addAll(files);
 		}
-		assertThat(accum.size()).isEqualTo(4);
-		assertThat(accum.contains(top2)).isTrue();
-		assertThat(accum.contains(foo2)).isTrue();
-		assertThat(accum.contains(bar2)).isTrue();
-		assertThat(accum.contains(baz1)).isTrue();
+		assertThat(accum).hasSize(4);
+		assertThat(accum).contains(top2);
+		assertThat(accum).contains(foo2);
+		assertThat(accum).contains(bar2);
+		assertThat(accum).contains(baz1);
 
 		/*See AbstractWatchKey#signalEvent source code:
 			if(var5 >= 512) {
@@ -143,35 +153,33 @@ public class WatchServiceDirectoryScannerTests {
 			}
 		*/
 		fileReadingMessageSource.start();
-		List<File> filesForOverflow = new ArrayList<File>(600);
+		List<File> filesForOverflow = new ArrayList<>(600);
 
 		for (int i = 0; i < 600; i++) {
-			filesForOverflow.add(this.folder.newFile("" + i));
+			filesForOverflow.add(File.createTempFile("tmp" + i, null, this.rootDir));
 		}
 
 		n = 0;
 		while (n++ < 300 && accum.size() < 604) {
 			Thread.sleep(100);
-			files = scanner.listFiles(folder.getRoot());
+			files = scanner.listFiles(this.rootDir);
 			accum.addAll(files);
 		}
 
-		assertThat(accum.size()).isEqualTo(604);
+		assertThat(accum).hasSize(604);
 
-		for (File fileForOverFlow : filesForOverflow) {
-			accum.contains(fileForOverFlow);
-		}
+		assertThat(accum).containsAll(filesForOverflow);
 
 		File baz2 = File.createTempFile("baz2", ".txt", baz);
 
 		n = 0;
 		while (n++ < 300 && accum.size() < 605) {
 			Thread.sleep(100);
-			files = scanner.listFiles(folder.getRoot());
+			files = scanner.listFiles(this.rootDir);
 			accum.addAll(files);
 		}
 
-		assertThat(accum.contains(baz2)).isTrue();
+		assertThat(accum).contains(baz2);
 
 		File baz2Copy = new File(baz2.getAbsolutePath());
 
@@ -181,12 +189,12 @@ public class WatchServiceDirectoryScannerTests {
 		files.clear();
 		while (n++ < 300 && files.size() < 1) {
 			Thread.sleep(100);
-			files = scanner.listFiles(folder.getRoot());
+			files = scanner.listFiles(this.rootDir);
 			accum.addAll(files);
 		}
 
-		assertThat(files.size()).isEqualTo(1);
-		assertThat(files.contains(baz2)).isTrue();
+		assertThat(files).hasSize(1);
+		assertThat(files).contains(baz2);
 
 		baz2.delete();
 
@@ -194,7 +202,7 @@ public class WatchServiceDirectoryScannerTests {
 		n = 0;
 		while (n++ < 300 && removeFileLatch.getCount() > 0) {
 			Thread.sleep(100);
-			scanner.listFiles(folder.getRoot());
+			scanner.listFiles(this.rootDir);
 		}
 
 		assertThat(removeFileLatch.await(10, TimeUnit.SECONDS)).isTrue();

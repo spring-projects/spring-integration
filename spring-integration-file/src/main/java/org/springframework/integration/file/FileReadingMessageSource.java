@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
@@ -29,6 +30,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -39,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 
 import org.springframework.context.Lifecycle;
@@ -121,6 +124,10 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	private boolean useWatchService;
 
 	private WatchEventType[] watchEvents = {WatchEventType.CREATE};
+
+	private int watchMaxDepth = Integer.MAX_VALUE;
+
+	private Predicate<Path> watchDirPredicate = path -> true;
 
 	/**
 	 * Create a FileReadingMessageSource with a naturally ordered queue of unbounded capacity.
@@ -237,15 +244,14 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	 * Set this flag if you want to make sure the internal queue is
 	 * refreshed with the latest content of the input directory on each poll.
 	 * <p>
-	 * By default this implementation will empty its queue before looking at the
+	 * By default, this implementation will empty its queue before looking at the
 	 * directory again. In cases where order is relevant it is important to
 	 * consider the effects of setting this flag. The internal
 	 * {@link java.util.concurrent.BlockingQueue} that this class is keeping
 	 * will more likely be out of sync with the file system if this flag is set
 	 * to false, but it will change more often (causing expensive reordering) if it is set to true.
-	 * @param scanEachPoll
-	 *            whether or not the component should re-scan (as opposed to not
-	 *            rescanning until the entire backlog has been delivered)
+	 * @param scanEachPoll whether the component should re-scan (as opposed to not
+	 * rescanning until the entire backlog has been delivered)
 	 */
 	public void setScanEachPoll(boolean scanEachPoll) {
 		this.scanEachPoll = scanEachPoll;
@@ -282,6 +288,28 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 		this.watchEvents = Arrays.copyOf(watchEvents, watchEvents.length);
 	}
 
+	/**
+	 * Set a max depth for the {@link Files#walkFileTree(Path, Set, int, FileVisitor)} API when
+	 * {@link #useWatchService} is enabled.
+	 * Defaults to {@link Integer#MAX_VALUE} - walk the whole tree.
+	 * @param watchMaxDepth the depth for {@link Files#walkFileTree(Path, Set, int, FileVisitor)}.
+	 * @since 6.1
+	 */
+	public void setWatchMaxDepth(int watchMaxDepth) {
+		this.watchMaxDepth = watchMaxDepth;
+	}
+
+	/**
+	 * Set a {@link Predicate} to check a directory in the {@link Files#walkFileTree(Path, Set, int, FileVisitor)} call
+	 * if it is eligible for {@link WatchService}.
+	 * @param watchDirPredicate the {@link Predicate} to check dirs for walking.
+	 * @since 6.1
+	 */
+	public void setWatchDirPredicate(Predicate<Path> watchDirPredicate) {
+		Assert.notNull(watchDirPredicate, "'watchDirPredicate' must not be null.");
+		this.watchDirPredicate = watchDirPredicate;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "file:inbound-channel-adapter";
@@ -299,16 +327,16 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 					() -> "Source path [" + this.directory + "] does not point to a directory.");
 			Assert.isTrue(this.directory.canRead(),
 					() -> "Source directory [" + this.directory + "] is not readable.");
-			if (this.scanner instanceof Lifecycle) {
-				((Lifecycle) this.scanner).start();
+			if (this.scanner instanceof Lifecycle lifecycle) {
+				lifecycle.start();
 			}
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.running.getAndSet(false) && this.scanner instanceof Lifecycle) {
-			((Lifecycle) this.scanner).stop();
+		if (this.running.getAndSet(false) && this.scanner instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
@@ -418,8 +446,8 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 
 		@Override
 		public void setFilter(FileListFilter<File> filter) {
-			if (filter instanceof DiscardAwareFileListFilter) {
-				((DiscardAwareFileListFilter<File>) filter).addDiscardCallback(this.filesToPoll::add);
+			if (filter instanceof DiscardAwareFileListFilter<File> discardAwareFileListFilter) {
+				discardAwareFileListFilter.addDiscardCallback(this.filesToPoll::add);
 			}
 			super.setFilter(filter);
 		}
@@ -505,8 +533,8 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 			logger.debug(() -> "Watch event [" + event.kind() + "] for file [" + file + "]");
 
 			if (StandardWatchEventKinds.ENTRY_DELETE.equals(event.kind())) {
-				if (getFilter() instanceof ResettableFileListFilter) {
-					((ResettableFileListFilter<File>) getFilter()).remove(file);
+				if (getFilter() instanceof ResettableFileListFilter<File> resettableFileListFilter) {
+					resettableFileListFilter.remove(file);
 				}
 				boolean fileRemoved = files.remove(file);
 				if (fileRemoved) {
@@ -540,8 +568,8 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 			}
 			this.pathKeys.clear();
 
-			if (event.context() != null && event.context() instanceof Path) {
-				files.addAll(walkDirectory((Path) event.context(), event.kind()));
+			if (event.context() != null && event.context() instanceof Path path) {
+				files.addAll(walkDirectory(path, event.kind()));
 			}
 			else {
 				files.addAll(walkDirectory(FileReadingMessageSource.this.directory.toPath(), event.kind()));
@@ -552,25 +580,32 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 			final Set<File> walkedFiles = new LinkedHashSet<>();
 			try {
 				registerWatch(directory);
-				Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+				Files.walkFileTree(directory, Collections.emptySet(), FileReadingMessageSource.this.watchMaxDepth,
+						new SimpleFileVisitor<>() {
 
-					@Override
-					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-						FileVisitResult fileVisitResult = super.preVisitDirectory(dir, attrs);
-						registerWatch(dir);
-						return fileVisitResult;
-					}
+							@Override
+							public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+									throws IOException {
 
-					@Override
-					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-						FileVisitResult fileVisitResult = super.visitFile(file, attrs);
-						if (!StandardWatchEventKinds.ENTRY_MODIFY.equals(kind)) {
-							walkedFiles.add(file.toFile());
-						}
-						return fileVisitResult;
-					}
+								if (FileReadingMessageSource.this.watchDirPredicate.test(dir)) {
+									registerWatch(dir);
+									return FileVisitResult.CONTINUE;
+								}
+								else {
+									return FileVisitResult.SKIP_SUBTREE;
+								}
+							}
 
-				});
+							@Override
+							public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+								FileVisitResult fileVisitResult = super.visitFile(file, attrs);
+								if (!StandardWatchEventKinds.ENTRY_MODIFY.equals(kind)) {
+									walkedFiles.add(file.toFile());
+								}
+								return fileVisitResult;
+							}
+
+						});
 			}
 			catch (IOException ex) {
 				logger.error(ex, () -> "Failed to walk directory: " + directory.toString());
