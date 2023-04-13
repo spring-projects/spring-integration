@@ -187,8 +187,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	protected InterceptableChannel currentInterceptableChannel() {
 		MessageChannel currentChannel = getCurrentMessageChannel();
-		if (currentChannel instanceof InterceptableChannel) {
-			return (InterceptableChannel) currentChannel;
+		if (currentChannel instanceof InterceptableChannel interceptableChannel) {
+			return interceptableChannel;
 		}
 		else {
 			DirectChannel newCurrentChannel = new DirectChannel();
@@ -1161,7 +1161,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see GenericEndpointSpec
 	 */
 	public B bridge(Consumer<GenericEndpointSpec<BridgeHandler>> endpointConfigurer) {
-		return register(new GenericEndpointSpec<>(new BridgeHandler()), endpointConfigurer);
+		return handle(new BridgeHandler(), endpointConfigurer);
 	}
 
 	/**
@@ -2836,7 +2836,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	public B trigger(MessageTriggerAction triggerAction,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 
-		return handle(new ServiceActivatingHandler(triggerAction, "trigger"), endpointConfigurer);
+		Consumer<Message<?>> trigger = triggerAction::trigger;
+		return handle(new ServiceActivatingHandler(new LambdaMessageProcessor(trigger, Message.class)),
+				endpointConfigurer);
 	}
 
 	/**
