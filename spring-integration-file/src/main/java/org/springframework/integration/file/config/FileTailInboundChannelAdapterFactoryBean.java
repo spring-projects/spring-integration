@@ -263,7 +263,6 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		adapter.setBeanName(this.beanName);
 		adapter.setSendTimeout(this.sendTimeout);
 		adapter.setShouldTrack(this.shouldTrack);
-		adapter.setErrorMessageStrategy(this.errorMessageStrategy);
 		BeanFactory beanFactory = getBeanFactory();
 		JavaUtils.INSTANCE
 				.acceptIfNotNull(this.taskExecutor, adapter::setTaskExecutor)
@@ -275,6 +274,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 				.acceptIfNotNull(this.applicationEventPublisher, adapter::setApplicationEventPublisher)
 				.acceptIfNotNull(this.outputChannelName, adapter::setOutputChannelName)
 				.acceptIfNotNull(this.errorChannelName, adapter::setErrorChannelName)
+				.acceptIfNotNull(this.errorMessageStrategy, adapter::setErrorMessageStrategy)
 				.acceptIfNotNull(beanFactory, adapter::setBeanFactory);
 		adapter.afterPropertiesSet();
 		this.tailAdapter = adapter;
