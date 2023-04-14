@@ -23,6 +23,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.file.config.FileTailInboundChannelAdapterFactoryBean;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
@@ -39,12 +40,6 @@ import org.springframework.util.Assert;
 public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTailingMessageProducerSupport> {
 
 	private final FileTailInboundChannelAdapterFactoryBean factoryBean = new FileTailInboundChannelAdapterFactoryBean();
-
-	@Nullable
-	private MessageChannel outputChannel;
-
-	@Nullable
-	private MessageChannel errorChannel;
 
 	protected TailAdapterSpec() {
 		super(null);
@@ -148,7 +143,7 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	/**
 	 * If {@code true}, close and reopen the file between reading chunks.
 	 * Default {@code false}.
-	 * @param reopen the reopen.
+	 * @param reopen the 'reopen' option.
 	 * @return the spec.
 	 * @see org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer#setReopen(boolean)
 	 */
@@ -177,13 +172,43 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 
 	@Override
 	public TailAdapterSpec outputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
+		this.factoryBean.setOutputChannel(outputChannel);
 		return _this();
 	}
 
 	@Override
 	public TailAdapterSpec errorChannel(MessageChannel errorChannel) {
-		this.errorChannel = errorChannel;
+		this.factoryBean.setErrorChannel(errorChannel);
+		return _this();
+	}
+
+	@Override
+	public TailAdapterSpec outputChannel(String outputChannel) {
+		this.factoryBean.setOutputChannelName(outputChannel);
+		return _this();
+	}
+
+	@Override
+	public TailAdapterSpec errorChannel(String errorChannel) {
+		this.factoryBean.setErrorChannelName(errorChannel);
+		return _this();
+	}
+
+	@Override
+	public TailAdapterSpec sendTimeout(long sendTimeout) {
+		this.factoryBean.setSendTimeout(sendTimeout);
+		return _this();
+	}
+
+	@Override
+	public TailAdapterSpec shouldTrack(boolean shouldTrack) {
+		this.factoryBean.setShouldTrack(shouldTrack);
+		return _this();
+	}
+
+	@Override
+	public TailAdapterSpec errorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+		this.factoryBean.setErrorMessageStrategy(errorMessageStrategy);
 		return _this();
 	}
 
@@ -199,10 +224,6 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 		}
 		Assert.notNull(tailingMessageProducerSupport,
 				"The 'FileTailInboundChannelAdapterFactoryBean' must not produce null");
-		if (this.errorChannel != null) {
-			tailingMessageProducerSupport.setErrorChannel(this.errorChannel);
-		}
-		tailingMessageProducerSupport.setOutputChannel(this.outputChannel);
 		return tailingMessageProducerSupport;
 	}
 

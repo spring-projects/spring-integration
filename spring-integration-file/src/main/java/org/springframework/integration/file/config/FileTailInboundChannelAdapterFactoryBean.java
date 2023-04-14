@@ -29,6 +29,7 @@ import org.springframework.integration.JavaUtils;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
 import org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
@@ -83,6 +84,12 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	private Integer phase;
 
 	private ApplicationEventPublisher applicationEventPublisher;
+
+	private long sendTimeout;
+
+	private boolean shouldTrack;
+
+	private ErrorMessageStrategy errorMessageStrategy;
 
 	public void setNativeOptions(String nativeOptions) {
 		if (StringUtils.hasText(nativeOptions)) {
@@ -166,6 +173,18 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		this.phase = phase;
 	}
 
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
+	public void setShouldTrack(boolean shouldTrack) {
+		this.shouldTrack = shouldTrack;
+	}
+
+	public void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+		this.errorMessageStrategy = errorMessageStrategy;
+	}
+
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
@@ -242,6 +261,9 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		adapter.setOutputChannel(this.outputChannel);
 		adapter.setErrorChannel(this.errorChannel);
 		adapter.setBeanName(this.beanName);
+		adapter.setSendTimeout(this.sendTimeout);
+		adapter.setShouldTrack(this.shouldTrack);
+		adapter.setErrorMessageStrategy(this.errorMessageStrategy);
 		BeanFactory beanFactory = getBeanFactory();
 		JavaUtils.INSTANCE
 				.acceptIfNotNull(this.taskExecutor, adapter::setTaskExecutor)
