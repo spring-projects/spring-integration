@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.dsl;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Artem Bilan
@@ -43,7 +44,7 @@ public class SourcePollingChannelAdapterSpec extends
 		return _this();
 	}
 
-	public SourcePollingChannelAdapterSpec poller(PollerMetadata pollerMetadata) {
+	public SourcePollingChannelAdapterSpec poller(@Nullable PollerMetadata pollerMetadata) {
 		if (pollerMetadata != null) {
 			if (PollerMetadata.MAX_MESSAGES_UNBOUNDED == pollerMetadata.getMaxMessagesPerPoll()) {
 				pollerMetadata.setMaxMessagesPerPoll(1);

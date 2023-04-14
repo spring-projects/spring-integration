@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -114,6 +115,7 @@ public interface IntegrationFlow {
 	 * @return the channel.
 	 * @since 5.0.4
 	 */
+	@Nullable
 	default MessageChannel getInputChannel() {
 		return null;
 	}
@@ -124,7 +126,7 @@ public interface IntegrationFlow {
 	 * @since 5.5.4
 	 */
 	default Map<Object, String> getIntegrationComponents() {
-		return null;
+		return Collections.emptyMap();
 	}
 
 	/**
@@ -214,7 +216,7 @@ public interface IntegrationFlow {
 	 * @see SourcePollingChannelAdapterSpec
 	 */
 	static IntegrationFlowBuilder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec,
-			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+			@Nullable Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
 		Assert.notNull(messageSourceSpec, "'messageSourceSpec' must not be null");
 		return from(messageSourceSpec.getObject(), endpointConfigurer, registerComponents(messageSourceSpec));
@@ -246,7 +248,7 @@ public interface IntegrationFlow {
 	 * @see Supplier
 	 */
 	static <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource,
-			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+			@Nullable Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
 		Assert.notNull(messageSource, "'messageSource' must not be null");
 		return from(new AbstractMessageSource<>() {
@@ -440,7 +442,7 @@ public interface IntegrationFlow {
 	@SuppressWarnings("overloads")
 	static IntegrationFlowBuilder from(IntegrationFlow other) {
 		Map<Object, String> integrationComponents = other.getIntegrationComponents();
-		Assert.notNull(integrationComponents, () ->
+		Assert.notEmpty(integrationComponents, () ->
 				"The provided integration flow to compose from '" + other +
 						"' must be declared as a bean in the application context");
 		Object lastIntegrationComponentFromOther =
@@ -488,6 +490,7 @@ public interface IntegrationFlow {
 		return integrationFlowBuilder.addComponent(inboundGateway);
 	}
 
+	@Nullable
 	private static IntegrationFlowBuilder registerComponents(Object spec) {
 		if (spec instanceof ComponentsRegistration componentsRegistration) {
 			return new IntegrationFlowBuilder()
@@ -496,8 +499,9 @@ public interface IntegrationFlow {
 		return null;
 	}
 
+	@Nullable
 	@SuppressWarnings("unchecked")
-	private static <T> T extractProxyTarget(T target) {
+	private static <T> T extractProxyTarget(@Nullable T target) {
 		if (!(target instanceof Advised advised)) {
 			return target;
 		}

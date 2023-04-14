@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,13 @@ import org.springframework.integration.smb.filters.SmbPersistentAcceptOnceFileLi
 import org.springframework.integration.smb.filters.SmbRegexPatternFileListFilter;
 import org.springframework.integration.smb.filters.SmbSimplePatternFileListFilter;
 import org.springframework.integration.smb.inbound.SmbStreamingMessageSource;
+import org.springframework.lang.Nullable;
 
 /**
  * A {@link RemoteFileStreamingInboundChannelAdapterSpec} for a {@link SmbStreamingMessageSource}.
  *
  * @author Gregory Bragg
+ * @author Artem Bilan
  *
  * @since 6.0
  */
@@ -42,7 +44,7 @@ public class SmbStreamingInboundChannelAdapterSpec
 		SmbStreamingMessageSource> {
 
 	protected SmbStreamingInboundChannelAdapterSpec(RemoteFileTemplate<SmbFile> remoteFileTemplate,
-			Comparator<SmbFile> comparator) {
+			@Nullable Comparator<SmbFile> comparator) {
 
 		this.target = new SmbStreamingMessageSource(remoteFileTemplate, comparator);
 	}

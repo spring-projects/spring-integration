@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 	/**
 	 * Specify whether the outbound message's payload should be extracted
 	 * when preparing the request body.
-	 * Otherwise the Message instance itself is serialized.
+	 * Otherwise, the Message instance itself is serialized.
 	 * The default value is {@code true}.
 	 * @param extractPayload true if the payload should be extracted.
 	 * @return the spec
@@ -174,6 +174,7 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 	 */
 	public <P> S expectedResponseTypeFunction(
 			Function<Message<P>, ?> expectedResponseTypeFunction) {
+
 		return expectedResponseTypeExpression(new FunctionExpression<>(expectedResponseTypeFunction));
 	}
 

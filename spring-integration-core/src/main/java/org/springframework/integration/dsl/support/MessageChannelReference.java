@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,24 +25,20 @@ import org.springframework.util.Assert;
  * {@link MessageChannel} bean on the bean registration phase.
  * For internal use only.
  *
+ * @param name the name of the target {@link MessageChannel} bean.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
  *
  * @see org.springframework.integration.dsl.context.IntegrationFlowBeanPostProcessor
  */
-public class MessageChannelReference implements MessageChannel {
+public record MessageChannelReference(String name) implements MessageChannel {
 
-	private final String name;
-
-	public MessageChannelReference(String name) {
+	public MessageChannelReference {
 		Assert.notNull(name, "'name' must not be null");
-		this.name = name;
 	}
 
-	public String getName() {
-		return this.name;
-	}
 
 	@Override
 	public boolean send(Message<?> message) {

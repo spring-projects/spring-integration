@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.Advised;
@@ -176,7 +177,7 @@ public class FlowServiceTests {
 		private final AtomicReference<Object> resultOverLoggingHandler = new AtomicReference<>();
 
 		@Override
-		public void configure(IntegrationFlowDefinition<?> f) {
+		public void configure(@NotNull IntegrationFlowDefinition<?> f) {
 			f.<String, String>transform(String::toUpperCase)
 					.log(LoggingHandler.Level.ERROR, m -> {
 						resultOverLoggingHandler.set(m.getPayload());

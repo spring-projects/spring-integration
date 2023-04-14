@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import org.w3c.dom.Document;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -65,7 +66,8 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		this(destinationProvider, sourceExtractor, null);
 	}
 
-	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor<?> sourceExtractor,
+	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider,
+			@Nullable SourceExtractor<?> sourceExtractor,
 			WebServiceMessageFactory messageFactory) {
 
 		super(destinationProvider, messageFactory);
@@ -80,7 +82,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		this(uri, sourceExtractor, null);
 	}
 
-	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor,
+	public SimpleWebServiceOutboundGateway(String uri, @Nullable SourceExtractor<?> sourceExtractor,
 			WebServiceMessageFactory messageFactory) {
 
 		super(uri, messageFactory);

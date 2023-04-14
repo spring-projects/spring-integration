@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
+import org.springframework.lang.Nullable;
 
 /**
  * The factory for FTP components.
@@ -56,7 +57,7 @@ public final class Ftp {
 	 * @return the spec.
 	 */
 	public static FtpInboundChannelAdapterSpec inboundAdapter(SessionFactory<FTPFile> sessionFactory,
-			Comparator<File> receptionOrderComparator) {
+			@Nullable Comparator<File> receptionOrderComparator) {
 
 		return new FtpInboundChannelAdapterSpec(sessionFactory, receptionOrderComparator);
 	}
@@ -82,7 +83,7 @@ public final class Ftp {
 	 */
 	public static FtpStreamingInboundChannelAdapterSpec inboundStreamingAdapter(
 			RemoteFileTemplate<FTPFile> remoteFileTemplate,
-			Comparator<FTPFile> receptionOrderComparator) {
+			@Nullable Comparator<FTPFile> receptionOrderComparator) {
 
 		return new FtpStreamingInboundChannelAdapterSpec(remoteFileTemplate, receptionOrderComparator);
 	}

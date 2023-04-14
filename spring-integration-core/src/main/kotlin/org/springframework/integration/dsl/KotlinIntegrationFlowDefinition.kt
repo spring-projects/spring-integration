@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -899,6 +899,15 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 */
 	fun gateway(requestChannel: MessageChannel, endpointConfigurer: GatewayEndpointSpec.() -> Unit = {}) {
 		this.delegate.gateway(requestChannel, Consumer(endpointConfigurer))
+	}
+
+	/**
+	 * Populate the "artificial"
+	 * [org.springframework.integration.gateway.GatewayMessageHandler] for the
+	 * provided `subflow` with options from [GatewayEndpointSpec].
+	 */
+	fun gateway(flow: IntegrationFlow) {
+		this.delegate.gateway(flow)
 	}
 
 	/**

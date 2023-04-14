@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.ProducerListener;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
+import org.springframework.lang.Nullable;
 
 /**
  * An {@link IntegrationComponentSpec} implementation for the {@link KafkaTemplate}.
@@ -49,7 +50,7 @@ public class KafkaTemplateSpec<K, V>
 	}
 
 	@Override
-	public KafkaTemplateSpec<K, V> id(String id) { // NOSONAR - visibility
+	public KafkaTemplateSpec<K, V> id(@Nullable String id) { // NOSONAR - visibility
 		return super.id(id);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the provided
-	 * {@link GenericTransformer}. In addition accept options for the integration endpoint
+	 * {@link GenericTransformer}. In addition, accept options for the integration endpoint
 	 * using {@link GenericEndpointSpec}. Use
 	 * {@link #transform(Class, GenericTransformer, Consumer)} if you need to access the
 	 * entire message.
@@ -226,7 +226,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	/**
 	 * Populate the {@link MethodInvokingRouter} for provided {@link Function}
 	 * with provided options from {@link RouterSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code

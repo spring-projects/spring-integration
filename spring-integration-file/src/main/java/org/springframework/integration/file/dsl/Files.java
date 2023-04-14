@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.function.Function;
 import org.springframework.expression.Expression;
 import org.springframework.integration.file.transformer.FileToByteArrayTransformer;
 import org.springframework.integration.file.transformer.FileToStringTransformer;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -50,7 +51,8 @@ public abstract class Files {
 	 * @return the {@link FileInboundChannelAdapterSpec} instance.
 	 */
 	public static FileInboundChannelAdapterSpec inboundAdapter(File directory,
-			Comparator<File> receptionOrderComparator) {
+			@Nullable Comparator<File> receptionOrderComparator) {
+
 		return new FileInboundChannelAdapterSpec(receptionOrderComparator).directory(directory);
 	}
 
@@ -197,7 +199,7 @@ public abstract class Files {
 	 * @param deleteFiles true to delete the file.
 	 * @return the {@link FileToStringTransformer}.
 	 */
-	public static FileToStringTransformer toStringTransformer(String charset, boolean deleteFiles) {
+	public static FileToStringTransformer toStringTransformer(@Nullable String charset, boolean deleteFiles) {
 		FileToStringTransformer transformer = new FileToStringTransformer();
 		if (charset != null) {
 			transformer.setCharset(charset);

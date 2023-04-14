@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
@@ -43,17 +44,18 @@ import org.springframework.web.client.RestTemplate;
 public class HttpMessageHandlerSpec
 		extends BaseHttpMessageHandlerSpec<HttpMessageHandlerSpec, HttpRequestExecutingMessageHandler> {
 
+	@Nullable
 	private final RestTemplate restTemplate;
 
-	protected HttpMessageHandlerSpec(URI uri, RestTemplate restTemplate) {
+	protected HttpMessageHandlerSpec(URI uri, @Nullable RestTemplate restTemplate) {
 		this(new ValueExpression<>(uri), restTemplate);
 	}
 
-	protected HttpMessageHandlerSpec(String uri, RestTemplate restTemplate) {
+	protected HttpMessageHandlerSpec(String uri, @Nullable RestTemplate restTemplate) {
 		this(new LiteralExpression(uri), restTemplate);
 	}
 
-	protected HttpMessageHandlerSpec(Expression uriExpression, RestTemplate restTemplate) {
+	protected HttpMessageHandlerSpec(Expression uriExpression, @Nullable RestTemplate restTemplate) {
 		super(new HttpRequestExecutingMessageHandler(uriExpression, restTemplate));
 		this.restTemplate = restTemplate;
 	}

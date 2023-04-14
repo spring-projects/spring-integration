@@ -72,6 +72,7 @@ import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -178,7 +179,7 @@ public class IntegrationFlowBeanPostProcessor
 				targetIntegrationComponents.put(endpoint, id);
 			}
 			else if (component instanceof MessageChannelReference messageChannelReference) {
-				String channelBeanName = messageChannelReference.getName();
+				String channelBeanName = messageChannelReference.name();
 				if (!this.beanFactory.containsBean(channelBeanName)) {
 					DirectChannel directChannel = new DirectChannel();
 					registerComponent(directChannel, channelBeanName, flowBeanName);
@@ -422,8 +423,7 @@ public class IntegrationFlowBeanPostProcessor
 		}
 
 		return !this.beanFactory.getBeansOfType(instance.getClass(), false, false)
-				.values()
-				.contains(instance);
+				.containsValue(instance);
 	}
 
 	private void registerComponent(Object component, String beanName) {
@@ -431,7 +431,7 @@ public class IntegrationFlowBeanPostProcessor
 	}
 
 	@SuppressWarnings("unchecked")
-	private void registerComponent(Object component, String beanName, String parentName,
+	private void registerComponent(Object component, String beanName, @Nullable String parentName,
 			BeanDefinitionCustomizer... customizers) {
 
 		AbstractBeanDefinition beanDefinition =
@@ -461,7 +461,9 @@ public class IntegrationFlowBeanPostProcessor
 		return generateBeanName(instance, prefix, null, false);
 	}
 
-	private String generateBeanName(Object instance, String prefix, String fallbackId, boolean useFlowIdAsPrefix) {
+	private String generateBeanName(Object instance, String prefix, @Nullable String fallbackId,
+			boolean useFlowIdAsPrefix) {
+
 		if (instance instanceof NamedComponent namedComponent && namedComponent.getBeanName() != null) {
 			String beanName = namedComponent.getBeanName();
 			return useFlowIdAsPrefix

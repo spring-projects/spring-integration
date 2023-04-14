@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,10 +144,10 @@ public class JpaRetrievingOutboundGatewaySpec extends JpaBaseOutboundEndpointSpe
 
 	/**
 	 * If not set, this property defaults to <code>false</code>, which means that
-	 * deletion occurs on a per object basis if a collection of entities is being
+	 * deletion occurs on a per-object basis if a collection of entities is being
 	 * deleted.
 	 *<p>If set to 'true' the elements of the payload are deleted as a batch
-	 * operation. Be aware that this exhibits issues in regards to cascaded deletes.
+	 * operation. Be aware that this exhibits issues in regard to cascaded deletes.
 	 *<p>The specification 'JSR 317: Java Persistence API, Version 2.0' does not
 	 * support cascaded deletes in batch operations. The specification states in
 	 * chapter 4.10:

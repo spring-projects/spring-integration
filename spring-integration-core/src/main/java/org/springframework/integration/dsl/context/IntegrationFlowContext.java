@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Map;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -200,7 +201,7 @@ public interface IntegrationFlowContext {
 		 * @param bean an additional arbitrary bean to register into the application context.
 		 * @return the current builder instance
 		 */
-		IntegrationFlowRegistrationBuilder addBean(String name, Object bean);
+		IntegrationFlowRegistrationBuilder addBean(@Nullable String name, Object bean);
 
 		/**
 		 * Set the configuration source {@code Object} for this manual Integration flow definition.

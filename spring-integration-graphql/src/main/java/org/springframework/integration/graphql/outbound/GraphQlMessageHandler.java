@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,9 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 
 	private final ExecutionGraphQlService graphQlService;
 
-	private StandardEvaluationContext evaluationContext;
+	private StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
+	@Nullable
 	private Expression operationExpression;
 
 	private Expression operationNameExpression = new SupplierExpression<>(() -> null);
@@ -142,11 +143,11 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 			graphQlRequest = (ExecutionGraphQlRequest) requestMessage.getPayload();
 		}
 		else {
-			Assert.notNull(this.operationExpression, "'operationExpression' must not be null");
 			String query = evaluateOperationExpression(requestMessage);
 			String operationName = evaluateOperationNameExpression(requestMessage);
 			Map<String, Object> variables = evaluateVariablesExpression(requestMessage);
 			String id = evaluateExecutionIdExpression(requestMessage);
+			Assert.notNull(id, "The 'executionIdExpression' must not evaluate to null");
 			graphQlRequest = new DefaultExecutionGraphQlRequest(query, operationName, variables, null, id, this.locale);
 		}
 
@@ -155,20 +156,24 @@ public class GraphQlMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	private String evaluateOperationExpression(Message<?> message) {
+		Assert.notNull(this.operationExpression, "'operationExpression' must not be null");
 		String operation = this.operationExpression.getValue(this.evaluationContext, message, String.class);
 		Assert.notNull(operation, "'operationExpression' must not evaluate to null");
 		return operation;
 	}
 
+	@Nullable
 	private String evaluateOperationNameExpression(Message<?> message) {
 		return this.operationNameExpression.getValue(this.evaluationContext, message, String.class);
 	}
 
+	@Nullable
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> evaluateVariablesExpression(Message<?> message) {
 		return this.variablesExpression.getValue(this.evaluationContext, message, Map.class);
 	}
 
+	@Nullable
 	private String evaluateExecutionIdExpression(Message<?> message) {
 		return this.executionIdExpression.getValue(this.evaluationContext, message, String.class);
 	}

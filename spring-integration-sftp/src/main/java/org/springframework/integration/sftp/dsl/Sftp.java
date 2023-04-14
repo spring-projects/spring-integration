@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
+import org.springframework.lang.Nullable;
 
 /**
  * The factory for SFTP components.
@@ -56,7 +57,7 @@ public final class Sftp {
 	 * @return the spec.
 	 */
 	public static SftpInboundChannelAdapterSpec inboundAdapter(SessionFactory<SftpClient.DirEntry> sessionFactory,
-			Comparator<File> receptionOrderComparator) {
+			@Nullable Comparator<File> receptionOrderComparator) {
 
 		return new SftpInboundChannelAdapterSpec(sessionFactory, receptionOrderComparator);
 	}
@@ -82,7 +83,7 @@ public final class Sftp {
 	 */
 	public static SftpStreamingInboundChannelAdapterSpec inboundStreamingAdapter(
 			RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
-			Comparator<SftpClient.DirEntry> receptionOrderComparator) {
+			@Nullable Comparator<SftpClient.DirEntry> receptionOrderComparator) {
 
 		return new SftpStreamingInboundChannelAdapterSpec(remoteFileTemplate, receptionOrderComparator);
 	}

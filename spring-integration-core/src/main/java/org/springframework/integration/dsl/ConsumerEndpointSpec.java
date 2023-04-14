@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.integration.handler.advice.ReactiveRequestHandlerAdvi
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.scheduling.TaskScheduler;
@@ -61,7 +62,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	protected final List<Advice> adviceChain = new LinkedList<>(); // NOSONAR final
 
-	protected ConsumerEndpointSpec(H messageHandler) {
+	protected ConsumerEndpointSpec(@Nullable H messageHandler) {
 		super(messageHandler, new ConsumerEndpointFactoryBean());
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -50,12 +51,16 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		extends MessageHandlerSpec<S, AbstractRemoteFileOutboundGateway<F>>
 		implements ComponentsRegistration {
 
+	@Nullable
 	private CompositeFileListFilter<F> filter;
 
+	@Nullable
 	private ExpressionFileListFilter<F> expressionFileListFilter;
 
+	@Nullable
 	private ExpressionFileListFilter<File> mputExpressionFileListFilter;
 
+	@Nullable
 	private CompositeFileListFilter<File> mputFilter;
 
 	protected RemoteFileOutboundGatewaySpec(AbstractRemoteFileOutboundGateway<F> outboundGateway) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,7 +242,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		return Collections.unmodifiableMap(this.registry);
 	}
 
-	private String generateBeanName(Object instance, String parentName) {
+	private String generateBeanName(Object instance, @Nullable String parentName) {
 		if (instance instanceof NamedComponent) {
 			String beanName = ((NamedComponent) instance).getBeanName();
 			if (beanName != null) {
@@ -331,7 +331,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		 * @return the current builder instance
 		 */
 		@Override
-		public StandardIntegrationFlowRegistrationBuilder addBean(String name, Object bean) {
+		public StandardIntegrationFlowRegistrationBuilder addBean(@Nullable String name, Object bean) {
 			this.additionalBeans.put(bean, name);
 			return this;
 		}

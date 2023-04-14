@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.function.Function;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.webflux.inbound.WebFluxInboundEndpoint;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -82,7 +83,7 @@ public final class WebFlux {
 	 * @param webClient {@link WebClient} to use.
 	 * @return the WebFluxMessageHandlerSpec instance
 	 */
-	public static WebFluxMessageHandlerSpec outboundChannelAdapter(URI uri, WebClient webClient) {
+	public static WebFluxMessageHandlerSpec outboundChannelAdapter(URI uri, @Nullable WebClient webClient) {
 		return new WebFluxMessageHandlerSpec(uri, webClient)
 				.expectReply(false);
 	}
@@ -94,7 +95,7 @@ public final class WebFlux {
 	 * @param webClient {@link WebClient} to use.
 	 * @return the WebFluxMessageHandlerSpec instance
 	 */
-	public static WebFluxMessageHandlerSpec outboundChannelAdapter(String uri, WebClient webClient) {
+	public static WebFluxMessageHandlerSpec outboundChannelAdapter(String uri, @Nullable WebClient webClient) {
 		return new WebFluxMessageHandlerSpec(uri, webClient)
 				.expectReply(false);
 	}
@@ -123,7 +124,7 @@ public final class WebFlux {
 	 * @return the WebFluxMessageHandlerSpec instance
 	 */
 	public static WebFluxMessageHandlerSpec outboundChannelAdapter(Expression uriExpression,
-			WebClient webClient) {
+			@Nullable WebClient webClient) {
 
 		return new WebFluxMessageHandlerSpec(uriExpression, webClient)
 				.expectReply(false);
@@ -177,7 +178,7 @@ public final class WebFlux {
 	 * @param webClient {@link WebClient} to use.
 	 * @return the WebFluxMessageHandlerSpec instance
 	 */
-	public static WebFluxMessageHandlerSpec outboundGateway(URI uri, WebClient webClient) {
+	public static WebFluxMessageHandlerSpec outboundGateway(URI uri, @Nullable WebClient webClient) {
 		return new WebFluxMessageHandlerSpec(uri, webClient);
 	}
 
@@ -188,7 +189,7 @@ public final class WebFlux {
 	 * @param webClient {@link WebClient} to use.
 	 * @return the WebFluxMessageHandlerSpec instance
 	 */
-	public static WebFluxMessageHandlerSpec outboundGateway(String uri, WebClient webClient) {
+	public static WebFluxMessageHandlerSpec outboundGateway(String uri, @Nullable WebClient webClient) {
 		return new WebFluxMessageHandlerSpec(uri, webClient);
 	}
 
@@ -202,7 +203,7 @@ public final class WebFlux {
 	 * @return the WebFluxMessageHandlerSpec instance
 	 */
 	public static <P> WebFluxMessageHandlerSpec outboundGateway(Function<Message<P>, ?> uriFunction,
-			WebClient webClient) {
+			@Nullable WebClient webClient) {
 
 		return outboundGateway(new FunctionExpression<>(uriFunction), webClient);
 	}
@@ -216,7 +217,7 @@ public final class WebFlux {
 	 * @return the WebFluxMessageHandlerSpec instance
 	 */
 	public static WebFluxMessageHandlerSpec outboundGateway(Expression uriExpression,
-			WebClient webClient) {
+			@Nullable WebClient webClient) {
 
 		return new WebFluxMessageHandlerSpec(uriExpression, webClient);
 	}

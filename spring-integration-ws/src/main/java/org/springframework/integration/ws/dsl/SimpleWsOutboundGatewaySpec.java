@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Arrays;
 
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
+import org.springframework.lang.Nullable;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
@@ -39,6 +40,7 @@ import org.springframework.ws.transport.WebServiceMessageSender;
 public class SimpleWsOutboundGatewaySpec
 		extends BaseWsOutboundGatewaySpec<SimpleWsOutboundGatewaySpec, SimpleWebServiceOutboundGateway> {
 
+	@Nullable
 	protected SourceExtractor<?> sourceExtractor; // NOSONAR
 
 	protected SimpleWsOutboundGatewaySpec(WebServiceTemplate template) {

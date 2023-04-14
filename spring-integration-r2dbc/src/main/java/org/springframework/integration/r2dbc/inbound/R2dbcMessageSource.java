@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.r2dbc.core.ColumnMapRowMapper;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.RowsFetchSpec;
@@ -75,10 +76,12 @@ public class R2dbcMessageSource extends AbstractMessageSource<Publisher<?>> {
 
 	private boolean expectSingleResult = false;
 
-	private StandardEvaluationContext evaluationContext;
+	private StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
+	@Nullable
 	private String updateSql;
 
+	@Nullable
 	private BiFunction<DatabaseClient.GenericExecuteSpec, Object, DatabaseClient.GenericExecuteSpec> bindFunction;
 
 	private volatile boolean initialized = false;

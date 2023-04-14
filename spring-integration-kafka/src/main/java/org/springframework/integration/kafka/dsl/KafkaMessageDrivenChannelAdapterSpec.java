@@ -141,7 +141,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	}
 
 	/**
-	 * When using a type-aware message converter (such as {@code StringJsonMessageConverter},
+	 * When using a type-aware message converter (such as {@code StringJsonMessageConverter}),
 	 * set the payload type the converter should create. Defaults to {@link Object}.
 	 * @param payloadType the type.
 	 * @return the spec

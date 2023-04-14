@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.dsl.BaseHttpMessageHandlerSpec;
 import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -46,17 +47,18 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebFluxMessageHandlerSpec
 		extends BaseHttpMessageHandlerSpec<WebFluxMessageHandlerSpec, WebFluxRequestExecutingMessageHandler> {
 
+	@Nullable
 	protected final WebClient webClient; // NOSONAR - final
 
-	protected WebFluxMessageHandlerSpec(URI uri, WebClient webClient) {
+	protected WebFluxMessageHandlerSpec(URI uri, @Nullable WebClient webClient) {
 		this(new ValueExpression<>(uri), webClient);
 	}
 
-	protected WebFluxMessageHandlerSpec(String uri, WebClient webClient) {
+	protected WebFluxMessageHandlerSpec(String uri, @Nullable WebClient webClient) {
 		this(new LiteralExpression(uri), webClient);
 	}
 
-	protected WebFluxMessageHandlerSpec(Expression uriExpression, WebClient webClient) {
+	protected WebFluxMessageHandlerSpec(Expression uriExpression, @Nullable WebClient webClient) {
 		super(new WebFluxRequestExecutingMessageHandler(uriExpression, webClient));
 		this.webClient = webClient;
 	}

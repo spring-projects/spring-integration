@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -45,8 +46,10 @@ public class FileWritingMessageHandlerSpec
 		extends MessageHandlerSpec<FileWritingMessageHandlerSpec, FileWritingMessageHandler>
 		implements ComponentsRegistration {
 
+	@Nullable
 	private FileNameGenerator fileNameGenerator;
 
+	@Nullable
 	private DefaultFileNameGenerator defaultFileNameGenerator;
 
 	protected FileWritingMessageHandlerSpec(File destinationDirectory) {
@@ -264,7 +267,7 @@ public class FileWritingMessageHandlerSpec
 		if (this.defaultFileNameGenerator != null) {
 			return Collections.singletonMap(this.defaultFileNameGenerator, null);
 		}
-		return null;
+		return Collections.emptyMap();
 	}
 
 }

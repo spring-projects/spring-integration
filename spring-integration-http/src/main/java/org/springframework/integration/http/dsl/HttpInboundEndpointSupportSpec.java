@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.integration.http.inbound.CrossOrigin;
 import org.springframework.integration.http.inbound.RequestMapping;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -60,6 +61,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 
 	protected final HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper(); // NOSONAR final
 
+	@Nullable
 	private HeaderMapper<HttpHeaders> explicitHeaderMapper;
 
 	protected HttpInboundEndpointSupportSpec(E gateway, String... path) {
@@ -216,7 +218,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	/**
 	 * Specify the type of payload to be generated when the inbound HTTP request content is read by the
 	 * {@link org.springframework.http.converter.HttpMessageConverter}s.
-	 * By default this value is null which means at runtime any "text" Content-Type will
+	 * By default, this value is null which means at runtime any "text" Content-Type will
 	 * result in String while all others default to {@code byte[].class}.
 	 * @param requestPayloadType The payload type.
 	 * @return the current Spec.
@@ -229,7 +231,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	/**
 	 * Specify the type of payload to be generated when the inbound HTTP request content is read by the
 	 * {@link org.springframework.http.converter.HttpMessageConverter}s.
-	 * By default this value is null which means at runtime any "text" Content-Type will
+	 * By default, this value is null which means at runtime any "text" Content-Type will
 	 * result in String while all others default to {@code byte[].class}.
 	 * @param requestPayloadType The payload type.
 	 * @return the current Spec.
@@ -358,7 +360,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 
 		/**
 		 * The producible media types of the mapped request, narrowing the primary mapping.
-		 * @param produces the the media types for {@code Accept} header.
+		 * @param produces the media types for {@code Accept} header.
 		 * @return the spec
 		 */
 		public RequestMappingSpec produces(String... produces) {

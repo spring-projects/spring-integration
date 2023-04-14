@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.integration.transformer.support.ExpressionEvaluatingH
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.RoutingSlipHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -133,7 +134,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	/**
 	 * Add header specifications from the {@link MapBuilder}; if a map value is an
 	 * {@link Expression}, it will be evaluated at run time when the message headers are
-	 * enriched. Otherwise the value is simply added to the headers. Headers derived from
+	 * enriched. Otherwise, the value is simply added to the headers. Headers derived from
 	 * the map will <b>not</b> overwrite existing headers, unless
 	 * {@link #defaultOverwrite(boolean)} is true.
 	 * @param headers the header map builder.
@@ -146,12 +147,12 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	/**
 	 * Add header specifications from the {@link MapBuilder}; if a map value is an
 	 * {@link Expression}, it will be evaluated at run time when the message headers are
-	 * enriched. Otherwise the value is simply added to the headers.
+	 * enriched. Otherwise, the value is simply added to the headers.
 	 * @param headers the header map builder.
 	 * @param overwrite true to overwrite existing headers.
 	 * @return the header enricher spec.
 	 */
-	public HeaderEnricherSpec headers(MapBuilder<?, String, Object> headers, Boolean overwrite) {
+	public HeaderEnricherSpec headers(MapBuilder<?, String, Object> headers, @Nullable Boolean overwrite) {
 		Assert.notNull(headers, HEADERS_MUST_NOT_BE_NULL);
 		return headers(headers.get(), overwrite);
 	}
@@ -159,7 +160,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	/**
 	 * Add header specifications from the {@link Map}; if a map value is an
 	 * {@link Expression}, it will be evaluated at run time when the message headers are
-	 * enriched. Otherwise the value is simply added to the headers. Headers derived from
+	 * enriched. Otherwise, the value is simply added to the headers. Headers derived from
 	 * the map will <em>not</em> overwrite existing headers, unless
 	 * {@link #defaultOverwrite(boolean)} is true.
 	 * @param headers The header builder.
@@ -172,12 +173,12 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	/**
 	 * Add header specifications from the {@link Map}; if a map value is an
 	 * {@link Expression}, it will be evaluated at run time when the message headers are
-	 * enriched. Otherwise the value is simply added to the headers.
+	 * enriched. Otherwise, the value is simply added to the headers.
 	 * @param headers The header builder.
 	 * @param overwrite true to overwrite existing headers.
 	 * @return the header enricher spec.
 	 */
-	public HeaderEnricherSpec headers(Map<String, Object> headers, Boolean overwrite) {
+	public HeaderEnricherSpec headers(Map<String, Object> headers, @Nullable Boolean overwrite) {
 		Assert.notNull(headers, HEADERS_MUST_NOT_BE_NULL);
 		for (Entry<String, Object> entry : headers.entrySet()) {
 			String name = entry.getKey();
@@ -753,7 +754,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param <V> the value type.
 	 * @return the header enricher spec.
 	 */
-	public <V> HeaderEnricherSpec header(String name, V value, Boolean overwrite) {
+	public <V> HeaderEnricherSpec header(String name, V value, @Nullable Boolean overwrite) {
 		AbstractHeaderValueMessageProcessor<V> headerValueMessageProcessor =
 				new StaticHeaderValueMessageProcessor<>(value);
 		headerValueMessageProcessor.setOverwrite(overwrite);
@@ -780,7 +781,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param overwrite true to overwrite an existing header.
 	 * @return the header enricher spec.
 	 */
-	public HeaderEnricherSpec headerExpression(String name, String expression, Boolean overwrite) {
+	public HeaderEnricherSpec headerExpression(String name, String expression, @Nullable Boolean overwrite) {
 		Assert.hasText(expression, "'expression' must not be empty");
 		return headerExpression(name, PARSER.parseExpression(expression), overwrite);
 	}
@@ -810,12 +811,12 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec headerFunction(String name, Function<Message<P>, ?> function,
-			Boolean overwrite) {
+			@Nullable Boolean overwrite) {
 
 		return headerExpression(name, new FunctionExpression<>(function), overwrite);
 	}
 
-	private HeaderEnricherSpec headerExpression(String name, Expression expression, Boolean overwrite) {
+	private HeaderEnricherSpec headerExpression(String name, Expression expression, @Nullable Boolean overwrite) {
 		AbstractHeaderValueMessageProcessor<?> headerValueMessageProcessor =
 				new ExpressionEvaluatingHeaderValueMessageProcessor<>(expression, null);
 		headerValueMessageProcessor.setOverwrite(overwrite);
@@ -859,7 +860,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @see org.springframework.integration.support.channel.HeaderChannelRegistry
 	 */
-	public HeaderEnricherSpec headerChannelsToString(String timeToLiveExpression) {
+	public HeaderEnricherSpec headerChannelsToString(@Nullable String timeToLiveExpression) {
 		return headerExpression("replyChannel",
 				"@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
 						+ ".channelToChannelName(headers.replyChannel" +

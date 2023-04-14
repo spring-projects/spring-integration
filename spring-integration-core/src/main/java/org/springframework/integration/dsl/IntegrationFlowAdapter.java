@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * Requires the implementation for the {@link #buildFlow()} method to produce
  * {@link IntegrationFlowDefinition} using one of {@link #from} support methods.
  * <p>
- * Typically is used for target service implementation:
+ * Typically, is used for target service implementation:
  * <pre class="code">
  *  &#64;Component
  *  public class MyFlowAdapter extends IntegrationFlowAdapter {
@@ -68,12 +68,12 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, Managea
 	@Override
 	public final void configure(IntegrationFlowDefinition<?> flow) {
 		IntegrationFlowDefinition<?> targetFlow = buildFlow();
-		Assert.state(targetFlow != null, "the 'buildFlow()' must not return null");
 		flow.integrationComponents.clear();
 		flow.integrationComponents.putAll(targetFlow.integrationComponents);
 		this.targetIntegrationFlow = flow.get();
 	}
 
+	@Nullable
 	@Override
 	public MessageChannel getInputChannel() {
 		assertTargetIntegrationFlow();

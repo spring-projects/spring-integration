@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.dsl;
 
 import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.integration.kafka.channel.AbstractKafkaChannel;
+import org.springframework.lang.Nullable;
 
 /**
  *
@@ -34,10 +35,11 @@ import org.springframework.integration.kafka.channel.AbstractKafkaChannel;
 public abstract class AbstractKafkaChannelSpec<S extends AbstractKafkaChannelSpec<S, C>, C extends AbstractKafkaChannel>
 		extends MessageChannelSpec<S, C> {
 
+	@Nullable
 	protected String groupId; // NOSONAR
 
 	@Override
-	public S id(String idToSet) { // NOSONAR - increase visibility
+	public S id(@Nullable String idToSet) { // NOSONAR - increase visibility
 		return super.id(idToSet);
 	}
 

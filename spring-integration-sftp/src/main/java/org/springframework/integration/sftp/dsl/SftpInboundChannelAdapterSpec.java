@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilt
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
+import org.springframework.lang.Nullable;
 
 /**
  * A {@link RemoteFileInboundChannelAdapterSpec} for an {@link SftpInboundFileSynchronizingMessageSource}.
@@ -44,7 +45,7 @@ public class SftpInboundChannelAdapterSpec
 		SftpInboundFileSynchronizingMessageSource> {
 
 	protected SftpInboundChannelAdapterSpec(SessionFactory<SftpClient.DirEntry> sessionFactory,
-			Comparator<File> comparator) {
+			@Nullable Comparator<File> comparator) {
 
 		super(new SftpInboundFileSynchronizer(sessionFactory));
 		this.target = new SftpInboundFileSynchronizingMessageSource(this.synchronizer, comparator);

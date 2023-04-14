@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,13 @@ import org.springframework.integration.smb.filters.SmbRegexPatternFileListFilter
 import org.springframework.integration.smb.filters.SmbSimplePatternFileListFilter;
 import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizer;
 import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizingMessageSource;
+import org.springframework.lang.Nullable;
 
 /**
  * A {@link RemoteFileInboundChannelAdapterSpec} for an {@link SmbInboundFileSynchronizingMessageSource}.
  *
  * @author Gregory Bragg
+ * @author Artem Bilan
  *
  * @since 6.0
  */
@@ -43,7 +45,9 @@ public class SmbInboundChannelAdapterSpec
 		extends RemoteFileInboundChannelAdapterSpec<SmbFile, SmbInboundChannelAdapterSpec,
 		SmbInboundFileSynchronizingMessageSource> {
 
-	protected SmbInboundChannelAdapterSpec(SessionFactory<SmbFile> sessionFactory, Comparator<File> comparator) {
+	protected SmbInboundChannelAdapterSpec(SessionFactory<SmbFile> sessionFactory,
+			@Nullable Comparator<File> comparator) {
+
 		super(new SmbInboundFileSynchronizer(sessionFactory));
 		this.target = new SmbInboundFileSynchronizingMessageSource(this.synchronizer, comparator);
 	}

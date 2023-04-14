@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	 * @return the builder.
 	 */
 	public <P> MailHeadersBuilder subjectFunction(Function<Message<P>, String> subject) {
-		return put(MailHeaders.SUBJECT, new FunctionExpression<Message<P>>(subject));
+		return put(MailHeaders.SUBJECT, new FunctionExpression<>(subject));
 	}
 
 	/**
@@ -86,7 +86,7 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	 * @return the builder.
 	 */
 	public <P> MailHeadersBuilder toFunction(Function<Message<P>, String[]> to) {
-		return put(MailHeaders.TO, new FunctionExpression<Message<P>>(to));
+		return put(MailHeaders.TO, new FunctionExpression<>(to));
 	}
 
 	/**
@@ -115,7 +115,7 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	 * @return the builder.
 	 */
 	public <P> MailHeadersBuilder ccFunction(Function<Message<P>, String[]> cc) {
-		return put(MailHeaders.CC, new FunctionExpression<Message<P>>(cc));
+		return put(MailHeaders.CC, new FunctionExpression<>(cc));
 	}
 
 	/**
@@ -144,7 +144,7 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	 * @return the builder.
 	 */
 	public <P> MailHeadersBuilder bccFunction(Function<Message<P>, String[]> bcc) {
-		return put(MailHeaders.BCC, new FunctionExpression<Message<P>>(bcc));
+		return put(MailHeaders.BCC, new FunctionExpression<>(bcc));
 	}
 
 	/**
@@ -157,7 +157,7 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	}
 
 	/**
-	 * Set the expression that will be evaluated to determine the From: address.
+	 * Set the expression that will be evaluated to determine the {@code From:} address.
 	 * @param from the expression.
 	 * @return the builder.
 	 */
@@ -166,14 +166,14 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	}
 
 	/**
-	 * Set a function that will be invoked to determine the From: address based on the
+	 * Set a function that will be invoked to determine the {@code From:} address based on the
 	 * message.
 	 * @param from the function.
 	 * @param <P> the message payload type.
 	 * @return the builder.
 	 */
 	public <P> MailHeadersBuilder fromFunction(Function<Message<P>, String> from) {
-		return put(MailHeaders.FROM, new FunctionExpression<Message<P>>(from));
+		return put(MailHeaders.FROM, new FunctionExpression<>(from));
 	}
 
 	/**
@@ -202,7 +202,7 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	 * @return the builder.
 	 */
 	public <P> MailHeadersBuilder replyToFunction(Function<Message<P>, String> replyTo) {
-		return put(MailHeaders.REPLY_TO, new FunctionExpression<Message<P>>(replyTo));
+		return put(MailHeaders.REPLY_TO, new FunctionExpression<>(replyTo));
 	}
 
 	/**
@@ -236,7 +236,7 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	 * @see org.springframework.mail.javamail.MimeMessageHelper
 	 */
 	public <P> MailHeadersBuilder multipartModeFunction(Function<Message<P>, Integer> multipartMode) {
-		return put(MailHeaders.MULTIPART_MODE, new FunctionExpression<Message<P>>(multipartMode));
+		return put(MailHeaders.MULTIPART_MODE, new FunctionExpression<>(multipartMode));
 	}
 
 	/**
@@ -264,7 +264,7 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	 * @return the builder.
 	 */
 	public <P> MailHeadersBuilder attachmentFilenameFunction(Function<Message<P>, String> attachmentFilename) {
-		return put(MailHeaders.ATTACHMENT_FILENAME, new FunctionExpression<Message<P>>(attachmentFilename));
+		return put(MailHeaders.ATTACHMENT_FILENAME, new FunctionExpression<>(attachmentFilename));
 	}
 
 	/**
@@ -292,7 +292,7 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	 * @return the builder.
 	 */
 	public <P> MailHeadersBuilder contentTypeFunction(Function<Message<P>, String> contentType) {
-		return put(MailHeaders.CONTENT_TYPE, new FunctionExpression<Message<P>>(contentType));
+		return put(MailHeaders.CONTENT_TYPE, new FunctionExpression<>(contentType));
 	}
 
 	private MailHeadersBuilder putExpression(String key, String expression) {

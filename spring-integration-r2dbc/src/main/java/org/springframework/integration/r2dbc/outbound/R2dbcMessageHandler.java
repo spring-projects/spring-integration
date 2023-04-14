@@ -56,7 +56,7 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 
 	private final StatementMapper statementMapper;
 
-	private StandardEvaluationContext evaluationContext;
+	private StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
 	private Expression queryTypeExpression = new ValueExpression<>(Type.INSERT);
 
@@ -170,7 +170,8 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 
 	private Mono<Void> handleDelete(Message<?> message) {
 		if (this.tableNameExpression != null) {
-			String tableName = evaluateTableNameExpression(message);
+			String tableName = this.tableNameExpression.getValue(this.evaluationContext, message, String.class);
+			Assert.notNull(tableName, "'tableNameExpression' must not evaluate to null");
 			Criteria criteria = evaluateCriteriaExpression(message);
 			StatementMapper.DeleteSpec deleteSpec =
 					this.statementMapper.createDelete(tableName)
@@ -188,7 +189,8 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 
 	private Mono<Void> handleUpdate(Message<?> message) {
 		if (this.tableNameExpression != null) {
-			String tableName = evaluateTableNameExpression(message);
+			String tableName = this.tableNameExpression.getValue(this.evaluationContext, message, String.class);
+			Assert.notNull(tableName, "'tableNameExpression' must not evaluate to null");
 			Map<String, Object> values = evaluateValuesExpression(message);
 			Map<SqlIdentifier, Object> updateMap = transformIntoSqlIdentifierMap(values);
 			Criteria criteria = evaluateCriteriaExpression(message);
@@ -216,7 +218,8 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 	@SuppressWarnings("deprecation")
 	private Mono<Void> handleInsert(Message<?> message) {
 		if (this.tableNameExpression != null) {
-			String tableName = evaluateTableNameExpression(message);
+			String tableName = this.tableNameExpression.getValue(this.evaluationContext, message, String.class);
+			Assert.notNull(tableName, "'tableNameExpression' must not evaluate to null");
 			Map<String, Object> values = evaluateValuesExpression(message);
 
 			StatementMapper.InsertSpec insertSpec = this.statementMapper.createInsert(tableName);
@@ -235,13 +238,6 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 			return this.r2dbcEntityOperations.insert(message.getPayload())
 					.then();
 		}
-	}
-
-	private String evaluateTableNameExpression(Message<?> message) {
-		String tableName =
-				this.tableNameExpression.getValue(this.evaluationContext, message, String.class); // NOSONAR
-		Assert.notNull(tableName, "'tableNameExpression' must not evaluate to null");
-		return tableName;
 	}
 
 	@SuppressWarnings("unchecked")

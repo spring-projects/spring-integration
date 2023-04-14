@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilte
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.lang.Nullable;
 
 /**
  * A {@link RemoteFileInboundChannelAdapterSpec} for an {@link FtpInboundFileSynchronizingMessageSource}.
@@ -43,7 +44,9 @@ public class FtpInboundChannelAdapterSpec
 		extends RemoteFileInboundChannelAdapterSpec<FTPFile, FtpInboundChannelAdapterSpec,
 		FtpInboundFileSynchronizingMessageSource> {
 
-	protected FtpInboundChannelAdapterSpec(SessionFactory<FTPFile> sessionFactory, Comparator<File> comparator) {
+	protected FtpInboundChannelAdapterSpec(SessionFactory<FTPFile> sessionFactory,
+			@Nullable Comparator<File> comparator) {
+
 		super(new FtpInboundFileSynchronizer(sessionFactory));
 		this.target = new FtpInboundFileSynchronizingMessageSource(this.synchronizer, comparator);
 	}

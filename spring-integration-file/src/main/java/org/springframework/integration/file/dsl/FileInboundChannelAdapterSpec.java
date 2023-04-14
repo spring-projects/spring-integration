@@ -36,6 +36,7 @@ import org.springframework.integration.file.config.FileListFilterFactoryBean;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.locking.NioFileLocker;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -51,10 +52,13 @@ public class FileInboundChannelAdapterSpec
 
 	protected final FileListFilterFactoryBean fileListFilterFactoryBean = new FileListFilterFactoryBean(); // NOSONAR
 
+	@Nullable
 	private FileLocker locker;
 
+	@Nullable
 	private ExpressionFileListFilter<File> expressionFileListFilter;
 
+	@Nullable
 	private DirectoryScanner scanner;
 
 	private boolean filtersSet;
@@ -63,7 +67,7 @@ public class FileInboundChannelAdapterSpec
 		this.target = new FileReadingMessageSource();
 	}
 
-	protected FileInboundChannelAdapterSpec(Comparator<File> receptionOrderComparator) {
+	protected FileInboundChannelAdapterSpec(@Nullable Comparator<File> receptionOrderComparator) {
 		this.target = new FileReadingMessageSource(receptionOrderComparator);
 	}
 
@@ -314,7 +318,7 @@ public class FileInboundChannelAdapterSpec
 			return Collections.singletonMap(this.expressionFileListFilter, null);
 		}
 		else {
-			return null;
+			return Collections.emptyMap();
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFile
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpStreamingMessageSource;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Gary Russell
@@ -41,7 +42,7 @@ public class SftpStreamingInboundChannelAdapterSpec
 		SftpStreamingInboundChannelAdapterSpec, SftpStreamingMessageSource> {
 
 	protected SftpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
-			Comparator<SftpClient.DirEntry> comparator) {
+			@Nullable Comparator<SftpClient.DirEntry> comparator) {
 
 		this.target = new SftpStreamingMessageSource(remoteFileTemplate, comparator);
 	}

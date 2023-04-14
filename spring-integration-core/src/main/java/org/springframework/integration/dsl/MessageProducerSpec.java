@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.dsl;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -34,7 +35,7 @@ import org.springframework.messaging.MessageChannel;
 public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P extends MessageProducerSupport>
 		extends IntegrationComponentSpec<S, P> {
 
-	public MessageProducerSpec(P producer) {
+	public MessageProducerSpec(@Nullable P producer) {
 		this.target = producer;
 	}
 
@@ -43,7 +44,7 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	 * Configure the message producer's bean name.
 	 */
 	@Override
-	public S id(String id) {
+	public S id(@Nullable String id) {
 		this.target.setBeanName(id);
 		return super.id(id);
 	}

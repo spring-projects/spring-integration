@@ -55,7 +55,9 @@ public final class Jms {
 	 */
 	public static JmsPollableMessageChannelSpec<?, PollableJmsChannel> pollableChannel(@Nullable String id,
 			ConnectionFactory connectionFactory) {
-		JmsPollableMessageChannelSpec<?, PollableJmsChannel> spec = new JmsPollableMessageChannelSpec<>(connectionFactory);
+
+		JmsPollableMessageChannelSpec<?, PollableJmsChannel> spec =
+				new JmsPollableMessageChannelSpec<>(connectionFactory);
 		return spec.id(id);
 	}
 
@@ -166,14 +168,9 @@ public final class Jms {
 	public static JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>
 	inboundGateway(ConnectionFactory connectionFactory) {
 
-		try {
-			return new JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<>(
-					new JmsDefaultListenerContainerSpec()
-							.connectionFactory(connectionFactory));
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+		return new JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<>(
+				new JmsDefaultListenerContainerSpec()
+						.connectionFactory(connectionFactory));
 	}
 
 	/**
@@ -189,15 +186,10 @@ public final class Jms {
 	JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<?, C> inboundGateway(
 			ConnectionFactory connectionFactory, Class<C> containerClass) {
 
-		try {
-			JmsListenerContainerSpec<?, C> spec =
-					new JmsListenerContainerSpec<>(containerClass)
-							.connectionFactory(connectionFactory);
-			return new JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec(spec);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+		JmsListenerContainerSpec<?, C> spec =
+				new JmsListenerContainerSpec<>(containerClass)
+						.connectionFactory(connectionFactory);
+		return new JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec(spec);
 	}
 
 	/**

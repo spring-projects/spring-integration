@@ -17,6 +17,7 @@
 package org.springframework.integration.kafka.dsl;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -26,7 +27,6 @@ import org.apache.kafka.common.TopicPartition;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.kafka.inbound.KafkaInboundGateway;
-import org.springframework.integration.support.ObjectStringMapBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConsumerSeekAware;
@@ -164,10 +164,10 @@ public class KafkaInboundGatewaySpec<K, V, R, S extends KafkaInboundGatewaySpec<
 
 		@Override
 		public Map<Object, String> getComponentsToRegister() {
-			return new ObjectStringMapBuilder()
-					.put(this.containerSpec.getObject(), this.containerSpec.getId())
-					.put(this.templateSpec.getObject(), this.templateSpec.getId())
-					.get();
+			Map<Object, String> components = new HashMap<>();
+			components.put(this.containerSpec.getObject(), this.containerSpec.getId());
+			components.put(this.templateSpec.getObject(), this.templateSpec.getId());
+			return components;
 		}
 
 	}

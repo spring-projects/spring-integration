@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.dsl;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -34,12 +35,12 @@ import org.springframework.messaging.MessageChannel;
 public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>, G extends MessagingGatewaySupport>
 		extends IntegrationComponentSpec<S, G> {
 
-	public MessagingGatewaySpec(G gateway) {
+	public MessagingGatewaySpec(@Nullable G gateway) {
 		this.target = gateway;
 	}
 
 	@Override
-	public S id(String id) {
+	public S id(@Nullable String id) {
 		this.target.setBeanName(id);
 		return super.id(id);
 	}

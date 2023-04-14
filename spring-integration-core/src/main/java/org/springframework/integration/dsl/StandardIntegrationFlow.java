@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -102,6 +103,7 @@ public class StandardIntegrationFlow
 		throw new UnsupportedOperationException();
 	}
 
+	@Nullable
 	@Override
 	public MessageChannel getInputChannel() {
 		if (this.inputChannel == null) {
@@ -146,8 +148,7 @@ public class StandardIntegrationFlow
 	public void stop(Runnable callback) {
 		AggregatingCallback aggregatingCallback = new AggregatingCallback(this.integrationComponents.size(), callback);
 		for (Object component : this.integrationComponents.keySet()) {
-			if (component instanceof SmartLifecycle) {
-				SmartLifecycle lifecycle = (SmartLifecycle) component;
+			if (component instanceof SmartLifecycle lifecycle) {
 				if (lifecycle.isRunning()) {
 					lifecycle.stop(aggregatingCallback);
 					continue;
@@ -161,8 +162,7 @@ public class StandardIntegrationFlow
 	@Override
 	public void stop() {
 		for (Object component : this.integrationComponents.keySet()) {
-			if (component instanceof SmartLifecycle) {
-				SmartLifecycle lifecycle = (SmartLifecycle) component;
+			if (component instanceof SmartLifecycle lifecycle) {
 				if (lifecycle.isRunning()) {
 					lifecycle.stop();
 				}

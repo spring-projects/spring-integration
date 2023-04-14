@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.integration.aggregator.ExpressionEvaluatingMessageGro
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.lang.Nullable;
 
 /**
  * A {@link CorrelationHandlerSpec} for an {@link AggregatingMessageHandler}.
@@ -65,7 +66,7 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	 * target object must have an {@link org.springframework.integration.annotation.Aggregator} annotation).
 	 * @return the handler spec.
 	 */
-	public AggregatorSpec processor(Object target, String methodName) {
+	public AggregatorSpec processor(Object target, @Nullable String methodName) {
 		return super.processor(target)
 				.outputProcessor(methodName != null
 						? new MethodInvokingMessageGroupProcessor(target, methodName)

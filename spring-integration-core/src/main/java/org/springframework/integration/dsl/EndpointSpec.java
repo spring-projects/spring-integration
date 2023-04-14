@@ -28,6 +28,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
@@ -54,7 +55,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 
 	protected H handler; // NOSONAR
 
-	protected EndpointSpec(H handler, F endpointFactoryBean) {
+	protected EndpointSpec(@Nullable H handler, F endpointFactoryBean) {
 		this.endpointFactoryBean = endpointFactoryBean;
 		this.handler = handler;
 	}
@@ -83,9 +84,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 */
 	public S poller(PollerSpec pollerMetadataSpec) {
 		Map<Object, String> components = pollerMetadataSpec.getComponentsToRegister();
-		if (components != null) {
-			this.componentsToRegister.putAll(components);
-		}
+		this.componentsToRegister.putAll(components);
 		return poller(pollerMetadataSpec.getObject());
 	}
 
@@ -122,9 +121,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
-		return this.componentsToRegister.isEmpty()
-				? null
-				: this.componentsToRegister;
+		return this.componentsToRegister;
 	}
 
 	@Override

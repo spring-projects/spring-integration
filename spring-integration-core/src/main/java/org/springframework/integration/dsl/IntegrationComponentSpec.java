@@ -26,6 +26,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 /**
  * The common Builder abstraction.
@@ -57,11 +59,12 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	 * @param idToSet the id.
 	 * @return the spec.
 	 */
-	protected S id(String idToSet) {
+	protected S id(@Nullable String idToSet) {
 		this.id = idToSet;
 		return _this();
 	}
 
+	@Nullable
 	public final String getId() {
 		return this.id;
 	}
@@ -85,6 +88,7 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	 * !!! This method must not be called from the target configuration !!!
 	 * @return the object backed by this factory bean.
 	 */
+	@NonNull
 	@Override
 	public T getObject() {
 		if (this.target == null) {

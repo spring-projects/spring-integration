@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
@@ -84,7 +85,7 @@ public final class Http {
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 */
-	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri, RestTemplate restTemplate) {
+	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate).expectReply(false);
 	}
 
@@ -95,7 +96,7 @@ public final class Http {
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 */
-	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, RestTemplate restTemplate) {
+	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate).expectReply(false);
 	}
 
@@ -122,7 +123,9 @@ public final class Http {
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 */
-	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression, RestTemplate restTemplate) {
+	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression,
+			@Nullable RestTemplate restTemplate) {
+
 		return new HttpMessageHandlerSpec(uriExpression, restTemplate).expectReply(false);
 	}
 
@@ -172,7 +175,7 @@ public final class Http {
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 */
-	public static HttpMessageHandlerSpec outboundGateway(URI uri, RestTemplate restTemplate) {
+	public static HttpMessageHandlerSpec outboundGateway(URI uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate);
 	}
 
@@ -183,7 +186,7 @@ public final class Http {
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 */
-	public static HttpMessageHandlerSpec outboundGateway(String uri, RestTemplate restTemplate) {
+	public static HttpMessageHandlerSpec outboundGateway(String uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate);
 	}
 
@@ -210,7 +213,9 @@ public final class Http {
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
 	 */
-	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression, RestTemplate restTemplate) {
+	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression,
+			@Nullable RestTemplate restTemplate) {
+
 		return new HttpMessageHandlerSpec(uriExpression, restTemplate);
 	}
 

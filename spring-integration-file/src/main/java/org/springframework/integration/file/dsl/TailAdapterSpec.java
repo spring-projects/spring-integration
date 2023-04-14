@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.file.config.FileTailInboundChannelAdapterFactoryBean;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -39,8 +40,10 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 
 	private final FileTailInboundChannelAdapterFactoryBean factoryBean = new FileTailInboundChannelAdapterFactoryBean();
 
+	@Nullable
 	private MessageChannel outputChannel;
 
+	@Nullable
 	private MessageChannel errorChannel;
 
 	protected TailAdapterSpec() {
@@ -155,7 +158,7 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	}
 
 	@Override
-	public TailAdapterSpec id(String id) {
+	public TailAdapterSpec id(@Nullable String id) {
 		this.factoryBean.setBeanName(id);
 		return _this();
 	}
@@ -186,14 +189,16 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 
 	@Override
 	protected FileTailingMessageProducerSupport doGet() {
-		FileTailingMessageProducerSupport tailingMessageProducerSupport = null;
+		FileTailingMessageProducerSupport tailingMessageProducerSupport;
 		try {
 			this.factoryBean.afterPropertiesSet();
 			tailingMessageProducerSupport = this.factoryBean.getObject();
 		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
+		catch (Exception ex) {
+			throw new IllegalStateException(ex);
 		}
+		Assert.notNull(tailingMessageProducerSupport,
+				"The 'FileTailInboundChannelAdapterFactoryBean' must not produce null");
 		if (this.errorChannel != null) {
 			tailingMessageProducerSupport.setErrorChannel(this.errorChannel);
 		}

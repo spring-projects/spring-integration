@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.util.ClassUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.StringUtils;
 
@@ -89,7 +90,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	}
 
 	/**
-	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
+	 * Adds a recipient channel that will be selected if the selector's accept method returns 'true'.
 	 * @param channelName the channel name.
 	 * @param selector the selector.
 	 * @param <P> the selector source type.
@@ -113,7 +114,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	}
 
 	/**
-	 * Adds a recipient channel that always will be selected.
+	 * Adds a recipient channel that always is selected.
 	 * @param channel the recipient channel.
 	 * @return the router spec.
 	 */
@@ -122,22 +123,22 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	}
 
 	/**
-	 * Adds a recipient channel that will be selected if the the expression evaluates to 'true'.
+	 * Adds a recipient channel that will be selected if the expression evaluates to 'true'.
 	 * @param channel the recipient channel.
 	 * @param expression the expression.
 	 * @return the router spec.
 	 */
-	public RecipientListRouterSpec recipient(MessageChannel channel, String expression) {
+	public RecipientListRouterSpec recipient(MessageChannel channel, @Nullable String expression) {
 		return recipient(channel, StringUtils.hasText(expression) ? PARSER.parseExpression(expression) : null);
 	}
 
 	/**
-	 * Adds a recipient channel that will be selected if the the expression evaluates to 'true'.
+	 * Adds a recipient channel that will be selected if the expression evaluates to 'true'.
 	 * @param channel the recipient channel.
 	 * @param expression the expression.
 	 * @return the router spec.
 	 */
-	public RecipientListRouterSpec recipient(MessageChannel channel, Expression expression) {
+	public RecipientListRouterSpec recipient(MessageChannel channel, @Nullable Expression expression) {
 		if (expression != null) {
 			ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
 			this.handler.addRecipient(channel, selector);
@@ -150,7 +151,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	}
 
 	/**
-	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
+	 * Adds a recipient channel that will be selected if the selector's accept method returns 'true'.
 	 * @param channel the recipient channel.
 	 * @param selector the selector.
 	 * @return the router spec.
@@ -160,7 +161,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	}
 
 	/**
-	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
+	 * Adds a recipient channel that will be selected if the selector's accept method returns 'true'.
 	 * @param channel the recipient channel.
 	 * @param selector the selector.
 	 * @param <P> the selector source type.
@@ -210,7 +211,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param subFlow the subflow.
 	 * @return the router spec.
 	 */
-	public RecipientListRouterSpec recipientFlow(String expression, IntegrationFlow subFlow) {
+	public RecipientListRouterSpec recipientFlow(@Nullable String expression, IntegrationFlow subFlow) {
 		return recipientFlow(StringUtils.hasText(expression) ? PARSER.parseExpression(expression) : null, subFlow);
 	}
 
@@ -220,7 +221,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param subFlow the subflow.
 	 * @return the router spec.
 	 */
-	public RecipientListRouterSpec recipientFlow(Expression expression, IntegrationFlow subFlow) {
+	public RecipientListRouterSpec recipientFlow(@Nullable Expression expression, IntegrationFlow subFlow) {
 		MessageChannel channel = obtainInputChannelFromFlow(subFlow);
 		return recipient(channel, expression);
 	}

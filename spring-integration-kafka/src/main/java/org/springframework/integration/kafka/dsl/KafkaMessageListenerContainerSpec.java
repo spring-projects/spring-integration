@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.TopicPartitionOffset;
+import org.springframework.lang.Nullable;
 
 /**
  * A helper class in the Builder pattern style to delegate options to the
@@ -65,7 +66,7 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	}
 
 	@Override
-	public KafkaMessageListenerContainerSpec<K, V> id(String id) { // NOSONAR - increase visibility
+	public KafkaMessageListenerContainerSpec<K, V> id(@Nullable String id) { // NOSONAR - increase visibility
 		return super.id(id);
 	}
 
@@ -205,8 +206,8 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	/**
 	 * Set whether to call consumer.commitSync() or commitAsync() when the
 	 * container is responsible for commits. Default true. See
-	 * https://github.com/spring-projects/spring-kafka/issues/62 At the time of
-	 * writing, async commits are not entirely reliable.
+	 * <a href="https://github.com/spring-projects/spring-kafka/issues/62"/>.
+	 * At the time of writing, async commits are not entirely reliable.
 	 * @param syncCommits true to use commitSync().
 	 * @return the spec.
 	 * @see ContainerProperties#setSyncCommits(boolean)

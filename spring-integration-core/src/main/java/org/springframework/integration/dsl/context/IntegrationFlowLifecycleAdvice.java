@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.springframework.integration.dsl.context;
 
+import java.util.Map;
+
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
+import org.springframework.lang.Nullable;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -77,7 +81,7 @@ class IntegrationFlowLifecycleAdvice implements MethodInterceptor {
 		}
 		else if ("getIntegrationComponents".equals(method)) {
 			result = invocation.proceed();
-			if (result == null) {
+			if (CollectionUtils.isEmpty((Map<?, ?>) result)) {
 				result = this.delegate.getIntegrationComponents();
 			}
 		}
@@ -91,7 +95,8 @@ class IntegrationFlowLifecycleAdvice implements MethodInterceptor {
 		return result;
 	}
 
-	private Object applyToDelegate(MethodInvocation invocation, String method, Object resultArg) {
+	@Nullable
+	private Object applyToDelegate(MethodInvocation invocation, String method, @Nullable Object resultArg) {
 		Object result = resultArg;
 		switch (method) {
 

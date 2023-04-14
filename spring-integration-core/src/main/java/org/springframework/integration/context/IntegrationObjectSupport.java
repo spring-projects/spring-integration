@@ -98,7 +98,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	private boolean initialized;
 
 	@Override
-	public final void setBeanName(String beanName) {
+	public final void setBeanName(@Nullable String beanName) {
 		this.beanName = beanName;
 	}
 
