@@ -44,6 +44,9 @@ public class MarshallingWsInboundGatewaySpec
 	 */
 	public MarshallingWsInboundGatewaySpec marshaller(Marshaller marshaller) {
 		this.target.setMarshaller(marshaller);
+		if (marshaller instanceof Unmarshaller unmarshaller) {
+			return unmarshaller(unmarshaller);
+		}
 		return this;
 	}
 
