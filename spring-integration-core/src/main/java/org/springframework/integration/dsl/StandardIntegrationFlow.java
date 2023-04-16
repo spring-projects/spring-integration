@@ -136,8 +136,8 @@ public class StandardIntegrationFlow
 			ListIterator<Object> iterator = components.listIterator(this.integrationComponents.size());
 			while (iterator.hasPrevious()) {
 				Object component = iterator.previous();
-				if (component instanceof SmartLifecycle) {
-					((SmartLifecycle) component).start();
+				if (component instanceof SmartLifecycle lifecycle) {
+					lifecycle.start();
 				}
 			}
 			this.running = true;
@@ -148,11 +148,9 @@ public class StandardIntegrationFlow
 	public void stop(Runnable callback) {
 		AggregatingCallback aggregatingCallback = new AggregatingCallback(this.integrationComponents.size(), callback);
 		for (Object component : this.integrationComponents.keySet()) {
-			if (component instanceof SmartLifecycle lifecycle) {
-				if (lifecycle.isRunning()) {
-					lifecycle.stop(aggregatingCallback);
-					continue;
-				}
+			if (component instanceof SmartLifecycle lifecycle && lifecycle.isRunning()) {
+				lifecycle.stop(aggregatingCallback);
+				continue;
 			}
 			aggregatingCallback.run();
 		}
@@ -162,10 +160,8 @@ public class StandardIntegrationFlow
 	@Override
 	public void stop() {
 		for (Object component : this.integrationComponents.keySet()) {
-			if (component instanceof SmartLifecycle lifecycle) {
-				if (lifecycle.isRunning()) {
-					lifecycle.stop();
-				}
+			if (component instanceof SmartLifecycle lifecycle && lifecycle.isRunning()) {
+				lifecycle.stop();
 			}
 		}
 		this.running = false;

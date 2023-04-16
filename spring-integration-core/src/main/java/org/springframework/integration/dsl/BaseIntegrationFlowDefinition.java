@@ -450,7 +450,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param wireTapConfigurer the {@link Consumer} to accept options for the {@link WireTap}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
-	public B wireTap(String wireTapChannel, Consumer<WireTapSpec> wireTapConfigurer) {
+	public B wireTap(String wireTapChannel, @Nullable Consumer<WireTapSpec> wireTapConfigurer) {
 		DirectChannel internalWireTapChannel = new DirectChannel();
 		addComponent(IntegrationFlow.from(internalWireTapChannel).channel(wireTapChannel).get());
 		return wireTap(internalWireTapChannel, wireTapConfigurer);
@@ -639,7 +639,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see MethodInvokingTransformer
 	 */
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.getObject();
@@ -1087,7 +1087,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B handle(MessageProcessorSpec<?> messageProcessorSpec,
-			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+			@Nullable Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.getObject();
@@ -2362,7 +2362,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see #wireTap(WireTapSpec)
 	 */
-	public <P> B log(LoggingHandler.Level level, String category, Function<Message<P>, Object> function) {
+	public <P> B log(LoggingHandler.Level level, @Nullable String category, Function<Message<P>, Object> function) {
 		Assert.notNull(function, FUNCTION_MUST_NOT_BE_NULL);
 		return log(level, category, new FunctionExpression<>(function));
 	}
@@ -2650,7 +2650,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see #bridge()
 	 */
 	@Deprecated
-	public <P> IntegrationFlow logAndReply(LoggingHandler.Level level, String category,
+	public <P> IntegrationFlow logAndReply(LoggingHandler.Level level, @Nullable String category,
 			Function<Message<P>, Object> function) {
 
 		Assert.notNull(function, FUNCTION_MUST_NOT_BE_NULL);

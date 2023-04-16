@@ -61,8 +61,10 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	}
 
 	@Override
-	public S id(String id) {
-		this.endpointFactoryBean.setBeanName(id);
+	public S id(@Nullable String id) {
+		if (id != null) {
+			this.endpointFactoryBean.setBeanName(id);
+		}
 		return super.id(id);
 	}
 

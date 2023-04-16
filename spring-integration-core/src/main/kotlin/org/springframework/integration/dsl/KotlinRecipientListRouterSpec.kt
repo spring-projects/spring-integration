@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,7 @@ import org.springframework.messaging.MessageChannel
 class KotlinRecipientListRouterSpec(override val delegate: RecipientListRouterSpec)
 	: AbstractKotlinRouterSpec<RecipientListRouterSpec, RecipientListRouter>(delegate) {
 
-	fun recipient(channelName: String) {
-		this.delegate.recipient(channelName)
-	}
-
-	fun recipient(channelName: String, expression: String) {
+	fun recipient(channelName: String, expression: String? = null) {
 		this.delegate.recipient(channelName, expression)
 	}
 
@@ -54,11 +50,7 @@ class KotlinRecipientListRouterSpec(override val delegate: RecipientListRouterSp
 			this.delegate.recipient<P>(channelName) { selector(it) }
 	}
 
-	fun recipient(channel: MessageChannel) {
-		this.delegate.recipient(channel)
-	}
-
-	fun recipient(channel: MessageChannel, expression: String) {
+	fun recipient(channel: MessageChannel, expression: String? = null) {
 		this.delegate.recipient(channel, expression)
 	}
 
@@ -68,9 +60,9 @@ class KotlinRecipientListRouterSpec(override val delegate: RecipientListRouterSp
 
 	inline fun <reified P> recipient(channel: MessageChannel, crossinline selector: (P) -> Boolean) {
 		if (Message::class.java.isAssignableFrom(P::class.java))
-			this.delegate.recipientMessageSelector(channel, MessageSelector { selector(it as P) })
+			this.delegate.recipientMessageSelector(channel) { selector(it as P) }
 		else
-			this.delegate.recipient<P>(channel, GenericSelector { selector(it) })
+			this.delegate.recipient<P>(channel) { selector(it) }
 	}
 
 	inline fun <reified P> recipientFlow(crossinline selector: (P) -> Boolean,

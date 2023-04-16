@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ class GroovyIntegrationFlowDefinition {
 	 * at the current {@link IntegrationFlow} chain position using the {@link MessageChannelSpec}
 	 * fluent API.
 	 * @param messageChannelSpec the {@link MessageChannelSpec} to use.
-	 * @see MessageChannels
+	 * @see org.springframework.integration.dsl.MessageChannels
 	 */
 	GroovyIntegrationFlowDefinition channel(MessageChannelSpec messageChannelSpec) {
 		this.delegate.channel messageChannelSpec

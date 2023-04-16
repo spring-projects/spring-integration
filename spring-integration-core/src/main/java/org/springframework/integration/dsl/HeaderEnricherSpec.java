@@ -216,7 +216,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param overwrite true to overwrite existing headers.
 	 * @return the header enricher spec.
 	 */
-	public HeaderEnricherSpec headerExpressions(MapBuilder<?, String, String> headers, Boolean overwrite) {
+	public HeaderEnricherSpec headerExpressions(MapBuilder<?, String, String> headers, @Nullable Boolean overwrite) {
 		Assert.notNull(headers, HEADERS_MUST_NOT_BE_NULL);
 		return headerExpressions(headers.get(), overwrite);
 	}
@@ -285,7 +285,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param overwrite true to overwrite existing headers.
 	 * @return the header enricher spec.
 	 */
-	public HeaderEnricherSpec headerExpressions(Map<String, String> headers, Boolean overwrite) {
+	public HeaderEnricherSpec headerExpressions(Map<String, String> headers, @Nullable Boolean overwrite) {
 		Assert.notNull(headers, HEADERS_MUST_NOT_BE_NULL);
 		for (Entry<String, String> entry : headers.entrySet()) {
 			AbstractHeaderValueMessageProcessor<Object> processor =
@@ -314,7 +314,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec correlationId(Object correlationId, Boolean overwrite) {
+	public HeaderEnricherSpec correlationId(Object correlationId, @Nullable Boolean overwrite) {
 		return header(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationId, overwrite);
 	}
 
@@ -341,7 +341,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec correlationIdExpression(String correlationIdExpression, Boolean overwrite) {
+	public HeaderEnricherSpec correlationIdExpression(String correlationIdExpression, @Nullable Boolean overwrite) {
 		return headerExpression(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationIdExpression, overwrite);
 	}
 
@@ -371,7 +371,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec correlationIdFunction(Function<Message<P>, ?> correlationIdFunction,
-			Boolean overwrite) {
+			@Nullable Boolean overwrite) {
 
 		return headerFunction(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationIdFunction, overwrite);
 	}
@@ -394,7 +394,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec replyChannel(Object replyChannel, Boolean overwrite) {
+	public HeaderEnricherSpec replyChannel(Object replyChannel, @Nullable Boolean overwrite) {
 		return header(MessageHeaders.REPLY_CHANNEL, replyChannel, overwrite);
 	}
 
@@ -419,7 +419,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec replyChannelExpression(String replyChannelExpression, Boolean overwrite) {
+	public HeaderEnricherSpec replyChannelExpression(String replyChannelExpression, @Nullable Boolean overwrite) {
 		return headerExpression(MessageHeaders.REPLY_CHANNEL, replyChannelExpression, overwrite);
 	}
 
@@ -449,7 +449,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec replyChannelFunction(Function<Message<P>, ?> replyChannelFunction,
-			Boolean overwrite) {
+			@Nullable Boolean overwrite) {
 
 		return headerFunction(MessageHeaders.REPLY_CHANNEL, replyChannelFunction, overwrite);
 	}
@@ -472,7 +472,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec errorChannel(Object errorChannel, Boolean overwrite) {
+	public HeaderEnricherSpec errorChannel(Object errorChannel, @Nullable Boolean overwrite) {
 		return header(MessageHeaders.ERROR_CHANNEL, errorChannel, overwrite);
 	}
 
@@ -497,7 +497,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec errorChannelExpression(String errorChannelExpression, Boolean overwrite) {
+	public HeaderEnricherSpec errorChannelExpression(String errorChannelExpression, @Nullable Boolean overwrite) {
 		return headerExpression(MessageHeaders.ERROR_CHANNEL, errorChannelExpression, overwrite);
 	}
 
@@ -527,7 +527,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec errorChannelFunction(Function<Message<P>, ?> errorChannelFunction,
-			Boolean overwrite) {
+			@Nullable Boolean overwrite) {
 
 		return headerFunction(MessageHeaders.ERROR_CHANNEL, errorChannelFunction, overwrite);
 	}
@@ -550,7 +550,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec priority(Number priority, Boolean overwrite) {
+	public HeaderEnricherSpec priority(Number priority, @Nullable Boolean overwrite) {
 		return header(IntegrationMessageHeaderAccessor.PRIORITY, priority, overwrite);
 	}
 
@@ -575,7 +575,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec priorityExpression(String priorityExpression, Boolean overwrite) {
+	public HeaderEnricherSpec priorityExpression(String priorityExpression, @Nullable Boolean overwrite) {
 		return headerExpression(IntegrationMessageHeaderAccessor.PRIORITY, priorityExpression, overwrite);
 	}
 
@@ -604,7 +604,9 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @since 5.2
 	 * @see FunctionExpression
 	 */
-	public <P> HeaderEnricherSpec priorityFunction(Function<Message<P>, ?> priorityFunction, Boolean overwrite) {
+	public <P> HeaderEnricherSpec priorityFunction(Function<Message<P>, ?> priorityFunction,
+			@Nullable Boolean overwrite) {
+
 		return headerFunction(IntegrationMessageHeaderAccessor.PRIORITY, priorityFunction, overwrite);
 	}
 
@@ -626,7 +628,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec expirationDate(Object expirationDate, Boolean overwrite) {
+	public HeaderEnricherSpec expirationDate(Object expirationDate, @Nullable Boolean overwrite) {
 		return header(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate, overwrite);
 	}
 
@@ -653,7 +655,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec expirationDateExpression(String expirationDateExpression, Boolean overwrite) {
+	public HeaderEnricherSpec expirationDateExpression(String expirationDateExpression, @Nullable Boolean overwrite) {
 		return headerExpression(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDateExpression, overwrite);
 	}
 
@@ -683,7 +685,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see FunctionExpression
 	 */
 	public <P> HeaderEnricherSpec expirationDateFunction(Function<Message<P>, ?> expirationDateFunction,
-			Boolean overwrite) {
+			@Nullable Boolean overwrite) {
 
 		return headerFunction(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDateFunction, overwrite);
 	}
@@ -726,7 +728,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 * @since 5.2
 	 */
-	public HeaderEnricherSpec routingSlip(Boolean overwrite, Object... routingSlipPath) {
+	public HeaderEnricherSpec routingSlip(@Nullable Boolean overwrite, Object... routingSlipPath) {
 		RoutingSlipHeaderValueMessageProcessor routingSlipHeaderValueMessageProcessor =
 				new RoutingSlipHeaderValueMessageProcessor(routingSlipPath);
 		routingSlipHeaderValueMessageProcessor.setOverwrite(overwrite);

@@ -42,7 +42,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	}
 
 	/**
-	 * Adds a recipient channel that always will be selected.
+	 * Adds a recipient channel that is always selected.
 	 * @param channelName the channel name.
 	 * @return the router spec.
 	 */
@@ -51,12 +51,12 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	}
 
 	/**
-	 * Adds a recipient channel that will be selected if the the expression evaluates to 'true'.
+	 * Adds a recipient channel that will be selected if the expression evaluates to 'true'.
 	 * @param channelName the channel name.
 	 * @param expression the expression.
 	 * @return the router spec.
 	 */
-	public RecipientListRouterSpec recipient(String channelName, String expression) {
+	public RecipientListRouterSpec recipient(String channelName, @Nullable String expression) {
 		if (StringUtils.hasText(expression)) {
 			return recipient(channelName, PARSER.parseExpression(expression));
 		}
@@ -67,7 +67,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	}
 
 	/**
-	 * Adds a recipient channel that will be selected if the the expression evaluates to 'true'.
+	 * Adds a recipient channel that will be selected if the expression evaluates to 'true'.
 	 * @param channelName the channel name.
 	 * @param expression the expression.
 	 * @return the router spec.
@@ -80,7 +80,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	}
 
 	/**
-	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
+	 * Adds a recipient channel that will be selected if the selector's accept method returns 'true'.
 	 * @param channelName the channel name.
 	 * @param selector the selector.
 	 * @return the router spec.
@@ -129,7 +129,13 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(MessageChannel channel, @Nullable String expression) {
-		return recipient(channel, StringUtils.hasText(expression) ? PARSER.parseExpression(expression) : null);
+		if (StringUtils.hasText(expression)) {
+			return recipient(channel, PARSER.parseExpression(expression));
+		}
+		else {
+			this.handler.addRecipient(channel);
+			return this;
+		}
 	}
 
 	/**
@@ -138,16 +144,11 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param expression the expression.
 	 * @return the router spec.
 	 */
-	public RecipientListRouterSpec recipient(MessageChannel channel, @Nullable Expression expression) {
-		if (expression != null) {
-			ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
-			this.handler.addRecipient(channel, selector);
-			this.componentsToRegister.put(selector, null);
-		}
-		else {
-			this.handler.addRecipient(channel);
-		}
-		return _this();
+	public RecipientListRouterSpec recipient(MessageChannel channel, Expression expression) {
+		ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
+		this.handler.addRecipient(channel, selector);
+		this.componentsToRegister.put(selector, null);
+		return this;
 	}
 
 	/**
@@ -170,7 +171,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	public <P> RecipientListRouterSpec recipient(MessageChannel channel, GenericSelector<P> selector) {
 		MessageSelector messageSelector = wrapToMessageSelectorIfNecessary(selector);
 		this.handler.addRecipient(channel, messageSelector);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -212,7 +213,13 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipientFlow(@Nullable String expression, IntegrationFlow subFlow) {
-		return recipientFlow(StringUtils.hasText(expression) ? PARSER.parseExpression(expression) : null, subFlow);
+		if (StringUtils.hasText(expression)) {
+			return recipientFlow(PARSER.parseExpression(expression), subFlow);
+		}
+		else {
+			MessageChannel channel = obtainInputChannelFromFlow(subFlow);
+			return recipient(channel);
+		}
 	}
 
 	/**
@@ -221,7 +228,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param subFlow the subflow.
 	 * @return the router spec.
 	 */
-	public RecipientListRouterSpec recipientFlow(@Nullable Expression expression, IntegrationFlow subFlow) {
+	public RecipientListRouterSpec recipientFlow(Expression expression, IntegrationFlow subFlow) {
 		MessageChannel channel = obtainInputChannelFromFlow(subFlow);
 		return recipient(channel, expression);
 	}
