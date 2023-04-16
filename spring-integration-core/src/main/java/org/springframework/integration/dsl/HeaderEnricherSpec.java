@@ -258,7 +258,9 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @param overwrite true to overwrite existing headers.
 	 * @return the header enricher spec.
 	 */
-	public HeaderEnricherSpec headerExpressions(Consumer<StringStringMapBuilder> configurer, Boolean overwrite) {
+	public HeaderEnricherSpec headerExpressions(Consumer<StringStringMapBuilder> configurer,
+			@Nullable Boolean overwrite) {
+
 		Assert.notNull(configurer, "'configurer' must not be null");
 		StringStringMapBuilder builder = new StringStringMapBuilder();
 		configurer.accept(builder);

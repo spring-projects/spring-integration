@@ -836,7 +836,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 		routerConfigurer: KotlinRouterSpec<T, ExpressionEvaluatingRouter>.() -> Unit = {}
 	) {
 
-		this.delegate.route<T>(expression) { routerConfigurer(KotlinRouterSpec(it)) }
+		this.delegate.route(expression) { routerConfigurer(KotlinRouterSpec(it)) }
 	}
 
 	/**

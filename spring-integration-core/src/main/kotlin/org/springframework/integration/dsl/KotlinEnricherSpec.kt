@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,11 @@ class KotlinEnricherSpec(val delegate: EnricherSpec)
 	}
 
 	fun requestSubFlow(subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
-		this.delegate.requestSubFlow { subFlow(KotlinIntegrationFlowDefinition(it)) }
+		requestSubFlow {definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
+	}
+
+	fun requestSubFlow(subFlow: IntegrationFlow) {
+		this.delegate.requestSubFlow(subFlow)
 	}
 
 	fun shouldClonePayload(shouldClonePayload: Boolean) {

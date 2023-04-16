@@ -17,8 +17,6 @@
 package org.springframework.integration.dsl
 
 import org.springframework.expression.Expression
-import org.springframework.integration.core.GenericSelector
-import org.springframework.integration.core.MessageSelector
 import org.springframework.integration.router.RecipientListRouter
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
@@ -77,15 +75,27 @@ class KotlinRecipientListRouterSpec(override val delegate: RecipientListRouterSp
 	}
 
 	fun recipientFlow(subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
-		this.delegate.recipientFlow { subFlow(KotlinIntegrationFlowDefinition(it)) }
+		recipientFlow { definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
 	}
 
 	fun recipientFlow(expression: String, subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
-		this.delegate.recipientFlow(expression) { subFlow(KotlinIntegrationFlowDefinition(it)) }
+		recipientFlow(expression) { definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
 	}
 
 	fun recipientFlow(expression: Expression, subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
-		this.delegate.recipientFlow(expression) { subFlow(KotlinIntegrationFlowDefinition(it)) }
+		recipientFlow(expression) { definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
+	}
+
+	fun recipientFlow(subFlow: IntegrationFlow) {
+		this.delegate.recipientFlow(subFlow)
+	}
+
+	fun recipientFlow(expression: String, subFlow: IntegrationFlow) {
+		this.delegate.recipientFlow(expression, subFlow)
+	}
+
+	fun recipientFlow(expression: Expression, subFlow: IntegrationFlow) {
+		this.delegate.recipientFlow(expression, subFlow)
 	}
 
 }

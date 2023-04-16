@@ -60,7 +60,11 @@ class KotlinRouterSpec<K, R : AbstractMappingMessageRouter>(override val delegat
 	}
 
 	fun subFlowMapping(key: K, subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
-		this.delegate.subFlowMapping(key) { subFlow(KotlinIntegrationFlowDefinition(it)) }
+		subFlowMapping(key) { definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
+	}
+
+	fun subFlowMapping(key: K, subFlow: IntegrationFlow) {
+		this.delegate.subFlowMapping(key, subFlow)
 	}
 
 }
