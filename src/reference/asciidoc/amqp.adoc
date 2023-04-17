@@ -1426,7 +1426,7 @@ image::images/spring-integration-amqp-sample-graph.png[align="center"]
 
 Version 6.0 introduced support for RabbitMQ Stream Queues.
 
-The DSL factory class for these endpoints is a `RabbitStream`.
+The DSL factory class for these endpoints is `RabbitStream`.
 
 [[rmq-stream-inbound-channel-adapter]]
 ==== RabbitMQ Stream Inbound Channel Adapter

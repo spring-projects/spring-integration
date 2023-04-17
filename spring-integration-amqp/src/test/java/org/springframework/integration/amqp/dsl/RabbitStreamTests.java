@@ -156,7 +156,7 @@ public class RabbitStreamTests implements RabbitTestContainer {
 		IntegrationFlow superStreamConsumer(Environment env) {
 			return IntegrationFlow.from(
 							RabbitStream.inboundAdapter(env)
-									.superName("test.superStream1", "mySuperConsumer"))
+									.superStream("test.superStream1", "mySuperConsumer"))
 					.channel("results")
 					.get();
 		}

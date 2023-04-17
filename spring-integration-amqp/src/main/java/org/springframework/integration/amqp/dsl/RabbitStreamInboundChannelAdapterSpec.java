@@ -62,8 +62,8 @@ public class RabbitStreamInboundChannelAdapterSpec
 	 * @return the spec
 	 * @since 6.1
 	 */
-	public RabbitStreamInboundChannelAdapterSpec superName(String superStream, String consumerName) {
-		return superName(superStream, consumerName, 1);
+	public RabbitStreamInboundChannelAdapterSpec superStream(String superStream, String consumerName) {
+		return superStream(superStream, consumerName, 1);
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class RabbitStreamInboundChannelAdapterSpec
 	 * @return the spec
 	 * @since 6.1
 	 */
-	public RabbitStreamInboundChannelAdapterSpec superName(String superStream, String consumerName, int consumers) {
+	public RabbitStreamInboundChannelAdapterSpec superStream(String superStream, String consumerName, int consumers) {
 		((RabbitStreamMessageListenerContainerSpec) this.listenerContainerSpec)
 				.superStream(superStream, consumerName, consumers);
 		return this;
