@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,20 @@ public class RabbitStreamMessageListenerContainerSpec extends
 	 * @return this spec.
 	 */
 	public RabbitStreamMessageListenerContainerSpec superStream(String superStream, String name) {
-		this.target.superStream(superStream, name);
+		return superStream(superStream, name, 1);
+	}
+
+	/**
+	 * Enable Single Active Consumer on a Super Stream.
+	 * Mutually exclusive with {@link #queueName(String...)}.
+	 * @param superStream the stream.
+	 * @param name the consumer name.
+	 * @param consumers the number of consumers.
+	 * @return this spec.
+	 * @since 6.1
+	 */
+	public RabbitStreamMessageListenerContainerSpec superStream(String superStream, String name, int consumers) {
+		this.target.superStream(superStream, name, consumers);
 		return this;
 	}
 

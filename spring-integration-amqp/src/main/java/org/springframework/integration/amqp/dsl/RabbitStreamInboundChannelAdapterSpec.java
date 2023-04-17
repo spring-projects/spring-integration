@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,42 @@ public class RabbitStreamInboundChannelAdapterSpec
 
 	protected RabbitStreamInboundChannelAdapterSpec(Environment environment, @Nullable Codec codec) {
 		super(new RabbitStreamMessageListenerContainerSpec(environment, codec));
+	}
+
+	/**
+	 * Configure a name for Rabbit stream to consume from.
+	 * @param streamName the name of Rabbit stream.
+	 * @return the spec
+	 * @since 6.1
+	 */
+	public RabbitStreamInboundChannelAdapterSpec streamName(String streamName) {
+		this.listenerContainerSpec.queueName(streamName);
+		return this;
+	}
+
+	/**
+	 * Configure a name for Rabbit super stream to consume from.
+	 * @param superStream the name of Rabbit super stream.
+	 * @param consumerName the logical name to enable offset tracking.
+	 * @return the spec
+	 * @since 6.1
+	 */
+	public RabbitStreamInboundChannelAdapterSpec superName(String superStream, String consumerName) {
+		return superName(superStream, consumerName, 1);
+	}
+
+	/**
+	 * Configure a name for Rabbit super stream to consume from.
+	 * @param superStream the name of Rabbit super stream.
+	 * @param consumerName the logical name to enable offset tracking.
+	 * @param consumers the number of consumers.
+	 * @return the spec
+	 * @since 6.1
+	 */
+	public RabbitStreamInboundChannelAdapterSpec superName(String superStream, String consumerName, int consumers) {
+		((RabbitStreamMessageListenerContainerSpec) this.listenerContainerSpec)
+				.superStream(superStream, consumerName, consumers);
+		return this;
 	}
 
 	public RabbitStreamInboundChannelAdapterSpec configureContainer(
