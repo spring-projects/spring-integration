@@ -23,6 +23,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.file.config.FileTailInboundChannelAdapterFactoryBean;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -39,10 +40,6 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 
 	private final FileTailInboundChannelAdapterFactoryBean factoryBean = new FileTailInboundChannelAdapterFactoryBean();
 
-	private MessageChannel outputChannel;
-
-	private MessageChannel errorChannel;
-
 	protected TailAdapterSpec() {
 		super(null);
 		this.factoryBean.setBeanFactory(new DefaultListableBeanFactory());
@@ -53,7 +50,6 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 		this.factoryBean.setFile(file);
 		return _this();
 	}
-
 	/**
 	 * Specify the options string for native {@code tail} command.
 	 * @param nativeOptions the nativeOptions.
@@ -145,7 +141,7 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	/**
 	 * If {@code true}, close and reopen the file between reading chunks.
 	 * Default {@code false}.
-	 * @param reopen the reopen.
+	 * @param reopen the 'reopen' option.
 	 * @return the spec.
 	 * @see org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer#setReopen(boolean)
 	 */
@@ -174,13 +170,43 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 
 	@Override
 	public TailAdapterSpec outputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
+		this.factoryBean.setOutputChannel(outputChannel);
 		return _this();
 	}
 
 	@Override
 	public TailAdapterSpec errorChannel(MessageChannel errorChannel) {
-		this.errorChannel = errorChannel;
+		this.factoryBean.setErrorChannel(errorChannel);
+		return _this();
+	}
+
+	@Override
+	public TailAdapterSpec outputChannel(String outputChannel) {
+		this.factoryBean.setOutputChannelName(outputChannel);
+		return _this();
+	}
+
+	@Override
+	public TailAdapterSpec errorChannel(String errorChannel) {
+		this.factoryBean.setErrorChannelName(errorChannel);
+		return _this();
+	}
+
+	@Override
+	public TailAdapterSpec sendTimeout(long sendTimeout) {
+		this.factoryBean.setSendTimeout(sendTimeout);
+		return _this();
+	}
+
+	@Override
+	public TailAdapterSpec shouldTrack(boolean shouldTrack) {
+		this.factoryBean.setShouldTrack(shouldTrack);
+		return _this();
+	}
+
+	@Override
+	public TailAdapterSpec errorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+		this.factoryBean.setErrorMessageStrategy(errorMessageStrategy);
 		return _this();
 	}
 
@@ -194,10 +220,8 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 		catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
-		if (this.errorChannel != null) {
-			tailingMessageProducerSupport.setErrorChannel(this.errorChannel);
-		}
-		tailingMessageProducerSupport.setOutputChannel(this.outputChannel);
+		Assert.notNull(tailingMessageProducerSupport,
+				"The 'FileTailInboundChannelAdapterFactoryBean' must not produce null");
 		return tailingMessageProducerSupport;
 	}
 

@@ -66,6 +66,7 @@ import org.springframework.integration.file.splitter.FileSplitter;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
+import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -356,9 +357,12 @@ public class FileTests {
 			return IntegrationFlows
 					.from(Files.tailAdapter(new File(tmpDir, "TailTest"))
 							.delay(500)
+							.errorMessageStrategy(new DefaultErrorMessageStrategy())
 							.end(false)
 							.id("tailer")
-							.autoStartup(false))
+							.autoStartup(false)
+							.shouldTrack(true)
+							.sendTimeout(30_000))
 					.transform("hello "::concat)
 					.channel(MessageChannels.queue("tailChannel"))
 					.get();
