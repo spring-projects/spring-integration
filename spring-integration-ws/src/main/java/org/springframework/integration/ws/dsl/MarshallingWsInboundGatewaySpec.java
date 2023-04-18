@@ -24,15 +24,18 @@ import org.springframework.oxm.Unmarshaller;
  * The spec for a {@link MarshallingWebServiceInboundGateway}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.3
  *
  */
-public class MarshallingWsInboundGatewaySpec extends BaseWsInboundGatewaySpec<MarshallingWsInboundGatewaySpec,
-		MarshallingWebServiceInboundGateway> {
+public class MarshallingWsInboundGatewaySpec
+		extends BaseWsInboundGatewaySpec<MarshallingWsInboundGatewaySpec, MarshallingWebServiceInboundGateway> {
 
-	protected Marshaller gatewayMarshaller; // NOSONAR
 
-	protected Unmarshaller gatewayUnmarshaller; // NOSONAR
+	protected MarshallingWsInboundGatewaySpec() {
+		super(new MarshallingWebServiceInboundGateway());
+	}
 
 	/**
 	 * Specify a marshaller to use.
@@ -40,29 +43,22 @@ public class MarshallingWsInboundGatewaySpec extends BaseWsInboundGatewaySpec<Ma
 	 * @return the spec.
 	 */
 	public MarshallingWsInboundGatewaySpec marshaller(Marshaller marshaller) {
-		this.gatewayMarshaller = marshaller;
+		this.target.setMarshaller(marshaller);
+		if (marshaller instanceof Unmarshaller unmarshaller) {
+			return unmarshaller(unmarshaller);
+		}
 		return this;
 	}
 
 	/**
-	 * Specify an unmarshaller to use. Required if the {@link #gatewayMarshaller} is not also
+	 * Specify an unmarshaller to use. Required if the {@link #marshaller} is not also
 	 * an {@link Unmarshaller}.
 	 * @param unmarshaller the unmarshaller.
 	 * @return the spec.
 	 */
 	public MarshallingWsInboundGatewaySpec unmarshaller(Unmarshaller unmarshaller) {
-		this.gatewayUnmarshaller = unmarshaller;
+		this.target.setUnmarshaller(unmarshaller);
 		return this;
-	}
-
-	@Override
-	protected MarshallingWebServiceInboundGateway create() {
-		if (this.gatewayUnmarshaller != null) {
-			return new MarshallingWebServiceInboundGateway(this.gatewayMarshaller, this.gatewayUnmarshaller);
-		}
-		else {
-			return new MarshallingWebServiceInboundGateway(this.gatewayMarshaller);
-		}
 	}
 
 }

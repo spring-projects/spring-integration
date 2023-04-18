@@ -27,6 +27,8 @@ import org.springframework.integration.ws.SoapHeaderMapper;
  * @param <E> the target {@link AbstractWebServiceInboundGateway} implementation type.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.3
  *
  */
@@ -35,10 +37,10 @@ public abstract class BaseWsInboundGatewaySpec<
 		extends MessagingGatewaySpec<S, E> {
 
 	/**
-	 * Construct an instance.
+	 * Construct an instance based on the provided {@link AbstractWebServiceInboundGateway}.
 	 */
-	protected BaseWsInboundGatewaySpec() {
-		super(null);
+	protected BaseWsInboundGatewaySpec(E gateway) {
+		super(gateway);
 	}
 
 	/**
@@ -49,17 +51,6 @@ public abstract class BaseWsInboundGatewaySpec<
 	public S headerMapper(SoapHeaderMapper headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
 		return _this();
-	}
-
-	@Override
-	protected E doGet() {
-		return assemble(create());
-	}
-
-	protected abstract E create();
-
-	protected E assemble(E gateway) {
-		return gateway;
 	}
 
 }
