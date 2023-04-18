@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.ws.DefaultSoapHeaderMapper;
 import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
@@ -71,10 +72,16 @@ public class WsDslTests {
 
 	@Test
 	void simpleInbound() {
-		SimpleWebServiceInboundGateway gateway = Ws.simpleInboundGateway()
-				.extractPayload(false)
-				.getObject();
+		DefaultSoapHeaderMapper testHeaderMapper = new DefaultSoapHeaderMapper();
+		SimpleWebServiceInboundGateway gateway =
+				Ws.simpleInboundGateway()
+						.extractPayload(false)
+						.headerMapper(testHeaderMapper)
+						.errorChannel("myErrorChannel")
+						.getObject();
 		assertThat(TestUtils.getPropertyValue(gateway, "extractPayload", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(gateway, "headerMapper")).isSameAs(testHeaderMapper);
+		assertThat(TestUtils.getPropertyValue(gateway, "errorChannelName")).isEqualTo("myErrorChannel");
 	}
 
 	@Test
