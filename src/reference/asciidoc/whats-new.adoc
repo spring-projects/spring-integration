@@ -69,3 +69,9 @@ See <<./mail.adoc#mail-inbound, Mail-receiving Channel Adapter>> for more inform
 
 The `FileReadingMessageSource` now exposes `watchMaxDepth` and `watchDirPredicate` options for the `WatchService`.
 See <<./file.adoc#watch-service-directory-scanner, `WatchServiceDirectoryScanner`>> for more information.
+
+[[x6.1-amqp]]
+=== AMQP Changes
+
+The Java DSL API for Rabbit Streams (the `RabbitStream` factory) exposes additional properties for simple configurations.
+See <<./amqp.adoc#rmq-streams, `RabbitMQ Stream Queue Support`>> for more information.

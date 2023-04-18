@@ -1426,7 +1426,7 @@ image::images/spring-integration-amqp-sample-graph.png[align="center"]
 
 Version 6.0 introduced support for RabbitMQ Stream Queues.
 
-The DSL factory class for these endpoints is `Rabbit`.
+The DSL factory class for these endpoints is `RabbitStream`.
 
 [[rmq-stream-inbound-channel-adapter]]
 ==== RabbitMQ Stream Inbound Channel Adapter
@@ -1435,22 +1435,17 @@ The DSL factory class for these endpoints is `Rabbit`.
 [source, java]
 ----
 @Bean
-IntegrationFlow flow(Environment env) {
-    @Bean
-	IntegrationFlow simpleStream(Environment env) {
-		return IntegrationFlow.from(RabbitStream.inboundAdapter(env)
-						.configureContainer(container -> container.queueName("my.stream")))
-				// ...
-				.get();
-	}
+IntegrationFlow simpleStream(Environment env) {
+	return IntegrationFlow.from(RabbitStream.inboundAdapter(env).streamName("my.stream"))
+			// ...
+			.get();
+}
 
-	@Bean
-	IntegrationFlow superStream(Environment env) {
-		return IntegrationFlow.from(RabbitStream.inboundAdapter(env)
-						.configureContainer(container -> container.superStream("my.stream", "my.consumer")))
-				// ...
-				.get();
-	}
+@Bean
+IntegrationFlow superStream(Environment env) {
+	return IntegrationFlow.from(RabbitStream.inboundAdapter(env).superStream("my.super.stream", "my.consumer"))
+			// ...
+			.get();
 }
 ----
 ====
@@ -1462,10 +1457,10 @@ IntegrationFlow flow(Environment env) {
 [source, java]
 ----
 @Bean
-IntegrationFlow outbound(RabbitStreamTemplate template) {
+IntegrationFlow outbound(Environment env) {
     return f -> f
             // ...
-            .handle(RabbitStream.outboundStreamAdapter(template));
+            .handle(RabbitStream.outboundStreamAdapter(env, "my.stream"));
 
 }
 ----
