@@ -208,7 +208,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	 * <p>
 	 * Opened {@link WebSocketSession} is populated to the wrapping {@link ClientWebSocketContainer}.
 	 * <p>
-	 * The {@link #webSocketHandler} is used to handle {@link WebSocketSession} events.
+	 * The {@link #getWebSocketHandler()} is used to handle {@link WebSocketSession} events.
 	 */
 	private final class IntegrationWebSocketConnectionManager extends ConnectionManagerSupport {
 
@@ -258,8 +258,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 			}
 			ClientWebSocketContainer.this.headers.setSecWebSocketProtocol(getSubProtocols());
 			CompletableFuture<WebSocketSession> future =
-					this.client.execute(ClientWebSocketContainer.this.webSocketHandler,
-							ClientWebSocketContainer.this.headers, getUri());
+					this.client.execute(getWebSocketHandler(), ClientWebSocketContainer.this.headers, getUri());
 
 			future.whenComplete((session, throwable) -> {
 				if (throwable == null) {

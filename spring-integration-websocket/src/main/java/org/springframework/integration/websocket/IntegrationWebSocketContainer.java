@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,8 +67,8 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR
 
-	protected final WebSocketHandler webSocketHandler = new IntegrationWebSocketHandler(); // NOSONAR
-
+	private WebSocketHandler webSocketHandler = new IntegrationWebSocketHandler();
+	
 	protected final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>(); // NOSONAR
 
 	private final List<String> supportedProtocols = new ArrayList<>();
@@ -102,6 +102,15 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		for (String protocol : protocols) {
 			this.supportedProtocols.add(protocol.toLowerCase());
 		}
+	}
+
+	/**
+	 * Replace the default {@link WebSocketHandler} with the one provided here, e.g. via decoration factories.
+	 * @param handler the actual {@link WebSocketHandler} to replace.
+	 * @since 5.5.18
+	 */
+	protected void setWebSocketHandler(WebSocketHandler handler) {
+		this.webSocketHandler = handler;
 	}
 
 	public WebSocketHandler getWebSocketHandler() {
