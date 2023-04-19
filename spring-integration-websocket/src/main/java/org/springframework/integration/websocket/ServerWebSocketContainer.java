@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,11 +150,12 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		WebSocketHandler webSocketHandler = this.webSocketHandler;
+		WebSocketHandler webSocketHandler = getWebSocketHandler();
 
 		if (this.decoratorFactories != null) {
 			for (WebSocketHandlerDecoratorFactory factory : this.decoratorFactories) {
 				webSocketHandler = factory.decorate(webSocketHandler);
+				setWebSocketHandler(webSocketHandler);
 			}
 		}
 
