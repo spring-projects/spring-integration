@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2018 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,14 @@ package org.springframework.integration.smb;
 
 import java.io.File;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Markus Spann
@@ -32,7 +34,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class SmbParserInboundTests extends AbstractBaseTests {
 
-	@Before
+	@BeforeEach
 	public void prepare() {
 		ensureExists("test-temp/remote-10");
 		cleanUp();
@@ -46,14 +48,14 @@ public class SmbParserInboundTests extends AbstractBaseTests {
 		assertFileNotExists(new File("test-temp/local-6"));
 	}
 
-	@Test(expected = BeanCreationException.class)
+	@Test
 	public void testLocalFilesAutoCreationFalse() {
 		assertFileNotExists(new File("test-temp/local-6"));
-		new ClassPathXmlApplicationContext(getApplicationContextXmlFile("-fail"), this.getClass())
-				.close();
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(getApplicationContextXmlFile("-fail"), getClass()));
 	}
 
-	@After
+	@AfterEach
 	public void cleanUp() {
 		delete("test-temp/local-10", "test-temp/local-6");
 	}

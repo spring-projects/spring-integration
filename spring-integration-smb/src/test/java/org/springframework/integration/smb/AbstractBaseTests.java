@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,9 @@ import java.lang.reflect.Method;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.FileCopyUtils;
@@ -41,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Markus Spann
  * @author Gregory Bragg
+ * @author Artem Bilan
  */
 public abstract class AbstractBaseTests {
 
@@ -51,19 +51,19 @@ public abstract class AbstractBaseTests {
 		return logger;
 	}
 
-	@Rule
-	public final TestName testMethodName = new TestName();
+	public String testMethodName;
 
 	private String getTestMethodName() {
-		return getClass().getSimpleName() + '.' + testMethodName.getMethodName() + "()";
+		return getClass().getSimpleName() + '.' + this.testMethodName + "()";
 	}
 
-	@Before
-	public final void logTestBegin() {
+	@BeforeEach
+	public final void logTestBegin(TestInfo testInfo) {
+		this.testMethodName = testInfo.getDisplayName();
 		getLogger().info("BGN - Test " + getTestMethodName());
 	}
 
-	@After
+	@AfterEach
 	public final void logTestEnd() {
 		getLogger().info("END - Test " + getTestMethodName());
 	}
@@ -118,7 +118,7 @@ public abstract class AbstractBaseTests {
 	}
 
 	/**
-	 * Writes the specified byte array to the an output file.
+	 * Writes the specified byte array to the output file.
 	 * @param _bytes byte array
 	 * @param _fileName output file
 	 * @throws IOException in case of I/O errors
@@ -247,13 +247,13 @@ public abstract class AbstractBaseTests {
 	 * @param _testClass test class object
 	 * @param _methodNames String method names to invoke in order, no parameters expected
 	 */
-	@SuppressWarnings("deprecation")
 	protected static void runTests(Class<? extends AbstractBaseTests> _testClass, String... _methodNames)
 			throws Exception {
+
 		AbstractBaseTests test;
 		Method[] methods = new Method[_methodNames.length];
 
-		test = _testClass.newInstance();
+		test = _testClass.getDeclaredConstructor().newInstance();
 		for (int i = 0; i < _methodNames.length; i++) {
 			String methodName = _methodNames[i];
 			methods[i] = _testClass.getMethod(methodName, (Class<?>[]) null);

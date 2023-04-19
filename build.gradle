@@ -78,7 +78,7 @@ ext {
     jmsApiVersion = '3.1.0'
     jpaApiVersion = '3.1.0'
     jrubyVersion = '9.4.1.0'
-    jsonpathVersion = '2.8.0'
+    jsonpathVersion = '2.7.0'
     junit4Version = '4.13.2'
     junitJupiterVersion = '5.9.2'
     jythonVersion = '2.7.3'
@@ -89,7 +89,7 @@ ext {
     mailVersion = '1.0.0'
     micrometerTracingVersion = '1.1.0-RC1'
     micrometerVersion = '1.11.0-RC1'
-    mockitoVersion = '5.3.0'
+    mockitoVersion = '5.2.0'
     mongoDriverVersion = '4.9.1'
     mysqlVersion = '8.0.32'
     pahoMqttClientVersion = '1.2.5'
@@ -452,7 +452,6 @@ project('spring-integration-test-support') {
         compileOnly 'org.apiguardian:apiguardian-api:1.0.0'
         api "org.hamcrest:hamcrest-library:$hamcrestVersion"
         api 'org.mockito:mockito-core'
-        api 'org.mockito:mockito-inline'
         api "org.assertj:assertj-core:$assertjVersion"
         api 'org.springframework:spring-context'
         api 'org.springframework:spring-messaging'

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.PriorityBlockingQueue;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +37,7 @@ import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizingMe
 import org.springframework.integration.smb.session.SmbSession;
 import org.springframework.integration.smb.session.SmbSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -52,22 +50,24 @@ import static org.mockito.Mockito.when;
  * @author Prafull Kumar Soni
  * @author Gregory Bragg
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class SmbInboundChannelAdapterParserTests {
 
 	@Autowired
 	ApplicationContext applicationContext;
 
-	@Test(timeout = 100000)
+	@Test
 	public void testSmbInboundChannelAdapterComplete() {
 
-		final SourcePollingChannelAdapter adapter = this.applicationContext.getBean("smbInbound", SourcePollingChannelAdapter.class);
-		final PriorityBlockingQueue<?> queue = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
+		final SourcePollingChannelAdapter adapter =
+				this.applicationContext.getBean("smbInbound", SourcePollingChannelAdapter.class);
+		final PriorityBlockingQueue<?> queue =
+				TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
 		assertThat(queue.comparator()).isNotNull();
 		assertThat("smbInbound").isEqualTo(adapter.getComponentName());
 		assertThat("smb:inbound-channel-adapter").isEqualTo(adapter.getComponentType());
-		assertThat(applicationContext.getBean("smbChannel")).isEqualTo(TestUtils.getPropertyValue(adapter, "outputChannel"));
+		assertThat(applicationContext.getBean("smbChannel"))
+				.isEqualTo(TestUtils.getPropertyValue(adapter, "outputChannel"));
 		SmbInboundFileSynchronizingMessageSource inbound =
 				(SmbInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
 
@@ -95,8 +95,10 @@ public class SmbInboundChannelAdapterParserTests {
 
 	@Test
 	public void testNoCachingSessionFactoryByDefault() {
-		SourcePollingChannelAdapter adapter = applicationContext.getBean("simpleAdapter", SourcePollingChannelAdapter.class);
-		Object sessionFactory = TestUtils.getPropertyValue(adapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
+		SourcePollingChannelAdapter adapter =
+				applicationContext.getBean("simpleAdapter", SourcePollingChannelAdapter.class);
+		Object sessionFactory =
+				TestUtils.getPropertyValue(adapter, "source.synchronizer.remoteFileTemplate.sessionFactory");
 		assertThat(sessionFactory).isInstanceOf(SmbSessionFactory.class);
 		SmbInboundFileSynchronizer fisync =
 				TestUtils.getPropertyValue(adapter, "source.synchronizer", SmbInboundFileSynchronizer.class);
@@ -105,10 +107,10 @@ public class SmbInboundChannelAdapterParserTests {
 		assertThat("/").isEqualTo(remoteFileSeparator);
 	}
 
-	@Test(timeout = 10000)
+	@Test
 	public void testSmbInboundChannelAdapterCompleteNoId() {
-
-		Map<String, SourcePollingChannelAdapter> spcas = applicationContext.getBeansOfType(SourcePollingChannelAdapter.class);
+		Map<String, SourcePollingChannelAdapter> spcas =
+				applicationContext.getBeansOfType(SourcePollingChannelAdapter.class);
 		SourcePollingChannelAdapter adapter = null;
 		for (String key : spcas.keySet()) {
 			if (!key.equals("smbInbound") && !key.equals("simpleAdapter")) {
@@ -132,9 +134,6 @@ public class SmbInboundChannelAdapterParserTests {
 			return SmbSessionFactory.class;
 		}
 
-		public boolean isSingleton() {
-			return true;
-		}
 	}
 
 }

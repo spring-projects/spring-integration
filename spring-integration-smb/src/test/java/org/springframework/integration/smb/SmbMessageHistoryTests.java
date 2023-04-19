@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.smb;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -37,19 +37,19 @@ public class SmbMessageHistoryTests extends AbstractBaseTests {
 
 	@Test
 	public void testMessageHistory() throws URISyntaxException {
-		ClassPathXmlApplicationContext applicationContext = getApplicationContext();
-		SourcePollingChannelAdapter adapter = applicationContext
-				.getBean("smbInboundChannelAdapter", SourcePollingChannelAdapter.class);
-		assertThat("smbInboundChannelAdapter").isEqualTo(adapter.getComponentName());
-		assertThat("smb:inbound-channel-adapter").isEqualTo(adapter.getComponentType());
+		try (ClassPathXmlApplicationContext applicationContext = getApplicationContext()) {
+			SourcePollingChannelAdapter adapter = applicationContext
+					.getBean("smbInboundChannelAdapter", SourcePollingChannelAdapter.class);
+			assertThat("smbInboundChannelAdapter").isEqualTo(adapter.getComponentName());
+			assertThat("smb:inbound-channel-adapter").isEqualTo(adapter.getComponentType());
 
-		SmbSessionFactory smbSessionFactory = applicationContext.getBean(SmbSessionFactory.class);
+			SmbSessionFactory smbSessionFactory = applicationContext.getBean(SmbSessionFactory.class);
 
-		String url = smbSessionFactory.getUrl();
-		URI uri = new URI(url);
-		assertThat("sambagu%40est:sambag%25uest").isEqualTo(uri.getRawUserInfo());
-		assertThat("sambagu@est:sambag%uest").isEqualTo(uri.getUserInfo());
-
-		applicationContext.close();
+			String url = smbSessionFactory.getUrl();
+			URI uri = new URI(url);
+			assertThat("sambagu%40est:sambag%25uest").isEqualTo(uri.getRawUserInfo());
+			assertThat("sambagu@est:sambag%uest").isEqualTo(uri.getUserInfo());
+		}
 	}
+
 }

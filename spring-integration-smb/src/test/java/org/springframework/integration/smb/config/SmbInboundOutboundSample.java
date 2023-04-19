@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.smb.config;
 
 import java.io.File;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Markus Spann
  * @author Gunnar Hillert
  * @author Gregory Bragg
+ * @author Artem Bilan
  */
 public class SmbInboundOutboundSample extends AbstractBaseTests {
 
@@ -53,7 +54,7 @@ public class SmbInboundOutboundSample extends AbstractBaseTests {
 
 	private static final String OUTBOUND_APPLICATION_CONTEXT_XML = "SmbOutboundChannelAdapterSample-context.xml";
 
-	@Ignore("Actual SMB share must be configured in file [" + INBOUND_APPLICATION_CONTEXT_XML + "].")
+	@Disabled("Actual SMB share must be configured in file [" + INBOUND_APPLICATION_CONTEXT_XML + "].")
 	@Test
 	public void testSmbInboundChannelAdapter() throws Exception {
 		String testLocalDir = "test-temp/local-4/";
@@ -89,7 +90,7 @@ public class SmbInboundOutboundSample extends AbstractBaseTests {
 
 	}
 
-	@Ignore("Actual SMB share must be configured in file [" + OUTBOUND_APPLICATION_CONTEXT_XML + "].")
+	@Disabled("Actual SMB share must be configured in file [" + OUTBOUND_APPLICATION_CONTEXT_XML + "].")
 	@Test
 	public void testSmbOutboundChannelAdapter() throws Exception {
 		String testRemoteDir = "test-temp/remote-8/";

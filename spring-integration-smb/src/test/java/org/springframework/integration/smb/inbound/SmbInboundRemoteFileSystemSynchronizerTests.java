@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jcifs.smb.SmbFile;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -49,7 +49,7 @@ public class SmbInboundRemoteFileSystemSynchronizerTests extends AbstractBaseTes
 
 	private String testRemoteDir = "test-temp/remote-9/";
 
-	@Before
+	@BeforeEach
 	public void prepare() {
 		delete(testLocalDir);
 		ensureExists(testRemoteDir);
@@ -101,7 +101,7 @@ public class SmbInboundRemoteFileSystemSynchronizerTests extends AbstractBaseTes
 		@Override
 		protected SmbSession createSession() {
 			try {
-				List<SmbFile> smbFiles = new ArrayList<SmbFile>();
+				List<SmbFile> smbFiles = new ArrayList<>();
 				for (String fileName : new File(testRemoteDir).list()) {
 					SmbFile file = smbSession.createSmbFileObject(fileName);
 					smbFiles.add(file);
@@ -126,5 +126,7 @@ public class SmbInboundRemoteFileSystemSynchronizerTests extends AbstractBaseTes
 				throw new RuntimeException("Failed to create mock session.", _ex);
 			}
 		}
+
 	}
+
 }

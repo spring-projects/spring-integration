@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,10 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.mock.web.MockPart;
 import org.springframework.security.authorization.AuthorityAuthorizationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -318,14 +320,13 @@ public class HttpDslTests {
 		@Bean
 		public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 			return http
-					.authorizeHttpRequests()
-					.requestMatchers(new AntPathRequestMatcher("/service/internal/**")).hasRole("ADMIN")
-					.anyRequest().permitAll()
-					.and()
-					.httpBasic()
-					.and()
-					.csrf().disable()
-					.anonymous().disable()
+					.authorizeHttpRequests((authorizeHttpRequests) ->
+							authorizeHttpRequests
+									.requestMatchers(new AntPathRequestMatcher("/service/internal/**")).hasRole("ADMIN")
+									.anyRequest().permitAll())
+					.httpBasic(Customizer.withDefaults())
+					.csrf(AbstractHttpConfigurer::disable)
+					.anonymous(AbstractHttpConfigurer::disable)
 					.build();
 		}
 

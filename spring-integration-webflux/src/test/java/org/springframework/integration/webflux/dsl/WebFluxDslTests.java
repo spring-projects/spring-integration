@@ -57,6 +57,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -384,12 +385,9 @@ public class WebFluxDslTests {
 
 		@Bean
 		public SecurityWebFilterChain reactiveSpringSecurityFilterChain(ServerHttpSecurity http) {
-			return http.authorizeExchange()
-					.anyExchange().hasRole("ADMIN")
-					.and()
-					.httpBasic()
-					.and()
-					.csrf().disable()
+			return http.authorizeExchange(authorizeExchangeSpec -> authorizeExchangeSpec.anyExchange().hasRole("ADMIN"))
+					.httpBasic(Customizer.withDefaults())
+					.csrf(ServerHttpSecurity.CsrfSpec::disable)
 					.build();
 		}
 

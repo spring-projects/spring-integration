@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import jcifs.smb.SmbFile;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
@@ -53,7 +51,7 @@ public class SmbSendingMessageHandlerTests extends AbstractBaseTests {
 
 	private SmbSessionFactory smbSessionFactory;
 
-	@Before
+	@BeforeEach
 	public void prepare() {
 		smbSession = mock(SmbSession.class);
 		smbSessionFactory = new TestSmbSessionFactory();
@@ -65,7 +63,7 @@ public class SmbSendingMessageHandlerTests extends AbstractBaseTests {
 		smbSessionFactory.setShareAndDir("smb-share/");
 	}
 
-	@After
+	@AfterEach
 	public void cleanup() {
 		FileSystemUtils.deleteRecursively(new File("remote-target-dir"));
 	}
@@ -119,20 +117,17 @@ public class SmbSendingMessageHandlerTests extends AbstractBaseTests {
 				when(smbSession.remove(Mockito.anyString())).thenReturn(true);
 				when(smbSession.list(Mockito.anyString())).thenReturn(new SmbFile[0]);
 
-				doAnswer(new Answer<Object>() {
+				doAnswer(_invocation -> {
 
-					@Override
-					public Object answer(InvocationOnMock _invocation) throws Throwable {
-						String path = (String) _invocation.getArguments()[0];
-						OutputStream os = (OutputStream) _invocation.getArguments()[1];
-						writeToFile((this.getClass().getSimpleName() + " : TEST : " + path).getBytes(), os);
-						return null;
-					}
+					String path = _invocation.getArgument(0);
+					OutputStream os = _invocation.getArgument(1);
+					writeToFile((this.getClass().getSimpleName() + " : TEST : " + path).getBytes(), os);
+					return null;
 				}).when(smbSession).read(Mockito.anyString(), Mockito.any(OutputStream.class));
 
 				doAnswer(_invocation -> {
-					InputStream inputStream = (InputStream) _invocation.getArguments()[0];
-					String path = (String) _invocation.getArguments()[1];
+					InputStream inputStream = _invocation.getArgument(0);
+					String path = _invocation.getArgument(1);
 					writeToFile(inputStream, path);
 					return null;
 				}).when(smbSession)
@@ -141,14 +136,14 @@ public class SmbSendingMessageHandlerTests extends AbstractBaseTests {
 				// when(smbSession.write(Mockito.any(byte[].class), Mockito.anyString())).thenReturn(null);
 				// when(smbSession.write(Mockito.any(File.class), Mockito.anyString())).thenReturn(null);
 
-				doAnswer((Answer<Object>) _invocation -> {
-					String path = (String) _invocation.getArguments()[0];
+				doAnswer(_invocation -> {
+					String path = _invocation.getArgument(0);
 					return new File(path).mkdirs();
 				}).when(smbSession).mkdir(Mockito.anyString());
 
 				doAnswer(_invocation -> {
-					String pathFrom = (String) _invocation.getArguments()[0];
-					String pathTo = (String) _invocation.getArguments()[1];
+					String pathFrom = _invocation.getArgument(0);
+					String pathTo = _invocation.getArgument(1);
 					new File(pathFrom).renameTo(new File(pathTo));
 					return null;
 				}).when(smbSession)
