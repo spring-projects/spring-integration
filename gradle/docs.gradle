@@ -1,5 +1,5 @@
 ext {
-	backendVersion = '0.0.4'
+	backendVersion = '0.0.5'
 	micrometerDocsVersion='1.0.1'
 }
 
