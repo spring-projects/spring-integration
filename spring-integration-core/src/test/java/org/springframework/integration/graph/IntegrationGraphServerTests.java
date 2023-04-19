@@ -29,7 +29,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.observation.ObservationRegistry;
-import net.minidev.json.JSONArray;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
@@ -128,10 +127,10 @@ public class IntegrationGraphServerTests {
 		assertThat(nodes).isNotNull();
 		assertThat(nodes.size()).isEqualTo(35);
 
-		JSONArray jsonArray =
+		List<?> jsonArray =
 				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.componentType == 'gateway')]");
 
-		assertThat(jsonArray.size()).isEqualTo(3);
+		assertThat(jsonArray).hasSize(3);
 
 		Map<String, Object> gateway1 = (Map<String, Object>) jsonArray.get(0);
 
@@ -159,9 +158,6 @@ public class IntegrationGraphServerTests {
 		this.testSource.receive();
 		this.expressionRouterInput.send(MessageBuilder.withPayload("foo").setHeader("foo", "fizChannel").build());
 
-		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router.router')]");
-		String routerJson = jsonArray.toJSONString();
-
 		this.server.rebuild();
 		graph = this.server.getGraph();
 		baos = new ByteArrayOutputStream();
@@ -181,13 +177,13 @@ public class IntegrationGraphServerTests {
 		assertThat(links.size()).isEqualTo(35);
 
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router.router')]");
-		routerJson = jsonArray.toJSONString();
+		String routerJson = jsonArray.toString();
 		assertThat(routerJson).contains("\"sendTimers\":{\"successes\":{\"count\":4");
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'toRouter')]");
-		String toRouterJson = jsonArray.toJSONString();
+		String toRouterJson = jsonArray.toString();
 		assertThat(toRouterJson).contains("\"sendTimers\":{\"successes\":{\"count\":4");
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
-		String sourceJson = jsonArray.toJSONString();
+		String sourceJson = jsonArray.toString();
 		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":1,\"failures\":0");
 
 		// stats refresh without rebuild()
@@ -196,7 +192,7 @@ public class IntegrationGraphServerTests {
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 		objectMapper.writeValue(baos, graph);
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
-		sourceJson = jsonArray.toJSONString();
+		sourceJson = jsonArray.toString();
 		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":2,\"failures\":0");
 
 		assertThatIllegalStateException().isThrownBy(() -> this.testSource.receive());
@@ -204,21 +200,21 @@ public class IntegrationGraphServerTests {
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 		objectMapper.writeValue(baos, graph);
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
-		sourceJson = jsonArray.toJSONString();
+		sourceJson = jsonArray.toString();
 		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":2,\"failures\":1");
 
 		jsonArray =
 				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'expressionRouter.router')]");
 
 		expressionRouter = (Map<String, Object>) jsonArray.get(0);
-		JSONArray routes = (JSONArray) expressionRouter.get("routes");
+		List<?> routes = (List<?>) expressionRouter.get("routes");
 		assertThat(routes).hasSize(1);
 		assertThat(routes.get(0)).isEqualTo("fizChannel");
 
 		Object routerNodeId = expressionRouter.get("nodeId");
 
 		Object fizChannelNodeId =
-				((JSONArray) JsonPathUtils.evaluate(baos.toByteArray(),
+				((List<?>) JsonPathUtils.evaluate(baos.toByteArray(),
 						"$..nodes[?(@.name == 'fizChannel')].nodeId")).get(0);
 
 		jsonArray =
