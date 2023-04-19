@@ -68,6 +68,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR
 
 	private WebSocketHandler webSocketHandler = new IntegrationWebSocketHandler();
+	
 	protected final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>(); // NOSONAR
 
 	private final List<String> supportedProtocols = new ArrayList<>();
@@ -104,7 +105,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 	}
 
 	/**
-	 * Replace a default {@link WebSocketHandler} with provided, e.g. via decoration factories.
+	 * Replace the default {@link WebSocketHandler} with the one provided here, e.g. via decoration factories.
 	 * @param handler the actual {@link WebSocketHandler} to replace.
 	 * @since 5.5.18
 	 */
