@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import jcifs.CIFSContext;
 import jcifs.context.SingletonContext;
 import jcifs.smb.SmbFile;
+import jcifs.util.Strings;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,10 +89,9 @@ public class SmbSessionFactoryWithCIFSContextTests extends AbstractBaseTests {
 
 	class TestSmbSessionFactory extends SmbSessionFactory {
 
-		private CIFSContext context;
+		private final CIFSContext context;
 
 		protected TestSmbSessionFactory(CIFSContext _context) {
-			assertThat(_context).as("CIFSContext object is null.").isNotNull();
 			this.context = _context;
 		}
 
@@ -101,7 +101,8 @@ public class SmbSessionFactoryWithCIFSContextTests extends AbstractBaseTests {
 				// test for a constructor with a CIFSContext
 				SmbShare smbShare = new SmbShare(this, this.context);
 				assertThat(smbShare).as("SmbShare object is null.").isNotNull();
-				assertThat(smbShare.toString()).isEqualTo("smb://sambaguest:sambaguest@localhost:445/smb-share/");
+				assertThat(smbShare.toString())
+						.isEqualTo(Strings.maskSecretValue("smb://sambaguest:sambaguest@localhost:445/smb-share/"));
 
 				// the rest has been copied from SmbSendingMessageHandlerTests
 				when(smbSession.remove(Mockito.anyString())).thenReturn(true);
