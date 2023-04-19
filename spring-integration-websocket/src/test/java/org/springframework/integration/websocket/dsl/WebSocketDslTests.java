@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 the original author or authors.
+ * Copyright 2021-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.websocket.dsl;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.websocket.DeploymentException;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.server.HandshakeHandler;
@@ -46,6 +49,9 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @SpringJUnitConfig(classes = WebSocketDslTests.ClientConfig.class)
 @DirtiesContext
@@ -61,13 +67,19 @@ public class WebSocketDslTests {
 	IntegrationFlowContext integrationFlowContext;
 
 	@Test
-	void testDynamicServerEndpointRegistration() {
+	void testDynamicServerEndpointRegistration() throws Exception {
 		// Dynamic server flow
 		AnnotationConfigWebApplicationContext serverContext = this.server.getServerContext();
 		IntegrationFlowContext serverIntegrationFlowContext = serverContext.getBean(IntegrationFlowContext.class);
+		AtomicReference<WebSocketHandler> decoratedHandler = new AtomicReference<>();
 		ServerWebSocketContainer serverWebSocketContainer =
 				new ServerWebSocketContainer("/dynamic")
 						.setHandshakeHandler(serverContext.getBean(HandshakeHandler.class))
+						.setDecoratorFactories(handler -> {
+							WebSocketHandler spy = spy(handler);
+							decoratedHandler.set(spy);
+							return spy;
+						})
 						.withSockJs();
 
 		WebSocketInboundChannelAdapter webSocketInboundChannelAdapter =
@@ -105,6 +117,8 @@ public class WebSocketDslTests {
 		assertThat(result).isNotNull()
 				.extracting(Message::getPayload)
 				.isEqualTo("dynamic test");
+
+		verify(decoratedHandler.get()).handleMessage(any(), any());
 
 		dynamicServerFlow.destroy();
 
