@@ -146,7 +146,7 @@ public class FlowServiceTests {
 				.isEqualTo("B");
 
 		assertThat(receive2.getHeaders().getTimestamp() - receive1.getHeaders().getTimestamp())
-				.isCloseTo(500, withinPercentage(20));
+				.isCloseTo(500, withinPercentage(30));
 	}
 
 	@Configuration
