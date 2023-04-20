@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -57,8 +56,8 @@ public class Pop3MailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
-		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = GreenMailUtil.newMimeMessage("test2");
 		final Message[] messages = new Message[] {msg1, msg2};
 		doAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
@@ -74,8 +73,9 @@ public class Pop3MailReceiverTests {
 		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
-		verify(msg1, times(1)).setFlag(Flag.DELETED, true);
-		verify(msg2, times(1)).setFlag(Flag.DELETED, true);
+
+		assertThat(msg1.getFlags().contains(Flag.DELETED)).isTrue();
+		assertThat(msg2.getFlags().contains(Flag.DELETED)).isTrue();
 	}
 
 	@Test
@@ -92,8 +92,8 @@ public class Pop3MailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
-		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = GreenMailUtil.newMimeMessage("test2");
 		final Message[] messages = new Message[] {msg1, msg2};
 		doAnswer(invocation -> null).when(receiver).openFolder();
 
@@ -102,8 +102,9 @@ public class Pop3MailReceiverTests {
 		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
-		verify(msg1, times(0)).setFlag(Flag.DELETED, true);
-		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
+
+		assertThat(msg1.getFlags().contains(Flag.DELETED)).isFalse();
+		assertThat(msg2.getFlags().contains(Flag.DELETED)).isFalse();
 	}
 
 	@Test
@@ -119,8 +120,8 @@ public class Pop3MailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
-		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = GreenMailUtil.newMimeMessage("test2");
 		final Message[] messages = new Message[] {msg1, msg2};
 		doAnswer(invocation -> null).when(receiver).openFolder();
 
@@ -129,8 +130,9 @@ public class Pop3MailReceiverTests {
 		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
-		verify(msg1, times(0)).setFlag(Flag.DELETED, true);
-		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
+
+		assertThat(msg1.getFlags().contains(Flag.DELETED)).isFalse();
+		assertThat(msg2.getFlags().contains(Flag.DELETED)).isFalse();
 	}
 
 	@Test
@@ -146,8 +148,8 @@ public class Pop3MailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
-		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
+		Message msg1 = GreenMailUtil.newMimeMessage("test1");
+		Message msg2 = GreenMailUtil.newMimeMessage("test2");
 		final Message[] messages = new Message[] {msg1, msg2};
 		doAnswer(invocation -> null).when(receiver).openFolder();
 
@@ -156,8 +158,9 @@ public class Pop3MailReceiverTests {
 		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
-		verify(msg1, times(0)).setFlag(Flag.DELETED, true);
-		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
+
+		assertThat(msg1.getFlags().contains(Flag.DELETED)).isFalse();
+		assertThat(msg2.getFlags().contains(Flag.DELETED)).isFalse();
 	}
 
 }
