@@ -252,7 +252,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 					else {
 						logger.warn(ex,
 								"Failed to execute IDLE task. " +
-										"Won't resubmit since not a 'shouldReconnectAutomatically'" +
+										"Won't resubmit since not a 'shouldReconnectAutomatically' " +
 										"or not a 'jakarta.mail.MessagingException'");
 						ImapIdleChannelAdapter.this.receivingTaskTrigger.stop();
 					}

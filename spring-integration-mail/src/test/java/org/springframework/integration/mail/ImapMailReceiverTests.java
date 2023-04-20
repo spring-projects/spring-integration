@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 
+import com.icegreen.greenmail.store.FolderException;
 import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
@@ -52,7 +53,8 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.AndTerm;
 import jakarta.mail.search.FlagTerm;
 import jakarta.mail.search.FromTerm;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -107,28 +109,24 @@ import static org.mockito.Mockito.when;
 @DirtiesContext
 public class ImapMailReceiverTests {
 
-	private AtomicInteger failed;
+	private final static ImapSearchLoggingHandler imapSearches = new ImapSearchLoggingHandler();
 
-	private GreenMail imapIdleServer;
+	private static GreenMail imapIdleServer;
 
-	private GreenMailUser user;
+	private static GreenMailUser user;
+
+	private final AtomicInteger failed = new AtomicInteger(0);
 
 	@Autowired
 	private ApplicationContext context;
 
-	static {
+	@BeforeAll
+	static void startImapServer() {
 		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
-	}
-
-	private final ImapSearchLoggingHandler imapSearches = new ImapSearchLoggingHandler();
-
-	@BeforeEach
-	public void setup() {
 		LogManager.getLogManager().getLogger("").setLevel(Level.ALL);
 		imapSearches.searches.clear();
 		imapSearches.stores.clear();
 		LogManager.getLogManager().getLogger("").addHandler(imapSearches);
-		failed = new AtomicInteger(0);
 		ServerSetup imap = ServerSetupTest.IMAP.dynamicPort();
 		imap.setServerStartupTimeout(10000);
 		imapIdleServer = new GreenMail(imap);
@@ -136,16 +134,21 @@ public class ImapMailReceiverTests {
 		imapIdleServer.start();
 	}
 
-	@AfterEach
-	public void tearDown() {
-		this.imapIdleServer.stop();
+	@BeforeEach
+	void cleanup() throws FolderException {
+		imapIdleServer.getManagers().getImapHostManager().getInbox(user).deleteAllMessages();
+	}
+
+	@AfterAll
+	static void stopImapServer() {
+		imapIdleServer.stop();
 		LogManager.getLogManager().getLogger("").removeHandler(imapSearches);
 	}
 
 	@Test
 	public void testIdleWithServerCustomSearch() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getImap().getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSearchTermStrategy((supportedFlags, folder) -> {
 			try {
 				FromTerm fromTerm = new FromTerm(new InternetAddress("bar@baz"));
@@ -161,7 +164,7 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testIdleWithServerDefaultSearch() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getImap().getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		testIdleWithServerGuts(receiver, false);
 		assertThat(imapSearches.searches.get(0)).contains("testSIUserFlag");
 	}
@@ -169,7 +172,7 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testIdleWithMessageMapping() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getImap().getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		testIdleWithServerGuts(receiver, true);
 	}
@@ -177,7 +180,7 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testIdleWithServerDefaultSearchSimple() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getImap().getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSimpleContent(true);
 		testIdleWithServerGuts(receiver, false, true);
 		assertThat(imapSearches.searches.get(0)).contains("testSIUserFlag");
@@ -186,7 +189,7 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testIdleWithMessageMappingSimple() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getImap().getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSimpleContent(true);
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		testIdleWithServerGuts(receiver, true, true);
@@ -217,8 +220,6 @@ public class ImapMailReceiverTests {
 		message.setRecipients(Message.RecipientType.CC, "a@b, c@d");
 		message.setRecipients(Message.RecipientType.BCC, "e@f, g@h");
 		user.deliver(message);
-		user.deliver(GreenMailUtil.createTextEmail("to", "Bar <bar@baz>", "subject", "body",
-				imapIdleServer.getImap().getServerSetup()));
 		if (!mapped) {
 			@SuppressWarnings("unchecked")
 			org.springframework.messaging.Message<MimeMessage> received =
@@ -256,6 +257,8 @@ public class ImapMailReceiverTests {
 				assertThat(received.getPayload()).isEqualTo("foo");
 			}
 		}
+		user.deliver(GreenMailUtil.createTextEmail("to", "Bar <bar@baz>", "subject", "body",
+				imapIdleServer.getImap().getServerSetup()));
 		assertThat(channel.receive(20000)).isNotNull(); // new message after idle
 		assertThat(channel.receive(100)).isNull(); // no new message after second and third idle
 
@@ -682,7 +685,7 @@ public class ImapMailReceiverTests {
 		 * Idle takes 5 seconds; if all is well, we should receive the first message
 		 * before then.
 		 */
-		assertThat(channel.receive(10000)).isNotNull();
+		assertThat(channel.receive(20000)).isNotNull();
 		// We should not receive any more until the next idle elapses
 		assertThat(channel.receive(100)).isNull();
 		assertThat(channel.receive(10000)).isNotNull();
@@ -873,8 +876,8 @@ public class ImapMailReceiverTests {
 
 	@Test
 	public void testNullMessages() throws Exception {
-		Message message1 = spy(GreenMailUtil.newMimeMessage("test1"));
-		Message message2 = spy(GreenMailUtil.newMimeMessage("test2"));
+		Message message1 = GreenMailUtil.newMimeMessage("test1");
+		Message message2 = GreenMailUtil.newMimeMessage("test2");
 		final Message[] messages1 = new Message[] {null, null, message1};
 		final Message[] messages2 = new Message[] {message2};
 		final SearchTermStrategy searchTermStrategy = mock(SearchTermStrategy.class);
@@ -948,9 +951,7 @@ public class ImapMailReceiverTests {
 		adapter.setReconnectDelay(1);
 		adapter.afterPropertiesSet();
 		final CountDownLatch latch = new CountDownLatch(3);
-		adapter.setApplicationEventPublisher(e -> {
-			latch.countDown();
-		});
+		adapter.setApplicationEventPublisher(e -> latch.countDown());
 		adapter.start();
 		assertThat(latch.await(60, TimeUnit.SECONDS)).isTrue();
 		verify(store, atLeast(3)).connect();
