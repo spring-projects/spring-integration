@@ -109,7 +109,7 @@ import static org.mockito.Mockito.when;
 @DirtiesContext
 public class ImapMailReceiverTests {
 
-	private final static ImapSearchLoggingHandler imapSearches = new ImapSearchLoggingHandler();
+	private static final ImapSearchLoggingHandler imapSearches = new ImapSearchLoggingHandler();
 
 	private static GreenMail imapIdleServer;
 
