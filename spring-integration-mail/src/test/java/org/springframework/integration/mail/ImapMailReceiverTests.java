@@ -31,7 +31,6 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 
-import com.icegreen.greenmail.store.FolderException;
 import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
@@ -54,6 +53,7 @@ import jakarta.mail.search.AndTerm;
 import jakarta.mail.search.FlagTerm;
 import jakarta.mail.search.FromTerm;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,19 +111,26 @@ public class ImapMailReceiverTests {
 
 	private static final ImapSearchLoggingHandler imapSearches = new ImapSearchLoggingHandler();
 
-	private static GreenMail imapIdleServer;
+	private GreenMail imapIdleServer;
 
-	private static GreenMailUser user;
-
-	private final AtomicInteger failed = new AtomicInteger(0);
+	private GreenMailUser user;
 
 	@Autowired
 	private ApplicationContext context;
 
 	@BeforeAll
-	static void startImapServer() {
+	static void setup() {
 		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
 		LogManager.getLogManager().getLogger("").setLevel(Level.ALL);
+	}
+
+	@AfterAll
+	static void teardown() {
+		LogManager.getLogManager().getLogger("").removeHandler(imapSearches);
+	}
+
+	@BeforeEach
+	void startImapServer() {
 		imapSearches.searches.clear();
 		imapSearches.stores.clear();
 		LogManager.getLogManager().getLogger("").addHandler(imapSearches);
@@ -134,15 +141,9 @@ public class ImapMailReceiverTests {
 		imapIdleServer.start();
 	}
 
-	@BeforeEach
-	void cleanup() throws FolderException {
-		imapIdleServer.getManagers().getImapHostManager().getInbox(user).deleteAllMessages();
-	}
-
-	@AfterAll
-	static void stopImapServer() {
+	@AfterEach
+	void stopImapServer() {
 		imapIdleServer.stop();
-		LogManager.getLogManager().getLogger("").removeHandler(imapSearches);
 	}
 
 	@Test
@@ -775,6 +776,7 @@ public class ImapMailReceiverTests {
 
 	@Test // see INT-1801
 	public void testImapLifecycleForRaceCondition() throws Exception {
+		final AtomicInteger failed = new AtomicInteger(0);
 		for (int i = 0; i < 100; i++) {
 			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 			Store store = mock(Store.class);
