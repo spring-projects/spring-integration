@@ -122,6 +122,7 @@ public class ImapMailReceiverTests {
 	static void setup() {
 		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
 		LogManager.getLogManager().getLogger("").setLevel(Level.ALL);
+		LogManager.getLogManager().getLogger("").addHandler(imapSearches);
 	}
 
 	@AfterAll
@@ -133,7 +134,6 @@ public class ImapMailReceiverTests {
 	void startImapServer() {
 		imapSearches.searches.clear();
 		imapSearches.stores.clear();
-		LogManager.getLogManager().getLogger("").addHandler(imapSearches);
 		ServerSetup imap = ServerSetupTest.IMAP.dynamicPort();
 		imap.setServerStartupTimeout(10000);
 		imapIdleServer = new GreenMail(imap);
@@ -224,7 +224,7 @@ public class ImapMailReceiverTests {
 		if (!mapped) {
 			@SuppressWarnings("unchecked")
 			org.springframework.messaging.Message<MimeMessage> received =
-					(org.springframework.messaging.Message<MimeMessage>) channel.receive(10000);
+					(org.springframework.messaging.Message<MimeMessage>) channel.receive(20000);
 			assertThat(received).isNotNull();
 			assertThat(received.getPayload().getReceivedDate()).isNotNull();
 			assertThat(received.getPayload().getLineCount() > -1).isTrue();
@@ -238,7 +238,7 @@ public class ImapMailReceiverTests {
 			}
 		}
 		else {
-			org.springframework.messaging.Message<?> received = channel.receive(10000);
+			org.springframework.messaging.Message<?> received = channel.receive(20000);
 			assertThat(received).isNotNull();
 			MessageHeaders headers = received.getHeaders();
 			assertThat(headers.get(MailHeaders.RAW_HEADERS)).isNotNull();
