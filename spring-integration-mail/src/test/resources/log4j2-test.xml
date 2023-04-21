@@ -8,7 +8,7 @@
 	<Loggers>
 		<Logger name="org.springframework.integration" level="warn"/>
 		<Logger name="org.springframework.integration.mail" level="warn"/>
-		<Logger name="com.icegreen.greenmail" level="warn"/>
+		<Logger name="com.icegreen.greenmail" level="debug"/>
 		<Logger name="com.sun.mail" level="warn"/>
 		<Root level="warn">
 			<AppenderRef ref="STDOUT" />

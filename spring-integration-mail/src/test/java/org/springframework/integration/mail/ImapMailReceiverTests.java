@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -30,6 +32,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
@@ -118,11 +121,15 @@ public class ImapMailReceiverTests {
 	@Autowired
 	private ApplicationContext context;
 
+	static {
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+	}
+
 	@BeforeAll
 	static void setup() {
-		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
-		LogManager.getLogManager().getLogger("").setLevel(Level.ALL);
-		LogManager.getLogManager().getLogger("").addHandler(imapSearches);
+		Logger logger = LogManager.getLogManager().getLogger("");
+		logger.setLevel(Level.ALL);
+		logger.addHandler(imapSearches);
 	}
 
 	@AfterAll
@@ -131,14 +138,14 @@ public class ImapMailReceiverTests {
 	}
 
 	@BeforeEach
-	void startImapServer() {
+	void startImapServer() throws ExecutionException, InterruptedException {
 		imapSearches.searches.clear();
 		imapSearches.stores.clear();
-		ServerSetup imap = ServerSetupTest.IMAP.dynamicPort();
+		ServerSetup imap = ServerSetupTest.IMAP.verbose(true).dynamicPort();
 		imap.setServerStartupTimeout(10000);
 		imapIdleServer = new GreenMail(imap);
 		user = imapIdleServer.setUser("user", "pw");
-		imapIdleServer.start();
+		Executors.newSingleThreadExecutor().submit(imapIdleServer::start).get();
 	}
 
 	@AfterEach
