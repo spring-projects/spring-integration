@@ -110,7 +110,7 @@ import static org.mockito.Mockito.when;
 @SpringJUnitConfig
 @ContextConfiguration(
 		"classpath:org/springframework/integration/mail/config/ImapIdleChannelAdapterParserTests-context.xml")
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class ImapMailReceiverTests {
 
 	private static final ImapSearchLoggingHandler imapSearches = new ImapSearchLoggingHandler();
