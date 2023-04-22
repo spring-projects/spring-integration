@@ -55,6 +55,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.AndTerm;
 import jakarta.mail.search.FlagTerm;
 import jakarta.mail.search.FromTerm;
+import jakarta.mail.search.SearchTerm;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -219,7 +220,7 @@ public class ImapMailReceiverTests {
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		adapter.setTaskScheduler(taskScheduler);
-		adapter.setReconnectDelay(1);
+		adapter.setReconnectDelay(10);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		MimeMessage message =
@@ -299,6 +300,7 @@ public class ImapMailReceiverTests {
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
 		folderField.set(receiver, folder);
 
 		final Message[] messages = new Message[] {msg1, msg2};
@@ -313,7 +315,7 @@ public class ImapMailReceiverTests {
 			return null;
 		}).given(receiver).openFolder();
 
-		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
 		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 		receiver.receive();
@@ -409,6 +411,7 @@ public class ImapMailReceiverTests {
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
 		folderField.set(receiver, folder);
 
 		Message msg1 = GreenMailUtil.newMimeMessage("test1");
@@ -423,7 +426,7 @@ public class ImapMailReceiverTests {
 			return null;
 		}).given(receiver).openFolder();
 
-		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
 		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 		receiver.receive();
@@ -446,6 +449,7 @@ public class ImapMailReceiverTests {
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
 		folderField.set(receiver, folder);
 
 
@@ -454,7 +458,7 @@ public class ImapMailReceiverTests {
 		final Message[] messages = new Message[] {msg1, msg2};
 		willAnswer(invocation -> null).given(receiver).openFolder();
 
-		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
 		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
@@ -476,6 +480,7 @@ public class ImapMailReceiverTests {
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
 		folderField.set(receiver, folder);
 
 		Message msg1 = GreenMailUtil.newMimeMessage("test1");
@@ -490,7 +495,7 @@ public class ImapMailReceiverTests {
 			return null;
 		}).given(receiver).openFolder();
 
-		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
 		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
@@ -513,6 +518,7 @@ public class ImapMailReceiverTests {
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
 		folderField.set(receiver, folder);
 
 		Message msg1 = GreenMailUtil.newMimeMessage("test1");
@@ -527,7 +533,7 @@ public class ImapMailReceiverTests {
 			return null;
 		}).given(receiver).openFolder();
 
-		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
 		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 		receiver.receive();
@@ -539,7 +545,7 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testMessageHistory() throws Exception {
 		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
-		adapter.setReconnectDelay(1);
+		adapter.setReconnectDelay(10);
 
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
@@ -552,16 +558,18 @@ public class ImapMailReceiverTests {
 		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
 		final Message[] messages = new Message[] {mailMessage};
 
+		IMAPFolder folder = mock(IMAPFolder.class);
+		given(folder.isOpen()).willReturn(true);
+		given(folder.hasNewMessages()).willReturn(true);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+
 		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
-			IMAPFolder folder = mock(IMAPFolder.class);
 			accessor.setPropertyValue("folder", folder);
-			given(folder.isOpen()).willReturn(true);
-			given(folder.hasNewMessages()).willReturn(true);
 			return null;
 		}).given(receiver).openFolder();
 
-		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
 		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 
@@ -595,10 +603,9 @@ public class ImapMailReceiverTests {
 		adapter.setOutputChannel(channel);
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setErrorChannel(errorChannel);
-		adapter.setReconnectDelay(1);
+		adapter.setReconnectDelay(10);
 
 		AbstractMailReceiver receiver = new ImapMailReceiver();
-		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
@@ -606,11 +613,15 @@ public class ImapMailReceiverTests {
 		folderField.setAccessible(true);
 		Folder folder = mock(IMAPFolder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(true);
+		given(folder.exists()).willReturn(true);
 		folderField.set(receiver, folder);
 
-		willAnswer(invocation -> true).given(folder).isOpen();
-
-		willAnswer(invocation -> null).given(receiver).openFolder();
+		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
+		storeField.setAccessible(true);
+		Store store = mock(Store.class);
+		given(store.isConnected()).willReturn(true);
+		storeField.set(receiver, store);
 
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		adapterAccessor.setPropertyValue("mailReceiver", receiver);
@@ -618,9 +629,7 @@ public class ImapMailReceiverTests {
 		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
 		Message[] messages = new Message[] {mailMessage};
 
-		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
-
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
 		adapter.start();
 		org.springframework.messaging.Message<?> replMessage = errorChannel.receive(10000);
@@ -636,20 +645,16 @@ public class ImapMailReceiverTests {
 
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		adapter.setReconnectDelay(1);
+		adapter.setReconnectDelay(10);
 
 		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
-		receiver = spy(receiver);
-		receiver.setBeanFactory(mock(BeanFactory.class));
-		receiver.afterPropertiesSet();
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		setUpScheduler(receiver, taskScheduler);
 
 		final IMAPFolder folder = mock(IMAPFolder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		given(folder.isOpen()).willReturn(false).willReturn(true);
 		given(folder.exists()).willReturn(true);
-
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		adapterAccessor.setPropertyValue("mailReceiver", receiver);
 
 		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
 		storeField.setAccessible(true);
@@ -658,7 +663,10 @@ public class ImapMailReceiverTests {
 		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 		storeField.set(receiver, store);
 
-		willAnswer(invocation -> folder).given(receiver).getFolder();
+		receiver.afterPropertiesSet();
+
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		adapterAccessor.setPropertyValue("mailReceiver", receiver);
 
 		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
 		final Message[] messages = new Message[] {mailMessage};
@@ -677,9 +685,7 @@ public class ImapMailReceiverTests {
 			else {
 				return new Message[0];
 			}
-		}).given(receiver).searchForNewMessages();
-
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		}).given(folder).search(any(SearchTerm.class));
 
 		willAnswer(invocation -> {
 			Thread.sleep(300);
@@ -698,6 +704,7 @@ public class ImapMailReceiverTests {
 		assertThat(channel.receive(100)).isNull();
 		assertThat(channel.receive(10000)).isNotNull();
 		adapter.stop();
+		taskScheduler.shutdown();
 	}
 
 	@Test
@@ -706,22 +713,17 @@ public class ImapMailReceiverTests {
 
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		adapter.setReconnectDelay(1);
+		adapter.setReconnectDelay(100);
 		adapter.afterPropertiesSet();
 
 		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
-		receiver.setCancelIdleInterval(1);
-		receiver = spy(receiver);
-		receiver.setBeanFactory(mock(BeanFactory.class));
-		receiver.afterPropertiesSet();
-
-		final IMAPFolder folder = mock(IMAPFolder.class);
+		receiver.setCancelIdleInterval(10);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		setUpScheduler(receiver, taskScheduler);
+		IMAPFolder folder = mock(IMAPFolder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.RECENT));
 		given(folder.isOpen()).willReturn(false).willReturn(true);
 		given(folder.exists()).willReturn(true);
-
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		adapterAccessor.setPropertyValue("mailReceiver", receiver);
 
 		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
 		storeField.setAccessible(true);
@@ -730,16 +732,17 @@ public class ImapMailReceiverTests {
 		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 		storeField.set(receiver, store);
 
-		willAnswer(invocation -> folder).given(receiver).getFolder();
+		receiver.afterPropertiesSet();
+
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		adapterAccessor.setPropertyValue("mailReceiver", receiver);
 
 		Message mailMessage = GreenMailUtil.newMimeMessage("test1");
-		final Message[] messages = new Message[] {mailMessage};
+		Message[] messages = new Message[] {mailMessage};
 
-		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
-
-		final CountDownLatch idles = new CountDownLatch(2);
+		CountDownLatch idles = new CountDownLatch(2);
 		willAnswer(invocation -> {
 			idles.countDown();
 			Thread.sleep(500);
@@ -756,6 +759,7 @@ public class ImapMailReceiverTests {
 		assertThat(channel.receive(20000)).isNotNull();
 		assertThat(idles.await(10, TimeUnit.SECONDS)).isTrue();
 		adapter.stop();
+		taskScheduler.shutdown();
 	}
 
 	@Test
@@ -771,7 +775,7 @@ public class ImapMailReceiverTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
-		adapter.setReconnectDelay(1);
+		adapter.setReconnectDelay(10);
 		adapter.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(theEvent.get().toString())
@@ -957,7 +961,7 @@ public class ImapMailReceiverTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
-		adapter.setReconnectDelay(1);
+		adapter.setReconnectDelay(10);
 		adapter.afterPropertiesSet();
 		final CountDownLatch latch = new CountDownLatch(3);
 		adapter.setApplicationEventPublisher(e -> latch.countDown());
