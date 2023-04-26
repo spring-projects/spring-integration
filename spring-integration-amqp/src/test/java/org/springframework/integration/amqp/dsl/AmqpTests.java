@@ -31,6 +31,9 @@ import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -56,8 +59,10 @@ import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowBuilder;
 import org.springframework.integration.dsl.Transformers;
@@ -68,6 +73,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.rabbit.stream.listener.ConsumerCustomizer;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -87,7 +93,7 @@ import static org.mockito.Mockito.verify;
 @SpringJUnitConfig
 @RabbitAvailable(queues = {"amqpOutboundInput", "amqpReplyChannel", "asyncReplies",
 		"defaultReplyTo", "si.dsl.test", "si.dsl.exception.test.dlq",
-		"si.dsl.conv.exception.test.dlq", "testTemplateChannelTransacted"})
+		"si.dsl.conv.exception.test.dlq", "testTemplateChannelTransacted", "publisherQueue"})
 @DirtiesContext
 public class AmqpTests {
 
@@ -282,8 +288,23 @@ public class AmqpTests {
 		verify(customizer).accept(any(), any());
 	}
 
+	@Autowired
+	QueueChannel fromRabbitViaPublisher;
+
+	@Test
+	void messageReceivedFromRabbitListenerViaPublisher() {
+		this.amqpTemplate.convertAndSend("publisherQueue", "test data");
+
+		Message<?> receive = this.fromRabbitViaPublisher.receive(10_000);
+		assertThat(receive).isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("TEST DATA");
+	}
+
 	@Configuration
 	@EnableIntegration
+	@EnableRabbit
+	@EnablePublisher
 	public static class ContextConfiguration {
 
 		@Bean
@@ -493,6 +514,27 @@ public class AmqpTests {
 		@Bean
 		public AmqpHeaderMapper mapperOut() {
 			return DefaultAmqpHeaderMapper.outboundMapper();
+		}
+
+		@Bean
+		public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
+				ConnectionFactory rabbitConnectionFactory) {
+
+			SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+			factory.setConnectionFactory(rabbitConnectionFactory);
+			return factory;
+		}
+
+		@Bean
+		QueueChannel fromRabbitViaPublisher() {
+			return new QueueChannel();
+		}
+
+		@RabbitListener(queuesToDeclare = @Queue("publisherQueue"))
+		@Publisher("fromRabbitViaPublisher")
+		@Payload("#args.payload.toUpperCase()")
+		public void consumeForPublisher(String payload) {
+
 		}
 
 	}
