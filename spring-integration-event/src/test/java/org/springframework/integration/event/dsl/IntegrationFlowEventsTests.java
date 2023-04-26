@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,11 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
+import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.core.GenericHandler;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
@@ -84,6 +87,9 @@ public class IntegrationFlowEventsTests {
 	@Autowired
 	private ApplicationEvents applicationEvents;
 
+	@Autowired
+	QueueChannel eventFromPublisher;
+
 	@Test
 	public void testEventsFlow() {
 		assertThat(this.applicationEvents.stream(MessagingEvent.class)).isEmpty();
@@ -115,9 +121,17 @@ public class IntegrationFlowEventsTests {
 		assertThat(messageGroupStore.getMessageCountForAllMessageGroups()).isEqualTo(0);
 	}
 
+	@Test
+	public void eventFromPublisherAnnotation() {
+		this.applicationContext.publishEvent(new TestApplicationEvent3());
+		Message<?> receive = this.eventFromPublisher.receive(10000);
+		assertThat(receive).isNotNull()
+				.extracting(Message::getPayload).isEqualTo("TestApplicationEvent3");
+	}
 
 	@Configuration
 	@EnableIntegration
+	@EnablePublisher
 	public static class ContextConfiguration {
 
 		@Bean
@@ -176,6 +190,17 @@ public class IntegrationFlowEventsTests {
 					.channel(MessageChannels.queue("delayedResults"));
 		}
 
+		@Bean
+		QueueChannel eventFromPublisher() {
+			return new QueueChannel();
+		}
+
+		@EventListener
+		@Publisher("eventFromPublisher")
+		public String publishEventToChannel(TestApplicationEvent3 testApplicationEvent3) {
+			return testApplicationEvent3.getSource().toString();
+		}
+
 	}
 
 	@SuppressWarnings("serial")
@@ -192,6 +217,15 @@ public class IntegrationFlowEventsTests {
 
 		TestApplicationEvent2() {
 			super("TestApplicationEvent2");
+		}
+
+	}
+
+	@SuppressWarnings("serial")
+	private static final class TestApplicationEvent3 extends ApplicationEvent {
+
+		TestApplicationEvent3() {
+			super("TestApplicationEvent3");
 		}
 
 	}
