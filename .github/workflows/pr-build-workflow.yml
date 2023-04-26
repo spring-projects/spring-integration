@@ -33,6 +33,9 @@ jobs:
           SI_FATAL_WHEN_NO_BEANFACTORY: true
           NO_REFERENCE_TASK: true
         with:
+          debug: false
+          concurrent: true
+          gradle-build-scan-report: false
           arguments: checkAsciidocLinks check
 
       - name: Capture Test Results
