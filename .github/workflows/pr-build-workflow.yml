@@ -28,11 +28,14 @@ jobs:
           java-version: 17
 
       - name: Run Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: burrunan/gradle-cache-action@v1
         env:
           SI_FATAL_WHEN_NO_BEANFACTORY: true
           NO_REFERENCE_TASK: true
         with:
+          debug: false
+          concurrent: true
+          gradle-build-scan-report: false
           arguments: checkAsciidocLinks check
 
       - name: Capture Test Results
