@@ -530,7 +530,7 @@ public class AmqpTests {
 			return new QueueChannel();
 		}
 
-		@RabbitListener(queuesToDeclare = @Queue("publisherQueue"))
+		@RabbitListener(queuesToDeclare = @org.springframework.amqp.rabbit.annotation.Queue("publisherQueue"))
 		@Publisher("fromRabbitViaPublisher")
 		@Payload("#args.payload.toUpperCase()")
 		public void consumeForPublisher(String payload) {
