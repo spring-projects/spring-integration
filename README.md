@@ -1,4 +1,4 @@
-<img align="right" width="250" height="250" src="https://spring.io/images/projects/spring-integration-ed45c92142d821851bf6c771f4c556bb.svg">
+<img align="right" width="250" height="250" src="https://spring.io/img/projects/spring-integration.svg?v=2">
 
 Spring Integration [<img src="https://build.spring.io/plugins/servlet/wittified/build-status/INT-MAIN">](https://build.spring.io/browse/INT-MAIN) [![Join the chat at https://gitter.im/spring-projects/spring-integration](https://badges.gitter.im/spring-projects/spring-integration.svg)](https://gitter.im/spring-projects/spring-integration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ==================
@@ -79,7 +79,7 @@ The test results are captured in `build/reports/tests/test` (or `.../testAll`) u
 
 Add `--continue` to the command to perform a complete build, even if there are failing tests in some modules; otherwise the build will stop after the current module(s) being built are completed.
 
-**NOTE:** While Spring Integration runs with Java SE 8 or higher, a Java 11 compiler is required to build the project.
+**NOTE:** While Spring Integration runs with Java SE 17 or higher, a Java 17 compiler is required to build the project.
 
 To build and install jars into your local Maven cache:
 
