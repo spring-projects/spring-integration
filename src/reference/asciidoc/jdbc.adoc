@@ -1143,7 +1143,7 @@ The `INT_` can be changed according to the target database design requirements.
 Therefore, you must use `prefix` property on the `DefaultLockRepository` bean definition.
 
 Sometimes, one application has moved to such a state that it cannot release the distributed lock and remove the particular record in the database.
-For this purpose, such dead-locks can be expired by the other application on the next locking invocation.
+For this purpose, such deadlocks can be expired by the other application on the next locking invocation.
 The `timeToLive` (TTL) option on the `DefaultLockRepository` is provided for this purpose.
 You may also want to specify `CLIENT_ID` for the locks stored for a given `DefaultLockRepository` instance.
 If so, you can specify the `id` to be associated with the `DefaultLockRepository` as a constructor parameter.
@@ -1161,6 +1161,17 @@ String with version 5.5.6, the `JdbcLockRegistry` is support automatically clean
 See its JavaDocs for more information.
 
 String with version 6.0, the `DefaultLockRepository` can be supplied with a `PlatformTransactionManager` instead of relying on the primary bean from the application context.
+
+String with version 6.1, the `DefaultLockRepository` can be configured for custom `insert`, `update` and `renew` queries.
+For this purpose the respective setters and getters are exposed.
+For example, an insert query for PostgreSQL hint can be configured like this:
+
+====
+[source,java]
+----
+lockRepository.setInsertQuery(lockRepository.getInsertQuery() + " ON CONFLICT DO NOTHING");
+----
+====
 
 [[jdbc-metadata-store]]
 === JDBC Metadata Store
