@@ -65,6 +65,7 @@ import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MessageTriggerAction;
+import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ErrorMessageExceptionTypeRouter;
@@ -91,6 +92,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.Assert;
@@ -2913,6 +2915,66 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public IntegrationFlow nullChannel() {
 		return channel(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)
+				.get();
+	}
+
+	/**
+	 * Populate a terminal consumer endpoint for the selected protocol specific
+	 * {@link MessageHandler} implementation from {@code Namespace Factory}:
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure protocol specific
+	 * {@link MessageHandler}.
+	 * @param <H> the {@link MessageHandler} type.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @since 6.1
+	 */
+	public <H extends ReactiveMessageHandler> IntegrationFlow handleReactive(
+			ReactiveMessageHandlerSpec<?, H> messageHandlerSpec) {
+
+		return handleReactive(messageHandlerSpec, null);
+	}
+
+	/**
+	 * Populate a terminal consumer endpoint for the selected protocol specific
+	 * {@link MessageHandler} implementation from {@code Namespace Factory}:
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure protocol specific
+	 * {@link MessageHandler}.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <H> the {@link MessageHandler} type.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @since 6.1
+	 */
+	public <H extends ReactiveMessageHandler> IntegrationFlow handleReactive(
+			ReactiveMessageHandlerSpec<?, H> messageHandlerSpec,
+			@Nullable Consumer<GenericEndpointSpec<ReactiveMessageHandlerAdapter>> endpointConfigurer) {
+
+		return
+				addComponents(messageHandlerSpec.getComponentsToRegister()).
+						handleReactive(messageHandlerSpec.getObject().getDelegate(), endpointConfigurer);
+	}
+
+	/**
+	 * Add a {@link ReactiveMessageHandler} as a terminal {@link IntegrationFlow} operator.
+	 * @param reactiveMessageHandler the {@link ReactiveMessageHandler} to finish the flow.
+	 * @return The {@link IntegrationFlow} instance based on this definition.
+	 * @since 6.1
+	 */
+	public IntegrationFlow handleReactive(ReactiveMessageHandler reactiveMessageHandler) {
+		return handleReactive(reactiveMessageHandler, null);
+	}
+
+	/**
+	 * Add a {@link ReactiveMessageHandler} as a terminal {@link IntegrationFlow} operator.
+	 * @param reactiveMessageHandler the {@link ReactiveMessageHandler} to finish the flow.
+	 * @param endpointConfigurer the {@link Consumer} to configure a target endpoint for the handler.
+	 * @return The {@link IntegrationFlow} instance based on this definition.
+	 * @since 6.1
+	 */
+	public IntegrationFlow handleReactive(ReactiveMessageHandler reactiveMessageHandler,
+			@Nullable Consumer<GenericEndpointSpec<ReactiveMessageHandlerAdapter>> endpointConfigurer) {
+
+		return handle(new ReactiveMessageHandlerAdapter(reactiveMessageHandler), endpointConfigurer)
 				.get();
 	}
 

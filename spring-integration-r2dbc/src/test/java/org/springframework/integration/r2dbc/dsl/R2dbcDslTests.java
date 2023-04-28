@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,12 +114,12 @@ public class R2dbcDslTests {
 							e -> e.poller(p -> p.fixedDelay(100)).autoStartup(false).id("r2dbcInboundChannelAdapter"))
 					.<Mono<?>>handle((p, h) -> p, e -> e.async(true))
 					.channel(MessageChannels.flux())
-					.handle(R2dbc.outboundChannelAdapter(r2dbcEntityTemplate)
-							.queryType(R2dbcMessageHandler.Type.UPDATE)
-							.tableNameExpression("payload.class.simpleName")
-							.criteria((message) -> Criteria.where("id").is(2))
-							.values("{age:36}"))
-					.get();
+					.handleReactive(
+							R2dbc.outboundChannelAdapter(r2dbcEntityTemplate)
+									.queryType(R2dbcMessageHandler.Type.UPDATE)
+									.tableNameExpression("payload.class.simpleName")
+									.criteria((message) -> Criteria.where("id").is(2))
+									.values("{age:36}"));
 		}
 
 	}
