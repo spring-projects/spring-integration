@@ -68,7 +68,11 @@ someFlow() {
 ----
 ====
 
-See more information about Java, Kotlin and Groovy DSLs in the respective chapters.
+See more information about DSLs in the respective chapters:
+
+* <<./dsl.adoc#java-dsl,Java DSL>>
+* <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>>
+* <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
 
 [[filter-xml]]
 ==== Configuring a Filter with XML

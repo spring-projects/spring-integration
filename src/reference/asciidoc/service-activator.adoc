@@ -64,7 +64,11 @@ someFlow() {
 ----
 ====
 
-See more information about the DSLs in the respective Java, Groovy and Kotlin chapters.
+See more information about the DSLs in the respective chapters:
+
+* <<./dsl.adoc#java-dsl,Java DSL>>
+* <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>>
+* <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
 
 To create a service activator when using XML configuration, use the 'service-activator' element with the 'input-channel' and 'ref' attributes, as the following example shows:
 

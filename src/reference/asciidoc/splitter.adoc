@@ -103,7 +103,11 @@ someFlow() {
 ----
 ====
 
-See <<./dsl.adoc#java-dsl-splitters,Splitters>> in Java DSL chapter for more information.
+See more information about the DSLs in the respective chapters:
+
+* <<./dsl.adoc#java-dsl,Java DSL>>
+* <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>>
+* <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
 
 ==== Configuring a Splitter with XML
 
