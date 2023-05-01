@@ -3,7 +3,7 @@
 
 The Kotlin DSL is a wrapper and extension to <<./dsl.adoc#java-dsl,Java DSL>> and aimed to make Spring Integration development on Kotlin as smooth and straightforward as possible with interoperability with the existing Java API and Kotlin language-specific structures.
 
-All you need to get started is just an import for `org.springframework.integration.dsl.integrationFlow` - an overloaded global function for Kotlin DSL.
+All you need to get started is just an import for `org.springframework.integration.dsl.IntegrationFlow` - an overloaded global function for Kotlin DSL.
 
 For `IntegrationFlow` definitions as lambdas we typically don't need anything else from Kotlin and just declare a bean like this:
 
