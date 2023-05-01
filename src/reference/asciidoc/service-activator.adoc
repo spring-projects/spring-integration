@@ -10,7 +10,63 @@ As with most of the configuration options described here, the same behavior actu
 [[service-activator-namespace]]
 ==== Configuring Service Activator
 
-To create a service activator, use the 'service-activator' element with the 'input-channel' and 'ref' attributes, as the following example shows:
+With Java & Annotation configuration, there is just enough to mark respective service method with the `@ServiceActivator` - and the framework calls it when messages are consumed from an input channel:
+
+====
+[source,java]
+----
+public class SomeService {
+
+    @ServiceActivator(inputChannel = "exampleChannel")
+    public void exampleHandler(SomeData payload) {
+        ...
+    }
+
+}
+----
+====
+
+See more information in the <<./configuration.adoc#annotations, Annotation Support>>.
+
+For Java, Groovy or Kotlin DSL, the `.handle()` operator of an `IntegrationFlow` represents a service activator:
+
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("exampleChannel")
+             .handle(someService, "exampleHandler")
+             .get();
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun someFlow() =
+    integrationFlow("exampleChannel") {
+        handle(someService, "exampleHandler")
+    }
+----
+[source, groovy, role="secondary"]
+.Groovy DSL
+----
+@Bean
+someFlow() {
+    integrationFlow 'exampleChannel',
+            {
+                handle someService, 'exampleHandler'
+            }
+}
+----
+====
+
+See more information about DSL in respective Java, Groovy and Kotlin chapters.
+
+To create a service activator with an XML configuration, use the 'service-activator' element with the 'input-channel' and 'ref' attributes, as the following example shows:
 
 ====
 [source,xml]
@@ -59,7 +115,7 @@ If it can be resolved, the message is sent there.
 If the request message does not have a `replyChannel` header and the `reply` object is a `Message`, its `replyChannel` header is consulted for a target destination.
 This is the technique used for request-reply messaging in Spring Integration, and it is also an example of the return address pattern.
 
-If your method returns a result and you want to discard it and end the flow, you should configure the `output-channel` to send to a `NullChannel`.
+If your method returns a result, and you want to discard it and end the flow, you should configure the `output-channel` to send to a `NullChannel`.
 For convenience, the framework registers one with the name, `nullChannel`.
 See <<./channel.adoc#channel-special-channels,Special Channels>> for more information.
 
