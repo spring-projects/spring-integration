@@ -80,3 +80,10 @@ See <<./file.adoc#watch-service-directory-scanner, `WatchServiceDirectoryScanner
 
 The Java DSL API for Rabbit Streams (the `RabbitStream` factory) exposes additional properties for simple configurations.
 See <<./amqp.adoc#rmq-streams, `RabbitMQ Stream Queue Support`>> for more information.
+
+
+[[x6.1-jdbc]]
+=== JDBC Changes
+
+The `DefaultLockRepository` now exposes setters for `insert`, `update` and `renew` queries.
+See <<./jdbc.adoc#jdbc-lock-registry, JDBC Lock Registry>> for more information.

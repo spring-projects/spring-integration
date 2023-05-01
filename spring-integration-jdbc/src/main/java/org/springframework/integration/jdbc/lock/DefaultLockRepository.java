@@ -16,9 +16,8 @@
 
 package org.springframework.integration.jdbc.lock;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -66,13 +65,13 @@ public class DefaultLockRepository
 	/**
 	 * Default value for the time-to-live property.
 	 */
-	public static final int DEFAULT_TTL = 10000;
+	public static final Duration DEFAULT_TTL = Duration.ofSeconds(10);
 
 	private final String id;
 
 	private final JdbcTemplate template;
 
-	private int ttl = DEFAULT_TTL;
+	private Duration ttl = DEFAULT_TTL;
 
 	private String prefix = DEFAULT_TABLE_PREFIX;
 
@@ -168,11 +167,11 @@ public class DefaultLockRepository
 	}
 
 	/**
-	 * Specify the time (in milliseconds) to expire dead-locks.
-	 * @param timeToLive the time to expire dead-locks.
+	 * Specify the time (in milliseconds) to expire deadlocks.
+	 * @param timeToLive the time to expire deadlocks.
 	 */
 	public void setTimeToLive(int timeToLive) {
-		this.ttl = timeToLive;
+		this.ttl = Duration.ofMillis(timeToLive);
 	}
 
 	/**
@@ -189,6 +188,99 @@ public class DefaultLockRepository
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	/**
+	 * Set a custom {@code UPDATE} query for a lock record.
+	 * The {@link #getUpdateQuery()} can be used as a template for customization.
+	 * The default query is:
+	 * <pre class="code">
+	 * {@code
+	 *  UPDATE %sLOCK
+	 * 			SET CLIENT_ID=?, CREATED_DATE=?
+	 * 			WHERE REGION=? AND LOCK_KEY=? AND (CLIENT_ID=? OR CREATED_DATE<?)
+	 * }
+	 * </pre>
+	 * @param updateQuery the query to update a lock record.
+	 * @since 6.1
+	 * @see #getUpdateQuery()
+	 * @see #setPrefix(String)
+	 */
+	public void setUpdateQuery(String updateQuery) {
+		this.updateQuery = updateQuery;
+	}
+
+	/**
+	 * Return the current update query.
+	 * Can be used in a setter as a concatenation of the default query and some extra hint.
+	 * @return the current update query.
+	 * @since 6.1
+	 * @see #setUpdateQuery(String)
+	 */
+	public String getUpdateQuery() {
+		return this.updateQuery;
+	}
+
+	/**
+	 * Set a custom {@code INSERT} query for a lock record.
+	 * The {@link #getInsertQuery()} can be used as a template for customization.
+	 * The default query is
+	 * {@code INSERT INTO %sLOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE) VALUES (?, ?, ?, ?)}.
+	 * For example a PostgreSQL {@code ON CONFLICT DO NOTHING} hint can be provided like this:
+	 * <pre class="code">
+	 * {@code
+	 *  lockRepository.setInsertQuery(lockRepository.getInsertQuery() + " ON CONFLICT DO NOTHING");
+	 * }
+	 * </pre>
+	 * @param insertQuery the insert query for a lock record.
+	 * @since 6.1
+	 * @see #getInsertQuery()
+	 * @see #setPrefix(String)
+	 */
+	public void setInsertQuery(String insertQuery) {
+		this.insertQuery = insertQuery;
+	}
+
+	/**
+	 * Return the current insert query.
+	 * Can be used in a setter as a concatenation of the default query and some extra hint.
+	 * @return the current insert query.
+	 * @since 6.1
+	 * @see #setInsertQuery(String)
+	 */
+	public String getInsertQuery() {
+		return this.insertQuery;
+	}
+
+	/**
+	 * Set a custom {@code INSERT} query for a lock record.
+	 * The {@link #getRenewQuery()} can be used as a template for customization.
+	 * The default query is:
+	 * <pre class="code">
+	 * {@code
+	 *  UPDATE %sLOCK
+	 * 			SET CREATED_DATE=?
+	 * 			WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?
+	 * }
+	 * </pre>
+	 * @param renewQuery the update query to renew a lock record.
+	 * @since 6.1
+	 * @see #getRenewQuery()
+	 * @see #setPrefix(String)
+	 */
+	public void setRenewQuery(String renewQuery) {
+		this.renewQuery = renewQuery;
+	}
+
+	/**
+	 * Return the current renew query.
+	 * Can be used in a setter as a concatenation of a default query and some extra hint.
+	 * @return the current renew query.
+	 * @since 6.1
+	 * @see #setRenewQuery(String)
+	 */
+	public String getRenewQuery() {
+		return this.renewQuery;
 	}
 
 	@Override
@@ -249,14 +341,13 @@ public class DefaultLockRepository
 		Boolean result =
 				this.serializableTransactionTemplate.execute(
 						transactionStatus -> {
-							if (this.template.update(this.updateQuery, this.id, LocalDateTime.now(ZoneOffset.UTC),
-									this.region, lock, this.id,
-									LocalDateTime.now(ZoneOffset.UTC).minus(this.ttl, ChronoUnit.MILLIS)) > 0) {
+							if (this.template.update(this.updateQuery, this.id, Instant.now(),
+									this.region, lock, this.id, Instant.now().minus(this.ttl)) > 0) {
 								return true;
 							}
 							try {
 								return this.template.update(this.insertQuery, this.region, lock, this.id,
-										LocalDateTime.now(ZoneOffset.UTC)) > 0;
+										Instant.now()) > 0;
 							}
 							catch (DataIntegrityViolationException ex) {
 								return false;
@@ -272,7 +363,7 @@ public class DefaultLockRepository
 						Integer.valueOf(1).equals(
 								this.template.queryForObject(this.countQuery,
 										Integer.class, this.region, lock, this.id,
-										LocalDateTime.now(ZoneOffset.UTC).minus(this.ttl, ChronoUnit.MILLIS))));
+										Instant.now().minus(this.ttl))));
 		return Boolean.TRUE.equals(result);
 	}
 
@@ -280,16 +371,14 @@ public class DefaultLockRepository
 	public void deleteExpired() {
 		this.defaultTransactionTemplate.executeWithoutResult(
 				transactionStatus ->
-						this.template.update(this.deleteExpiredQuery, this.region,
-								LocalDateTime.now(ZoneOffset.UTC).minus(this.ttl, ChronoUnit.MILLIS)));
+						this.template.update(this.deleteExpiredQuery, this.region, Instant.now().minus(this.ttl)));
 	}
 
 	@Override
 	public boolean renew(String lock) {
 		final Boolean result = this.defaultTransactionTemplate.execute(
 				transactionStatus ->
-						this.template.update(this.renewQuery, LocalDateTime.now(ZoneOffset.UTC),
-								this.region, lock, this.id) > 0);
+						this.template.update(this.renewQuery, Instant.now(), this.region, lock, this.id) > 0);
 		return Boolean.TRUE.equals(result);
 	}
 
