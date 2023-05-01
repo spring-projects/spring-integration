@@ -16,7 +16,7 @@ For more information on those transformers, see <<./xml.adoc#xml,XML Support - D
 
 ==== Configuring a Transformer with Java and other DSLs
 
-For a simple Java & Annotation configuration, the Spring bean POJO method must be marked with a `@Transformer` annotation and the framework calls it when messages are consumed from an input channel:
+For simple Java & Annotation configuration, the Spring bean POJO method must be marked with a `@Transformer` annotation and the framework calls it when messages are consumed from an input channel:
 
 ====
 [source,java]
@@ -34,7 +34,7 @@ public class SomeService {
 
 See more information in the <<./configuration.adoc#annotations, Annotation Support>>.
 
-For Java, Groovy or Kotlin DSL, the `.transform()` operator of an `IntegrationFlow` represents a transformer endpoint:
+For Java, Groovy or Kotlin DSLs, the `.transform()` operator of an `IntegrationFlow` represents a transformer endpoint:
 
 ====
 [source, java, role="primary"]
@@ -143,7 +143,7 @@ Spring Integration provides a few transformer implementations.
 
 ===== Object-to-String Transformer
 
-Because it is fairly common to use the `toString()` representation of an `Object`, Spring Integration provides an `ObjectToStringTransformer` (see also `Transformers` factory) whose output is a `Message` with a String `payload`.
+Because it is fairly common to use the `toString()` representation of an `Object`, Spring Integration provides an `ObjectToStringTransformer` (see also the `Transformers` factory) where the output is a `Message` with a String `payload`.
 That `String` is the result of invoking the `toString()` operation on the inbound Message's payload.
 The following example shows how to declare an instance of the object-to-string transformer:
 
@@ -394,7 +394,7 @@ public IntegrationFlow someFlow() {
 ----
 ====
 
-Spring Integration provides an XML namespace support for Map-to-Object and Java DSL factory, as the following example shows:
+Spring Integration provides XML namespace support for Map-to-Object and the Java DSL factory has the `fromMap()` method, as the following example shows:
 
 ====
 [source, java, role="primary"]

@@ -69,7 +69,7 @@ Starting with version 5.2, the splitter supports a `discardChannel` option for s
 In this case there is just no item to iterate for sending to the `outputChannel`.
 The `null` splitting result remains as an end of flow indicator.
 
-==== Configuring a Splitter with Java, Groovy and Kotlin DSL
+==== Configuring a Splitter with Java, Groovy and Kotlin DSLs
 
 An example of simple splitter based on a `Message` and its iterable payload with DSL configuration:
 

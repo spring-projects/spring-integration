@@ -10,7 +10,7 @@ As with most of the configuration options described here, the same behavior actu
 [[service-activator-namespace]]
 ==== Configuring Service Activator
 
-With Java & Annotation configuration, there is just enough to mark respective service method with the `@ServiceActivator` - and the framework calls it when messages are consumed from an input channel:
+With Java & Annotation configuration, it is sufficient to mark the respective service method with the `@ServiceActivator` annotation - and the framework calls it when messages are consumed from an input channel:
 
 ====
 [source,java]
@@ -28,7 +28,7 @@ public class SomeService {
 
 See more information in the <<./configuration.adoc#annotations, Annotation Support>>.
 
-For Java, Groovy or Kotlin DSL, the `.handle()` operator of an `IntegrationFlow` represents a service activator:
+For Java, Groovy or Kotlin DSLs, the `.handle()` operator of an `IntegrationFlow` represents a service activator:
 
 ====
 [source, java, role="primary"]
@@ -64,9 +64,9 @@ someFlow() {
 ----
 ====
 
-See more information about DSL in respective Java, Groovy and Kotlin chapters.
+See more information about the DSLs in the respective Java, Groovy and Kotlin chapters.
 
-To create a service activator with an XML configuration, use the 'service-activator' element with the 'input-channel' and 'ref' attributes, as the following example shows:
+To create a service activator when using XML configuration, use the 'service-activator' element with the 'input-channel' and 'ref' attributes, as the following example shows:
 
 ====
 [source,xml]
