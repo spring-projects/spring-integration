@@ -110,7 +110,7 @@ With Java DSL a configuration for this channel adapter is like this:
 ====
 [source, java]
 ----
-.handle(R2dbc.outboundChannelAdapter(r2dbcEntityTemplate)
+.handleReactive(R2dbc.outboundChannelAdapter(r2dbcEntityTemplate)
         .queryType(R2dbcMessageHandler.Type.UPDATE)
         .tableNameExpression("payload.class.simpleName")
         .criteria((message) -> Criteria.where("id").is(message.getHeaders().get("personId")))

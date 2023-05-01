@@ -70,7 +70,6 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.LoggingHandler;
-import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
@@ -718,8 +717,7 @@ public class IntegrationFlowTests {
 		public IntegrationFlow wireTapFlow1() {
 			return IntegrationFlow.from("tappedChannel1")
 					.wireTap("tapChannel", wt -> wt.selector(m -> m.getPayload().equals("foo")))
-					.handle(new ReactiveMessageHandlerAdapter((message) -> Mono.just(message).log().then()))
-					.get();
+					.handleReactive((message) -> Mono.just(message).log().then());
 		}
 
 		@Bean

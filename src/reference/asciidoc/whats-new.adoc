@@ -29,6 +29,11 @@ See <<./zip.adoc#zip,Zip Support>>  for more information.
 The `ContextHolderRequestHandlerAdvice` allows to store a value from a request message into some context around `MessageHandler` execution.
 See <<./handler-advice.adoc#context-holder-advice, Context Holder Advice>> for more information.
 
+[[x6.1-handle-reactive]]
+==== The `handleReactive()` operator for Java DSL
+The `IntegrationFlow` can now end with a convenient `handleReactive(ReactiveMessageHandler)` operator.
+See <<./reactive-streams.adoc#reactive-message-handler, `ReactiveMessageHandler`>> for more information.
+
 [[x6.1-general]]
 === General Changes
 

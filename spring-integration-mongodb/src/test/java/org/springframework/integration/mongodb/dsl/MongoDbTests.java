@@ -425,7 +425,7 @@ class MongoDbTests implements MongoDbContainerTest {
 		public IntegrationFlow reactiveStore() {
 			return f -> f
 					.channel(MessageChannels.flux())
-					.handle(MongoDb.reactiveOutboundChannelAdapter(REACTIVE_MONGO_DATABASE_FACTORY));
+					.handleReactive(MongoDb.reactiveOutboundChannelAdapter(REACTIVE_MONGO_DATABASE_FACTORY));
 		}
 
 	}
