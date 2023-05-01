@@ -31,10 +31,53 @@ MessageFilter filter = new MessageFilter(someSelector);
 ----
 ====
 
-In combination with the namespace and SpEL, you can configure powerful filters with very little Java code.
+[[filter-dsl]]
+==== Configuring a Filter with Java, Groovy and Kotlin DSLs
+
+The `IntegrationFlowBuilder` provided by the Java DSL (which is also used as a base for the Groovy and Kotlin DSLs) provides a number of overloaded methods for the `filter()` operator.
+The `MessageSelector` abstraction mentioned above can be used as a Lambda in a `filter()` definition:
+
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return f -> f
+              .<String>filter((payload) -> !"junk".equals(payload));
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun someFlow() =
+    integrationFlow {
+        filter<String> { it != "junk" }
+    }
+----
+[source, groovy, role="secondary"]
+.Groovy DSL
+----
+@Bean
+someFlow() {
+    integrationFlow {
+        filter String, { it != 'junk' }
+    }
+}
+----
+====
+
+See more information about DSLs in the respective chapters:
+
+* <<./dsl.adoc#java-dsl,Java DSL>>
+* <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>>
+* <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
 
 [[filter-xml]]
 ==== Configuring a Filter with XML
+
+In combination with the namespace and SpEL, you can configure powerful filters with very little Java code.
 
 You can use the `<filter>` element is used to create a message-selecting endpoint.
 In addition to `input-channel` and `output-channel` attributes, it requires a `ref` attribute.

@@ -14,6 +14,71 @@ NOTE: For the sake of maximizing flexibility, Spring does not require XML-based 
 Nevertheless, the framework does provide some convenient transformers for dealing with XML-based payloads if that is indeed the right choice for your application.
 For more information on those transformers, see <<./xml.adoc#xml,XML Support - Dealing with XML Payloads>>.
 
+==== Configuring a Transformer with Java and other DSLs
+
+For simple Java & Annotation configuration, the Spring bean POJO method must be marked with a `@Transformer` annotation and the framework calls it when messages are consumed from an input channel:
+
+====
+[source,java]
+----
+public class SomeService {
+
+    @Transfomer(inputChannel = "transformChannel", outputChannel = "nextServiceChannel")
+    public OutputData exampleTransformer(InputData payload) {
+        ...
+    }
+
+}
+----
+====
+
+See more information in the <<./configuration.adoc#annotations, Annotation Support>>.
+
+For Java, Groovy or Kotlin DSLs, the `.transform()` operator of an `IntegrationFlow` represents a transformer endpoint:
+
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("transformChannel")
+             .transform(someService, "exampleTransformer")
+             .channel("nextServiceChannel")
+             .get();
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun someFlow() =
+    integrationFlow("transformChannel") {
+        transform(someService, "exampleTransformer")
+        channel("nextServiceChannel")
+    }
+----
+[source, groovy, role="secondary"]
+.Groovy DSL
+----
+@Bean
+someFlow() {
+    integrationFlow 'transformChannel',
+            {
+                transform someService, 'exampleTransformer'
+                channel 'nextServiceChannel'
+            }
+}
+----
+====
+
+See more information about the DSLs in the respective chapters:
+
+* <<./dsl.adoc#java-dsl,Java DSL>>
+* <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>>
+* <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
+
 [[transformer-namespace]]
 ==== Configuring a Transformer with XML
 
@@ -83,12 +148,47 @@ Spring Integration provides a few transformer implementations.
 
 ===== Object-to-String Transformer
 
-Because it is fairly common to use the `toString()` representation of an `Object`, Spring Integration provides an `ObjectToStringTransformer` whose output is a `Message` with a String `payload`.
+Because it is fairly common to use the `toString()` representation of an `Object`, Spring Integration provides an `ObjectToStringTransformer` (see also the `Transformers` factory) where the output is a `Message` with a String `payload`.
 That `String` is the result of invoking the `toString()` operation on the inbound Message's payload.
 The following example shows how to declare an instance of the object-to-string transformer:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("in")
+             .transform(Transformers.objectToString())
+             .channel("out")
+             .get();
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun someFlow() =
+    integrationFlow("in") {
+        transform(Transformers.objectToString())
+        channel("out")
+    }
+----
+[source, groovy, role="secondary"]
+.Groovy DSL
+----
+@Bean
+someFlow() {
+    integrationFlow 'in',
+            {
+                transform Transformers.objectToString()
+                channel 'out'
+            }
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:object-to-string-transformer input-channel="in" output-channel="out"/>
 ----
@@ -102,8 +202,6 @@ Otherwise, you can provide a custom POJO-based transformer by using the generic 
 TIP: When debugging, this transformer is not typically necessary, since the `logging-channel-adapter` is capable of logging the message payload.
 See <<./channel.adoc#channel-wiretap,Wire Tap>> for more detail.
 
-[NOTE]
-====
 The object-to-string transformer is very simple.
 It invokes `toString()` on the inbound payload.
 Since Spring Integration 3.0, there are two exceptions to this rule:
@@ -114,19 +212,50 @@ The `charset` can be modified by supplying the charset attribute on the transfor
 
 For more sophistication (such as selection of the charset dynamically, at runtime), you can use a SpEL expression-based transformer instead, as the following example shows:
 
-[source,xml]
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("in")
+             .transform("new String(payload, headers['myCharset']")
+             .channel("out")
+             .get();
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:transformer input-channel="in" output-channel="out"
-       expression="new java.lang.String(payload, headers['myCharset']" />
+       expression="new String(payload, headers['myCharset']" />
 ----
 ====
 
 If you need to serialize an `Object` to a byte array or deserialize a byte array back into an `Object`, Spring Integration provides symmetrical serialization transformers.
 These use standard Java serialization by default, but you can provide an implementation of Spring `Serializer` or `Deserializer` strategies by using the `serializer` and `deserializer` attributes, respectively.
+See also the `Transformers` factory class.
 The following example shows to use Spring's serializer and deserializer:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("objectsIn")
+             .transform(Transformers.serializer())
+             .channel("bytesOut")
+             .channel("bytesIn")
+             .transform(Transformers.deserializer("com.mycom.*", "com.yourcom.*"))
+             .channel("objectsOut")
+             .get();
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
 
@@ -226,10 +355,23 @@ The two classes in the preceding example are transformed to the following `Map`:
 ----
 ====
 
-To configure these transformers, Spring Integration provides namespace support for Object-to-Map, as the following example shows:
+To configure these transformers, Spring Integration provides respective XML component and Java DSL factory:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("directInput")
+             .transform(Transformers.toMap())
+             .channel("output")
+             .get();
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:object-to-map-transformer input-channel="directInput" output-channel="output"/>
 ----
@@ -238,16 +380,42 @@ To configure these transformers, Spring Integration provides namespace support f
 You can also set the `flatten` attribute to false, as follows:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("directInput")
+             .transform(Transformers.toMap(false))
+             .channel("output")
+             .get();
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:object-to-map-transformer input-channel="directInput" output-channel="output" flatten="false"/>
 ----
 ====
 
-Spring Integration provides namespace support for Map-to-Object, as the following example shows:
+Spring Integration provides XML namespace support for Map-to-Object and the Java DSL factory has the `fromMap()` method, as the following example shows:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("input")
+             .transform(Transformers.fromMap(org.something.Person.class))
+             .channel("output")
+             .get();
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:map-to-object-transformer input-channel="input"
                          output-channel="output"
@@ -256,14 +424,35 @@ Spring Integration provides namespace support for Map-to-Object, as the followin
 ====
 
 Alternatively, you could use a `ref` attribute and a prototype-scoped bean, as the following example shows:
-[source,xml]
+
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("inputA")
+             .transform(Transformers.fromMap("person"))
+             .channel("outputA")
+             .get();
+}
+
+@Bean
+@Scope("prototype")
+Person person() {
+    return new Person();
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:map-to-object-transformer input-channel="inputA"
                                output-channel="outputA"
                                ref="person"/>
 <bean id="person" class="org.something.Person" scope="prototype"/>
-
 ----
+====
 
 NOTE: The 'ref' and 'type' attributes are mutually exclusive.
 Also, if you use the 'ref' attribute, you must point to a 'prototype' scoped bean.
@@ -280,7 +469,20 @@ The `StreamTransformer` transforms `InputStream` payloads to a `byte[]`( or a `S
 The following example shows how to use the `stream-transformer` element in XML:
 
 ====
-[source, xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("input")
+             .transform(Transformers.fromStream("UTF-8"))
+             .channel("output")
+             .get();
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:stream-transformer input-channel="directInput" output-channel="output"/> <!-- byte[] -->
 
@@ -318,10 +520,7 @@ The following pair of examples show how to declare them in XML:
 [source,xml]
 ----
 <int:object-to-json-transformer input-channel="objectMapperInput"/>
-----
 
-[source,xml]
-----
 <int:json-to-object-transformer input-channel="objectMapperInput"
     type="foo.MyDomainObject"/>
 ----
@@ -364,7 +563,7 @@ public class ObjectMapperFactory {
 ----
 ====
 
-The following example shows how to do the same thing in XML
+The following example shows how to do the same thing in XML:
 
 ====
 [source,xml]
@@ -546,7 +745,20 @@ The latter is discussed in <<./content-enrichment.adoc#header-enricher,Header En
 The following example defines a header filter:
 
 ====
-[source,xml]
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return IntegrationFlow
+             .from("inputChannel")
+             .headerFilter("lastName", "state")
+             .channel("outputChannel")
+             .get();
+}
+----
+[source, xml, role="secondary"]
+.XML
 ----
 <int:header-filter input-channel="inputChannel"
 		output-channel="outputChannel" header-names="lastName, state"/>

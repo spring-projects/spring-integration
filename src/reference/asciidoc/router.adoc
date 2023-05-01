@@ -739,7 +739,7 @@ It is a "`registering an interest in something that is part of the message`" use
 Because of the runtime management operation for the `<recipient-list-router>`, it can be configured without any `<recipient>` from the start.
 In this case, the behavior of `RecipientListRouter` is the same when there is no one matching recipient for the message.
 If `defaultOutputChannel` is configured, the message is sent there.
-Otherwise the `MessageDeliveryException` is thrown.
+Otherwise, the `MessageDeliveryException` is thrown.
 
 [[router-implementations-xpath-router]]
 ===== XPath Router
@@ -762,7 +762,47 @@ NOTE: Since version 4.3 the `ErrorMessageExceptionTypeRouter` loads all mapping 
 
 The following example shows a sample configuration for `ErrorMessageExceptionTypeRouter`:
 
-[source,xml]
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return f -> f
+            .routeByException(r -> r
+                 .channelMapping(IllegalArgumentException.class, "illegalChannel")
+                 .channelMapping(NullPointerException.class, "npeChannel")
+                 .defaultOutputChannel("defaultChannel"));
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun someFlow() =
+    integrationFlow {
+        routeByException {
+                    channelMapping(IllegalArgumentException::class.java, "illegalChannel")
+                    channelMapping(NullPointerException::class.java, "npeChannel")
+                    defaultOutputChannel("defaultChannel")
+                }
+    }
+----
+[source, groovy, role="secondary"]
+.Groovy DSL
+----
+@Bean
+someFlow() {
+    integrationFlow {
+        routeByException {
+            channelMapping IllegalArgumentException, 'illegalChannel'
+            channelMapping NullPointerException, 'npeChannel'
+            defaultOutputChannel 'defaultChannel'
+        }
+    }
+}
+----
+[source, xml, role="secondary"]
 ----
 <int:exception-type-router input-channel="inputChannel"
                            default-output-channel="defaultChannel">
@@ -775,6 +815,7 @@ The following example shows a sample configuration for `ErrorMessageExceptionTyp
 <int:channel id="illegalChannel" />
 <int:channel id="npeChannel" />
 ----
+====
 
 [[router-namespace]]
 ==== Configuring a Generic Router
@@ -1115,7 +1156,7 @@ That basically involves a bean lookup for the provided name.
 Now all messages that contain the header-value pair as `testHeader=kermit` are going to be routed to a `MessageChannel` whose bean name (its `id`) is 'kermit'.
 
 But what if you want to route these messages to the 'simpson' channel? Obviously changing a static configuration works, but doing so also requires bringing your system down.
-However, if you have had an access to the channel identifier map, you could introduce a new mapping where the header-value pair is now `kermit=simpson`, thus letting the second step treat 'kermit' as a channel identifier while resolving it to 'simpson' as the channel name.
+However, if you have had access to the channel identifier map, you could introduce a new mapping where the header-value pair is now `kermit=simpson`, thus letting the second step treat 'kermit' as a channel identifier while resolving it to 'simpson' as the channel name.
 
 The same obviously applies for `PayloadTypeRouter`, where you can now remap or remove a particular payload type mapping.
 In fact, it applies to every other router, including expression-based routers, since their computed values now have a chance to go through the second step to be resolved to the actual `channel name`.

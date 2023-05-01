@@ -69,6 +69,46 @@ Starting with version 5.2, the splitter supports a `discardChannel` option for s
 In this case there is just no item to iterate for sending to the `outputChannel`.
 The `null` splitting result remains as an end of flow indicator.
 
+==== Configuring a Splitter with Java, Groovy and Kotlin DSLs
+
+An example of simple splitter based on a `Message` and its iterable payload with DSL configuration:
+
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return f -> f.split(Message.class, Message::getPayload);
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun someFlow() =
+    integrationFlow {
+        split<Message<*>> { it.payload }
+    }
+----
+[source, groovy, role="secondary"]
+.Groovy DSL
+----
+@Bean
+someFlow() {
+    integrationFlow {
+        split Message<?>, { it.payload }
+    }
+}
+----
+====
+
+See more information about the DSLs in the respective chapters:
+
+* <<./dsl.adoc#java-dsl,Java DSL>>
+* <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>>
+* <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
+
 ==== Configuring a Splitter with XML
 
 A splitter can be configured through XML as follows:
@@ -142,4 +182,4 @@ List<LineItem> extractItems(Order order) {
 ----
 ====
 
-See also <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>>, <<./dsl.adoc#java-dsl-splitters,Splitters>> and <<./file.adoc#file-splitter, File Splitter>>.
+See also <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>> and <<./file.adoc#file-splitter, File Splitter>>.
