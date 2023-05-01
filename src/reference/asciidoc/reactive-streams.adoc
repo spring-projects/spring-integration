@@ -154,8 +154,8 @@ However, when a `ReactiveStreamsConsumer` is involved in the flow (e.g. when cha
 One of the out-of-the-box `ReactiveMessageHandler` implementation is a `ReactiveMongoDbStoringMessageHandler` for Outbound Channel Adapter.
 See <<./mongodb.adoc#mongodb-reactive-channel-adapters,MongoDB Reactive Channel Adapters>> for more information.
 
-Starting with version 6.1, the `IntegrationFlowDefinition` expose a convenient `handleReactive(ReactiveMessageHandler)` terminal operator.
-Any `ReactiveMessageHandler` implementation (even just plain lambda with `Mono` API) can be used for this operator.
+Starting with version 6.1, the `IntegrationFlowDefinition` exposes a convenient `handleReactive(ReactiveMessageHandler)` terminal operator.
+Any `ReactiveMessageHandler` implementation (even just a plain lambda using the `Mono` API) can be used for this operator.
 The framework subscribes to the returned `Mono<Void>` automatically.
 Here is a simple sample of possible configuration for this operator:
 
@@ -173,7 +173,7 @@ public IntegrationFlow wireTapFlow1() {
 
 An overloaded version of this operator accepts a `Consumer<GenericEndpointSpec<ReactiveMessageHandlerAdapter>>` to customize a consumer endpoint around the provided `ReactiveMessageHandler`.
 
-In addition, a `ReactiveMessageHandlerSpec`-based variants also provided.
+In addition, a `ReactiveMessageHandlerSpec`-based variants are also provided.
 In most cases they are used for protocol-specific channel adapter implementations.
 See the next section following links to the target technologies with respective reactive channel adapters.
 

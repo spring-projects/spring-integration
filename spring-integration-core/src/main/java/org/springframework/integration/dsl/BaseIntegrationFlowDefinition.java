@@ -2925,7 +2925,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * {@link MessageHandler} implementation
 	 * from the respective namespace factory (e.g. {@code Http, Kafka, Files}).
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure protocol specific
+	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure the protocol specific
 	 * {@link MessageHandler}.
 	 * @param <H> the {@link MessageHandler} type.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
@@ -2942,7 +2942,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * {@link MessageHandler} implementation
 	 * from the respective namespace factory (e.g. {@code Http, Kafka, Files}).
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure protocol specific
+	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure the protocol specific
 	 * {@link MessageHandler}.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <H> the {@link MessageHandler} type.
