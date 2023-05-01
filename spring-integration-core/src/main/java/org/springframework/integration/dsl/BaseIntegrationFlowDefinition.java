@@ -893,7 +893,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate a {@link ServiceActivatingHandler} for the selected protocol specific
-	 * {@link MessageHandler} implementation from {@code Namespace Factory}:
+	 * {@link MessageHandler} implementation
+	 * from the respective namespace factory (e.g. {@code Http, Kafka, Files}):
 	 * <pre class="code">
 	 * {@code
 	 *  .handle(Amqp.outboundAdapter(this.amqpTemplate).routingKeyExpression("headers.routingKey"))
@@ -1099,7 +1100,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate a {@link ServiceActivatingHandler} for the selected protocol specific
-	 * {@link MessageHandler} implementation from {@code Namespace Factory}:
+	 * {@link MessageHandler} implementation
+	 * from the respective namespace factory (e.g. {@code Http, Kafka, Files}).
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * Typically, used with a Lambda expression:
 	 * <pre class="code">
@@ -1223,7 +1225,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate a {@link MessageTransformingHandler} for
 	 * a {@link org.springframework.integration.transformer.HeaderEnricher}
 	 * using header values from provided {@link MapBuilder}.
-	 * Can be used together with {@code Namespace Factory}:
+	 * Can be used together with a namespace factory:
 	 * <pre class="code">
 	 * {@code
 	 *  .enrichHeaders(Mail.headers()
@@ -1244,7 +1246,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * a {@link org.springframework.integration.transformer.HeaderEnricher}
 	 * using header values from provided {@link MapBuilder}.
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Can be used together with {@code Namespace Factory}:
+	 * Can be used together with a namespace factory:
 	 * <pre class="code">
 	 * {@code
 	 *  .enrichHeaders(Mail.headers()
@@ -2920,7 +2922,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate a terminal consumer endpoint for the selected protocol specific
-	 * {@link MessageHandler} implementation from {@code Namespace Factory}:
+	 * {@link MessageHandler} implementation
+	 * from the respective namespace factory (e.g. {@code Http, Kafka, Files}).
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure protocol specific
 	 * {@link MessageHandler}.
@@ -2936,7 +2939,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate a terminal consumer endpoint for the selected protocol specific
-	 * {@link MessageHandler} implementation from {@code Namespace Factory}:
+	 * {@link MessageHandler} implementation
+	 * from the respective namespace factory (e.g. {@code Http, Kafka, Files}).
 	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure protocol specific
 	 * {@link MessageHandler}.
