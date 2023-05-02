@@ -177,3 +177,31 @@ public IntegrationFlow eventsOutFlow(ApplicationEventPublishingMessageHandler ev
 }
 ----
 ====
+
+The `@Publisher` annotation also can be used in combination with an `@EventListener`:
+
+====
+[source, java]
+----
+@Configuration
+@EnableIntegration
+@EnablePublisher
+public static class ContextConfiguration {
+
+     @Bean
+     QueueChannel eventFromPublisher() {
+         return new QueueChannel();
+     }
+
+     @EventListener
+     @Publisher("eventFromPublisher")
+     public String publishEventToChannel(TestApplicationEvent3 testApplicationEvent3) {
+         return testApplicationEvent3.getSource().toString();
+     }
+
+}
+----
+====
+
+In this case a return value of the event listener method is used as a payload for a `Message` to be published to that `eventFromPublisher` channel.
+See more information about the `@Publisher` in the <<./message-publishing.adoc#publisher-annotation, Annotation-driven Configuration>> section.
