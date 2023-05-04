@@ -225,6 +225,10 @@ If the service completes the future with an `Exception`, normal error processing
 An `ErrorMessage` is sent to the `errorChannel` message header, if present.
 Otherwise, an `ErrorMessage` is sent to the default `errorChannel` (if available).
 
+Starting with version 6.1, if the output channel of the `AbstractMessageProducingHandler` is configured to a `ReactiveStreamsSubscribableChannel`, the async mode is turned on by default.
+If the handler result is not a reactive type or `CompletableFuture<?>`, then regular reply producing process happens despite the output channel type.
+
+See also <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for more information.
 
 [[service-activator-return-type]]
 ==== Service Activator and Method Return Type
