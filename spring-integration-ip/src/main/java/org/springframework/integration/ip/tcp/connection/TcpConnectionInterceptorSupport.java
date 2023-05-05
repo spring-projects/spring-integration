@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.messaging.support.ErrorMessage;
  * to the underlying {@link TcpConnection}.
  *
  * @author Gary Russell
+ * @author Kazuki Shimizu
  *
  * @since 2.0
  */
@@ -232,7 +233,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	@Override
 	public void addNewConnection(TcpConnection connection) {
 		if (this.interceptedSenders != null) {
-			this.interceptedSenders.forEach(sender -> sender.addNewConnection(connection));
+			this.interceptedSenders.forEach(sender -> sender.addNewConnection(this));
 		}
 	}
 
