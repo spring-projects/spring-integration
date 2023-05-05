@@ -34,6 +34,7 @@ import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.SerializationHints;
+import org.springframework.aot.hint.TypeReference;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
@@ -100,6 +101,14 @@ class CoreRuntimeHints implements RuntimeHintsRegistrar {
 		if (ClassUtils.isPresent("com.jayway.jsonpath.JsonPath", classLoader)) {
 			reflectionHints.registerType(JsonPathUtils.class, MemberCategory.INVOKE_PUBLIC_METHODS);
 		}
+
+		reflectionHints.registerType(
+				TypeReference.of("org.springframework.integration.json.JsonPropertyAccessor$ComparableJsonNode"),
+				MemberCategory.INVOKE_PUBLIC_METHODS);
+
+		reflectionHints.registerType(
+				TypeReference.of("org.springframework.integration.json.JsonPropertyAccessor$ArrayNodeAsList"),
+				MemberCategory.INVOKE_PUBLIC_METHODS);
 
 		// For #xpath() SpEL function
 		reflectionHints.registerTypeIfPresent(classLoader, "org.springframework.integration.xml.xpath.XPathUtils",
