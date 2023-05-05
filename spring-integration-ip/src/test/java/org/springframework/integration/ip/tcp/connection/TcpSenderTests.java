@@ -18,7 +18,9 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
+ * @author Kazuki Shimizu
  * @since 5.3.10
  *
  */
@@ -81,11 +84,14 @@ public class TcpSenderTests {
 		List<Integer> addOrder = Collections.synchronizedList(new ArrayList<>());
 		List<Integer> remOrder = Collections.synchronizedList(new ArrayList<>());
 		AtomicReference<Thread> thread = new AtomicReference<>();
+		Map<Integer, TcpConnection> interceptorsPerInstance = new HashMap<>();
+		List<TcpConnection> passedConnectionsToSenderViaAddNewConnection = new ArrayList<>();
 		class InterceptorFactory extends HelloWorldInterceptorFactory {
 
 			@Override
 			public TcpConnectionInterceptorSupport getInterceptor() {
-				return new TcpConnectionInterceptorSupport() {
+
+				TcpConnectionInterceptorSupport interceptor = new TcpConnectionInterceptorSupport() {
 
 					private final int instance = instances.incrementAndGet();
 
@@ -107,6 +113,8 @@ public class TcpSenderTests {
 					}
 
 				};
+				interceptorsPerInstance.put(instances.get(), interceptor);
+				return interceptor;
 			}
 
 		}
@@ -118,6 +126,7 @@ public class TcpSenderTests {
 			@Override
 			public void addNewConnection(TcpConnection connection) {
 				addOrder.add(99);
+				passedConnectionsToSenderViaAddNewConnection.add(connection);
 				adds.countDown();
 			}
 
@@ -146,6 +155,9 @@ public class TcpSenderTests {
 		assertThat(remOrder).containsExactly(1, 2, 99, 3, 4, 5, 99, 6);
 		assertThat(interceptorAddCalled.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(interceptorRemCalled.await(10, TimeUnit.SECONDS)).isTrue();
+		// should be passed the last interceptor to the real sender via addNewConnection method
+		assertThat(passedConnectionsToSenderViaAddNewConnection.get(0)).isSameAs(interceptorsPerInstance.get(3));
+		assertThat(passedConnectionsToSenderViaAddNewConnection.get(1)).isSameAs(interceptorsPerInstance.get(6));
 	}
 
 }
