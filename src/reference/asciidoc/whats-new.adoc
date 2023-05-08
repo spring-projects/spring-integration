@@ -51,6 +51,9 @@ Since `IntegrationComponentSpec` is a `FactoryBean`, its bean definition must st
 The Java DSL and the framework by itself will manage the `IntegrationComponentSpec` lifecycle.
 See <<./dsl.adoc#java-dsl, Java DSL>> for more information.
 
+ - The `AbstractMessageProducingHandler` is marked as an `async` by default if its output channel is configured to a `ReactiveStreamsSubscribableChannel`.
+See <<./service-activator.adoc#async-service-activator,Asynchronous Service Activator>> for more information.
+
 [[x6.1-web-sockets]]
 === Web Sockets Changes
 

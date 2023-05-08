@@ -75,6 +75,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private boolean async;
 
+	private boolean asyncExplicitlySet;
+
 	@Nullable
 	private String outputChannelName;
 
@@ -119,6 +121,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 */
 	public final void setAsync(boolean async) {
 		this.async = async;
+		this.asyncExplicitlySet = true;
 	}
 
 	/**
@@ -213,6 +216,13 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			this.messagingTemplate.setBeanFactory(beanFactory);
 		}
 		this.messagingTemplate.setDestinationResolver(getChannelResolver());
+		setAsyncIfCan();
+	}
+
+	private void setAsyncIfCan() {
+		if (!this.asyncExplicitlySet) {
+			setAsync(this.outputChannel instanceof ReactiveStreamsSubscribableChannel);
+		}
 	}
 
 	@Override
@@ -222,6 +232,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		if (channelName != null) {
 			this.outputChannel = getChannelResolver().resolveDestination(channelName);
 			this.outputChannelName = null;
+			setAsyncIfCan();
 		}
 		return this.outputChannel;
 	}

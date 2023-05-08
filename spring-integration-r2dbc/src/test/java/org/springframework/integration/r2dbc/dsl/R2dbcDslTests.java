@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +111,7 @@ public class R2dbcDslTests {
 									.bindFunction((DatabaseClient.GenericExecuteSpec bindSpec, Person o) ->
 											bindSpec.bind("id", o.getId())),
 							e -> e.poller(p -> p.fixedDelay(100)).autoStartup(false).id("r2dbcInboundChannelAdapter"))
-					.<Mono<?>>handle((p, h) -> p, e -> e.async(true))
+					.handle((p, h) -> p)
 					.channel(MessageChannels.flux())
 					.handleReactive(
 							R2dbc.outboundChannelAdapter(r2dbcEntityTemplate)

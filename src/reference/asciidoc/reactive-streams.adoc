@@ -42,7 +42,7 @@ See the next section for more information.
 
 === Reactive Reply Payload
 
-When a reply producing `MessageHandler` returns a reactive type payload for a reply message, it is processed in an asynchronous manner with a regular `MessageChannel` implementation provided for the `outputChannel` and flattened with on demand subscription when the output channel is a `ReactiveStreamsSubscribableChannel` implementation, e.g. `FluxMessageChannel`.
+When a reply producing `MessageHandler` returns a reactive type payload for a reply message, it is processed in an asynchronous manner with a regular `MessageChannel` implementation provided for the `outputChannel` (the `async` must be set to `true`) and flattened with on demand subscription when the output channel is a `ReactiveStreamsSubscribableChannel` implementation, e.g. `FluxMessageChannel`.
 With a standard imperative `MessageChannel` use-case, and if a reply payload is a *multi-value* publisher (see `ReactiveAdapter.isMultiValue()` for more information), it is wrapped into a `Mono.just()`.
 A result of this, the `Mono` has to be subscribed explicitly downstream or flattened by the `FluxMessageChannel` downstream.
 With a `ReactiveStreamsSubscribableChannel` for the `outputChannel`, there is no need to be concerned about return type and subscription; everything is processed smoothly by the framework internally.

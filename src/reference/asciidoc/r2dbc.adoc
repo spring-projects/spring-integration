@@ -71,7 +71,7 @@ IntegrationFlow r2dbcDslFlow(R2dbcEntityTemplate r2dbcEntityTemplate) {
                     .bindFunction((DatabaseClient.GenericExecuteSpec bindSpec, Person o) ->
                             bindSpec.bind("id", o.getId())),
             e -> e.poller(p -> p.fixedDelay(100)))
-        .<Mono<?>>handle((p, h) -> p, e -> e.async(true))
+        .handle((p, h) -> p)
         .channel(MessageChannels.flux())
         .get();
 }
