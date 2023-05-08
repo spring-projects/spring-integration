@@ -50,6 +50,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
@@ -139,7 +140,8 @@ public class FluxMessageChannelTests {
 
 		flowRegistration.destroy();
 
-		assertThat(TestUtils.getPropertyValue(flux, "sink.sink.done", Boolean.class)).isTrue();
+		await()
+				.until(() -> TestUtils.getPropertyValue(flux, "sink.sink.done", Boolean.class));
 	}
 
 	@Configuration
