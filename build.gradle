@@ -60,6 +60,7 @@ ext {
     commonsIoVersion = '2.11.0'
     commonsNetVersion = '3.9.0'
     curatorVersion = '5.5.0'
+    debeziumVersion = '2.2.0.Final'
     derbyVersion = '10.16.1.1'
     findbugsVersion = '3.0.1'
     ftpServerVersion = '1.2.0'
@@ -573,6 +574,21 @@ project('spring-integration-core') {
                 }
             }
         }
+    }
+}
+
+project('spring-integration-debezium') {
+    description = 'Spring Integration Debezium Support'
+    dependencies {
+        api project(':spring-integration-core')
+        api("io.debezium:debezium-embedded:$debeziumVersion") {
+            exclude group: 'org.glassfish.jersey.containers', module: 'jersey-container-servlet'
+            exclude group: 'org.glassfish.jersey.inject', module: 'jersey-hk2'
+            exclude group: 'jakarta.xml.bind', module: 'jakarta.xml.bind-api'
+            exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
+        }
+
+        testImplementation "io.debezium:debezium-connector-mysql:$debeziumVersion"
     }
 }
 

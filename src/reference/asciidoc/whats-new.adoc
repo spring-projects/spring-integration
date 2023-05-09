@@ -17,6 +17,12 @@ In general the project has been moved to the latest dependency versions.
 [[x6.2-new-components]]
 === New Components
 
+[[x6.2-debezium]]
+==== Debezium Inbound Channel Adapter
+
+The Debezium Engine based Change Data Capture (CDC) channel adapter, that allows capturing database change events, converting them into Messages and streaming those to the outbound channels.
+See <<./debezium.adoc#debezium-inbound, Debezium Inbound Channel Adapter>>  for more information.
+
 [[x6.2-general]]
 === General Changes
 

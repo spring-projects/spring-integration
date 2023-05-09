@@ -1,0 +1,141 @@
+[[debezium]]
+== Debezium Support
+
+Spring Integration provides channel adapter for handling Change Events using Debezium.
+
+https://debezium.io/documentation/reference/development/engine.html[Debezium Engine] based Change Data Capture (CDC) channel adapter.
+The Debezium adapter allows capturing database change events, converting them into messages and streaming those to the outbound channels.
+
+You need to include this dependency into your project:
+
+====
+[source, xml, subs="normal", role="primary"]
+.Maven
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-debezium</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+[source, groovy, subs="normal", role="secondary"]
+.Gradle
+----
+compile "org.springframework.integration:spring-integration-debezium:{project-version}"
+----
+====
+
+[[debezium-inbound]]
+=== Inbound Debezium Channel Adapter
+
+The Debezium adapter expects a pre-configured `DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>>` bean instance.
+Additionally, the `DebeziumMessageProducer` can be tuned with the following configuration properties:
+
+- `contentType` - allows handling for  `JSON` (default), `AVRO` and `PROTOBUF` message contents.
+The contentType `must` be be aligned with the `SerializationFormat` configured for the provided `DebeziumEngine.Builder`.
+- `enableBatch` - when set to `false` (default), the debezium adapter would send new `Message` for every `ChangeEvent` data change event received from the source database.
+If set to `true` then the adapter sends downstream a single `Message` for each batch of `ChangeEvent` received from the Debezium engine.
+Such a payload is not serializable and would require a custom serialization/deserialization implementation.
+- `enableEmptyPayload` - Enables support for tombstone (aka delete) messages.
+On a database row delete, Debezium can send a tombstone change event that has the same key as the deleted row and a value of `Optional.empty`.
+Defaults to `false`.
+- `headerMapper` - custom `HeaderMapper` implementation that allows for selecting and converting the `ChangeEvent` headers into `Message` headers.
+The default `DefaultDebeziumHeaderMapper` implementation (no headers are mapped) provides a setter for `setHeaderNamesToMap`.
+- `threadFactory` - Set custom `ThreadFactory` for the Debezium executor service.
+Debezium Engine is designed to be submitted to an `Executor` or `ExecutorService` for execution by single thread.
+
+The following code snippets demonstrate various configuration for this channel adapter:
+
+==== Configuring with Java Configuration
+
+The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class DebeziumJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(DebeziumJavaApplication.class)
+                .web(false)
+                .run(args);
+    }
+
+    @Bean
+    public MessageChannel debeziumInputChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public MessageProducer debeziumMessageProducer(
+            DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder,
+            MessageChannel debeziumInputChannel) {
+
+        DebeziumMessageProducer debeziumMessageProducer =
+            new DebeziumMessageProducer(debeziumEngineBuilder);
+        debeziumMessageProducer.setOutputChannel(debeziumInputChannel);
+        return debeziumMessageProducer;
+    }
+
+    @ServiceActivator(inputChannel = "debeziumInputChannel")
+    public void handler(String changeEventData) {
+        System.out.println(changeEventData);
+    }
+
+}
+----
+====
+
+Similarly, we can configure the `DebeziumMessageProducer` to process the incoming change events in batches:
+
+====
+[source, java]
+----
+@Bean
+public MessageProducer debeziumMessageProducer(
+        DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder,
+        MessageChannel debeziumInputChannel) {
+
+    DebeziumMessageProducer debeziumMessageProducer = new DebeziumMessageProducer(debeziumEngineBuilder);
+	debeziumMessageProducer.setEnableBatch(true);
+    debeziumMessageProducer.setOutputChannel(debeziumInputChannel);
+    return debeziumMessageProducer;
+}
+
+@ServiceActivator(inputChannel = "debeziumInputChannel")
+public void handler(List<ChangeEvent<Object, Object>> payload) {
+    System.out.println(payload);
+}
+----
+====
+
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the inbound adapter with the Java DSL:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class DebeziumJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(DebeziumJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public IntegrationFlow debeziumInbound(
+        DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
+
+        return IntegrationFlow.from(new DebeziumMessageProducer(debeziumEngineBuilder))
+                .handle(m -> System.out.println(new String((byte[]) m.getPayload())))
+                .get();
+    }
+
+}
+----
+====
