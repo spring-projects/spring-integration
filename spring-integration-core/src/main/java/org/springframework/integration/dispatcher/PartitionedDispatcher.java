@@ -1,0 +1,144 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.dispatcher;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.function.Function;
+
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.lang.Nullable;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
+
+/**
+ * An {@link AbstractDispatcher} implementation for distributing messages to
+ * dedicated threads according to the key determined by the provided function against
+ * the message to dispatch.
+ * <p>
+ * Every partition, created by this class, is a {@link UnicastingDispatcher}
+ * delegate based on a single thread {@link Executor}.
+ * <p>
+ * The rest of the logic is similar to {@link UnicastingDispatcher} behavior.
+ *
+ * @author Artem Bilan
+ *
+ * @since 6.1
+ */
+public class PartitionedDispatcher extends AbstractDispatcher {
+
+	private final Map<Integer, UnicastingDispatcher> partitions = new HashMap<>();
+
+	private final List<ExecutorService> executors = new ArrayList<>();
+
+	private final int partitionCount;
+
+	private final Function<Message<?>, Object> partitionKeyFunction;
+
+	private ThreadFactory threadFactory = new CustomizableThreadFactory("partition-thread-");
+
+	private boolean failover = true;
+
+	@Nullable
+	private LoadBalancingStrategy loadBalancingStrategy;
+
+	private ErrorHandler errorHandler;
+
+	private MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
+
+	public PartitionedDispatcher(int partitionCount, Function<Message<?>, Object> partitionKeyFunction) {
+		Assert.isTrue(partitionCount > 0, "'partitionCount' must be greater than 0");
+		Assert.notNull(partitionKeyFunction, "'partitionKeyFunction' must not be null");
+		this.partitionKeyFunction = partitionKeyFunction;
+		this.partitionCount = partitionCount;
+	}
+
+	public void setThreadFactory(ThreadFactory threadFactory) {
+		Assert.notNull(threadFactory, "'threadFactory' must not be null");
+		this.threadFactory = threadFactory;
+	}
+
+	public void setFailover(boolean failover) {
+		this.failover = failover;
+	}
+
+	public void setLoadBalancingStrategy(@Nullable LoadBalancingStrategy loadBalancingStrategy) {
+		this.loadBalancingStrategy = loadBalancingStrategy;
+	}
+
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
+	}
+
+	public void setMessageHandlingTaskDecorator(MessageHandlingTaskDecorator messageHandlingTaskDecorator) {
+		Assert.notNull(messageHandlingTaskDecorator, "'messageHandlingTaskDecorator' must not be null.");
+		this.messageHandlingTaskDecorator = messageHandlingTaskDecorator;
+	}
+
+	public void shutdown() {
+		this.executors.forEach(ExecutorService::shutdown);
+		this.executors.clear();
+		this.partitions.clear();
+	}
+
+	@Override
+	public boolean dispatch(Message<?> message) {
+		int partition = this.partitionKeyFunction.apply(message).hashCode() % this.partitionCount;
+		UnicastingDispatcher partitionDispatcher = this.partitions.computeIfAbsent(partition, (__) -> newPartition());
+		return partitionDispatcher.dispatch(message);
+	}
+
+	private UnicastingDispatcher newPartition() {
+		ExecutorService executor = Executors.newSingleThreadExecutor(this.threadFactory);
+		this.executors.add(executor);
+		DelegateDispatcher delegateDispatcher =
+				new DelegateDispatcher(new ErrorHandlingTaskExecutor(executor, this.errorHandler));
+		delegateDispatcher.setFailover(this.failover);
+		delegateDispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
+		delegateDispatcher.setMessageHandlingTaskDecorator(this.messageHandlingTaskDecorator);
+		return delegateDispatcher;
+	}
+
+	private final class DelegateDispatcher extends UnicastingDispatcher {
+
+		DelegateDispatcher(Executor executor) {
+			super(executor);
+		}
+
+		@Override
+		protected Set<MessageHandler> getHandlers() {
+			return PartitionedDispatcher.this.getHandlers();
+		}
+
+		@Override
+		protected boolean tryOptimizedDispatch(Message<?> message) {
+			return PartitionedDispatcher.this.tryOptimizedDispatch(message);
+		}
+
+	}
+
+}
