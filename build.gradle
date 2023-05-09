@@ -60,6 +60,7 @@ ext {
     commonsIoVersion = '2.11.0'
     commonsNetVersion = '3.9.0'
     curatorVersion = '5.5.0'
+    debeziumVersion = '2.2.0.Final'
     derbyVersion = '10.16.1.1'
     findbugsVersion = '3.0.1'
     ftpServerVersion = '1.2.0'
@@ -462,6 +463,26 @@ project('spring-integration-test-support') {
         }
         optionalApi 'org.junit.jupiter:junit-jupiter-api'
         optionalApi 'org.apache.logging.log4j:log4j-core'
+    }
+}
+
+project('spring-integration-debezium') {
+    description = 'Spring Integration Debezium Support'
+    dependencies {
+        api project(':spring-integration-core')
+        api("io.debezium:debezium-api:$debeziumVersion") {
+            exclude group: 'org.slf4j'
+        }
+        api("io.debezium:debezium-embedded:$debeziumVersion") {
+            exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+        }
+
+        testImplementation("io.debezium:debezium-connector-mysql:$debeziumVersion"){
+            exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+        }
+
+        testImplementation project(':spring-integration-stream')
+        testImplementation 'org.springframework:spring-web'
     }
 }
 
