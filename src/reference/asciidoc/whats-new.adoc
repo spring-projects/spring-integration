@@ -34,6 +34,11 @@ See <<./handler-advice.adoc#context-holder-advice, Context Holder Advice>> for m
 The `IntegrationFlow` can now end with a convenient `handleReactive(ReactiveMessageHandler)` operator.
 See <<./reactive-streams.adoc#reactive-message-handler, `ReactiveMessageHandler`>> for more information.
 
+[[x6.1-partitioned-channel]]
+==== `PartitionedChannel`
+A new `PartitionedChannel` has been introduced to process messages with the same partition key in the same thread.
+See <<./channel.adoc#partitioned-channel, `PartitionedChannel`>> for more information.
+
 [[x6.1-general]]
 === General Changes
 

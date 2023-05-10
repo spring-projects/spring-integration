@@ -203,6 +203,30 @@ CAUTION: The sender can sometimes block.
 For example, when using a `TaskExecutor` with a rejection policy that throttles the client (such as the `ThreadPoolExecutor.CallerRunsPolicy`), the sender's thread can execute the method any time the thread pool is at its maximum capacity and the executor's work queue is full.
 Since that situation would only occur in a non-predictable way, you should not rely upon it for transactions.
 
+[[partitioned-channel]]
+===== `PartitionedChannel`
+
+Starting with version 6.1, a `PartitionedChannel` implementation is provided.
+This is an extension of `AbstractExecutorChannel` and represents a point-to-point dispatching logic where an actual consumption happens on a specific thread determined by the partition key evaluated from a message sent to this channel.
+This channel is similar to the `ExecutorChannel` mentioned above, but with a difference that messages with the same partition key are always handled in the same thread preserving ordering.
+It does not require an external `TaskExecutor`, but can be configured with a custom `ThreadFactory` (e.g. `Thread.ofVirtual().name("partition-", 0).factory()`).
+This factory then used to populate single-thread executors into `MessageDispatcher` delegates per partition.
+By default, the `IntegrationMessageHeaderAccessor.CORRELATION_ID` message header is used for partition key.
+This channel can be configured as a simple bean:
+
+====
+[source,java]
+----
+@Bean
+PartitionedChannel somePartitionedChannel() {
+    return new PartitionedChannel(3, (message) -> message.getHeaders().get("partitionKey"));
+}
+----
+====
+
+The channel will have `3` partitions - dedicated threads; will use a `partitionKey` header to determine in which partition the message must be handled.
+See `PartitionedChannel` class Javadocs for more information.
+
 [[flux-message-channel]]
 ===== `FluxMessageChannel`
 

@@ -16,18 +16,30 @@
 
 package org.springframework.integration.channel;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -39,6 +51,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 6.1
  */
+@SpringJUnitConfig
 public class PartitionedChannelTests {
 
 	@Test
@@ -103,6 +116,46 @@ public class PartitionedChannelTests {
 		assertThat(partitionForLastMessage).isIn(allocatedPartitions);
 
 		partitionedChannel.destroy();
+	}
+
+	@Autowired
+	@Qualifier("someFlow.input")
+	MessageChannel inputChannel;
+
+	@Autowired
+	PollableChannel resultChannel;
+
+	@Test
+	void messagesArePartitionedByCorrelationId() {
+		this.inputChannel.send(new GenericMessage<>(IntStream.range(0, 5).toArray()));
+
+		Message<?> receive = this.resultChannel.receive(10_000);
+
+		assertThat(receive).isNotNull()
+				.extracting(Message::getPayload)
+				.asList()
+				.hasSize(5);
+
+		@SuppressWarnings("unchecked")
+		Set<String> strings = new HashSet<>((Collection<? extends String>) receive.getPayload());
+		assertThat(strings).hasSize(1)
+				.allMatch(value -> value.startsWith("testChannel-partition-thread-"));
+	}
+
+	@Configuration
+	@EnableIntegration
+	public static class TestConfiguration {
+
+		@Bean
+		IntegrationFlow someFlow() {
+			return f -> f
+					.split()
+					.channel(c -> c.partitioned("testChannel", 10))
+					.transform(p -> Thread.currentThread().getName())
+					.aggregate()
+					.channel(c -> c.queue("resultChannel"));
+		}
+
 	}
 
 }
