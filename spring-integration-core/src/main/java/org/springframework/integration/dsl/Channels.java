@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,6 +145,27 @@ public final class Channels {
 
 	public FluxMessageChannelSpec flux(String id) {
 		return MessageChannels.flux(id);
+	}
+
+	/**
+	 * Create a {@link PartitionedChannelSpec}.
+	 * @param partitionCount the number of partitions in the channel.
+	 * @return the {@link PartitionedChannelSpec}.
+	 * @since 6.1
+	 */
+	public PartitionedChannelSpec partitioned(int partitionCount) {
+		return MessageChannels.partitioned(partitionCount);
+	}
+
+	/**
+	 * Create a {@link PartitionedChannelSpec}.
+	 * @param id the bean name for the channel.
+	 * @param partitionCount the number of partitions in the channel.
+	 * @return the {@link PartitionedChannelSpec}.
+	 * @since 6.1
+	 */
+	public PartitionedChannelSpec partitioned(String id, int partitionCount) {
+		return MessageChannels.partitioned(id, partitionCount);
 	}
 
 	private Channels() {
