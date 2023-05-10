@@ -145,13 +145,15 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 
 	@Override
 	public boolean dispatch(Message<?> message) {
-		prePopulatedPartitionsIfAny();
+		if (this.partitions.isEmpty()) {
+			prePopulatedPartitions();
+		}
 		int partition = Math.abs(this.partitionKeyFunction.apply(message).hashCode()) % this.partitionCount;
 		UnicastingDispatcher partitionDispatcher = this.partitions.get(partition);
 		return partitionDispatcher.dispatch(message);
 	}
 
-	private void prePopulatedPartitionsIfAny() {
+	private synchronized void prePopulatedPartitions() {
 		if (this.partitions.isEmpty()) {
 			for (int i = 0; i < this.partitionCount; i++) {
 				this.partitions.put(i, newPartition());

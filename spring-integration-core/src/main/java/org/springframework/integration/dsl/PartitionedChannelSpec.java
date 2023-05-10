@@ -19,11 +19,7 @@ package org.springframework.integration.dsl;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 
-import org.springframework.integration.channel.AbstractExecutorChannel;
-import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.ExecutorChannel;
 import org.springframework.integration.channel.PartitionedChannel;
-import org.springframework.integration.dispatcher.PartitionedDispatcher;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
@@ -61,10 +57,10 @@ public class PartitionedChannelSpec extends LoadBalancingChannelSpec<Partitioned
 	@Override
 	protected PartitionedChannel doGet() {
 		if (this.partitionKeyFunction != null) {
-			this.channel = new PartitionedChannel(partitionCount, this.partitionKeyFunction);
+			this.channel = new PartitionedChannel(this.partitionCount, this.partitionKeyFunction);
 		}
 		else {
-			this.channel = new PartitionedChannel(partitionCount);
+			this.channel = new PartitionedChannel(this.partitionCount);
 		}
 		this.channel.setLoadBalancingStrategy(this.loadBalancingStrategy);
 		if (this.failover != null) {
