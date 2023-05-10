@@ -89,6 +89,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	}
 
 	private void populatedPartitions() {
+		this.executors.clear();
 		for (int i = 0; i < this.partitionCount; i++) {
 			this.partitions.put(i, newPartition());
 		}
