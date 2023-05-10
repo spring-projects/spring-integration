@@ -85,27 +85,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 		Assert.notNull(partitionKeyFunction, "'partitionKeyFunction' must not be null");
 		this.partitionKeyFunction = partitionKeyFunction;
 		this.partitionCount = partitionCount;
-		populatedPartitions();
 	}
-
-	private void populatedPartitions() {
-		this.executors.clear();
-		for (int i = 0; i < this.partitionCount; i++) {
-			this.partitions.put(i, newPartition());
-		}
-	}
-
-	private UnicastingDispatcher newPartition() {
-		ExecutorService executor = Executors.newSingleThreadExecutor(this.threadFactory);
-		this.executors.add(executor);
-		DelegateDispatcher delegateDispatcher =
-				new DelegateDispatcher(new ErrorHandlingTaskExecutor(executor, this.errorHandler));
-		delegateDispatcher.setFailover(this.failover);
-		delegateDispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
-		delegateDispatcher.setMessageHandlingTaskDecorator(this.messageHandlingTaskDecorator);
-		return delegateDispatcher;
-	}
-
 
 	/**
 	 * Set a {@link ThreadFactory} for executors per partitions.
@@ -115,7 +95,6 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	public void setThreadFactory(ThreadFactory threadFactory) {
 		Assert.notNull(threadFactory, "'threadFactory' must not be null");
 		this.threadFactory = threadFactory;
-		populatedPartitions();
 	}
 
 	/**
@@ -166,9 +145,29 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 
 	@Override
 	public boolean dispatch(Message<?> message) {
+		populatedPartitions();
 		int partition = Math.abs(this.partitionKeyFunction.apply(message).hashCode()) % this.partitionCount;
 		UnicastingDispatcher partitionDispatcher = this.partitions.get(partition);
 		return partitionDispatcher.dispatch(message);
+	}
+
+	private synchronized void populatedPartitions() {
+		if (this.partitions.isEmpty()) {
+			for (int i = 0; i < this.partitionCount; i++) {
+				this.partitions.put(i, newPartition());
+			}
+		}
+	}
+
+	private UnicastingDispatcher newPartition() {
+		ExecutorService executor = Executors.newSingleThreadExecutor(this.threadFactory);
+		this.executors.add(executor);
+		DelegateDispatcher delegateDispatcher =
+				new DelegateDispatcher(new ErrorHandlingTaskExecutor(executor, this.errorHandler));
+		delegateDispatcher.setFailover(this.failover);
+		delegateDispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
+		delegateDispatcher.setMessageHandlingTaskDecorator(this.messageHandlingTaskDecorator);
+		return delegateDispatcher;
 	}
 
 	private final class DelegateDispatcher extends UnicastingDispatcher {
