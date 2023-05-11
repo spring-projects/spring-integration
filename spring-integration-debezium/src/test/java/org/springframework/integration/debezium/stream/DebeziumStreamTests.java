@@ -73,7 +73,7 @@ public class DebeziumStreamTests {
 
 	@Test
 	void mysqlInventoryDB() throws InterruptedException {
-		Thread.sleep(5000);
+		Thread.sleep(15000);
 
 		// Message<?> message = this.queueChannel.receive(10_000);
 		List<Message<?>> messages = this.queueChannel.clear();
