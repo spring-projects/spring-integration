@@ -38,6 +38,7 @@ Welcome to the Spring Integration reference documentation!
 <<./amqp.adoc#amqp,AMQP Support>> :: AMQP channels, adapters and gateways
 <<./camel.adoc#camel,Apache Camel Support>> :: Apache Camel channel adapters and gateways
 <<./cassandra.adoc#cassandra,Apache Cassandra Support>> :: Apache Cassandra channel adapters
+<<./debezium.adoc#debezium,Debezium CDC Support>> :: Debezium inbound channel adapters
 <<./event.adoc#applicationevent,Spring `ApplicationEvent` Support>> :: Handling and consuming Spring application events with channel adapters
 <<./feed.adoc#feed,Feed Adapter>> :: RSS and Atom channel adapters
 <<./file.adoc#files,File Support>> :: Channel adapters and gateways for file system support
