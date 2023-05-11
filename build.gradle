@@ -466,26 +466,6 @@ project('spring-integration-test-support') {
     }
 }
 
-project('spring-integration-debezium') {
-    description = 'Spring Integration Debezium Support'
-    dependencies {
-        api project(':spring-integration-core')
-        api("io.debezium:debezium-api:$debeziumVersion") {
-            exclude group: 'org.slf4j'
-        }
-        api("io.debezium:debezium-embedded:$debeziumVersion") {
-            exclude group: 'org.slf4j', module: 'slf4j-reload4j'
-        }
-
-        testImplementation("io.debezium:debezium-connector-mysql:$debeziumVersion"){
-            exclude group: 'org.slf4j', module: 'slf4j-reload4j'
-        }
-
-        testImplementation project(':spring-integration-stream')
-        testImplementation 'org.springframework:spring-web'
-    }
-}
-
 project('spring-integration-amqp') {
     description = 'Spring Integration AMQP Support'
     dependencies {
@@ -594,6 +574,27 @@ project('spring-integration-core') {
                 }
             }
         }
+    }
+}
+
+project('spring-integration-debezium') {
+    description = 'Spring Integration Debezium Support'
+    dependencies {
+        api project(':spring-integration-core')
+        api("io.debezium:debezium-embedded:$debeziumVersion") {
+            exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+            exclude group: 'org.slf4j', module: 'slf4j-api'
+            exclude group: 'org.glassfish.jersey.containers', module: 'jersey-container-servlet'
+            exclude group: 'org.glassfish.jersey.inject', module: 'jersey-hk2'
+        }
+
+        testImplementation("io.debezium:debezium-connector-mysql:$debeziumVersion"){
+            exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+            exclude group: 'org.slf4j', module: 'slf4j-api'
+        }
+
+        testImplementation project(':spring-integration-stream')
+        testImplementation 'org.springframework:spring-web'
     }
 }
 

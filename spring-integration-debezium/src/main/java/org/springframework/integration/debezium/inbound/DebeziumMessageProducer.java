@@ -33,8 +33,6 @@ import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.DebeziumEngine.Builder;
 import io.debezium.engine.Header;
 import io.debezium.engine.format.SerializationFormat;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -47,13 +45,12 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.MimeTypeUtils;
 
 /**
+ * Debezium Change Event Channel Adapter.
  *
  * @author Christian Tzolov
+ * @since 6.2
  */
 public class DebeziumMessageProducer extends MessageProducerSupport implements BeanClassLoaderAware {
-
-	static final Log logger = LogFactory.getLog(DebeziumMessageProducer.class);
-
 	/**
 	 * ORG_SPRINGFRAMEWORK_KAFKA_SUPPORT_KAFKA_NULL.
 	 */
@@ -158,7 +155,6 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 				this.latch.countDown();
 			}
 		});
-		this.latch = new CountDownLatch(1);
 	}
 
 	@Override
@@ -216,8 +212,8 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 
 		@Override
 		public void accept(ChangeEvent<T, T> changeEvent) {
-			if (DebeziumMessageProducer.logger.isDebugEnabled()) {
-				DebeziumMessageProducer.logger.debug("[Debezium Event]: " + changeEvent.key());
+			if (logger.isDebugEnabled()) {
+				logger.debug("[Debezium Event]: " + changeEvent.key());
 			}
 
 			Object key = changeEvent.key();
@@ -234,7 +230,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 
 			// If payload is still null ignore the message.
 			if (payload == null) {
-				DebeziumMessageProducer.logger.info("Dropped null payload message");
+				logger.info("Dropped null payload message");
 				return;
 			}
 
