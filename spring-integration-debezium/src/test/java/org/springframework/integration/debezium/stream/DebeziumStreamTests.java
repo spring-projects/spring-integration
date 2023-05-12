@@ -58,6 +58,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers(disabledWithoutDocker = true)
 public class DebeziumStreamTests {
 
+	static final Log logger = LogFactory.getLog(DebeziumStreamTests.class);
+
 	@Container
 	static GenericContainer<?> DEBEZIUM_MYSQL = new GenericContainer<>("debezium/example-mysql:2.2.0.Final")
 			.withEnv("MYSQL_ROOT_PASSWORD", "debezium")
@@ -75,12 +77,14 @@ public class DebeziumStreamTests {
 	void mysqlInventoryDB() throws InterruptedException {
 		Thread.sleep(15000);
 
-		// Message<?> message = this.queueChannel.receive(10_000);
-		List<Message<?>> messages = this.queueChannel.clear();
+		for (int i = 0; i < 52; i++) {
+			logger.info("Message index: " + i);
+			Message<?> message = this.queueChannel.receive(10_000);
+			assertThat(message).isNotNull();
+		}
+		// List<Message<?>> messages = this.queueChannel.clear();
+		// assertThat(messages).hasSize(52);
 
-		assertThat(messages).hasSize(52);
-
-		// Message<?> receive = results.receive(10_000);
 
 		// assertThat(receive).isNotNull()
 		// .extracting(Message::getPayload)
