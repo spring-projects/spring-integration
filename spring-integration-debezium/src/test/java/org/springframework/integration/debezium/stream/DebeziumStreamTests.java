@@ -81,8 +81,6 @@ public class DebeziumStreamTests {
 			Message<?> message = this.queueChannel.receive(10_000);
 			assertThat(message).isNotNull();
 		}
-		// List<Message<?>> messages = this.queueChannel.clear();
-		// assertThat(messages).hasSize(52);
 
 		// assertThat(receive).isNotNull()
 		// .extracting(Message::getPayload)

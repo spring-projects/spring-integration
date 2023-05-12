@@ -17,15 +17,21 @@
 package org.springframework.integration.debezium.inbound;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -36,27 +42,77 @@ import static org.mockito.Mockito.mock;
  */
 public class DebeziumMessageProducerTests {
 
-	@Test
+	DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumBuilderMock;
+	DebeziumEngine<ChangeEvent<byte[], byte[]>> debeziumEngineMock;
+	DebeziumMessageProducer debeziumMessageProducer;
+
+	@BeforeEach
 	@SuppressWarnings("unchecked")
-	public void testEndpointLifecycle() throws IOException {
-		DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumBuilderMock = mock(DebeziumEngine.Builder.class);
-		DebeziumEngine<ChangeEvent<byte[], byte[]>> debeziumEngineMock = mock(DebeziumEngine.class);
+	public void beforeEach() {
+		debeziumBuilderMock = mock(DebeziumEngine.Builder.class);
+		debeziumEngineMock = mock(DebeziumEngine.class);
 		given(debeziumBuilderMock.notifying(any(Consumer.class))).willReturn(debeziumBuilderMock);
 		given(debeziumBuilderMock.build()).willReturn(debeziumEngineMock);
 
-		DebeziumMessageProducer debeziumMessageProducer = new DebeziumMessageProducer(debeziumBuilderMock);
+		debeziumMessageProducer = new DebeziumMessageProducer(debeziumBuilderMock);
 		debeziumMessageProducer.setOutputChannel(new QueueChannel());
 		debeziumMessageProducer.setBeanFactory(mock(BeanFactory.class));
 
-		debeziumMessageProducer.afterPropertiesSet();
-//		then(debeziumEngineMock).should(never()).run();
+	}
 
-		debeziumMessageProducer.start();
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testDebeziumMessageProducerLifecycle() throws IOException {
+
+		debeziumMessageProducer.afterPropertiesSet(); // INIT
+
+		then(debeziumBuilderMock).should().build();
+		assertThat(debeziumMessageProducer.isActive()).isEqualTo(false);
+		assertThat(debeziumMessageProducer.isRunning()).isEqualTo(false);
+
+		debeziumMessageProducer.start(); // START
+
+		await().atMost(5, TimeUnit.SECONDS).until(() -> debeziumMessageProducer.isRunning() == true);
+		assertThat(debeziumMessageProducer.isActive()).isEqualTo(true);
 		then(debeziumEngineMock).should().run();
 
-		debeziumMessageProducer.stop();
+		debeziumMessageProducer.stop(); // STOP
 
-		debeziumMessageProducer.destroy();
+		assertThat(debeziumMessageProducer.isActive()).isEqualTo(false);
+		assertThat(debeziumMessageProducer.isRunning()).isEqualTo(false);
+
+		debeziumMessageProducer.destroy(); // DESTROY
+
 		then(debeziumEngineMock).should().close();
 	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testCustomExecutorNotDestroyed() throws IOException {
+
+		ExecutorService customExecutor = Executors.newSingleThreadExecutor();
+
+		debeziumMessageProducer.setExecutorService(customExecutor);
+
+		debeziumMessageProducer.afterPropertiesSet(); // INIT
+
+		assertThat(debeziumMessageProducer.isActive()).isEqualTo(false);
+		assertThat(customExecutor.isShutdown()).isFalse();
+
+		debeziumMessageProducer.start(); // START
+
+		await().atMost(5, TimeUnit.SECONDS).until(() -> debeziumMessageProducer.isRunning() == true);
+		assertThat(debeziumMessageProducer.isActive()).isEqualTo(true);
+
+		debeziumMessageProducer.stop(); // STOP
+
+		assertThat(debeziumMessageProducer.isActive()).isEqualTo(false);
+		assertThat(customExecutor.isShutdown()).isFalse();
+
+		debeziumMessageProducer.destroy(); // DESTROY
+
+		assertThat(debeziumMessageProducer.isActive()).isEqualTo(false);
+		assertThat(customExecutor.isShutdown()).isFalse();
+	}
+
 }
