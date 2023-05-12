@@ -72,7 +72,7 @@ public class DebeziumMessageProducerTests {
 
 		debeziumMessageProducer.start(); // START
 
-		await().atMost(5, TimeUnit.SECONDS).until(() -> debeziumMessageProducer.isRunning() == true);
+		await().atMost(5, TimeUnit.SECONDS).until(() -> debeziumMessageProducer.isRunning());
 		assertThat(debeziumMessageProducer.isActive()).isEqualTo(true);
 		then(debeziumEngineMock).should().run();
 
@@ -101,7 +101,7 @@ public class DebeziumMessageProducerTests {
 
 		debeziumMessageProducer.start(); // START
 
-		await().atMost(5, TimeUnit.SECONDS).until(() -> debeziumMessageProducer.isRunning() == true);
+		await().atMost(5, TimeUnit.SECONDS).until(() -> debeziumMessageProducer.isRunning());
 		assertThat(debeziumMessageProducer.isActive()).isEqualTo(true);
 
 		debeziumMessageProducer.stop(); // STOP
