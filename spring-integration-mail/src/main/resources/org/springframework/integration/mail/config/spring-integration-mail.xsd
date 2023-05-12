@@ -370,24 +370,7 @@
 
 	<xsd:complexType name="transformerType">
 		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="input-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="output-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:inputOutputChannelGroup"/>
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="inboundMappingGroup">

@@ -343,6 +343,14 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="order" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the order for invocation when this adapter is connected as a
+								subscriber to a SubscribableChannel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -674,7 +682,7 @@
 			<xsd:documentation><![CDATA[
 				Configures a Consumer Endpoint for the
 				'org.springframework.integration.redis.outbound.RedisQueueOutboundGateway' that
-				 pushes a conversation UUID to the the 'queue', then pushes the value to the
+				 pushes a conversation UUID to the 'queue', then pushes the value to the
 				Redis List with that UUID as a key and receives a reply from the Redis List with
 				'<UUID>.reply' as its key. A new UUID is used for each interaction.
 			]]></xsd:documentation>

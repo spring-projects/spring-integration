@@ -163,6 +163,14 @@
 									 minOccurs="0" maxOccurs="1"/>
 					</xsd:all>
 					<xsd:attribute name="default-notification-type" type="xsd:string" use="optional"/>
+					<xsd:attribute name="order" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The order for dispatching when the channel adapter is connected
+								as a subscriber to a 'SubscribableChannel'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -328,6 +336,14 @@
 			<xsd:extension base="mbeanServerIdentifierType">
 				<xsd:attribute name="object-name" type="xsd:string"/>
 				<xsd:attribute name="operation-name" type="xsd:string"/>
+				<xsd:attribute name="order" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							The order for dispatching when the channel adapter is connected
+							as a subscriber to a 'SubscribableChannel'.
+					</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

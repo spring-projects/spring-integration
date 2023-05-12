@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/xml"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -585,6 +586,14 @@
 								<tool:expected-type type="org.springframework.integration.xml.XmlPayloadConverter"/>
 							</tool:annotation>
 						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="order" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							The order for dispatching when this router is connected
+							as a subscriber to a 'SubscribableChannel'.
+						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 			</xsd:extension>
