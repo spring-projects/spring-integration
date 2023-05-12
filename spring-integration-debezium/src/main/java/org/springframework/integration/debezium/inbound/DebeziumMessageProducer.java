@@ -86,7 +86,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 	/**
 	 * Specifies how to convert Debezium change event headers into Message headers.
 	 */
-	private HeaderMapper<List<Header<byte[]>>> headerMapper = new DefaultDebeziumHeaderMapper<byte[]>();
+	private HeaderMapper<List<Header<Object>>> headerMapper = new DefaultDebeziumHeaderMapper();
 
 	public DebeziumMessageProducer(Builder<ChangeEvent<byte[], byte[]>> debeziumBuilder) {
 		this.debeziumEngineBuilder = debeziumBuilder;
@@ -105,7 +105,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 		this.contentType = contentType;
 	}
 
-	public void setHeaderMapper(HeaderMapper<List<Header<byte[]>>> headerMapper) {
+	public void setHeaderMapper(HeaderMapper<List<Header<Object>>> headerMapper) {
 		Assert.notNull(headerMapper, "'headerMapper' must not be null.");
 		this.headerMapper = headerMapper;
 	}
@@ -203,9 +203,9 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 		/**
 		 * Specifies how to convert Debezium change event headers into Message headers.
 		 */
-		private HeaderMapper<List<Header<T>>> headerMapper;
+		private HeaderMapper<List<Header<Object>>> headerMapper;
 
-		ChangeEventConsumer(HeaderMapper<List<Header<T>>> headerMapper, String contentType) {
+		ChangeEventConsumer(HeaderMapper<List<Header<Object>>> headerMapper, String contentType) {
 			this.headerMapper = headerMapper;
 			this.contentType = contentType;
 		}
@@ -236,8 +236,8 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 
 			MessageBuilder<?> messageBuilder = MessageBuilder
 					.withPayload(payload)
-					.setHeader("debezium_key", key)
-					.setHeader("debezium_destination", destination)
+					.setHeader(DebeziumHeaders.KEY, key)
+					.setHeader(DebeziumHeaders.DESTINATION, destination)
 					.setHeader(MessageHeaders.CONTENT_TYPE,
 							(payload.equals(DebeziumMessageProducer.this.kafkaNull))
 									? MimeTypeUtils.TEXT_PLAIN_VALUE

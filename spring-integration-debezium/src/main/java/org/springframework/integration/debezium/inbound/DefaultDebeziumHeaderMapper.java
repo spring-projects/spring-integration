@@ -29,26 +29,26 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * Specifies how to convert Debezium {@link ChangeEvent} {@link Header}s into {@link Message} headers.
- * @param <T> encoding type.
  *
  * @author Christian Tzolov
+ * @since 6.2
  */
-public class DefaultDebeziumHeaderMapper<T> implements HeaderMapper<List<Header<T>>> {
+public class DefaultDebeziumHeaderMapper implements HeaderMapper<List<Header<Object>>> {
 
 	@Override
-	public void fromHeaders(MessageHeaders headers, List<Header<T>> target) {
+	public void fromHeaders(MessageHeaders headers, List<Header<Object>> target) {
 		throw new UnsupportedOperationException("The 'fromHeaders' is not supported!");
 	}
 
 	@Override
-	public MessageHeaders toHeaders(List<Header<T>> debeziumHeaders) {
+	public MessageHeaders toHeaders(List<Header<Object>> debeziumHeaders) {
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		if (!CollectionUtils.isEmpty(debeziumHeaders)) {
-			Iterator<Header<T>> itr = debeziumHeaders.iterator();
+			Iterator<Header<Object>> itr = debeziumHeaders.iterator();
 			while (itr.hasNext()) {
-				Header<T> header = itr.next();
+				Header<?> header = itr.next();
 				String key = header.getKey();
-				T value = header.getValue();
+				Object value = header.getValue();
 				messageHeaders.put(key, value);
 			}
 		}

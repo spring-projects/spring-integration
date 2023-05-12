@@ -17,7 +17,6 @@
 package org.springframework.integration.debezium.stream;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Properties;
 
 import io.debezium.engine.ChangeEvent;
@@ -84,7 +83,6 @@ public class DebeziumStreamTests {
 		}
 		// List<Message<?>> messages = this.queueChannel.clear();
 		// assertThat(messages).hasSize(52);
-
 
 		// assertThat(receive).isNotNull()
 		// .extracting(Message::getPayload)
