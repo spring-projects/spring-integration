@@ -35,6 +35,9 @@
 									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
+							<xsd:documentation>
+								The channel to produce messages from this adapter.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="error-channel" type="xsd:string">
@@ -71,7 +74,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="udpAdapterType">
 					<xsd:all>
-						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+						<xsd:element ref="integration:poller" minOccurs="0"/>
 						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
 									 minOccurs="0" maxOccurs="1"/>
 					</xsd:all>
@@ -82,9 +85,18 @@
 									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
+							<xsd:documentation>
+								The channel to produce messages from this adapter.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="host" type="xsd:string"/>
+					<xsd:attribute name="host" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The UDP host to connect to.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="destination-expression" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -97,8 +109,14 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="acknowledge" type="xsd:string"/>
-					<xsd:attribute name="socket-expression" type="xsd:string" use="optional">
+					<xsd:attribute name="acknowledge" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								If true, packets will request acknowledgment.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="socket-expression" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 								A SpEL expression to be evaluated to determine which datagram
@@ -107,11 +125,41 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="ack-host" type="xsd:string"/>
-					<xsd:attribute name="ack-port" type="xsd:string"/>
-					<xsd:attribute name="ack-timeout" type="xsd:string"/>
-					<xsd:attribute name="min-acks-for-success" type="xsd:string"/>
-					<xsd:attribute name="time-to-live" type="xsd:string"/>
+					<xsd:attribute name="ack-host" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The host to which acks should be sent. Required if 'acknowledge' is true.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="ack-port" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The port to which acks should be sent.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="ack-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								How long we will wait (milliseconds) for the ack.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="min-acks-for-success" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								If 'acknowledge' is true; how many acks needed for success.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="time-to-live" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Set the underlying {@link MulticastSocket} time to live property.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -169,8 +217,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.springframework.messaging.MessageChannel"/>
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -179,8 +226,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.springframework.messaging.MessageChannel"/>
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
@@ -192,8 +238,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="client-mode" type="xsd:string"
-						   use="optional" default="false">
+			<xsd:attribute name="client-mode" type="xsd:string" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
 						If set to true, causes the adapter to act as a client with respect
@@ -261,8 +306,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="client-mode" type="xsd:string"
-						   use="optional" default="false">
+			<xsd:attribute name="client-mode" type="xsd:string" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
 						If set to true, causes the adapter to establish a connection when
@@ -302,13 +346,11 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="request-channel" type="xsd:string"
-						   use="required">
+			<xsd:attribute name="request-channel" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.springframework.messaging.MessageChannel"/>
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -317,19 +359,24 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.springframework.messaging.MessageChannel"/>
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="reply-timeout" type="xsd:string"/>
+			<xsd:attribute name="reply-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set the timeout value for receiving reply messages.
+						If not explicitly configured, the default is one second.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="error-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.springframework.messaging.MessageChannel"/>
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
@@ -346,8 +393,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="client-mode" type="xsd:string"
-						   use="optional" default="false">
+			<xsd:attribute name="client-mode" type="xsd:string" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
 						If set to true, causes the gateway to act as a client with respect
@@ -398,8 +444,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.springframework.messaging.MessageChannel"/>
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -408,8 +453,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.springframework.messaging.MessageChannel"/>
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -539,8 +583,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="using-nio" type="xsd:string"
-						   default="false">
+			<xsd:attribute name="using-nio" type="xsd:string" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
 						If true, the factory will use java.nio.channel.SocketChannel for
@@ -551,13 +594,55 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="so-keep-alive" type="xsd:string"/>
-			<xsd:attribute name="so-linger" type="xsd:string"/>
-			<xsd:attribute name="so-receive-buffer-size" type="xsd:string"/>
-			<xsd:attribute name="so-send-buffer-size" type="xsd:string"/>
-			<xsd:attribute name="so-tcp-no-delay" type="xsd:string"/>
-			<xsd:attribute name="so-timeout" type="xsd:string"/>
-			<xsd:attribute name="so-traffic-class" type="xsd:string"/>
+			<xsd:attribute name="so-keep-alive" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Enable/disable 'SocketOptions.SO_KEEPALIVE SO_KEEPALIVE'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="so-linger" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The 'SocketOptions.SO_LINGER SO_LINGER' in seconds.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="so-receive-buffer-size" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The 'SocketOptions.SO_RCVBUF SO_RCVBUF' value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="so-send-buffer-size" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The 'SocketOptions.SO_SNDBUF SO_SNDBUF' value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="so-tcp-no-delay" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Enable/disable 'SocketOptions.TCP_NODELAY TCP_NODELAY' (disable/enable Nagle's algorithm).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="so-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Enable/disable 'SocketOptions.SO_TIMEOUT SO_TIMEOUT' with the specified timeout, in milliseconds.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="so-traffic-class" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Sets traffic class or type-of-service octet in the IP header for packets sent from this Socket.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="using-direct-buffers" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -590,8 +675,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.springframework.core.serializer.Serializer"/>
+							<tool:expected-type type="org.springframework.core.serializer.Serializer"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
@@ -673,8 +757,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="apply-sequence" type="xsd:string"
-						   default="false">
+			<xsd:attribute name="apply-sequence" type="xsd:string" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
 						When set to "true", adds sequenceNumber and correlationId headers to
@@ -831,8 +914,23 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="receive-buffer-size" type="xsd:string"/>
-				<xsd:attribute name="multicast-address" type="xsd:string"/>
+				<xsd:attribute name="receive-buffer-size" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							The size of the buffer used to receive 'DatagramPackets'.
+							Usually set to the maximum transmission unit (MTU) size.
+							If a smaller buffer is used than the size of the sent packet, truncation can occur.
+							You can detect this by using the 'check-length' attribute.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="multicast-address" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							When multicast is true, the multicast address to which the adapter joins.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="task-executor" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
@@ -865,12 +963,25 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="common-attributes">
-				<xsd:attribute name="check-length" type="xsd:string"/>
-				<xsd:attribute name="multicast" type="xsd:string"/>
+				<xsd:attribute name="check-length" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Whether a UDP adapter expects a data length field in the packet received.
+							Used to detect packet truncation.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="multicast" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Whether the UDP adapter uses multicast.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="socket-customizer" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-							A SocketCustomizer bean.
+							A 'SocketCustomizer' bean.
 						</xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
@@ -884,11 +995,41 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="common-attributes">
-		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="port" type="xsd:string"/>
-		<xsd:attribute name="so-receive-buffer-size" type="xsd:string"/>
-		<xsd:attribute name="so-send-buffer-size" type="xsd:string"/>
-		<xsd:attribute name="so-timeout" type="xsd:string"/>
+		<xsd:attribute name="id" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The channel adapter (or gateway) bean name.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="port" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The port for connection.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="so-receive-buffer-size" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The 'SO_RCVBUF' option of the `DatagramSocket`.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="so-send-buffer-size" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The 'SO_SNDBUF' option of the 'DatagramSocket'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="so-timeout" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Enable/disable 'SO_TIMEOUT' with the specified timeout, in milliseconds.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="local-address" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -909,8 +1050,7 @@
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="clientModeAttributeGroup">
-		<xsd:attribute name="retry-interval" type="xsd:string"
-					   use="optional" default="60000">
+		<xsd:attribute name="retry-interval" type="xsd:string" default="60000">
 			<xsd:annotation>
 				<xsd:documentation>
 					When in client mode, specifies the retry interval, in milliseconds, if
