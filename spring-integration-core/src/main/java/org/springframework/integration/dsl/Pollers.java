@@ -69,8 +69,8 @@ public final class Pollers {
 	 * @param period the fixed rate period to use.
 	 * @param timeUnit the {@link TimeUnit} to use.
 	 * @return the {@link PollerSpec}
-	 * @see PeriodicTrigger
 	 * @deprecated since 6.0 in favor of {@link #fixedRate(Duration)}
+	 * @see PeriodicTrigger
 	 */
 	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedRate(long period, TimeUnit timeUnit) {
@@ -114,8 +114,8 @@ public final class Pollers {
 	 * @param timeUnit the {@link TimeUnit} to use.
 	 * @param initialDelay the initial delay to use.
 	 * @return the {@link PollerSpec}
-	 * @see PeriodicTrigger
 	 * @deprecated since 6.0 in favor of {@link #fixedRate(Duration, Duration)}
+	 * @see PeriodicTrigger
 	 */
 	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedRate(long period, TimeUnit timeUnit, long initialDelay) {
@@ -167,8 +167,8 @@ public final class Pollers {
 	 * @param period the fixed delay period to use.
 	 * @param timeUnit the {@link TimeUnit} to use.
 	 * @return the {@link PollerSpec}
-	 * @see PeriodicTrigger
 	 * @deprecated since 6.0 in favor of {@link #fixedDelay(Duration)}
+	 * @see PeriodicTrigger
 	 */
 	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedDelay(long period, TimeUnit timeUnit) {
@@ -197,8 +197,8 @@ public final class Pollers {
 	 * @param timeUnit the {@link TimeUnit} to use.
 	 * @param initialDelay the initial delay to use.
 	 * @return the {@link PollerSpec}
-	 * @see PeriodicTrigger
 	 * @deprecated since 6.0 in favor of {@link #fixedDelay(Duration, Duration)}
+	 * @see PeriodicTrigger
 	 */
 	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedDelay(long period, TimeUnit timeUnit, long initialDelay) {

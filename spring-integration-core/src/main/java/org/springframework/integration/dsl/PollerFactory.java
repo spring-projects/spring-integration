@@ -84,8 +84,8 @@ public final class PollerFactory {
 	 * @param period the fixed rate period to use.
 	 * @param timeUnit the {@link TimeUnit} to use.
 	 * @return the {@link PollerSpec}
-	 * @see Pollers#fixedRate(Duration)
 	 * @deprecated since 6.1 in favor of {@link #fixedRate(Duration)}
+	 * @see Pollers#fixedRate(Duration)
 	 */
 	@Deprecated(forRemoval = true)
 	public PollerSpec fixedRate(long period, TimeUnit timeUnit) {
@@ -96,8 +96,8 @@ public final class PollerFactory {
 	 * Create a {@link PollerSpec} based on the provided fixed rate period.
 	 * @param period the fixed rate period to use.
 	 * @return the {@link PollerSpec}
-	 * @see Pollers#fixedRate(Duration)
 	 * @since 6.1
+	 * @see Pollers#fixedRate(Duration)
 	 */
 	public static PollerSpec fixedRate(Duration period) {
 		return Pollers.fixedRate(period);
@@ -119,8 +119,8 @@ public final class PollerFactory {
 	 * @param period the fixed rate period to use.
 	 * @param initialDelay the initial delay to use.
 	 * @return the {@link PollerSpec}
-	 * @see Pollers#fixedRate(Duration)
 	 * @since 6.1
+	 * @see Pollers#fixedRate(Duration)
 	 */
 	public static PollerSpec fixedRate(Duration period, Duration initialDelay) {
 		return Pollers.fixedRate(period, initialDelay);
@@ -133,8 +133,8 @@ public final class PollerFactory {
 	 * @param timeUnit the {@link TimeUnit} to use.
 	 * @param initialDelay the initial delay to use.
 	 * @return the {@link PollerSpec}
-	 * @see Pollers#fixedRate(Duration, Duration)
 	 * @deprecated since 6.1 in favor of {@link #fixedRate(Duration, Duration)}
+	 * @see Pollers#fixedRate(Duration, Duration)
 	 */
 	@Deprecated(forRemoval = true)
 	public PollerSpec fixedRate(long period, TimeUnit timeUnit, long initialDelay) {
@@ -149,8 +149,8 @@ public final class PollerFactory {
 	 * @param timeUnit the {@link TimeUnit} to use.
 	 * @param initialDelay the initial delay to use.
 	 * @return the {@link PollerSpec}
-	 * @see Pollers#fixedDelay(Duration, Duration)
 	 * @deprecated since 6.1 in favor of {@link #fixedDelay(Duration, Duration)}
+	 * @see Pollers#fixedDelay(Duration, Duration)
 	 */
 	@Deprecated(forRemoval = true)
 	public PollerSpec fixedDelay(long period, TimeUnit timeUnit, long initialDelay) {
@@ -163,8 +163,8 @@ public final class PollerFactory {
 	 * @param period the fixed delay period to use.
 	 * @param timeUnit the {@link TimeUnit} to use.
 	 * @return the {@link PollerSpec}
-	 * @see Pollers#fixedDelay(Duration)
 	 * @deprecated since 6.1 in favor of {@link #fixedDelay(Duration)}
+	 * @see Pollers#fixedDelay(Duration)
 	 */
 	@Deprecated(forRemoval = true)
 	public PollerSpec fixedDelay(long period, TimeUnit timeUnit) {
@@ -208,8 +208,8 @@ public final class PollerFactory {
 	 * @param period the fixed delay period to use.
 	 * @param initialDelay the initial delay to use.
 	 * @return the {@link PollerSpec}
-	 * @see Pollers#fixedDelay(Duration)
 	 * @since 6.1
+	 * @see Pollers#fixedDelay(Duration)
 	 */
 	public static PollerSpec fixedDelay(Duration period, Duration initialDelay) {
 		return Pollers.fixedDelay(period, initialDelay);
