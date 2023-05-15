@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
 import org.reactivestreams.Publisher;
@@ -102,18 +103,42 @@ public class FluxMessageChannel extends AbstractMessageChannel
 				.share()
 				.subscribe(subscriber);
 
-		this.upstreamSubscriptions.add(
+		Mono<Boolean> subscribersBarrier =
 				Mono.fromCallable(() -> this.sink.currentSubscriberCount() > 0)
 						.filter(Boolean::booleanValue)
 						.doOnNext(this.subscribedSignal::tryEmitNext)
 						.repeatWhenEmpty((repeat) ->
-								this.active ? repeat.delayElements(Duration.ofMillis(100)) : repeat) // NOSONAR
-						.subscribe());
+								this.active ? repeat.delayElements(Duration.ofMillis(100)) : repeat); // NOSONAR
+
+		addPublisherToSubscribe(Flux.from(subscribersBarrier));
+	}
+
+	private void addPublisherToSubscribe(Flux<?> publisher) {
+		AtomicReference<Disposable> disposableReference = new AtomicReference<>();
+
+		Disposable disposable =
+				publisher
+						.doOnTerminate(() -> disposeUpstreamSubscription(disposableReference))
+						.subscribe();
+
+		if (!disposable.isDisposed()) {
+			if (this.upstreamSubscriptions.add(disposable)) {
+				disposableReference.set(disposable);
+			}
+		}
+	}
+
+	private void disposeUpstreamSubscription(AtomicReference<Disposable> disposableReference) {
+		Disposable disposable = disposableReference.get();
+		if (disposable != null) {
+			this.upstreamSubscriptions.remove(disposable);
+			disposable.dispose();
+		}
 	}
 
 	@Override
 	public void subscribeTo(Publisher<? extends Message<?>> publisher) {
-		this.upstreamSubscriptions.add(
+		Flux<?> upstreamPublisher =
 				Flux.from(publisher)
 						.delaySubscription(this.subscribedSignal.asFlux().filter(Boolean::booleanValue).next())
 						.publishOn(this.scheduler)
@@ -127,8 +152,9 @@ public class FluxMessageChannel extends AbstractMessageChannel
 							catch (Exception ex) {
 								logger.warn(ex, () -> "Error during processing event: " + message);
 							}
-						})
-						.subscribe());
+						});
+
+		addPublisherToSubscribe(upstreamPublisher);
 	}
 
 	@Override
