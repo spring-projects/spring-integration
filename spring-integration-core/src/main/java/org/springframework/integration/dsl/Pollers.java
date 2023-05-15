@@ -27,7 +27,7 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
- * An utility class to provide {@link PollerSpec}s for
+ * A utility class to provide {@link PollerSpec}s for
  * {@link org.springframework.integration.scheduling.PollerMetadata} configuration
  * variants.
  *
@@ -38,36 +38,84 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  */
 public final class Pollers {
 
-	public static PollerSpec trigger(Trigger trigger) {
-		return new PollerSpec(trigger);
-	}
-
+	/**
+	 * Create a {@link PollerSpec} based on the provided fixed rate period.
+	 * The "fixed rate" means that periodic interval should be measured between the
+	 * scheduled start times rather than between actual completion times.
+	 * @param period the fixed rate period (in milliseconds) to use.
+	 * @return the {@link PollerSpec}
+	 * @see PeriodicTrigger
+	 */
 	public static PollerSpec fixedRate(long period) {
 		return fixedRate(Duration.ofMillis(period));
 	}
 
+	/**
+	 * Create a {@link PollerSpec} based on the provided fixed rate period.
+	 * The "fixed rate" means that periodic interval should be measured between the
+	 * scheduled start times rather than between actual completion times.
+	 * @param period the fixed rate period to use.
+	 * @return the {@link PollerSpec}
+	 * @see PeriodicTrigger
+	 */
 	public static PollerSpec fixedRate(Duration period) {
 		return periodicTrigger(period, true, null);
 	}
 
 	/**
+	 * Create a {@link PollerSpec} based on the provided fixed rate period.
+	 * The "fixed rate" means that periodic interval should be measured between the
+	 * scheduled start times rather than between actual completion times.
+	 * @param period the fixed rate period to use.
+	 * @param timeUnit the {@link TimeUnit} to use.
+	 * @return the {@link PollerSpec}
 	 * @deprecated since 6.0 in favor of {@link #fixedRate(Duration)}
+	 * @see PeriodicTrigger
 	 */
 	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedRate(long period, TimeUnit timeUnit) {
 		return fixedRate(Duration.of(period, timeUnit.toChronoUnit()));
 	}
 
+	/**
+	 * Create a {@link PollerSpec} based on the provided fixed rate period
+	 * and initial delay.
+	 * The "fixed rate" means that periodic interval should be measured between the
+	 * scheduled start times rather than between actual completion times.
+	 * @param period the fixed rate period to use.
+	 * @param initialDelay the initial delay to use.
+	 * @return the {@link PollerSpec}
+	 * @see PeriodicTrigger
+	 */
 	public static PollerSpec fixedRate(Duration period, Duration initialDelay) {
 		return periodicTrigger(period, true, initialDelay);
 	}
 
+	/**
+	 * Create a {@link PollerSpec} based on the provided fixed rate period
+	 * and initial delay.
+	 * The "fixed rate" means that periodic interval should be measured between the
+	 * scheduled start times rather than between actual completion times.
+	 * @param period the fixed rate period to use.
+	 * @param initialDelay the initial delay to use.
+	 * @return the {@link PollerSpec}
+	 * @see PeriodicTrigger
+	 */
 	public static PollerSpec fixedRate(long period, long initialDelay) {
 		return fixedRate(Duration.ofMillis(period), Duration.ofMillis(initialDelay));
 	}
 
 	/**
+	 * Create a {@link PollerSpec} based on the provided fixed rate period
+	 * and initial delay.
+	 * The "fixed rate" means that periodic interval should be measured between the
+	 * scheduled start times rather than between actual completion times.
+	 * @param period the fixed rate period to use.
+	 * @param timeUnit the {@link TimeUnit} to use.
+	 * @param initialDelay the initial delay to use.
+	 * @return the {@link PollerSpec}
 	 * @deprecated since 6.0 in favor of {@link #fixedRate(Duration, Duration)}
+	 * @see PeriodicTrigger
 	 */
 	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedRate(long period, TimeUnit timeUnit, long initialDelay) {
@@ -75,32 +123,82 @@ public final class Pollers {
 		return fixedRate(Duration.of(period, chronoUnit), Duration.of(initialDelay, chronoUnit));
 	}
 
+	/**
+	 * Create a {@link PollerSpec} based on the provided fixed delay period.
+	 * The "fixed delay" means that periodic interval should be measured between the
+	 * scheduled tasks actual completion times.
+	 * @param period the fixed delay period to use.
+	 * @return the {@link PollerSpec}
+	 * @see PeriodicTrigger
+	 */
 	public static PollerSpec fixedDelay(Duration period) {
 		return periodicTrigger(period, false, null);
 	}
 
+	/**
+	 * Create a {@link PollerSpec} based on the provided fixed delay period.
+	 * The "fixed delay" means that periodic interval should be measured between the
+	 * scheduled tasks actual completion times.
+	 * @param period the fixed delay period to use.
+	 * @return the {@link PollerSpec}
+	 * @see PeriodicTrigger
+	 */
 	public static PollerSpec fixedDelay(long period) {
 		return fixedDelay(Duration.ofMillis(period));
 	}
 
+	/**
+	 * Create a {@link PollerSpec} based on the provided fixed delay period and initial delay.
+	 * The "fixed delay" means that periodic interval should be measured between the
+	 * scheduled tasks actual completion times.
+	 * @param period the fixed delay period to use.
+	 * @param initialDelay the initial delay to use.
+	 * @return the {@link PollerSpec}
+	 * @see PeriodicTrigger
+	 */
 	public static PollerSpec fixedDelay(Duration period, Duration initialDelay) {
 		return periodicTrigger(period, false, initialDelay);
 	}
 
 	/**
+	 * Create a {@link PollerSpec} based on the provided fixed delay period.
+	 * The "fixed delay" means that periodic interval should be measured between the
+	 * scheduled tasks actual completion times.
+	 * @param period the fixed delay period to use.
+	 * @param timeUnit the {@link TimeUnit} to use.
+	 * @return the {@link PollerSpec}
 	 * @deprecated since 6.0 in favor of {@link #fixedDelay(Duration)}
+	 * @see PeriodicTrigger
 	 */
 	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedDelay(long period, TimeUnit timeUnit) {
 		return fixedDelay(Duration.of(period, timeUnit.toChronoUnit()));
 	}
 
+	/**
+	 * Create a {@link PollerSpec} based on the provided fixed delay period and initial delay.
+	 * The "fixed delay" means that periodic interval should be measured between the
+	 * scheduled tasks actual completion times.
+	 * @param period the fixed delay period to use.
+	 * @param initialDelay the initial delay to use.
+	 * @return the {@link PollerSpec}
+	 * @see PeriodicTrigger
+	 */
 	public static PollerSpec fixedDelay(long period, long initialDelay) {
 		return fixedDelay(Duration.ofMillis(period), Duration.ofMillis(initialDelay));
 	}
 
 	/**
+	 * Create a {@link PollerSpec} based on the provided fixed delay period
+	 * and initial delay.
+	 * The "fixed delay" means that periodic interval should be measured between the
+	 * scheduled tasks actual completion times.
+	 * @param period the fixed delay period to use.
+	 * @param timeUnit the {@link TimeUnit} to use.
+	 * @param initialDelay the initial delay to use.
+	 * @return the {@link PollerSpec}
 	 * @deprecated since 6.0 in favor of {@link #fixedDelay(Duration, Duration)}
+	 * @see PeriodicTrigger
 	 */
 	@Deprecated(forRemoval = true)
 	public static PollerSpec fixedDelay(long period, TimeUnit timeUnit, long initialDelay) {
@@ -114,15 +212,38 @@ public final class Pollers {
 		if (initialDelay != null) {
 			periodicTrigger.setInitialDelay(initialDelay);
 		}
-		return new PollerSpec(periodicTrigger);
+		return trigger(periodicTrigger);
 	}
 
+	/**
+	 * Create a {@link PollerSpec} based on the provided cron expression.
+	 * @param cronExpression the cron to use.
+	 * @return the {@link PollerSpec}
+	 * @see CronTrigger
+	 */
 	public static PollerSpec cron(String cronExpression) {
 		return cron(cronExpression, TimeZone.getDefault());
 	}
 
+	/**
+	 * Create a {@link PollerSpec} based on the provided cron expression and {@link TimeZone}.
+	 * @param cronExpression the cron to use.
+	 * @param timeZone the {@link TimeZone} to use.
+	 * @return the {@link PollerSpec}
+	 * @see CronTrigger
+	 */
 	public static PollerSpec cron(String cronExpression, TimeZone timeZone) {
-		return new PollerSpec(new CronTrigger(cronExpression, timeZone));
+		return trigger(new CronTrigger(cronExpression, timeZone));
+	}
+
+	/**
+	 * Create a {@link PollerSpec} based on the provided {@link Trigger}.
+	 * @param trigger the {@link Trigger} to use.
+	 * @return the {@link PollerSpec}
+	 * @see Pollers#trigger(Trigger)
+	 */
+	public static PollerSpec trigger(Trigger trigger) {
+		return new PollerSpec(trigger);
 	}
 
 	private Pollers() {
