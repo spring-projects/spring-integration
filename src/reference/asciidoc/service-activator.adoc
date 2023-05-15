@@ -7,9 +7,9 @@ Alternatively, an output-producing service may be located at the end of a proces
 This is the default behavior if no output channel is defined.
 As with most of the configuration options described here, the same behavior actually applies for most of the other components.
 
-The service activator is essentially a generic endpoint for calling method on some object with an input message and its headers.
-Its internal logic is based on a `MessageHandler` which can be any possible implementation for specific use-case, for example `DefaultMessageSplitter`, `AggregatingMessageHandler`, `SftpMessageHandler`, `JpaOutboundGateway` etc.
-Therefore any outbound gateway and outbound channel adapter mentioned in this reference manual should be treated as a specific extension of this service activator endpoint: they all in the end call some object's method.
+The service activator is essentially a generic endpoint for calling a method on some object with an input message (payload and headers).
+Its internal logic is based on a `MessageHandler` which can be any possible implementation for a specific use-case, for example `DefaultMessageSplitter`, `AggregatingMessageHandler`, `SftpMessageHandler`, `JpaOutboundGateway` etc.
+Therefore, any outbound gateway and outbound channel adapter mentioned in this reference manual should be treated as a specific extension of this service activator endpoint; they all, in the end, call some object's method.
 
 [[service-activator-namespace]]
 ==== Configuring Service Activator
