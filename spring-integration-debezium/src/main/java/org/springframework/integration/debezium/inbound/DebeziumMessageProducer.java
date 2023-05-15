@@ -81,7 +81,12 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	private HeaderMapper<List<Header<Object>>> headerMapper = new DefaultDebeziumHeaderMapper();
 
 	/**
-	 * Enable support for tombstone (aka delete) messages.
+	 * Enables support for tombstone (aka delete) messages. On a database row delete, Debezium can send a tombstone
+	 * change event that has the same key as the deleted row and a value of {@link Optional.empty()}. This record is a
+	 * marker for downstream processors. It indicates that log compaction can remove all records that have this key.
+	 *
+	 * When the tombstone functionality is enabled in the Debezium connector configuration you should enable the empty
+	 * payload as well.
 	 */
 	private boolean enableEmptyPayload = false;
 
