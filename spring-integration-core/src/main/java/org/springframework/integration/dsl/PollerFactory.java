@@ -196,8 +196,8 @@ public final class PollerFactory {
 	 * Create a {@link PollerSpec} based on the provided fixed delay period.
 	 * @param period the fixed delay period to use.
 	 * @return the {@link PollerSpec}
-	 * @see Pollers#fixedDelay(Duration)
 	 * @since 6.1
+	 * @see Pollers#fixedDelay(Duration)
 	 */
 	public static PollerSpec fixedDelay(Duration period) {
 		return Pollers.fixedDelay(period);
