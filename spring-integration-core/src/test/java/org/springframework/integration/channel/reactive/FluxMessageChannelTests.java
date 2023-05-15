@@ -26,6 +26,8 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -140,6 +142,25 @@ public class FluxMessageChannelTests {
 		flowRegistration.destroy();
 
 		assertThat(TestUtils.getPropertyValue(flux, "sink.sink.done", Boolean.class)).isTrue();
+	}
+
+	@Test
+	void noMemoryLeakInFluxMessageChannelForVolatilePublishers() {
+		FluxMessageChannel messageChannel = new FluxMessageChannel();
+
+		StepVerifier stepVerifier = StepVerifier.create(messageChannel)
+				.expectNextCount(3)
+				.thenCancel()
+				.verifyLater();
+
+		messageChannel.subscribeTo(Mono.just(new GenericMessage<>("test")));
+		messageChannel.subscribeTo(Flux.just("test1", "test2").map(GenericMessage::new));
+
+		stepVerifier.verify();
+
+		Disposable.Composite upstreamSubscriptions =
+				TestUtils.getPropertyValue(messageChannel, "upstreamSubscriptions", Disposable.Composite.class);
+		assertThat(upstreamSubscriptions.size()).isEqualTo(0);
 	}
 
 	@Configuration
