@@ -18,8 +18,8 @@ package org.springframework.integration.debezium.inbound;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -31,18 +31,16 @@ import java.util.function.Consumer;
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.DebeziumEngine.Builder;
+import io.debezium.engine.DebeziumEngine.ChangeConsumer;
+import io.debezium.engine.DebeziumEngine.RecordCommitter;
 import io.debezium.engine.Header;
 import io.debezium.engine.format.SerializationFormat;
 
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.HeaderMapper;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.MimeTypeUtils;
 
 /**
  * Debezium Change Event Channel Adapter.
@@ -50,13 +48,7 @@ import org.springframework.util.MimeTypeUtils;
  * @author Christian Tzolov
  * @since 6.2
  */
-public class DebeziumMessageProducer extends MessageProducerSupport implements BeanClassLoaderAware {
-	/**
-	 * ORG_SPRINGFRAMEWORK_KAFKA_SUPPORT_KAFKA_NULL.
-	 */
-	public static final String ORG_SPRINGFRAMEWORK_KAFKA_SUPPORT_KAFKA_NULL = "org.springframework.kafka.support.KafkaNull";
-
-	private Object kafkaNull = null;
+public class DebeziumMessageProducer extends MessageProducerSupport {
 
 	private DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder;
 
@@ -88,8 +80,28 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 	 */
 	private HeaderMapper<List<Header<Object>>> headerMapper = new DefaultDebeziumHeaderMapper();
 
+	/**
+	 * Enable support for tombstone (aka delete) messages.
+	 */
+	private boolean enableEmptyPayload = false;
+
+	/**
+	 * Alow sending batch of Change Event messages down stream.
+	 */
+	private boolean enableBatch = false;
+
 	public DebeziumMessageProducer(Builder<ChangeEvent<byte[], byte[]>> debeziumBuilder) {
+		Assert.notNull(debeziumBuilder, "Failed to resolve Debezium Engine Builder. " +
+				"Debezium Engine Builder must either be set explicitly via constructor argument.");
 		this.debeziumEngineBuilder = debeziumBuilder;
+	}
+
+	public void setEnableBatch(boolean batch) {
+		this.enableBatch = batch;
+	}
+
+	public void setEnableEmptyPayload(boolean enableEmptyPayload) {
+		this.enableEmptyPayload = enableEmptyPayload;
 	}
 
 	/**
@@ -111,34 +123,25 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 	}
 
 	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		try {
-			Class<?> clazz = ClassUtils.forName(ORG_SPRINGFRAMEWORK_KAFKA_SUPPORT_KAFKA_NULL, classLoader);
-			Field field = clazz.getDeclaredField("INSTANCE");
-			this.kafkaNull = field.get(null);
-		}
-		catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
-		}
-	}
-
-	@Override
 	public String getComponentType() {
 		return "debezium:inbound-channel-adapter";
 	}
 
 	@Override
 	protected void onInit() {
-
 		super.onInit();
 
-		Assert.notNull(this.debeziumEngineBuilder, "Failed to resolve Debezium Engine Builder. " +
-				"Debezium Engine Builder must either be set explicitly via constructor argument.");
 		Assert.notNull(this.executorService, "Invalid Executor Service. ");
 		Assert.notNull(this.headerMapper, "Header mapper can not be null!");
 
-		this.debeziumEngine = this.debeziumEngineBuilder
-				.notifying(new ChangeEventConsumer<byte[]>(this.headerMapper, this.contentType))
-				.build();
+		if (this.enableBatch) {
+			this.debeziumEngineBuilder.notifying(new BatchChangeEventConsumer<byte[]>());
+		}
+		else {
+			this.debeziumEngineBuilder.notifying(new ChangeEventConsumer<byte[]>(this.headerMapper, this.contentType));
+		}
+
+		this.debeziumEngine = this.debeziumEngineBuilder.build();
 	}
 
 	@Override
@@ -188,11 +191,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 		}
 	}
 
-	void nextMessage(Message<?> message) {
-		this.sendMessage(message);
-	}
-
-	private final class ChangeEventConsumer<T> implements Consumer<ChangeEvent<T, T>> {
+	final class ChangeEventConsumer<T> implements Consumer<ChangeEvent<T, T>> {
 
 		/**
 		 * Outbound message content type. Should be aligned with the {@link SerializationFormat} configured for the
@@ -224,8 +223,8 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 			// while the metadata information is carried through the headers (debezium_key).
 			// Note: Event for none flattened responses, when the debezium.properties.tombstones.on.delete=true
 			// (default), tombstones are generate by Debezium and handled by the code below.
-			if (payload == null) {
-				payload = DebeziumMessageProducer.this.kafkaNull;
+			if (payload == null && DebeziumMessageProducer.this.enableEmptyPayload) {
+				payload = Optional.empty();
 			}
 
 			// If payload is still null ignore the message.
@@ -238,15 +237,22 @@ public class DebeziumMessageProducer extends MessageProducerSupport implements B
 					.withPayload(payload)
 					.setHeader(DebeziumHeaders.KEY, key)
 					.setHeader(DebeziumHeaders.DESTINATION, destination)
-					.setHeader(MessageHeaders.CONTENT_TYPE,
-							(payload.equals(DebeziumMessageProducer.this.kafkaNull))
-									? MimeTypeUtils.TEXT_PLAIN_VALUE
-									: this.contentType);
+					.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType);
 
 			// Use the provided header mapper to convert Debezium headers into message headers.
 			messageBuilder.copyHeaders(this.headerMapper.toHeaders(changeEvent.headers()));
 
-			DebeziumMessageProducer.this.sendMessage(messageBuilder.build());
+			sendMessage(messageBuilder.build());
 		}
+	}
+
+	final class BatchChangeEventConsumer<T> implements ChangeConsumer<ChangeEvent<T, T>> {
+
+		@Override
+		public void handleBatch(List<ChangeEvent<T, T>> records, RecordCommitter<ChangeEvent<T, T>> committer)
+				throws InterruptedException {
+			throw new UnsupportedOperationException("Unimplemented method 'handleBatch'");
+		}
+
 	}
 }
