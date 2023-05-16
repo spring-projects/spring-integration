@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.SftpTestSupport;
-import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
@@ -58,7 +57,6 @@ import static org.mockito.Mockito.mock;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@LogLevels(level = "trace", categories = "org.apache.sshd")
 public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 
 	@Autowired
