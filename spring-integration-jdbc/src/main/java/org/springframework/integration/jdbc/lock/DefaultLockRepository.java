@@ -17,7 +17,8 @@
 package org.springframework.integration.jdbc.lock;
 
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -341,13 +342,13 @@ public class DefaultLockRepository
 		Boolean result =
 				this.serializableTransactionTemplate.execute(
 						transactionStatus -> {
-							if (this.template.update(this.updateQuery, this.id, Instant.now(),
-									this.region, lock, this.id, Instant.now().minus(this.ttl)) > 0) {
+							if (this.template.update(this.updateQuery, this.id, epochMillis(),
+									this.region, lock, this.id, ttlEpochMillis()) > 0) {
 								return true;
 							}
 							try {
 								return this.template.update(this.insertQuery, this.region, lock, this.id,
-										Instant.now()) > 0;
+										epochMillis()) > 0;
 							}
 							catch (DataIntegrityViolationException ex) {
 								return false;
@@ -362,8 +363,7 @@ public class DefaultLockRepository
 				transactionStatus ->
 						Integer.valueOf(1).equals(
 								this.template.queryForObject(this.countQuery,
-										Integer.class, this.region, lock, this.id,
-										Instant.now().minus(this.ttl))));
+										Integer.class, this.region, lock, this.id, ttlEpochMillis())));
 		return Boolean.TRUE.equals(result);
 	}
 
@@ -371,15 +371,23 @@ public class DefaultLockRepository
 	public void deleteExpired() {
 		this.defaultTransactionTemplate.executeWithoutResult(
 				transactionStatus ->
-						this.template.update(this.deleteExpiredQuery, this.region, Instant.now().minus(this.ttl)));
+						this.template.update(this.deleteExpiredQuery, this.region, ttlEpochMillis()));
 	}
 
 	@Override
 	public boolean renew(String lock) {
 		final Boolean result = this.defaultTransactionTemplate.execute(
 				transactionStatus ->
-						this.template.update(this.renewQuery, Instant.now(), this.region, lock, this.id) > 0);
+						this.template.update(this.renewQuery, epochMillis(), this.region, lock, this.id) > 0);
 		return Boolean.TRUE.equals(result);
+	}
+
+	private LocalDateTime ttlEpochMillis() {
+		return epochMillis().minus(this.ttl);
+	}
+
+	private static LocalDateTime epochMillis() {
+		return LocalDateTime.now(ZoneOffset.UTC);
 	}
 
 }
