@@ -19,6 +19,7 @@ package org.springframework.integration.debezium.inbound;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -27,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
@@ -37,6 +39,7 @@ import io.debezium.engine.Header;
 import io.debezium.engine.format.SerializationFormat;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.HeaderMapper;
 import org.springframework.messaging.support.MessageBuilder;
@@ -82,7 +85,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 	/**
 	 * Enables support for tombstone (aka delete) messages. On a database row delete, Debezium can send a tombstone
-	 * change event that has the same key as the deleted row and a value of {@link Optional.empty()}. This record is a
+	 * change event that has the same key as the deleted row and a value of {@link Optional.empty}. This record is a
 	 * marker for downstream processors. It indicates that log compaction can remove all records that have this key.
 	 *
 	 * When the tombstone functionality is enabled in the Debezium connector configuration you should enable the empty
@@ -143,7 +146,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 			this.debeziumEngineBuilder.notifying(new BatchChangeEventConsumer<byte[]>());
 		}
 		else {
-			this.debeziumEngineBuilder.notifying(new ChangeEventConsumer<byte[]>(this.headerMapper, this.contentType));
+			this.debeziumEngineBuilder.notifying(new ChangeEventConsumer<byte[]>());
 		}
 
 		this.debeziumEngine = this.debeziumEngineBuilder.build();
@@ -196,58 +199,47 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		}
 	}
 
-	final class ChangeEventConsumer<T> implements Consumer<ChangeEvent<T, T>> {
+	private <T> Message<?> toMessage(ChangeEvent<T, T> changeEvent) {
 
-		/**
-		 * Outbound message content type. Should be aligned with the {@link SerializationFormat} configured for the
-		 * {@link DebeziumEngine}.
-		 */
-		private final String contentType;
-
-		/**
-		 * Specifies how to convert Debezium change event headers into Message headers.
-		 */
-		private HeaderMapper<List<Header<Object>>> headerMapper;
-
-		ChangeEventConsumer(HeaderMapper<List<Header<Object>>> headerMapper, String contentType) {
-			this.headerMapper = headerMapper;
-			this.contentType = contentType;
+		if (logger.isDebugEnabled()) {
+			logger.debug("[Debezium Event]: " + changeEvent.key());
 		}
+
+		Object key = changeEvent.key();
+		Object payload = changeEvent.value();
+		String destination = changeEvent.destination();
+
+		// When the tombstone event is enabled, Debezium serializes the payload to null (e.g. empty payload)
+		// while the metadata information is carried through the headers (debezium_key).
+		// Note: Event for none flattened responses, when the debezium.properties.tombstones.on.delete=true
+		// (default), tombstones are generate by Debezium and handled by the code below.
+		if (payload == null && DebeziumMessageProducer.this.enableEmptyPayload) {
+			payload = Optional.empty();
+		}
+
+		// If payload is still null ignore the message.
+		if (payload == null) {
+			logger.info("Dropped null payload message");
+			return null;
+		}
+
+		MessageBuilder<?> messageBuilder = MessageBuilder
+				.withPayload(payload)
+				.setHeader(DebeziumHeaders.KEY, key)
+				.setHeader(DebeziumHeaders.DESTINATION, destination)
+				.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType);
+
+		// Use the provided header mapper to convert Debezium headers into message headers.
+		messageBuilder.copyHeaders(this.headerMapper.toHeaders(changeEvent.headers()));
+
+		return messageBuilder.build();
+	}
+
+	final class ChangeEventConsumer<T> implements Consumer<ChangeEvent<T, T>> {
 
 		@Override
 		public void accept(ChangeEvent<T, T> changeEvent) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("[Debezium Event]: " + changeEvent.key());
-			}
-
-			Object key = changeEvent.key();
-			Object payload = changeEvent.value();
-			String destination = changeEvent.destination();
-
-			// When the tombstone event is enabled, Debezium serializes the payload to null (e.g. empty payload)
-			// while the metadata information is carried through the headers (debezium_key).
-			// Note: Event for none flattened responses, when the debezium.properties.tombstones.on.delete=true
-			// (default), tombstones are generate by Debezium and handled by the code below.
-			if (payload == null && DebeziumMessageProducer.this.enableEmptyPayload) {
-				payload = Optional.empty();
-			}
-
-			// If payload is still null ignore the message.
-			if (payload == null) {
-				logger.info("Dropped null payload message");
-				return;
-			}
-
-			MessageBuilder<?> messageBuilder = MessageBuilder
-					.withPayload(payload)
-					.setHeader(DebeziumHeaders.KEY, key)
-					.setHeader(DebeziumHeaders.DESTINATION, destination)
-					.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType);
-
-			// Use the provided header mapper to convert Debezium headers into message headers.
-			messageBuilder.copyHeaders(this.headerMapper.toHeaders(changeEvent.headers()));
-
-			sendMessage(messageBuilder.build());
+			sendMessage(toMessage(changeEvent));
 		}
 	}
 
@@ -256,8 +248,21 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		@Override
 		public void handleBatch(List<ChangeEvent<T, T>> records, RecordCommitter<ChangeEvent<T, T>> committer)
 				throws InterruptedException {
-			throw new UnsupportedOperationException("Unimplemented method 'handleBatch'");
-		}
 
+			List<Message<?>> batchPayload = records.stream()
+					.map(DebeziumMessageProducer.this::toMessage)
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+
+			for (ChangeEvent<T, T> event : records) {
+				committer.markProcessed(event);
+			}
+
+			MessageBuilder<?> messageBuilder = MessageBuilder
+					.withPayload(batchPayload);
+
+			sendMessage(messageBuilder.build());
+			committer.markBatchFinished();
+		}
 	}
 }
