@@ -16,6 +16,8 @@
 
 package org.springframework.integration.debezium.stream;
 
+import java.util.List;
+
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
 import org.apache.commons.logging.Log;
@@ -31,6 +33,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.debezium.inbound.DebeziumMessageProducer;
+import org.springframework.integration.debezium.inbound.DebeziumMessageProducer.SendMode;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,33 +44,37 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Christian Tzolov
  */
-@SpringJUnitConfig(DebeziumStreamTests.StreamTestConfiguration.class)
+@SpringJUnitConfig(DebeziumBatchTests.BatchTestConfiguration.class)
 @DirtiesContext
-public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
+public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 
-	static final Log logger = LogFactory.getLog(DebeziumStreamTests.class);
+	static final Log logger = LogFactory.getLog(DebeziumBatchTests.class);
 
 	@Autowired
 	@Qualifier("queueChannel")
 	private QueueChannel queueChannel;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	void mysqlInventoryDB() throws InterruptedException {
-		for (int i = 0; i < 52; i++) {
-			logger.info("Message index: " + i);
-			Message<?> message = this.queueChannel.receive(10_000);
-			assertThat(message).isNotNull();
-		}
+		Message<?> message = this.queueChannel.receive(10_000);
+		assertThat(message).isNotNull();
+		List<ChangeEvent<Object, Object>> payload = (List<ChangeEvent<Object, Object>>) message.getPayload();
+		assertThat(payload).hasSize(52);
+
+		// No more messages.
+		assertThat(this.queueChannel.receive(5_000)).isNull();
 	}
 
 	@Configuration
 	@EnableIntegration
 	@Import(DebeziumTestConfiguration.class)
-	public static class StreamTestConfiguration {
+	public static class BatchTestConfiguration {
 		@Bean
 		public MessageProducer debeziumMessageProducer(MessageChannel debeziumInputChannel,
 				DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
 			DebeziumMessageProducer debeziumMessageProducer = new DebeziumMessageProducer(debeziumEngineBuilder);
+			debeziumMessageProducer.setSendMode(SendMode.CHANGE_EVENTS_BATCH);
 			debeziumMessageProducer.setOutputChannel(debeziumInputChannel);
 			return debeziumMessageProducer;
 		}

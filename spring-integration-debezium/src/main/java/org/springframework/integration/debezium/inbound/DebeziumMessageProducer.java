@@ -39,10 +39,10 @@ import io.debezium.engine.Header;
 import io.debezium.engine.format.SerializationFormat;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.HeaderMapper;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -93,10 +93,30 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	 */
 	private boolean enableEmptyPayload = false;
 
+	public enum SendMode {
+		/**
+		 * Sends downstream {@link Message} for every {@link ChangeEvent data change event} read from the source
+		 * database.
+		 */
+		MESSAGE,
+		/**
+		 * Converts the received {@link List} of {@link ChangeEvent}s into a {@link List} of {@link Message} payload and
+		 * sends it as single (batch) message downstream. Such payload is not serializable and would required custom
+		 * serialization/deserialization implementation.
+		 */
+		MESSAGES_BATCH,
+		/**
+		 * Sends the received {@link List} of {@link ChangeEvent}s as a raw {@link Message} payload in a single (batch)
+		 * downstream message. Such payload is not serializable and would required custom serialization/deserialization
+		 * implementation.
+		 */
+		CHANGE_EVENTS_BATCH
+	}
+
 	/**
-	 * Alow sending batch of Change Event messages down stream.
+	 * Defines if a single or a batch of messages are send downstream.
 	 */
-	private boolean enableBatch = false;
+	private SendMode sendMode = SendMode.MESSAGE;
 
 	public DebeziumMessageProducer(Builder<ChangeEvent<byte[], byte[]>> debeziumBuilder) {
 		Assert.notNull(debeziumBuilder, "Failed to resolve Debezium Engine Builder. " +
@@ -104,8 +124,9 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		this.debeziumEngineBuilder = debeziumBuilder;
 	}
 
-	public void setEnableBatch(boolean batch) {
-		this.enableBatch = batch;
+	public void setSendMode(SendMode sendMode) {
+		Assert.notNull(sendMode, "You have to provided non null send mode parameter!");
+		this.sendMode = sendMode;
 	}
 
 	public void setEnableEmptyPayload(boolean enableEmptyPayload) {
@@ -142,11 +163,11 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		Assert.notNull(this.executorService, "Invalid Executor Service. ");
 		Assert.notNull(this.headerMapper, "Header mapper can not be null!");
 
-		if (this.enableBatch) {
-			this.debeziumEngineBuilder.notifying(new BatchChangeEventConsumer<byte[]>());
+		if (this.sendMode == SendMode.MESSAGE) {
+			this.debeziumEngineBuilder.notifying(new ChangeEventConsumer<byte[]>());
 		}
 		else {
-			this.debeziumEngineBuilder.notifying(new ChangeEventConsumer<byte[]>());
+			this.debeziumEngineBuilder.notifying(new BatchChangeEventConsumer<byte[]>());
 		}
 
 		this.debeziumEngine = this.debeziumEngineBuilder.build();
@@ -223,14 +244,12 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 			return null;
 		}
 
-		MessageBuilder<?> messageBuilder = MessageBuilder
-				.withPayload(payload)
+		AbstractIntegrationMessageBuilder<Object> messageBuilder = getMessageBuilderFactory().withPayload(payload)
 				.setHeader(DebeziumHeaders.KEY, key)
 				.setHeader(DebeziumHeaders.DESTINATION, destination)
-				.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType);
-
-		// Use the provided header mapper to convert Debezium headers into message headers.
-		messageBuilder.copyHeaders(this.headerMapper.toHeaders(changeEvent.headers()));
+				.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType)
+				// Use the provided header mapper to convert Debezium headers into message headers.
+				.copyHeaders(this.headerMapper.toHeaders(changeEvent.headers()));
 
 		return messageBuilder.build();
 	}
@@ -246,20 +265,28 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	final class BatchChangeEventConsumer<T> implements ChangeConsumer<ChangeEvent<T, T>> {
 
 		@Override
-		public void handleBatch(List<ChangeEvent<T, T>> records, RecordCommitter<ChangeEvent<T, T>> committer)
+		public void handleBatch(List<ChangeEvent<T, T>> changeEvents, RecordCommitter<ChangeEvent<T, T>> committer)
 				throws InterruptedException {
 
-			List<Message<?>> batchPayload = records.stream()
-					.map(DebeziumMessageProducer.this::toMessage)
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
+			AbstractIntegrationMessageBuilder<Object> messageBuilder;
 
-			for (ChangeEvent<T, T> event : records) {
-				committer.markProcessed(event);
+			if (DebeziumMessageProducer.this.sendMode == SendMode.CHANGE_EVENTS_BATCH) {
+				messageBuilder = getMessageBuilderFactory().withPayload(changeEvents);
+			}
+			else if (DebeziumMessageProducer.this.sendMode == SendMode.MESSAGES_BATCH) {
+				List<Message<?>> batchPayload = changeEvents.stream()
+						.map(DebeziumMessageProducer.this::toMessage)
+						.filter(Objects::nonNull)
+						.collect(Collectors.toList());
+				messageBuilder = getMessageBuilderFactory().withPayload(batchPayload);
+			}
+			else {
+				throw new IllegalStateException("Unknown Send Mode" + DebeziumMessageProducer.this.sendMode);
 			}
 
-			MessageBuilder<?> messageBuilder = MessageBuilder
-					.withPayload(batchPayload);
+			for (ChangeEvent<T, T> event : changeEvents) {
+				committer.markProcessed(event);
+			}
 
 			sendMessage(messageBuilder.build());
 			committer.markBatchFinished();

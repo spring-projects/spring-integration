@@ -57,7 +57,6 @@ public class DebeziumMessageProducerTests {
 		debeziumMessageProducer = new DebeziumMessageProducer(debeziumBuilderMock);
 		debeziumMessageProducer.setOutputChannel(new QueueChannel());
 		debeziumMessageProducer.setBeanFactory(mock(BeanFactory.class));
-
 	}
 
 	@Test
