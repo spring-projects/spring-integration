@@ -39,14 +39,14 @@
 	</bean>
 
 	<bean id="consumerProperties1" class="org.springframework.kafka.listener.ConsumerProperties">
-		<constructor-arg name="topics" value="topic1"/>
+		<constructor-arg value="topic1" type="java.lang.String[]"/>
 		<property name="groupId" value="group"/>
 		<property name="clientId" value="client"/>
 		<property name="consumerRebalanceListener" ref="rebal"/>
 	</bean>
 
 	<bean id="consumerProperties2" class="org.springframework.kafka.listener.ConsumerProperties">
-		<constructor-arg name="topics" value="topic1, topic2"/>
+		<constructor-arg value="topic1, topic2" type="java.lang.String[]"/>
 		<property name="groupId" value="group"/>
 	</bean>
 

@@ -1,0 +1,84 @@
+[[migration-6.0-6.1]]
+=== Changes between 6.0 and 6.1
+
+[[x6.1-new-components]]
+=== New Components
+
+[[x6.1-zip]]
+==== Zip Support
+
+The Zip Spring Integration Extension project has been migrated as the `spring-integration-zip` module.
+See <<./zip.adoc#zip,Zip Support>>  for more information.
+
+[[x6.1-context-holder-advice]]
+==== `ContextHolderRequestHandlerAdvice`
+
+The `ContextHolderRequestHandlerAdvice` allows to store a value from a request message into some context around `MessageHandler` execution.
+See <<./handler-advice.adoc#context-holder-advice, Context Holder Advice>> for more information.
+
+[[x6.1-handle-reactive]]
+==== The `handleReactive()` operator for Java DSL
+The `IntegrationFlow` can now end with a convenient `handleReactive(ReactiveMessageHandler)` operator.
+See <<./reactive-streams.adoc#reactive-message-handler, `ReactiveMessageHandler`>> for more information.
+
+[[x6.1-partitioned-channel]]
+==== `PartitionedChannel`
+A new `PartitionedChannel` has been introduced to process messages with the same partition key in the same thread.
+See <<./channel.adoc#partitioned-channel, `PartitionedChannel`>> for more information.
+
+[[x6.1-general]]
+=== General Changes
+
+- Added support for transforming to/from Protocol Buffers.
+See <<./transformer.adoc#Protobuf-transformers, Protocol Buffers Transformers>> for more information.
+
+- The `MessageFilter` now emits a warning into logs when message is silently discarded and dropped.
+See <<./filter.adoc#filter, Filter>> for more information.
+
+- The default timeout for send and receive operations in gateways and replying channel adapters has been changed from infinity to `30` seconds.
+Only one left as a `1` second is a `receiveTimeout` for `PollingConsumer` to not block a scheduler thread too long and let other queued tasks to be performed with the `TaskScheduler`.
+
+- The `IntegrationComponentSpec.get()` method has been deprecated with removal planned for the next version.
+Since `IntegrationComponentSpec` is a `FactoryBean`, its bean definition must stay as is without any target object resolutions.
+The Java DSL and the framework by itself will manage the `IntegrationComponentSpec` lifecycle.
+See <<./dsl.adoc#java-dsl, Java DSL>> for more information.
+
+- The `AbstractMessageProducingHandler` is marked as an `async` by default if its output channel is configured to a `ReactiveStreamsSubscribableChannel`.
+See <<./service-activator.adoc#async-service-activator,Asynchronous Service Activator>> for more information.
+
+[[x6.1-web-sockets]]
+=== Web Sockets Changes
+
+A `ClientWebSocketContainer` can now be configured with a predefined `URI` instead of a combination of `uriTemplate` and `uriVariables`.
+See <<./web-sockets.adoc#web-socket-overview, WebSocket Overview>> for more information.
+
+[[x6.1-jms]]
+=== JMS Changes
+
+The `JmsInboundGateway`, via its `ChannelPublishingJmsMessageListener`, can now be configured with a `replyToExpression` to resolve a reply destination against the request message at runtime.
+See <<./jms.adoc#jms-inbound-gateway, JMS Inbound Gateway>> for more information.
+
+[[x6.1-mail]]
+=== Mail Changes
+
+The (previously deprecated) `ImapIdleChannelAdapter.sendingTaskExecutor` property has been removed in favor of an asynchronous message process downstream in the flow.
+See <<./mail.adoc#mail-inbound, Mail-receiving Channel Adapter>> for more information.
+
+[[x6.1-file]]
+=== Files Changes
+
+The `FileReadingMessageSource` now exposes `watchMaxDepth` and `watchDirPredicate` options for the `WatchService`.
+See <<./file.adoc#watch-service-directory-scanner, `WatchServiceDirectoryScanner`>> for more information.
+
+[[x6.1-amqp]]
+=== AMQP Changes
+
+The Java DSL API for Rabbit Streams (the `RabbitStream` factory) exposes additional properties for simple configurations.
+See <<./amqp.adoc#rmq-streams, `RabbitMQ Stream Queue Support`>> for more information.
+
+
+[[x6.1-jdbc]]
+=== JDBC Changes
+
+The `DefaultLockRepository` now exposes setters for `insert`, `update` and `renew` queries.
+See <<./jdbc.adoc#jdbc-lock-registry, JDBC Lock Registry>> for more information.

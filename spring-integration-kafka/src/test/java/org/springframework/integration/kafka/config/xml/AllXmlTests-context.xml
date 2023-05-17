@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:property-placeholder />
+	<context:property-placeholder/>
 
 	<bean id="cf" class="org.springframework.kafka.core.DefaultKafkaConsumerFactory">
 		<constructor-arg>
@@ -34,7 +34,7 @@
 	</bean>
 
 	<bean id="cp" class="org.springframework.kafka.listener.ConsumerProperties">
-		<constructor-arg name="topics" value="one"/>
+		<constructor-arg type="java.lang.String[]" value="one"/>
 		<property name="groupId" value="groupForTopic1"/>
 	</bean>
 
@@ -58,8 +58,7 @@
 
 	<int:chain input-channel="fromTwo" output-channel="lastChannel">
 		<int:transformer expression="payload + headers['kafka_receivedTopic']"/>
-		<int-kafka:outbound-gateway
-				kafka-template="replyingTemplate"/>
+		<int-kafka:outbound-gateway kafka-template="replyingTemplate"/>
 		<int:transformer expression="payload + headers['kafka_receivedTopic']"/>
 	</int:chain>
 
@@ -72,8 +71,7 @@
 			kafka-template="replyingTemplate"
 			request-channel="fromThree"/>
 
-	<int:transformer input-channel="fromThree"
-					 expression="payload + headers['kafka_receivedTopic']"/>
+	<int:transformer input-channel="fromThree" expression="payload + headers['kafka_receivedTopic']"/>
 
 	<bean id="template" class="org.springframework.kafka.core.KafkaTemplate">
 		<constructor-arg ref="pf"/>
@@ -83,7 +81,7 @@
 		<constructor-arg ref="cf"/>
 		<constructor-arg>
 			<bean class="org.springframework.kafka.listener.ContainerProperties">
-				<constructor-arg name="topics" value="two"/>
+				<constructor-arg type="java.lang.String[]" value="two"/>
 				<property name="groupId" value="container1"/>
 			</bean>
 		</constructor-arg>
@@ -93,7 +91,7 @@
 		<constructor-arg ref="cf"/>
 		<constructor-arg>
 			<bean class="org.springframework.kafka.listener.ContainerProperties">
-				<constructor-arg name="topics" value="three"/>
+				<constructor-arg type="java.lang.String[]" value="three"/>
 				<property name="groupId" value="container3"/>
 			</bean>
 		</constructor-arg>
@@ -109,7 +107,7 @@
 		<constructor-arg ref="cf"/>
 		<constructor-arg>
 			<bean class="org.springframework.kafka.listener.ContainerProperties">
-				<constructor-arg name="topics" value="four"/>
+				<constructor-arg type="java.lang.String[]" value="four"/>
 				<property name="groupId" value="container4"/>
 			</bean>
 		</constructor-arg>
