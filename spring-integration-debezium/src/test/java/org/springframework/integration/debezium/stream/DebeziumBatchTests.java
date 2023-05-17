@@ -71,7 +71,7 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 	@Import(DebeziumTestConfiguration.class)
 	public static class BatchTestConfiguration {
 		@Bean
-		public MessageProducer debeziumMessageProducer(MessageChannel debeziumInputChannel,
+		public MessageProducer debeziumMessageProducer(@Qualifier("debeziumInputChannel") MessageChannel debeziumInputChannel,
 				DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
 			DebeziumMessageProducer debeziumMessageProducer = new DebeziumMessageProducer(debeziumEngineBuilder);
 			debeziumMessageProducer.setSendMode(SendMode.CHANGE_EVENTS_BATCH);

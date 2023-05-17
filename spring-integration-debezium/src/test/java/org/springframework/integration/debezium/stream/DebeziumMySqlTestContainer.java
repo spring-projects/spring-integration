@@ -19,6 +19,7 @@ package org.springframework.integration.debezium.stream;
 import java.time.Duration;
 
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -33,8 +34,18 @@ interface DebeziumMySqlTestContainer {
 			.withEnv("MYSQL_ROOT_PASSWORD", "debezium")
 			.withEnv("MYSQL_USER", "mysqluser")
 			.withEnv("MYSQL_PASSWORD", "mysqlpw")
+			.waitingFor(Wait.forLogMessage(".*port: 3306  MySQL Community Server.*", 1))
 			.withExposedPorts(3306)
 			.withStartupTimeout(Duration.ofSeconds(120))
 			.withStartupAttempts(3);
+
+	// @BeforeAll
+	// static void startContainer() {
+	// DEBEZIUM_MYSQL.waitingFor(Wait.forLogMessage("port: 3306 MySQL Community Server - GPL", 1));
+	// }
+
+	static int mysqlPort() {
+		return DEBEZIUM_MYSQL.getMappedPort(3306);
+	}
 
 }

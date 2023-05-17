@@ -67,6 +67,7 @@ public class DebeziumTestConfiguration {
 		config.put("database.password", "dbz");
 		config.put("database.hostname", "localhost");
 		config.put("database.port", String.valueOf(DebeziumMySqlTestContainer.DEBEZIUM_MYSQL.getMappedPort(3306)));
+		// config.put("database.port", String.valueOf(DebeziumMySqlTestContainer.mysqlPort()));
 
 		KeyValueHeaderChangeEventFormat<JsonByteArray, JsonByteArray, JsonByteArray> format = KeyValueHeaderChangeEventFormat
 				.of(io.debezium.engine.format.JsonByteArray.class, io.debezium.engine.format.JsonByteArray.class,

@@ -65,7 +65,8 @@ public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 	@Import(DebeziumTestConfiguration.class)
 	public static class StreamTestConfiguration {
 		@Bean
-		public MessageProducer debeziumMessageProducer(MessageChannel debeziumInputChannel,
+		public MessageProducer debeziumMessageProducer(
+				@Qualifier("debeziumInputChannel") MessageChannel debeziumInputChannel,
 				DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
 			DebeziumMessageProducer debeziumMessageProducer = new DebeziumMessageProducer(debeziumEngineBuilder);
 			debeziumMessageProducer.setOutputChannel(debeziumInputChannel);
