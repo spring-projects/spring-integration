@@ -33,7 +33,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.debezium.inbound.DebeziumMessageProducer;
-import org.springframework.integration.debezium.inbound.DebeziumMessageProducer.SendMode;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -74,7 +73,7 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 		public MessageProducer debeziumMessageProducer(@Qualifier("debeziumInputChannel") MessageChannel debeziumInputChannel,
 				DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
 			DebeziumMessageProducer debeziumMessageProducer = new DebeziumMessageProducer(debeziumEngineBuilder);
-			debeziumMessageProducer.setSendMode(SendMode.CHANGE_EVENTS_BATCH);
+			debeziumMessageProducer.setEnableBatch(true);
 			debeziumMessageProducer.setOutputChannel(debeziumInputChannel);
 			return debeziumMessageProducer;
 		}
