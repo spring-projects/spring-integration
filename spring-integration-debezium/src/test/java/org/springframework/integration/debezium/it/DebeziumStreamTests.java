@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.debezium.stream;
+package org.springframework.integration.debezium.it;
 
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
@@ -52,9 +52,9 @@ public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 	private QueueChannel queueChannel;
 
 	@Test
-	void mysqlInventoryDB() throws InterruptedException {
+	void streamMode() throws InterruptedException {
 		for (int i = 0; i < 52; i++) {
-			logger.info("Message index: " + i);
+			logger.debug("Message index: " + i);
 			Message<?> message = this.queueChannel.receive(10_000);
 			assertThat(message).isNotNull();
 		}

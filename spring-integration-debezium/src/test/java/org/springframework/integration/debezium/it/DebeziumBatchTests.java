@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.debezium.stream;
+package org.springframework.integration.debezium.it;
 
 import java.util.List;
 
@@ -55,7 +55,7 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void mysqlInventoryDB() throws InterruptedException {
+	void batchMode() throws InterruptedException {
 		Message<?> message = this.queueChannel.receive(10_000);
 		assertThat(message).isNotNull();
 		List<ChangeEvent<Object, Object>> payload = (List<ChangeEvent<Object, Object>>) message.getPayload();

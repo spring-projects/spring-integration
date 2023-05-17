@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.debezium.stream;
+package org.springframework.integration.debezium.it;
 
 import java.time.Duration;
 
