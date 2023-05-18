@@ -80,6 +80,7 @@ public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 			// This corresponds to the 'transforms.unwrap.add.headers=name,db,op,table' debezium configuration in
 			// the DebeziumTestConfiguration#debeziumEngineBuilder!
 			debeziumMessageProducer.setAllowedHeaderNames("__name", "__db", "__op", "__table");
+
 			debeziumMessageProducer.setOutputChannel(debeziumInputChannel);
 			return debeziumMessageProducer;
 		}

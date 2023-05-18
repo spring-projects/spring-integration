@@ -17,6 +17,7 @@
 package org.springframework.integration.debezium.it;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
@@ -61,6 +62,25 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 		List<ChangeEvent<Object, Object>> payload = (List<ChangeEvent<Object, Object>>) message.getPayload();
 		assertThat(payload).hasSize(52);
 
+		for (int i = 0; i < 52; i++) {
+
+			ChangeEvent<Object, Object> changeEvent = payload.get(i);
+
+			List<String> headerKeys = changeEvent.headers().stream().map(h -> h.getKey())
+					.collect(Collectors.toList());
+
+			logger.debug("I: " + i + ": " + changeEvent.destination() + " : " + headerKeys);
+
+			if (i < 16) {
+				assertThat(changeEvent.destination()).startsWith("my-topic");
+				assertThat(headerKeys).isEmpty();
+			}
+			else {
+				assertThat(changeEvent.destination()).startsWith("my-topic.inventory");
+				assertThat(headerKeys).hasSize(4).contains("__name", "__db", "__op", "__table");
+			}
+		}
+
 		// No more messages.
 		assertThat(this.queueChannel.receive(5_000)).isNull();
 	}
@@ -70,10 +90,14 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 	@Import(DebeziumTestConfiguration.class)
 	public static class BatchTestConfiguration {
 		@Bean
-		public MessageProducer debeziumMessageProducer(@Qualifier("debeziumInputChannel") MessageChannel debeziumInputChannel,
+		public MessageProducer debeziumMessageProducer(
+				@Qualifier("debeziumInputChannel") MessageChannel debeziumInputChannel,
 				DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
 			DebeziumMessageProducer debeziumMessageProducer = new DebeziumMessageProducer(debeziumEngineBuilder);
+
+			// Enable Batch mode.
 			debeziumMessageProducer.setEnableBatch(true);
+
 			debeziumMessageProducer.setOutputChannel(debeziumInputChannel);
 			return debeziumMessageProducer;
 		}

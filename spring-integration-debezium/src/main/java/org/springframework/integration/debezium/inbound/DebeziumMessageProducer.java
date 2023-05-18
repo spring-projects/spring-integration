@@ -16,8 +16,6 @@
 
 package org.springframework.integration.debezium.inbound;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +39,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.HeaderMapper;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -58,7 +57,8 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	/**
 	 * Executor service for running engine daemon.
 	 */
-	private ExecutorService executorService = Executors.newSingleThreadExecutor();
+	private ExecutorService executorService = Executors
+			.newSingleThreadExecutor(new CustomizableThreadFactory("debezium-"));
 
 	/**
 	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and thus should not be shutdown
@@ -219,13 +219,11 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		if (!this.executorServiceExplicitlySet) {
 			this.executorService.shutdown();
 		}
-		if (this.debeziumEngine != null) {
-			try {
-				this.debeziumEngine.close();
-			}
-			catch (IOException e) {
-				throw new UncheckedIOException("Debezium failed to close!", e);
-			}
+		try {
+			this.executorService.awaitTermination(10, TimeUnit.SECONDS);
+		}
+		catch (InterruptedException e) {
+			throw new IllegalStateException("Debezium failed to close!", e);
 		}
 	}
 
