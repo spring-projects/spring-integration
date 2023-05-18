@@ -64,22 +64,62 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and thus should not be shutdown
 	 * when {@link #destroy()} is called.
 	 */
-	private boolean executorServiceExplicitlySet;
+	private boolean executorServiceExplicitlySet = false;
 
 	private CountDownLatch latch = new CountDownLatch(0);
 
 	private Future<?> future = CompletableFuture.completedFuture(null);
 
-	/**
-	 * Outbound message content type. Should be aligned with the {@link SerializationFormat} configured for the
-	 * {@link DebeziumEngine}.
-	 */
 	private String contentType = "application/json";
 
-	/**
-	 * Specifies how to convert Debezium change event headers into Message headers.
-	 */
 	private HeaderMapper<List<Header<Object>>> headerMapper = new DefaultDebeziumHeaderMapper();
+
+	private boolean enableEmptyPayload = false;
+
+	private boolean enableBatch = false;
+
+	public DebeziumMessageProducer(Builder<ChangeEvent<byte[], byte[]>> debeziumBuilder) {
+		Assert.notNull(debeziumBuilder, "Failed to resolve Debezium Engine Builder. " +
+				"Debezium Engine Builder must either be set explicitly via constructor argument.");
+		this.debeziumEngineBuilder = debeziumBuilder;
+	}
+
+	/**
+	 * Comma-separated list of names of Debezium's Change Event headers to be mapped to the outbound Message headers.
+	 *
+	 * The Debezium' New Record State Extraction 'add.headers' property is used to configure the metadata to be set in
+	 * the produced ChangeEvent headers.
+	 *
+	 * Note that you must prefix the 'headerNames' used the 'setAllowedHeaderNames' with the prefix configured by the
+	 * 'add.headers.prefix' debezium property. Later defaults to '__'. For example for 'add.headers=op,name' and
+	 * 'add.headers.prefix=__' you should use headerNames == "__op", "__name".
+	 *
+	 * @param headerNames The values in this list can be a simple patterns to be matched against the header names (e.g.
+	 * "foo*" or "*foo").
+	 *
+	 * @see <a href=
+	 * "https://debezium.io/documentation/reference/2.2/transformations/event-flattening.html#extract-new-record-state-add-headers">add.headers</a>
+	 * @see <a href=
+	 * "https://debezium.io/documentation/reference/2.2/transformations/event-flattening.html#extract-new-record-state-add-headers-prefix">add.headers.prefix</a>
+	 *
+	 */
+	public void setAllowedHeaderNames(String... headerNames) {
+		Assert.isInstanceOf(DefaultDebeziumHeaderMapper.class, this.headerMapper,
+				"Only applicable with 'DefaultDebeziumHeaderMapper' header mappers!");
+		((DefaultDebeziumHeaderMapper) this.headerMapper).setAllowedHeaderNames(headerNames);
+	}
+
+	/**
+	 * Defines if a single or a batch of messages are send downstream.
+	 *
+	 * @param enableBatch False - sends downstream {@link Message} for every {@link ChangeEvent data change event} read
+	 * from the source database. True - sends the received {@link List} of {@link ChangeEvent}s as a raw {@link Message}
+	 * payload in a single (batch) downstream message. Such payload is not serializable and would required custom
+	 * serialization/deserialization implementation.
+	 */
+	public void setEnableBatch(boolean enableBatch) {
+		this.enableBatch = enableBatch;
+	}
 
 	/**
 	 * Enables support for tombstone (aka delete) messages. On a database row delete, Debezium can send a tombstone
@@ -89,30 +129,6 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	 * When the tombstone functionality is enabled in the Debezium connector configuration you should enable the empty
 	 * payload as well.
 	 */
-	private boolean enableEmptyPayload = false;
-
-	/**
-	 * Defines if a single or a batch of messages are send downstream.
-	 *
-	 * false - send downstream {@link Message} for every {@link ChangeEvent data change event} read from the source
-	 * database.
-	 *
-	 * true - send the received {@link List} of {@link ChangeEvent}s as a raw {@link Message} payload in a single
-	 * (batch) downstream message. Such payload is not serializable and would required custom
-	 * serialization/deserialization implementation.
-	 */
-	private boolean enableBatch = false;
-
-	public DebeziumMessageProducer(Builder<ChangeEvent<byte[], byte[]>> debeziumBuilder) {
-		Assert.notNull(debeziumBuilder, "Failed to resolve Debezium Engine Builder. " +
-				"Debezium Engine Builder must either be set explicitly via constructor argument.");
-		this.debeziumEngineBuilder = debeziumBuilder;
-	}
-
-	public void setEnableBatch(boolean enableBatch) {
-		this.enableBatch = enableBatch;
-	}
-
 	public void setEnableEmptyPayload(boolean enableEmptyPayload) {
 		this.enableEmptyPayload = enableEmptyPayload;
 	}
@@ -126,10 +142,19 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		this.executorServiceExplicitlySet = true;
 	}
 
+	/**
+	 * Outbound message content type. Should be aligned with the {@link SerializationFormat} configured for the
+	 * {@link DebeziumEngine}.
+	 */
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
 	}
 
+	/**
+	 * Specifies how to convert Debezium change event headers into Message headers.
+	 *
+	 * @param headerMapper concrete HeaderMapping implementation.
+	 */
 	public void setHeaderMapper(HeaderMapper<List<Header<Object>>> headerMapper) {
 		Assert.notNull(headerMapper, "'headerMapper' must not be null.");
 		this.headerMapper = headerMapper;
@@ -148,7 +173,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		Assert.notNull(this.headerMapper, "Header mapper can not be null!");
 
 		if (!this.enableBatch) {
-			this.debeziumEngineBuilder.notifying(new ChangeEventConsumer<byte[]>());
+			this.debeziumEngineBuilder.notifying(new StreamChangeEventConsumer<byte[]>());
 		}
 		else {
 			this.debeziumEngineBuilder.notifying(new BatchChangeEventConsumer<byte[]>());
@@ -238,7 +263,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		return messageBuilder.build();
 	}
 
-	final class ChangeEventConsumer<T> implements Consumer<ChangeEvent<T, T>> {
+	final class StreamChangeEventConsumer<T> implements Consumer<ChangeEvent<T, T>> {
 
 		@Override
 		public void accept(ChangeEvent<T, T> changeEvent) {

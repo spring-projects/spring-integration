@@ -75,8 +75,7 @@ public class DebeziumTestConfiguration {
 
 		// Class<JsonByteArray> format = io.debezium.engine.format.JsonByteArray.class;
 
-		return DebeziumEngine.create(format)
-				.using(config);
+		return DebeziumEngine.create(format).using(config);
 	}
 
 	@Bean

@@ -53,11 +53,18 @@ public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 
 	@Test
 	void streamMode() throws InterruptedException {
+		boolean foundDebeziumHeaders = false;
 		for (int i = 0; i < 52; i++) {
 			logger.debug("Message index: " + i);
 			Message<?> message = this.queueChannel.receive(10_000);
 			assertThat(message).isNotNull();
+
+			if (message.getHeaders().size() > 5) {
+				assertThat(message.getHeaders()).containsKeys("__name", "__db", "__op", "__table");
+				foundDebeziumHeaders = true;
+			}
 		}
+		assertThat(foundDebeziumHeaders).isTrue();
 	}
 
 	@Configuration
@@ -69,6 +76,10 @@ public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 				@Qualifier("debeziumInputChannel") MessageChannel debeziumInputChannel,
 				DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
 			DebeziumMessageProducer debeziumMessageProducer = new DebeziumMessageProducer(debeziumEngineBuilder);
+
+			// This corresponds to the 'transforms.unwrap.add.headers=name,db,op,table' debezium configuration in
+			// the DebeziumTestConfiguration#debeziumEngineBuilder!
+			debeziumMessageProducer.setAllowedHeaderNames("__name", "__db", "__op", "__table");
 			debeziumMessageProducer.setOutputChannel(debeziumInputChannel);
 			return debeziumMessageProducer;
 		}

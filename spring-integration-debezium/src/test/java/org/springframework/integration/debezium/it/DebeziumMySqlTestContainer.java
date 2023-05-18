@@ -39,11 +39,6 @@ interface DebeziumMySqlTestContainer {
 			.withStartupTimeout(Duration.ofSeconds(120))
 			.withStartupAttempts(3);
 
-	// @BeforeAll
-	// static void startContainer() {
-	// DEBEZIUM_MYSQL.waitingFor(Wait.forLogMessage("port: 3306 MySQL Community Server - GPL", 1));
-	// }
-
 	static int mysqlPort() {
 		return DEBEZIUM_MYSQL.getMappedPort(3306);
 	}

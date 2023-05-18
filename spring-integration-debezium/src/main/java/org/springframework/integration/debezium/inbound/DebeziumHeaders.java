@@ -20,6 +20,7 @@ package org.springframework.integration.debezium.inbound;
  * Pre-defined header names to be used when retrieving Debezium Change Event headers.
  *
  * @author Christian Tzolov
+ * @since 6.2
  */
 public abstract class DebeziumHeaders {
 

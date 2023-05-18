@@ -60,7 +60,6 @@ public class DebeziumMessageProducerTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testDebeziumMessageProducerLifecycle() throws IOException {
 
 		debeziumMessageProducer.afterPropertiesSet(); // INIT
@@ -86,7 +85,6 @@ public class DebeziumMessageProducerTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testCustomExecutorNotDestroyed() throws IOException {
 
 		ExecutorService customExecutor = Executors.newSingleThreadExecutor();

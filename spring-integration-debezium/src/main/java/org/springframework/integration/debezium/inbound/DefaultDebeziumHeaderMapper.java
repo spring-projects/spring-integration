@@ -16,8 +16,8 @@
 
 package org.springframework.integration.debezium.inbound;
 
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +25,9 @@ import io.debezium.engine.Header;
 
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.HeaderMapper;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.PatternMatchUtils;
 
 /**
  * Specifies how to convert Debezium {@link ChangeEvent} {@link Header}s into {@link Message} headers.
@@ -34,6 +36,17 @@ import org.springframework.util.CollectionUtils;
  * @since 6.2
  */
 public class DefaultDebeziumHeaderMapper implements HeaderMapper<List<Header<Object>>> {
+
+	public static final String DEBEZIUM_INBOUND_HEADER_NAME_PATTERN = "DEBEZIUM_INBOUND_HEADERS";
+
+	private static final String[] DEBEZIUM_HEADER_NAMES = {
+			DebeziumHeaders.DESTINATION,
+			DebeziumHeaders.KEY
+	};
+
+	private static final List<String> DEBEZIUM_HEADER_NAMES_LIST = Arrays.asList(DEBEZIUM_HEADER_NAMES);
+
+	private String[] allowedHeaderNames = DEBEZIUM_HEADER_NAMES;
 
 	@Override
 	public void fromHeaders(MessageHeaders headers, List<Header<Object>> target) {
@@ -44,15 +57,50 @@ public class DefaultDebeziumHeaderMapper implements HeaderMapper<List<Header<Obj
 	public MessageHeaders toHeaders(List<Header<Object>> debeziumHeaders) {
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		if (!CollectionUtils.isEmpty(debeziumHeaders)) {
-			Iterator<Header<Object>> itr = debeziumHeaders.iterator();
-			while (itr.hasNext()) {
-				Header<?> header = itr.next();
-				String key = header.getKey();
-				Object value = header.getValue();
-				messageHeaders.put(key, value);
+			for (Header<Object> header : debeziumHeaders) {
+				String headerName = header.getKey();
+				if (this.shouldMapHeader(headerName, this.allowedHeaderNames)) {
+					Object headerValue = header.getValue();
+					messageHeaders.put(headerName, headerValue);
+				}
 			}
 		}
 		return new MessageHeaders(messageHeaders);
+	}
+
+	/**
+	 * Comma-separated list of names of Debezium's Change Event headers to be mapped to the outbound Message headers.
+	 *
+	 * @param headerNames The values in this list can be a simple patterns to be matched against the header names (e.g.
+	 * "foo*" or "*foo"). Special token 'DEBEZIUM_INBOUND_HEADERS' represent all the standard Debezium headers for the
+	 * inbound channel adapter; they are included by default. If you wish to add your own headers, you must also include
+	 * this token if you wish the standard headers to also be mapped or provide your own 'HeaderMapper' implementation
+	 * using 'header-mapper'.
+	 */
+	public void setAllowedHeaderNames(String... headerNames) {
+		Assert.notNull(headerNames, "'HeaderNames' must not be null.");
+		Assert.noNullElements(headerNames, "'HeaderNames' must not contains null elements.");
+		String[] copy = Arrays.copyOf(headerNames, headerNames.length);
+		Arrays.sort(copy);
+		if (!Arrays.equals(DEBEZIUM_HEADER_NAMES, headerNames)) {
+			this.allowedHeaderNames = copy;
+		}
+	}
+
+	private boolean shouldMapHeader(String headerName, String[] patterns) {
+		if (patterns != null && patterns.length > 0) {
+			for (String pattern : patterns) {
+				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
+					return true;
+				}
+				else if (DEBEZIUM_INBOUND_HEADER_NAME_PATTERN.equals(pattern)
+						&& DEBEZIUM_HEADER_NAMES_LIST.contains(headerName)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 }
