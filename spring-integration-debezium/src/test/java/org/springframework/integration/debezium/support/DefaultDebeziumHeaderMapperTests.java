@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.debezium.inbound.support;
+package org.springframework.integration.debezium.support;
 
 import java.util.ArrayList;
 import java.util.List;

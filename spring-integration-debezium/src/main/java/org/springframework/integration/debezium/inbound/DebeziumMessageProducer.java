@@ -35,8 +35,8 @@ import io.debezium.engine.DebeziumEngine.RecordCommitter;
 import io.debezium.engine.Header;
 import io.debezium.engine.format.SerializationFormat;
 
-import org.springframework.integration.debezium.inbound.support.DebeziumHeaders;
-import org.springframework.integration.debezium.inbound.support.DefaultDebeziumHeaderMapper;
+import org.springframework.integration.debezium.support.DebeziumHeaders;
+import org.springframework.integration.debezium.support.DefaultDebeziumHeaderMapper;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;

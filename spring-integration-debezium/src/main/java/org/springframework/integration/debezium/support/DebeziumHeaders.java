@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.debezium.inbound.support;
+package org.springframework.integration.debezium.support;
 
 /**
  * Pre-defined header names to be used when retrieving Debezium Change Event headers.

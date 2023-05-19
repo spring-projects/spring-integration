@@ -1,4 +1,4 @@
 /**
- * Root package of the Spring Integration Debezium Module.
+ * Provides classes for the Debezium inbound channel adapters.
  */
 package org.springframework.integration.debezium.inbound;
