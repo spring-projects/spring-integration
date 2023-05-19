@@ -23,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -56,14 +57,12 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 	private DebeziumEngine<ChangeEvent<byte[], byte[]>> debeziumEngine;
 
-	private Executor executor = Executors
-			.newSingleThreadExecutor(new CustomizableThreadFactory("debezium-"));
-
 	/**
-	 * Flag to denote whether the {@link Executor} was provided via the setter and thus should not be shutdown when
-	 * {@link #destroy()} is called.
+	 * Debezium Engine is designed to be submitted to an {@link Executor} or {@link ExecutorService} for execution by a
+	 * single thread. By default a single-threaded ExecutorService instance is provided configured with a
+	 * {@link CustomizableThreadFactory} and a `debezium-` thread prefix.
 	 */
-	private boolean executorExplicitlySet = false;
+	private ExecutorService executorService;
 
 	private CountDownLatch latch = new CountDownLatch(0);
 
@@ -74,6 +73,8 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	private boolean enableEmptyPayload = false;
 
 	private boolean enableBatch = false;
+
+	private ThreadFactory threadFactory;
 
 	/**
 	 * Create new Debezium message producer inbound channel adapter.
@@ -108,15 +109,13 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Debezium Engine is designed to be submitted to an {@link Executor} or {@link ExecutorService} for execution by a
-	 * single thread. By default a single-threaded Executor instance is provided configured with a
-	 * {@link CustomizableThreadFactory} and a `debezium-` thread prefix.
-	 * @param executor custom Executor instance used to run the Debezium Engine.
+	 * Set a {@link ThreadFactory} for Debezium executor. Defaults to the {@link CustomizableThreadFactory} based on a
+	 * {@code debezium-} prefix.
+	 * @param threadFactory the {@link ThreadFactory} to use.
 	 */
-	public void setExecutor(Executor executor) {
-		Assert.notNull(executor, "Executor can not be null!");
-		this.executor = executor;
-		this.executorExplicitlySet = true;
+	public void setThreadFactory(ThreadFactory threadFactory) {
+		Assert.notNull(threadFactory, "'threadFactory' must not be null");
+		this.threadFactory = threadFactory;
 	}
 
 	/**
@@ -152,9 +151,13 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	@Override
 	protected void onInit() {
 		super.onInit();
-
-		Assert.notNull(this.executor, "Invalid Executor Service. ");
 		Assert.notNull(this.headerMapper, "Header mapper can not be null!");
+
+		if (this.threadFactory == null) {
+			this.threadFactory = new CustomizableThreadFactory(getComponentName() + "debezium-");
+		}
+
+		this.executorService = Executors.newSingleThreadExecutor(this.threadFactory);
 
 		if (!this.enableBatch) {
 			this.debeziumEngineBuilder.notifying(new StreamChangeEventConsumer<byte[]>());
@@ -172,7 +175,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 			return;
 		}
 		this.latch = new CountDownLatch(1);
-		this.executor.execute(() -> {
+		this.executorService.execute(() -> {
 			try {
 				// Runs the debezium connector and deliver database changes to the registered consumer. This method
 				// blocks until the connector is stopped.
@@ -210,14 +213,13 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	@Override
 	public void destroy() {
 		super.destroy();
-		if (!this.executorExplicitlySet) {
-			((ExecutorService) this.executor).shutdown();
-			try {
-				((ExecutorService) this.executor).awaitTermination(5, TimeUnit.SECONDS);
-			}
-			catch (InterruptedException e) {
-				throw new IllegalStateException("Debezium failed to close!", e);
-			}
+
+		this.executorService.shutdown();
+		try {
+			this.executorService.awaitTermination(5, TimeUnit.SECONDS);
+		}
+		catch (InterruptedException e) {
+			throw new IllegalStateException("Debezium failed to close!", e);
 		}
 	}
 

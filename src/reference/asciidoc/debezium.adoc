@@ -41,8 +41,8 @@ Additionally the `DebeziumMessageProducer` can be tuned with the following confi
    Defaults to `false`.
 - `headerMapper` - custom `HeaderMapper` implementation that allows for selecting and converting the `ChangeEvent` headers into `Message` headers.
    The default `DefaultDebeziumHeaderMapper` implementation provide setter for `setAllowedHeaderNames`.
-- `executor` - Debezium Engine is designed to be submitted to an `Executor` or `ExecutorService` for execution by single thread.
-   The `DebeziumMessageProducer` provides a default executor if not provided.
+- `threadFactory` - Set custom `ThreadFactory` for the Debezium executor service.
+   Debezium Engine is designed to be submitted to an `Executor` or `ExecutorService` for execution by single thread.
 
 The following code snippets demonstrate various configuration for this channel adapter:
 

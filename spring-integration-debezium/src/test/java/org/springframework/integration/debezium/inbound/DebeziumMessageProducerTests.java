@@ -17,8 +17,6 @@
 package org.springframework.integration.debezium.inbound;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -96,34 +94,6 @@ public class DebeziumMessageProducerTests {
 		debeziumMessageProducer.destroy(); // DESTROY
 
 		then(debeziumEngineMock).should().close();
-	}
-
-	@Test
-	public void testCustomExecutorNotDestroyed() throws IOException {
-
-		ExecutorService customExecutor = Executors.newSingleThreadExecutor();
-
-		debeziumMessageProducer.setExecutor(customExecutor);
-
-		debeziumMessageProducer.afterPropertiesSet(); // INIT
-
-		assertThat(debeziumMessageProducer.isActive()).isEqualTo(false);
-		assertThat(customExecutor.isShutdown()).isFalse();
-
-		debeziumMessageProducer.start(); // START
-
-		await().atMost(5, TimeUnit.SECONDS).until(() -> debeziumMessageProducer.isRunning());
-		assertThat(debeziumMessageProducer.isActive()).isEqualTo(true);
-
-		debeziumMessageProducer.stop(); // STOP
-
-		assertThat(debeziumMessageProducer.isActive()).isEqualTo(false);
-		assertThat(customExecutor.isShutdown()).isFalse();
-
-		debeziumMessageProducer.destroy(); // DESTROY
-
-		assertThat(debeziumMessageProducer.isActive()).isEqualTo(false);
-		assertThat(customExecutor.isShutdown()).isFalse();
 	}
 
 }
