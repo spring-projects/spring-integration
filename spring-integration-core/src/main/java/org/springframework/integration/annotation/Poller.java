@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,16 +65,16 @@ public @interface Poller {
 	String maxMessagesPerPoll() default "";
 
 	/**
-	 * @return The fixed delay in milliseconds to create the
-	 * {@link org.springframework.scheduling.support.PeriodicTrigger}. Can be specified as
-	 * 'property placeholder', e.g. {@code ${poller.fixedDelay}}.
+	 * @return The fixed delay in milliseconds or a {@link java.time.Duration} compliant string
+	 * to create the {@link org.springframework.scheduling.support.PeriodicTrigger}.
+	 * Can be specified as 'property placeholder', e.g. {@code ${poller.fixedDelay}}.
 	 */
 	String fixedDelay() default "";
 
 	/**
-	 * @return The fixed rate in milliseconds to create the
-	 * {@link org.springframework.scheduling.support.PeriodicTrigger} with
-	 * {@code fixedRate}. Can be specified as 'property placeholder', e.g.
+	 * @return The fixed rate in milliseconds or a {@link java.time.Duration} compliant string
+	 * to create the {@link org.springframework.scheduling.support.PeriodicTrigger} with
+	 * the {@code fixedRate} option. Can be specified as 'property placeholder', e.g.
 	 * {@code ${poller.fixedRate}}.
 	 */
 	String fixedRate() default "";

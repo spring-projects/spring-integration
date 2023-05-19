@@ -148,7 +148,7 @@ Starting with version 5.5, a `0` value has a special meaning - skip the `Message
 
 The `receiveTimeout` property specifies the amount of time the poller should wait if no messages are available when it invokes the receive operation.
 For example, consider two options that seem similar on the surface but are actually quite different: The first has an interval trigger of 5 seconds and a receive timeout of 50 milliseconds, while the second has an interval trigger of 50 milliseconds and a receive timeout of 5 seconds.
-The first one may receive a message up to 4950 milliseconds later than it arrived on the channel (if that message arrived immediately after one of its poll calls returned).
+The first one may receive a message up to 4950 milliseconds later than it accepted on the channel (if that message arrived immediately after one of its poll calls returned).
 On the other hand, the second configuration never misses a message by more than 50 milliseconds.
 The difference is that the second option requires a thread to wait.
 However, as a result, it can respond much more quickly to arriving messages.
@@ -167,9 +167,11 @@ consumer.setTaskExecutor(taskExecutor);
 ====
 
 Furthermore, a `PollingConsumer` has a property called `adviceChain`.
-This property lets you to specify a `List` of AOP advices for handling additional cross-cutting concerns including transactions.
+This property lets you specify a `List` of AOP advices for handling additional cross-cutting concerns including transactions.
 These advices are applied around the `doPoll()` method.
 For more in-depth information, see the sections on AOP advice chains and transaction support under <<endpoint-namespace>>.
+See also a `@Poller` annotation Javadocs and respective <<./configuration.adoc#annotations, Messaging Annotations Support>> section.
+The Java DSL also provides a <<./dsl.adoc#java-dsl-pollers, `.poller()`>> endpoint configuration option with its respective `Pollers` factory.
 
 The earlier examples show dependency lookups.
 However, keep in mind that these consumers are most often configured as Spring bean definitions.
@@ -181,7 +183,7 @@ NOTE: Many of the `MessageHandler` implementations can generate reply messages.
 As mentioned earlier, sending messages is trivial when compared to receiving messages.
 Nevertheless, when and how many reply messages are sent depends on the handler type.
 For example, an aggregator waits for a number of messages to arrive and is often configured as a downstream consumer for a splitter, which can generate multiple replies for each message it handles.
-When using the namespace configuration, you do not strictly need to know all of the details.
+When using the namespace configuration, you do not strictly need to know all the details.
 However, it still might be worth knowing that several of these components share a common base class, the `AbstractReplyProducingMessageHandler`, and that it provides a `setOutputChannel(..)` method.
 
 [[endpoint-namespace]]
@@ -192,7 +194,7 @@ Most of these support an `input-channel` attribute and many support an `output-c
 After being parsed, these endpoint elements produce an instance of either the `PollingConsumer` or the `EventDrivenConsumer`, depending on the type of the `input-channel` that is referenced: `PollableChannel` or `SubscribableChannel`, respectively.
 When the channel is pollable, the polling behavior is based on the endpoint element's `poller` sub-element and its attributes.
 
-The following listing lists all of the available configuration options for a `poller`:
+The following lists all available configuration options for a `poller`:
 
 [source,xml]
 ----
@@ -201,15 +203,16 @@ The following listing lists all of the available configuration options for a `po
             error-channel=""                         <3>
             fixed-delay=""                           <4>
             fixed-rate=""                            <5>
-            id=""                                    <6>
-            max-messages-per-poll=""                 <7>
-            receive-timeout=""                       <8>
-            ref=""                                   <9>
-            task-executor=""                         <10>
-            time-unit="MILLISECONDS"                 <11>
-            trigger="">                              <12>
-            <int:advice-chain />                     <13>
-            <int:transactional />                    <14>
+            initial-delay=""                         <6>
+            id=""                                    <7>
+            max-messages-per-poll=""                 <8>
+            receive-timeout=""                       <9>
+            ref=""                                   <10>
+            task-executor=""                         <11>
+            time-unit="MILLISECONDS"                 <12>
+            trigger="">                              <13>
+            <int:advice-chain />                     <14>
+            <int:transactional />                    <15>
 </int:poller>
 ----
 
@@ -225,28 +228,30 @@ Optional.
 To completely suppress exceptions, you can provide a reference to the `nullChannel`.
 Optional.
 <4> The fixed delay trigger uses a `PeriodicTrigger` under the covers.
-If you do not use the `time-unit` attribute, the specified value is represented in milliseconds.
+The numeric value is in `time-unit` or can be as a duration format (starting with version 6.2), e.g. `PT10S`, `P1D`.
 If this attribute is set, none of the following attributes must be specified: `fixed-rate`, `trigger`, `cron`, and `ref`.
 <5> The fixed rate trigger uses a `PeriodicTrigger` under the covers.
-If you do not use the `time-unit` attribute, the specified value is represented in milliseconds.
+The numeric value is in `time-unit` or can be as a duration format (starting with version 6.2), e.g. `PT10S`, `P1D`.
 If this attribute is set, none of the following attributes must be specified: `fixed-delay`, `trigger`, `cron`, and `ref`.
-<6> The ID referring to the poller's underlying bean-definition, which is of type `org.springframework.integration.scheduling.PollerMetadata`.
+<6> The initial delay for a `PeriodicTrigger` under the covers(starting with version 6.2).
+The numeric value is in `time-unit` or can be as a duration format, e.g. `PT10S`, `P1D`.
+<7> The ID referring to the poller's underlying bean-definition, which is of type `org.springframework.integration.scheduling.PollerMetadata`.
 The `id` attribute is required for a top-level poller element, unless it is the default poller (`default="true"`).
-<7> See <<./channel-adapter.adoc#channel-adapter-namespace-inbound,Configuring An Inbound Channel Adapter>> for more information.
+<8> See <<./channel-adapter.adoc#channel-adapter-namespace-inbound,Configuring An Inbound Channel Adapter>> for more information.
 If not specified, the default value depends on the context.
 If you use a `PollingConsumer`, this attribute defaults to `-1`.
 However, if you use a `SourcePollingChannelAdapter`, the `max-messages-per-poll` attribute defaults to `1`.
 Optional.
-<8> Value is set on the underlying class `PollerMetadata`.
+<9> Value is set on the underlying class `PollerMetadata`.
 If not specified, it defaults to 1000 (milliseconds).
 Optional.
-<9> Bean reference to another top-level poller.
+<10> Bean reference to another top-level poller.
 The `ref` attribute must not be present on the top-level `poller` element.
 However, if this attribute is set, none of the following attributes must be specified: `fixed-rate`, `trigger`, `cron`, and `fixed-delay`.
-<10> Provides the ability to reference a custom task executor.
+<11> Provides the ability to reference a custom task executor.
 See <<taskexecutor-support>> for further information.
 Optional.
-<11> This attribute specifies the `java.util.concurrent.TimeUnit` enum value on the underlying `org.springframework.scheduling.support.PeriodicTrigger`.
+<12> This attribute specifies the `java.util.concurrent.TimeUnit` enum value on the underlying `org.springframework.scheduling.support.PeriodicTrigger`.
 Therefore, this attribute can be used only in combination with the `fixed-delay` or `fixed-rate` attributes.
 If combined with either `cron` or a `trigger` reference attribute, it causes a failure.
 The minimal supported granularity for a `PeriodicTrigger` is milliseconds.
@@ -254,13 +259,13 @@ Therefore, the only available options are milliseconds and seconds.
 If this value is not provided, any `fixed-delay` or `fixed-rate` value is interpreted as milliseconds.
 Basically, this enum provides a convenience for seconds-based interval trigger values.
 For hourly, daily, and monthly settings, we recommend using a `cron` trigger instead.
-<12> Reference to any Spring-configured bean that implements the `org.springframework.scheduling.Trigger` interface.
+<13> Reference to any Spring-configured bean that implements the `org.springframework.scheduling.Trigger` interface.
 However, if this attribute is set, none of the following attributes must be specified: `fixed-delay`, `fixed-rate`, `cron`, and `ref`.
 Optional.
-<13> Allows specifying extra AOP advices to handle additional cross-cutting concerns.
+<14> Allows specifying extra AOP advices to handle additional cross-cutting concerns.
 See <<transaction-support>> for further information.
 Optional.
-<14> Pollers can be made transactional.
+<15> Pollers can be made transactional.
 See <<aop-advice-chains>> for further information.
 Optional.
 

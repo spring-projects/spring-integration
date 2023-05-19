@@ -1983,7 +1983,7 @@
 		</xsd:sequence>
 		<xsd:attribute name="fixed-delay" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation>Fixed delay trigger (in milliseconds).</xsd:documentation>
+				<xsd:documentation>Fixed delay trigger (decimal for time unit or Duration string).</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="ref" type="xsd:string" use="optional">
@@ -1997,7 +1997,14 @@
 		</xsd:attribute>
 		<xsd:attribute name="fixed-rate" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation>Fixed rate trigger (in milliseconds).</xsd:documentation>
+				<xsd:documentation>Fixed rate trigger (decimal for time unit or Duration string).</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="initial-delay" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Periodic trigger initial delay (decimal for time unit or Duration string).
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="time-unit">
