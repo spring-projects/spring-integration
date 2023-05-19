@@ -1,4 +1,0 @@
-# Tooling related information for the integration security namespace
-http\://www.springframework.org/schema/integration/security@name=integration security Namespace
-http\://www.springframework.org/schema/integration/security@prefix=int-security
-http\://www.springframework.org/schema/integration/security@icon=org/springframework/integration/security/config/spring-integration-security.gif

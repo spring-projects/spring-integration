@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,10 +46,7 @@ public class KafkaInboundChannelAdapterParser extends AbstractPollingInboundChan
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(KafkaMessageSource.class);
 		builder.addConstructorArgReference(element.getAttribute("consumer-factory"));
-		boolean hasConsumerProperties = StringUtils.hasText(element.getAttribute("consumer-properties"));
-		if (hasConsumerProperties) {
-			builder.addConstructorArgReference(element.getAttribute("consumer-properties"));
-		}
+		builder.addConstructorArgReference(element.getAttribute("consumer-properties"));
 		String attribute = element.getAttribute("ack-factory");
 		if (StringUtils.hasText(attribute)) {
 			builder.addConstructorArgReference(attribute);
@@ -58,12 +55,7 @@ public class KafkaInboundChannelAdapterParser extends AbstractPollingInboundChan
 		if (StringUtils.hasText(attribute)) {
 			builder.addConstructorArgValue(attribute);
 		}
-		if (!hasConsumerProperties) {
-			builder.addConstructorArgValue(element.getAttribute("topics"));
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "group-id");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "rebalance-listener");
-		}
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "payload-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "raw-header", "rawMessageHeader");

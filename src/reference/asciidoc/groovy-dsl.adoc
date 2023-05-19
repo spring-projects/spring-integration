@@ -62,7 +62,7 @@ flowFromSupplier() {
 ====
 
 But unfortunately not all `from()` methods are compatible with Groovy structures.
-To solve this, Spring Integration provides a Groovy DSL factory around the `IntegrationFlows` factory.
+To solve this, Spring Integration provides a Groovy DSL factory around the `IntegrationFlow` factory.
 It is implemented as a set of overloaded `integrationFlow()` functions.
 With a consumer for a `GroovyIntegrationFlowDefinition` to declare the remainder of the flow as an `IntegrationFlow` closure to reuse the mentioned above experience and also avoid the need for a `get()` call in the end.
 For example:

@@ -306,18 +306,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		this.messageBuilderFactory = messageBuilderFactory;
 	}
 
-	/**
-	 * @param  key    Integration property.
-	 * @param  tClass the class to convert a value of Integration property.
-	 * @param <T> The expected type of the property.
-	 * @return the value of the Integration property converted to the provide type.
-	 * @deprecated in favor of {@link #getIntegrationProperties()}
-	 */
-	@Deprecated(since = "6.0")
-	protected <T> T getIntegrationProperty(String key, Class<T> tClass) {
-		return this.defaultConversionService.convert(this.integrationProperties.toProperties().getProperty(key), tClass);
-	}
-
 	@Override
 	public String toString() {
 		return (this.beanName != null) ? getBeanDescription() : super.toString();

@@ -237,45 +237,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="topics" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						[DEPRECATED]
-						Comma-delimited list of topic names.
-						Deprecated in favor of 'consumer-properties'.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="group-id" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						[DEPRECATED]
-						The 'group.id' KafkaConsumer property; overrides the value in the consumer factory.
-						Deprecated in favor of 'consumer-properties'.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="client-id" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						[DEPRECATED]
-						The 'client.id' KafkaConsumer property; overrides the value in the consumer factory.
-						Deprecated in favor of 'consumer-properties'.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="poll-timeout">
-				<xsd:annotation>
-					<xsd:documentation>
-						[DEPRECATED]
-						The time to block in poll() in milliseconds; default 5000ms.
-						Deprecated in favor of 'consumer-properties'.
-					</xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:union memberTypes="xsd:int xsd:string"/>
-				</xsd:simpleType>
-			</xsd:attribute>
 			<xsd:attribute name="message-converter" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -296,21 +257,6 @@
 						type-aware converter, such as a JSON converter.
 						Use a SpEL expression, e.g. '#{T(java.lang.String)}'.
 					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="rebalance-listener" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						[DEPRECATED]
-						A reference to a 'ConsumerRebalanceListener'.
-						Deprecated in favor of 'consumer-properties'.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.apache.kafka.clients.consumer.ConsumerRebalanceListener"/>
-						</tool:annotation>
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="raw-header">

@@ -173,20 +173,11 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="max-rows-per-poll" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								[DEPRECATED] Limits the number of rows extracted per query (otherwise all rows
-								are extracted into the outgoing message).
-								Deprecated since 5.1 in favor of 'max-rows'.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="max-rows" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 								Limits the number of rows extracted per query.
-								Otherwise all rows are extracted into the outgoing message.
+								Otherwise, all rows are extracted into the outgoing message.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -321,7 +312,7 @@
 				supplied here, or (if keys-generated="true") can be the
 				primary keys generated from an auto-increment, or else just a
 				count of the number of rows affected by the update. The response
-				is in general a case insensitive Map (or list of maps if multi-valued), unless
+				is in general a case-insensitive Map (or list of maps if multivalued), unless
 				a select query and a row-mapper is provided. If the update count is
 				returned then the map key is "UPDATE".
 			</xsd:documentation>
@@ -381,7 +372,7 @@
 							<xsd:documentation>
 								When using a select query, you can set a
 								custom limit regarding the number of rows
-								extracted. Otherwise by default only the first
+								extracted. Otherwise, by default only the first
 								row will be extracted into the outgoing message.
 								If set to '0' all rows are extracted.
 							</xsd:documentation>
@@ -898,8 +889,7 @@
 						expect-single-result is true, then a MessagingException
 						is thrown.
 
-						Otherwise the complete result map is returned as the
-						payload.
+						Otherwise, the complete result map is returned as the payload.
 
 						Important Note: Several databases such as H2 are not
 						fully supported for Stored Procedure and/oir Function calls.
@@ -1054,7 +1044,7 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							<![CDATA[
-							Storeed procedured may return multiple resultsets.
+							Stored procedure may return multiple resultsets.
 							]]>
 						</xsd:documentation>
 					</xsd:annotation>
@@ -1107,8 +1097,7 @@
 					expect-single-result is true, then a MessagingException
 					is thrown.
 
-					Otherwise the complete result map is returned as the
-					payload.
+					Otherwise, the complete result map is returned as the payload.
 
 					Important Note: Several databases such as H2 are not
 					fully supported for Stored Procedure and/oir Function calls.
@@ -1140,7 +1129,7 @@
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Channel to which polled messages will be send. If the stored
+						Channel to which polled messages will be sent. If the stored
 						procedure or function does not return any data, the payload
 						of the Message will be Null.
 					</xsd:documentation>

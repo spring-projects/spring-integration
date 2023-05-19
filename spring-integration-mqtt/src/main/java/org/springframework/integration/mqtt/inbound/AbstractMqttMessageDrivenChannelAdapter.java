@@ -58,18 +58,6 @@ import org.springframework.util.Assert;
 public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends MessageProducerSupport
 		implements ApplicationEventPublisherAware, ClientManager.ConnectCallback {
 
-	/**
-	 * The default completion timeout in milliseconds.
-	 */
-	@Deprecated(since = "6.0.3", forRemoval = true)
-	public static final long DEFAULT_COMPLETION_TIMEOUT = ClientManager.DEFAULT_COMPLETION_TIMEOUT;
-
-	/**
-	 * The default disconnect completion timeout in milliseconds.
-	 */
-	@Deprecated(since = "6.0.3", forRemoval = true)
-	public static final long DISCONNECT_COMPLETION_TIMEOUT = ClientManager.DISCONNECT_COMPLETION_TIMEOUT;
-
 	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
 
 	private final String url;
