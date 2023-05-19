@@ -29,6 +29,21 @@ compile "org.springframework.integration:spring-integration-debezium:{project-ve
 === Inbound Debezium Channel Adapter
 
 The Debezium adapter expects a pre-configured `DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>>` bean instance.
+Additionally the `DebeziumMessageProducer` can be tuned with the following configuration properties:
+
+- `contentType` - allows handling for  `JSON` (default), `AVRO` and `PROTOBUF` message contents.
+   The contentType `must` be be aligned with the `SerializationFormat` configured for the provided `DebeziumEngine.Builder`.
+- `enableBatch` - When set to `false` (default), the debezium adapter would send new `Message` for every `ChangeEvent` data change event received form the from the source database.
+   If set to `true` then the adapter sends downstream a single `Message` for each batch of `ChangeEvent` received from the Debezium engine.
+   Such payload is not serializable and would required custom serialization/deserialization implementation.
+- `enableEmptyPayload` - Enables support for tombstone (aka delete) messages.
+   On a database row delete, Debezium can send a tombstone change event that has the same key as the deleted row and a value of `Optional.empty`.
+   Defaults to `false`.
+- `headerMapper` - custom `HeaderMapper` implementation that allows for selecting and converting the `ChangeEvent` headers into `Message` headers.
+   The default `DefaultDebeziumHeaderMapper` implementation provide setter for `setAllowedHeaderNames`.
+- `executor` - Debezium Engine is designed to be submitted to an `Executor` or `ExecutorService` for execution by single thread.
+   The `DebeziumMessageProducer` provides a default executor if not provided.
+
 The following code snippets demonstrate various configuration for this channel adapter:
 
 ==== Configuring with Java Configuration

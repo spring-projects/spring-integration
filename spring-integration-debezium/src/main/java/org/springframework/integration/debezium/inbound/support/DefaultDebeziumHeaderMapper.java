@@ -37,8 +37,6 @@ import org.springframework.util.PatternMatchUtils;
  */
 public class DefaultDebeziumHeaderMapper implements HeaderMapper<List<Header<Object>>> {
 
-	public static final String DEBEZIUM_INBOUND_HEADER_NAME_PATTERN = "DEBEZIUM_INBOUND_HEADERS";
-
 	private String[] allowedHeaderNames = new String[0];
 
 	@Override
