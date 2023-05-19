@@ -1,7 +1,7 @@
 [[debezium]]
 == Debezium Support
 
-Spring Integration provides channel adapter for handling CDC Change Events using Debezium.
+Spring Integration provides channel adapter for handling Change Events using Debezium.
 
 https://debezium.io/documentation/reference/2.2/development/engine.html[Debezium Engine] based Change Data Capture (CDC) channel adapter.
 The Debezium adapter allows capturing database change events, converting them into Messages and streaming those to the outbound channels.
@@ -28,7 +28,8 @@ compile "org.springframework.integration:spring-integration-debezium:{project-ve
 [[debezium-inbound]]
 === Inbound Debezium Channel Adapter
 
-The Debezium adapter expects a pre-configured `DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>>` bean instance. The following code snippets demonstrate various configuration for this channel adapter:
+The Debezium adapter expects a pre-configured `DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>>` bean instance.
+The following code snippets demonstrate various configuration for this channel adapter:
 
 ==== Configuring with Java Configuration
 
@@ -74,6 +75,57 @@ public class DebeziumJavaApplication {
 }
 ----
 ====
+
+Similarly we can configure the `DebeziumMessageProducer` to process the incoming change events in batches:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class DebeziumJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(DebeziumJavaApplication.class)
+                .web(false)
+                .run(args);
+    }
+
+    @Bean
+    public MessageChannel debeziumInputChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public MessageProducer debeziumMessageProducer(
+            DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
+
+        DebeziumMessageProducer debeziumMessageProducer =
+            new DebeziumMessageProducer(debeziumEngineBuilder);
+
+        // Enable Batch mode.
+		debeziumMessageProducer.setEnableBatch(true);
+
+        debeziumMessageProducer.setOutputChannel(debeziumInputChannel());
+        return debeziumMessageProducer;
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "debeziumInputChannel")
+    public MessageHandler handler() {
+        return new MessageHandler() {
+            @Override
+            public void handleMessage(Message<?> message) throws MessagingException {
+
+                // Message payload is a list of ChangeEvents.
+                List<ChangeEvent<Object, Object>> payload = (List<ChangeEvent<Object, Object>>) message.getPayload();
+                System.out.println(payload.size());
+            }
+        };
+    }
+}
+----
+====
+
 
 ==== Configuring with the Java DSL
 

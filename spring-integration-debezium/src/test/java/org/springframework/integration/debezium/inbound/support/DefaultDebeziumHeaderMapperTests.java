@@ -86,10 +86,9 @@ public class DefaultDebeziumHeaderMapperTests {
 			this.value = value;
 		}
 
-		@SuppressWarnings("unchecked")
-		public TestHeader(org.apache.kafka.connect.header.Header header) {
-			this.key = header.key();
-			this.value = (T) header.value();
+		public TestHeader(Header<T> header) {
+			this.key = header.getKey();
+			this.value = (T) header.getValue();
 		}
 
 		@Override
