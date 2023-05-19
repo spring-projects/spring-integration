@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.debezium.inbound;
+package org.springframework.integration.debezium.inbound.support;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,14 +39,7 @@ public class DefaultDebeziumHeaderMapper implements HeaderMapper<List<Header<Obj
 
 	public static final String DEBEZIUM_INBOUND_HEADER_NAME_PATTERN = "DEBEZIUM_INBOUND_HEADERS";
 
-	private static final String[] DEBEZIUM_HEADER_NAMES = {
-			DebeziumHeaders.DESTINATION,
-			DebeziumHeaders.KEY
-	};
-
-	private static final List<String> DEBEZIUM_HEADER_NAMES_LIST = Arrays.asList(DEBEZIUM_HEADER_NAMES);
-
-	private String[] allowedHeaderNames = DEBEZIUM_HEADER_NAMES;
+	private String[] allowedHeaderNames = new String[0];
 
 	@Override
 	public void fromHeaders(MessageHeaders headers, List<Header<Object>> target) {
@@ -70,31 +63,29 @@ public class DefaultDebeziumHeaderMapper implements HeaderMapper<List<Header<Obj
 
 	/**
 	 * Comma-separated list of names of Debezium's Change Event headers to be mapped to the outbound Message headers.
-	 *
+	 * The Debezium' New Record State Extraction 'add.headers' property is used to configure the metadata to be set in
+	 * the produced ChangeEvent headers. Note that you must prefix the 'headerNames' used the 'setAllowedHeaderNames'
+	 * with the prefix configured by the 'add.headers.prefix' debezium property. Later defaults to '__'. For example for
+	 * 'add.headers=op,name' and 'add.headers.prefix=__' you should use headerNames == "__op", "__name".
 	 * @param headerNames The values in this list can be a simple patterns to be matched against the header names (e.g.
-	 * "foo*" or "*foo"). Special token 'DEBEZIUM_INBOUND_HEADERS' represent all the standard Debezium headers for the
-	 * inbound channel adapter; they are included by default. If you wish to add your own headers, you must also include
-	 * this token if you wish the standard headers to also be mapped or provide your own 'HeaderMapper' implementation
-	 * using 'header-mapper'.
+	 * "foo*" or "*foo").
+	 * @see <a href=
+	 * "https://debezium.io/documentation/reference/2.2/transformations/event-flattening.html#extract-new-record-state-add-headers">add.headers</a>
+	 * @see <a href=
+	 * "https://debezium.io/documentation/reference/2.2/transformations/event-flattening.html#extract-new-record-state-add-headers-prefix">add.headers.prefix</a>
 	 */
 	public void setAllowedHeaderNames(String... headerNames) {
 		Assert.notNull(headerNames, "'HeaderNames' must not be null.");
 		Assert.noNullElements(headerNames, "'HeaderNames' must not contains null elements.");
 		String[] copy = Arrays.copyOf(headerNames, headerNames.length);
 		Arrays.sort(copy);
-		if (!Arrays.equals(DEBEZIUM_HEADER_NAMES, headerNames)) {
-			this.allowedHeaderNames = copy;
-		}
+		this.allowedHeaderNames = copy;
 	}
 
 	private boolean shouldMapHeader(String headerName, String[] patterns) {
 		if (patterns != null && patterns.length > 0) {
 			for (String pattern : patterns) {
 				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
-					return true;
-				}
-				else if (DEBEZIUM_INBOUND_HEADER_NAME_PATTERN.equals(pattern)
-						&& DEBEZIUM_HEADER_NAMES_LIST.contains(headerName)) {
 					return true;
 				}
 			}

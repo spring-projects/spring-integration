@@ -31,6 +31,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.debezium.inbound.DebeziumMessageProducer;
+import org.springframework.integration.debezium.inbound.support.DefaultDebeziumHeaderMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Christian Tzolov
+ * @since 6.2
  */
 @SpringJUnitConfig(DebeziumStreamTests.StreamTestConfiguration.class)
 @DirtiesContext
@@ -79,7 +81,8 @@ public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 
 			// This corresponds to the 'transforms.unwrap.add.headers=name,db,op,table' debezium configuration in
 			// the DebeziumTestConfiguration#debeziumEngineBuilder!
-			debeziumMessageProducer.setAllowedHeaderNames("__name", "__db", "__op", "__table");
+			((DefaultDebeziumHeaderMapper) debeziumMessageProducer.getHeaderMapper())
+					.setAllowedHeaderNames("__name", "__db", "__op", "__table");
 
 			debeziumMessageProducer.setOutputChannel(debeziumInputChannel);
 			return debeziumMessageProducer;

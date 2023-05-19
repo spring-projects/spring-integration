@@ -36,6 +36,10 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 
+/**
+ * @author Christian Tzolov
+ * @since 6.2
+ */
 @Configuration
 @EnableIntegration
 public class DebeziumTestConfiguration {

@@ -36,14 +36,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 
 /**
  * @author Christian Tzolov
+ * @since 6.2
  */
 public class DebeziumMessageProducerTests {
 
 	DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumBuilderMock;
+
 	DebeziumEngine<ChangeEvent<byte[], byte[]>> debeziumEngineMock;
+
 	DebeziumMessageProducer debeziumMessageProducer;
 
 	@BeforeEach
@@ -60,6 +64,7 @@ public class DebeziumMessageProducerTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testDebeziumMessageProducerLifecycle() throws IOException {
 
 		debeziumMessageProducer.afterPropertiesSet(); // INIT
@@ -78,6 +83,15 @@ public class DebeziumMessageProducerTests {
 
 		assertThat(debeziumMessageProducer.isActive()).isEqualTo(false);
 		assertThat(debeziumMessageProducer.isRunning()).isEqualTo(false);
+		then(debeziumEngineMock).should().close();
+
+		reset(debeziumEngineMock);
+
+		debeziumMessageProducer.start(); // START
+
+		await().atMost(5, TimeUnit.SECONDS).until(() -> debeziumMessageProducer.isRunning());
+		assertThat(debeziumMessageProducer.isActive()).isEqualTo(true);
+		then(debeziumEngineMock).should().run();
 
 		debeziumMessageProducer.destroy(); // DESTROY
 

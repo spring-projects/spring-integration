@@ -25,6 +25,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * @author Christian Tzolov
+ * @since 6.2
  */
 @Testcontainers(disabledWithoutDocker = true)
 interface DebeziumMySqlTestContainer {

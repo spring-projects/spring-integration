@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Christian Tzolov
+ * @since 6.2
  */
 @SpringJUnitConfig(DebeziumBatchTests.BatchTestConfiguration.class)
 @DirtiesContext
@@ -68,8 +69,6 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 
 			List<String> headerKeys = changeEvent.headers().stream().map(h -> h.getKey())
 					.collect(Collectors.toList());
-
-			logger.debug("I: " + i + ": " + changeEvent.destination() + " : " + headerKeys);
 
 			if (i < 16) {
 				assertThat(changeEvent.destination()).startsWith("my-topic");

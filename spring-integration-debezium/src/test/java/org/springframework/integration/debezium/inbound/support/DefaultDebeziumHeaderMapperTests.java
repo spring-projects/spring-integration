@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.debezium.inbound;
+package org.springframework.integration.debezium.inbound.support;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- *
  * @author Christian Tzolov
+ * @since 6.2
  */
 public class DefaultDebeziumHeaderMapperTests {
 
@@ -41,8 +41,6 @@ public class DefaultDebeziumHeaderMapperTests {
 		mapper = new DefaultDebeziumHeaderMapper();
 
 		debeziumHeaders = new ArrayList<>();
-		debeziumHeaders.add(new TestHeader<Object>(DebeziumHeaders.KEY, "D_KEY"));
-		debeziumHeaders.add(new TestHeader<Object>(DebeziumHeaders.DESTINATION, "D_DESTINATION"));
 		debeziumHeaders.add(new TestHeader<Object>("NonStandard1", "NonStandard1_Value"));
 		debeziumHeaders.add(new TestHeader<Object>("NonStandard2", "NonStandard2_Value"));
 	}
@@ -56,8 +54,7 @@ public class DefaultDebeziumHeaderMapperTests {
 
 	@Test
 	public void defaultHeaders() {
-		assertThat(mapper.toHeaders(debeziumHeaders)).hasSize(4).containsKeys(DebeziumHeaders.KEY,
-				DebeziumHeaders.DESTINATION, "id",
+		assertThat(mapper.toHeaders(debeziumHeaders)).hasSize(2).containsKeys("id",
 				"timestamp");
 	}
 
@@ -77,17 +74,6 @@ public class DefaultDebeziumHeaderMapperTests {
 		assertThat(mapper.toHeaders(debeziumHeaders)).hasSize(4).containsKeys("NonStandard1", "NonStandard2", "id",
 				"timestamp");
 
-	}
-
-	@Test
-	public void headerNamePatternWithDefaultNames() {
-
-		mapper.setAllowedHeaderNames("NonStandard*", DefaultDebeziumHeaderMapper.DEBEZIUM_INBOUND_HEADER_NAME_PATTERN);
-
-		assertThat(mapper.toHeaders(debeziumHeaders)).hasSize(6).containsKeys("NonStandard1", "NonStandard2",
-				DebeziumHeaders.KEY,
-				DebeziumHeaders.DESTINATION, "id",
-				"timestamp");
 	}
 
 	public static class TestHeader<T> implements Header<T> {

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.debezium.inbound;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -34,6 +35,8 @@ import io.debezium.engine.DebeziumEngine.RecordCommitter;
 import io.debezium.engine.Header;
 import io.debezium.engine.format.SerializationFormat;
 
+import org.springframework.integration.debezium.inbound.support.DebeziumHeaders;
+import org.springframework.integration.debezium.inbound.support.DefaultDebeziumHeaderMapper;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -50,7 +53,7 @@ import org.springframework.util.Assert;
  */
 public class DebeziumMessageProducer extends MessageProducerSupport {
 
-	private DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder;
+	private final DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder;
 
 	private DebeziumEngine<ChangeEvent<byte[], byte[]>> debeziumEngine;
 
@@ -78,40 +81,17 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 	private boolean enableBatch = false;
 
+	/**
+	 * Create new Debezium message producer inbound channel adapter.
+	 * @param debeziumBuilder - pre-configured Debezium Engine Builder instance.
+	 */
 	public DebeziumMessageProducer(Builder<ChangeEvent<byte[], byte[]>> debeziumBuilder) {
-		Assert.notNull(debeziumBuilder, "Failed to resolve Debezium Engine Builder. " +
-				"Debezium Engine Builder must either be set explicitly via constructor argument.");
+		Assert.notNull(debeziumBuilder, "The Debezium Engine Builder is null!");
 		this.debeziumEngineBuilder = debeziumBuilder;
 	}
 
 	/**
-	 * Comma-separated list of names of Debezium's Change Event headers to be mapped to the outbound Message headers.
-	 *
-	 * The Debezium' New Record State Extraction 'add.headers' property is used to configure the metadata to be set in
-	 * the produced ChangeEvent headers.
-	 *
-	 * Note that you must prefix the 'headerNames' used the 'setAllowedHeaderNames' with the prefix configured by the
-	 * 'add.headers.prefix' debezium property. Later defaults to '__'. For example for 'add.headers=op,name' and
-	 * 'add.headers.prefix=__' you should use headerNames == "__op", "__name".
-	 *
-	 * @param headerNames The values in this list can be a simple patterns to be matched against the header names (e.g.
-	 * "foo*" or "*foo").
-	 *
-	 * @see <a href=
-	 * "https://debezium.io/documentation/reference/2.2/transformations/event-flattening.html#extract-new-record-state-add-headers">add.headers</a>
-	 * @see <a href=
-	 * "https://debezium.io/documentation/reference/2.2/transformations/event-flattening.html#extract-new-record-state-add-headers-prefix">add.headers.prefix</a>
-	 *
-	 */
-	public void setAllowedHeaderNames(String... headerNames) {
-		Assert.isInstanceOf(DefaultDebeziumHeaderMapper.class, this.headerMapper,
-				"Only applicable with 'DefaultDebeziumHeaderMapper' header mappers!");
-		((DefaultDebeziumHeaderMapper) this.headerMapper).setAllowedHeaderNames(headerNames);
-	}
-
-	/**
 	 * Defines if a single or a batch of messages are send downstream.
-	 *
 	 * @param enableBatch False - sends downstream {@link Message} for every {@link ChangeEvent data change event} read
 	 * from the source database. True - sends the received {@link List} of {@link ChangeEvent}s as a raw {@link Message}
 	 * payload in a single (batch) downstream message. Such payload is not serializable and would required custom
@@ -125,9 +105,9 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	 * Enables support for tombstone (aka delete) messages. On a database row delete, Debezium can send a tombstone
 	 * change event that has the same key as the deleted row and a value of {@link Optional.empty}. This record is a
 	 * marker for downstream processors. It indicates that log compaction can remove all records that have this key.
-	 *
 	 * When the tombstone functionality is enabled in the Debezium connector configuration you should enable the empty
 	 * payload as well.
+	 * @param enableEmptyPayload True enables the empty payload handling mechanism. False by default.
 	 */
 	public void setEnableEmptyPayload(boolean enableEmptyPayload) {
 		this.enableEmptyPayload = enableEmptyPayload;
@@ -135,9 +115,13 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 	/**
 	 * Set the {@link ExecutorService}, where is not provided then a default of single thread Executor will be used.
-	 * @param executorService the executor service.
+	 * Debezium Engine is designed to be submitted to an {@link Executor} or {@link ExecutorService} for execution by a
+	 * single thread. Running Debezium connector can be stopped either by calling {@link #stop()} from another thread or
+	 * by interrupting the running thread (e.g., as is the case with {@link ExecutorService#shutdownNow()}).
+	 * @param executorService the executor service used to run the Debezium Engine.
 	 */
 	public void setExecutorService(ExecutorService executorService) {
+		Assert.notNull(executorService, "ExecutionService can not be null!");
 		this.executorService = executorService;
 		this.executorServiceExplicitlySet = true;
 	}
@@ -147,17 +131,24 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	 * {@link DebeziumEngine}.
 	 */
 	public void setContentType(String contentType) {
+		Assert.hasText(contentType, "Invalid content type: " + contentType);
 		this.contentType = contentType;
 	}
 
 	/**
 	 * Specifies how to convert Debezium change event headers into Message headers.
-	 *
 	 * @param headerMapper concrete HeaderMapping implementation.
 	 */
 	public void setHeaderMapper(HeaderMapper<List<Header<Object>>> headerMapper) {
 		Assert.notNull(headerMapper, "'headerMapper' must not be null.");
 		this.headerMapper = headerMapper;
+	}
+
+	/**
+	 * @return Returns current header mapper.
+	 */
+	public HeaderMapper<List<Header<Object>>> getHeaderMapper() {
+		return this.headerMapper;
 	}
 
 	@Override
@@ -190,10 +181,24 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		this.latch = new CountDownLatch(1);
 		this.future = this.executorService.submit(() -> {
 			try {
+				// Runs the debezium connector and deliver database changes to the registered consumer. This method
+				// blocks until the connector is stopped.
+				// If this instance is already running, then the run immediately returns.
+				// When run the connector and starts polling the configured connector for change events.
+				// All messages are delivered in batches to the consumer registered with this debezium engine.
+				// The batch size, polling frequency, and other parameters are controlled via connector's configuration
+				// settings. This continues until this connector is stopped.
+				// This method can be called repeatedly as needed.
 				this.debeziumEngine.run();
 			}
 			finally {
 				this.latch.countDown();
+				try {
+					this.debeziumEngine.close();
+				}
+				catch (IOException e) {
+					logger.warn(e, "Debezium failed to close!");
+				}
 			}
 		});
 	}
@@ -218,20 +223,16 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		super.destroy();
 		if (!this.executorServiceExplicitlySet) {
 			this.executorService.shutdown();
-		}
-		try {
-			this.executorService.awaitTermination(10, TimeUnit.SECONDS);
-		}
-		catch (InterruptedException e) {
-			throw new IllegalStateException("Debezium failed to close!", e);
+			try {
+				this.executorService.awaitTermination(5, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e) {
+				throw new IllegalStateException("Debezium failed to close!", e);
+			}
 		}
 	}
 
 	private <T> Message<?> toMessage(ChangeEvent<T, T> changeEvent) {
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("[Debezium Event]: " + changeEvent.key());
-		}
 
 		Object key = changeEvent.key();
 		Object payload = changeEvent.value();
@@ -267,6 +268,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		public void accept(ChangeEvent<T, T> changeEvent) {
 			sendMessage(toMessage(changeEvent));
 		}
+
 	}
 
 	final class BatchChangeEventConsumer<T> implements ChangeConsumer<ChangeEvent<T, T>> {
@@ -285,5 +287,6 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 			sendMessage(messageBuilder.build());
 			committer.markBatchFinished();
 		}
+
 	}
 }
