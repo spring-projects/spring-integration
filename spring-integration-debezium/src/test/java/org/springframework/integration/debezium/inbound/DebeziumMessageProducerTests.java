@@ -103,7 +103,7 @@ public class DebeziumMessageProducerTests {
 
 		ExecutorService customExecutor = Executors.newSingleThreadExecutor();
 
-		debeziumMessageProducer.setExecutorService(customExecutor);
+		debeziumMessageProducer.setExecutor(customExecutor);
 
 		debeziumMessageProducer.afterPropertiesSet(); // INIT
 

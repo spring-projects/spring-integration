@@ -88,7 +88,7 @@ public class DefaultDebeziumHeaderMapperTests {
 
 		public TestHeader(Header<T> header) {
 			this.key = header.getKey();
-			this.value = (T) header.getValue();
+			this.value = header.getValue();
 		}
 
 		@Override

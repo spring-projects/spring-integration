@@ -55,6 +55,7 @@ public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 
 	@Test
 	void streamMode() throws InterruptedException {
+
 		boolean foundDebeziumHeaders = false;
 		for (int i = 0; i < 52; i++) {
 			logger.debug("Message index: " + i);

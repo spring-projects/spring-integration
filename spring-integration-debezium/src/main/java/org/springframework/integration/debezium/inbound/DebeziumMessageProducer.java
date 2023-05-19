@@ -19,11 +19,10 @@ package org.springframework.integration.debezium.inbound;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -57,21 +56,16 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 	private DebeziumEngine<ChangeEvent<byte[], byte[]>> debeziumEngine;
 
-	/**
-	 * Executor service for running engine daemon.
-	 */
-	private ExecutorService executorService = Executors
+	private Executor executor = Executors
 			.newSingleThreadExecutor(new CustomizableThreadFactory("debezium-"));
 
 	/**
-	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and thus should not be shutdown
-	 * when {@link #destroy()} is called.
+	 * Flag to denote whether the {@link Executor} was provided via the setter and thus should not be shutdown when
+	 * {@link #destroy()} is called.
 	 */
-	private boolean executorServiceExplicitlySet = false;
+	private boolean executorExplicitlySet = false;
 
 	private CountDownLatch latch = new CountDownLatch(0);
-
-	private Future<?> future = CompletableFuture.completedFuture(null);
 
 	private String contentType = "application/json";
 
@@ -114,16 +108,15 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Set the {@link ExecutorService}, where is not provided then a default of single thread Executor will be used.
 	 * Debezium Engine is designed to be submitted to an {@link Executor} or {@link ExecutorService} for execution by a
-	 * single thread. Running Debezium connector can be stopped either by calling {@link #stop()} from another thread or
-	 * by interrupting the running thread (e.g., as is the case with {@link ExecutorService#shutdownNow()}).
-	 * @param executorService the executor service used to run the Debezium Engine.
+	 * single thread. By default a single-threaded Executor instance is provided configured with a
+	 * {@link CustomizableThreadFactory} and a `debezium-` thread prefix.
+	 * @param executor custom Executor instance used to run the Debezium Engine.
 	 */
-	public void setExecutorService(ExecutorService executorService) {
-		Assert.notNull(executorService, "ExecutionService can not be null!");
-		this.executorService = executorService;
-		this.executorServiceExplicitlySet = true;
+	public void setExecutor(Executor executor) {
+		Assert.notNull(executor, "Executor can not be null!");
+		this.executor = executor;
+		this.executorExplicitlySet = true;
 	}
 
 	/**
@@ -160,7 +153,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	protected void onInit() {
 		super.onInit();
 
-		Assert.notNull(this.executorService, "Invalid Executor Service. ");
+		Assert.notNull(this.executor, "Invalid Executor Service. ");
 		Assert.notNull(this.headerMapper, "Header mapper can not be null!");
 
 		if (!this.enableBatch) {
@@ -179,7 +172,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 			return;
 		}
 		this.latch = new CountDownLatch(1);
-		this.future = this.executorService.submit(() -> {
+		this.executor.execute(() -> {
 			try {
 				// Runs the debezium connector and deliver database changes to the registered consumer. This method
 				// blocks until the connector is stopped.
@@ -193,22 +186,18 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 			}
 			finally {
 				this.latch.countDown();
-				try {
-					this.debeziumEngine.close();
-				}
-				catch (IOException e) {
-					logger.warn(e, "Debezium failed to close!");
-				}
 			}
 		});
 	}
 
 	@Override
 	protected void doStop() {
-		if (this.future.isDone()) {
-			return;
+		try {
+			this.debeziumEngine.close();
 		}
-		this.future.cancel(true);
+		catch (IOException e) {
+			logger.warn(e, "Debezium failed to close!");
+		}
 		try {
 			if (!this.latch.await(5, TimeUnit.SECONDS)) {
 				throw new IllegalStateException("Failed to stop " + this);
@@ -221,10 +210,10 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	@Override
 	public void destroy() {
 		super.destroy();
-		if (!this.executorServiceExplicitlySet) {
-			this.executorService.shutdown();
+		if (!this.executorExplicitlySet) {
+			((ExecutorService) this.executor).shutdown();
 			try {
-				this.executorService.awaitTermination(5, TimeUnit.SECONDS);
+				((ExecutorService) this.executor).awaitTermination(5, TimeUnit.SECONDS);
 			}
 			catch (InterruptedException e) {
 				throw new IllegalStateException("Debezium failed to close!", e);
@@ -266,7 +255,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 		@Override
 		public void accept(ChangeEvent<T, T> changeEvent) {
-			sendMessage(toMessage(changeEvent));
+			DebeziumMessageProducer.this.sendMessage(toMessage(changeEvent));
 		}
 
 	}
@@ -284,7 +273,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 				committer.markProcessed(event);
 			}
 
-			sendMessage(messageBuilder.build());
+			DebeziumMessageProducer.this.sendMessage(messageBuilder.build());
 			committer.markBatchFinished();
 		}
 
