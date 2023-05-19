@@ -6,7 +6,6 @@
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.junit" level="warn" />
 		<Logger name="org.testcontainers" level="INFO"/>
 		<Logger name="org.springframework.integration.debezium" level="info"/>
 

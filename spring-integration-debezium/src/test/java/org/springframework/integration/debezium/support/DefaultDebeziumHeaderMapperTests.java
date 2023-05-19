@@ -101,4 +101,5 @@ public class DefaultDebeziumHeaderMapperTests {
 			return value;
 		}
 	}
+
 }

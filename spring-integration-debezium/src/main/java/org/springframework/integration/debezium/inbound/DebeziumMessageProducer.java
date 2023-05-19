@@ -81,7 +81,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	 * @param debeziumBuilder - pre-configured Debezium Engine Builder instance.
 	 */
 	public DebeziumMessageProducer(Builder<ChangeEvent<byte[], byte[]>> debeziumBuilder) {
-		Assert.notNull(debeziumBuilder, "The Debezium Engine Builder is null!");
+		Assert.notNull(debeziumBuilder, "'debeziumBuilder' must not be null");
 		this.debeziumEngineBuilder = debeziumBuilder;
 	}
 
@@ -151,7 +151,6 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	@Override
 	protected void onInit() {
 		super.onInit();
-		Assert.notNull(this.headerMapper, "Header mapper can not be null!");
 
 		if (this.threadFactory == null) {
 			this.threadFactory = new CustomizableThreadFactory(getComponentName() + "-thread-");
@@ -239,7 +238,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 		// If payload is still null ignore the message.
 		if (payload == null) {
-			logger.info("Dropped null payload message");
+			logger.info("Dropped null payload message for Change Event key:" + key);
 			return null;
 		}
 
@@ -280,4 +279,5 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		}
 
 	}
+
 }

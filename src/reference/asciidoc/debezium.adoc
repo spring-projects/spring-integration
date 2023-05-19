@@ -163,7 +163,7 @@ public class DebeziumJavaApplication {
         DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder ) {
 
         return IntegrationFlow.from(
-                         new DebeziumMessageProducer(debeziumEngineBuilder);)
+                         new DebeziumMessageProducer(debeziumEngineBuilder))
                 .handle(m -> System.out.println(new String((byte[]) m.getPayload())))
                 .get();
     }
