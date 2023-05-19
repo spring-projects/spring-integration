@@ -154,7 +154,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 		Assert.notNull(this.headerMapper, "Header mapper can not be null!");
 
 		if (this.threadFactory == null) {
-			this.threadFactory = new CustomizableThreadFactory(getComponentName() + "debezium-");
+			this.threadFactory = new CustomizableThreadFactory(getComponentName() + "-thread-");
 		}
 
 		this.executorService = Executors.newSingleThreadExecutor(this.threadFactory);
