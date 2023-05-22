@@ -119,37 +119,11 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	 * Set the unsolicited message channel name.
 	 * @param channelName the name.
 	 * @return the spec.
-	 * @since 5.4
-	 * @deprecated in favor of {@link #unsolicitedMessageChannelName(String)}
-	 * due to the typo in method name.
-	 */
-	@Deprecated(since = "6.1", forRemoval = true)
-	public TcpOutboundGatewaySpec unsolictedMessageChannelName(String channelName) {
-		return unsolicitedMessageChannelName(channelName);
-	}
-
-	/**
-	 * Set the unsolicited message channel name.
-	 * @param channelName the name.
-	 * @return the spec.
 	 * @since 6.1
 	 */
 	public TcpOutboundGatewaySpec unsolicitedMessageChannelName(String channelName) {
 		this.target.setUnsolicitedMessageChannelName(channelName);
 		return this;
-	}
-
-	/**
-	 * Set the unsolicited message channel.
-	 * @param channel the channel.
-	 * @return the spec.
-	 * @since 5.4
-	 * @deprecated in favor of {@link #unsolicitedMessageChannel(MessageChannel)}
-	 * due to the typo in method name.
-	 */
-	@Deprecated(since = "6.1", forRemoval = true)
-	public TcpOutboundGatewaySpec unsolictedMessageChannelName(MessageChannel channel) {
-		return unsolicitedMessageChannel(channel);
 	}
 
 	/**

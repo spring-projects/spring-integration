@@ -642,7 +642,7 @@ private static final long serialVersionUID = 0L;
 		return DEFAULT_INSTANCE;
 	}
 
-	@java.lang.Deprecated public static final com.google.protobuf.Parser<TestClass1>
+	public static final com.google.protobuf.Parser<TestClass1>
 			PARSER = new com.google.protobuf.AbstractParser<TestClass1>() {
 		@java.lang.Override
 		public TestClass1 parsePartialFrom(
@@ -668,4 +668,3 @@ private static final long serialVersionUID = 0L;
 	}
 
 }
-

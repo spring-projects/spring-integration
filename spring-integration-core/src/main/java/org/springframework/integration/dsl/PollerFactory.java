@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,7 @@
 package org.springframework.integration.dsl;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.scheduling.Trigger;
 
@@ -80,19 +78,6 @@ public final class PollerFactory {
 	}
 
 	/**
-	 * Create a {@link PollerSpec} based on the provided fixed rate period and {@link TimeUnit}.
-	 * @param period the fixed rate period to use.
-	 * @param timeUnit the {@link TimeUnit} to use.
-	 * @return the {@link PollerSpec}
-	 * @deprecated since 6.1 in favor of {@link #fixedRate(Duration)}
-	 * @see Pollers#fixedRate(Duration)
-	 */
-	@Deprecated(forRemoval = true)
-	public PollerSpec fixedRate(long period, TimeUnit timeUnit) {
-		return Pollers.fixedRate(Duration.of(period, timeUnit.toChronoUnit()));
-	}
-
-	/**
 	 * Create a {@link PollerSpec} based on the provided fixed rate period.
 	 * @param period the fixed rate period to use.
 	 * @return the {@link PollerSpec}
@@ -124,51 +109,6 @@ public final class PollerFactory {
 	 */
 	public static PollerSpec fixedRate(Duration period, Duration initialDelay) {
 		return Pollers.fixedRate(period, initialDelay);
-	}
-
-	/**
-	 * Create a {@link PollerSpec} based on the provided fixed rate period and {@link TimeUnit}
-	 * with an initial delay.
-	 * @param period the fixed rate period to use.
-	 * @param timeUnit the {@link TimeUnit} to use.
-	 * @param initialDelay the initial delay to use.
-	 * @return the {@link PollerSpec}
-	 * @deprecated since 6.1 in favor of {@link #fixedRate(Duration, Duration)}
-	 * @see Pollers#fixedRate(Duration, Duration)
-	 */
-	@Deprecated(forRemoval = true)
-	public PollerSpec fixedRate(long period, TimeUnit timeUnit, long initialDelay) {
-		ChronoUnit chronoUnit = timeUnit.toChronoUnit();
-		return Pollers.fixedRate(Duration.of(period, chronoUnit), Duration.of(initialDelay, chronoUnit));
-	}
-
-	/**
-	 * Create a {@link PollerSpec} based on the provided fixed delay period and {@link TimeUnit}
-	 * with an initial delay.
-	 * @param period the fixed delay period to use.
-	 * @param timeUnit the {@link TimeUnit} to use.
-	 * @param initialDelay the initial delay to use.
-	 * @return the {@link PollerSpec}
-	 * @deprecated since 6.1 in favor of {@link #fixedDelay(Duration, Duration)}
-	 * @see Pollers#fixedDelay(Duration, Duration)
-	 */
-	@Deprecated(forRemoval = true)
-	public PollerSpec fixedDelay(long period, TimeUnit timeUnit, long initialDelay) {
-		ChronoUnit chronoUnit = timeUnit.toChronoUnit();
-		return Pollers.fixedDelay(Duration.of(period, chronoUnit), Duration.of(initialDelay, chronoUnit));
-	}
-
-	/**
-	 * Create a {@link PollerSpec} based on the provided fixed delay period and {@link TimeUnit}.
-	 * @param period the fixed delay period to use.
-	 * @param timeUnit the {@link TimeUnit} to use.
-	 * @return the {@link PollerSpec}
-	 * @deprecated since 6.1 in favor of {@link #fixedDelay(Duration)}
-	 * @see Pollers#fixedDelay(Duration)
-	 */
-	@Deprecated(forRemoval = true)
-	public PollerSpec fixedDelay(long period, TimeUnit timeUnit) {
-		return Pollers.fixedDelay(Duration.of(period, timeUnit.toChronoUnit()));
 	}
 
 	/**

@@ -55,9 +55,9 @@ public class AvroTestClass2 extends org.apache.avro.specific.SpecificRecordBase 
 		return DECODER.decode(b);
 	}
 
-	@Deprecated public java.lang.String bar;
+	public java.lang.String bar;
 
-	@Deprecated public java.lang.String qux;
+	public java.lang.String qux;
 
 	/**
 	 * Default constructor.  Note that this does not initialize fields

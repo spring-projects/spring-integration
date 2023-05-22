@@ -18,8 +18,6 @@ package org.springframework.integration.ip.dsl;
 
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 
 /**
  * An {@link AbstractConnectionFactorySpec} for {@link AbstractClientConnectionFactory}s.
@@ -34,7 +32,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionF
  *
  */
 public abstract class TcpClientConnectionFactorySpec
-				<S extends TcpClientConnectionFactorySpec<S, C>,  C extends AbstractClientConnectionFactory>
+		<S extends TcpClientConnectionFactorySpec<S, C>, C extends AbstractClientConnectionFactory>
 		extends AbstractConnectionFactorySpec<S, C> {
 
 	/**
@@ -44,30 +42,6 @@ public abstract class TcpClientConnectionFactorySpec
 	 */
 	protected TcpClientConnectionFactorySpec(C cf) {
 		super(cf);
-	}
-
-	/**
-	 * Create an instance.
-	 * @param host the host.
-	 * @param port the port.
-	 * @deprecated since 6.0.3; use a subclass.
-	 */
-	@Deprecated
-	protected TcpClientConnectionFactorySpec(String host, int port) {
-		this(host, port, false);
-	}
-
-	/**
-	 * Create an instance.
-	 * @param host the host.
-	 * @param port the port.
-	 * @param nio true for NIO.
-	 * @deprecated since 6.0.3; use a subclass.
-	 */
-	@SuppressWarnings("unchecked")
-	@Deprecated
-	protected TcpClientConnectionFactorySpec(String host, int port, boolean nio) {
-		super(nio ? (C) new TcpNioClientConnectionFactory(host, port) : (C) new TcpNetClientConnectionFactory(host, port));
 	}
 
 	/**

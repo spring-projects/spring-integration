@@ -69,16 +69,6 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 		return this.id;
 	}
 
-	/**
-	 * @return the configured component.
-	 * @deprecated since 6.1 with no-op for end-user:
-	 * the {@link #getObject()} is called by the framework at the appropriate phase.
-	 */
-	@Deprecated(since = "6.1", forRemoval = true)
-	public T get() {
-		return getObject();
-	}
-
 	@Override
 	public Class<?> getObjectType() {
 		return getObject().getClass();

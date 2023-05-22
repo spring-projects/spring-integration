@@ -17,8 +17,6 @@
 package org.springframework.integration.ip.dsl;
 
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 
 /**
  * An {@link AbstractConnectionFactorySpec} for {@link AbstractServerConnectionFactory}s.
@@ -33,7 +31,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
  *
  */
 public abstract class TcpServerConnectionFactorySpec
-				<S extends TcpServerConnectionFactorySpec<S, C>, C extends AbstractServerConnectionFactory>
+		<S extends TcpServerConnectionFactorySpec<S, C>, C extends AbstractServerConnectionFactory>
 		extends AbstractConnectionFactorySpec<S, C> {
 
 	/**
@@ -43,28 +41,6 @@ public abstract class TcpServerConnectionFactorySpec
 	 */
 	protected TcpServerConnectionFactorySpec(C cf) {
 		super(cf);
-	}
-
-	/**
-	 * Create an instance.
-	 * @param port the port.
-	 * @deprecated since 6.0.3; use a subclass.
-	 */
-	@Deprecated
-	protected TcpServerConnectionFactorySpec(int port) {
-		this(port, false);
-	}
-
-	/**
-	 * Create an instance.
-	 * @param port the port.
-	 * @param nio true for NIO.
-	 * @deprecated since 6.0.3; use a subclass.
-	 */
-	@Deprecated
-	@SuppressWarnings("unchecked")
-	protected TcpServerConnectionFactorySpec(int port, boolean nio) {
-		super(nio ? (C) new TcpNioServerConnectionFactory(port) : (C) new TcpNetServerConnectionFactory(port));
 	}
 
 	/**
