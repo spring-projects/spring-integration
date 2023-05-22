@@ -28,7 +28,7 @@ import org.springframework.util.StringUtils;
 /**
  * The {@link FactoryBean} to produce a {@link PeriodicTrigger}
  * based on parsing string values for its options.
- * This class is mostly driver by the XML configuration requirements for
+ * This class is mostly driven by the XML configuration requirements for
  * {@link Duration} value representations for the respective attributes.
  *
  * @author Artem Bilan

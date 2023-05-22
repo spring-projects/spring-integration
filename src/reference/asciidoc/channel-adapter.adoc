@@ -126,7 +126,7 @@ However, if you are sure that your method can return null, and you need to poll 
 Starting with version 5.5, a `0` value for `max-messages-per-poll` has a special meaning - skip the `MessageSource.receive()` call altogether, which may be considered as pausing for this inbound channel adapter until the `maxMessagesPerPoll` is changed to a non-zero value at a later time, e.g. via a Control Bus.
 
 Starting with version 6.2, the `fixed-delay` and `fixed-rate` can be configured in https://en.wikipedia.org/wiki/ISO_8601#Durations[ISO 8601 Duration] format, e.g. `PT10S`, `P1D` etc.
-In addition, an `initial-interval` of the underlying `PeriodicTrigget` is also expose with similar value formats as `fixed-delay` and `fixed-rate`.
+In addition, an `initial-interval` of the underlying `PeriodicTrigger` is also exposed with similar value formats as `fixed-delay` and `fixed-rate`.
 
 Also see <<./endpoint.adoc#global-default-poller,Global Default Poller>> for more information.
 =====
