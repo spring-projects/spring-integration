@@ -82,7 +82,7 @@ ext {
     junit4Version = '4.13.2'
     junitJupiterVersion = '5.9.3'
     jythonVersion = '2.7.3'
-    kotlinCoroutinesVersion = '1.6.4'
+    kotlinCoroutinesVersion = '1.7.1'
     kryoVersion = '5.5.0'
     lettuceVersion = '6.2.4.RELEASE'
     log4jVersion = '2.20.0'
