@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -744,14 +743,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					"The '@Poller' 'cron' attribute is mutually exclusive with other attributes.");
 			trigger = new CronTrigger(cron);
 		}
-		else if (StringUtils.hasText(fixedDelayValue)) {
-			Assert.state(!StringUtils.hasText(fixedRateValue),
-					"The '@Poller' 'fixedDelay' attribute is mutually exclusive with other attributes.");
-			trigger = new PeriodicTrigger(Duration.ofMillis(Long.parseLong(fixedDelayValue)));
-		}
-		else if (StringUtils.hasText(fixedRateValue)) {
-			trigger = new PeriodicTrigger(Duration.ofMillis(Long.parseLong(fixedRateValue)));
-			((PeriodicTrigger) trigger).setFixedRate(true);
+		else if (StringUtils.hasText(fixedDelayValue) || StringUtils.hasText(fixedRateValue)) {
+			PeriodicTriggerFactoryBean periodicTriggerFactoryBean = new PeriodicTriggerFactoryBean();
+			periodicTriggerFactoryBean.setFixedDelayValue(fixedDelayValue);
+			periodicTriggerFactoryBean.setFixedRateValue(fixedRateValue);
+			trigger = periodicTriggerFactoryBean.getObject();
 		}
 		//'Trigger' can be null. 'PollingConsumer' does fallback to the 'new PeriodicTrigger(10)'.
 		pollerMetadata.setTrigger(trigger);

@@ -212,6 +212,7 @@ configure(javaProjects) { subproject ->
 
     compileJava {
         options.release = 17
+        options.compilerArgs << '-parameters'
     }
 
     compileTestJava {

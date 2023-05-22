@@ -15,6 +15,6 @@
 		<beans:prop key="seconds">SECONDS</beans:prop>
 	</util:properties>
 
-	<poller id="poller" receive-timeout="1234" fixed-rate="5" time-unit="${seconds}"/>
+	<poller id="poller" receive-timeout="1234" fixed-rate="5" time-unit="${seconds}" initial-delay="PT45S"/>
 		
 </beans:beans>

@@ -20,6 +20,8 @@ They represent a critical cross-cutting concern in many messaging scenarios.
 In Spring Integration, polling consumers are based on the pattern with the same name, which is described in the book _Enterprise Integration Patterns_, by Gregor Hohpe and Bobby Woolf.
 You can find a description of the pattern on the https://www.enterpriseintegrationpatterns.com/PollingConsumer.html[book's website].
 
+For more information polling consumer configuration, see <<./endpoint.adoc#endpoint,Message Endpoints>>.
+
 [[pollable-message-source]]
 ==== Pollable Message Source
 

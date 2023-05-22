@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import java.time.temporal.ChronoUnit;
+import java.time.Duration;
 import java.util.HashMap;
 
 import org.aopalliance.aop.Advice;
@@ -112,7 +112,9 @@ public class PollerParserTests {
 		PollerMetadata metadata = (PollerMetadata) poller;
 		assertThat(metadata.getReceiveTimeout()).isEqualTo(1234);
 		PeriodicTrigger trigger = (PeriodicTrigger) metadata.getTrigger();
-		assertThat(TestUtils.getPropertyValue(trigger, "chronoUnit")).isEqualTo(ChronoUnit.SECONDS);
+		assertThat(trigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(5));
+		assertThat(trigger.isFixedRate()).isTrue();
+		assertThat(trigger.getInitialDelayDuration()).isEqualTo(Duration.ofSeconds(45));
 		context.close();
 	}
 
@@ -123,7 +125,7 @@ public class PollerParserTests {
 		Object poller = context.getBean("poller");
 		assertThat(poller).isNotNull();
 		PollerMetadata metadata = (PollerMetadata) poller;
-		assertThat(metadata.getTrigger() instanceof TestTrigger).isTrue();
+		assertThat(metadata.getTrigger()).isInstanceOf(TestTrigger.class);
 		context.close();
 	}
 
