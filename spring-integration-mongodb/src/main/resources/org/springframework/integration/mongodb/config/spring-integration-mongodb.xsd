@@ -126,6 +126,14 @@
 						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
 									 minOccurs="0" maxOccurs="1"/>
 					</xsd:choice>
+					<xsd:attribute name="order" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the order for invocation when this adapter is connected as a
+								subscriber to a SubscribableChannel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

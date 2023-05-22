@@ -187,8 +187,17 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:union memberTypes="xsd:boolean xsd:string" />
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
 			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="order" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies the order for invocation when this
+					endpoint is connected as a
+					subscriber to a channel.
+				</xsd:documentation>
+			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
 

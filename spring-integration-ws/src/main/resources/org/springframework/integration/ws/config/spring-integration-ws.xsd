@@ -87,7 +87,7 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="false">
+			<xsd:attribute name="requires-reply" type="xsd:string" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
 						Specify whether this outbound gateway must return a non-null value. This value is
@@ -495,24 +495,7 @@ this list can also be simple patterns to be matched against the header names (e.
 
 	<xsd:complexType name="transformerType">
 		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="input-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="output-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:inputOutputChannelGroup"/>
 	</xsd:complexType>
 
 	<xsd:simpleType name="encodingModeEnumeration">

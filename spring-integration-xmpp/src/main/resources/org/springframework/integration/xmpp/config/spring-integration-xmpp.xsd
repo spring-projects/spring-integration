@@ -112,7 +112,7 @@
 								A SpEL expression to evaluate a 'payload' with the incoming
 								'org.jivesoftware.smack.packet.Message' as root object.
 								It useful in case of custom (XEP) XMPP interactions, e.g. GCM.
-								By default a Message 'body' is used as 'payload'.
+								By default, a Message 'body' is used as 'payload'.
 								The '#extension' SpEL variable is registered in the evaluation context
 								if one and only one extension is present in the Message.
 								Replaces 'extract-payload' attribute since 4.3.
@@ -295,7 +295,7 @@
 						<xsd:element name="chat-to" type="headerType">
 							<xsd:annotation>
 								<xsd:documentation>
-									The id of the user you sending a message to (e.g., user@gmail.com)
+									The id of the user the message is sent to (e.g., user@gmail.com)
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:element>
@@ -333,7 +333,7 @@
 		<xsd:attribute name="value" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Value of this header inside of a Message
+					Value of this header in a Message
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -366,31 +366,7 @@
 
 	<xsd:complexType name="transformerType">
 		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="input-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-				<xsd:documentation>
-					The receiving Message channel of this endpoint
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="output-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-				<xsd:documentation>
-					Identifies the Message channel where Message will be sent after it's being processed by this
-					endpoint
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:inputOutputChannelGroup"/>
 	</xsd:complexType>
 
 </xsd:schema>
