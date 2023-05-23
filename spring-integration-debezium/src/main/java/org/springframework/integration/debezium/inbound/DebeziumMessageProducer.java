@@ -86,15 +86,15 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Enable or disable the {@link ChangeEvent} batch mode handling. Whe enabled the channel adapter will send the
-	 * received {@link List} of {@link ChangeEvent}s as a raw payload in a single downstream {@link Message}. The batch
-	 * payload is not serializable and would required custom serialization/deserialization implementation. By default
-	 * the batch mode is disabled, e.g. every input {@link ChangeEvent} is converted into a single downstream
-	 * {@link Message}.
-	 * @param enableBatch set true to enable the batch mode or false otherwise. The batch mode is disabled by default.
+	 * Enable or disable the {@link ChangeEvent} batch mode handling. When enabled the channel adapter will send a
+	 * {@link List} of {@link ChangeEvent}s as a payload in a single downstream {@link Message}. Such batch payload is
+	 * not serializable. By default the batch mode is disabled, e.g. every input {@link ChangeEvent} is converted into a
+	 * single downstream {@link Message}.
+	 * @param enable set to true to enable the batch mode or to false to disable it. The batch mode is disabled by
+	 * default.
 	 */
-	public void setEnableBatch(boolean enableBatch) {
-		this.enableBatch = enableBatch;
+	public void setEnableBatch(boolean enable) {
+		this.enableBatch = enable;
 	}
 
 	/**
