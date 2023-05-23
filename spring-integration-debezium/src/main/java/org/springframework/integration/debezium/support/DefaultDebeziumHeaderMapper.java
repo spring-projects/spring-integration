@@ -37,7 +37,7 @@ import org.springframework.util.PatternMatchUtils;
  */
 public class DefaultDebeziumHeaderMapper implements HeaderMapper<List<Header<Object>>> {
 
-	private String[] allowedHeaderNames = new String[0];
+	private String[] headerNamesToMap = new String[0];
 
 	@Override
 	public void fromHeaders(MessageHeaders headers, List<Header<Object>> target) {
@@ -50,7 +50,7 @@ public class DefaultDebeziumHeaderMapper implements HeaderMapper<List<Header<Obj
 		if (!CollectionUtils.isEmpty(debeziumHeaders)) {
 			for (Header<Object> header : debeziumHeaders) {
 				String headerName = header.getKey();
-				if (this.shouldMapHeader(headerName, this.allowedHeaderNames)) {
+				if (this.shouldMapHeader(headerName, this.headerNamesToMap)) {
 					Object headerValue = header.getValue();
 					messageHeaders.put(headerName, headerValue);
 				}
@@ -72,12 +72,12 @@ public class DefaultDebeziumHeaderMapper implements HeaderMapper<List<Header<Obj
 	 * @see <a href=
 	 * "https://debezium.io/documentation/reference/2.2/transformations/event-flattening.html#extract-new-record-state-add-headers-prefix">add.headers.prefix</a>
 	 */
-	public void setAllowedHeaderNames(String... headerNames) {
+	public void setHeaderNamesToMap(String... headerNames) {
 		Assert.notNull(headerNames, "'HeaderNames' must not be null.");
 		Assert.noNullElements(headerNames, "'HeaderNames' must not contains null elements.");
 		String[] copy = Arrays.copyOf(headerNames, headerNames.length);
 		Arrays.sort(copy);
-		this.allowedHeaderNames = copy;
+		this.headerNamesToMap = copy;
 	}
 
 	private boolean shouldMapHeader(String headerName, String[] patterns) {

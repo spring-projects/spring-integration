@@ -86,32 +86,33 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Defines if a single or a batch of messages are send downstream.
-	 * @param enableBatch False - sends downstream {@link Message} for every {@link ChangeEvent data change event} read
-	 * from the source database. True - sends the received {@link List} of {@link ChangeEvent}s as a raw {@link Message}
-	 * payload in a single (batch) downstream message. Such payload is not serializable and would required custom
-	 * serialization/deserialization implementation.
+	 * Enable or disable the {@link ChangeEvent} batch mode handling. Whe enabled the channel adapter will send the
+	 * received {@link List} of {@link ChangeEvent}s as a raw payload in a single downstream {@link Message}. The batch
+	 * payload is not serializable and would required custom serialization/deserialization implementation. By default
+	 * the batch mode is disabled, e.g. every input {@link ChangeEvent} is converted into a single downstream
+	 * {@link Message}.
+	 * @param enableBatch set true to enable the batch mode or false otherwise. The batch mode is disabled by default.
 	 */
 	public void setEnableBatch(boolean enableBatch) {
 		this.enableBatch = enableBatch;
 	}
 
 	/**
-	 * Enables support for tombstone (aka delete) messages. On a database row delete, Debezium can send a tombstone
+	 * Enable support for tombstone (aka delete) messages. On a database row delete, Debezium can send a tombstone
 	 * change event that has the same key as the deleted row and a value of {@link Optional.empty}. This record is a
 	 * marker for downstream processors. It indicates that log compaction can remove all records that have this key.
 	 * When the tombstone functionality is enabled in the Debezium connector configuration you should enable the empty
 	 * payload as well.
-	 * @param enableEmptyPayload True enables the empty payload handling mechanism. False by default.
+	 * @param enabled Set true to enable the empty payload handling and false otherwise. Disabled by default.
 	 */
-	public void setEnableEmptyPayload(boolean enableEmptyPayload) {
-		this.enableEmptyPayload = enableEmptyPayload;
+	public void setEnableEmptyPayload(boolean enabled) {
+		this.enableEmptyPayload = enabled;
 	}
 
 	/**
-	 * Set a {@link ThreadFactory} for Debezium executor. Defaults to the {@link CustomizableThreadFactory} based on a
-	 * {@code debezium-} prefix.
-	 * @param threadFactory the {@link ThreadFactory} to use.
+	 * Set a {@link ThreadFactory} for the Debezium executor. Defaults to the {@link CustomizableThreadFactory} with a
+	 * {@code debezium:inbound-channel-adapter-thread-} prefix.
+	 * @param threadFactory the {@link ThreadFactory} instance to use.
 	 */
 	public void setThreadFactory(ThreadFactory threadFactory) {
 		Assert.notNull(threadFactory, "'threadFactory' must not be null");
@@ -119,8 +120,8 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Outbound message content type. Should be aligned with the {@link SerializationFormat} configured for the
-	 * {@link DebeziumEngine}.
+	 * Set the outbound message content type. Must be aligned with the {@link SerializationFormat} configuration used by
+	 * the provided {@link DebeziumEngine}.
 	 */
 	public void setContentType(String contentType) {
 		Assert.hasText(contentType, "Invalid content type: " + contentType);
@@ -128,19 +129,12 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Specifies how to convert Debezium change event headers into Message headers.
-	 * @param headerMapper concrete HeaderMapping implementation.
+	 * Set a {@link HeaderMapper} to convert the {@link ChangeEvent} headers into {@link Message} headers.
+	 * @param headerMapper {@link HeaderMapper} implementation to use. Defaults to {@link DefaultDebeziumHeaderMapper}.
 	 */
 	public void setHeaderMapper(HeaderMapper<List<Header<Object>>> headerMapper) {
 		Assert.notNull(headerMapper, "'headerMapper' must not be null.");
 		this.headerMapper = headerMapper;
-	}
-
-	/**
-	 * @return Returns current header mapper.
-	 */
-	public HeaderMapper<List<Header<Object>>> getHeaderMapper() {
-		return this.headerMapper;
 	}
 
 	@Override
@@ -238,7 +232,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 		// If payload is still null ignore the message.
 		if (payload == null) {
-			logger.info("Dropped null payload message for Change Event key:" + key);
+			logger.info(() -> "Dropped null payload message for Change Event key: " + key);
 			return null;
 		}
 

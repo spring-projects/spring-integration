@@ -588,7 +588,8 @@ project('spring-integration-debezium') {
             exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
         }
 
-        testImplementation "io.debezium:debezium-connector-mysql:$debeziumVersion"    }
+        testImplementation "io.debezium:debezium-connector-mysql:$debeziumVersion"
+    }
 }
 
 project('spring-integration-event') {

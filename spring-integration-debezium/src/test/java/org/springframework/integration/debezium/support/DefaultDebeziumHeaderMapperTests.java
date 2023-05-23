@@ -60,7 +60,7 @@ public class DefaultDebeziumHeaderMapperTests {
 
 	@Test
 	public void exactCustomHeaderName() {
-		mapper.setAllowedHeaderNames("NonStandard1");
+		mapper.setHeaderNamesToMap("NonStandard1");
 
 		assertThat(mapper.toHeaders(debeziumHeaders)).hasSize(3).containsKeys("NonStandard1", "id",
 				"timestamp");
@@ -69,7 +69,7 @@ public class DefaultDebeziumHeaderMapperTests {
 	@Test
 	public void headerNamePattern() {
 
-		mapper.setAllowedHeaderNames("NonStandard*");
+		mapper.setHeaderNamesToMap("NonStandard*");
 
 		assertThat(mapper.toHeaders(debeziumHeaders)).hasSize(4).containsKeys("NonStandard1", "NonStandard2", "id",
 				"timestamp");
