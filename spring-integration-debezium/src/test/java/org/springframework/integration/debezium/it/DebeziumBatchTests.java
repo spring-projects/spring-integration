@@ -16,6 +16,7 @@
 
 package org.springframework.integration.debezium.it;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.debezium.DebeziumMySqlTestContainer;
 import org.springframework.integration.debezium.inbound.DebeziumMessageProducer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -39,6 +41,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Christian Tzolov
@@ -50,36 +53,47 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 
+	private final List<ChangeEvent<Object, Object>> allPayload = new ArrayList<>();
+
 	@Autowired
 	@Qualifier("queueChannel")
 	private QueueChannel queueChannel;
+	private int batchCount = 0;
 
 	@Test
-	@SuppressWarnings("unchecked")
 	void batchMode() {
-		Message<?> message = this.queueChannel.receive(20_000);
-		assertThat(message).isNotNull();
-		List<ChangeEvent<Object, Object>> payload = (List<ChangeEvent<Object, Object>>) message.getPayload();
-		assertThat(payload).hasSize(52);
+		await().until(this::receivePayloads, (count) -> count == EXPECTED_DB_TX_COUNT);
+
+		assertThat(allPayload).hasSize(EXPECTED_DB_TX_COUNT);
+		assertThat(batchCount).isLessThan(EXPECTED_DB_TX_COUNT);
 
 		for (int i = 0; i < 52; i++) {
-			ChangeEvent<Object, Object> changeEvent = payload.get(i);
+			ChangeEvent<Object, Object> changeEvent = allPayload.get(i);
 
-			List<String> headerKeys =
-					changeEvent.headers()
-							.stream()
-							.map(Header::getKey)
-							.collect(Collectors.toList());
+			List<String> headerKeys = changeEvent.headers()
+					.stream()
+					.map(Header::getKey)
+					.collect(Collectors.toList());
 
+			assertThat(changeEvent.destination()).startsWith("my-topic");
 			if (i < 16) {
-				assertThat(changeEvent.destination()).startsWith("my-topic");
 				assertThat(headerKeys).isEmpty();
 			}
 			else {
-				assertThat(changeEvent.destination()).startsWith("my-topic.inventory");
+				assertThat(changeEvent.destination()).contains(".inventory");
 				assertThat(headerKeys).hasSize(4).contains("__name", "__db", "__op", "__table");
 			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private int receivePayloads() {
+		Message<?> message = this.queueChannel.receive(500);
+		if (message != null) {
+			allPayload.addAll((List<ChangeEvent<Object, Object>>) message.getPayload());
+			batchCount++;
+		}
+		return allPayload.size();
 	}
 
 	@Configuration

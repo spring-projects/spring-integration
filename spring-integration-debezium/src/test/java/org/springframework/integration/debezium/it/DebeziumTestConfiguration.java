@@ -16,11 +16,8 @@
 
 package org.springframework.integration.debezium.it;
 
-import java.util.Properties;
-
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
-import io.debezium.engine.format.JsonByteArray;
 import io.debezium.engine.format.KeyValueHeaderChangeEventFormat;
 
 import org.springframework.context.annotation.Bean;
@@ -29,6 +26,7 @@ import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.debezium.DebeziumMySqlTestContainer;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -43,36 +41,13 @@ public class DebeziumTestConfiguration {
 
 	@Bean
 	public DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder() {
-		Properties config = new Properties();
 
-		config.put("transforms", "unwrap");
-		config.put("transforms.unwrap.type", "io.debezium.transforms.ExtractNewRecordState");
-		config.put("transforms.unwrap.drop.tombstones", "false");
-		config.put("transforms.unwrap.delete.handling.mode", "rewrite");
-		config.put("transforms.unwrap.add.fields", "name,db,op,table");
-		config.put("transforms.unwrap.add.headers", "name,db,op,table");
-
-		config.put("schema.history.internal", "io.debezium.relational.history.MemorySchemaHistory");
-		config.put("offset.storage", "org.apache.kafka.connect.storage.MemoryOffsetBackingStore");
-
-		config.put("topic.prefix", "my-topic");
-		config.put("name", "my-connector");
-		config.put("database.server.id", "85744");
-		config.put("database.server.name", "my-app-connector");
-
-		config.put("connector.class", "io.debezium.connector.mysql.MySqlConnector");
-		config.put("database.user", "debezium");
-		config.put("database.password", "dbz");
-		config.put("database.hostname", "localhost");
-		config.put("database.port", String.valueOf(DebeziumMySqlTestContainer.mysqlPort()));
-
-		KeyValueHeaderChangeEventFormat<JsonByteArray, JsonByteArray, JsonByteArray> format =
-				KeyValueHeaderChangeEventFormat.of(
+		return DebeziumEngine.create(KeyValueHeaderChangeEventFormat
+				.of(
 						io.debezium.engine.format.JsonByteArray.class,
 						io.debezium.engine.format.JsonByteArray.class,
-						io.debezium.engine.format.JsonByteArray.class);
-
-		return DebeziumEngine.create(format).using(config);
+						io.debezium.engine.format.JsonByteArray.class))
+				.using(DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()));
 	}
 
 	@Bean
