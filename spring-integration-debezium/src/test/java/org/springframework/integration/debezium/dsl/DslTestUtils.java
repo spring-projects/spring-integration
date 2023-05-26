@@ -14,36 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.debezium.it;
+package org.springframework.integration.debezium.dsl;
 
 import java.util.Properties;
 
-import io.debezium.engine.ChangeEvent;
-import io.debezium.engine.DebeziumEngine;
-import io.debezium.engine.format.JsonByteArray;
-import io.debezium.engine.format.KeyValueHeaderChangeEventFormat;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.annotation.BridgeFrom;
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.debezium.DebeziumMySqlTestContainer;
-import org.springframework.messaging.MessageChannel;
-
 /**
- * @author Christian Tzolov
- * @author Artem Bilan
  *
- * @since 6.2
+ * @author Christian Tzolov
  */
-@Configuration
-@EnableIntegration
-public class DebeziumTestConfiguration {
+public final class DslTestUtils {
 
-	@Bean
-	public DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder() {
+	public static Properties debeziumMySqlConnectorConfig(int port) {
+
 		Properties config = new Properties();
 
 		config.put("transforms", "unwrap");
@@ -65,26 +47,12 @@ public class DebeziumTestConfiguration {
 		config.put("database.user", "debezium");
 		config.put("database.password", "dbz");
 		config.put("database.hostname", "localhost");
-		config.put("database.port", String.valueOf(DebeziumMySqlTestContainer.mysqlPort()));
+		config.put("database.port", String.valueOf(port));
 
-		KeyValueHeaderChangeEventFormat<JsonByteArray, JsonByteArray, JsonByteArray> format =
-				KeyValueHeaderChangeEventFormat.of(
-						io.debezium.engine.format.JsonByteArray.class,
-						io.debezium.engine.format.JsonByteArray.class,
-						io.debezium.engine.format.JsonByteArray.class);
-
-		return DebeziumEngine.create(format).using(config);
+		return config;
 	}
 
-	@Bean
-	public MessageChannel debeziumInputChannel() {
-		return new DirectChannel();
-	}
-
-	@Bean
-	@BridgeFrom("debeziumInputChannel")
-	public MessageChannel queueChannel() {
-		return new QueueChannel();
+	private DslTestUtils() {
 	}
 
 }

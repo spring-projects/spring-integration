@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.debezium.it;
+package org.springframework.integration.debezium;
 
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -27,9 +27,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * @since 6.2
  */
 @Testcontainers(disabledWithoutDocker = true)
-interface DebeziumMySqlTestContainer {
+public interface DebeziumMySqlTestContainer {
 
-	@SuppressWarnings("resource")
 	@Container
 	GenericContainer<?> DEBEZIUM_MYSQL =
 			new GenericContainer<>("debezium/example-mysql:2.2.0.Final")

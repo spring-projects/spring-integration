@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.debezium.DebeziumMySqlTestContainer;
 import org.springframework.integration.debezium.inbound.DebeziumMessageProducer;
 import org.springframework.integration.debezium.support.DefaultDebeziumHeaderMapper;
 import org.springframework.messaging.Message;

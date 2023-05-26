@@ -33,7 +33,7 @@ import org.springframework.messaging.support.HeaderMapper;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
- *
+ * A {@link org.springframework.integration.dsl.MessageProducerSpec} for {@link DebeziumMessageProducer}.
  * @author Christian Tzolov
  *
  * @since 6.2
