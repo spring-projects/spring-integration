@@ -53,12 +53,26 @@ The following Spring Boot application shows an example of how to configure the i
 ====
 [source, java]
 ----
+import io.debezium.engine.ChangeEvent;
+import io.debezium.engine.DebeziumEngine;
+
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.debezium.inbound.DebeziumMessageProducer;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+
 @SpringBootApplication
 public class DebeziumJavaApplication {
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(DebeziumJavaApplication.class)
-                .web(false)
+                .web(WebApplicationType.NONE)
                 .run(args);
     }
 
@@ -79,8 +93,8 @@ public class DebeziumJavaApplication {
     }
 
     @ServiceActivator(inputChannel = "debeziumInputChannel")
-    public void handler(String changeEventData) {
-        System.out.println(changeEventData);
+    public void handler(Message<?> changeEventData) {
+        System.out.println(new String((byte[]) changeEventData.getPayload()));
     }
 
 }

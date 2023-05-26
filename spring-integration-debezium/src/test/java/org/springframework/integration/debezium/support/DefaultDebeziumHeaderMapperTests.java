@@ -47,6 +47,13 @@ public class DefaultDebeziumHeaderMapperTests {
 
 	@Test
 	public void defaultHeaders() {
+		assertThat(mapper.toHeaders(debeziumHeaders)).hasSize(4)
+				.containsKeys("NonStandard1", "NonStandard2", "id", "timestamp");
+	}
+
+	@Test
+	public void disableDebeziumHeaders() {
+		mapper.setHeaderNamesToMap("");
 		assertThat(mapper.toHeaders(debeziumHeaders)).hasSize(2)
 				.containsKeys("id", "timestamp");
 	}

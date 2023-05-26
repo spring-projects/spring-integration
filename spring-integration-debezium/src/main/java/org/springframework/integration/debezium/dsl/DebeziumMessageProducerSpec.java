@@ -16,7 +16,6 @@
 
 package org.springframework.integration.debezium.dsl;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadFactory;
@@ -32,7 +31,6 @@ import org.springframework.integration.debezium.support.DefaultDebeziumHeaderMap
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.messaging.support.HeaderMapper;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.util.Assert;
 
 /**
  *
@@ -43,9 +41,7 @@ import org.springframework.util.Assert;
 public class DebeziumMessageProducerSpec
 		extends MessageProducerSpec<DebeziumMessageProducerSpec, DebeziumMessageProducer> {
 
-	private String[] inboundHeaderNames = { "*" };
-
-	public DebeziumMessageProducerSpec(Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
+	protected DebeziumMessageProducerSpec(Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
 		super(new DebeziumMessageProducer(debeziumEngineBuilder));
 	}
 
@@ -110,9 +106,10 @@ public class DebeziumMessageProducerSpec
 	 * @return the spec.
 	 */
 	public DebeziumMessageProducerSpec headerNames(String... headerNames) {
-		Assert.notEmpty(headerNames, "'inboundHeaderNames' must not be empty");
-		this.inboundHeaderNames = Arrays.copyOf(headerNames, headerNames.length);
-		return addDebeziumHeaderMapper();
+		DefaultDebeziumHeaderMapper headerMapper = new DefaultDebeziumHeaderMapper();
+		headerMapper.setHeaderNamesToMap(headerNames);
+
+		return headerMapper(headerMapper);
 	}
 
 	/**
@@ -123,12 +120,6 @@ public class DebeziumMessageProducerSpec
 	public DebeziumMessageProducerSpec headerMapper(HeaderMapper<List<Header<Object>>> headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
 		return this;
-	}
-
-	private DebeziumMessageProducerSpec addDebeziumHeaderMapper() {
-		DefaultDebeziumHeaderMapper headerMapper = new DefaultDebeziumHeaderMapper();
-		headerMapper.setHeaderNamesToMap(this.inboundHeaderNames);
-		return headerMapper(headerMapper);
 	}
 
 }

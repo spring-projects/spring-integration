@@ -39,7 +39,7 @@ import org.springframework.util.PatternMatchUtils;
  */
 public class DefaultDebeziumHeaderMapper implements HeaderMapper<List<Header<Object>>> {
 
-	private String[] headerNamesToMap = new String[0];
+	private String[] headerNamesToMap = {"*"};
 
 	/**
 	 * Comma-separated list of names of Debezium's Change Event headers to be mapped to the outbound Message headers.
