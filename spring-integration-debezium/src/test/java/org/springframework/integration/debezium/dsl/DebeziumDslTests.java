@@ -27,6 +27,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class DebeziumDslTest {
+public class DebeziumDslTests {
 
 }

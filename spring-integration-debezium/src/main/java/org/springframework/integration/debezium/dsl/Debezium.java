@@ -53,6 +53,20 @@ public final class Debezium {
 
 	/**
 	 * Create an instance of {@link DebeziumMessageProducerSpec} for the provided native debezium {@link Properties} and
+	 * JSON serialization formats.
+	 * @param debeziumConfig {@link Properties} with required debezium engine and connector properties.
+	 * @return the spec.
+	 */
+	public static DebeziumMessageProducerSpec inboundChannelAdapter(Properties debeziumConfig) {
+
+		return new DebeziumMessageProducerSpec(builder(
+				debeziumConfig, io.debezium.engine.format.JsonByteArray.class,
+				io.debezium.engine.format.JsonByteArray.class, null, null,
+				null, null));
+	}
+
+	/**
+	 * Create an instance of {@link DebeziumMessageProducerSpec} for the provided native debezium {@link Properties} and
 	 * serialization formats.
 	 * @param debeziumConfig {@link Properties} with required debezium engine and connector properties.
 	 * @param messageFormat {@link SerializationFormat} format for the {@link ChangeEvent} key and payload.
