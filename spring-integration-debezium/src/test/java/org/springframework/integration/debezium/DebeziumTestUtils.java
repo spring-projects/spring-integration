@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.debezium.dsl;
+package org.springframework.integration.debezium;
 
 import java.util.Properties;
 
@@ -22,9 +22,9 @@ import java.util.Properties;
  *
  * @author Christian Tzolov
  */
-public final class DslTestUtils {
+public final class DebeziumTestUtils {
 
-	public static Properties debeziumMySqlConnectorConfig(int port) {
+	public static Properties connectorConfig(int port) {
 
 		Properties config = new Properties();
 
@@ -43,6 +43,9 @@ public final class DslTestUtils {
 		config.put("database.server.id", "85744");
 		config.put("database.server.name", "my-app-connector");
 
+		config.put("key.converter.schemas.enable", "false");
+		config.put("value.converter.schemas.enable", "false");
+
 		config.put("connector.class", "io.debezium.connector.mysql.MySqlConnector");
 		config.put("database.user", "debezium");
 		config.put("database.password", "dbz");
@@ -52,7 +55,7 @@ public final class DslTestUtils {
 		return config;
 	}
 
-	private DslTestUtils() {
+	private DebeziumTestUtils() {
 	}
 
 }

@@ -30,8 +30,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.debezium.DebeziumMySqlTestContainer;
+import org.springframework.integration.debezium.DebeziumTestUtils;
+import org.springframework.integration.debezium.support.DebeziumHeaders;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -46,6 +49,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig
 @DirtiesContext
 public class DebeziumDslWithBuilderTests implements DebeziumMySqlTestContainer {
+
+	static final LogAccessor logger = new LogAccessor(DebeziumDslWithBuilderTests.class);
 
 	@Autowired
 	private Config config;
@@ -85,6 +90,10 @@ public class DebeziumDslWithBuilderTests implements DebeziumMySqlTestContainer {
 
 			return IntegrationFlow.from(dsl)
 					.handle(m -> {
+						Object key = new String((byte[]) m.getHeaders().get(DebeziumHeaders.KEY));
+						Object destination = m.getHeaders().get(DebeziumHeaders.DESTINATION);
+						logger.info("KEY: " + key + ", DESTINATION: " + destination);
+
 						headerKeys.add(m.getHeaders().keySet());
 						payloads.add(new String((byte[]) m.getPayload()));
 						this.latch.countDown();
@@ -98,7 +107,7 @@ public class DebeziumDslWithBuilderTests implements DebeziumMySqlTestContainer {
 					.of(io.debezium.engine.format.JsonByteArray.class,
 							io.debezium.engine.format.JsonByteArray.class,
 							io.debezium.engine.format.JsonByteArray.class))
-					.using(DslTestUtils.debeziumMySqlConnectorConfig(DebeziumMySqlTestContainer.mysqlPort()));
+					.using(DebeziumTestUtils.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()));
 		}
 	}
 

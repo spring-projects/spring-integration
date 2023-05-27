@@ -1,12 +1,10 @@
 [[debezium]]
 == Debezium Support
 
-Spring Integration provides channel adapter for handling Change Events using Debezium.
-
 https://debezium.io/documentation/reference/development/engine.html[Debezium Engine] based Change Data Capture (CDC) channel adapter.
-The Debezium adapter allows capturing database change events, converting them into messages and streaming those to the outbound channels.
+The Debezium adapter allows capturing database change events, converting them into messages and streaming later to the outbound channels.
 
-You need to include this dependency into your project:
+You need to include the spring integration debezium dependency into your project:
 
 ====
 [source, xml, subs="normal", role="primary"]
@@ -25,10 +23,39 @@ compile "org.springframework.integration:spring-integration-debezium:{project-ve
 ----
 ====
 
+You also need to add the dependency of the https://debezium.io/documentation/reference/2.2/connectors/index.html[debezium connector] of choice.
+Follow the debezium documentation to pick the right dependency.
+For example to use the PostgreSQL debezium connector you need to add
+
+====
+[source, xml, subs="normal", role="primary"]
+.Maven
+----
+<dependency>
+    <groupId>io.debezium</groupId>
+    <artifactId>debezium-connector-postgres</artifactId>
+    <version>${debezium-version}</version>
+</dependency>
+
+----
+[source, groovy, subs="normal", role="secondary"]
+.Gradle
+----
+compile "io.debezium:debezium-connector-postgres:{debezium-version}"
+----
+====
+
+
 [[debezium-inbound]]
 === Inbound Debezium Channel Adapter
 
 The Debezium adapter expects a pre-configured `DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>>` bean instance.
+
+[TIP]
+====
+The https://github.com/spring-cloud/stream-applications/tree/main/functions/supplier/debezium-supplier[debezium-supplier] provides an out of the box `DebeziumEngine.Builder` SpringBoot auto-configuration with a handy https://github.com/spring-cloud/stream-applications/blob/main/functions/supplier/debezium-supplier/src/main/java/org/springframework/cloud/fn/supplier/debezium/DebeziumProperties.java[DebeziumProperties] configuration abstraction.
+====
+
 Additionally, the `DebeziumMessageProducer` can be tuned with the following configuration properties:
 
 - `contentType` - allows handling for  `JSON` (default), `AVRO` and `PROTOBUF` message contents.
@@ -53,20 +80,6 @@ The following Spring Boot application shows an example of how to configure the i
 ====
 [source, java]
 ----
-import io.debezium.engine.ChangeEvent;
-import io.debezium.engine.DebeziumEngine;
-
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.debezium.inbound.DebeziumMessageProducer;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-
 @SpringBootApplication
 public class DebeziumJavaApplication {
 
@@ -93,12 +106,31 @@ public class DebeziumJavaApplication {
     }
 
     @ServiceActivator(inputChannel = "debeziumInputChannel")
-    public void handler(Message<?> changeEventData) {
-        System.out.println(new String((byte[]) changeEventData.getPayload()));
+    public void handler(Message<?> message) {
+
+        Object destination = message.getHeaders().get(DebeziumHeaders.DESTINATION); # <1>
+
+        String key = new String((byte[]) message.getHeaders().get(DebeziumHeaders.KEY)); # <2>
+
+        String payload = new String((byte[]) message.getPayload()); # <3>
+
+        System.out.println("KEY: " + key + ", DESTINATION: " + destination + ", PAYLOAD: " + payload);
     }
 
 }
 ----
+<1> A name of the logical destination for which the event is intended.
+    Usually the destination is composed of the 'topic.prefix' configuration option, the database name and the table name. For example: `my-topic.inventory.orders`.
+<2> Contains the schema for the changed table's key and the changed row's actual key.
+    Both the key schema and its corresponding key payload contain a field for each column in the changed table's `PRIMARY KEY` (or unique constraint) at the time the connector created the event.
+<3> Like the key, the payload has a schema section and a payload value section.
+    The schema section contains the schema that describes the Envelope structure of the payload value section, including its nested fields.
+    Change events for operations that create, update or delete data all have a value payload with an envelope structure.
+====
+
+[TIP]
+====
+The `key.converter.schemas.enable=false` and/or `value.converter.schemas.enable=false` permit disabling the in-message schema content for key or payload respectively.
 ====
 
 Similarly, we can configure the `DebeziumMessageProducer` to process the incoming change events in batches:
@@ -124,8 +156,35 @@ public void handler(List<ChangeEvent<Object, Object>> payload) {
 ----
 ====
 
+=== Configuring with the Java DSL
 
-==== Configuring with the Java DSL
+The `spring-integration-debezium` provides a convenient Java DSL fluent API via the `Debezium` factory and the `DebeziumMessageProducerSpec` implementations.
+
+The Inbound Channel Adapter for Debezium Java DSL is:
+====
+[source, java]
+----
+ DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>>   debeziumEngineBuilder = ...
+ IntegrationFlow.from(
+    Debezium.inboundChannelAdapter(debeziumEngineBuilder)
+        .headerNames("special*")
+        .contentType("application/json")
+        .enableBatch(false))
+    .handle(m -> System.out.println(new String((byte[]) m.getPayload())))
+----
+====
+
+Or create an DebeziumMessageProducerSpec instance from native debezium configuration properties and default to `JSON` serialization formats.
+
+====
+[source, java]
+----
+ Properties debeziumConfig = ...
+ IntegrationFlow
+    .from(Debezium.inboundChannelAdapter(debeziumConfig))
+    .handle(m -> System.out.println(new String((byte[]) m.getPayload())))
+----
+====
 
 The following Spring Boot application provides an example of configuring the inbound adapter with the Java DSL:
 
@@ -145,7 +204,12 @@ public class DebeziumJavaApplication {
     public IntegrationFlow debeziumInbound(
         DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
 
-        return IntegrationFlow.from(new DebeziumMessageProducer(debeziumEngineBuilder))
+        return IntegrationFlow
+                .from(Debezium
+                        .inboundChannelAdapter(debeziumEngineBuilder)
+					    .headerNames("special*")
+					    .contentType("application/json")
+					    .enableBatch(false))
                 .handle(m -> System.out.println(new String((byte[]) m.getPayload())))
                 .get();
     }

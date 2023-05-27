@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.debezium.DebeziumMySqlTestContainer;
+import org.springframework.integration.debezium.DebeziumTestUtils;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -78,11 +79,10 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 
 			DebeziumMessageProducerSpec dsl = Debezium
 					.inboundChannelAdapter(
-							DslTestUtils.debeziumMySqlConnectorConfig(DebeziumMySqlTestContainer.mysqlPort()))
+							DebeziumTestUtils.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()))
 					.headerNames("*")
 					.contentType("application/json")
-					.enableBatch(true)
-					.enableEmptyPayload(true);
+					.enableBatch(true);
 
 			return IntegrationFlow.from(dsl)
 					.handle(m -> {
