@@ -1,7 +1,7 @@
 [[debezium]]
 == Debezium Support
 
-https://debezium.io/documentation/reference/development/engine.html[Debezium Engine] based Change Data Capture (CDC) channel adapter.
+https://debezium.io/documentation/reference/development/engine.html[Debezium Engine], Change Data Capture (CDC) inbound channel adapter.
 The Debezium adapter allows capturing database change events, converting them into messages and streaming later to the outbound channels.
 
 You need to include the spring integration debezium dependency into your project:
@@ -24,7 +24,6 @@ compile "org.springframework.integration:spring-integration-debezium:{project-ve
 ====
 
 You also need to add the dependency of the https://debezium.io/documentation/reference/2.2/connectors/index.html[debezium connector] of choice.
-Follow the debezium documentation to pick the right dependency.
 For example to use the PostgreSQL debezium connector you need to add
 
 ====
@@ -49,11 +48,16 @@ compile "io.debezium:debezium-connector-postgres:{debezium-version}"
 [[debezium-inbound]]
 === Inbound Debezium Channel Adapter
 
-The Debezium adapter expects a pre-configured `DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>>` bean instance.
+The Debezium adapter expects a pre-configured `DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>>` instance.
 
 [TIP]
 ====
 The https://github.com/spring-cloud/stream-applications/tree/main/functions/supplier/debezium-supplier[debezium-supplier] provides an out of the box `DebeziumEngine.Builder` SpringBoot auto-configuration with a handy https://github.com/spring-cloud/stream-applications/blob/main/functions/supplier/debezium-supplier/src/main/java/org/springframework/cloud/fn/supplier/debezium/DebeziumProperties.java[DebeziumProperties] configuration abstraction.
+====
+
+[TIP]
+====
+The <<Configuring with the Java DSL>> can create, on the fly, an opinionated `DebeziumEngine.Build` instance from Debezium configuration input.
 ====
 
 Additionally, the `DebeziumMessageProducer` can be tuned with the following configuration properties:
