@@ -57,7 +57,7 @@ The https://github.com/spring-cloud/stream-applications/tree/main/functions/supp
 
 [TIP]
 ====
-The <<Configuring with the Java DSL>> can create, on the fly, an opinionated `DebeziumEngine.Build` instance from Debezium configuration input.
+For some, common use-cases the <<configuring-with-the-java-dsl,Debezium DSL>> will auto-create the `DebeziumEngine.Build` instance from the provided Debezium configuration.
 ====
 
 Additionally, the `DebeziumMessageProducer` can be tuned with the following configuration properties:
@@ -160,7 +160,7 @@ public void handler(List<ChangeEvent<Object, Object>> payload) {
 ----
 ====
 
-=== Configuring with the Java DSL
+=== [[configuring-with-the-java-dsl]]Configuring with the Java DSL
 
 The `spring-integration-debezium` provides a convenient Java DSL fluent API via the `Debezium` factory and the `DebeziumMessageProducerSpec` implementations.
 
