@@ -2,9 +2,9 @@
 == Debezium Support
 
 https://debezium.io/documentation/reference/development/engine.html[Debezium Engine], Change Data Capture (CDC) inbound channel adapter.
-The Debezium adapter allows capturing database change events, converting them into messages and streaming later to the outbound channels.
+The `DebeziumMessageProducer` allows capturing database change events, converting them into messages and streaming later to the outbound channels.
 
-You need to include the spring integration debezium dependency into your project:
+You need to include the spring integration Debezium dependency to your project:
 
 ====
 [source, xml, subs="normal", role="primary"]
@@ -23,8 +23,8 @@ compile "org.springframework.integration:spring-integration-debezium:{project-ve
 ----
 ====
 
-You also need to add the dependency of the https://debezium.io/documentation/reference/2.2/connectors/index.html[debezium connector] of choice.
-For example to use the PostgreSQL debezium connector you need to add
+You also need to include a https://debezium.io/documentation/reference/2.2/connectors/index.html[debezium connector] dependency for your input Database.
+For example to use Debezium with PostgreSQL you will need the postgres debezium connector:
 
 ====
 [source, xml, subs="normal", role="primary"]
@@ -44,6 +44,10 @@ compile "io.debezium:debezium-connector-postgres:{debezium-version}"
 ----
 ====
 
+[NOTE]
+====
+Replace the `debezium-version` with the version compatible with the `spring-integration-debezium` version being used.
+====
 
 [[debezium-inbound]]
 === Inbound Debezium Channel Adapter
@@ -57,7 +61,7 @@ The https://github.com/spring-cloud/stream-applications/tree/main/functions/supp
 
 [TIP]
 ====
-For some, common use-cases the <<configuring-with-the-java-dsl,Debezium DSL>> will auto-create the `DebeziumEngine.Build` instance from the provided Debezium configuration.
+The <<debezium-java-dsl,Debezium Java DSL>> can create a `DebeziumMessageProducer` instance from a provided `DebeziumEngine.Builder`, as well as from a plain Debezium configuration (e.g. `java.util.Properties`). Later can be handy for some common use-cases with opinionated configuration and serialization formats.
 ====
 
 Additionally, the `DebeziumMessageProducer` can be tuned with the following configuration properties:
@@ -160,7 +164,7 @@ public void handler(List<ChangeEvent<Object, Object>> payload) {
 ----
 ====
 
-=== [[configuring-with-the-java-dsl]]Configuring with the Java DSL
+=== [[debezium-java-dsl]]Debezium Java DSL Support
 
 The `spring-integration-debezium` provides a convenient Java DSL fluent API via the `Debezium` factory and the `DebeziumMessageProducerSpec` implementations.
 
