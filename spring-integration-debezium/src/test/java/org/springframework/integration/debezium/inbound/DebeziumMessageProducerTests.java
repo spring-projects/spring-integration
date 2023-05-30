@@ -38,6 +38,7 @@ import static org.mockito.Mockito.reset;
 
 /**
  * @author Christian Tzolov
+ *
  * @since 6.2
  */
 public class DebeziumMessageProducerTests {

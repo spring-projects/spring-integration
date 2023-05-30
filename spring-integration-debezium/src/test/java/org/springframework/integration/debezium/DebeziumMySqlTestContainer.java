@@ -16,6 +16,8 @@
 
 package org.springframework.integration.debezium;
 
+import java.util.Properties;
+
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -39,6 +41,37 @@ public interface DebeziumMySqlTestContainer {
 
 	static int mysqlPort() {
 		return DEBEZIUM_MYSQL.getMappedPort(3306);
+	}
+
+	static Properties connectorConfig(int port) {
+
+		Properties config = new Properties();
+
+		config.put("transforms", "unwrap");
+		config.put("transforms.unwrap.type", "io.debezium.transforms.ExtractNewRecordState");
+		config.put("transforms.unwrap.drop.tombstones", "false");
+		config.put("transforms.unwrap.delete.handling.mode", "rewrite");
+		config.put("transforms.unwrap.add.fields", "name,db,op,table");
+		config.put("transforms.unwrap.add.headers", "name,db,op,table");
+
+		config.put("schema.history.internal", "io.debezium.relational.history.MemorySchemaHistory");
+		config.put("offset.storage", "org.apache.kafka.connect.storage.MemoryOffsetBackingStore");
+
+		config.put("topic.prefix", "my-topic");
+		config.put("name", "my-connector");
+		config.put("database.server.id", "85744");
+		config.put("database.server.name", "my-app-connector");
+
+		config.put("key.converter.schemas.enable", "false");
+		config.put("value.converter.schemas.enable", "false");
+
+		config.put("connector.class", "io.debezium.connector.mysql.MySqlConnector");
+		config.put("database.user", "debezium");
+		config.put("database.password", "dbz");
+		config.put("database.hostname", "localhost");
+		config.put("database.port", String.valueOf(port));
+
+		return config;
 	}
 
 }

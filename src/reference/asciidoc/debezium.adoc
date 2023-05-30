@@ -56,12 +56,13 @@ The Debezium adapter expects a pre-configured `DebeziumEngine.Builder<ChangeEven
 
 [TIP]
 ====
-The https://github.com/spring-cloud/stream-applications/tree/main/functions/supplier/debezium-supplier[debezium-supplier] provides an out of the box `DebeziumEngine.Builder` SpringBoot auto-configuration with a handy https://github.com/spring-cloud/stream-applications/blob/main/functions/supplier/debezium-supplier/src/main/java/org/springframework/cloud/fn/supplier/debezium/DebeziumProperties.java[DebeziumProperties] configuration abstraction.
+The https://github.com/spring-cloud/stream-applications/tree/main/functions/supplier/debezium-supplier[debezium-supplier] provides an out of the box `DebeziumEngine.Builder` Spring Boot auto-configuration with a handy https://github.com/spring-cloud/stream-applications/blob/main/functions/supplier/debezium-supplier/src/main/java/org/springframework/cloud/fn/supplier/debezium/DebeziumProperties.java[DebeziumProperties] configuration abstraction.
 ====
 
 [TIP]
 ====
-The <<debezium-java-dsl,Debezium Java DSL>> can create a `DebeziumMessageProducer` instance from a provided `DebeziumEngine.Builder`, as well as from a plain Debezium configuration (e.g. `java.util.Properties`). Later can be handy for some common use-cases with opinionated configuration and serialization formats.
+The <<debezium-java-dsl,Debezium Java DSL>> can create a `DebeziumMessageProducer` instance from a provided `DebeziumEngine.Builder`, as well as from a plain Debezium configuration (e.g. `java.util.Properties`).
+Later can be handy for some common use-cases with opinionated configuration and serialization formats.
 ====
 
 Additionally, the `DebeziumMessageProducer` can be tuned with the following configuration properties:
@@ -164,7 +165,8 @@ public void handler(List<ChangeEvent<Object, Object>> payload) {
 ----
 ====
 
-=== [[debezium-java-dsl]]Debezium Java DSL Support
+[[debezium-java-dsl]]
+=== Debezium Java DSL Support
 
 The `spring-integration-debezium` provides a convenient Java DSL fluent API via the `Debezium` factory and the `DebeziumMessageProducerSpec` implementations.
 

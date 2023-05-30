@@ -33,7 +33,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.debezium.DebeziumMySqlTestContainer;
-import org.springframework.integration.debezium.DebeziumTestUtils;
 import org.springframework.integration.debezium.support.DebeziumHeaders;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.test.annotation.DirtiesContext;
@@ -107,7 +106,7 @@ public class DebeziumDslWithBuilderTests implements DebeziumMySqlTestContainer {
 					.of(io.debezium.engine.format.JsonByteArray.class,
 							io.debezium.engine.format.JsonByteArray.class,
 							io.debezium.engine.format.JsonByteArray.class))
-					.using(DebeziumTestUtils.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()));
+					.using(DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()));
 		}
 	}
 

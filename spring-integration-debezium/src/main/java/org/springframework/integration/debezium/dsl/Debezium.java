@@ -74,14 +74,14 @@ public final class Debezium {
 		return new DebeziumMessageProducerSpec(builder(debeziumConfig, messageFormat, headerFormat));
 	}
 
-	private static Builder<ChangeEvent<byte[], byte[]>> builder(Properties debeziumConfig,
+	private static DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> builder(Properties debeziumConfig,
 			Class<? extends SerializationFormat<byte[]>> messageFormat,
 			Class<? extends SerializationFormat<byte[]>> headerFormat) {
 
-		Assert.notNull(messageFormat, "Null message format!");
-		Assert.notNull(headerFormat, "Null header format!");
-		Assert.notNull(debeziumConfig, "Null properties!");
-		Assert.isTrue(debeziumConfig.containsKey("connector.class"), "The connector.class property must be set!");
+		Assert.notNull(messageFormat, "'messageFormat' must not be null");
+		Assert.notNull(headerFormat, "'headerFormat' must not be null");
+		Assert.notNull(debeziumConfig, "'debeziumConfig' must not be null");
+		Assert.isTrue(debeziumConfig.containsKey("connector.class"), "The 'connector.class' property must be set");
 
 		Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder = DebeziumEngine
 				.create(KeyValueHeaderChangeEventFormat

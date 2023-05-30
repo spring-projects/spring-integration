@@ -27,7 +27,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.debezium.DebeziumMySqlTestContainer;
-import org.springframework.integration.debezium.DebeziumTestUtils;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -48,7 +47,7 @@ public class DebeziumTestConfiguration {
 						io.debezium.engine.format.JsonByteArray.class,
 						io.debezium.engine.format.JsonByteArray.class,
 						io.debezium.engine.format.JsonByteArray.class))
-				.using(DebeziumTestUtils.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()));
+				.using(DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()));
 	}
 
 	@Bean
