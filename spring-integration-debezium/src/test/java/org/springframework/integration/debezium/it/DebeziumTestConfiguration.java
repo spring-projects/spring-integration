@@ -47,7 +47,7 @@ public class DebeziumTestConfiguration {
 						io.debezium.engine.format.JsonByteArray.class,
 						io.debezium.engine.format.JsonByteArray.class,
 						io.debezium.engine.format.JsonByteArray.class))
-				.using(DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort(), "my-topic"));
+				.using(DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()));
 	}
 
 	@Bean

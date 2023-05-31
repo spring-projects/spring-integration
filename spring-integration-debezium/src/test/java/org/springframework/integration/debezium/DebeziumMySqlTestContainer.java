@@ -43,7 +43,7 @@ public interface DebeziumMySqlTestContainer {
 		return DEBEZIUM_MYSQL.getMappedPort(3306);
 	}
 
-	static Properties connectorConfig(int port, String topicPrefix) {
+	static Properties connectorConfig(int port) {
 
 		Properties config = new Properties();
 
@@ -57,7 +57,7 @@ public interface DebeziumMySqlTestContainer {
 		config.put("schema.history.internal", "io.debezium.relational.history.MemorySchemaHistory");
 		config.put("offset.storage", "org.apache.kafka.connect.storage.MemoryOffsetBackingStore");
 
-		config.put("topic.prefix", topicPrefix);
+		config.put("topic.prefix", "my-topic");
 		config.put("name", "my-connector");
 		config.put("database.server.id", "85744");
 		// config.put("database.server.id", "" + Math.abs(new Random().nextInt()));
