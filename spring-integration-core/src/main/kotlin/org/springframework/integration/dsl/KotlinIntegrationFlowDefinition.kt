@@ -22,22 +22,13 @@ import org.springframework.integration.aggregator.AggregatingMessageHandler
 import org.springframework.integration.channel.BroadcastCapableChannel
 import org.springframework.integration.channel.FluxMessageChannel
 import org.springframework.integration.channel.interceptor.WireTap
+import org.springframework.integration.core.GenericHandler
 import org.springframework.integration.core.MessageSelector
 import org.springframework.integration.dsl.support.MessageChannelReference
 import org.springframework.integration.filter.MessageFilter
 import org.springframework.integration.filter.MethodInvokingSelector
-import org.springframework.integration.handler.BridgeHandler
-import org.springframework.integration.handler.DelayHandler
-import org.springframework.integration.core.GenericHandler
-import org.springframework.integration.handler.LoggingHandler
-import org.springframework.integration.handler.MessageProcessor
-import org.springframework.integration.handler.MessageTriggerAction
-import org.springframework.integration.handler.ServiceActivatingHandler
-import org.springframework.integration.router.AbstractMessageRouter
-import org.springframework.integration.router.ErrorMessageExceptionTypeRouter
-import org.springframework.integration.router.ExpressionEvaluatingRouter
-import org.springframework.integration.router.MethodInvokingRouter
-import org.springframework.integration.router.RecipientListRouter
+import org.springframework.integration.handler.*
+import org.springframework.integration.router.*
 import org.springframework.integration.scattergather.ScatterGatherHandler
 import org.springframework.integration.splitter.AbstractMessageSplitter
 import org.springframework.integration.splitter.DefaultMessageSplitter
@@ -45,17 +36,13 @@ import org.springframework.integration.splitter.ExpressionEvaluatingSplitter
 import org.springframework.integration.splitter.MethodInvokingSplitter
 import org.springframework.integration.store.MessageStore
 import org.springframework.integration.support.MapBuilder
-import org.springframework.integration.transformer.ClaimCheckInTransformer
-import org.springframework.integration.transformer.ClaimCheckOutTransformer
-import org.springframework.integration.transformer.HeaderFilter
-import org.springframework.integration.transformer.MessageTransformingHandler
-import org.springframework.integration.transformer.MethodInvokingTransformer
-import org.springframework.integration.transformer.Transformer
+import org.springframework.integration.transformer.*
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHandler
 import org.springframework.messaging.MessageHeaders
 import org.springframework.messaging.support.ChannelInterceptor
+import org.springframework.util.StringUtils
 import reactor.core.publisher.Flux
 import java.util.function.Consumer
 
@@ -711,8 +698,23 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Provide the [HeaderFilter] to the current [IntegrationFlow].
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""headerFilter { 
+										patternMatch() 
+										headersToRemove() 
+									}"""))
 	fun headerFilter(headersToRemove: String, patternMatch: Boolean = true) {
-		this.delegate.headerFilter(headersToRemove, patternMatch)
+		headerFilter {
+			patternMatch(patternMatch)
+			headersToRemove(*StringUtils.delimitedListToStringArray(headersToRemove, ",", " "))
+		}
+	}
+
+	/**
+	 * Provide the [HeaderFilter] to the current [IntegrationFlow].
+	 */
+	fun headerFilter(endpointConfigurer: HeaderFilterSpec.() -> Unit) {
+		this.delegate.headerFilter(endpointConfigurer)
 	}
 
 	/**
