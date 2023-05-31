@@ -78,7 +78,7 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 
 			DebeziumMessageProducerSpec dsl = Debezium
 					.inboundChannelAdapter(
-						DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()))
+						DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort(), "topic1"))
 					.headerNames("*")
 					.contentType("application/json")
 					.enableBatch(true);
