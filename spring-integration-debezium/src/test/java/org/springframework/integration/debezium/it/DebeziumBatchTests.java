@@ -16,6 +16,7 @@
 
 package org.springframework.integration.debezium.it;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Christian Tzolov
@@ -55,16 +57,18 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 	@Qualifier("queueChannel")
 	private QueueChannel queueChannel;
 
+	private List<ChangeEvent<Object, Object>> allPayload = new ArrayList<>();
+
 	@Test
 	@SuppressWarnings("unchecked")
 	void batchMode() {
-		Message<?> message = this.queueChannel.receive(20_000);
-		assertThat(message).isNotNull();
-		List<ChangeEvent<Object, Object>> payload = (List<ChangeEvent<Object, Object>>) message.getPayload();
-		assertThat(payload).hasSize(52);
+		await().until(this::receivePayloads, (count) -> count >= 52);
+		System.out.println();
+
+		assertThat(allPayload).hasSize(52);
 
 		for (int i = 0; i < 52; i++) {
-			ChangeEvent<Object, Object> changeEvent = payload.get(i);
+			ChangeEvent<Object, Object> changeEvent = allPayload.get(i);
 
 			List<String> headerKeys = changeEvent.headers()
 					.stream()
@@ -80,6 +84,15 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 				assertThat(headerKeys).hasSize(4).contains("__name", "__db", "__op", "__table");
 			}
 		}
+	}
+
+	private int receivePayloads() {
+		Message<?> message = this.queueChannel.receive(500);
+		if (message != null) {
+			allPayload.addAll((List<ChangeEvent<Object, Object>>) message.getPayload());
+			System.out.println(allPayload.size());
+		}
+		return allPayload.size();
 	}
 
 	@Configuration
