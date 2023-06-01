@@ -189,11 +189,18 @@ class GroovyDslTests {
 	@Test
 	void 'flow from lambda'() {
 		def replyChannel = new QueueChannel()
-		def message = MessageBuilder.withPayload('test').setReplyChannel(replyChannel).build()
+		def message =
+				MessageBuilder.withPayload('test')
+						.setHeader('headerToRemove', 'no value')
+						.setReplyChannel(replyChannel)
+						.build()
 
 		this.flowLambdaInput.send message
 
-		assert replyChannel.receive(10_000)?.payload == 'TEST'
+		def receive = replyChannel.receive(10_000)
+
+		assert receive?.payload == 'TEST'
+		assert !receive?.headers?.containsKey('headerToRemove')
 		assert this.wireTapChannel.receive(10_000)?.payload == 'test'
 	}
 
@@ -300,6 +307,10 @@ class GroovyDslTests {
 		flowLambda() {
 			integrationFlow {
 				filter String, { it == 'test' }, { id 'filterEndpoint' }
+				headerFilter {
+					patternMatch false
+					headersToRemove "notAHeader", "headerToRemove"
+				}
 				wireTap integrationFlow {
 					channel { queue 'wireTapChannel' }
 				}

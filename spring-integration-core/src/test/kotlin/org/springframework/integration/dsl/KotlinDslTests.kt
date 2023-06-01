@@ -182,11 +182,16 @@ class KotlinDslTests {
 	@Test
 	fun `flow from lambda`() {
 		val replyChannel = QueueChannel()
-		val message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build()
+		val message = MessageBuilder.withPayload("test")
+				.setHeader("headerToRemove", "no value")
+				.setReplyChannel(replyChannel)
+				.build()
 
 		this.flowLambdaInput.send(message)
 
-		assertThat(replyChannel.receive(10_000)?.payload).isNotNull().isEqualTo("TEST")
+		val receive = replyChannel.receive(10_000)
+		assertThat(receive?.payload).isNotNull().isEqualTo("TEST")
+		assertThat(receive.headers).doesNotContain("headerToRemove", null)
 		assertThat(this.wireTapChannel.receive(10_000)?.payload).isNotNull().isEqualTo("test")
 	}
 
@@ -308,6 +313,10 @@ class KotlinDslTests {
 		fun flowLambda() =
 			integrationFlow {
 				filter<String>({ it === "test" }) { id("filterEndpoint") }
+				headerFilter {
+					patternMatch(false)
+					headersToRemove("notAHeader", "headerToRemove")
+				}
 				wireTap {
 					channel { queue("wireTapChannel") }
 				}

@@ -35,6 +35,7 @@ import org.springframework.integration.dsl.FilterEndpointSpec
 import org.springframework.integration.dsl.GatewayEndpointSpec
 import org.springframework.integration.dsl.GenericEndpointSpec
 import org.springframework.integration.dsl.HeaderEnricherSpec
+import org.springframework.integration.dsl.HeaderFilterSpec
 import org.springframework.integration.dsl.IntegrationFlow
 import org.springframework.integration.dsl.IntegrationFlowDefinition
 import org.springframework.integration.dsl.MessageChannelSpec
@@ -818,8 +819,10 @@ class GroovyIntegrationFlowDefinition {
 	 * {@link HeaderFilter}.
 	 * @param headerFilter the {@link HeaderFilter} to use.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @deprecated since 6.2 in favor of {@link #headerFilter(groovy.lang.Closure)}
 	 * @see GenericEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	GroovyIntegrationFlowDefinition headerFilter(
 			String headersToRemove,
 			boolean patternMatch = true,
@@ -831,6 +834,21 @@ class GroovyIntegrationFlowDefinition {
 		headerFilter.patternMatch = patternMatch
 
 		this.delegate.headerFilter headerFilter, createConfigurerIfAny(endpointConfigurer)
+		this
+	}
+
+	/**
+	 * Populate {@link HeaderFilter} based on the options from a {@link HeaderFilterSpec}.
+	 * @param endpointConfigurer the {@link Consumer} to provide {@link HeaderFilter} and its endpoint options.
+	 * @see HeaderFilterSpec
+	 * @since 6.2
+	 */
+	GroovyIntegrationFlowDefinition headerFilter(
+			@DelegatesTo(value = HeaderFilterSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.HeaderFilterSpec')
+					Closure<?> headerFilterConfigurer) {
+
+		this.delegate.headerFilter createConfigurerIfAny(headerFilterConfigurer)
 		this
 	}
 

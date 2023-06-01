@@ -22,13 +22,13 @@ import org.springframework.integration.aggregator.AggregatingMessageHandler
 import org.springframework.integration.channel.BroadcastCapableChannel
 import org.springframework.integration.channel.FluxMessageChannel
 import org.springframework.integration.channel.interceptor.WireTap
+import org.springframework.integration.core.GenericHandler
 import org.springframework.integration.core.MessageSelector
 import org.springframework.integration.dsl.support.MessageChannelReference
 import org.springframework.integration.filter.MessageFilter
 import org.springframework.integration.filter.MethodInvokingSelector
 import org.springframework.integration.handler.BridgeHandler
 import org.springframework.integration.handler.DelayHandler
-import org.springframework.integration.core.GenericHandler
 import org.springframework.integration.handler.LoggingHandler
 import org.springframework.integration.handler.MessageProcessor
 import org.springframework.integration.handler.MessageTriggerAction
@@ -56,6 +56,7 @@ import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHandler
 import org.springframework.messaging.MessageHeaders
 import org.springframework.messaging.support.ChannelInterceptor
+import org.springframework.util.StringUtils
 import reactor.core.publisher.Flux
 import java.util.function.Consumer
 
@@ -711,8 +712,23 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Provide the [HeaderFilter] to the current [IntegrationFlow].
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""headerFilter { 
+										patternMatch() 
+										headersToRemove() 
+									}"""))
 	fun headerFilter(headersToRemove: String, patternMatch: Boolean = true) {
-		this.delegate.headerFilter(headersToRemove, patternMatch)
+		headerFilter {
+			patternMatch(patternMatch)
+			headersToRemove(*StringUtils.delimitedListToStringArray(headersToRemove, ",", " "))
+		}
+	}
+
+	/**
+	 * Provide the [HeaderFilter] to the current [IntegrationFlow].
+	 */
+	fun headerFilter(endpointConfigurer: HeaderFilterSpec.() -> Unit) {
+		this.delegate.headerFilter(endpointConfigurer)
 	}
 
 	/**

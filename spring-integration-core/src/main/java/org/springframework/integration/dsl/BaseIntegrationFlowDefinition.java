@@ -1626,11 +1626,23 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param patternMatch the {@code boolean} flag to indicate if {@code headersToRemove}
 	 * should be interpreted as patterns or direct header names.
 	 * @return this {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #headerFilter(Consumer)}
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	public B headerFilter(String headersToRemove, boolean patternMatch) {
-		HeaderFilter headerFilter = new HeaderFilter(StringUtils.delimitedListToStringArray(headersToRemove, ",", " "));
-		headerFilter.setPatternMatch(patternMatch);
-		return headerFilter(headerFilter, null);
+		return headerFilter((headerFilterSpec) -> headerFilterSpec
+				.headersToRemove(StringUtils.delimitedListToStringArray(headersToRemove, ",", " "))
+				.patternMatch(patternMatch));
+	}
+
+	/**
+	 * Provide the {@link HeaderFilter} options via fluent API of the {@link HeaderFilterSpec}.
+	 * @param headerFilter the {@link Consumer} to provide header filter and its endpoint options.
+	 * @return this {@link BaseIntegrationFlowDefinition}.
+	 * @since 6.2
+	 */
+	public B headerFilter(Consumer<HeaderFilterSpec> headerFilter) {
+		return register(new HeaderFilterSpec(), headerFilter);
 	}
 
 	/**

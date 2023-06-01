@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,16 +40,32 @@ import org.springframework.util.Assert;
  */
 public class HeaderFilter extends IntegrationObjectSupport implements Transformer, IntegrationPattern {
 
-	private final String[] headersToRemove;
+	private String[] headersToRemove;
 
 	private volatile boolean patternMatch = true;
 
 
-	public HeaderFilter(String... headersToRemove) {
-		Assert.notEmpty(headersToRemove, "At least one header name to remove is required.");
-		this.headersToRemove = Arrays.copyOf(headersToRemove, headersToRemove.length);
+	/**
+	 * Create an instance of the class.
+	 * The {@link #setHeadersToRemove} must be called afterwards.
+	 * @since 6.2
+	 */
+	public HeaderFilter() {
 	}
 
+	public HeaderFilter(String... headersToRemove) {
+		setHeadersToRemove(headersToRemove);
+	}
+
+	/**
+	 * Set a list of header names (or patterns) to remove from a request message.
+	 * @param headersToRemove the list of header names (or patterns) to remove from a request message.
+	 * @since 6.2
+	 */
+	public final void setHeadersToRemove(String... headersToRemove) {
+		assertHeadersToRemoveNotEmpty(headersToRemove);
+		this.headersToRemove = Arrays.copyOf(headersToRemove, headersToRemove.length);
+	}
 	public void setPatternMatch(boolean patternMatch) {
 		this.patternMatch = patternMatch;
 	}
@@ -66,6 +82,7 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 
 	@Override
 	protected void onInit() {
+		assertHeadersToRemoveNotEmpty(this.headersToRemove);
 		super.onInit();
 		if (getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory) {
 			for (String header : this.headersToRemove) {
@@ -92,6 +109,10 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 			}
 		}
 		return builder.build();
+	}
+
+	private static void assertHeadersToRemoveNotEmpty(String[] headersToRemove) {
+		Assert.notEmpty(headersToRemove, "At least one header name to remove is required.");
 	}
 
 }
