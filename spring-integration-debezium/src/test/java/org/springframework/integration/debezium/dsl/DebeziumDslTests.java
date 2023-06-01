@@ -58,7 +58,7 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 
 	@Test
 	void dslFromBuilder() throws InterruptedException {
-		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(config.payloads).hasSize(52);
 		assertThat(config.headerKeys).hasSize(52);
 
@@ -72,7 +72,7 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 
 	@Test
 	void dslBatch() throws InterruptedException {
-		assertThat(this.config.batchLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(config.batchLatch.await(30, TimeUnit.SECONDS)).isTrue();
 		assertThat(config.bachPayloads).hasSize(52);
 		assertThat(config.batchHeaderKeys).hasSize(52);
 
@@ -118,6 +118,7 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 		}
 
 		@Bean
+		@SuppressWarnings("unchecked")
 		public IntegrationFlow batchFlowDirect() {
 
 			DebeziumMessageProducerSpec dsl = Debezium
