@@ -66,18 +66,17 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 		for (int i = 0; i < 52; i++) {
 			ChangeEvent<Object, Object> changeEvent = payload.get(i);
 
-			List<String> headerKeys =
-					changeEvent.headers()
-							.stream()
-							.map(Header::getKey)
-							.collect(Collectors.toList());
+			List<String> headerKeys = changeEvent.headers()
+					.stream()
+					.map(Header::getKey)
+					.collect(Collectors.toList());
 
+			assertThat(changeEvent.destination()).startsWith("my-topic");
 			if (i < 16) {
-				assertThat(changeEvent.destination()).startsWith("my-topic");
 				assertThat(headerKeys).isEmpty();
 			}
 			else {
-				assertThat(changeEvent.destination()).startsWith("my-topic.inventory");
+				assertThat(changeEvent.destination()).contains(".inventory");
 				assertThat(headerKeys).hasSize(4).contains("__name", "__db", "__op", "__table");
 			}
 		}

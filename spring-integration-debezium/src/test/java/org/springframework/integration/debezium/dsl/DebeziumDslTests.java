@@ -18,18 +18,23 @@ package org.springframework.integration.debezium.dsl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import io.debezium.engine.ChangeEvent;
+import io.debezium.engine.DebeziumEngine;
+import io.debezium.engine.format.KeyValueHeaderChangeEventFormat;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.debezium.DebeziumMySqlTestContainer;
+import org.springframework.integration.debezium.support.DebeziumHeaders;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -38,7 +43,6 @@ import org.springframework.util.CollectionUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- *
  * @author Christian Tzolov
  *
  * @since 6.2
@@ -47,16 +51,32 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 
+	static final LogAccessor logger = new LogAccessor(DebeziumDslTests.class);
+
 	@Autowired
 	private Config config;
 
 	@Test
-	void dslBatch() throws InterruptedException {
+	void dslFromBuilder() throws InterruptedException {
 		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(config.payloads).hasSize(52);
 		assertThat(config.headerKeys).hasSize(52);
 
-		config.headerKeys.stream()
+		config.headerKeys.stream().forEach(keys -> {
+			assertThat(keys).contains("debezium_destination", "id", "contentType", "debezium_key", "timestamp");
+			if (keys.size() > 5) {
+				assertThat(keys).contains("__name", "__db", "__table", "__op");
+			}
+		});
+	}
+
+	@Test
+	void dslBatch() throws InterruptedException {
+		assertThat(this.config.batchLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(config.bachPayloads).hasSize(52);
+		assertThat(config.batchHeaderKeys).hasSize(52);
+
+		config.batchHeaderKeys.stream()
 				.filter(headerNames -> !CollectionUtils.isEmpty(headerNames))
 				.forEach(headerNames -> {
 					assertThat(headerNames).contains("__name", "__db", "__table", "__op");
@@ -68,17 +88,41 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 	public static class Config {
 
 		private final CountDownLatch latch = new CountDownLatch(52);
-
 		private final List<String> payloads = new ArrayList<>();
+		private final List<Set<String>> headerKeys = new ArrayList<>();
 
-		private final List<List<String>> headerKeys = new ArrayList<>();
+		private final CountDownLatch batchLatch = new CountDownLatch(52);
+		private final List<String> bachPayloads = new ArrayList<>();
+		private final List<List<String>> batchHeaderKeys = new ArrayList<>();
 
 		@Bean
-		public IntegrationFlow listener() {
+		public IntegrationFlow streamFlowFromBuilder(DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> builder) {
+
+			DebeziumMessageProducerSpec dsl = Debezium.inboundChannelAdapter(builder)
+					.headerNames("*")
+					.contentType("application/json")
+					.enableBatch(false)
+					.enableEmptyPayload(true);
+
+			return IntegrationFlow.from(dsl)
+					.handle(m -> {
+						Object key = new String((byte[]) m.getHeaders().get(DebeziumHeaders.KEY));
+						Object destination = m.getHeaders().get(DebeziumHeaders.DESTINATION);
+						logger.info("KEY: " + key + ", DESTINATION: " + destination);
+
+						headerKeys.add(m.getHeaders().keySet());
+						payloads.add(new String((byte[]) m.getPayload()));
+						latch.countDown();
+					})
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow batchFlowDirect() {
 
 			DebeziumMessageProducerSpec dsl = Debezium
 					.inboundChannelAdapter(
-						DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()))
+							DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()))
 					.headerNames("*")
 					.contentType("application/json")
 					.enableBatch(true);
@@ -87,11 +131,20 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 					.handle(m -> {
 						List<ChangeEvent<byte[], byte[]>> batch = (List<ChangeEvent<byte[], byte[]>>) m.getPayload();
 						batch.stream().forEach(ce -> {
-							payloads.add(new String(ce.value()));
-							headerKeys.add(ce.headers().stream().map(h -> h.getKey()).collect(Collectors.toList()));
-							this.latch.countDown();
+							bachPayloads.add(new String(ce.value()));
+							batchHeaderKeys.add(ce.headers().stream().map(h -> h.getKey()).collect(Collectors.toList()));
+							batchLatch.countDown();
 						});
 					}).get();
+		}
+
+		@Bean
+		public DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder() {
+			return DebeziumEngine.create(KeyValueHeaderChangeEventFormat
+					.of(io.debezium.engine.format.JsonByteArray.class,
+							io.debezium.engine.format.JsonByteArray.class,
+							io.debezium.engine.format.JsonByteArray.class))
+					.using(DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()));
 		}
 	}
 

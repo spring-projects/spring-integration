@@ -17,8 +17,10 @@
 package org.springframework.integration.debezium;
 
 import java.util.Properties;
+import java.util.Random;
 
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -32,19 +34,22 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public interface DebeziumMySqlTestContainer {
 
 	@Container
-	GenericContainer<?> DEBEZIUM_MYSQL =
-			new GenericContainer<>("debezium/example-mysql:2.2.0.Final")
-					.withExposedPorts(3306)
-					.withEnv("MYSQL_ROOT_PASSWORD", "debezium")
-					.withEnv("MYSQL_USER", "mysqluser")
-					.withEnv("MYSQL_PASSWORD", "mysqlpw");
+	GenericContainer<?> DEBEZIUM_MYSQL = new GenericContainer<>("debezium/example-mysql:2.2.0.Final")
+			.withExposedPorts(3306)
+			.withEnv("MYSQL_ROOT_PASSWORD", "debezium")
+			.withEnv("MYSQL_USER", "mysqluser")
+			.withEnv("MYSQL_PASSWORD", "mysqlpw")
+			.waitingFor(new LogMessageWaitStrategy().withRegEx(".*port: 3306  MySQL Community Server - GPL.*."));
 
 	static int mysqlPort() {
 		return DEBEZIUM_MYSQL.getMappedPort(3306);
 	}
 
+	Random random = new Random();
+
 	static Properties connectorConfig(int port) {
 
+		new Random().nextInt(10);
 		Properties config = new Properties();
 
 		config.put("transforms", "unwrap");
@@ -57,11 +62,12 @@ public interface DebeziumMySqlTestContainer {
 		config.put("schema.history.internal", "io.debezium.relational.history.MemorySchemaHistory");
 		config.put("offset.storage", "org.apache.kafka.connect.storage.MemoryOffsetBackingStore");
 
-		config.put("topic.prefix", "my-topic");
 		config.put("name", "my-connector");
-		config.put("database.server.id", "85744");
-		// config.put("database.server.id", "" + Math.abs(new Random().nextInt()));
-		config.put("database.server.name", "my-app-connector");
+
+		// Topic prefix for the database server or cluster.
+		config.put("topic.prefix", "my-topic-" + random.nextInt(10));
+		// Unique ID of the connector.
+		config.put("database.server.id", "8574" + random.nextInt(10));
 
 		config.put("key.converter.schemas.enable", "false");
 		config.put("value.converter.schemas.enable", "false");
