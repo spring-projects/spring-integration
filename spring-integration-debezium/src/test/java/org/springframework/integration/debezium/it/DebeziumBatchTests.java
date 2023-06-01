@@ -63,7 +63,6 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 	@SuppressWarnings("unchecked")
 	void batchMode() {
 		await().until(this::receivePayloads, (count) -> count >= 52);
-		System.out.println();
 
 		assertThat(allPayload).hasSize(52);
 
@@ -90,7 +89,6 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 		Message<?> message = this.queueChannel.receive(500);
 		if (message != null) {
 			allPayload.addAll((List<ChangeEvent<Object, Object>>) message.getPayload());
-			System.out.println(allPayload.size());
 		}
 		return allPayload.size();
 	}
