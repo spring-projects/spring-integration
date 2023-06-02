@@ -48,8 +48,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 
-	static final int EXPECTED_DB_TX_COUNT = 52;
-
 	@Autowired
 	@Qualifier("queueChannel")
 	private QueueChannel queueChannel;

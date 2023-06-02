@@ -22,7 +22,6 @@ import java.util.concurrent.ThreadFactory;
 
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
-import io.debezium.engine.DebeziumEngine.Builder;
 import io.debezium.engine.Header;
 import io.debezium.engine.format.SerializationFormat;
 
@@ -42,7 +41,7 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 public class DebeziumMessageProducerSpec
 		extends MessageProducerSpec<DebeziumMessageProducerSpec, DebeziumMessageProducer> {
 
-	protected DebeziumMessageProducerSpec(Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
+	protected DebeziumMessageProducerSpec(DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder) {
 		super(new DebeziumMessageProducer(debeziumEngineBuilder));
 	}
 

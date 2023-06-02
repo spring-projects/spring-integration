@@ -53,8 +53,6 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 
 	static final LogAccessor logger = new LogAccessor(DebeziumDslTests.class);
 
-	static final int EXPECTED_DB_TX_COUNT = 52;
-
 	@Autowired
 	private Config config;
 

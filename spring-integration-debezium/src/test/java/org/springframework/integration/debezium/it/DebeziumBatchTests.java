@@ -53,8 +53,6 @@ import static org.awaitility.Awaitility.await;
 @DirtiesContext
 public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 
-	static final int EXPECTED_DB_TX_COUNT = 52;
-
 	@Autowired
 	@Qualifier("queueChannel")
 	private QueueChannel queueChannel;
@@ -89,6 +87,7 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private int receivePayloads() {
 		Message<?> message = this.queueChannel.receive(500);
 		if (message != null) {

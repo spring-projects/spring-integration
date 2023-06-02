@@ -33,6 +33,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 public interface DebeziumMySqlTestContainer {
 
+	int EXPECTED_DB_TX_COUNT = 52;
+
 	@Container
 	GenericContainer<?> DEBEZIUM_MYSQL = new GenericContainer<>("debezium/example-mysql:2.2.0.Final")
 			.withExposedPorts(3306)
