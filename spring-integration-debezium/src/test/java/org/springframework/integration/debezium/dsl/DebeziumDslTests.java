@@ -53,14 +53,16 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 
 	static final LogAccessor logger = new LogAccessor(DebeziumDslTests.class);
 
+	static final int EXPECTED_DB_TX_COUNT = 52;
+
 	@Autowired
 	private Config config;
 
 	@Test
 	void dslFromBuilder() throws InterruptedException {
-		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(config.payloads).hasSize(52);
-		assertThat(config.headerKeys).hasSize(52);
+		assertThat(config.latch.await(30, TimeUnit.SECONDS)).isTrue();
+		assertThat(config.payloads).hasSize(EXPECTED_DB_TX_COUNT);
+		assertThat(config.headerKeys).hasSize(EXPECTED_DB_TX_COUNT);
 
 		config.headerKeys.stream().forEach(keys -> {
 			assertThat(keys).contains("debezium_destination", "id", "contentType", "debezium_key", "timestamp");
@@ -73,8 +75,13 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 	@Test
 	void dslBatch() throws InterruptedException {
 		assertThat(config.batchLatch.await(30, TimeUnit.SECONDS)).isTrue();
-		assertThat(config.bachPayloads).hasSize(52);
-		assertThat(config.batchHeaderKeys).hasSize(52);
+		assertThat(config.bachPayloads)
+				.as("Sum of the message payload counts should correspond to the number of DB transactions")
+				.hasSize(EXPECTED_DB_TX_COUNT);
+		assertThat(config.batchHeaderKeys).hasSize(EXPECTED_DB_TX_COUNT);
+		assertThat(config.batchMessageCount)
+				.as("Batch mode: message count should be less than the sum of the payloads counts")
+				.isLessThan(EXPECTED_DB_TX_COUNT);
 
 		config.batchHeaderKeys.stream()
 				.filter(headerNames -> !CollectionUtils.isEmpty(headerNames))
@@ -94,6 +101,7 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 		private final CountDownLatch batchLatch = new CountDownLatch(52);
 		private final List<String> bachPayloads = new ArrayList<>();
 		private final List<List<String>> batchHeaderKeys = new ArrayList<>();
+		private int batchMessageCount = 0;
 
 		@Bean
 		public IntegrationFlow streamFlowFromBuilder(DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> builder) {
@@ -130,10 +138,12 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 
 			return IntegrationFlow.from(dsl)
 					.handle(m -> {
+						batchMessageCount++;
 						List<ChangeEvent<byte[], byte[]>> batch = (List<ChangeEvent<byte[], byte[]>>) m.getPayload();
 						batch.stream().forEach(ce -> {
 							bachPayloads.add(new String(ce.value()));
-							batchHeaderKeys.add(ce.headers().stream().map(h -> h.getKey()).collect(Collectors.toList()));
+							batchHeaderKeys
+									.add(ce.headers().stream().map(h -> h.getKey()).collect(Collectors.toList()));
 							batchLatch.countDown();
 						});
 					}).get();

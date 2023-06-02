@@ -53,18 +53,22 @@ import static org.awaitility.Awaitility.await;
 @DirtiesContext
 public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 
+	static final int EXPECTED_DB_TX_COUNT = 52;
+
 	@Autowired
 	@Qualifier("queueChannel")
 	private QueueChannel queueChannel;
 
 	private List<ChangeEvent<Object, Object>> allPayload = new ArrayList<>();
+	private int batchCount = 0;
 
 	@Test
 	@SuppressWarnings("unchecked")
 	void batchMode() {
-		await().until(this::receivePayloads, (count) -> count >= 52);
+		await().until(this::receivePayloads, (count) -> count == EXPECTED_DB_TX_COUNT);
 
-		assertThat(allPayload).hasSize(52);
+		assertThat(allPayload).hasSize(EXPECTED_DB_TX_COUNT);
+		assertThat(batchCount).isLessThan(EXPECTED_DB_TX_COUNT);
 
 		for (int i = 0; i < 52; i++) {
 			ChangeEvent<Object, Object> changeEvent = allPayload.get(i);
@@ -89,6 +93,7 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 		Message<?> message = this.queueChannel.receive(500);
 		if (message != null) {
 			allPayload.addAll((List<ChangeEvent<Object, Object>>) message.getPayload());
+			batchCount++;
 		}
 		return allPayload.size();
 	}

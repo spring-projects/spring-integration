@@ -48,6 +48,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 
+	static final int EXPECTED_DB_TX_COUNT = 52;
+
 	@Autowired
 	@Qualifier("queueChannel")
 	private QueueChannel queueChannel;
@@ -55,7 +57,7 @@ public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 	@Test
 	void streamMode() {
 		boolean foundDebeziumHeaders = false;
-		for (int i = 0; i < 52; i++) {
+		for (int i = 0; i < EXPECTED_DB_TX_COUNT; i++) {
 			Message<?> message = this.queueChannel.receive(10_000);
 			assertThat(message).isNotNull();
 
