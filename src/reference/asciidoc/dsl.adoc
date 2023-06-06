@@ -1074,50 +1074,50 @@ public class MyFlowAdapter extends IntegrationFlowAdapter {
 
     private final AtomicBoolean invoked = new AtomicBoolean();
 
-    public Date nextExecutionTime(TriggerContext triggerContext) {
-          return this.invoked.getAndSet(true) ? null : new Date();
+    public Instant nextExecutionTime(TriggerContext triggerContext) {
+        return this.invoked.getAndSet(true) ? null : Instant.now();
     }
 
     @Override
     protected IntegrationFlowDefinition<?> buildFlow() {
-        return from(this::messageSource,
-                      e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
-                 .split(this)
-                 .transform(this)
-                 .aggregate(a -> a.processor(this, null), null)
-                 .enrichHeaders(Collections.singletonMap("thing1", "THING1"))
-                 .filter(this)
-                 .handle(this)
-                 .channel(c -> c.queue("myFlowAdapterOutput"));
+        return fromSupplier(this::messageSource,
+                e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
+                .split(this)
+                .transform(this)
+                .aggregate(this)
+                .enrichHeaders(Collections.singletonMap("thing1", "THING1"))
+                .filter(this)
+                .handle(this)
+                .channel(c -> c.queue("myFlowAdapterOutput"));
     }
 
     public String messageSource() {
-         return "T,H,I,N,G,2";
+        return "T,H,I,N,G,2";
     }
 
     @Splitter
     public String[] split(String payload) {
-         return StringUtils.commaDelimitedListToStringArray(payload);
+        return StringUtils.commaDelimitedListToStringArray(payload);
     }
 
     @Transformer
     public String transform(String payload) {
-         return payload.toLowerCase();
+        return payload.toLowerCase();
     }
 
     @Aggregator
     public String aggregate(List<String> payloads) {
-           return payloads.stream().collect(Collectors.joining());
+        return payloads.stream().collect(Collectors.joining());
     }
 
     @Filter
     public boolean filter(@Header Optional<String> thing1) {
-            return thing1.isPresent();
+        return thing1.isPresent();
     }
 
     @ServiceActivator
     public String handle(String payload, @Header String thing1) {
-           return payload + ":" + thing1;
+        return payload + ":" + thing1;
     }
 
 }
