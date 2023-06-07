@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.http.outbound;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
@@ -38,6 +37,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -90,7 +90,6 @@ public class CookieTests {
 		private int count = 123;
 
 		public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
-
 			return new ClientHttpRequest() {
 
 				private HttpHeaders headers = new HttpHeaders();
@@ -113,37 +112,13 @@ public class CookieTests {
 
 				public ClientHttpResponse execute() {
 					allHeaders.add(headers);
-					return new ClientHttpResponse() {
-
-						public HttpHeaders getHeaders() {
-							HttpHeaders headers = new HttpHeaders();
-							headers.set("Set-cookie", "JSESSIONID=X" + count++); // test case insensitivity
-							headers.set("Content-Length", "2");
-							headers.set("Content-Type", "text/plain");
-							return headers;
-						}
-
-						public InputStream getBody() {
-							return new ByteArrayInputStream("OK".getBytes());
-						}
-
-						public String getStatusText() {
-							return "OK";
-						}
-
-						public HttpStatus getStatusCode() {
-							return HttpStatus.OK;
-						}
-
-						public void close() {
-						}
-
-						@Deprecated
-						public int getRawStatusCode() {
-							return 200;
-						}
-
-					};
+					MockClientHttpResponse clientHttpResponse =
+							new MockClientHttpResponse(new ByteArrayInputStream("OK".getBytes()), HttpStatus.OK);
+					HttpHeaders httpHeaders = clientHttpResponse.getHeaders();
+					httpHeaders.set("Set-cookie", "JSESSIONID=X" + count++); // test case insensitivity
+					httpHeaders.set("Content-Length", "2");
+					httpHeaders.set("Content-Type", "text/plain");
+					return clientHttpResponse;
 				}
 
 			};
