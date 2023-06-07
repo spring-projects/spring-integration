@@ -77,7 +77,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 	private ThreadFactory threadFactory;
 
-	private volatile CountDownLatch latch = new CountDownLatch(0);
+	private volatile CountDownLatch lifecycleLatch = new CountDownLatch(0);
 
 	/**
 	 * Create new Debezium message producer inbound channel adapter.
@@ -174,10 +174,10 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 
 	@Override
 	protected void doStart() {
-		if (this.latch.getCount() > 0) {
+		if (this.lifecycleLatch.getCount() > 0) {
 			return;
 		}
-		this.latch = new CountDownLatch(1);
+		this.lifecycleLatch = new CountDownLatch(1);
 		this.executorService.execute(() -> {
 			try {
 				// Runs the debezium connector and deliver database changes to the registered consumer. This method
@@ -191,7 +191,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 				this.debeziumEngine.run();
 			}
 			finally {
-				this.latch.countDown();
+				this.lifecycleLatch.countDown();
 			}
 		});
 	}
@@ -205,7 +205,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 			logger.warn(e, "Debezium failed to close!");
 		}
 		try {
-			if (!this.latch.await(5, TimeUnit.SECONDS)) {
+			if (!this.lifecycleLatch.await(5, TimeUnit.SECONDS)) {
 				throw new IllegalStateException("Failed to stop " + this);
 			}
 		}

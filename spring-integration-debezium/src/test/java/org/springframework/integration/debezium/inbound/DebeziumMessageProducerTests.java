@@ -38,6 +38,7 @@ import static org.mockito.Mockito.reset;
 
 /**
  * @author Christian Tzolov
+ * @author Artem Bilan
  *
  * @since 6.2
  */
@@ -76,12 +77,15 @@ public class DebeziumMessageProducerTests {
 
 		await().atMost(5, TimeUnit.SECONDS).until(() -> debeziumMessageProducer.isRunning());
 		assertThat(debeziumMessageProducer.isActive()).isEqualTo(true);
-		then(debeziumEngineMock).should().run();
 
 		debeziumMessageProducer.stop(); // STOP
 
 		assertThat(debeziumMessageProducer.isActive()).isEqualTo(false);
 		assertThat(debeziumMessageProducer.isRunning()).isEqualTo(false);
+
+		// The DebeziumEngine is started on a different thread.
+		// Only the way to catch the run() mock is to stop DebeziumMessageProducer and wait for its internal latch
+		then(debeziumEngineMock).should().run();
 		then(debeziumEngineMock).should().close();
 
 		reset(debeziumEngineMock);
@@ -90,10 +94,10 @@ public class DebeziumMessageProducerTests {
 
 		await().atMost(5, TimeUnit.SECONDS).until(() -> debeziumMessageProducer.isRunning());
 		assertThat(debeziumMessageProducer.isActive()).isEqualTo(true);
-		then(debeziumEngineMock).should().run();
 
 		debeziumMessageProducer.destroy(); // DESTROY
 
+		then(debeziumEngineMock).should().run();
 		then(debeziumEngineMock).should().close();
 	}
 
