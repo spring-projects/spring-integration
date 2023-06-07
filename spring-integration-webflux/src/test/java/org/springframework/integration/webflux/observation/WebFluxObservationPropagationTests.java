@@ -63,6 +63,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
@@ -123,7 +124,8 @@ public class WebFluxObservationPropagationTests {
 				.expectBody(String.class)
 				.isEqualTo(testData.toLowerCase());
 
-		assertThat(SPANS.spans()).hasSize(3);
+		// There is a race condition when we already have a reply, but the span in the last channel is not closed yet.
+		await().untilAsserted(() -> assertThat(SPANS.spans()).hasSize(3));
 		SpansAssert.assertThat(SPANS.spans().stream().map(BraveFinishedSpan::fromBrave).collect(Collectors.toList()))
 				.haveSameTraceId();
 	}
