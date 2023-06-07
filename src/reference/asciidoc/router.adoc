@@ -530,9 +530,6 @@ If you want to suppress such exceptions and send unresolved messages to the defa
 Normally, messages for which the header value is not explicitly mapped to a channel are sent to the `default-output-channel`.
 However, when the header value is mapped to a channel name but the channel cannot be resolved, setting the `resolution-required` attribute to `false` results in routing such messages to the `default-output-channel`.
 
-IMPORTANT: As of Spring Integration 2.1, the attribute was changed from `ignore-channel-name-resolution-failures` to `resolution-required`.
-Attribute `resolution-required` defaults to `true`.
-
 The following example shows the equivalent router configured in Java:
 
 ====
@@ -695,6 +692,7 @@ Another convenient option when configuring a `RecipientListRouter` is to use Spr
 Doing so is similar to using a filter at the beginning of a 'chain' to act as a "`selective consumer`".
 However, in this case, it is all combined rather concisely into the router's configuration, as the following example shows:
 
+====
 [source,xml]
 ----
 <int:recipient-list-router id="customRouter" input-channel="routingChannel">
@@ -702,6 +700,7 @@ However, in this case, it is all combined rather concisely into the router's con
     <int:recipient channel="channel2" selector-expression="headers.containsKey('bar')"/>
 </int:recipient-list-router>
 ----
+====
 
 In the preceding configuration, a SpEL expression identified by the `selector-expression` attribute is evaluated to determine whether this recipient should be included in the recipient list for a given input message.
 The evaluation result of the expression must be a `boolean`.
@@ -725,7 +724,6 @@ They are available by using <<./control-bus.adoc#control-bus,Control Bus>> as we
 
 <channel id="channel2"/>
 ----
-
 [source,java]
 ----
 messagingTemplate.convertAndSend(controlBus, "@'simpleRouter.handler'.addRecipient('channel2')");
@@ -803,6 +801,7 @@ someFlow() {
 }
 ----
 [source, xml, role="secondary"]
+.XML DSL
 ----
 <int:exception-type-router input-channel="inputChannel"
                            default-output-channel="defaultChannel">
@@ -993,10 +992,12 @@ public IntegrationFlow routerFlow() {
 
 To simplify things even more, the SpEL expression may evaluate to a channel name, as the following expression shows:
 
+====
 [source,xml]
 ----
 <int:router input-channel="inChannel" expression="payload + 'Channel'"/>
 ----
+====
 
 In the preceding configuration, the result channel is computed by the SpEL expression, which concatenates the value of the `payload` with the literal `String`, 'Channel'.
 
@@ -1019,7 +1020,7 @@ For further information, see:
 * https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions-collection-selection[Collection Selection]
 
 [[router-annotation]]
-===== Configuring a Router with Annotations
+==== Configuring a Router with Annotations
 
 When using `@Router` to annotate a method, the method may return either a `MessageChannel` or a `String` type.
 In the latter case, the endpoint resolves the channel name as it does for the default output channel.
@@ -1135,7 +1136,7 @@ However, if you look at the alternate configuration of the `HeaderValueRouter` w
 ====
 [source,xml]
 ----
-<int:header-value-router input-channel="inputChannel" header-name="testHeader">
+<int:header-value-router input-channel="inputChannel" header-name="testHeader"/>
 ----
 ====
 
@@ -1214,7 +1215,7 @@ You can also use Spring's JMX support to expose a router instance and then use y
 NOTE: For more information about Spring Integration's JMX support, see <<./jmx.adoc#jmx,JMX Support>>.
 
 [[routing-slip]]
-===== Routing Slip
+==== Routing Slip
 
 Starting with version 4.1, Spring Integration provides an implementation of the https://www.enterpriseintegrationpatterns.com/RoutingTable.html[routing slip] enterprise integration pattern.
 It is implemented as a `routingSlip` message header, which is used to determine the next channel in `AbstractMessageProducingHandler` instances, when an `outputChannel` is not specified for the endpoint.

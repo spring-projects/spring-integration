@@ -80,7 +80,6 @@ task prepareDocs(type: Copy) {
 asciidoctorPdf {
 	dependsOn prepareDocs
 
-	inProcess = JAVA_EXEC
 	forkOptions {
 		jvmArgs '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED'
 	}
@@ -106,7 +105,6 @@ asciidoctorPdf {
 asciidoctor {
 	dependsOn asciidoctorPdf
 
-	inProcess = JAVA_EXEC
 	forkOptions {
 		jvmArgs '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED'
 	}

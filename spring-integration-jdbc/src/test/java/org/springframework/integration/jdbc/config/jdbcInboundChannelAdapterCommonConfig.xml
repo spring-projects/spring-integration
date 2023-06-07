@@ -10,7 +10,9 @@
 		<si:queue />
 	</si:channel>
 
-	<si:poller default="true" fixed-delay="100"/>
+	<si:poller default="true" fixed-delay="100">
+		<si:transactional/>
+	</si:poller>
 
 	<jdbc:embedded-database type="HSQL" id="dataSource">
 		<jdbc:script location="org/springframework/integration/jdbc/config/inboundSchema.sql" />

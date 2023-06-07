@@ -107,8 +107,8 @@ The following example shows how to configure a filter that uses the `method` att
 
 <bean id="exampleObject" class="example.SomeObject"/>
 ----
-
 ====
+
 If the selector or adapted POJO method returns `false`, a few settings  control the handling of the rejected message.
 By default, (if configured as in the preceding example) rejected messages are silently dropped.
 If rejection should instead result in an error condition, set the `throw-exception-on-rejection` attribute to `true`, as the following example shows:
@@ -223,6 +223,7 @@ However, the underlying functionality of evaluating the expression against the m
 
 The following example shows how to configure a filter by using annotations:
 
+====
 [source,java]
 ----
 public class PetFilter {
@@ -233,6 +234,7 @@ public class PetFilter {
     }
 }
 ----
+====
 
 <1> An annotation indicating that this method is to be used as a filter.
 It must be specified if this class is to be used as a filter.
