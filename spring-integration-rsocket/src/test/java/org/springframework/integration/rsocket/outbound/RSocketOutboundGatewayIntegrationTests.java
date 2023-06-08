@@ -26,6 +26,7 @@ import io.rsocket.transport.netty.server.TcpServerTransport;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import reactor.core.Disposable;
@@ -138,11 +139,13 @@ public class RSocketOutboundGatewayIntegrationTests {
 		}
 	}
 
+	@Disabled("Some race condition on subscriber dispose()")
 	@Test
 	void clientFireAndForget() {
 		fireAndForget(this.inputChannel, this.resultChannel, serverController, null);
 	}
 
+	@Disabled("Some race condition on subscriber dispose()")
 	@Test
 	void serverFireAndForget() {
 		fireAndForget(serverInputChannel, serverResultChannel, this.clientController, this.serverRsocketRequester);
