@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
 
-import com.sun.mail.imap.IMAPFolder;
 import jakarta.mail.Flags;
 import jakarta.mail.Flags.Flag;
 import jakarta.mail.Folder;
@@ -32,6 +31,7 @@ import jakarta.mail.search.AndTerm;
 import jakarta.mail.search.FlagTerm;
 import jakarta.mail.search.NotTerm;
 import jakarta.mail.search.SearchTerm;
+import org.eclipse.angus.mail.imap.IMAPFolder;
 
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;

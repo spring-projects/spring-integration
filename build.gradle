@@ -65,7 +65,7 @@ ext {
     findbugsVersion = '3.0.1'
     ftpServerVersion = '1.2.0'
     graalvmVersion = '22.3.2'
-    greenmailVersion = '2.0.0'
+    greenmailVersion = '2.1.0-alpha-1'
     groovyVersion = '4.0.12'
     hamcrestVersion = '2.2'
     hazelcastVersion = '5.2.3'
@@ -87,7 +87,7 @@ ext {
     kryoVersion = '5.5.0'
     lettuceVersion = '6.2.4.RELEASE'
     log4jVersion = '2.20.0'
-    mailVersion = '1.0.0'
+    mailVersion = '2.0.2'
     micrometerTracingVersion = '1.1.1'
     micrometerVersion = '1.11.0'
     mockitoVersion = '5.3.1'
@@ -809,10 +809,7 @@ project('spring-integration-mail') {
 
         providedImplementation "org.eclipse.angus:jakarta.mail:$mailVersion"
 
-        testImplementation ("com.icegreen:greenmail:$greenmailVersion") {
-            exclude group: 'com.sun.mail'
-            exclude group: 'jakarta.activation'
-        }
+        testImplementation "com.icegreen:greenmail:$greenmailVersion"
 
         testRuntimeOnly 'org.apache.logging.log4j:log4j-jul'
     }

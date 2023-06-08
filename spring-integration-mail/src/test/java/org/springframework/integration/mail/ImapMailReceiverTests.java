@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -39,7 +38,6 @@ import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetup;
 import com.icegreen.greenmail.util.ServerSetupTest;
-import com.sun.mail.imap.IMAPFolder;
 import jakarta.mail.Flags;
 import jakarta.mail.Flags.Flag;
 import jakarta.mail.Folder;
@@ -56,6 +54,8 @@ import jakarta.mail.search.AndTerm;
 import jakarta.mail.search.FlagTerm;
 import jakarta.mail.search.FromTerm;
 import jakarta.mail.search.SearchTerm;
+import org.eclipse.angus.mail.imap.IMAPFolder;
+import org.eclipse.angus.mail.imap.protocol.IMAPProtocol;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -146,7 +146,7 @@ public class ImapMailReceiverTests {
 		imap.setServerStartupTimeout(10000);
 		imapIdleServer = new GreenMail(imap);
 		user = imapIdleServer.setUser("user", "pw");
-		Executors.newSingleThreadExecutor().submit(imapIdleServer::start).get();
+		imapIdleServer.start();
 	}
 
 	@AfterEach
@@ -995,7 +995,7 @@ public class ImapMailReceiverTests {
 
 		@Override
 		public void publish(LogRecord record) {
-			if ("com.sun.mail.imap.protocol".equals(record.getLoggerName())) {
+			if (IMAPProtocol.class.getPackageName().equals(record.getLoggerName())) {
 				String message = record.getMessage();
 				if (!message.startsWith("*")) {
 					if (message.contains(SEARCH) && !message.contains(" OK ")) {
