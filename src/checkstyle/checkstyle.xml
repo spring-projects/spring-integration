@@ -80,6 +80,7 @@
 					  value="org.assertj.core.api.Assertions.*,
 					  org.xmlunit.assertj3.XmlAssert.*,
 				org.assertj.core.api.Assumptions.*,
+				org.assertj.core.api.InstanceOfAssertFactories.*,
 				org.awaitility.Awaitility.*,
 				org.mockito.Mockito.*,
 				org.mockito.BDDMockito.*,
