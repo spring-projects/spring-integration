@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -438,6 +438,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		return this.isGateway ? "kafka:outbound-gateway" : "kafka:outbound-channel-adapter";
 	}
 
+	@Nullable
 	protected MessageChannel getSendFailureChannel() {
 		if (this.sendFailureChannel != null) {
 			return this.sendFailureChannel;
@@ -515,18 +516,26 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		}
 		CompletableFuture<SendResult<K, V>> sendFuture;
 		RequestReplyFuture<K, V, Object> gatewayFuture = null;
-		if (this.isGateway && (!preBuilt || producerRecord.headers().lastHeader(KafkaHeaders.REPLY_TOPIC) == null)) {
-			producerRecord.headers().add(new RecordHeader(KafkaHeaders.REPLY_TOPIC, getReplyTopic(message)));
-			gatewayFuture = ((ReplyingKafkaTemplate<K, V, Object>) this.kafkaTemplate).sendAndReceive(producerRecord);
-			sendFuture = gatewayFuture.getSendFuture();
-		}
-		else {
-			if (this.transactional && !this.kafkaTemplate.inTransaction() && !this.allowNonTransactional) {
-				sendFuture = this.kafkaTemplate.executeInTransaction(template -> template.send(producerRecord));
+		try {
+			if (this.isGateway
+					&& (!preBuilt || producerRecord.headers().lastHeader(KafkaHeaders.REPLY_TOPIC) == null)) {
+				producerRecord.headers().add(new RecordHeader(KafkaHeaders.REPLY_TOPIC, getReplyTopic(message)));
+				gatewayFuture = ((ReplyingKafkaTemplate<K, V, Object>) this.kafkaTemplate)
+						.sendAndReceive(producerRecord);
+				sendFuture = gatewayFuture.getSendFuture();
 			}
 			else {
-				sendFuture = this.kafkaTemplate.send(producerRecord);
+				if (this.transactional && !this.kafkaTemplate.inTransaction() && !this.allowNonTransactional) {
+					sendFuture = this.kafkaTemplate.executeInTransaction(template -> template.send(producerRecord));
+				}
+				else {
+					sendFuture = this.kafkaTemplate.send(producerRecord);
+				}
 			}
+		}
+		catch (RuntimeException rtex) {
+			sendFailure(message, producerRecord, getSendFailureChannel(), rtex);
+			throw rtex;
 		}
 		sendFutureIfRequested(sendFuture, futureToken);
 		if (flush) {
@@ -699,10 +708,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 										.build());
 					}
 				}
-				else if (failureChannel != null) {
-					KafkaProducerMessageHandler.this.messagingTemplate.send(failureChannel,
-							KafkaProducerMessageHandler.this.errorMessageStrategy.buildErrorMessage(
-									new KafkaSendFailureException(message, producerRecord, exception), null));
+				else {
+					sendFailure(message, producerRecord, failureChannel, exception);
 				}
 			});
 		}
@@ -727,6 +734,16 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 					throw new MessageTimeoutException(message, "Timeout waiting for response from KafkaProducer", te);
 				}
 			}
+		}
+	}
+
+	private void sendFailure(final Message<?> message, final ProducerRecord<K, V> producerRecord,
+			@Nullable MessageChannel failureChannel, Throwable exception) {
+
+		if (failureChannel != null) {
+			KafkaProducerMessageHandler.this.messagingTemplate.send(failureChannel,
+					KafkaProducerMessageHandler.this.errorMessageStrategy.buildErrorMessage(
+							new KafkaSendFailureException(message, producerRecord, exception), null));
 		}
 	}
 
