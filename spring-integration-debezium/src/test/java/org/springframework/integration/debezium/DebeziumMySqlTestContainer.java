@@ -17,7 +17,7 @@
 package org.springframework.integration.debezium;
 
 import java.util.Properties;
-import java.util.Random;
+import java.util.UUID;
 
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
@@ -48,8 +48,6 @@ public interface DebeziumMySqlTestContainer {
 	}
 
 	static Properties connectorConfig(int port) {
-		Random random = new Random();
-
 		Properties config = new Properties();
 
 		config.put("transforms", "unwrap");
@@ -62,12 +60,13 @@ public interface DebeziumMySqlTestContainer {
 		config.put("schema.history.internal", "io.debezium.relational.history.MemorySchemaHistory");
 		config.put("offset.storage", "org.apache.kafka.connect.storage.MemoryOffsetBackingStore");
 
-		config.put("name", "my-connector-" + random.nextInt(10));
+		UUID uuid = UUID.randomUUID();
+		config.put("name", "my-connector-" + uuid);
 
 		// Topic prefix for the database server or cluster.
-		config.put("topic.prefix", "my-topic-" + random.nextInt(10));
+		config.put("topic.prefix", "my-topic-" + uuid);
 		// Unique ID of the connector.
-		config.put("database.server.id", "8574" + random.nextInt(10));
+		config.put("database.server.id", "" + (uuid.getMostSignificantBits() & Long.MAX_VALUE));
 
 		config.put("key.converter.schemas.enable", "false");
 		config.put("value.converter.schemas.enable", "false");
