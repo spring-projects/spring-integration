@@ -59,6 +59,7 @@ import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandle
 import org.springframework.integration.kafka.support.KafkaIntegrationHeaders;
 import org.springframework.integration.kafka.support.KafkaSendFailureException;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -94,6 +95,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.InstanceOfAssertFactories.throwable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
@@ -341,6 +343,35 @@ class KafkaProducerMessageHandlerTests {
 		assertThat(((KafkaSendFailureException) received.getPayload()).getRecord()).isNotNull();
 
 		producerFactory.destroy();
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	void immediateFailure() {
+		Producer producer = mock(Producer.class);
+		CompletableFuture cf = new CompletableFuture();
+		RuntimeException rte = new RuntimeException("test.immediate");
+		cf.completeExceptionally(rte);
+		given(producer.send(any(), any())).willReturn(cf);
+		ProducerFactory pf = mock(ProducerFactory.class);
+		given(pf.createProducer()).willReturn(producer);
+		KafkaTemplate template = new KafkaTemplate(pf);
+		template.setDefaultTopic("foo");
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler<>(template);
+		QueueChannel fails = new QueueChannel();
+		handler.setSendFailureChannel(fails);
+		assertThatExceptionOfType(MessageHandlingException.class).isThrownBy(
+						() -> handler.handleMessage(new GenericMessage<>("")))
+				.withCauseExactlyInstanceOf(KafkaException.class)
+				.withStackTraceContaining("test.immediate");
+		Message<?> fail = fails.receive(0);
+		assertThat(fail).isNotNull();
+		assertThat(fail.getPayload())
+			.asInstanceOf(throwable(KafkaSendFailureException.class))
+			.cause()
+			.isInstanceOf(KafkaException.class)
+			.cause()
+			.isEqualTo(rte);
 	}
 
 	@Test
