@@ -151,10 +151,16 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 		return partitionDispatcher.dispatch(message);
 	}
 
-	private synchronized void populatedPartitions() {
+	private void populatedPartitions() {
 		if (this.partitions.isEmpty()) {
-			for (int i = 0; i < this.partitionCount; i++) {
-				this.partitions.put(i, newPartition());
+			synchronized (this.partitions) {
+				if (this.partitions.isEmpty()) {
+					Map<Integer, UnicastingDispatcher> partitionsToUse = new HashMap<>();
+					for (int i = 0; i < this.partitionCount; i++) {
+						partitionsToUse.put(i, newPartition());
+					}
+					this.partitions.putAll(partitionsToUse);
+				}
 			}
 		}
 	}
