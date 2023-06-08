@@ -356,7 +356,7 @@ public class IntegrationFlowBeanPostProcessor
 						.filter(component -> noBeanPresentForComponent(component.getKey(), beanName))
 						.forEach(component ->
 								registerComponent(component.getKey(),
-										generateBeanName(component.getKey(), component.getValue())));
+										generateBeanName(component.getKey(), beanName, component.getValue(), false)));
 
 			}
 		}

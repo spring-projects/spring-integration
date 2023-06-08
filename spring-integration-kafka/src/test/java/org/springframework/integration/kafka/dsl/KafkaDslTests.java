@@ -244,8 +244,10 @@ public class KafkaDslTests {
 	}
 
 	@Test
-	void channels(@Autowired MessageChannel topic6Channel, @Autowired PollableKafkaChannel topic8Channel,
-			@Autowired PollableKafkaChannel topic9Channel) {
+	void channels(@Qualifier("topic6Channel") MessageChannel topic6Channel,
+			@Qualifier("topic8Channel") PollableKafkaChannel topic8Channel,
+			@Qualifier("topic9Channel") PollableKafkaChannel topic9Channel) {
+
 		topic6Channel.send(new GenericMessage<>("foo"));
 		Message<?> received = topic8Channel.receive();
 		assertThat(received)
@@ -344,7 +346,8 @@ public class KafkaDslTests {
 		}
 
 		@Bean
-		public IntegrationFlow sendToKafkaFlow() {
+		public IntegrationFlow sendToKafkaFlow(
+				KafkaProducerMessageHandlerSpec<Integer, String, ?> kafkaMessageHandlerTopic2) {
 			return f -> f
 					.<String>split(p -> Stream.generate(() -> p).limit(101).iterator(), null)
 					.enrichHeaders(h -> h.header(KafkaIntegrationHeaders.FUTURE_TOKEN, "foo"))
@@ -353,17 +356,15 @@ public class KafkaDslTests {
 									kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
 											.timestampExpression("T(Long).valueOf('1487694048633')"),
 									e -> e.id("kafkaProducer1")))
-							.subscribe(sf -> sf.handle(
-									kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
-											.flush(msg -> true)
-											.timestamp(m -> 1487694048644L),
-									e -> e.id("kafkaProducer2")))
+							.subscribe(sf -> sf.handle(kafkaMessageHandlerTopic2, e -> e.id("kafkaProducer2")))
 					);
 		}
 
 		@Bean
-		public DefaultKafkaHeaderMapper mapper() {
-			return new DefaultKafkaHeaderMapper();
+		public KafkaProducerMessageHandlerSpec<Integer, String, ?> kafkaMessageHandlerTopic2() {
+			return kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
+					.flush(msg -> true)
+					.timestamp(m -> 1487694048644L);
 		}
 
 		private KafkaProducerMessageHandlerSpec<Integer, String, ?> kafkaMessageHandler(
@@ -380,6 +381,11 @@ public class KafkaDslTests {
 					.partitionId(m -> 0)
 					.topicExpression("headers[kafka_topic] ?: '" + topic + "'")
 					.configureKafkaTemplate(t -> t.id("kafkaTemplate:" + topic));
+		}
+
+		@Bean
+		public DefaultKafkaHeaderMapper mapper() {
+			return new DefaultKafkaHeaderMapper();
 		}
 
 
@@ -427,7 +433,7 @@ public class KafkaDslTests {
 		@Bean
 		public IntegrationFlow channels(KafkaTemplate<Integer, String> template,
 				ConcurrentKafkaListenerContainerFactory<Integer, String> containerFactory,
-				KafkaMessageSource<?, ?> channelSource,
+				@Qualifier("channelSource") KafkaMessageSource<?, ?> channelSource,
 				PublishSubscribeKafkaChannel publishSubscribeKafkaChannel) {
 
 			return IntegrationFlow.from(topic6Channel(template, containerFactory))
