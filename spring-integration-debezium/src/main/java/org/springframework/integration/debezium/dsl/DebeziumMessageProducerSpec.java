@@ -18,7 +18,6 @@ package org.springframework.integration.debezium.dsl;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ThreadFactory;
 
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
@@ -30,7 +29,6 @@ import org.springframework.integration.debezium.inbound.DebeziumMessageProducer;
 import org.springframework.integration.debezium.support.DefaultDebeziumHeaderMapper;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.messaging.support.HeaderMapper;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * A {@link org.springframework.integration.dsl.MessageProducerSpec} for {@link DebeziumMessageProducer}.
