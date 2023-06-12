@@ -21,9 +21,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -35,6 +32,8 @@ import io.debezium.engine.DebeziumEngine.RecordCommitter;
 import io.debezium.engine.Header;
 import io.debezium.engine.format.SerializationFormat;
 
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.debezium.support.DebeziumHeaders;
 import org.springframework.integration.debezium.support.DefaultDebeziumHeaderMapper;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -42,7 +41,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.HeaderMapper;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -60,12 +58,9 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	private DebeziumEngine<ChangeEvent<byte[], byte[]>> debeziumEngine;
 
 	/**
-	 * Debezium Engine is designed to be submitted to an {@link Executor}
-	 * or {@link ExecutorService} for execution by a single thread.
-	 * By default, a single-threaded ExecutorService instance is provided configured with a
-	 * {@link CustomizableThreadFactory} and a `debezium-` thread prefix.
+	 * Debezium Engine is designed to be submitted to an {@link Executor}.
 	 */
-	private ExecutorService executorService;
+	private TaskExecutor taskExecutor;
 
 	private String contentType = "application/json";
 
@@ -74,8 +69,6 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	private boolean enableEmptyPayload = false;
 
 	private boolean enableBatch = false;
-
-	private ThreadFactory threadFactory;
 
 	private volatile CountDownLatch lifecycleLatch = new CountDownLatch(0);
 
@@ -116,14 +109,12 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	}
 
 	/**
-	 * Set a {@link ThreadFactory} for the Debezium executor.
-	 * Defaults to the {@link CustomizableThreadFactory} with a
-	 * {@code debezium:inbound-channel-adapter-thread-} prefix.
-	 * @param threadFactory the {@link ThreadFactory} instance to use.
+	 * Set a {@link TaskExecutor} for the Debezium engine task.
+	 * @param taskExecutor the {@link TaskExecutor} to use.
 	 */
-	public void setThreadFactory(ThreadFactory threadFactory) {
-		Assert.notNull(threadFactory, "'threadFactory' must not be null");
-		this.threadFactory = threadFactory;
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		Assert.notNull(taskExecutor, "'taskExecutor' must not be null");
+		this.taskExecutor = taskExecutor;
 	}
 
 	/**
@@ -156,11 +147,9 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 	protected void onInit() {
 		super.onInit();
 
-		if (this.threadFactory == null) {
-			this.threadFactory = new CustomizableThreadFactory(getComponentName() + "-thread-");
+		if (this.taskExecutor == null) {
+			this.taskExecutor = new SimpleAsyncTaskExecutor(getComponentName() + "-thread-");
 		}
-
-		this.executorService = Executors.newSingleThreadExecutor(this.threadFactory);
 
 		if (!this.enableBatch) {
 			this.debeziumEngineBuilder.notifying(new StreamChangeEventConsumer<>());
@@ -178,7 +167,7 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 			return;
 		}
 		this.lifecycleLatch = new CountDownLatch(1);
-		this.executorService.execute(() -> {
+		this.taskExecutor.execute(() -> {
 			try {
 				// Runs the debezium connector and deliver database changes to the registered consumer. This method
 				// blocks until the connector is stopped.
@@ -210,19 +199,6 @@ public class DebeziumMessageProducer extends MessageProducerSupport {
 			}
 		}
 		catch (InterruptedException ignored) {
-		}
-	}
-
-	@Override
-	public void destroy() {
-		super.destroy();
-
-		this.executorService.shutdown();
-		try {
-			this.executorService.awaitTermination(5, TimeUnit.SECONDS);
-		}
-		catch (InterruptedException e) {
-			throw new IllegalStateException("Debezium failed to close!", e);
 		}
 	}
 

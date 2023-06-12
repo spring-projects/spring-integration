@@ -25,6 +25,7 @@ import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.Header;
 import io.debezium.engine.format.SerializationFormat;
 
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.debezium.inbound.DebeziumMessageProducer;
 import org.springframework.integration.debezium.support.DefaultDebeziumHeaderMapper;
 import org.springframework.integration.dsl.MessageProducerSpec;
@@ -35,6 +36,7 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
  * A {@link org.springframework.integration.dsl.MessageProducerSpec} for {@link DebeziumMessageProducer}.
  *
  * @author Christian Tzolov
+ * @author Artem Bilan
  *
  * @since 6.2
  */
@@ -74,19 +76,18 @@ public class DebeziumMessageProducerSpec
 	}
 
 	/**
-	 * Set a {@link ThreadFactory} for the Debezium executor. Defaults to the {@link CustomizableThreadFactory} with a
-	 * {@code debezium:inbound-channel-adapter-thread-} prefix.
-	 * @param threadFactory the {@link ThreadFactory} instance to use.
+	 * Set a {@link TaskExecutor} for the Debezium engine.
+	 * @param taskExecutor the {@link TaskExecutor} to use.
 	 * @return the spec.
 	 */
-	public DebeziumMessageProducerSpec threadFactory(ThreadFactory threadFactory) {
-		this.target.setThreadFactory(threadFactory);
+	public DebeziumMessageProducerSpec taskExecutor(TaskExecutor taskExecutor) {
+		this.target.setTaskExecutor(taskExecutor);
 		return this;
 	}
 
 	/**
-	 * Set the outbound message content type. Must be aligned with the {@link SerializationFormat} configuration used by
-	 * the provided {@link DebeziumEngine}.
+	 * Set the outbound message content type.
+	 * Must be aligned with the {@link SerializationFormat} configuration used by the provided {@link DebeziumEngine}.
 	 * @param contentType payload content type.
 	 * @return the spec.
 	 */
