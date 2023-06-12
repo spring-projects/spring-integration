@@ -618,7 +618,9 @@ class GroovyIntegrationFlowDefinition {
 	 * {@link org.springframework.integration.store.MessageGroupStore}.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @see org.springframework.integration.dsl.DelayerEndpointSpec
+	 * @deprecated since 6.2 in favor of {@link #delay(groovy.lang.Closure)}
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	GroovyIntegrationFlowDefinition delay(
 			String groupId,
 			@DelegatesTo(value = DelayerEndpointSpec, strategy = Closure.DELEGATE_FIRST)
@@ -626,6 +628,21 @@ class GroovyIntegrationFlowDefinition {
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.delay groupId, createConfigurerIfAny(endpointConfigurer)
+		this
+	}
+
+	/**
+	 * Populate a {@link org.springframework.integration.handler.DelayHandler} to the current integration flow position.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @see org.springframework.integration.dsl.DelayerEndpointSpec
+	 * @since 6.2
+	 */
+	GroovyIntegrationFlowDefinition delay(
+			@DelegatesTo(value = DelayerEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.DelayerEndpointSpec')
+					Closure<?> endpointConfigurer) {
+
+		this.delegate.delay createConfigurerIfAny(endpointConfigurer)
 		this
 	}
 
@@ -657,7 +674,7 @@ class GroovyIntegrationFlowDefinition {
 	GroovyIntegrationFlowDefinition enrichHeaders(
 			@DelegatesTo(value = HeaderEnricherSpec, strategy = Closure.DELEGATE_FIRST)
 			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.HeaderEnricherSpec')
-					Closure<?> enricherConfigurer = null) {
+					Closure<?> enricherConfigurer) {
 
 		this.delegate.enrichHeaders createConfigurerIfAny(enricherConfigurer)
 		this

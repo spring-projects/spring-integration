@@ -801,7 +801,8 @@ public class IntegrationFlowTests {
 			return IntegrationFlow.from("bridgeFlow2Input")
 					.bridge(c -> c.autoStartup(false).id("bridge"))
 					.fixedSubscriberChannel()
-					.delay("delayer", d -> d
+					.delay(d -> d
+							.messageGroupId("delayer")
 							.delayExpression("200")
 							.advice(this.delayedAdvice)
 							.messageStore(this.messageStore()))

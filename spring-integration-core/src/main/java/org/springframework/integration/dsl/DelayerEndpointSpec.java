@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,10 @@ import org.springframework.util.Assert;
 public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpec, DelayHandler> {
 
 	private final List<Advice> delayedAdvice = new LinkedList<>();
+
+	protected DelayerEndpointSpec() {
+		this(new DelayHandler());
+	}
 
 	protected DelayerEndpointSpec(DelayHandler delayHandler) {
 		super(delayHandler);
@@ -222,6 +226,18 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 	 */
 	public <P> DelayerEndpointSpec delayFunction(Function<Message<P>, Object> delayFunction) {
 		this.handler.setDelayExpression(new FunctionExpression<>(delayFunction));
+		return this;
+	}
+
+	/**
+	 * Set a group id to manage delayed messages by this handler.
+	 * @param messageGroupId the group id for delayed messages.
+	 * @return the endpoint spec.
+	 * @since 6.2
+	 * @see DelayHandler#setMessageGroupId(String)
+	 */
+	public DelayerEndpointSpec messageGroupId(String messageGroupId) {
+		this.handler.setMessageGroupId(messageGroupId);
 		return this;
 	}
 
