@@ -314,7 +314,10 @@ class GroovyDslTests {
 				wireTap integrationFlow {
 					channel { queue 'wireTapChannel' }
 				}
-				delay 'delayGroup', { defaultDelay 100 }
+				delay  {
+					messageGroupId 'delayGroup'
+					defaultDelay 100
+				}
 				transform String, { it.toUpperCase() }
 			}
 		}

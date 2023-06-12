@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import org.aopalliance.aop.Advice;
@@ -98,9 +100,11 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	public static final long DEFAULT_RETRY_DELAY = 1_000;
 
-	private final String messageGroupId;
-
 	private final ConcurrentMap<String, AtomicInteger> deliveries = new ConcurrentHashMap<>();
+
+	private final Lock removeReleasedMessageLock = new ReentrantLock();
+
+	private String messageGroupId;
 
 	private long defaultDelay;
 
@@ -127,6 +131,14 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	private long retryDelay = DEFAULT_RETRY_DELAY;
 
 	/**
+	 * Construct an instance with default options.
+	 * The {@link #messageGroupId} must be provided then via setter.
+	 * @since 6.2
+	 */
+	public DelayHandler() {
+	}
+
+	/**
 	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for
 	 * {@link MessageGroup} to store delayed Messages in the {@link MessageGroupStore}.
 	 * The sending of Messages after the delay will be handled by registered in the
@@ -149,6 +161,15 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	public DelayHandler(String messageGroupId, TaskScheduler taskScheduler) {
 		this(messageGroupId);
 		setTaskScheduler(taskScheduler);
+	}
+
+	/**
+	 * Set a group id to manage delayed messages by this handler.
+	 * @param messageGroupId the group id for delayed messages.
+	 * @since 6.2
+	 */
+	public void setMessageGroupId(String messageGroupId) {
+		this.messageGroupId = messageGroupId;
 	}
 
 	/**
@@ -187,10 +208,10 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	/**
 	 * Specify whether {@code Exceptions} thrown by {@link #delayExpression} evaluation
-	 * should be ignored (only logged). In this case case the delayer will fall back to
-	 * the to the {@link #defaultDelay}. If this property is specified as {@code false},
+	 * should be ignored (only logged). In this case the delayer will fall back to
+	 * the {@link #defaultDelay}. If this property is specified as {@code false},
 	 * any {@link #delayExpression} evaluation {@code Exception} will be thrown to the
-	 * caller without falling back to the to the {@link #defaultDelay}. Default is
+	 * caller without falling back to the {@link #defaultDelay}. Default is
 	 * {@code true}.
 	 * @param ignoreExpressionFailures true if expression evaluation failures should be
 	 * ignored.
@@ -297,6 +318,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	@Override
 	protected void doInit() {
+		Assert.notNull(this.messageGroupId, "The 'messageGroupId' must be provided");
+
 		if (this.messageStore == null) {
 			this.messageStore = new SimpleMessageStore();
 		}
@@ -552,7 +575,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private boolean removeDelayedMessageFromMessageStore(Message<?> message) {
 		if (this.messageStore instanceof SimpleMessageStore) {
-			synchronized (this.messageGroupId) {
+			this.removeReleasedMessageLock.lock();
+			try {
 				Collection<Message<?>> messages = this.messageStore.getMessageGroup(this.messageGroupId).getMessages();
 				if (messages.contains(message)) {
 					this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
@@ -561,6 +585,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 				else {
 					return false;
 				}
+			}
+			finally {
+				this.removeReleasedMessageLock.unlock();
 			}
 		}
 		else {

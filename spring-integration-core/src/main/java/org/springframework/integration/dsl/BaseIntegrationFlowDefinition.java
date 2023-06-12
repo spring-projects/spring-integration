@@ -1178,12 +1178,18 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate a {@link DelayHandler} to the current integration flow position
 	 * with default options.
+	 * Shortcut for:
+	 * <pre class="code">
+	 * {@code
+	 *  .delay(delayer -> delayer.messageGroupId(groupId))
+	 * }
+	 * </pre>
 	 * @param groupId the {@code groupId} for delayed messages in the
 	 * {@link org.springframework.integration.store.MessageGroupStore}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B delay(String groupId) {
-		return delay(groupId, null);
+		return delay(delayer -> delayer.messageGroupId(groupId));
 	}
 
 	/**
@@ -1192,10 +1198,23 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * {@link org.springframework.integration.store.MessageGroupStore}.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #delay(Consumer)}
 	 * @see DelayerEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	public B delay(String groupId, @Nullable Consumer<DelayerEndpointSpec> endpointConfigurer) {
 		return register(new DelayerEndpointSpec(new DelayHandler(groupId)), endpointConfigurer);
+	}
+
+	/**
+	 * Populate a {@link DelayHandler} to the current integration flow position.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @since 6.2
+	 * @see DelayerEndpointSpec
+	 */
+	public B delay(Consumer<DelayerEndpointSpec> endpointConfigurer) {
+		return register(new DelayerEndpointSpec(), endpointConfigurer);
 	}
 
 	/**

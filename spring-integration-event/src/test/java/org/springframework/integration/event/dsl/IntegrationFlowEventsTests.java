@@ -184,7 +184,8 @@ public class IntegrationFlowEventsTests {
 		@Bean
 		public IntegrationFlow delayFlow() {
 			return flow -> flow
-					.delay(GROUP_ID, e -> e
+					.delay(e -> e
+							.messageGroupId(GROUP_ID)
 							.messageStore(messageGroupStore)
 							.id("delayer"))
 					.channel(MessageChannels.queue("delayedResults"));

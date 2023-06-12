@@ -561,8 +561,21 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	/**
 	 * Populate a [DelayHandler] to the current integration flow position.
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""delay { 
+								messageGroupId(groupId) 
+							}"""))
+	@Suppress("DEPRECATION")
 	fun delay(groupId: String, endpointConfigurer: DelayerEndpointSpec.() -> Unit = {}) {
 		this.delegate.delay(groupId, endpointConfigurer)
+	}
+
+	/**
+	 * Populate a [DelayHandler] to the current integration flow position.
+	 * @since 6.2
+	 */
+	fun delay(endpointConfigurer: DelayerEndpointSpec.() -> Unit) {
+		this.delegate.delay(endpointConfigurer)
 	}
 
 	/**
