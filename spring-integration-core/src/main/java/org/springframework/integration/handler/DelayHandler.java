@@ -132,7 +132,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	/**
 	 * Construct an instance with default options.
-	 * The {@link #messageGroupId} must be provided then via setter.
+	 * The {@link #messageGroupId}must then be provided via the setter.
 	 * @since 6.2
 	 */
 	public DelayHandler() {
@@ -318,7 +318,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	@Override
 	protected void doInit() {
-		Assert.notNull(this.messageGroupId, "The 'messageGroupId' must be provided");
+		Assert.notNull(this.messageGroupId, "A 'messageGroupId' must be provided");
 
 		if (this.messageStore == null) {
 			this.messageStore = new SimpleMessageStore();
