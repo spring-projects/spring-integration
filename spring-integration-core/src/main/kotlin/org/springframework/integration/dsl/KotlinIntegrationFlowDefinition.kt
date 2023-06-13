@@ -573,6 +573,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate a [DelayHandler] to the current integration flow position.
+	 * The [DelayerEndpointSpec#messageGroupId(String)] is required option.
 	 * @since 6.2
 	 */
 	fun delay(endpointConfigurer: DelayerEndpointSpec.() -> Unit) {

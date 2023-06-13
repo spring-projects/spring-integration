@@ -83,6 +83,17 @@ import org.springframework.util.ObjectUtils;
  * Message can be released as soon as five seconds from the current time). If the value is
  * a Date, it will be delayed at least until that Date occurs (i.e. the delay in that case
  * is equivalent to {@code headerDate.getTime() - new Date().getTime()}).
+ * <p>
+ * Delayed messages are stored in the {@link MessageGroupStore} as a dedicated group.
+ * If an external persistent store is provided, those delayed messages will be rescheduled
+ * after application startup.
+ * The {@link #messageGroupId} is required option and must be unique for each delayer
+ * configuration to avoid work-stealing from the store and unexpected releases.
+ * Different instances of the same delayer can point to the same message group in the store.
+ * The {@link #messageGroupId} cannot rely on a bean name which might be generated.
+ * After application restart the bean may get a different generated name and its delayed
+ * messages might be lost from reschedule since its group is not managed
+ * by the application anymore.
  *
  * @author Mark Fisher
  * @author Artem Bilan
@@ -90,7 +101,6 @@ import org.springframework.util.ObjectUtils;
  *
  * @since 1.0.3
  */
-
 @ManagedResource
 @IntegrationManagedResource
 public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement,
@@ -132,7 +142,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	/**
 	 * Construct an instance with default options.
-	 * The {@link #messageGroupId}must then be provided via the setter.
+	 * The {@link #messageGroupId} must then be provided via the setter.
 	 * @since 6.2
 	 */
 	public DelayHandler() {
@@ -165,6 +175,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	/**
 	 * Set a group id to manage delayed messages by this handler.
+	 * Required.
 	 * @param messageGroupId the group id for delayed messages.
 	 * @since 6.2
 	 */

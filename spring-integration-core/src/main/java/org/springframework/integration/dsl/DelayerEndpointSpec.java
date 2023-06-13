@@ -36,11 +36,14 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link ConsumerEndpointSpec} for a {@link DelayHandler}.
+ * The {@link #messageGroupId(String)} is required option.
  *
  * @author Artem Bilan
  * @author Gary Russell
  *
  * @since 5.0
+ *
+ * @see DelayHandler
  */
 public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpec, DelayHandler> {
 
@@ -96,13 +99,12 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 		return _this();
 	}
 
-	public DelayerEndpointSpec delayExpression(Expression delayExpression) {
-		this.handler.setDelayExpression(delayExpression);
-		return this;
+	public DelayerEndpointSpec delayExpression(String delayExpression) {
+		return delayExpression(PARSER.parseExpression(delayExpression));
 	}
 
-	public DelayerEndpointSpec delayExpression(String delayExpression) {
-		this.handler.setDelayExpression(PARSER.parseExpression(delayExpression));
+	public DelayerEndpointSpec delayExpression(Expression delayExpression) {
+		this.handler.setDelayExpression(delayExpression);
 		return this;
 	}
 
@@ -225,12 +227,12 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 	 * @return the endpoint spec.
 	 */
 	public <P> DelayerEndpointSpec delayFunction(Function<Message<P>, Object> delayFunction) {
-		this.handler.setDelayExpression(new FunctionExpression<>(delayFunction));
-		return this;
+		return delayExpression(new FunctionExpression<>(delayFunction));
 	}
 
 	/**
 	 * Set a group id to manage delayed messages by this handler.
+	 * Required.
 	 * @param messageGroupId the group id for delayed messages.
 	 * @return the endpoint spec.
 	 * @since 6.2

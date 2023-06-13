@@ -149,12 +149,16 @@ See <<delayer-release-failures>>.
 ==== Delayer and a Message Store
 
 The `DelayHandler` persists delayed messages into the message group in the provided `MessageStore`.
-(The 'groupId' is based on the required 'id' attribute of the `<delayer>` element.)
+(The 'groupId' is based on the required 'id' attribute of the `<delayer>` element.
+See also `DelayHandler.setMessageGroupId(String)`.)
 A delayed message is removed from the `MessageStore` by the scheduled task immediately before the `DelayHandler` sends the message to the `output-channel`.
 If the provided `MessageStore` is persistent (such as `JdbcMessageStore`), it provides the ability to not lose messages on the application shutdown.
 After application startup, the `DelayHandler` reads messages from its message group in the `MessageStore` and reschedules them with a delay based on the original arrival time of the message (if the delay is numeric).
 For messages where the delay header was a `Date`, that `Date` is used when rescheduling.
 If a delayed message remains in the `MessageStore` more than its 'delay', it is sent immediately after startup.
+The `messageGroupId` is required and cannot rely on a `DelayHandler` bean name which can be generated.
+That way, after application restart, a `DelayHandler` may get a new generated bean name.
+Therefore, delayed messages might be lost from rescheduling since their group is not managed by the application anymore.
 
 The `<delayer>` can be enriched with either of two mutually exclusive elements: `<transactional>` and `<advice-chain>`.
 The `List` of these AOP advices is applied to the proxied internal `DelayHandler.ReleaseMessageHandler`, which has the responsibility to release the message, after the delay, on a `Thread` of the scheduled task.

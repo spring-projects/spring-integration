@@ -1208,6 +1208,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate a {@link DelayHandler} to the current integration flow position.
+	 * The {@link DelayerEndpointSpec#messageGroupId(String)} is required option.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @since 6.2

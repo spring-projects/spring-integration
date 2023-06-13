@@ -633,9 +633,10 @@ class GroovyIntegrationFlowDefinition {
 
 	/**
 	 * Populate a {@link org.springframework.integration.handler.DelayHandler} to the current integration flow position.
+	 * The {@link DelayerEndpointSpec#messageGroupId(String)} is required option.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @see org.springframework.integration.dsl.DelayerEndpointSpec
 	 * @since 6.2
+	 * @see DelayerEndpointSpec
 	 */
 	GroovyIntegrationFlowDefinition delay(
 			@DelegatesTo(value = DelayerEndpointSpec, strategy = Closure.DELEGATE_FIRST)
