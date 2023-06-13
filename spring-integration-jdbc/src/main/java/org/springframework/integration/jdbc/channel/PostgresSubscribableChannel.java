@@ -65,7 +65,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	private RetryTemplate retryTemplate = RetryTemplate.builder().maxAttempts(1).build();
 
-	private Executor executor = new SimpleAsyncTaskExecutor();
+	private Executor executor;
 
 	/**
 	 * Create a subscribable channel for a Postgres database.
@@ -113,6 +113,14 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 	public void setRetryTemplate(RetryTemplate retryTemplate) {
 		Assert.notNull(retryTemplate, "A retry template must be provided.");
 		this.retryTemplate = retryTemplate;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		if (this.executor == null) {
+			this.executor = new SimpleAsyncTaskExecutor(getBeanName() + "-dispatcher-");
+		}
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,14 @@
 package org.springframework.integration.support.leader;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.task.SyncTaskExecutor;
@@ -37,7 +35,6 @@ import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.integration.test.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -69,7 +66,7 @@ public class LockRegistryLeaderInitiatorTests {
 	private final LockRegistryLeaderInitiator initiator =
 			new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
 
-	@Before
+	@BeforeEach
 	public void init() {
 		this.initiator.setLeaderEventPublisher(new CountingPublisher(this.granted, this.revoked));
 	}
@@ -295,29 +292,6 @@ public class LockRegistryLeaderInitiatorTests {
 		assertThat(exceptionThrown.get()).isTrue();
 
 		another.stop();
-	}
-
-	@Test
-	public void shouldShutdownInternalExecutorService() {
-		this.initiator.start();
-		this.initiator.destroy();
-
-		ExecutorService executorService =
-				TestUtils.getPropertyValue(this.initiator, "executorService", ExecutorService.class);
-
-		assertThat(executorService.isShutdown()).isTrue();
-	}
-
-	@Test
-	public void doNotShutdownProvidedExecutorService() {
-		LockRegistryLeaderInitiator another = new LockRegistryLeaderInitiator(this.registry);
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		another.setExecutorService(executorService);
-
-		another.start();
-		another.destroy();
-
-		assertThat(executorService.isShutdown()).isFalse();
 	}
 
 	private static class CountingPublisher implements LeaderEventPublisher {

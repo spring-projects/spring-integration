@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.zeromq;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,8 +32,8 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.lang.Nullable;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -82,8 +81,6 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 
 	private Executor proxyExecutor;
 
-	private boolean proxyExecutorExplicitlySet;
-
 	@Nullable
 	private Consumer<ZMQ.Socket> frontendSocketConfigurer;
 
@@ -126,13 +123,12 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	/**
 	 * Configure an executor to perform a ZeroMQ proxy loop.
 	 * The thread is held until ZeroMQ proxy loop is terminated.
-	 * By default an internal {@link Executors#newSingleThreadExecutor} instance is used.
+	 * By default, an internal {@link Executors#newSingleThreadExecutor} instance is used.
 	 * @param proxyExecutor the {@link Executor} to use for ZeroMQ proxy loop
 	 */
 	public void setProxyExecutor(Executor proxyExecutor) {
 		Assert.notNull(proxyExecutor, "'proxyExecutor' must not be null");
 		this.proxyExecutor = proxyExecutor;
-		this.proxyExecutorExplicitlySet = true;
 	}
 
 	/**
@@ -242,7 +238,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	@Override
 	public void afterPropertiesSet() {
 		if (this.proxyExecutor == null) {
-			this.proxyExecutor = Executors.newSingleThreadExecutor(new CustomizableThreadFactory(this.beanName));
+			this.proxyExecutor = new SimpleAsyncTaskExecutor(this.beanName + "-");
 		}
 		this.controlAddress = "inproc://" + this.beanName + ".control";
 		if (this.exposeCaptureSocket) {
@@ -319,9 +315,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 
 	@Override
 	public void destroy() {
-		if (!this.proxyExecutorExplicitlySet) {
-			((ExecutorService) this.proxyExecutor).shutdown();
-		}
+		stop();
 	}
 
 	private static int bindSocket(ZMQ.Socket socket, int port) {

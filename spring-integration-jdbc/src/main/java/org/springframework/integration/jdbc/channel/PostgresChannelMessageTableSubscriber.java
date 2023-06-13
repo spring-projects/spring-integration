@@ -24,7 +24,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -33,10 +32,12 @@ import org.postgresql.jdbc.PgConnection;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.support.ExecutorServiceAdapter;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.lang.Nullable;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -73,8 +74,8 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 
 	private final String tablePrefix;
 
-	@Nullable
-	private ExecutorService executor;
+	private ExecutorService executor =
+			new ExecutorServiceAdapter(new SimpleAsyncTaskExecutor("postgres-channel-message-table-subscriber-"));
 
 	private CountDownLatch latch = new CountDownLatch(0);
 
@@ -108,9 +109,21 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	 * listening for notifications as a blocking operation which will permanently block a thread of this executor
 	 * while running.
 	 * @param executor The executor to use or {@code null} if an executor should be created by this class.
+	 * @deprecated since 6.2 in favor of {@link #setTaskExecutor(TaskExecutor)}
 	 */
-	public synchronized void setExecutor(@Nullable ExecutorService executor) {
+	@Deprecated(since = "6.2", forRemoval = true)
+	public synchronized void setExecutor(ExecutorService executor) {
+		Assert.notNull(executor, "An 'executor' must not be null.");
 		this.executor = executor;
+	}
+
+	/**
+	 * Provide a managed {@link TaskExecutor} for Postgres listener daemon.
+	 * @param taskExecutor the {@link TaskExecutor} to use.
+	 * @since 6.2
+	 */
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		this.executor = new ExecutorServiceAdapter(taskExecutor);
 	}
 
 	/**
@@ -141,18 +154,11 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		if (this.latch.getCount() > 0) {
 			return;
 		}
-		ExecutorService executorToUse = this.executor;
-		if (executorToUse == null) {
-			CustomizableThreadFactory threadFactory =
-					new CustomizableThreadFactory("postgres-channel-message-table-subscriber-");
-			threadFactory.setDaemon(true);
-			executorToUse = Executors.newSingleThreadExecutor(threadFactory);
-			this.executor = executorToUse;
-		}
+
 		this.latch = new CountDownLatch(1);
 
 		CountDownLatch startingLatch = new CountDownLatch(1);
-		this.future = executorToUse.submit(() -> {
+		this.future = this.executor.submit(() -> {
 			try {
 				while (isActive()) {
 					try {

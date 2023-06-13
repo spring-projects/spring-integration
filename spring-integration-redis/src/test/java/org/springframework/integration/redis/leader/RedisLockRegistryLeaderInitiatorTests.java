@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package org.springframework.integration.redis.leader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
@@ -33,7 +33,6 @@ import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
 import org.springframework.integration.test.condition.LogLevels;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -64,8 +63,7 @@ class RedisLockRegistryLeaderInitiatorTests implements RedisContainerTest {
 		for (int i = 0; i < 2; i++) {
 			LockRegistryLeaderInitiator initiator =
 					new LockRegistryLeaderInitiator(registry, new DefaultCandidate("foo:" + i, "bar"));
-			initiator.setExecutorService(
-					Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-" + i + "-")));
+			initiator.setTaskExecutor(new SimpleAsyncTaskExecutor("lock-leadership-" + i + "-"));
 			initiator.setLeaderEventPublisher(countingPublisher);
 			initiators.add(initiator);
 		}
