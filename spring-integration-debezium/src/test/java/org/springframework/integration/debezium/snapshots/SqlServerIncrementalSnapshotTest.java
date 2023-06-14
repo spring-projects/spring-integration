@@ -40,7 +40,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 		// JdbcTemplate configuration
 		"app.datasource.username=sa",
 		"app.datasource.password=MyFancyPassword123",
-		"app.datasource.type=com.zaxxer.hikari.HikariDataSource",
+		"app.datasource.type=com.zaxxer.hikari.HikariDataSource"
 })
 @SpringJUnitConfig
 @DirtiesContext

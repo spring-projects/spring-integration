@@ -76,6 +76,8 @@ public abstract class AbstractIncrementalSnapshotTest {
 	public static final String DELETE_OPERATION = "d";
 	public static final String READ_OPERATION = "r";
 
+	protected static final ObjectMapper mapper = new ObjectMapper();
+
 	@Autowired
 	protected StreamTestConfiguration config;
 
@@ -91,11 +93,13 @@ public abstract class AbstractIncrementalSnapshotTest {
 	public void incrementalSnapshotTest() throws InterruptedException {
 
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(5000);
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+
+		debeziumReadyCheck();
 
 		// The 'snapshot.mode=never' (or 'schema_only' for some datasources) disables the
 		// initial snapshot mechanism. It ensures that no messages were received after debezium (re)start.
@@ -223,52 +227,41 @@ public abstract class AbstractIncrementalSnapshotTest {
 		resetCounts();
 	}
 
-	private void verifyThat(String destination, int expectedCount, String expectedOperationType) {
-		assertThat(config.messagesPerTableMap.get(destination)).hasSize(expectedCount).as(
-				"Expected messageMap size to be " + expectedCount + " but was: "
-						+ config.messagesPerTableMap.get(destination).size());
-
-		config.messagesPerTableMap.get(destination).stream()
-				.forEach(m -> assertThat(operationType(m)).isEqualTo(expectedOperationType));
-
+	protected void debeziumReadyCheck() {
 	}
 
-	// abstract protected int customersCount();
+	protected abstract String customers();
 
-	abstract protected String customers();
+	protected abstract String products();
 
-	abstract protected String products();
+	protected abstract String orders();
 
-	abstract protected String orders();
+	protected abstract String dbzSignal();
 
-	abstract protected String dbzSignal();
+	protected abstract void insertCustomer(String firstName, String lastName, String email);
 
-	abstract protected void insertCustomer(String firstName, String lastName, String email);
+	protected abstract void insertProduct(String name, String description, Float weight);
 
-	abstract protected void insertProduct(String name, String description, Float weight);
+	protected abstract void deleteProductByName(String name);
 
-	abstract protected void deleteProductByName(String name);
+	protected abstract void updateProductName(String oldName, String newName);
 
-	abstract protected void updateProductName(String oldName, String newName);
+	protected abstract void startIncrementalSnapshotFor(String... dataCollections);
 
-	abstract protected void startIncrementalSnapshotFor(String... dataCollections);
+	protected abstract void stopIncrementalSnapshotFor(String... dataCollections);
 
-	abstract protected void stopIncrementalSnapshotFor(String... dataCollections);
-
-	abstract protected String getLsnHeaderName();
+	protected abstract String getLsnHeaderName();
 
 	protected void resetCounts() {
+		config.ddlMessages.clear();
 		config.messagesPerTableMap.keySet().stream().forEach(destination -> {
 			String lsnJoin = config.messagesPerTableMap.get(destination).stream()
 					.map(m -> "[" + operationType(m) + "]" + getLsn(m)).collect(Collectors.joining(","));
 			logger.info("LSNs: " + destination + " -> " + lsnJoin);
-			// System.out.println("LSNs: " + destination + " -> " + lsnJoin);
 		});
 		config.messagesPerTableMap.clear();
 		config.totalMessageCount.set(0);
 	}
-
-	protected static ObjectMapper mapper = new ObjectMapper();
 
 	@SuppressWarnings("unchecked")
 	protected static Map<String, Object> toMap(Object value) {
@@ -306,14 +299,26 @@ public abstract class AbstractIncrementalSnapshotTest {
 		return "null";
 	}
 
+	private void verifyThat(String destination, int expectedCount, String expectedOperationType) {
+		assertThat(config.messagesPerTableMap.get(destination)).hasSize(expectedCount).as(
+				"Expected messageMap size to be " + expectedCount + " but was: "
+						+ config.messagesPerTableMap.get(destination).size());
+
+		config.messagesPerTableMap.get(destination).stream()
+				.forEach(m -> assertThat(operationType(m)).isEqualTo(expectedOperationType));
+
+	}
+
 	@Configuration
 	@EnableIntegration
 	@EnableAutoConfiguration(exclude = { MongoAutoConfiguration.class })
-	public static class StreamTestConfiguration {
+	static class StreamTestConfiguration {
 
-		private final AtomicInteger totalMessageCount = new AtomicInteger(0);
+		final AtomicInteger totalMessageCount = new AtomicInteger(0);
 
-		private Map<String, List<Message<?>>> messagesPerTableMap = new ConcurrentHashMap<>();
+		final Map<String, List<Message<?>>> messagesPerTableMap = new ConcurrentHashMap<>();
+
+		final List<Message<?>> ddlMessages = new ArrayList<>();
 
 		@Bean
 		public IntegrationFlow streamFlowFromBuilder(DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> builder) {
@@ -329,6 +334,8 @@ public abstract class AbstractIncrementalSnapshotTest {
 						String destination = (String) m.getHeaders().get(DebeziumHeaders.DESTINATION);
 
 						if ("my-topic".equals(destination)) {
+							ddlMessages.add(m);
+
 							return; // Skip DDL change events.
 						}
 

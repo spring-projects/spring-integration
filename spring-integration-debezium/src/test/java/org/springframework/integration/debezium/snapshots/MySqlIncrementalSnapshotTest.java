@@ -33,6 +33,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import static org.awaitility.Awaitility.await;
+
 /**
  * @author Christian Tzolov
  */
@@ -52,9 +54,8 @@ public class MySqlIncrementalSnapshotTest extends AbstractIncrementalSnapshotTes
 						MySqlTestContainer.mappedPort()));
 	}
 
-	protected int customersCount() {
-		 return jdbcTemplate.queryForObject(
-                    "SELECT count(*) FROM customers", Integer.class);
+	protected void debeziumReadyCheck() {
+		await().until(() -> config.ddlMessages.size() > 1);
 	}
 
 	protected void insertCustomer(String firstName, String lastName, String email) {
