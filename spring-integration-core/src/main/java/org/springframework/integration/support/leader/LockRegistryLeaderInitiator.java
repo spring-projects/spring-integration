@@ -180,13 +180,13 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	/**
 	 * Set the {@link ExecutorService}, where is not provided then a default of
 	 * single thread Executor will be used.
-	 * @param taskExecutor the executor service
+	 * @param executorService the executor service
 	 * @since 5.0.2
 	 * @deprecated since 6.2 in favor of {@link #setTaskExecutor(AsyncTaskExecutor)}
 	 */
 	@Deprecated(since = "6.2", forRemoval = true)
-	public void setTaskExecutor(ExecutorService taskExecutor) {
-		setTaskExecutor(new TaskExecutorAdapter(taskExecutor));
+	public void setExecutorService(ExecutorService executorService) {
+		setTaskExecutor(new TaskExecutorAdapter(executorService));
 	}
 
 	/**
