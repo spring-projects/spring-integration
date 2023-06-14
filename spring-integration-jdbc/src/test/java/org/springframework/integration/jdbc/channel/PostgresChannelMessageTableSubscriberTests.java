@@ -124,6 +124,8 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 		this.postgresSubscribableChannel =
 				new PostgresSubscribableChannel(messageStore, groupId, postgresChannelMessageTableSubscriber);
+		this.postgresSubscribableChannel.setBeanName("testPostgresChannel");
+		this.postgresSubscribableChannel.afterPropertiesSet();
 	}
 
 	@AfterEach

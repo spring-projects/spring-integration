@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,10 +67,9 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 	private final String topicName;
 
-	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher(true);
+	private Executor taskExecutor;
 
-	// defaults
-	private Executor taskExecutor = new SimpleAsyncTaskExecutor();
+	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher(true);
 
 	private RedisSerializer<?> serializer = new StringRedisSerializer();
 
@@ -148,6 +147,11 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 			((BeanFactoryAware) this.messageConverter).setBeanFactory(beanFactory);
 		}
 		this.container.setConnectionFactory(this.connectionFactory);
+
+		if (this.taskExecutor == null) {
+			this.taskExecutor = new SimpleAsyncTaskExecutor(getBeanName() + "-");
+		}
+
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 			ErrorHandler errorHandler = ChannelUtils.getErrorHandler(beanFactory);
 			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
