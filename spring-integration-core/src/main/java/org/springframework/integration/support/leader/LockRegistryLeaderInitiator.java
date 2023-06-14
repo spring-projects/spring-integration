@@ -27,9 +27,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.core.task.support.ExecutorServiceAdapter;
+import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
@@ -100,8 +100,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	/**
 	 * Executor service for running leadership daemon.
 	 */
-	private ExecutorService executorService =
-			new ExecutorServiceAdapter(new SimpleAsyncTaskExecutor("lock-leadership-"));
+	private AsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor("lock-leadership-");
 
 	/**
 	 * Time in milliseconds to wait in between attempts to re-acquire the lock, once it is
@@ -152,7 +151,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 	/**
 	 * Future returned by submitting an {@link LeaderSelector} to
-	 * {@link #executorService}. This is used to cancel leadership.
+	 * {@link #taskExecutor}. This is used to cancel leadership.
 	 */
 	private volatile Future<?> future;
 
@@ -181,22 +180,23 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	/**
 	 * Set the {@link ExecutorService}, where is not provided then a default of
 	 * single thread Executor will be used.
-	 * @param executorService the executor service
+	 * @param taskExecutor the executor service
 	 * @since 5.0.2
-	 * @deprecated since 6.2 in favor of {@link #setTaskExecutor(TaskExecutor)}
+	 * @deprecated since 6.2 in favor of {@link #setTaskExecutor(AsyncTaskExecutor)}
 	 */
 	@Deprecated(since = "6.2", forRemoval = true)
-	public void setExecutorService(ExecutorService executorService) {
-		this.executorService = executorService;
+	public void setTaskExecutor(ExecutorService taskExecutor) {
+		setTaskExecutor(new TaskExecutorAdapter(taskExecutor));
 	}
 
 	/**
-	 * Set a {@link TaskExecutor} for running leadership daemon.
-	 * @param taskExecutor the {@link TaskExecutor} to use.
+	 * Set a {@link AsyncTaskExecutor} for running leadership daemon.
+	 * @param taskExecutor the {@link AsyncTaskExecutor} to use.
 	 * @since 6.2
 	 */
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		this.executorService = new ExecutorServiceAdapter(taskExecutor);
+	public void setTaskExecutor(AsyncTaskExecutor taskExecutor) {
+		Assert.notNull(taskExecutor, "A 'taskExecutor' must not be null.");
+		this.taskExecutor = taskExecutor;
 	}
 
 	public void setHeartBeatMillis(long heartBeatMillis) {
@@ -293,7 +293,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		if (!this.running) {
 			this.leaderSelector = new LeaderSelector(buildLeaderPath());
 			this.running = true;
-			this.future = this.executorService.submit(this.leaderSelector);
+			this.future = this.taskExecutor.submit(this.leaderSelector);
 			LOGGER.debug("Started LeaderInitiator");
 		}
 	}
@@ -461,7 +461,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		private void restartSelectorBecauseOfError(Exception ex) {
 			LOGGER.warn(ex, () -> "Restarting LeaderSelector for " + this.context + " because of error.");
 			LockRegistryLeaderInitiator.this.future =
-					LockRegistryLeaderInitiator.this.executorService.submit(
+					LockRegistryLeaderInitiator.this.taskExecutor.submit(
 							() -> {
 								// Give it a chance to elect some other leader.
 								Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);

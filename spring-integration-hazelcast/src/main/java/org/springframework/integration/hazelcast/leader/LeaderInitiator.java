@@ -18,7 +18,6 @@ package org.springframework.integration.hazelcast.leader;
 
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -33,9 +32,8 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.core.task.support.ExecutorServiceAdapter;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
@@ -75,8 +73,7 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 	/**
 	 * Executor service for running leadership daemon.
 	 */
-	private ExecutorService executorService =
-			new ExecutorServiceAdapter(new SimpleAsyncTaskExecutor("Hazelcast-leadership-"));
+	private AsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor("Hazelcast-leadership-");
 
 	private long heartBeatMillis = LockRegistryLeaderInitiator.DEFAULT_HEART_BEAT_TIME;
 
@@ -94,7 +91,7 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 	private int phase;
 
 	/**
-	 * Future returned by submitting an {@link LeaderSelector} to {@link #executorService}.
+	 * Future returned by submitting an {@link LeaderSelector} to {@link #taskExecutor}.
 	 * This is used to cancel leadership.
 	 */
 	private volatile Future<Void> future;
@@ -126,12 +123,13 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 	}
 
 	/**
-	 * Set a {@link TaskExecutor} for running leadership daemon.
-	 * @param taskExecutor the {@link TaskExecutor} to use.
+	 * Set a {@link AsyncTaskExecutor} for running leadership daemon.
+	 * @param taskExecutor the {@link AsyncTaskExecutor} to use.
 	 * @since 6.2
 	 */
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		this.executorService = new ExecutorServiceAdapter(taskExecutor);
+	public void setTaskExecutor(AsyncTaskExecutor taskExecutor) {
+		Assert.notNull(taskExecutor, "A 'taskExecutor' must not be null.");
+		this.taskExecutor = taskExecutor;
 	}
 
 	/**
@@ -214,7 +212,7 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 		if (!this.running) {
 			this.leaderSelector = new LeaderSelector();
 			this.running = true;
-			this.future = this.executorService.submit(this.leaderSelector);
+			this.future = this.taskExecutor.submit(this.leaderSelector);
 		}
 	}
 
