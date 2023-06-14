@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.core.task.support.ExecutorServiceAdapter;
+import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
@@ -252,9 +252,8 @@ public class LockRegistryLeaderInitiatorTests {
 				.given(lock)
 				.tryLock(anyLong(), eq(TimeUnit.MILLISECONDS));
 
-		new DirectFieldAccessor(another).setPropertyValue("executorService",
-				new ExecutorServiceAdapter(
-						new SyncTaskExecutor()));
+		new DirectFieldAccessor(another).setPropertyValue("taskExecutor",
+				new TaskExecutorAdapter(new SyncTaskExecutor()));
 
 		another.start();
 
