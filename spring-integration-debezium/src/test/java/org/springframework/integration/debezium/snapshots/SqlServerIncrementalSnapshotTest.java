@@ -156,7 +156,7 @@ public class SqlServerIncrementalSnapshotTest extends AbstractIncrementalSnapsho
 							"signal.data.collection=testDB.dbo.dbz_signal",
 							"table.include.list=dbo.orders,dbo.customers,dbo.products,dbo.dbz_signal",
 
-							"poll.interval.ms=10",
+							// "poll.interval.ms=10",
 
 							"database.port=" + SqlServerTestContainer.mappedPort()));
 		}

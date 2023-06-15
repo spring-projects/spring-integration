@@ -3,9 +3,11 @@ CREATE DATABASE testDB;
 GO
 USE testDB;
 EXEC sys.sp_cdc_enable_db;
+GO
 
-EXEC sys.sp_cdc_add_job @job_type = N'capture';
-EXEC sys.sp_cdc_change_job @continuous =1, @pollinginterval = 0, @maxscans = 100, @maxtrans=1000;
+-- Speed up the CDC polling.
+EXEC sys.sp_cdc_add_job @job_type = N'capture', @continuous = 1, @pollinginterval = 0, @maxscans = 100, @maxtrans=1000;
+-- EXEC sys.sp_cdc_change_job @continuous = 1, @pollinginterval = 0, @maxscans = 100, @maxtrans=1000;
 EXEC sys.sp_cdc_help_jobs;
 
 -- Create and populate our products using a single insert with many rows

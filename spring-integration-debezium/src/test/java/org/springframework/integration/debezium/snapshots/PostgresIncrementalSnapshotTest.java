@@ -43,15 +43,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 public class PostgresIncrementalSnapshotTest extends AbstractIncrementalSnapshotTest implements PostgresTestContainer {
 
 	@BeforeAll
-	public static void beforeEach() {
-		// await().until(() -> container.isRunning());
-		try {
-			Thread.sleep(5000);
-		}
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
+	public static void beforeEach() throws InterruptedException {
+		Thread.sleep(5000);
 	}
 
 	protected void debeziumReadyCheck() {
