@@ -20,9 +20,9 @@ import java.util.Properties;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
+import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * @author Christian Tzolov
@@ -35,13 +35,12 @@ public interface DebeziumMySqlTestContainer {
 
 	int EXPECTED_DB_TX_COUNT = 52;
 
-	GenericContainer<?> DEBEZIUM_MYSQL =
-			new GenericContainer<>("debezium/example-mysql:2.2.0.Final")
-					.withExposedPorts(3306)
-					.withEnv("MYSQL_ROOT_PASSWORD", "debezium")
-					.withEnv("MYSQL_USER", "mysqluser")
-					.withEnv("MYSQL_PASSWORD", "mysqlpw")
-					.waitingFor(new LogMessageWaitStrategy().withRegEx(".*port: 3306  MySQL Community Server - GPL.*."));
+	MySQLContainer<?> DEBEZIUM_MYSQL =
+			new MySQLContainer<>(
+					DockerImageName.parse("debezium/example-mysql:2.2.0.Final")
+							.asCompatibleSubstituteFor("mysql"))
+					.withUsername("mysqluser")
+					.withPassword("mysqlpw");
 
 	@BeforeAll
 	static void startContainer() {

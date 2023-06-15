@@ -589,6 +589,7 @@ project('spring-integration-debezium') {
         }
 
         testImplementation "io.debezium:debezium-connector-mysql:$debeziumVersion"
+        testImplementation 'org.testcontainers:mysql'
     }
 }
 
