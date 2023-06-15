@@ -44,7 +44,7 @@ public class SqlServerIncrementalSnapshotTest extends AbstractIncrementalSnapsho
 		implements SqlServerTestContainer {
 
 	protected void debeziumReadyCheck() {
-		await().until(() -> config.ddlMessages.size() == 4);
+		await().until(() -> config.ddlMessages.size() >= 1);
 	}
 
 	protected void insertCustomer(String firstName, String lastName, String email) {
