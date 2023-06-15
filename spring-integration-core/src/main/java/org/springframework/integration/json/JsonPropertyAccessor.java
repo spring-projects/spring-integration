@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypedValue;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A SpEL {@link PropertyAccessor} that knows how to read properties from JSON objects.
@@ -41,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Paul Martin
  * @author Gary Russell
  * @author Pierre Lakreb
+ * @author Vladislav Fefelov
  *
  * @since 3.0
  */
@@ -109,6 +111,9 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	 * Return an integer if the String property name can be parsed as an int, or null otherwise.
 	 */
 	private static Integer maybeIndex(String name) {
+		if (!isNumeric(name)) {
+			return null;
+		}
 		try {
 			return Integer.valueOf(name);
 		}
@@ -137,6 +142,22 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	@Override
 	public void write(EvaluationContext context, Object target, String name, Object newValue) {
 		throw new UnsupportedOperationException("Write is not supported");
+	}
+
+	/**
+	 * Check if the string is a numeric representation (all digits) or not.
+	 */
+	private static boolean isNumeric(String str) {
+		if (!StringUtils.hasLength(str)) {
+			return false;
+		}
+		int length = str.length();
+		for (int i = 0; i < length; i++) {
+			if (!Character.isDigit(str.charAt(i))) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private static TypedValue typedValue(JsonNode json) throws AccessException {
