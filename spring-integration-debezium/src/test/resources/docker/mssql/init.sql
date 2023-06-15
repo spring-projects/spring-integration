@@ -4,6 +4,10 @@ GO
 USE testDB;
 EXEC sys.sp_cdc_enable_db;
 
+EXEC sys.sp_cdc_add_job @job_type = N'capture';
+EXEC sys.sp_cdc_change_job @continuous =1, @pollinginterval = 0, @maxscans = 100, @maxtrans=1000;
+EXEC sys.sp_cdc_help_jobs;
+
 -- Create and populate our products using a single insert with many rows
 CREATE TABLE products (
   id INTEGER IDENTITY(101,1) NOT NULL PRIMARY KEY,

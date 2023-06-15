@@ -592,8 +592,6 @@ project('spring-integration-debezium') {
         testImplementation "io.debezium:debezium-connector-postgres:$debeziumVersion"
         testImplementation "io.debezium:debezium-connector-sqlserver:$debeziumVersion"
         testImplementation "org.springframework:spring-jdbc"
-        testImplementation "com.zaxxer:HikariCP:4.0.3"
-        testImplementation "org.springframework.boot:spring-boot-autoconfigure:3.1.0"
     }
 }
 

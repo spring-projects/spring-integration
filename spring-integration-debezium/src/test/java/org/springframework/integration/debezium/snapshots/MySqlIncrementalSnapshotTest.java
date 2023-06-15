@@ -19,6 +19,8 @@ package org.springframework.integration.debezium.snapshots;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.sql.DataSource;
+
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.format.KeyValueHeaderChangeEventFormat;
@@ -27,10 +29,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.awaitility.Awaitility.await;
@@ -40,19 +40,7 @@ import static org.awaitility.Awaitility.await;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@TestPropertySource(properties = {
-		// JdbcTemplate configuration
-		"app.datasource.username=root", // Root privileges are needed to let jdbcTemplate write.
-		"app.datasource.password=debezium",
-		"app.datasource.type=com.zaxxer.hikari.HikariDataSource" })
 public class MySqlIncrementalSnapshotTest extends AbstractIncrementalSnapshotTest implements MySqlTestContainer {
-
-	@DynamicPropertySource
-	static void dynamicProperties(DynamicPropertyRegistry registry) {
-		registry.add("app.datasource.url",
-				() -> String.format("jdbc:mysql://localhost:%s/inventory?enabledTLSProtocols=TLSv1.2",
-						MySqlTestContainer.mappedPort()));
-	}
 
 	protected void debeziumReadyCheck() {
 		await().until(() -> config.ddlMessages.size() > 1);
@@ -114,6 +102,19 @@ public class MySqlIncrementalSnapshotTest extends AbstractIncrementalSnapshotTes
 	@EnableIntegration
 	@Import(AbstractIncrementalSnapshotTest.StreamTestConfiguration.class)
 	public static class Config2 {
+
+		@Bean
+		public DataSource dataSource() {
+
+			DriverManagerDataSource dataSource = new DriverManagerDataSource();
+			dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+			dataSource.setUrl(String.format("jdbc:mysql://localhost:%s/inventory?enabledTLSProtocols=TLSv1.2",
+					MySqlTestContainer.mappedPort()));
+			dataSource.setUsername("root");
+			dataSource.setPassword("debezium");
+			return dataSource;
+		}
+
 		@Bean
 		public DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder() {
 

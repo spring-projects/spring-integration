@@ -19,39 +19,39 @@ package org.springframework.integration.debezium.snapshots;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.sql.DataSource;
+
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.format.KeyValueHeaderChangeEventFormat;
-import org.junit.Ignore;
+import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Christian Tzolov
  */
-@Ignore
-@TestPropertySource(properties = {
-		// JdbcTemplate configuration
-		"app.datasource.username=postgres",
-		"app.datasource.password=postgres",
-		"app.datasource.type=com.zaxxer.hikari.HikariDataSource"
-})
 @SpringJUnitConfig
 @DirtiesContext
 public class PostgresIncrementalSnapshotTest extends AbstractIncrementalSnapshotTest implements PostgresTestContainer {
 
-	@DynamicPropertySource
-	static void dynamicProperties(DynamicPropertyRegistry registry) {
-		registry.add("app.datasource.url",
-				() -> String.format("jdbc:postgresql://localhost:%s/postgres", PostgresTestContainer.mappedPort()));
+	@BeforeAll
+	public static void beforeEach() {
+		// await().until(() -> container.isRunning());
+		try {
+			Thread.sleep(5000);
+		}
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	protected void debeziumReadyCheck() {
@@ -59,6 +59,8 @@ public class PostgresIncrementalSnapshotTest extends AbstractIncrementalSnapshot
 
 	protected void insertCustomer(String firstName, String lastName, String email) {
 		jdbcTemplate.update("INSERT INTO inventory.customers VALUES (default,?,?,?)", firstName, lastName, email);
+		// int found = jdbcTemplate.queryForObject( "SELECT count(*) FROM inventory.customers WHERE first_name like ?",
+		// Integer.class, firstName);
 	}
 
 	protected void insertProduct(String name, String description, Float weight) {
@@ -113,8 +115,20 @@ public class PostgresIncrementalSnapshotTest extends AbstractIncrementalSnapshot
 	@EnableIntegration
 	@Import(AbstractIncrementalSnapshotTest.StreamTestConfiguration.class)
 	public static class Config2 {
+
 		@Bean
-		public DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder() {
+		public DataSource dataSource() {
+			DriverManagerDataSource dataSource = new DriverManagerDataSource();
+			dataSource.setDriverClassName("org.postgresql.Driver");
+			dataSource.setUrl(
+					String.format("jdbc:postgresql://localhost:%s/postgres", PostgresTestContainer.mappedPort()));
+			dataSource.setUsername("postgres");
+			dataSource.setPassword("postgres");
+			return dataSource;
+		}
+
+		@Bean
+		public DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder(JdbcTemplate jdbcTemplate) {
 
 			return DebeziumEngine.create(KeyValueHeaderChangeEventFormat
 					.of(io.debezium.engine.format.JsonByteArray.class,
@@ -149,8 +163,8 @@ public class PostgresIncrementalSnapshotTest extends AbstractIncrementalSnapshot
 							"database.dbname=postgres",
 							"database.hostname=localhost",
 
-							// "snapshot.mode=initial_only",
-							"snapshot.mode=never",
+							"snapshot.mode=initial",
+							// "snapshot.mode=never",
 
 							"signal.data.collection=inventory.dbz_signal",
 							"table.include.list=inventory.orders,inventory.customers,inventory.products,inventory.dbz_signal",

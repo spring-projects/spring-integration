@@ -33,11 +33,11 @@ public interface PostgresTestContainer {
 			new ImageFromDockerfile()
 					.withFileFromClasspath("inventory.sql", "/docker/postgres/inventory.sql")
 					.withFileFromClasspath("Dockerfile", "/docker/postgres/Dockerfile"))
-							.waitingFor(new LogMessageWaitStrategy()
-									.withRegEx(".*database system is ready to accept connections*."))
 							.withEnv("POSTGRES_USER", "postgres")
 							.withEnv("POSTGRES_PASSWORD", "postgres")
-							.withExposedPorts(5432);
+							.withExposedPorts(5432)
+							.waitingFor(new LogMessageWaitStrategy()
+									.withRegEx(".*database system is ready to accept connections*."));
 
 	static int mappedPort() {
 		return container.getMappedPort(5432);
