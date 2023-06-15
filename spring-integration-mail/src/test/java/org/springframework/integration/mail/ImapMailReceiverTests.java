@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -76,6 +75,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
@@ -111,6 +111,12 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(
 		"classpath:org/springframework/integration/mail/config/ImapIdleChannelAdapterParserTests-context.xml")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@LogLevels(level = "debug",
+		categories = {
+				"org.springframework.integration.mail",
+				"com.icegreen.greenmail",
+				"jakarta.mail"
+		})
 public class ImapMailReceiverTests {
 
 	private static final ImapSearchLoggingHandler imapSearches = new ImapSearchLoggingHandler();
@@ -139,7 +145,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@BeforeEach
-	void startImapServer() throws ExecutionException, InterruptedException {
+	void startImapServer() {
 		imapSearches.searches.clear();
 		imapSearches.stores.clear();
 		ServerSetup imap = ServerSetupTest.IMAP.verbose(true).dynamicPort();
