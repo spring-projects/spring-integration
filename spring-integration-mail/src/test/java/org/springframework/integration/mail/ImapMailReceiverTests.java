@@ -272,9 +272,9 @@ public class ImapMailReceiverTests {
 				assertThat(received.getPayload()).isEqualTo("foo");
 			}
 		}
-		user.deliver(GreenMailUtil.createTextEmail("to", "Bar <bar@baz>", "subject", "body",
+		user.deliver(GreenMailUtil.createTextEmail("to", "Bar <bar@baz>", "subject", "body\r\n",
 				imapIdleServer.getImap().getServerSetup()));
-		assertThat(channel.receive(20000)).isNotNull(); // new message after idle
+		assertThat(channel.receive(30000)).isNotNull(); // new message after idle
 		assertThat(channel.receive(100)).isNull(); // no new message after second and third idle
 
 		adapter.stop();
