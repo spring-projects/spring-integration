@@ -175,6 +175,8 @@ allprojects {
             mavenBom "org.springframework.data:spring-data-bom:$springDataVersion"
             mavenBom "org.springframework:spring-framework-bom:$springVersion"
             mavenBom "org.springframework.ws:spring-ws-bom:$springWsVersion"
+            mavenBom "io.debezium:debezium-bom:$debeziumVersion"
+
         }
 
     }
@@ -581,16 +583,17 @@ project('spring-integration-debezium') {
     description = 'Spring Integration Debezium Support'
     dependencies {
         api project(':spring-integration-core')
-        api("io.debezium:debezium-embedded:$debeziumVersion") {
+        api("io.debezium:debezium-embedded") {
             exclude group: 'org.glassfish.jersey.containers', module: 'jersey-container-servlet'
             exclude group: 'org.glassfish.jersey.inject', module: 'jersey-hk2'
             exclude group: 'jakarta.xml.bind', module: 'jakarta.xml.bind-api'
             exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
         }
 
-        testImplementation "io.debezium:debezium-connector-mysql:$debeziumVersion"
-        testImplementation "io.debezium:debezium-connector-postgres:$debeziumVersion"
-        testImplementation "io.debezium:debezium-connector-sqlserver:$debeziumVersion"
+        testImplementation 'org.testcontainers:mysql'
+        testImplementation "io.debezium:debezium-connector-mysql"
+        testImplementation "io.debezium:debezium-connector-postgres"
+        testImplementation "io.debezium:debezium-connector-sqlserver"
         testImplementation "org.springframework:spring-jdbc"
     }
 }

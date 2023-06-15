@@ -40,7 +40,7 @@ import static org.awaitility.Awaitility.await;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class SqlServerIncrementalSnapshotTest extends AbstractIncrementalSnapshotTest
+public class SqlServerIncrementalSnapshotTests extends AbstractIncrementalSnapshotTests
 		implements SqlServerTestContainer {
 
 	protected void debeziumReadyCheck() {
@@ -102,7 +102,7 @@ public class SqlServerIncrementalSnapshotTest extends AbstractIncrementalSnapsho
 
 	@Configuration
 	@EnableIntegration
-	@Import(AbstractIncrementalSnapshotTest.StreamTestConfiguration.class)
+	@Import(AbstractIncrementalSnapshotTests.SnapshotTestConfiguration.class)
 	public static class Config2 {
 
 		@Bean

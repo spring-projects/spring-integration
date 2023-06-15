@@ -40,10 +40,10 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class PostgresIncrementalSnapshotTest extends AbstractIncrementalSnapshotTest implements PostgresTestContainer {
+public class PostgresIncrementalSnapshotTests extends AbstractIncrementalSnapshotTests implements PostgresTestContainer {
 
 	@BeforeAll
-	public static void beforeEach() throws InterruptedException {
+	public static void waitDockerContainer() throws InterruptedException {
 		Thread.sleep(5000);
 	}
 
@@ -52,8 +52,6 @@ public class PostgresIncrementalSnapshotTest extends AbstractIncrementalSnapshot
 
 	protected void insertCustomer(String firstName, String lastName, String email) {
 		jdbcTemplate.update("INSERT INTO inventory.customers VALUES (default,?,?,?)", firstName, lastName, email);
-		// int found = jdbcTemplate.queryForObject( "SELECT count(*) FROM inventory.customers WHERE first_name like ?",
-		// Integer.class, firstName);
 	}
 
 	protected void insertProduct(String name, String description, Float weight) {
@@ -106,7 +104,7 @@ public class PostgresIncrementalSnapshotTest extends AbstractIncrementalSnapshot
 
 	@Configuration
 	@EnableIntegration
-	@Import(AbstractIncrementalSnapshotTest.StreamTestConfiguration.class)
+	@Import(AbstractIncrementalSnapshotTests.SnapshotTestConfiguration.class)
 	public static class Config2 {
 
 		@Bean

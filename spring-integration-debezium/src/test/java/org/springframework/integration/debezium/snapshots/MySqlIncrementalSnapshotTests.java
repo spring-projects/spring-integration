@@ -40,7 +40,7 @@ import static org.awaitility.Awaitility.await;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class MySqlIncrementalSnapshotTest extends AbstractIncrementalSnapshotTest implements MySqlTestContainer {
+public class MySqlIncrementalSnapshotTests extends AbstractIncrementalSnapshotTests implements MySqlTestContainer {
 
 	protected void debeziumReadyCheck() {
 		await().until(() -> config.ddlMessages.size() > 1);
@@ -100,7 +100,7 @@ public class MySqlIncrementalSnapshotTest extends AbstractIncrementalSnapshotTes
 
 	@Configuration
 	@EnableIntegration
-	@Import(AbstractIncrementalSnapshotTest.StreamTestConfiguration.class)
+	@Import(AbstractIncrementalSnapshotTests.SnapshotTestConfiguration.class)
 	public static class Config2 {
 
 		@Bean

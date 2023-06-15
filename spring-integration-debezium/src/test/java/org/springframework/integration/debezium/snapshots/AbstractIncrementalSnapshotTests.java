@@ -61,9 +61,9 @@ import static org.awaitility.Awaitility.await;
  *
  * @author Christian Tzolov
  */
-public abstract class AbstractIncrementalSnapshotTest {
+public abstract class AbstractIncrementalSnapshotTests {
 
-	static final LogAccessor logger = new LogAccessor(AbstractIncrementalSnapshotTest.class);
+	static final LogAccessor logger = new LogAccessor(AbstractIncrementalSnapshotTests.class);
 
 	public static final String UPDATE_OPERATION = "u";
 	public static final String CREATE_OPERATION = "c";
@@ -73,7 +73,7 @@ public abstract class AbstractIncrementalSnapshotTest {
 	protected static final ObjectMapper mapper = new ObjectMapper();
 
 	@Autowired
-	protected StreamTestConfiguration config;
+	protected SnapshotTestConfiguration config;
 
 	@Autowired
 	protected JdbcTemplate jdbcTemplate;
@@ -299,7 +299,7 @@ public abstract class AbstractIncrementalSnapshotTest {
 
 	@Configuration
 	@EnableIntegration
-	static class StreamTestConfiguration {
+	static class SnapshotTestConfiguration {
 
 		final AtomicInteger totalMessageCount = new AtomicInteger(0);
 
