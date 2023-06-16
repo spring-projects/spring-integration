@@ -231,7 +231,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 					.acceptIfCondition(this.handler instanceof Orderable && this.order != null,
 							this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
 			this.initialized = true;
-		} finally {
+		}
+		finally {
 			this.initializationMonitor.unlock();
 		}
 		initializingBean();

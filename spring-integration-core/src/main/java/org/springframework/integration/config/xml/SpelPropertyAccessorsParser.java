@@ -41,7 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Christian Tzolov
- * 
+ *
  * @since 3.0
  */
 public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
