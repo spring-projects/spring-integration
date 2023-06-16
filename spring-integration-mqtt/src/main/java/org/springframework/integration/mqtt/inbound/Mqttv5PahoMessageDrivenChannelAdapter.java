@@ -18,8 +18,6 @@ package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.IntStream;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;

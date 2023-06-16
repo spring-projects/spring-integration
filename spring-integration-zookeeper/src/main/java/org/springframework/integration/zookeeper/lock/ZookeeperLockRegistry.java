@@ -152,7 +152,8 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		this.locksLock.lock();
 		try {
 			lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, this.mutexTaskExecutor, p));
-		} finally {
+		}
+		finally {
 			this.locksLock.unlock();
 		}
 		if (this.trackingTime) {

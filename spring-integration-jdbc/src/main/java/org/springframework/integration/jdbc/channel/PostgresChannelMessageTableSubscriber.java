@@ -171,65 +171,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 
 			CountDownLatch startingLatch = new CountDownLatch(1);
 			this.future = this.taskExecutor.submit(() -> {
-				try {
-					while (isActive()) {
-						try {
-							PgConnection conn = this.connectionSupplier.get();
-							try (Statement stmt = conn.createStatement()) {
-								stmt.execute("LISTEN " + this.tablePrefix.toLowerCase() + "channel_message_notify");
-							}
-							catch (Exception ex) {
-								try {
-									conn.close();
-								}
-								catch (Exception suppressed) {
-									ex.addSuppressed(suppressed);
-								}
-								throw ex;
-							}
-							this.subscriptionsMap.values()
-									.forEach(subscriptions -> subscriptions.forEach(Subscription::notifyUpdate));
-							try {
-								this.connection = conn;
-								while (isActive()) {
-									startingLatch.countDown();
-
-									PGNotification[] notifications = conn.getNotifications(0);
-									// Unfortunately, there is no good way of interrupting a notification
-									// poll but by closing its connection.
-									if (!isActive()) {
-										return;
-									}
-									if (notifications != null) {
-										for (PGNotification notification : notifications) {
-											String parameter = notification.getParameter();
-											Set<Subscription> subscriptions = this.subscriptionsMap.get(parameter);
-											if (subscriptions == null) {
-												continue;
-											}
-											for (Subscription subscription : subscriptions) {
-												subscription.notifyUpdate();
-											}
-										}
-									}
-								}
-							}
-							finally {
-								conn.close();
-							}
-						}
-						catch (Exception e) {
-							// The getNotifications method does not throw a meaningful message on interruption.
-							// Therefore, we do not log an error, unless it occurred while active.
-							if (isActive()) {
-								LOGGER.error(e, "Failed to poll notifications from Postgres database");
-							}
-						}
-					}
-				}
-				finally {
-					this.latch.countDown();
-				}
+				doStart(startingLatch);
 			});
 
 			try {
@@ -245,6 +187,69 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		finally {
 			this.lock.unlock();
 		}
+	}
+
+	private void doStart(CountDownLatch startingLatch) {
+		try {
+			while (isActive()) {
+				try {
+					PgConnection conn = this.connectionSupplier.get();
+					try (Statement stmt = conn.createStatement()) {
+						stmt.execute("LISTEN " + this.tablePrefix.toLowerCase() + "channel_message_notify");
+					}
+					catch (Exception ex) {
+						try {
+							conn.close();
+						}
+						catch (Exception suppressed) {
+							ex.addSuppressed(suppressed);
+						}
+						throw ex;
+					}
+					this.subscriptionsMap.values()
+							.forEach(subscriptions -> subscriptions.forEach(Subscription::notifyUpdate));
+					try {
+						this.connection = conn;
+						while (isActive()) {
+							startingLatch.countDown();
+
+							PGNotification[] notifications = conn.getNotifications(0);
+							// Unfortunately, there is no good way of interrupting a notification
+							// poll but by closing its connection.
+							if (!isActive()) {
+								return;
+							}
+							if (notifications != null) {
+								for (PGNotification notification : notifications) {
+									String parameter = notification.getParameter();
+									Set<Subscription> subscriptions = this.subscriptionsMap.get(parameter);
+									if (subscriptions == null) {
+										continue;
+									}
+									for (Subscription subscription : subscriptions) {
+										subscription.notifyUpdate();
+									}
+								}
+							}
+						}
+					}
+					finally {
+						conn.close();
+					}
+				}
+				catch (Exception e) {
+					// The getNotifications method does not throw a meaningful message on interruption.
+					// Therefore, we do not log an error, unless it occurred while active.
+					if (isActive()) {
+						LOGGER.error(e, "Failed to poll notifications from Postgres database");
+					}
+				}
+			}
+		}
+		finally {
+			this.latch.countDown();
+		}
+
 	}
 
 	private boolean isActive() {

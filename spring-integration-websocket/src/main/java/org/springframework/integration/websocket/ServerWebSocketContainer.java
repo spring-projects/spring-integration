@@ -17,8 +17,6 @@
 package org.springframework.integration.websocket;
 
 import java.util.Arrays;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
