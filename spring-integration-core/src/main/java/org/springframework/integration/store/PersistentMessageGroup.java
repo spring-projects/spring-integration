@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Spliterator;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
@@ -32,12 +34,15 @@ import org.springframework.messaging.Message;
 
 /**
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 4.3
  */
 class PersistentMessageGroup implements MessageGroup {
 
 	private static final Log LOGGER = LogFactory.getLog(PersistentMessageGroup.class);
+
+	private final Lock lock = new ReentrantLock();
 
 	private final MessageGroupStore messageGroupStore;
 
@@ -76,13 +81,17 @@ class PersistentMessageGroup implements MessageGroup {
 	@Override
 	public Message<?> getOne() {
 		if (this.oneMessage == null) {
-			synchronized (this) {
+			this.lock.tryLock();
+			try {
 				if (this.oneMessage == null) {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("Lazy loading of one message for messageGroup: " + this.original.getGroupId());
 					}
 					this.oneMessage = this.messageGroupStore.getOneMessageFromGroup(this.original.getGroupId());
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 		return this.oneMessage;
@@ -109,13 +118,17 @@ class PersistentMessageGroup implements MessageGroup {
 	@Override
 	public int size() {
 		if (this.size == 0) {
-			synchronized (this) {
+			this.lock.tryLock();
+			try {
 				if (this.size == 0) {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("Lazy loading of group size for messageGroup: " + this.original.getGroupId());
 					}
 					this.size = this.messageGroupStore.messageGroupSize(this.original.getGroupId());
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 		return this.size;
@@ -195,6 +208,8 @@ class PersistentMessageGroup implements MessageGroup {
 
 	private final class PersistentCollection extends AbstractCollection<Message<?>> {
 
+		private final Lock innerLock = new ReentrantLock();
+
 		private volatile Collection<Message<?>> collection;
 
 		PersistentCollection() {
@@ -202,7 +217,8 @@ class PersistentMessageGroup implements MessageGroup {
 
 		private void load() {
 			if (this.collection == null) {
-				synchronized (this) {
+				this.innerLock.tryLock();
+				try {
 					if (this.collection == null) {
 						Object groupId = PersistentMessageGroup.this.original.getGroupId();
 						if (LOGGER.isDebugEnabled()) {
@@ -210,6 +226,9 @@ class PersistentMessageGroup implements MessageGroup {
 						}
 						this.collection = PersistentMessageGroup.this.messageGroupStore.getMessagesForGroup(groupId);
 					}
+				}
+				finally {
+					this.innerLock.unlock();
 				}
 			}
 		}

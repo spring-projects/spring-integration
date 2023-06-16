@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
@@ -46,12 +48,15 @@ import org.springframework.web.socket.client.WebSocketClient;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 4.1
  */
 public final class ClientWebSocketContainer extends IntegrationWebSocketContainer implements SmartLifecycle {
 
 	private static final int DEFAULT_CONNECTION_TIMEOUT = 10;
+
+	private final Lock lock = new ReentrantLock();
 
 	private final WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
 
@@ -183,12 +188,18 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	}
 
 	@Override
-	public synchronized void start() {
-		if (!isRunning()) {
-			this.clientSession = null;
-			this.openConnectionException = null;
-			this.connectionLatch = new CountDownLatch(1);
-			this.connectionManager.start();
+	public void start() {
+		this.lock.tryLock();
+		try {
+			if (!isRunning()) {
+				this.clientSession = null;
+				this.openConnectionException = null;
+				this.connectionLatch = new CountDownLatch(1);
+				this.connectionManager.start();
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

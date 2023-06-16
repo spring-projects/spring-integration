@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.xml.source;
 
 import java.io.File;
 import java.io.StringReader;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,8 +41,11 @@ import org.springframework.xml.DocumentBuilderFactoryUtils;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class DomSourceFactory implements SourceFactory {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final DocumentBuilderFactory documentBuilderFactory;
 
@@ -99,8 +104,12 @@ public class DomSourceFactory implements SourceFactory {
 	}
 
 	private DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
-		synchronized (this.documentBuilderFactory) {
+		this.lock.tryLock();
+		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

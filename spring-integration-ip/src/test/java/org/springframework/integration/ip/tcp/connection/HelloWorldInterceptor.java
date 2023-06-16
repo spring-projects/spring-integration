@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.support.MessageBuilder;
@@ -26,10 +28,14 @@ import org.springframework.messaging.MessagingException;
 
 /**
  * @author Gary Russell
+ * @author Christian Tzolov
+ *
  * @since 2.0
  *
  */
 public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
+
+	private final Lock lock = new ReentrantLock();
 
 	private volatile boolean negotiated;
 
@@ -57,7 +63,8 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 	@Override
 	public boolean onMessage(Message<?> message) {
 		if (!this.negotiated) {
-			synchronized (this) {
+			this.lock.tryLock();
+			try {
 				if (!this.negotiated) {
 					Object payload = message.getPayload();
 					logger.debug(this.toString() + " received " + payload);
@@ -90,6 +97,9 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 						return true;
 					}
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 		try {

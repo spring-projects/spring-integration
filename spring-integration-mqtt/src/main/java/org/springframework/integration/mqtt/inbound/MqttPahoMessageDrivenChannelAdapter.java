@@ -17,6 +17,8 @@
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
@@ -56,6 +58,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Christian Tzolov
  *
  * @since 4.0
  *
@@ -63,6 +66,8 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectOptions>
 		implements MqttCallbackExtended, MqttPahoComponent {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final MqttPahoClientFactory clientFactory;
 
@@ -179,46 +184,58 @@ public class MqttPahoMessageDrivenChannelAdapter
 	}
 
 	@SuppressWarnings("deprecation")
-	private synchronized void connect() throws MqttException {
-		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
-		var clientManager = getClientManager();
-		if (clientManager == null) {
-			Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
-					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-			this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
-			this.client.setCallback(this);
-			this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
-			this.client.setManualAcks(isManualAcks());
+	private void connect() throws MqttException {
+		this.lock.tryLock();
+		try {
+			MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
+			var clientManager = getClientManager();
+			if (clientManager == null) {
+				Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
+						"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
+				this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
+				this.client.setCallback(this);
+				this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
+				this.client.setManualAcks(isManualAcks());
+			}
+			else {
+				this.client = clientManager.getClient();
+			}
 		}
-		else {
-			this.client = clientManager.getClient();
+		finally {
+			this.lock.unlock();
 		}
 	}
 
 	@Override
-	protected synchronized void doStop() {
-		this.readyToSubscribeOnStart = false;
+	protected void doStop() {
+		this.lock.tryLock();
 		try {
-			if (this.clientFactory.getConnectionOptions().isCleanSession()) {
-				this.client.unsubscribe(getTopic());
-				// Have to re-subscribe on next start if connection is not lost.
-				this.readyToSubscribeOnStart = true;
+			this.readyToSubscribeOnStart = false;
+			try {
+				if (this.clientFactory.getConnectionOptions().isCleanSession()) {
+					this.client.unsubscribe(getTopic());
+					// Have to re-subscribe on next start if connection is not lost.
+					this.readyToSubscribeOnStart = true;
 
+				}
+			}
+			catch (MqttException ex1) {
+				logger.error(ex1, "Exception while unsubscribing");
+			}
+
+			if (getClientManager() != null) {
+				return;
+			}
+
+			try {
+				this.client.disconnectForcibly(getDisconnectCompletionTimeout());
+			}
+			catch (MqttException ex) {
+				logger.error(ex, "Exception while disconnecting");
 			}
 		}
-		catch (MqttException ex1) {
-			logger.error(ex1, "Exception while unsubscribing");
-		}
-
-		if (getClientManager() != null) {
-			return;
-		}
-
-		try {
-			this.client.disconnectForcibly(getDisconnectCompletionTimeout());
-		}
-		catch (MqttException ex) {
-			logger.error(ex, "Exception while disconnecting");
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -322,17 +339,23 @@ public class MqttPahoMessageDrivenChannelAdapter
 	}
 
 	@Override
-	public synchronized void connectionLost(Throwable cause) {
-		if (isRunning()) {
-			this.logger.error(() -> "Lost connection: " + cause.getMessage());
-			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+	public void connectionLost(Throwable cause) {
+		this.lock.tryLock();
+		try {
+			if (isRunning()) {
+				this.logger.error(() -> "Lost connection: " + cause.getMessage());
+				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+				}
+			}
+			else {
+				// The 'connectComplete()' re-subscribes or sets this flag otherwise.
+				this.readyToSubscribeOnStart = false;
 			}
 		}
-		else {
-			// The 'connectComplete()' re-subscribes or sets this flag otherwise.
-			this.readyToSubscribeOnStart = false;
+		finally {
+			this.lock.unlock();
 		}
 	}
 

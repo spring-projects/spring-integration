@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2020 the original author or authors.
+ * Copyright 2001-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.URISyntaxException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.expression.Expression;
 import org.springframework.messaging.Message;
@@ -37,6 +39,7 @@ import org.springframework.messaging.Message;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
@@ -47,6 +50,8 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	private String localAddress;
 
 	private volatile MulticastSocket multicastSocket;
+
+	private final Lock lock = new ReentrantLock();
 
 	/**
 	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port.
@@ -129,11 +134,17 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	@Override
-	protected synchronized DatagramSocket getSocket() throws IOException {
-		if (getTheSocket() == null) {
-			createSocket();
+	protected DatagramSocket getSocket() throws IOException {
+		this.lock.tryLock();
+		try {
+			if (getTheSocket() == null) {
+				createSocket();
+			}
+			return super.getSocket();
 		}
-		return super.getSocket();
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	private void createSocket() throws IOException {

@@ -17,6 +17,8 @@
 package org.springframework.integration.websocket;
 
 import java.util.Arrays;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
@@ -47,11 +49,14 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 4.1
  */
 public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 		implements WebSocketConfigurer, SmartLifecycle {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final String[] paths;
 
@@ -224,9 +229,15 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	}
 
 	@Override
-	public synchronized void start() {
-		if (this.handshakeHandler instanceof Lifecycle && !isRunning()) {
-			((Lifecycle) this.handshakeHandler).start();
+	public void start() {
+		this.lock.tryLock();
+		try {
+			if (this.handshakeHandler instanceof Lifecycle && !isRunning()) {
+				((Lifecycle) this.handshakeHandler).start();
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

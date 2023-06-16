@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.transform.TransformerException;
 
@@ -55,8 +57,11 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
+
+	private final Lock lock = new ReentrantLock();
 
 	protected final DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory(); // NOSONAR - final
 
@@ -108,9 +113,13 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	 * @param uriVariableExpressions The URI variable expressions.
 	 */
 	public void setUriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
-		synchronized (this.uriVariableExpressions) {
+		this.lock.tryLock();
+		try {
 			this.uriVariableExpressions.clear();
 			this.uriVariableExpressions.putAll(uriVariableExpressions);
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

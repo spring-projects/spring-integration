@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -48,6 +50,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  *
@@ -60,7 +63,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	 */
 	public static final long DEFAULT_RETRY_INTERVAL = 60000;
 
-	protected final Object lifecycleMonitor = new Object(); // NOSONAR
+	protected final Lock lifecycleMonitor = new ReentrantLock(); // NOSONAR
 
 	private final Map<String, TcpConnection> connections = new ConcurrentHashMap<>();
 
@@ -251,7 +254,8 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	@Override
 	public void start() {
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.tryLock();
+		try {
 			if (!this.active) {
 				this.active = true;
 				if (this.clientConnectionFactory != null) {
@@ -273,11 +277,15 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 				}
 			}
 		}
+		finally {
+			this.lifecycleMonitor.unlock();
+		}
 	}
 
 	@Override
 	public void stop() {
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.tryLock();
+		try {
 			if (this.active) {
 				this.active = false;
 				if (this.scheduledFuture != null) {
@@ -291,6 +299,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 					this.serverConnectionFactory.stop();
 				}
 			}
+		}
+		finally {
+			this.lifecycleMonitor.unlock();
 		}
 	}
 

@@ -18,6 +18,8 @@ package org.springframework.integration.router;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
@@ -43,10 +45,13 @@ import org.springframework.util.Assert;
  * @author Soby Chacko
  * @author Stefan Ferstl
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 @ManagedResource
 @IntegrationManagedResource
 public abstract class AbstractMessageRouter extends AbstractMessageHandler implements MessageRouter {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -83,11 +88,15 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 	@Override
 	public MessageChannel getDefaultOutputChannel() {
 		if (this.defaultOutputChannelName != null) {
-			synchronized (this) {
+			this.lock.tryLock();
+			try {
 				if (this.defaultOutputChannelName != null) {
 					this.defaultOutputChannel = getChannelResolver().resolveDestination(this.defaultOutputChannelName);
 					this.defaultOutputChannelName = null;
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 		return this.defaultOutputChannel;

@@ -16,6 +16,9 @@
 
 package org.springframework.integration.mqtt.core;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
@@ -38,12 +41,15 @@ import org.springframework.util.Assert;
  *
  * @author Artem Vozhdayenko
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 6.0
  */
 public class Mqttv5ClientManager
 		extends AbstractMqttClientManager<IMqttAsyncClient, MqttConnectionOptions>
 		implements MqttCallback {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final MqttConnectionOptions connectionOptions;
 
@@ -89,38 +95,44 @@ public class Mqttv5ClientManager
 	}
 
 	@Override
-	public synchronized void start() {
-		var client = getClient();
-		if (client == null) {
-			try {
-				client = createClient();
-			}
-			catch (MqttException e) {
-				throw new IllegalStateException("Could not start client manager", e);
-			}
-		}
-		setClient(client);
+	public void start() {
+		this.lock.tryLock();
 		try {
-			client.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
-		}
-		catch (MqttException ex) {
-			if (this.connectionOptions.isAutomaticReconnect()) {
+			var client = getClient();
+			if (client == null) {
 				try {
-					client.reconnect();
+					client = createClient();
 				}
-				catch (MqttException re) {
-					logger.error("MQTT client failed to connect. Never happens.", re);
+				catch (MqttException e) {
+					throw new IllegalStateException("Could not start client manager", e);
 				}
 			}
-			else {
-				var applicationEventPublisher = getApplicationEventPublisher();
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			setClient(client);
+			try {
+				client.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
+			}
+			catch (MqttException ex) {
+				if (this.connectionOptions.isAutomaticReconnect()) {
+					try {
+						client.reconnect();
+					}
+					catch (MqttException re) {
+						logger.error("MQTT client failed to connect. Never happens.", re);
+					}
 				}
 				else {
-					logger.error("Could not start client manager, client_id=" + getClientId(), ex);
+					var applicationEventPublisher = getApplicationEventPublisher();
+					if (applicationEventPublisher != null) {
+						applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+					}
+					else {
+						logger.error("Could not start client manager, client_id=" + getClientId(), ex);
+					}
 				}
 			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -134,26 +146,32 @@ public class Mqttv5ClientManager
 	}
 
 	@Override
-	public synchronized void stop() {
-		var client = getClient();
-		if (client == null) {
-			return;
-		}
-
+	public void stop() {
+		this.lock.tryLock();
 		try {
-			client.disconnectForcibly(getDisconnectCompletionTimeout());
-		}
-		catch (MqttException e) {
-			logger.error("Could not disconnect from the client", e);
-		}
-		finally {
+			var client = getClient();
+			if (client == null) {
+				return;
+			}
+
 			try {
-				client.close();
+				client.disconnectForcibly(getDisconnectCompletionTimeout());
 			}
 			catch (MqttException e) {
-				logger.error("Could not close the client", e);
+				logger.error("Could not disconnect from the client", e);
 			}
-			setClient(null);
+			finally {
+				try {
+					client.close();
+				}
+				catch (MqttException e) {
+					logger.error("Could not close the client", e);
+				}
+				setClient(null);
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

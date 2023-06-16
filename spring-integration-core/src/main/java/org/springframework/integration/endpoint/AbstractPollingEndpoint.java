@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
@@ -78,6 +80,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Andreas Baer
+ * @author Christian Tzolov
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
 
@@ -88,7 +91,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private final Collection<Advice> appliedAdvices = new HashSet<>();
 
-	private final Object initializationMonitor = new Object();
+	private final Lock initializationMonitor = new ReentrantLock();
 
 	private Executor taskExecutor = new SyncTaskExecutor();
 
@@ -262,7 +265,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	@Override
 	protected void onInit() {
-		synchronized (this.initializationMonitor) {
+		this.initializationMonitor.tryLock();
+		try {
 			if (this.initialized) {
 				return;
 			}
@@ -279,6 +283,9 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				this.transactionSynchronizationFactory = new PassThroughTransactionSynchronizationFactory();
 			}
 			this.initialized = true;
+		}
+		finally {
+			this.initializationMonitor.unlock();
 		}
 		try {
 			super.onInit();

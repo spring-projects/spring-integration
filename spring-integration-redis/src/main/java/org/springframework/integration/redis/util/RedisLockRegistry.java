@@ -82,6 +82,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Vedran Pavic
  * @author Unseok Kim
  * @author Anton Gabov
+ * @author Christian Tzolov
  *
  * @since 4.0
  *
@@ -93,6 +94,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	private static final long DEFAULT_EXPIRE_AFTER = 60000L;
 
 	private static final int DEFAULT_CAPACITY = 100_000;
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Map<String, RedisLock> locks =
 			new LinkedHashMap<String, RedisLock>(16, 0.75F, true) {
@@ -224,15 +227,20 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = (String) lockKey;
-		synchronized (this.locks) {
+		this.lock.tryLock();
+		try {
 			return this.locks.computeIfAbsent(path, getRedisLockConstructor(this.redisLockType));
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
 	@Override
 	public void expireUnusedOlderThan(long age) {
 		long now = System.currentTimeMillis();
-		synchronized (this.locks) {
+		this.lock.tryLock();
+		try {
 			this.locks.entrySet()
 					.removeIf(entry -> {
 						RedisLock lock = entry.getValue();
@@ -242,6 +250,9 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 								&& lockedAt > 0
 								&& !lock.isAcquiredInThisProcess();
 					});
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -631,7 +642,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private void runRedisMessageListenerContainer() {
-			synchronized (RedisLockRegistry.this.locks) {
+			RedisLockRegistry.this.lock.tryLock();
+			try {
 				if (!(RedisLockRegistry.this.isRunningRedisMessageListenerContainer
 						&& RedisLockRegistry.this.redisMessageListenerContainer != null
 						&& RedisLockRegistry.this.redisMessageListenerContainer.isRunning())) {
@@ -644,6 +656,9 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					RedisLockRegistry.this.redisMessageListenerContainer.start();
 					RedisLockRegistry.this.isRunningRedisMessageListenerContainer = true;
 				}
+			}
+			finally {
+				RedisLockRegistry.this.lock.unlock();
 			}
 		}
 

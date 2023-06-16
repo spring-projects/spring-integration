@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -34,9 +36,12 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class CharacterStreamReadingMessageSource extends AbstractMessageSource<String>
 		implements ApplicationEventPublisherAware {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final BufferedReader reader;
 
@@ -112,7 +117,8 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 	@Override
 	public String doReceive() {
 		try {
-			synchronized (this.reader) {
+			this.lock.tryLock();
+			try {
 				if (!this.blockToDetectEOF && !this.reader.ready()) {
 					return null;
 				}
@@ -121,6 +127,9 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 					this.applicationEventPublisher.publishEvent(new StreamClosedEvent(this));
 				}
 				return line;
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 		catch (IOException e) {

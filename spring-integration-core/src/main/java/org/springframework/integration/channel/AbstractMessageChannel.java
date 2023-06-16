@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import io.micrometer.observation.ObservationRegistry;
 
@@ -70,6 +72,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 @IntegrationManagedResource
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
@@ -475,6 +478,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 */
 	protected static class ChannelInterceptorList {
 
+		private final Lock lock = new ReentrantLock();
+
 		protected final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<>(); // NOSONAR
 
 		private final LogAccessor logger;
@@ -486,10 +491,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public boolean set(List<ChannelInterceptor> interceptors) {
-			synchronized (this.interceptors) {
+			this.lock.tryLock();
+			try {
 				this.interceptors.clear();
 				this.size = interceptors.size();
 				return this.interceptors.addAll(interceptors);
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 

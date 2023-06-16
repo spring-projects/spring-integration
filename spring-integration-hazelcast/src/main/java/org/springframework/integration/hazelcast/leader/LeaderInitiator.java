@@ -21,6 +21,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.cp.CPSubsystem;
@@ -54,12 +56,15 @@ import org.springframework.util.Assert;
  * @author Mael Le Guével
  * @author Alexey Tsoy
  * @author Robert Höglund
+ * @author Christian Tzolov
  */
 public class LeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
 
 	private static final LogAccessor logger = new LogAccessor(LeaderInitiator.class);
 
 	private static final Context NULL_CONTEXT = new NullContext();
+
+	private final Lock lock = new ReentrantLock();
 
 	/*** Hazelcast client.
 	 */
@@ -208,11 +213,17 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 	 * Start the registration of the {@link #candidate} for leader election.
 	 */
 	@Override
-	public synchronized void start() {
-		if (!this.running) {
-			this.leaderSelector = new LeaderSelector();
-			this.running = true;
-			this.future = this.taskExecutor.submit(this.leaderSelector);
+	public void start() {
+		this.lock.tryLock();
+		try {
+			if (!this.running) {
+				this.leaderSelector = new LeaderSelector();
+				this.running = true;
+				this.future = this.taskExecutor.submit(this.leaderSelector);
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -227,13 +238,19 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 	 * If the candidate is currently leader, its leadership will be revoked.
 	 */
 	@Override
-	public synchronized void stop() {
-		if (this.running) {
-			this.running = false;
-			if (this.future != null) {
-				this.future.cancel(true);
+	public void stop() {
+		this.lock.tryLock();
+		try {
+			if (this.running) {
+				this.running = false;
+				if (this.future != null) {
+					this.future.cancel(true);
+				}
+				this.future = null;
 			}
-			this.future = null;
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.integration.zookeeper.config;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -31,12 +34,13 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 4.2
  */
 public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework>, SmartLifecycle {
 
-	private final Object lifecycleLock = new Object();
+	private final Lock lifecycleLock = new ReentrantLock();
 
 	private final CuratorFramework client;
 
@@ -109,7 +113,8 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 
 	@Override
 	public void start() {
-		synchronized (this.lifecycleLock) {
+		this.lifecycleLock.tryLock();
+		try {
 			if (!this.running) {
 				if (this.client != null) {
 					this.client.start();
@@ -117,15 +122,22 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 				this.running = true;
 			}
 		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
 	}
 
 	@Override
 	public void stop() {
-		synchronized (this.lifecycleLock) {
+		this.lifecycleLock.tryLock();
+		try {
 			if (this.running) {
 				CloseableUtils.closeQuietly(this.client);
 				this.running = false;
 			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
 		}
 	}
 

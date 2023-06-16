@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.smb.session;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import jcifs.CIFSContext;
 import jcifs.CIFSException;
@@ -41,12 +43,15 @@ import org.springframework.util.StringUtils;
  * @author Gregory Bragg
  * @author Adam Jones
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 6.0
  */
 public class SmbShare extends SmbFile {
 
 	private static final Log logger = LogFactory.getLog(SmbShare.class);
+
+	private final Lock lock = new ReentrantLock();
 
 	private final AtomicBoolean open = new AtomicBoolean(false);
 
@@ -126,17 +131,23 @@ public class SmbShare extends SmbFile {
 	}
 
 	@Override
-	public synchronized void close() {
-		this.open.set(false);
-		if (this.closeContext.get()) {
-			try {
-				getContext().close();
+	public void close() {
+		this.lock.tryLock();
+		try {
+			this.open.set(false);
+			if (this.closeContext.get()) {
+				try {
+					getContext().close();
+				}
+				catch (CIFSException e) {
+					logger.error("Unable to close share: " + this);
+				}
 			}
-			catch (CIFSException e) {
-				logger.error("Unable to close share: " + this);
-			}
+			super.close();
 		}
-		super.close();
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	/**

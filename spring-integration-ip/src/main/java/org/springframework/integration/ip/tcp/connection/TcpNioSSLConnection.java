@@ -21,6 +21,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -51,6 +53,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.2
  *
@@ -67,7 +70,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	private final Semaphore semaphore = new Semaphore(0);
 
-	private final Object monitorLock = new Object();
+	private final Lock monitorLock = new ReentrantLock();
 
 	private int handshakeTimeout = DEFAULT_HANDSHAKE_TIMEOUT;
 
@@ -285,11 +288,15 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	@Override
 	protected ChannelOutputStream getChannelOutputStream() {
-		synchronized (this.monitorLock) {
+		this.monitorLock.tryLock();
+		try {
 			if (this.sslChannelOutputStream == null) {
 				this.sslChannelOutputStream = new SSLChannelOutputStream(super.getChannelOutputStream());
 			}
 			return this.sslChannelOutputStream;
+		}
+		finally {
+			this.monitorLock.unlock();
 		}
 	}
 
@@ -318,6 +325,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	 */
 	final class SSLChannelOutputStream extends ChannelOutputStream {
 
+		private final Lock lock = new ReentrantLock();
+
 		private final ChannelOutputStream channelOutputStream;
 
 		SSLChannelOutputStream(ChannelOutputStream channelOutputStream) {
@@ -331,7 +340,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		 * and multiple writes will be necessary.
 		 */
 		@Override
-		protected synchronized void doWrite(ByteBuffer plainText) throws IOException {
+		protected void doWrite(ByteBuffer plainText) throws IOException {
+			this.lock.tryLock();
 			try {
 				TcpNioSSLConnection.this.writerActive = true;
 				int remaining = plainText.remaining();
@@ -357,6 +367,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			}
 			finally {
 				TcpNioSSLConnection.this.writerActive = false;
+				this.lock.unlock();
 			}
 		}
 

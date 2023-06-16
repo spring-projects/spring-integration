@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,11 +45,13 @@ import org.springframework.xml.DocumentBuilderFactoryUtils;
  *
  * @author Jonas Partner
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 
 	private final DocumentBuilderFactory documentBuilderFactory;
 
+	private final Lock lock = new ReentrantLock();
 
 	public DefaultXmlPayloadConverter() {
 		this(DocumentBuilderFactoryUtils.newInstance());
@@ -142,12 +146,16 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 		}
 	}
 
-	protected synchronized DocumentBuilder getDocumentBuilder() {
+	protected DocumentBuilder getDocumentBuilder() {
+		this.lock.tryLock();
 		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
 		}
 		catch (ParserConfigurationException e) {
 			throw new MessagingException("failed to create a new DocumentBuilder", e);
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

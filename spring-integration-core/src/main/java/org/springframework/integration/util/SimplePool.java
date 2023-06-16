@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Sergey Bogatyrev
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.2
  *
@@ -47,6 +50,8 @@ import org.springframework.util.Assert;
 public class SimplePool<T> implements Pool<T> {
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
+
+	private final Lock lock = new ReentrantLock();
 
 	private final PoolSemaphore permits = new PoolSemaphore(0);
 
@@ -93,39 +98,45 @@ public class SimplePool<T> implements Pool<T> {
 	 * items are returned.
 	 * @param poolSize The desired target pool size.
 	 */
-	public synchronized void setPoolSize(int poolSize) {
-		int delta = poolSize - this.poolSize.get();
-		this.targetPoolSize.addAndGet(delta);
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug(String.format("Target pool size changed by %d, now %d", delta,
-					this.targetPoolSize.get()));
-		}
-		if (delta > 0) {
-			this.poolSize.addAndGet(delta);
-			this.permits.release(delta);
-		}
-		else {
-			this.permits.reducePermits(-delta);
+	public void setPoolSize(int poolSize) {
+		this.lock.tryLock();
+		try {
+			int delta = poolSize - this.poolSize.get();
+			this.targetPoolSize.addAndGet(delta);
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug(String.format("Target pool size changed by %d, now %d", delta,
+						this.targetPoolSize.get()));
+			}
+			if (delta > 0) {
+				this.poolSize.addAndGet(delta);
+				this.permits.release(delta);
+			}
+			else {
+				this.permits.reducePermits(-delta);
 
-			int inUseSize = this.inUse.size();
-			int newPoolSize = Math.max(poolSize, inUseSize);
-			this.poolSize.set(newPoolSize);
+				int inUseSize = this.inUse.size();
+				int newPoolSize = Math.max(poolSize, inUseSize);
+				this.poolSize.set(newPoolSize);
 
-			for (int i = this.available.size(); i > newPoolSize - inUseSize; i--) {
-				T item = this.available.poll();
-				if (item != null) {
-					doRemoveItem(item);
+				for (int i = this.available.size(); i > newPoolSize - inUseSize; i--) {
+					T item = this.available.poll();
+					if (item != null) {
+						doRemoveItem(item);
+					}
+					else {
+						break;
+					}
 				}
-				else {
-					break;
+
+				int inUseDelta = poolSize - inUseSize;
+				if (inUseDelta < 0 && this.logger.isDebugEnabled()) {
+					this.logger.debug(String.format("Pool is overcommitted by %d; items will be removed when returned",
+							-inUseDelta));
 				}
 			}
-
-			int inUseDelta = poolSize - inUseSize;
-			if (inUseDelta < 0 && this.logger.isDebugEnabled()) {
-				this.logger.debug(String.format("Pool is overcommitted by %d; items will be removed when returned",
-						-inUseDelta));
-			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -135,8 +146,14 @@ public class SimplePool<T> implements Pool<T> {
 	 * to be set.
 	 */
 	@Override
-	public synchronized int getPoolSize() {
-		return this.poolSize.get();
+	public int getPoolSize() {
+		this.lock.tryLock();
+		try {
+			return this.poolSize.get();
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override
@@ -224,36 +241,48 @@ public class SimplePool<T> implements Pool<T> {
 	 * Return an item to the pool.
 	 */
 	@Override
-	public synchronized void releaseItem(T item) {
-		Assert.notNull(item, "Item cannot be null");
-		Assert.isTrue(this.allocated.contains(item),
-				"You can only release items that were obtained from the pool");
-		if (this.inUse.contains(item)) {
-			if (this.poolSize.get() > this.targetPoolSize.get() || this.closed) {
-				this.poolSize.decrementAndGet();
-				doRemoveItem(item);
+	public void releaseItem(T item) {
+		this.lock.tryLock();
+		try {
+			Assert.notNull(item, "Item cannot be null");
+			Assert.isTrue(this.allocated.contains(item),
+					"You can only release items that were obtained from the pool");
+			if (this.inUse.contains(item)) {
+				if (this.poolSize.get() > this.targetPoolSize.get() || this.closed) {
+					this.poolSize.decrementAndGet();
+					doRemoveItem(item);
+				}
+				else {
+					if (this.logger.isDebugEnabled()) {
+						this.logger.debug("Releasing " + item + " back to the pool");
+					}
+					this.available.add(item);
+					this.inUse.remove(item);
+					this.permits.release();
+				}
 			}
 			else {
 				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("Releasing " + item + " back to the pool");
+					this.logger.debug("Ignoring release of " + item + " back to the pool - not in use");
 				}
-				this.available.add(item);
-				this.inUse.remove(item);
-				this.permits.release();
 			}
 		}
-		else {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Ignoring release of " + item + " back to the pool - not in use");
-			}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
 	@Override
-	public synchronized void removeAllIdleItems() {
-		T item;
-		while ((item = this.available.poll()) != null) {
-			doRemoveItem(item);
+	public void removeAllIdleItems() {
+		this.lock.tryLock();
+		try {
+			T item;
+			while ((item = this.available.poll()) != null) {
+				doRemoveItem(item);
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -267,9 +296,15 @@ public class SimplePool<T> implements Pool<T> {
 	}
 
 	@Override
-	public synchronized void close() {
-		this.closed = true;
-		removeAllIdleItems();
+	public void close() {
+		this.lock.tryLock();
+		try {
+			this.closed = true;
+			removeAllIdleItems();
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@SuppressWarnings("serial")

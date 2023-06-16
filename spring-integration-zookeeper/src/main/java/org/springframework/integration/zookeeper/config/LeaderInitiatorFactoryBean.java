@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.zookeeper.config;
 
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.curator.framework.CuratorFramework;
 
@@ -37,11 +39,14 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 4.2
  */
 public class LeaderInitiatorFactoryBean
 		implements FactoryBean<LeaderInitiator>, SmartLifecycle, InitializingBean, ApplicationEventPublisherAware {
+
+	private final Lock lock = new ReentrantLock();
 
 	private CuratorFramework client;
 
@@ -177,8 +182,14 @@ public class LeaderInitiatorFactoryBean
 	}
 
 	@Override
-	public synchronized LeaderInitiator getObject() {
-		return this.leaderInitiator;
+	public LeaderInitiator getObject() {
+		this.lock.tryLock();
+		try {
+			return this.leaderInitiator;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override

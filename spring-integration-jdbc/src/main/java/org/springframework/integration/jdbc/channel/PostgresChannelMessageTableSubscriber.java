@@ -26,6 +26,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.postgresql.PGNotification;
 import org.postgresql.jdbc.PgConnection;
@@ -61,12 +63,15 @@ import org.springframework.util.Assert;
  * @author Rafael Winterhalter
  * @author Artem Bilan
  * @author Igor Lovich
+ * @author Christian Tzolov
  *
  * @since 6.0
  */
 public final class PostgresChannelMessageTableSubscriber implements SmartLifecycle {
 
 	private static final LogAccessor LOGGER = new LogAccessor(PostgresChannelMessageTableSubscriber.class);
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Map<String, Set<Subscription>> subscriptionsMap = new ConcurrentHashMap<>();
 
@@ -111,8 +116,14 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	 * @deprecated since 6.2 in favor of {@link #setTaskExecutor(AsyncTaskExecutor)}
 	 */
 	@Deprecated(since = "6.2", forRemoval = true)
-	public synchronized void setExecutor(ExecutorService executor) {
-		setTaskExecutor(new TaskExecutorAdapter(executor));
+	public void setExecutor(ExecutorService executor) {
+		this.lock.tryLock();
+		try {
+			setTaskExecutor(new TaskExecutorAdapter(executor));
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	/**
@@ -149,84 +160,90 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	}
 
 	@Override
-	public synchronized void start() {
-		if (this.latch.getCount() > 0) {
-			return;
-		}
+	public void start() {
+		this.lock.tryLock();
+		try {
+			if (this.latch.getCount() > 0) {
+				return;
+			}
 
-		this.latch = new CountDownLatch(1);
+			this.latch = new CountDownLatch(1);
 
-		CountDownLatch startingLatch = new CountDownLatch(1);
-		this.future = this.taskExecutor.submit(() -> {
-			try {
-				while (isActive()) {
-					try {
-						PgConnection conn = this.connectionSupplier.get();
-						try (Statement stmt = conn.createStatement()) {
-							stmt.execute("LISTEN " + this.tablePrefix.toLowerCase() + "channel_message_notify");
-						}
-						catch (Exception ex) {
-							try {
-								conn.close();
-							}
-							catch (Exception suppressed) {
-								ex.addSuppressed(suppressed);
-							}
-							throw ex;
-						}
-						this.subscriptionsMap.values()
-								.forEach(subscriptions -> subscriptions.forEach(Subscription::notifyUpdate));
+			CountDownLatch startingLatch = new CountDownLatch(1);
+			this.future = this.taskExecutor.submit(() -> {
+				try {
+					while (isActive()) {
 						try {
-							this.connection = conn;
-							while (isActive()) {
-								startingLatch.countDown();
-
-								PGNotification[] notifications = conn.getNotifications(0);
-								// Unfortunately, there is no good way of interrupting a notification
-								// poll but by closing its connection.
-								if (!isActive()) {
-									return;
+							PgConnection conn = this.connectionSupplier.get();
+							try (Statement stmt = conn.createStatement()) {
+								stmt.execute("LISTEN " + this.tablePrefix.toLowerCase() + "channel_message_notify");
+							}
+							catch (Exception ex) {
+								try {
+									conn.close();
 								}
-								if (notifications != null) {
-									for (PGNotification notification : notifications) {
-										String parameter = notification.getParameter();
-										Set<Subscription> subscriptions = this.subscriptionsMap.get(parameter);
-										if (subscriptions == null) {
-											continue;
-										}
-										for (Subscription subscription : subscriptions) {
-											subscription.notifyUpdate();
+								catch (Exception suppressed) {
+									ex.addSuppressed(suppressed);
+								}
+								throw ex;
+							}
+							this.subscriptionsMap.values()
+									.forEach(subscriptions -> subscriptions.forEach(Subscription::notifyUpdate));
+							try {
+								this.connection = conn;
+								while (isActive()) {
+									startingLatch.countDown();
+
+									PGNotification[] notifications = conn.getNotifications(0);
+									// Unfortunately, there is no good way of interrupting a notification
+									// poll but by closing its connection.
+									if (!isActive()) {
+										return;
+									}
+									if (notifications != null) {
+										for (PGNotification notification : notifications) {
+											String parameter = notification.getParameter();
+											Set<Subscription> subscriptions = this.subscriptionsMap.get(parameter);
+											if (subscriptions == null) {
+												continue;
+											}
+											for (Subscription subscription : subscriptions) {
+												subscription.notifyUpdate();
+											}
 										}
 									}
 								}
 							}
+							finally {
+								conn.close();
+							}
 						}
-						finally {
-							conn.close();
-						}
-					}
-					catch (Exception e) {
-						// The getNotifications method does not throw a meaningful message on interruption.
-						// Therefore, we do not log an error, unless it occurred while active.
-						if (isActive()) {
-							LOGGER.error(e, "Failed to poll notifications from Postgres database");
+						catch (Exception e) {
+							// The getNotifications method does not throw a meaningful message on interruption.
+							// Therefore, we do not log an error, unless it occurred while active.
+							if (isActive()) {
+								LOGGER.error(e, "Failed to poll notifications from Postgres database");
+							}
 						}
 					}
 				}
-			}
-			finally {
-				this.latch.countDown();
-			}
-		});
+				finally {
+					this.latch.countDown();
+				}
+			});
 
-		try {
-			if (!startingLatch.await(5, TimeUnit.SECONDS)) {
-				throw new IllegalStateException("Failed to start " + this);
+			try {
+				if (!startingLatch.await(5, TimeUnit.SECONDS)) {
+					throw new IllegalStateException("Failed to start " + this);
+				}
+			}
+			catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException("Failed to start " + this, ex);
 			}
 		}
-		catch (InterruptedException ex) {
-			Thread.currentThread().interrupt();
-			throw new IllegalStateException("Failed to start " + this, ex);
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -239,25 +256,31 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	}
 
 	@Override
-	public synchronized void stop() {
-		if (this.future.isDone()) {
-			return;
-		}
-		this.future.cancel(true);
-		PgConnection conn = this.connection;
-		if (conn != null) {
-			try {
-				conn.close();
-			}
-			catch (SQLException ignored) {
-			}
-		}
+	public void stop() {
+		this.lock.tryLock();
 		try {
-			if (!this.latch.await(5, TimeUnit.SECONDS)) {
-				throw new IllegalStateException("Failed to stop " + this);
+			if (this.future.isDone()) {
+				return;
+			}
+			this.future.cancel(true);
+			PgConnection conn = this.connection;
+			if (conn != null) {
+				try {
+					conn.close();
+				}
+				catch (SQLException ignored) {
+				}
+			}
+			try {
+				if (!this.latch.await(5, TimeUnit.SECONDS)) {
+					throw new IllegalStateException("Failed to stop " + this);
+				}
+			}
+			catch (InterruptedException ignored) {
 			}
 		}
-		catch (InterruptedException ignored) {
+		finally {
+			this.lock.unlock();
 		}
 	}
 

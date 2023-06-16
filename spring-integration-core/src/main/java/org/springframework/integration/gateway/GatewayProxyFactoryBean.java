@@ -29,6 +29,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -106,12 +108,13 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author JingPeng Xie
+ * @author Christian Tzolov
  */
 public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		implements TrackableComponent, FactoryBean<T>, MethodInterceptor, BeanClassLoaderAware,
 		IntegrationManagement {
 
-	private final Object initializationMonitor = new Object();
+	private final Lock initializationMonitor = new ReentrantLock();
 
 	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<>();
 
@@ -455,7 +458,8 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void onInit() {
-		synchronized (this.initializationMonitor) {
+		this.initializationMonitor.tryLock();
+		try {
 			if (this.initialized) {
 				return;
 			}
@@ -466,12 +470,14 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 
 			populateMethodInvocationGateways();
 
-			ProxyFactory gatewayProxyFactory =
-					new ProxyFactory(this.serviceInterface, this);
+			ProxyFactory gatewayProxyFactory = new ProxyFactory(this.serviceInterface, this);
 			gatewayProxyFactory.addAdvice(new DefaultMethodInvokingMethodInterceptor());
 			this.serviceProxy = (T) gatewayProxyFactory.getProxy(this.beanClassLoader);
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 			this.initialized = true;
+		}
+		finally {
+			this.initializationMonitor.unlock();
 		}
 	}
 

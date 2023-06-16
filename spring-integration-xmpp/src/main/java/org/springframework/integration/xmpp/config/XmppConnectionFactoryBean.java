@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.integration.xmpp.config;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -40,6 +43,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Philipp Etschel
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 2.0
  *
@@ -47,7 +51,7 @@ import org.springframework.util.StringUtils;
  */
 public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnection> implements SmartLifecycle {
 
-	private final Object lifecycleMonitor = new Object();
+	private final Lock lifecycleMonitor = new ReentrantLock();
 
 	private XMPPTCPConnectionConfiguration connectionConfiguration;
 
@@ -172,7 +176,8 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	public void start() {
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.tryLock();
+		try {
 			if (this.running) {
 				return;
 			}
@@ -195,15 +200,22 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 						+ connection.getXMPPServiceDomain(), e);
 			}
 		}
+		finally {
+			this.lifecycleMonitor.unlock();
+		}
 	}
 
 	@Override
 	public void stop() {
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.tryLock();
+		try {
 			if (this.isRunning()) {
 				getConnection().disconnect();
 				this.running = false;
 			}
+		}
+		finally {
+			this.lifecycleMonitor.unlock();
 		}
 	}
 

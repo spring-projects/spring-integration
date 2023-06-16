@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,6 +31,8 @@ import org.springframework.messaging.Message;
 /**
  *
  * @author Gunnar Hillert
+ * @author Christian Tzolov
+ *
  * @since 2.2
  *
  */
@@ -38,13 +42,27 @@ public final class Consumer {
 
 	private static final BlockingQueue<Message<Collection<?>>> MESSAGES = new LinkedBlockingQueue<Message<Collection<?>>>();
 
-	public synchronized void receive(Message<Collection<?>> message) {
-		logger.info("Service Activator received Message: " + message);
-		MESSAGES.add(message);
+	private final Lock lock = new ReentrantLock();
+
+	public void receive(Message<Collection<?>> message) {
+		this.lock.tryLock();
+		try {
+			logger.info("Service Activator received Message: " + message);
+			MESSAGES.add(message);
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
-	public synchronized Message<Collection<?>> poll(long timeoutInMillis) throws InterruptedException {
-		return MESSAGES.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
+	public Message<Collection<?>> poll(long timeoutInMillis) throws InterruptedException {
+		this.lock.tryLock();
+		try {
+			return MESSAGES.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 }

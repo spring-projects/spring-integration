@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.integration.config;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
@@ -41,11 +44,12 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<SourcePollingChannelAdapter>,
 		BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle, DisposableBean {
 
-	private final Object initializationMonitor = new Object();
+	private final Lock initializationMonitor = new ReentrantLock();
 
 	private MessageSource<?> source;
 
@@ -158,7 +162,8 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	}
 
 	private void initializeAdapter() {
-		synchronized (this.initializationMonitor) {
+		this.initializationMonitor.tryLock();
+		try {
 			if (this.initialized) {
 				return;
 			}
@@ -206,6 +211,9 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			spca.afterPropertiesSet();
 			this.adapter = spca;
 			this.initialized = true;
+		}
+		finally {
+			this.initializationMonitor.unlock();
 		}
 	}
 

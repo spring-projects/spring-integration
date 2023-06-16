@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.aopalliance.intercept.MethodInterceptor;
@@ -23,14 +24,23 @@ import org.aopalliance.intercept.MethodInvocation;
 
 /**
  * @author Dave Syer
+ * @author Christian Tzolov
  *
  */
 public class LockInterceptor extends ReentrantLock implements MethodInterceptor {
 
 	private static final long serialVersionUID = 1L;
 
-	public synchronized Object invoke(MethodInvocation invocation) throws Throwable {
-		return invocation.proceed();
+	private final Lock lock = new ReentrantLock();
+
+	public Object invoke(MethodInvocation invocation) throws Throwable {
+		this.lock.tryLock();
+		try {
+			return invocation.proceed();
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 }

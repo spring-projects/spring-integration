@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Diego Belfer
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public abstract class AbstractDispatcher implements MessageDispatcher {
 
@@ -51,6 +54,8 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	private volatile int maxSubscribers = Integer.MAX_VALUE;
 
 	private volatile MessageHandler theOneHandler;
+
+	private final Lock lock = new ReentrantLock();
 
 	/**
 	 * Set the maximum subscribers allowed by this dispatcher.
@@ -77,17 +82,23 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * @return the result of {@link Set#add(Object)}
 	 */
 	@Override
-	public synchronized boolean addHandler(MessageHandler handler) {
-		Assert.notNull(handler, "handler must not be null");
-		Assert.isTrue(this.handlers.size() < this.maxSubscribers, "Maximum subscribers exceeded");
-		boolean added = this.handlers.add(handler);
-		if (this.handlers.size() == 1) {
-			this.theOneHandler = handler;
+	public boolean addHandler(MessageHandler handler) {
+		this.lock.tryLock();
+		try {
+			Assert.notNull(handler, "handler must not be null");
+			Assert.isTrue(this.handlers.size() < this.maxSubscribers, "Maximum subscribers exceeded");
+			boolean added = this.handlers.add(handler);
+			if (this.handlers.size() == 1) {
+				this.theOneHandler = handler;
+			}
+			else {
+				this.theOneHandler = null;
+			}
+			return added;
 		}
-		else {
-			this.theOneHandler = null;
+		finally {
+			this.lock.unlock();
 		}
-		return added;
 	}
 
 	/**
@@ -96,16 +107,22 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * @return the result of {@link Set#remove(Object)}
 	 */
 	@Override
-	public synchronized boolean removeHandler(MessageHandler handler) {
-		Assert.notNull(handler, "handler must not be null");
-		boolean removed = this.handlers.remove(handler);
-		if (this.handlers.size() == 1) {
-			this.theOneHandler = this.handlers.iterator().next();
+	public boolean removeHandler(MessageHandler handler) {
+		this.lock.tryLock();
+		try {
+			Assert.notNull(handler, "handler must not be null");
+			boolean removed = this.handlers.remove(handler);
+			if (this.handlers.size() == 1) {
+				this.theOneHandler = this.handlers.iterator().next();
+			}
+			else {
+				this.theOneHandler = null;
+			}
+			return removed;
 		}
-		else {
-			this.theOneHandler = null;
+		finally {
+			this.lock.unlock();
 		}
-		return removed;
 	}
 
 	protected boolean tryOptimizedDispatch(Message<?> message) {

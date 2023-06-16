@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -119,6 +121,8 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Trung Pham
+ * @author Christian Tzolov
+ *
  * @since 2.0
  */
 public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator implements ManageableLifecycle {
@@ -159,6 +163,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		SPEL_COMPILERS.put(SpelCompilerMode.IMMEDIATE, EXPRESSION_PARSER_IMMEDIATE);
 		SPEL_COMPILERS.put(SpelCompilerMode.MIXED, EXPRESSION_PARSER_MIXED);
 	}
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Object targetObject;
 
@@ -486,23 +492,28 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		}
 	}
 
-	private synchronized void initialize() {
-		if (isProvidedMessageHandlerFactoryBean()) {
-			LOGGER.trace("Overriding default instance of MessageHandlerMethodFactory with the one provided.");
-			this.messageHandlerMethodFactory =
-					getBeanFactory()
-							.getBean(
-									this.canProcessMessageList
-											? IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME
-											: IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME,
-									MessageHandlerMethodFactory.class);
-		}
-		else {
-			configureLocalMessageHandlerFactory();
-		}
+	private void initialize() {
+		this.lock.tryLock();
+		try {
+			if (isProvidedMessageHandlerFactoryBean()) {
+				LOGGER.trace("Overriding default instance of MessageHandlerMethodFactory with the one provided.");
+				this.messageHandlerMethodFactory = getBeanFactory()
+						.getBean(
+								this.canProcessMessageList
+										? IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME
+										: IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME,
+								MessageHandlerMethodFactory.class);
+			}
+			else {
+				configureLocalMessageHandlerFactory();
+			}
 
-		prepareEvaluationContext();
-		this.initialized = true;
+			prepareEvaluationContext();
+			this.initialized = true;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	private boolean isProvidedMessageHandlerFactoryBean() {

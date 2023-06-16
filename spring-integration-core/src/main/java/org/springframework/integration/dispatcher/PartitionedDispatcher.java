@@ -25,6 +25,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -49,6 +51,7 @@ import org.springframework.util.ErrorHandler;
  * The rest of the logic is similar to {@link UnicastingDispatcher} behavior.
  *
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 6.1
  */
@@ -72,6 +75,8 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	private ErrorHandler errorHandler;
 
 	private MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
+
+	private final Lock lock = new ReentrantLock();
 
 	/**
 	 * Instantiate based on a provided number of partitions and function for partition key against
@@ -153,7 +158,8 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 
 	private void populatedPartitions() {
 		if (this.partitions.isEmpty()) {
-			synchronized (this.partitions) {
+			this.lock.tryLock();
+			try {
 				if (this.partitions.isEmpty()) {
 					Map<Integer, UnicastingDispatcher> partitionsToUse = new HashMap<>();
 					for (int i = 0; i < this.partitionCount; i++) {
@@ -161,6 +167,9 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 					}
 					this.partitions.putAll(partitionsToUse);
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 	}

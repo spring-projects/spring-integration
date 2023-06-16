@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
@@ -44,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Vedran Pavic
  * @author Unseok Kim
+ * @author Christian Tzolov
  *
  * @since 4.2
  *
@@ -57,6 +59,8 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 	private final KeyToPathStrategy keyToPath;
 
 	private static final int DEFAULT_CAPACITY = 30_000;
+
+	private final Lock locksLock = new ReentrantLock();
 
 	private final Map<String, ZkLock> locks =
 			new LinkedHashMap<String, ZkLock>(16, 0.75F, true) {
@@ -145,8 +149,11 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = this.keyToPath.pathFor((String) lockKey);
 		ZkLock lock;
-		synchronized (this.locks) {
+		this.locksLock.tryLock();
+		try {
 			lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, this.mutexTaskExecutor, p));
+		} finally {
+			this.locksLock.unlock();
 		}
 		if (this.trackingTime) {
 			lock.setLastUsed(System.currentTimeMillis());
@@ -155,10 +162,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 	}
 
 	/**
-	 * Remove locks last acquired more than 'age' ago that are not currently locked.
-	 * Expiry is not supported if the {@link KeyToPathStrategy} is bounded (returns a finite
-	 * number of paths). With such a {@link KeyToPathStrategy}, the overhead of tracking when
-	 * a lock is obtained is avoided.
+	 * Remove locks last acquired more than 'age' ago that are not currently locked. Expiry is not supported if the
+	 * {@link KeyToPathStrategy} is bounded (returns a finite number of paths). With such a {@link KeyToPathStrategy},
+	 * the overhead of tracking when a lock is obtained is avoided.
 	 * @param age the time since the lock was last obtained.
 	 */
 	@Override
@@ -168,13 +174,18 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		}
 
 		long now = System.currentTimeMillis();
-		synchronized (this.locks) {
+		this.locksLock.tryLock();
+		try {
 			this.locks.entrySet()
 					.removeIf(entry -> {
 						ZkLock lock = entry.getValue();
 						return now - lock.getLastUsed() > age && !lock.isAcquiredInThisProcess();
 					});
 		}
+		finally {
+			this.locksLock.unlock();
+		}
+
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.stomp.outbound;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -51,6 +53,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 4.2
  */
@@ -58,6 +61,8 @@ public class StompMessageHandler extends AbstractMessageHandler
 		implements ApplicationEventPublisherAware, ManageableLifecycle {
 
 	private static final int DEFAULT_CONNECT_TIMEOUT = 3000;
+
+	private final Lock lock = new ReentrantLock();
 
 	private final StompSessionHandler sessionHandler = new IntegrationOutboundStompSessionHandler();
 
@@ -178,7 +183,8 @@ public class StompMessageHandler extends AbstractMessageHandler
 	}
 
 	private void connectIfNecessary() throws InterruptedException {
-		synchronized (this.connectSemaphore) {
+		this.lock.tryLock();
+		try {
 			if (this.stompSession == null || !this.stompSessionManager.isConnected()) {
 				this.stompSessionManager.disconnect(this.sessionHandler);
 				this.stompSessionManager.connect(this.sessionHandler);
@@ -198,6 +204,9 @@ public class StompMessageHandler extends AbstractMessageHandler
 					}
 				}
 			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

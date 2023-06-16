@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  *
@@ -170,11 +171,15 @@ public class TcpNioClientConnectionFactory extends
 
 	@Override
 	public void start() {
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.tryLock();
+		try {
 			if (!isActive()) {
 				setActive(true);
 				getTaskExecutor().execute(this);
 			}
+		}
+		finally {
+			this.lifecycleMonitor.unlock();
 		}
 		super.start();
 	}

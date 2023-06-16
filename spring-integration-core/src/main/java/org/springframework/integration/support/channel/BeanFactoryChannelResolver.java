@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.integration.support.channel;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,12 +42,15 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @see BeanFactory
  */
 public class BeanFactoryChannelResolver implements DestinationResolver<MessageChannel>, BeanFactoryAware {
 
 	private static final Log LOGGER = LogFactory.getLog(BeanFactoryChannelResolver.class);
+
+	private final Lock lock = new ReentrantLock();
 
 	private BeanFactory beanFactory;
 
@@ -93,18 +99,21 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 						+ name + "' exists, but failed to be created", e);
 			}
 			if (!this.initialized) {
-				synchronized (this) {
+				this.lock.tryLock();
+				try {
 					if (!this.initialized) {
 						try {
-							this.replyChannelRegistry =
-									this.beanFactory.getBean("integrationHeaderChannelRegistry",
-											HeaderChannelRegistry.class);
+							this.replyChannelRegistry = this.beanFactory.getBean("integrationHeaderChannelRegistry",
+									HeaderChannelRegistry.class);
 						}
 						catch (Exception ex) {
 							LOGGER.debug("No HeaderChannelRegistry found");
 						}
 						this.initialized = true;
 					}
+				}
+				finally {
+					this.lock.unlock();
 				}
 			}
 			if (this.replyChannelRegistry != null) {

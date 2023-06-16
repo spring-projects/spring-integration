@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.config;
 
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
@@ -58,6 +60,7 @@ import org.springframework.util.CollectionUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author David Liu
+ * @author Christian Tzolov
  */
 public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageHandler>
 		implements FactoryBean<MessageHandler>, ApplicationContextAware, BeanFactoryAware, BeanNameAware,
@@ -65,7 +68,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	protected final Log logger = LogFactory.getLog(getClass()); //NOSONAR protected with final
 
-	private final Object initializationMonitor = new Object();
+	private final Lock initializationMonitor = new ReentrantLock();
 
 	private BeanFactory beanFactory;
 
@@ -192,7 +195,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	}
 
 	protected final H createHandlerInternal() {
-		synchronized (this.initializationMonitor) {
+		this.initializationMonitor.tryLock();
+		try {
 			if (this.initialized) {
 				// There was a problem when this method was called already
 				return null;
@@ -227,6 +231,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 					.acceptIfCondition(this.handler instanceof Orderable && this.order != null,
 							this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
 			this.initialized = true;
+		} finally {
+			this.initializationMonitor.unlock();
 		}
 		initializingBean();
 		return this.handler;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.handler;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.aopalliance.aop.Advice;
 
@@ -41,9 +43,12 @@ import org.springframework.util.ClassUtils;
  * @author Artem Bilan
  * @author David Liu
  * @author Trung Pham
+ * @author Christian Tzolov
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingHandler
 		implements BeanClassLoaderAware {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final List<Advice> adviceChain = new LinkedList<>();
 
@@ -72,12 +77,16 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 */
 	public void setAdviceChain(List<Advice> adviceChain) {
 		Assert.notEmpty(adviceChain, "adviceChain cannot be empty");
-		synchronized (this.adviceChain) {
+		this.lock.tryLock();
+		try {
 			this.adviceChain.clear();
 			this.adviceChain.addAll(adviceChain);
 			if (isInitialized()) {
 				initAdvisedRequestHandlerIfAny();
 			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

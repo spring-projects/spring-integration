@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.file.remote.session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,12 +42,15 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Alen Turkovic
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
 public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBean {
 
 	private static final Log LOGGER = LogFactory.getLog(CachingSessionFactory.class);
+
+	private final Lock lock = new ReentrantLock();
 
 	private final SessionFactory<F> sessionFactory;
 
@@ -146,24 +151,29 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 * Clear the cache of sessions; also any in-use sessions will be closed when
 	 * returned to the cache.
 	 */
-	public synchronized void resetCache() {
-		LOGGER.debug("Cache reset; idle sessions will be removed, in-use sessions will be closed when returned");
-		if (this.isSharedSessionCapable && ((SharedSessionCapable) this.sessionFactory).isSharedSession()) {
-			((SharedSessionCapable) this.sessionFactory).resetSharedSession();
+	public void resetCache() {
+		this.lock.tryLock();
+		try {
+			LOGGER.debug("Cache reset; idle sessions will be removed, in-use sessions will be closed when returned");
+			if (this.isSharedSessionCapable && ((SharedSessionCapable) this.sessionFactory).isSharedSession()) {
+				((SharedSessionCapable) this.sessionFactory).resetSharedSession();
+			}
+			long epoch = System.nanoTime();
+			/*
+			 * Spin until we get a new value - nano precision but may be lower resolution. We reset the epoch AFTER
+			 * resetting the shared session so there is no possibility of an "old" session being created in the new
+			 * epoch. There is a slight possibility that a "new" session might appear in the old epoch and thus be
+			 * closed when returned to the cache.
+			 */
+			while (epoch == this.sharedSessionEpoch) {
+				epoch = System.nanoTime();
+			}
+			this.sharedSessionEpoch = epoch;
+			this.pool.removeAllIdleItems();
 		}
-		long epoch = System.nanoTime();
-		/*
-		 * Spin until we get a new value - nano precision but may be lower resolution.
-		 * We reset the epoch AFTER resetting the shared session so there is no possibility
-		 * of an "old" session being created in the new epoch. There is a slight possibility
-		 * that a "new" session might appear in the old epoch and thus be closed when returned to
-		 * the cache.
-		 */
-		while (epoch == this.sharedSessionEpoch) {
-			epoch = System.nanoTime();
+		finally {
+			this.lock.unlock();
 		}
-		this.sharedSessionEpoch = epoch;
-		this.pool.removeAllIdleItems();
 	}
 
 	public class CachedSession implements Session<F> { //NOSONAR must be final, but can't for mocking in tests
@@ -173,6 +183,8 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		private boolean released;
 
 		private boolean dirty;
+
+		private final Lock lock = new ReentrantLock();
 
 		/**
 		 * The epoch in which this session was created.
@@ -185,35 +197,42 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		}
 
 		@Override
-		public synchronized void close() {
-			if (this.released) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Session " + this.targetSession + " already released.");
+		public void close() {
+			this.lock.tryLock();
+			try {
+
+				if (this.released) {
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Session " + this.targetSession + " already released.");
+					}
+				}
+				else {
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Releasing Session " + this.targetSession + " back to the pool.");
+					}
+					if (this.sharedSessionEpoch != CachingSessionFactory.this.sharedSessionEpoch) {
+						if (LOGGER.isDebugEnabled()) {
+							LOGGER.debug("Closing session " + this.targetSession + " after reset.");
+						}
+						this.targetSession.close();
+					}
+					else if (this.dirty) {
+						this.targetSession.close();
+					}
+					if (this.targetSession.isOpen()) {
+						try {
+							this.targetSession.finalizeRaw();
+						}
+						catch (IOException e) {
+							// No-op in this context
+						}
+					}
+					CachingSessionFactory.this.pool.releaseItem(this.targetSession);
+					this.released = true;
 				}
 			}
-			else {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Releasing Session " + this.targetSession + " back to the pool.");
-				}
-				if (this.sharedSessionEpoch != CachingSessionFactory.this.sharedSessionEpoch) {
-					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("Closing session " + this.targetSession + " after reset.");
-					}
-					this.targetSession.close();
-				}
-				else if (this.dirty) {
-					this.targetSession.close();
-				}
-				if (this.targetSession.isOpen()) {
-					try {
-						this.targetSession.finalizeRaw();
-					}
-					catch (IOException e) {
-						//No-op in this context
-					}
-				}
-				CachingSessionFactory.this.pool.releaseItem(this.targetSession);
-				this.released = true;
+			finally {
+				this.lock.unlock();
 			}
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -52,6 +54,7 @@ import org.springframework.util.MultiValueMap;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 4.2
  *
@@ -62,6 +65,8 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	private static final Log LOGGER = LogFactory.getLog(SmartLifecycleRoleController.class);
 
 	private static final String IN_ROLE = " in role ";
+
+	private final Lock lock = new ReentrantLock();
 
 	private final MultiValueMap<String, SmartLifecycle> lifecycles = new LinkedMultiValueMap<>();
 
@@ -283,9 +288,15 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 						Lifecycle::isRunning));
 	}
 
-	private synchronized void addLazyLifecycles() {
-		this.lazyLifecycles.forEach(this::doAddLifecyclesToRole);
-		this.lazyLifecycles.clear();
+	private void addLazyLifecycles() {
+		this.lock.tryLock();
+		try {
+			this.lazyLifecycles.forEach(this::doAddLifecyclesToRole);
+			this.lazyLifecycles.clear();
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	private void doAddLifecyclesToRole(String role, List<String> lifecycleBeanNames) {

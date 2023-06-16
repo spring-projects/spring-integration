@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.selector;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.messaging.Message;
@@ -32,8 +34,11 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class MessageSelectorChain implements MessageSelector {
+
+	private final Lock lock = new ReentrantLock();
 
 	private volatile VotingStrategy votingStrategy = VotingStrategy.ALL;
 
@@ -72,9 +77,13 @@ public class MessageSelectorChain implements MessageSelector {
 	 */
 	public void setSelectors(List<MessageSelector> selectors) {
 		Assert.notEmpty(selectors, "selectors must not be empty");
-		synchronized (this.selectors) {
+		this.lock.tryLock();
+		try {
 			this.selectors.clear();
 			this.selectors.addAll(selectors);
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

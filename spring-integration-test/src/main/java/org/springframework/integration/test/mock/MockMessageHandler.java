@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.test.mock;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -51,10 +53,13 @@ import org.springframework.messaging.Message;
  * </pre>
  *
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 5.0
  */
 public class MockMessageHandler extends AbstractMessageProducingHandler {
+
+	private final Lock lock = new ReentrantLock();
 
 	protected final List<Function<Message<?>, ?>> messageFunctions = new LinkedList<>(); // NOSONAR final
 
@@ -110,12 +115,16 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 
 		Function<Message<?>, ?> function = this.lastFunction;
 
-		synchronized (this) {
+		this.lock.tryLock();
+		try {
 			Iterator<Function<Message<?>, ?>> iterator = this.messageFunctions.iterator();
 			if (iterator.hasNext()) {
 				function = iterator.next();
 				iterator.remove();
 			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 
 		Object result = function.apply(message);

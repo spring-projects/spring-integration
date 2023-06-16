@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.Lifecycle;
@@ -66,11 +67,12 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Trung Pham
+ * @author Christian Tzolov
  */
 public class MessageHandlerChain extends AbstractMessageProducingHandler
 		implements CompositeMessageHandler, ManageableLifecycle {
 
-	private final Object initializationMonitor = new Object();
+	private final Lock initializationMonitor = new ReentrantLock();
 
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
@@ -102,12 +104,16 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 	@Override
 	protected void onInit() {
 		super.onInit();
-		synchronized (this.initializationMonitor) {
+		this.initializationMonitor.tryLock();
+		try {
 			if (!this.initialized) {
 				Assert.notEmpty(this.handlers, "handler list must not be empty");
 				configureChain();
 				this.initialized = true;
 			}
+		}
+		finally {
+			this.initializationMonitor.unlock();
 		}
 	}
 

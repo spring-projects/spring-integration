@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -58,6 +60,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  *
@@ -73,7 +76,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private static final int DEFAULT_READ_DELAY = 100;
 
-	protected final Object lifecycleMonitor = new Object(); // NOSONAR final
+	protected final Lock lifecycleMonitor = new ReentrantLock(); // NOSONAR final
 
 	private final Map<String, TcpConnectionSupport> connections = new ConcurrentHashMap<>();
 
@@ -546,12 +549,16 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		if (!this.active) {
 			throw new MessagingException("Connection Factory not started");
 		}
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.tryLock();
+		try {
 			if (this.taskExecutor == null) {
 				this.privateExecutor = true;
 				this.taskExecutor = Executors.newCachedThreadPool();
 			}
 			return this.taskExecutor;
+		}
+		finally {
+			this.lifecycleMonitor.unlock();
 		}
 	}
 
@@ -575,7 +582,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 		}
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.tryLock();
+		try {
 			if (this.privateExecutor) {
 				ExecutorService executorService = (ExecutorService) this.taskExecutor;
 				executorService.shutdown();
@@ -597,6 +605,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					this.privateExecutor = false;
 				}
 			}
+		}
+		finally {
+			this.lifecycleMonitor.unlock();
 		}
 		logger.info(() -> "stopped " + this);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2022 the original author or authors.
+ * Copyright 2001-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -58,6 +60,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Marcin Pilaczynski
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
@@ -65,6 +68,8 @@ public class UnicastSendingMessageHandler extends
 		AbstractInternetProtocolSendingMessageHandler implements Runnable {
 
 	private static final int DEFAULT_ACK_TIMEOUT = 5000;
+
+	private final Lock lock = new ReentrantLock();
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
@@ -316,7 +321,8 @@ public class UnicastSendingMessageHandler extends
 
 	public void startAckThread() {
 		if (!this.ackThreadRunning) {
-			synchronized (this) {
+			this.lock.tryLock();
+			try {
 				if (!this.ackThreadRunning) {
 					try {
 						getSocket();
@@ -333,6 +339,9 @@ public class UnicastSendingMessageHandler extends
 						Thread.currentThread().interrupt();
 					}
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 	}
@@ -386,28 +395,34 @@ public class UnicastSendingMessageHandler extends
 		return this.socket;
 	}
 
-	protected synchronized DatagramSocket getSocket() throws IOException {
-		if (this.socket == null) {
-			if (this.acknowledge) {
-				if (this.localAddress == null) {
-					this.socket = this.ackPort == 0 ? new DatagramSocket() : new DatagramSocket(this.ackPort);
+	protected DatagramSocket getSocket() throws IOException {
+		this.lock.tryLock();
+		try {
+			if (this.socket == null) {
+				if (this.acknowledge) {
+					if (this.localAddress == null) {
+						this.socket = this.ackPort == 0 ? new DatagramSocket() : new DatagramSocket(this.ackPort);
+					}
+					else {
+						InetAddress whichNic = InetAddress.getByName(this.localAddress);
+						this.socket = new DatagramSocket(new InetSocketAddress(whichNic, this.ackPort));
+					}
+					if (this.soReceiveBufferSize > 0) {
+						this.socket.setReceiveBufferSize(this.soReceiveBufferSize);
+					}
+					logger.debug(() -> "Listening for acks on port: " + getAckPort());
+					updateAckAddress();
 				}
 				else {
-					InetAddress whichNic = InetAddress.getByName(this.localAddress);
-					this.socket = new DatagramSocket(new InetSocketAddress(whichNic, this.ackPort));
+					this.socket = new DatagramSocket();
 				}
-				if (this.soReceiveBufferSize > 0) {
-					this.socket.setReceiveBufferSize(this.soReceiveBufferSize);
-				}
-				logger.debug(() -> "Listening for acks on port: " + getAckPort());
-				updateAckAddress();
+				setSocketAttributes(this.socket);
 			}
-			else {
-				this.socket = new DatagramSocket();
-			}
-			setSocketAttributes(this.socket);
+			return this.socket;
 		}
-		return this.socket;
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	protected void updateAckAddress() {
@@ -424,8 +439,14 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	@Override
-	public synchronized void setLocalAddress(String localAddress) {
-		this.localAddress = localAddress;
+	public void setLocalAddress(String localAddress) {
+		this.lock.tryLock();
+		try {
+			this.localAddress = localAddress;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {

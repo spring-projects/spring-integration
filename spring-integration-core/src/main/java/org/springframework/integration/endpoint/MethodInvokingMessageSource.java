@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.endpoint;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.support.management.ManageableLifecycle;
@@ -31,6 +33,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class MethodInvokingMessageSource extends AbstractMessageSource<Object> implements ManageableLifecycle {
 
@@ -42,7 +45,7 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object> i
 
 	private volatile boolean initialized;
 
-	private final Object initializationMonitor = new Object();
+	private final Lock initializationMonitor = new ReentrantLock();
 
 
 	public void setObject(Object object) {
@@ -67,7 +70,8 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object> i
 
 	@Override
 	protected void onInit() {
-		synchronized (this.initializationMonitor) {
+		this.initializationMonitor.tryLock();
+		try {
 			if (this.initialized) {
 				return;
 			}
@@ -82,6 +86,9 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object> i
 					"invalid MessageSource method '" + this.method.getName() + "', a non-void return is required");
 			ReflectionUtils.makeAccessible(this.method);
 			this.initialized = true;
+		}
+		finally {
+			this.initializationMonitor.unlock();
 		}
 	}
 
