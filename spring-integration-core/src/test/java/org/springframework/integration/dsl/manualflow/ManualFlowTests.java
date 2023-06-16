@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,7 +190,8 @@ public class ManualFlowTests {
 		IntegrationFlow myFlow = f -> f
 				.<String, String>transform(String::toUpperCase)
 				.channel(MessageChannels.queue())
-				.transform("Hello, "::concat, e -> e
+				.transformWith(t -> t
+						.transformer("Hello, "::concat)
 						.poller(p -> p
 								.fixedDelay(10)
 								.maxMessagesPerPoll(1)

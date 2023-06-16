@@ -460,10 +460,11 @@ public class TransformerTests {
 		@Bean
 		public IntegrationFlow transformFlowWithError() {
 			return f -> f
-					.transform(p -> {
-								throw new RuntimeException("intentional");
-							},
-							e -> e.advice(expressionAdvice()))
+					.transformWith((t) ->
+							t.transformer(p -> {
+										throw new RuntimeException("intentional");
+									})
+									.advice(expressionAdvice()))
 					.log();
 		}
 

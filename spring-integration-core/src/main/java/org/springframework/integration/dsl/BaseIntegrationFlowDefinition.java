@@ -538,12 +538,18 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@code Transformer} EI Pattern specific {@link MessageHandler} implementation
 	 * for the SpEL {@link Expression}.
+	 * Shortcut for:
+	 * <pre class="code">
+	 * {@code
+	 *  .transformWith((transformerSpec) -> transformerSpec.expression(expression))
+	 * }
+	 * </pre>
 	 * @param expression the {@code Transformer} {@link Expression}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see ExpressionEvaluatingTransformer
 	 */
 	public B transform(String expression) {
-		return transform(expression, (Consumer<GenericEndpointSpec<MessageTransformingHandler>>) null);
+		return transformWith((transformerSpec) -> transformerSpec.expression(expression));
 	}
 
 	/**
@@ -552,8 +558,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param expression the {@code Transformer} {@link Expression}.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #transformWith(Consumer)}.
 	 * @see ExpressionEvaluatingTransformer
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	public B transform(String expression,
 			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
@@ -566,9 +574,15 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@code MessageTransformingHandler} for the {@link MethodInvokingTransformer}
 	 * to invoke the discovered service method at runtime.
+	 * Shortcut for:
+	 * <pre class="code">
+	 * {@code
+	 *  .transformWith((transformerSpec) -> transformerSpec.ref(service))
+	 * }
+	 * </pre>
 	 * @param service the service to use.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @see ExpressionEvaluatingTransformer
+	 * @see MethodInvokingTransformer
 	 */
 	public B transform(Object service) {
 		return transform(service, null);
@@ -577,13 +591,36 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@code MessageTransformingHandler} for the {@link MethodInvokingTransformer}
 	 * to invoke the service method at runtime.
+	 * <pre class="code">
+	 * {@code
+	 *  .transformWith((transformerSpec) -> transformerSpec.ref(service).method(methodName))
+	 * }
+	 * </pre>
 	 * @param service the service to use.
 	 * @param methodName the method to invoke.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see MethodInvokingTransformer
 	 */
 	public B transform(Object service, @Nullable String methodName) {
-		return transform(service, methodName, null);
+		return transformWith((transformerSpec) -> transformerSpec.ref(service).method(methodName));
+	}
+
+	/**
+	 * Populate the {@code MessageTransformingHandler} for the {@link MethodInvokingTransformer}
+	 * to invoke the bean method at runtime.
+	 * <pre class="code">
+	 * {@code
+	 *  .transformWith((transformerSpec) -> transformerSpec.refName(beanName).method(methodName))
+	 * }
+	 * </pre>
+	 * @param beanName the name for bean to resolve lazily.
+	 * @param methodName the method to invoke.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @since 6.2
+	 * @see MethodInvokingTransformer
+	 */
+	public B transform(String beanName, @Nullable String methodName) {
+		return transformWith((transformerSpec) -> transformerSpec.refName(beanName).method(methodName));
 	}
 
 	/**
@@ -593,8 +630,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param methodName the method to invoke.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @see ExpressionEvaluatingTransformer
+	 * @deprecated since 6.2 in favor of {@link #transformWith(Consumer)}.
+	 * @see MethodInvokingTransformer
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	public B transform(Object service, @Nullable String methodName,
 			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
@@ -617,12 +656,18 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 *  .transform(Scripts.script("classpath:myScript.py").variable("foo", bar()))
 	 * }
 	 * </pre>
+	 * Shortcut for:
+	 * <pre class="code">
+	 * {@code
+	 *  .transformWith((transformerSpec) -> transformerSpec.processor(messageProcessorSpec))
+	 * }
+	 * </pre>
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see MethodInvokingTransformer
 	 */
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec) {
-		return transform(messageProcessorSpec, (Consumer<GenericEndpointSpec<MessageTransformingHandler>>) null);
+		return transformWith((transformerSpec) -> transformerSpec.processor(messageProcessorSpec));
 	}
 
 	/**
@@ -638,8 +683,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #transformWith(Consumer)}.
 	 * @see MethodInvokingTransformer
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec,
 			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
@@ -679,7 +726,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see LambdaMessageProcessor
 	 */
 	public <P, T> B transform(@Nullable Class<P> expectedType, GenericTransformer<P, T> genericTransformer) {
-		return transform(expectedType, genericTransformer, null);
+		return transformWith((transformerSpec) ->
+				transformerSpec.transformer(genericTransformer).expectedType(expectedType));
 	}
 
 	/**
@@ -714,10 +762,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param <P> the payload type - 'transform from', or {@code Message.class}.
 	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #transformWith(Consumer)}
 	 * @see MethodInvokingTransformer
 	 * @see LambdaMessageProcessor
 	 * @see GenericEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	public <P, T> B transform(@Nullable Class<P> expectedType, GenericTransformer<P, T> genericTransformer,
 			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
@@ -728,6 +778,18 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 						: new MethodInvokingTransformer(genericTransformer, ClassUtils.TRANSFORMER_TRANSFORM_METHOD));
 		return addComponent(transformer)
 				.handle(new MessageTransformingHandler(transformer), endpointConfigurer);
+	}
+
+	/**
+	 * Populate a {@link MessageTransformingHandler} into the endpoint with provided {@link TransformerSpec} options.
+	 * One of the 'expression', 'ref', 'refName', 'processor' or 'function' must be provided.
+	 * @param <P> the payload type - 'transform from', or {@code Message.class}.
+	 * @param <T> the target type - 'transform to'.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @since 6.2
+	 */
+	public B transformWith(Consumer<TransformerSpec> transformerConfigurer) {
+		return register(new TransformerSpec(), transformerConfigurer);
 	}
 
 	/**
@@ -2787,7 +2849,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	protected <S extends ConsumerEndpointSpec<? super S, ? extends MessageHandler>> B register(S endpointSpec,
-			@Nullable Consumer<S> endpointConfigurer) {
+			@Nullable Consumer<? super S> endpointConfigurer) {
 
 		if (endpointConfigurer != null) {
 			endpointConfigurer.accept(endpointSpec);

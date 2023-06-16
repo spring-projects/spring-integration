@@ -50,6 +50,12 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate the {@link MessageTransformingHandler} instance for the provided
 	 * {@link GenericTransformer}. Use {@link #transform(Class, GenericTransformer)} if
 	 * you need to access the entire message.
+	 * Shortcut for:
+	 * <pre class="code">
+	 * {@code
+	 *  .transformWith((transformerSpec) -> transformerSpec.function(genericTransformer))
+	 * }
+	 * </pre>
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
 	 * @param <S> the source type - 'transform from'.
 	 * @param <T> the target type - 'transform to'.
@@ -58,7 +64,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see org.springframework.integration.handler.LambdaMessageProcessor
 	 */
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer) {
-		return transform(null, genericTransformer);
+		return transformWith((transformerSpec) -> transformerSpec.transformer(genericTransformer));
 	}
 
 
@@ -66,18 +72,21 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate the {@link MessageTransformingHandler} instance for the provided
 	 * {@link GenericTransformer}. In addition, accept options for the integration endpoint
 	 * using {@link GenericEndpointSpec}. Use
-	 * {@link #transform(Class, GenericTransformer, Consumer)} if you need to access the
-	 * entire message.
+	 * {@code .transform((transformerSpec) -> transformerSpec.function(genericTransformer).expectedType(Message.class))}
+	 * if you need to access the entire message.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint
 	 * options.
 	 * @param <S> the source type - 'transform from'.
 	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #transformWith(Consumer)}
 	 * @see org.springframework.integration.transformer.MethodInvokingTransformer
 	 * @see org.springframework.integration.handler.LambdaMessageProcessor
 	 * @see GenericEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
@@ -108,7 +117,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate a {@link org.springframework.integration.filter.MessageFilter}
 	 * with {@link org.springframework.integration.filter.MethodInvokingSelector}
 	 * for the provided {@link GenericSelector}.
-	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link FilterEndpointSpec}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
@@ -152,7 +161,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate a {@link ServiceActivatingHandler} for the
 	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
 	 * to invoke the provided {@link GenericHandler} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
@@ -177,7 +186,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	/**
 	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
 	 * {@link Function} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code

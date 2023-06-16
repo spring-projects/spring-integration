@@ -95,6 +95,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Inline function for [IntegrationFlowDefinition.transform] providing a `transform<MyTypeIn, MyTypeOut>()` variant
 	 * with reified generic type.
 	 */
+	@Suppress("DEPRECATION")
 	inline fun <reified P> transform(
 		crossinline function: (P) -> Any,
 		crossinline configurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit
@@ -305,6 +306,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * for the provided `Transformer` instance.
 	 * @since 5.3.1
 	 */
+	@Suppress("DEPRECATION")
 	fun transform(
 		transformer: Transformer,
 		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
@@ -317,6 +319,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate the [Transformer] EI Pattern specific [MessageHandler] implementation
 	 * for the SpEL [Expression].
 	 */
+	@Suppress("DEPRECATION")
 	fun transform(
 		expression: String,
 		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
@@ -337,6 +340,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate the [MessageTransformingHandler] for the [MethodInvokingTransformer]
 	 * to invoke the service method at runtime.
 	 */
+	@Suppress("DEPRECATION")
 	fun transform(
 		service: Any, methodName: String?,
 		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit
@@ -350,6 +354,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * [org.springframework.integration.handler.MessageProcessor] from provided [MessageProcessorSpec].
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
+	@Suppress("DEPRECATION")
 	fun transform(
 		messageProcessorSpec: MessageProcessorSpec<*>,
 		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
