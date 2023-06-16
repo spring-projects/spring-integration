@@ -55,6 +55,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  *
