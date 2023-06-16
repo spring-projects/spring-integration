@@ -162,7 +162,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	}
 
 	private void initializeAdapter() {
-		this.initializationMonitor.tryLock();
+		this.initializationMonitor.lock();
 		try {
 			if (this.initialized) {
 				return;

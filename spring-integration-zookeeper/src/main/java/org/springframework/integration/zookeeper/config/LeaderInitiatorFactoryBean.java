@@ -183,7 +183,7 @@ public class LeaderInitiatorFactoryBean
 
 	@Override
 	public LeaderInitiator getObject() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.leaderInitiator;
 		}

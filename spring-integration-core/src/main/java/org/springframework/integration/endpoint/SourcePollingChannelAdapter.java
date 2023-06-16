@@ -181,7 +181,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	public MessageChannel getOutputChannel() {
 		if (this.outputChannelName != null) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (this.outputChannelName != null) {
 					this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);

@@ -70,7 +70,7 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 
 	@Override
 	public DatagramSocket getSocket() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (getTheSocket() == null) {
 				try {

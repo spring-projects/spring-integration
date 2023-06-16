@@ -392,7 +392,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.targetConnectionFactory.stop();
 			this.pool.removeAllIdleItems();

@@ -76,7 +76,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 
 	@Override
 	public void start() {
-		this.lifecycleMonitor.tryLock();
+		this.lifecycleMonitor.lock();
 		try {
 			if (!isActive()) {
 				this.setActive(true);

@@ -288,7 +288,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	@Override
 	protected ChannelOutputStream getChannelOutputStream() {
-		this.monitorLock.tryLock();
+		this.monitorLock.lock();
 		try {
 			if (this.sslChannelOutputStream == null) {
 				this.sslChannelOutputStream = new SSLChannelOutputStream(super.getChannelOutputStream());
@@ -341,7 +341,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		 */
 		@Override
 		protected void doWrite(ByteBuffer plainText) throws IOException {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				TcpNioSSLConnection.this.writerActive = true;
 				int remaining = plainText.remaining();

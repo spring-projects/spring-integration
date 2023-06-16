@@ -117,7 +117,7 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 	@Override
 	public String doReceive() {
 		try {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (!this.blockToDetectEOF && !this.reader.ready()) {
 					return null;

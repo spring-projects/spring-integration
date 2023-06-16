@@ -92,7 +92,7 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 
 	private void initIdempotentEndpointsIfNecessary() {
 		if (this.idempotentEndpoints == null) { // NOSONAR (inconsistent sync)
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (this.idempotentEndpoints == null) {
 					this.idempotentEndpoints = new LinkedHashMap<String, List<String>>();

@@ -253,7 +253,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (!this.running.get()) {
 				this.proxyExecutor
@@ -312,7 +312,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.running.getAndSet(false)) {
 				try (ZMQ.Socket commandSocket = this.context.createSocket(SocketType.PAIR)) {

@@ -304,7 +304,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	private SimpleJdbcCallOperations obtainSimpleJdbcCall(String storedProcedureName) {
 		SimpleJdbcCallOperations operations = this.jdbcCallOperationsMap.get(storedProcedureName);
 		if (operations == null) {
-			this.jdbcCallOperationsMapMonitor.tryLock();
+			this.jdbcCallOperationsMapMonitor.lock();
 			try {
 				operations =
 						this.jdbcCallOperationsMap.computeIfAbsent(storedProcedureName, this::createSimpleJdbcCall);

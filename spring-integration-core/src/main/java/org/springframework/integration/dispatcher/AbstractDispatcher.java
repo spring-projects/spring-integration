@@ -83,7 +83,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 */
 	@Override
 	public boolean addHandler(MessageHandler handler) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Assert.notNull(handler, "handler must not be null");
 			Assert.isTrue(this.handlers.size() < this.maxSubscribers, "Maximum subscribers exceeded");
@@ -108,7 +108,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 */
 	@Override
 	public boolean removeHandler(MessageHandler handler) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Assert.notNull(handler, "handler must not be null");
 			boolean removed = this.handlers.remove(handler);

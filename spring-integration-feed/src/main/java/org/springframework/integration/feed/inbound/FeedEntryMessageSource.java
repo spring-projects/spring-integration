@@ -179,7 +179,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		Assert.isTrue(this.initialized,
 				"'FeedEntryReaderMessageSource' must be initialized before it can produce Messages.");
 		SyndEntry nextEntry;
-		this.monitor.tryLock();
+		this.monitor.lock();
 		try {
 			nextEntry = getNextEntry();
 			if (nextEntry == null) {
@@ -232,7 +232,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private SyndFeed getFeed() {
 		try {
-			this.feedMonitor.tryLock();
+			this.feedMonitor.lock();
 			try {
 				SyndFeed feed = buildSyndFeed();
 				logger.debug(() -> "Retrieved feed for [" + this + "]");

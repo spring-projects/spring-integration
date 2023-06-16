@@ -77,7 +77,7 @@ public class MessageSelectorChain implements MessageSelector {
 	 */
 	public void setSelectors(List<MessageSelector> selectors) {
 		Assert.notEmpty(selectors, "selectors must not be empty");
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.selectors.clear();
 			this.selectors.addAll(selectors);

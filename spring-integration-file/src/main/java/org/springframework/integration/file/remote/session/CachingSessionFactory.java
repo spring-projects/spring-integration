@@ -152,7 +152,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 * returned to the cache.
 	 */
 	public void resetCache() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			LOGGER.debug("Cache reset; idle sessions will be removed, in-use sessions will be closed when returned");
 			if (this.isSharedSessionCapable && ((SharedSessionCapable) this.sessionFactory).isSharedSession()) {
@@ -198,7 +198,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 		@Override
 		public void close() {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 
 				if (this.released) {

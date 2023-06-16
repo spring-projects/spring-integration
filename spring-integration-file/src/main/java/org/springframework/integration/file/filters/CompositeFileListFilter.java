@@ -109,7 +109,7 @@ public class CompositeFileListFilter<F>
 	 * @return this CompositeFileListFilter instance with the added filters
 	 */
 	public CompositeFileListFilter<F> addFilters(Collection<? extends FileListFilter<F>> filtersToAdd) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			for (FileListFilter<F> elf : filtersToAdd) {
 				if (elf instanceof DiscardAwareFileListFilter) {

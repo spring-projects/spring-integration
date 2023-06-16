@@ -95,7 +95,7 @@ public class ResultToStringTransformer implements ResultTransformer {
 
 	private Transformer getNewTransformer() throws TransformerConfigurationException {
 		Transformer transformer;
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			transformer = this.transformerFactory.newTransformer();
 		}

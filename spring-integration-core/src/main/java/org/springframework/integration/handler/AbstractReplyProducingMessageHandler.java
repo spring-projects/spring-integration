@@ -77,7 +77,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 */
 	public void setAdviceChain(List<Advice> adviceChain) {
 		Assert.notEmpty(adviceChain, "adviceChain cannot be empty");
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.adviceChain.clear();
 			this.adviceChain.addAll(adviceChain);

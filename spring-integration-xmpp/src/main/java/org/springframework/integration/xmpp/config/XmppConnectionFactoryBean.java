@@ -176,7 +176,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	public void start() {
-		this.lifecycleMonitor.tryLock();
+		this.lifecycleMonitor.lock();
 		try {
 			if (this.running) {
 				return;
@@ -207,7 +207,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	public void stop() {
-		this.lifecycleMonitor.tryLock();
+		this.lifecycleMonitor.lock();
 		try {
 			if (this.isRunning()) {
 				getConnection().disconnect();

@@ -195,7 +195,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	}
 
 	protected final H createHandlerInternal() {
-		this.initializationMonitor.tryLock();
+		this.initializationMonitor.lock();
 		try {
 			if (this.initialized) {
 				// There was a problem when this method was called already

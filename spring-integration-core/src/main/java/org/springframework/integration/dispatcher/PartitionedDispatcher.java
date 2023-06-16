@@ -158,7 +158,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 
 	private void populatedPartitions() {
 		if (this.partitions.isEmpty()) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (this.partitions.isEmpty()) {
 					Map<Integer, UnicastingDispatcher> partitionsToUse = new HashMap<>();

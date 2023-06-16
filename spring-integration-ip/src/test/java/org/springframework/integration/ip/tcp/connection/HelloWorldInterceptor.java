@@ -63,7 +63,7 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 	@Override
 	public boolean onMessage(Message<?> message) {
 		if (!this.negotiated) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (!this.negotiated) {
 					Object payload = message.getPayload();

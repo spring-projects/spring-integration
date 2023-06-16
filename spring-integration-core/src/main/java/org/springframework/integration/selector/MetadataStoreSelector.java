@@ -124,7 +124,7 @@ public class MetadataStoreSelector implements MessageSelector {
 			return this.metadataStore.putIfAbsent(key, value) == null;
 		}
 		else {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				String oldValue = this.metadataStore.get(key);
 				if (oldValue == null) {

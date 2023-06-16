@@ -94,7 +94,7 @@ public class Mqttv3ClientManager
 
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			var client = getClient();
 			if (client == null) {
@@ -146,7 +146,7 @@ public class Mqttv3ClientManager
 
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			var client = getClient();
 			if (client == null) {
@@ -175,7 +175,7 @@ public class Mqttv3ClientManager
 
 	@Override
 	public void connectionLost(Throwable cause) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			logger.error("Connection lost, client_id=" + getClientId(), cause);
 		}

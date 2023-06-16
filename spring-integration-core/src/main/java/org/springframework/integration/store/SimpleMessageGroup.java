@@ -194,7 +194,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public Message<?> getOne() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Iterator<Message<?>> iterator = this.messages.iterator();
 			return iterator.hasNext() ? iterator.next() : null;

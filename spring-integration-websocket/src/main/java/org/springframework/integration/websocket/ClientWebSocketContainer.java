@@ -189,7 +189,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (!isRunning()) {
 				this.clientSession = null;

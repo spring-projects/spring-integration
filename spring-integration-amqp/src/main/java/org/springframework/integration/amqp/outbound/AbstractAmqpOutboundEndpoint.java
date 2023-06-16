@@ -342,7 +342,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	}
 
 	protected final void setConnectionFactory(ConnectionFactory connectionFactory) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.connectionFactory = connectionFactory;
 		}
@@ -499,7 +499,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (!this.running) {
 				if (!this.lazyConnect && this.connectionFactory != null) {
@@ -545,7 +545,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.running) {
 				doStop();

@@ -93,7 +93,7 @@ public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 	}
 
 	private void initializeSpelPropertyAccessorRegistrarIfNecessary(ParserContext parserContext) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (!parserContext.getRegistry()
 					.containsBeanDefinition(IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME)) {

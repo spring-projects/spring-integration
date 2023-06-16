@@ -57,7 +57,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 
 	@Override
 	public void onApplicationEvent(ApplicationContextEvent event) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 
 			ApplicationContext context = event.getApplicationContext();

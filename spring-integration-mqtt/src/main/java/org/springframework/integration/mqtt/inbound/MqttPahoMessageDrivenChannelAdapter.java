@@ -185,7 +185,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	@SuppressWarnings("deprecation")
 	private void connect() throws MqttException {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 			var clientManager = getClientManager();
@@ -208,7 +208,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	@Override
 	protected void doStop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.readyToSubscribeOnStart = false;
 			try {
@@ -340,7 +340,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	@Override
 	public void connectionLost(Throwable cause) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (isRunning()) {
 				this.logger.error(() -> "Lost connection: " + cause.getMessage());

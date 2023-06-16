@@ -127,7 +127,7 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 
 	@Override
 	public void write(InputStream inputStream, String destination) throws IOException {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			OutputStream outputStream = this.sftpClient.write(destination);
 			FileCopyUtils.copy(inputStream, outputStream);
@@ -139,7 +139,7 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 
 	@Override
 	public void append(InputStream inputStream, String destination) throws IOException {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			OutputStream outputStream =
 					this.sftpClient.write(destination,

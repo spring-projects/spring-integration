@@ -254,7 +254,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	@Override
 	public void start() {
-		this.lifecycleMonitor.tryLock();
+		this.lifecycleMonitor.lock();
 		try {
 			if (!this.active) {
 				this.active = true;
@@ -284,7 +284,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	@Override
 	public void stop() {
-		this.lifecycleMonitor.tryLock();
+		this.lifecycleMonitor.lock();
 		try {
 			if (this.active) {
 				this.active = false;

@@ -171,7 +171,7 @@ public class TcpNioClientConnectionFactory extends
 
 	@Override
 	public void start() {
-		this.lifecycleMonitor.tryLock();
+		this.lifecycleMonitor.lock();
 		try {
 			if (!isActive()) {
 				setActive(true);

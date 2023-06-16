@@ -622,7 +622,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 */
 	@Override
 	public void reschedulePersistedMessages() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
 			try (Stream<Message<?>> messageStream = messageGroup.streamMessages()) {

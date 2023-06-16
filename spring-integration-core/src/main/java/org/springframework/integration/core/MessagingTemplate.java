@@ -90,7 +90,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	@Nullable
 	public Message<?> sendAndReceive(MessageChannel destination, Message<?> requestMessage) {
 		if (!this.throwExceptionOnLateReplySet) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (!this.throwExceptionOnLateReplySet) {
 					IntegrationProperties integrationProperties = IntegrationContextUtils

@@ -230,7 +230,7 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.handshakeHandler instanceof Lifecycle && !isRunning()) {
 				((Lifecycle) this.handshakeHandler).start();

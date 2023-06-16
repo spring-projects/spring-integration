@@ -265,7 +265,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	@Override
 	protected void onInit() {
-		this.initializationMonitor.tryLock();
+		this.initializationMonitor.lock();
 		try {
 			if (this.initialized) {
 				return;

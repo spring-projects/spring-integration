@@ -291,7 +291,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.leaderEventPublisher == null && this.applicationEventPublisher != null) {
 				this.leaderEventPublisher = new DefaultLeaderEventPublisher(this.applicationEventPublisher);
@@ -319,7 +319,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.running) {
 				this.running = false;

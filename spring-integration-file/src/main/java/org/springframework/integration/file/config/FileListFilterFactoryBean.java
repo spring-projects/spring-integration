@@ -99,7 +99,7 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 	@NonNull
 	public FileListFilter<File> getObject() {
 		if (this.result == null) {
-			this.monitor.tryLock();
+			this.monitor.lock();
 			try {
 				this.initializeFileListFilter();
 			}

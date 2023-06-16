@@ -132,7 +132,7 @@ public class SmbShare extends SmbFile {
 
 	@Override
 	public void close() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.open.set(false);
 			if (this.closeContext.get()) {

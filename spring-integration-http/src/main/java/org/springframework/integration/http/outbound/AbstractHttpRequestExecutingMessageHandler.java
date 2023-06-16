@@ -231,7 +231,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 * @param uriVariableExpressions The URI variable expressions.
 	 */
 	public void setUriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.uriVariableExpressions.clear();
 			this.uriVariableExpressions.putAll(uriVariableExpressions);

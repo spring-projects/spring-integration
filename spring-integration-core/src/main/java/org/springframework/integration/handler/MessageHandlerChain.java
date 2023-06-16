@@ -104,7 +104,7 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 	@Override
 	protected void onInit() {
 		super.onInit();
-		this.initializationMonitor.tryLock();
+		this.initializationMonitor.lock();
 		try {
 			if (!this.initialized) {
 				Assert.notEmpty(this.handlers, "handler list must not be empty");

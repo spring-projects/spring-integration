@@ -116,7 +116,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public String putIfAbsent(String key, String value) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 			Assert.notNull(value, "'value' must not be null.");
@@ -139,7 +139,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 			Assert.notNull(oldValue, "'oldValue' must not be null.");
@@ -179,7 +179,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public void put(String key, String value) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 			Assert.notNull(value, "'value' must not be null.");
@@ -208,7 +208,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public String get(String key) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 			Assert.state(isRunning(), "ZookeeperMetadataStore has to be started before using.");
@@ -241,7 +241,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public String remove(String key) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 			try {
@@ -286,7 +286,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (!this.running) {
 				try {
@@ -309,7 +309,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.running) {
 				if (this.cache != null) {
@@ -326,7 +326,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public boolean isRunning() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.running;
 		}

@@ -59,7 +59,7 @@ public class ClientModeConnectionManager implements Runnable {
 
 	@Override
 	public void run() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			try {
 				TcpConnection connection = this.clientConnectionFactory.getConnection();

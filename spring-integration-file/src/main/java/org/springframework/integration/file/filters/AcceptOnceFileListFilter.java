@@ -72,7 +72,7 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 
 	@Override
 	public boolean accept(F file) {
-		this.monitor.tryLock();
+		this.monitor.lock();
 		try {
 			if (this.seenSet.contains(file)) {
 				return false;
@@ -92,7 +92,7 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 
 	@Override
 	public void rollback(F file, List<F> files) {
-		this.monitor.tryLock();
+		this.monitor.lock();
 		try {
 			boolean rollingBack = false;
 			for (F fileToRollback : files) {

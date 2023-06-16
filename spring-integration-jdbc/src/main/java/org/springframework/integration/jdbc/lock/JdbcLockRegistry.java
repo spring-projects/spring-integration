@@ -114,7 +114,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.locks.computeIfAbsent(path, key -> new JdbcLock(this.client, this.idleBetweenTries, key));
 		}
@@ -130,7 +130,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 	@Override
 	public void expireUnusedOlderThan(long age) {
 		long now = System.currentTimeMillis();
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.locks.entrySet()
 					.removeIf(entry -> {
@@ -148,7 +148,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
 		JdbcLock jdbcLock;
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			jdbcLock = this.locks.get(path);
 		}

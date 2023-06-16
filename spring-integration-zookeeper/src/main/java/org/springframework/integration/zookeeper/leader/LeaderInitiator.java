@@ -162,7 +162,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	@Override
 	public void start() {
-		this.lifecycleMonitor.tryLock();
+		this.lifecycleMonitor.lock();
 		try {
 			if (!this.running) {
 				if (this.client.getState() != CuratorFrameworkState.STARTED) {
@@ -192,7 +192,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	@Override
 	public void stop() {
-		this.lifecycleMonitor.tryLock();
+		this.lifecycleMonitor.lock();
 		try {
 			if (this.running) {
 				this.leaderSelector.close();

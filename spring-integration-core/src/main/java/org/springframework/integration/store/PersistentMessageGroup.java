@@ -81,7 +81,7 @@ class PersistentMessageGroup implements MessageGroup {
 	@Override
 	public Message<?> getOne() {
 		if (this.oneMessage == null) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (this.oneMessage == null) {
 					if (LOGGER.isDebugEnabled()) {
@@ -118,7 +118,7 @@ class PersistentMessageGroup implements MessageGroup {
 	@Override
 	public int size() {
 		if (this.size == 0) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (this.size == 0) {
 					if (LOGGER.isDebugEnabled()) {
@@ -217,7 +217,7 @@ class PersistentMessageGroup implements MessageGroup {
 
 		private void load() {
 			if (this.collection == null) {
-				this.innerLock.tryLock();
+				this.innerLock.lock();
 				try {
 					if (this.collection == null) {
 						Object groupId = PersistentMessageGroup.this.original.getGroupId();

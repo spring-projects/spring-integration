@@ -895,7 +895,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	protected void registerReplyMessageCorrelatorIfNecessary() {
 		MessageChannel replyChan = getReplyChannel();
 		if (replyChan != null && this.replyMessageCorrelator == null) {
-			this.replyMessageCorrelatorMonitor.tryLock();
+			this.replyMessageCorrelatorMonitor.lock();
 			try {
 				if (this.replyMessageCorrelator != null) {
 					return;

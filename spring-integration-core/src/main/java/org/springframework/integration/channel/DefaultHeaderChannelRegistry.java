@@ -126,7 +126,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (!this.running) {
 				Assert.notNull(getTaskScheduler(), "a task scheduler is required");
@@ -143,7 +143,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.running = false;
 			if (this.reaperScheduledFuture != null) {
@@ -218,7 +218,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	 */
 	@Override
 	public void runReaper() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.reaperScheduledFuture != null) {
 				this.reaperScheduledFuture.cancel(true);
@@ -234,7 +234,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	@Override
 	public void run() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			logger.trace(() -> "Reaper started; channels size=" + this.channels.size());
 			Iterator<Entry<String, MessageChannelWrapper>> iterator = this.channels.entrySet().iterator();

@@ -244,7 +244,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 
 	@Override
 	public void removeDeadConnection(TcpConnection connection) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.removed) {
 				return;

@@ -135,7 +135,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	@Override
 	protected DatagramSocket getSocket() throws IOException {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (getTheSocket() == null) {
 				createSocket();

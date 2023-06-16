@@ -463,7 +463,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.flushTask != null) {
 				this.flushTask.cancel(true);
@@ -883,7 +883,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private FileState getFileState(File fileToWriteTo, boolean isString)
 			throws FileNotFoundException {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			FileState state;
 			boolean appendNoFlush = FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
@@ -988,7 +988,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private Map<String, FileState> findFilesToFlush(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
 		Map<String, FileState> toRemove = new HashMap<>();
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
 			while (iterator.hasNext()) {
@@ -1008,7 +1008,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private void clearState(final File fileToWriteTo, final FileState state) {
 		if (state != null) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				this.fileStates.remove(fileToWriteTo.getAbsolutePath());
 			}
@@ -1037,7 +1037,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				FileWritingMessageHandler.this.logger
 						.debug("Interrupted during flush; not flushed: " + toRestore.keySet());
 			}
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				for (Entry<String, FileState> entry : toRestore.entrySet()) {
 					this.fileStates.putIfAbsent(entry.getKey(), entry.getValue());
@@ -1112,7 +1112,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		@Override
 		public void run() {
 			Map<String, FileState> toRemove = new HashMap<>();
-			FileWritingMessageHandler.this.lock.tryLock();
+			FileWritingMessageHandler.this.lock.lock();
 			try {
 				long expired = FileWritingMessageHandler.this.flushTask == null ? Long.MAX_VALUE
 						: (System.currentTimeMillis() - FileWritingMessageHandler.this.flushInterval);

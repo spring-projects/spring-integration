@@ -70,7 +70,7 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object> i
 
 	@Override
 	protected void onInit() {
-		this.initializationMonitor.tryLock();
+		this.initializationMonitor.lock();
 		try {
 			if (this.initialized) {
 				return;

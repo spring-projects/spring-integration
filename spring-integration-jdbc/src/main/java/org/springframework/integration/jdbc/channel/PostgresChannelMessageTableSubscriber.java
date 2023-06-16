@@ -117,7 +117,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	 */
 	@Deprecated(since = "6.2", forRemoval = true)
 	public void setExecutor(ExecutorService executor) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			setTaskExecutor(new TaskExecutorAdapter(executor));
 		}
@@ -161,7 +161,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.latch.getCount() > 0) {
 				return;
@@ -257,7 +257,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.future.isDone()) {
 				return;

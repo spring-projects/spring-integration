@@ -126,7 +126,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (!this.running) {
 				this.doStart();
@@ -142,7 +142,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.running) {
 				this.doStop();

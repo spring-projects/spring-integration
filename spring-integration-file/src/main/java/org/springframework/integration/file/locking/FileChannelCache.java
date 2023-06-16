@@ -76,7 +76,7 @@ final class FileChannelCache {
 		FileLock lock = null;
 		if (channel != null) {
 			try {
-				lock = channel.tryLock();
+				lock = channel.lock();
 			}
 			catch (OverlappingFileLockException e) {
 				// File is already locked in this thread or virtual machine

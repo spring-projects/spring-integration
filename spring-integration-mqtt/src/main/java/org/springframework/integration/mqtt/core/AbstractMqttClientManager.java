@@ -98,7 +98,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	}
 
 	protected void setClient(T client) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.client = client;
 		}
@@ -146,7 +146,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	@Override
 	public T getClient() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.client;
 		}
@@ -195,7 +195,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	}
 
 	public boolean isRunning() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.client != null;
 		}

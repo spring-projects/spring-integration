@@ -113,7 +113,7 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 
 	@Override
 	public void start() {
-		this.lifecycleLock.tryLock();
+		this.lifecycleLock.lock();
 		try {
 			if (!this.running) {
 				if (this.client != null) {
@@ -129,7 +129,7 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 
 	@Override
 	public void stop() {
-		this.lifecycleLock.tryLock();
+		this.lifecycleLock.lock();
 		try {
 			if (this.running) {
 				CloseableUtils.closeQuietly(this.client);

@@ -458,7 +458,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void onInit() {
-		this.initializationMonitor.tryLock();
+		this.initializationMonitor.lock();
 		try {
 			if (this.initialized) {
 				return;

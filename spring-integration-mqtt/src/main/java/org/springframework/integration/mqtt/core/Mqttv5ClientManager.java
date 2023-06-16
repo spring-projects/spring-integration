@@ -96,7 +96,7 @@ public class Mqttv5ClientManager
 
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			var client = getClient();
 			if (client == null) {
@@ -147,7 +147,7 @@ public class Mqttv5ClientManager
 
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			var client = getClient();
 			if (client == null) {

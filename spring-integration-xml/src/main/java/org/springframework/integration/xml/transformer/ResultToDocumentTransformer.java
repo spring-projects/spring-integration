@@ -90,7 +90,7 @@ public class ResultToDocumentTransformer implements ResultTransformer {
 	}
 
 	private DocumentBuilder getDocumentBuilder() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
 		}

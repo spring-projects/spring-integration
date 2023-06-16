@@ -185,7 +185,7 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 	@ManagedOperation
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (!this.running) {
 				for (TrackableComponent component : getTrackableComponents(this.beanFactory)) {
@@ -202,7 +202,7 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 	@ManagedOperation
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.running) {
 				this.currentlyTrackedComponents.forEach(component -> {

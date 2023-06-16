@@ -289,7 +289,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	}
 
 	private void addLazyLifecycles() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.lazyLifecycles.forEach(this::doAddLifecyclesToRole);
 			this.lazyLifecycles.clear();

@@ -183,7 +183,7 @@ public class StompMessageHandler extends AbstractMessageHandler
 	}
 
 	private void connectIfNecessary() throws InterruptedException {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.stompSession == null || !this.stompSessionManager.isConnected()) {
 				this.stompSessionManager.disconnect(this.sessionHandler);

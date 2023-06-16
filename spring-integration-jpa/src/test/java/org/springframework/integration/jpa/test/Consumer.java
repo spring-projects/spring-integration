@@ -45,7 +45,7 @@ public final class Consumer {
 	private final Lock lock = new ReentrantLock();
 
 	public void receive(Message<Collection<?>> message) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			logger.info("Service Activator received Message: " + message);
 			MESSAGES.add(message);
@@ -56,7 +56,7 @@ public final class Consumer {
 	}
 
 	public Message<Collection<?>> poll(long timeoutInMillis) throws InterruptedException {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return MESSAGES.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 		}

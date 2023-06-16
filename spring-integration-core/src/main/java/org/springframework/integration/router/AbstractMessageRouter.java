@@ -88,7 +88,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 	@Override
 	public MessageChannel getDefaultOutputChannel() {
 		if (this.defaultOutputChannelName != null) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (this.defaultOutputChannelName != null) {
 					this.defaultOutputChannel = getChannelResolver().resolveDestination(this.defaultOutputChannelName);

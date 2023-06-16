@@ -491,7 +491,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public boolean set(List<ChannelInterceptor> interceptors) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				this.interceptors.clear();
 				this.size = interceptors.size();

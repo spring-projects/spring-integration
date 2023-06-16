@@ -149,7 +149,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = this.keyToPath.pathFor((String) lockKey);
 		ZkLock lock;
-		this.locksLock.tryLock();
+		this.locksLock.lock();
 		try {
 			lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, this.mutexTaskExecutor, p));
 		} finally {
@@ -174,7 +174,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		}
 
 		long now = System.currentTimeMillis();
-		this.locksLock.tryLock();
+		this.locksLock.lock();
 		try {
 			this.locks.entrySet()
 					.removeIf(entry -> {

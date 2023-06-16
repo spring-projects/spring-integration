@@ -99,7 +99,7 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 						+ name + "' exists, but failed to be created", e);
 			}
 			if (!this.initialized) {
-				this.lock.tryLock();
+				this.lock.lock();
 				try {
 					if (!this.initialized) {
 						try {

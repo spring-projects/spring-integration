@@ -115,7 +115,7 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 
 		Function<Message<?>, ?> function = this.lastFunction;
 
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Iterator<Function<Message<?>, ?>> iterator = this.messageFunctions.iterator();
 			if (iterator.hasNext()) {

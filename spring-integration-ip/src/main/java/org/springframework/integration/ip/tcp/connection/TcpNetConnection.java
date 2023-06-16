@@ -108,7 +108,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	@Override
 	@SuppressWarnings("unchecked")
 	public void send(Message<?> message) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.socketOutputStream == null) {
 				int writeBufferSize = this.socket.getSendBufferSize();

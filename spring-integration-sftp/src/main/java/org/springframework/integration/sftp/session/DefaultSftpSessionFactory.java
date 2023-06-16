@@ -326,7 +326,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 
 	private void initClient() throws IOException {
 		if (!this.initialized) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (!this.initialized) {
 					doInitClient();

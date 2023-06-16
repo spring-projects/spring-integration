@@ -104,7 +104,7 @@ public class DomSourceFactory implements SourceFactory {
 	}
 
 	private DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
 		}

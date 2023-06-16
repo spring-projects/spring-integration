@@ -78,7 +78,7 @@ public class ByteStreamReadingMessageSource extends AbstractMessageSource<byte[]
 		try {
 			byte[] bytes;
 			int bytesRead = 0;
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (this.stream.available() == 0) {
 					return null;

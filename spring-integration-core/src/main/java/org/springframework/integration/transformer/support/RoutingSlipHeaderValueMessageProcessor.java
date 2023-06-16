@@ -85,7 +85,7 @@ public class RoutingSlipHeaderValueMessageProcessor
 		// use a local variable to avoid the second access to volatile field on the happy path
 		Map<List<Object>, Integer> slip = this.routingSlip;
 		if (slip == null) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				slip = this.routingSlip;
 				if (slip == null) {

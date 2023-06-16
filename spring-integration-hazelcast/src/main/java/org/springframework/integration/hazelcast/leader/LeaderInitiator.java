@@ -214,7 +214,7 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 	 */
 	@Override
 	public void start() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (!this.running) {
 				this.leaderSelector = new LeaderSelector();
@@ -239,7 +239,7 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 	 */
 	@Override
 	public void stop() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.running) {
 				this.running = false;

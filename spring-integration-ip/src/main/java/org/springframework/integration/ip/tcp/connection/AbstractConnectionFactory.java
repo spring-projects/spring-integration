@@ -549,7 +549,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		if (!this.active) {
 			throw new MessagingException("Connection Factory not started");
 		}
-		this.lifecycleMonitor.tryLock();
+		this.lifecycleMonitor.lock();
 		try {
 			if (this.taskExecutor == null) {
 				this.privateExecutor = true;
@@ -582,7 +582,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 		}
-		this.lifecycleMonitor.tryLock();
+		this.lifecycleMonitor.lock();
 		try {
 			if (this.privateExecutor) {
 				ExecutorService executorService = (ExecutorService) this.taskExecutor;

@@ -41,7 +41,7 @@ public class AcceptOnceCollectionFilter<T> implements CollectionFilter<T> {
 	private final Lock lock = new ReentrantLock();
 
 	public Collection<T> filter(Collection<T> unfilteredElements) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			List<T> filteredElements = new ArrayList<>();
 			for (T element : unfilteredElements) {

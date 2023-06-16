@@ -254,7 +254,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 	public DatagramSocket getSocket() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.socket == null) {
 				try {

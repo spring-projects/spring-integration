@@ -128,7 +128,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	@Override
 	@ManagedOperation
 	public int expireMessageGroups(long timeout) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			int count = 0;
 			long threshold = System.currentTimeMillis() - timeout;

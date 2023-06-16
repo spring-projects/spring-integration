@@ -84,7 +84,7 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		if (this.exchanger == null) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (this.exchanger == null) {
 					initialize();

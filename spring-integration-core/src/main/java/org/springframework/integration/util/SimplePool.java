@@ -99,7 +99,7 @@ public class SimplePool<T> implements Pool<T> {
 	 * @param poolSize The desired target pool size.
 	 */
 	public void setPoolSize(int poolSize) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			int delta = poolSize - this.poolSize.get();
 			this.targetPoolSize.addAndGet(delta);
@@ -147,7 +147,7 @@ public class SimplePool<T> implements Pool<T> {
 	 */
 	@Override
 	public int getPoolSize() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.poolSize.get();
 		}
@@ -242,7 +242,7 @@ public class SimplePool<T> implements Pool<T> {
 	 */
 	@Override
 	public void releaseItem(T item) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			Assert.notNull(item, "Item cannot be null");
 			Assert.isTrue(this.allocated.contains(item),
@@ -274,7 +274,7 @@ public class SimplePool<T> implements Pool<T> {
 
 	@Override
 	public void removeAllIdleItems() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			T item;
 			while ((item = this.available.poll()) != null) {
@@ -297,7 +297,7 @@ public class SimplePool<T> implements Pool<T> {
 
 	@Override
 	public void close() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.closed = true;
 			removeAllIdleItems();

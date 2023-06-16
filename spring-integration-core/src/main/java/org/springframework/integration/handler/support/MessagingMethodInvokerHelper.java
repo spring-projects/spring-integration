@@ -493,7 +493,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	private void initialize() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (isProvidedMessageHandlerFactoryBean()) {
 				LOGGER.trace("Overriding default instance of MessageHandlerMethodFactory with the one provided.");

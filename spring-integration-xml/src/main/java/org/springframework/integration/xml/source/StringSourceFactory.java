@@ -102,7 +102,7 @@ public class StringSourceFactory implements SourceFactory {
 	}
 
 	private Transformer getTransformer() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.transformerFactory.newTransformer();
 		}

@@ -34,7 +34,7 @@ public class LockInterceptor extends ReentrantLock implements MethodInterceptor 
 	private final Lock lock = new ReentrantLock();
 
 	public Object invoke(MethodInvocation invocation) throws Throwable {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return invocation.proceed();
 		}

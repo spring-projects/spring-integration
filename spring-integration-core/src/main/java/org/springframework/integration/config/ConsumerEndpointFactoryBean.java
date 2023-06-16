@@ -130,7 +130,7 @@ public class ConsumerEndpointFactoryBean
 	public void setHandler(Object handler) {
 		Assert.isTrue(handler instanceof MessageHandler || handler instanceof ReactiveMessageHandler,
 				"'handler' must be an instance of 'MessageHandler' or 'ReactiveMessageHandler'");
-		this.handlerMonitor.tryLock();
+		this.handlerMonitor.lock();
 		try {
 			Assert.isNull(this.handler, "handler cannot be overridden");
 			if (handler instanceof ReactiveMessageHandler) {
@@ -310,7 +310,7 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	private void initializeEndpoint() {
-		this.initializationMonitor.tryLock();
+		this.initializationMonitor.lock();
 		try {
 			if (this.initialized) {
 				return;

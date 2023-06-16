@@ -191,7 +191,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 	}
 
 	private IMqttAsyncClient checkConnection() throws MqttException {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			var theClientManager = getClientManager();
 			if (theClientManager != null) {
@@ -265,7 +265,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 
 	@Override
 	public void connectionLost(Throwable cause) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			logger.error("Lost connection; will attempt reconnect on next request");
 			if (this.client != null) {

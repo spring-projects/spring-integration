@@ -227,7 +227,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = (String) lockKey;
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.locks.computeIfAbsent(path, getRedisLockConstructor(this.redisLockType));
 		}
@@ -239,7 +239,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	@Override
 	public void expireUnusedOlderThan(long age) {
 		long now = System.currentTimeMillis();
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.locks.entrySet()
 					.removeIf(entry -> {

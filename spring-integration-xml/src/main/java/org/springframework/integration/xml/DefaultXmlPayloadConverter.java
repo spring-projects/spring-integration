@@ -147,7 +147,7 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 	}
 
 	protected DocumentBuilder getDocumentBuilder() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
 		}

@@ -133,7 +133,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 */
 	public Graph getGraph() {
 		if (this.graph == null) { // NOSONAR (sync)
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (this.graph == null) {
 					buildGraph();
@@ -179,7 +179,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	}
 
 	private Graph buildGraph() {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.micrometerEnhancer == null && MicrometerMetricsCaptorConfiguration.METER_REGISTRY_PRESENT) {
 				this.micrometerEnhancer = new MicrometerNodeEnhancer(this.applicationContext);

@@ -321,7 +321,7 @@ public class UnicastSendingMessageHandler extends
 
 	public void startAckThread() {
 		if (!this.ackThreadRunning) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				if (!this.ackThreadRunning) {
 					try {
@@ -396,7 +396,7 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	protected DatagramSocket getSocket() throws IOException {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			if (this.socket == null) {
 				if (this.acknowledge) {
@@ -440,7 +440,7 @@ public class UnicastSendingMessageHandler extends
 
 	@Override
 	public void setLocalAddress(String localAddress) {
-		this.lock.tryLock();
+		this.lock.lock();
 		try {
 			this.localAddress = localAddress;
 		}

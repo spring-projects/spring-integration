@@ -59,7 +59,7 @@ class TimeBasedUUIDGenerator {
 	static UUID generateIdFromTimestamp(long currentTimeMillis) {
 		long time;
 
-		lock.tryLock();
+		lock.lock();
 		try {
 			if (currentTimeMillis > lastTime) {
 				lastTime = currentTimeMillis;

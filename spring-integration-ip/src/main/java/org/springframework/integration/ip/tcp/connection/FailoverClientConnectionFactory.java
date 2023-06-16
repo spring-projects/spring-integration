@@ -264,7 +264,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * @throws InterruptedException if interrupted.
 		 */
 		private void findAConnection() throws InterruptedException {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				boolean success = false;
 				AbstractClientConnectionFactory lastFactoryToTry = this.currentFactory;
@@ -328,7 +328,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 */
 		@Override
 		public void send(Message<?> message) {
-			this.lock.tryLock();
+			this.lock.lock();
 			try {
 				boolean success = false;
 				AbstractClientConnectionFactory lastFactoryToTry = this.currentFactory;
