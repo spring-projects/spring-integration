@@ -29,6 +29,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import jakarta.jms.Connection;
 import jakarta.jms.ConnectionFactory;
@@ -90,7 +92,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	 */
 	public static final long DEFAULT_RECEIVE_TIMEOUT = 5000L;
 
-	private final Object initializationMonitor = new Object();
+	private final Lock initializationMonitor = new ReentrantLock();
 
 	private final AtomicLong correlationId = new AtomicLong();
 
@@ -100,10 +102,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private final ConcurrentHashMap<String, TimedReply> earlyOrLateReplies = new ConcurrentHashMap<>();
 
+	private final Lock earlyOrLateRepliesMonitor = new ReentrantLock();
+
 	private final Map<String, CompletableFuture<AbstractIntegrationMessageBuilder<?>>> futures =
 			new ConcurrentHashMap<>();
 
-	private final Object lifeCycleMonitor = new Object();
+	private final Lock lifeCycleMonitor = new ReentrantLock();
 
 	private Destination requestDestination;
 
@@ -512,7 +516,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	protected void doInit() {
-		synchronized (this.initializationMonitor) {
+		this.initializationMonitor.lock();
+		try {
 			if (this.initialized) {
 				return;
 			}
@@ -538,6 +543,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			}
 			initializeReplyContainer();
 			this.initialized = true;
+		}
+		finally {
+			this.initializationMonitor.unlock();
 		}
 	}
 
@@ -667,7 +675,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	public void start() {
-		synchronized (this.lifeCycleMonitor) {
+		this.lifeCycleMonitor.lock();
+		try {
 			if (!this.active) {
 				if (this.replyContainer != null) {
 					TaskScheduler taskScheduler = getTaskScheduler();
@@ -689,11 +698,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 				this.active = true;
 			}
 		}
+		finally {
+			this.lifeCycleMonitor.unlock();
+		}
 	}
 
 	@Override
 	public void stop() {
-		synchronized (this.lifeCycleMonitor) {
+		this.lifeCycleMonitor.lock();
+		try {
 			if (this.replyContainer != null) {
 				this.replyContainer.shutdown();
 				this.wasStopped = true;
@@ -708,6 +721,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			}
 			this.active = false;
 		}
+		finally {
+			this.lifeCycleMonitor.unlock();
+		}
+
 	}
 
 	@Override
@@ -727,7 +744,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			}
 			else {
 				if (this.idleReplyContainerTimeout > 0) {
-					synchronized (this.lifeCycleMonitor) {
+					this.lifeCycleMonitor.lock();
+					try {
 						this.lastSend = System.currentTimeMillis();
 						if (!this.replyContainer.isRunning()) {
 							logger.debug(() -> getComponentName() + ": Starting reply container.");
@@ -737,6 +755,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 											.scheduleAtFixedRate(new IdleContainerStopper(),
 													Duration.ofMillis(this.idleReplyContainerTimeout / 2));
 						}
+					}
+					finally {
+						this.lifeCycleMonitor.unlock();
 					}
 				}
 				reply = sendAndReceiveWithContainer(requestMessage);
@@ -1121,12 +1142,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			/*
 			 * Check to see if the reply arrived before we obtained the correlationId
 			 */
-			synchronized (this.earlyOrLateReplies) {
+			this.earlyOrLateRepliesMonitor.lock();
+			try {
 				TimedReply timedReply = this.earlyOrLateReplies.remove(correlation);
 				if (timedReply != null) {
 					logger.debug(() -> "Found early reply with correlationId " + correlationToLog);
 					replyQueue.add(timedReply.getReply());
 				}
+			}
+			finally {
+				this.earlyOrLateRepliesMonitor.unlock();
 			}
 
 			return obtainReplyFromContainer(correlation, replyQueue);
@@ -1298,12 +1323,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 					}
 					throw new IllegalStateException("No sender waiting for reply");
 				}
-				synchronized (this.earlyOrLateReplies) {
+				this.earlyOrLateRepliesMonitor.lock();
+				try {
 					queue = this.replies.get(correlationId);
 					if (queue == null) {
 						logger.debug(() -> "Reply for correlationId " + correlationId + " received early or late");
 						this.earlyOrLateReplies.put(correlationId, new TimedReply(message));
 					}
+				}
+				finally {
+					this.earlyOrLateRepliesMonitor.unlock();
 				}
 			}
 			if (queue != null) {
@@ -1466,7 +1495,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		@Override
 		public void run() {
-			synchronized (JmsOutboundGateway.this.lifeCycleMonitor) {
+			JmsOutboundGateway.this.lifeCycleMonitor.lock();
+			try {
 				if (System.currentTimeMillis() - JmsOutboundGateway.this.lastSend >
 						JmsOutboundGateway.this.idleReplyContainerTimeout
 						&& JmsOutboundGateway.this.replies.size() == 0 &&
@@ -1477,6 +1507,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 					JmsOutboundGateway.this.idleTask.cancel(false);
 					JmsOutboundGateway.this.idleTask = null;
 				}
+			}
+			finally {
+				JmsOutboundGateway.this.lifeCycleMonitor.unlock();
 			}
 		}
 

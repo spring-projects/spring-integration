@@ -80,6 +80,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private final Map<String, TcpConnectionSupport> connections = new ConcurrentHashMap<>();
 
+	private final Lock connectionsMonitor = new ReentrantLock();
+
 	private final BlockingQueue<PendingIO> delayedReads = new LinkedBlockingQueue<>();
 
 	private final List<TcpSender> senders = Collections.synchronizedList(new ArrayList<>());
@@ -568,7 +570,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	@Override
 	public void stop() {
 		this.active = false;
-		synchronized (this.connections) {
+		this.connectionsMonitor.lock();
+		try {
 			Iterator<Entry<String, TcpConnectionSupport>> iterator = this.connections.entrySet().iterator();
 			while (iterator.hasNext()) {
 				TcpConnectionSupport connection = iterator.next().getValue();
@@ -582,6 +585,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 		}
+		finally {
+			this.connectionsMonitor.unlock();
+		}
+
 		this.lifecycleMonitor.lock();
 		try {
 			if (this.privateExecutor) {
@@ -860,13 +867,17 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	protected void addConnection(TcpConnectionSupport connection) {
-		synchronized (this.connections) {
+		this.connectionsMonitor.lock();
+		try {
 			if (!this.active) {
 				connection.close();
 				return;
 			}
 			this.connections.put(connection.getConnectionId(), connection);
 			logger.debug(() -> getComponentName() + ": Added new connection: " + connection.getConnectionId());
+		}
+		finally {
+			this.connectionsMonitor.unlock();
 		}
 	}
 
@@ -875,7 +886,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return a list of open connection ids.
 	 */
 	private List<String> removeClosedConnectionsAndReturnOpenConnectionIds() {
-		synchronized (this.connections) {
+		this.connectionsMonitor.lock();
+		try {
 			List<String> openConnectionIds = new ArrayList<>();
 			Iterator<Entry<String, TcpConnectionSupport>> iterator = this.connections.entrySet().iterator();
 			while (iterator.hasNext()) {
@@ -898,6 +910,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 			return openConnectionIds;
+		}
+		finally {
+			this.connectionsMonitor.unlock();
 		}
 	}
 
@@ -959,7 +974,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	public boolean closeConnection(String connectionId) {
 		Assert.notNull(connectionId, "'connectionId' to close must not be null");
 		// closed connections are removed from #connections in #harvestClosedConnections()
-		synchronized (this.connections) {
+		this.connectionsMonitor.lock();
+		try {
 			boolean closed = false;
 			TcpConnectionSupport connection = this.connections.remove(connectionId);
 			if (connection != null) {
@@ -974,6 +990,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 			return closed;
+		}
+		finally {
+			this.connectionsMonitor.unlock();
 		}
 	}
 

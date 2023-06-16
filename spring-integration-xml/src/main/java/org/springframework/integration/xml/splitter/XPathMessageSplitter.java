@@ -22,6 +22,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -72,7 +74,9 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 	private final TransformerFactory transformerFactory;
 
-	private final Object documentBuilderFactoryMonitor = new Object();
+	private final Lock documentBuilderFactoryMonitor = new ReentrantLock();
+
+	private final Lock transformerFactoryMonitor = new ReentrantLock();
 
 	private final XPathExpression xpathExpression;
 
@@ -249,8 +253,12 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	private Object splitDocument(Document document) throws ParserConfigurationException, TransformerException {
 		Object nodes = splitNode(document);
 		final Transformer transformer;
-		synchronized (this.transformerFactory) {
+		this.transformerFactoryMonitor.lock();
+		try {
 			transformer = this.transformerFactory.newTransformer();
+		}
+		finally {
+			this.transformerFactoryMonitor.unlock();
 		}
 		if (this.outputProperties != null) {
 			transformer.setOutputProperties(this.outputProperties);
@@ -317,8 +325,12 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	}
 
 	private DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
-		synchronized (this.documentBuilderFactoryMonitor) {
+		this.documentBuilderFactoryMonitor.lock();
+		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
+		}
+		finally {
+			this.documentBuilderFactoryMonitor.unlock();
 		}
 	}
 

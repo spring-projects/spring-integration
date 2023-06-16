@@ -16,6 +16,9 @@
 
 package org.springframework.integration.xml.result;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,6 +38,10 @@ public class DomResultFactory implements ResultFactory {
 
 	private final DocumentBuilderFactory documentBuilderFactory;
 
+	private final Lock documentBuilderFactoryMonitor = new ReentrantLock();
+
+	private final Lock lock = new ReentrantLock();
+
 
 	public DomResultFactory() {
 		this(DocumentBuilderFactoryUtils.newInstance());
@@ -48,7 +55,8 @@ public class DomResultFactory implements ResultFactory {
 
 
 	@Override
-	public synchronized Result createResult(Object payload) {
+	public Result createResult(Object payload) {
+		this.lock.lock();
 		try {
 			return new DOMResult(getNewDocumentBuilder().newDocument());
 		}
@@ -56,11 +64,18 @@ public class DomResultFactory implements ResultFactory {
 			throw new MessagingException("failed to create Result for payload type [" +
 					payload.getClass().getName() + "]", e);
 		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	protected DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
-		synchronized (this.documentBuilderFactory) {
+		this.documentBuilderFactoryMonitor.lock();
+		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
+		}
+		finally {
+			this.documentBuilderFactoryMonitor.unlock();
 		}
 	}
 

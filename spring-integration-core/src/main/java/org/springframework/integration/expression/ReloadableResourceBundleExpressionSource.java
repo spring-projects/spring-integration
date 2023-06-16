@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -80,15 +82,21 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 */
 	private final Map<String, Map<Locale, List<String>>> cachedFilenames = new HashMap<>();
 
+	private final Lock cachedFilenamesMonitor = new ReentrantLock();
+
 	/**
 	 * Cache to hold already loaded properties per filename.
 	 */
 	private final Map<String, PropertiesHolder> cachedProperties = new HashMap<>();
 
+	private final Lock cachedPropertiesMonitor = new ReentrantLock();
+
 	/**
 	 * Cache to hold merged loaded properties per locale.
 	 */
 	private final Map<Locale, PropertiesHolder> cachedMergedProperties = new HashMap<>();
+
+	private final Lock cachedMergedPropertiesMonitor = new ReentrantLock();
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -282,7 +290,8 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * cached forever.
 	 */
 	private PropertiesHolder getMergedProperties(Locale locale) {
-		synchronized (this.cachedMergedProperties) {
+		this.cachedMergedPropertiesMonitor.lock();
+		try {
 			PropertiesHolder mergedHolder = this.cachedMergedProperties.get(locale);
 			if (mergedHolder != null) {
 				return mergedHolder;
@@ -303,6 +312,9 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			this.cachedMergedProperties.put(locale, mergedHolder);
 			return mergedHolder;
 		}
+		finally {
+			this.cachedMergedPropertiesMonitor.unlock();
+		}
 	}
 
 	/**
@@ -316,7 +328,8 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @see #calculateFilenamesForLocale
 	 */
 	private List<String> calculateAllFilenames(String basename, Locale locale) {
-		synchronized (this.cachedFilenames) {
+		this.cachedFilenamesMonitor.lock();
+		try {
 			Map<Locale, List<String>> localeMap = this.cachedFilenames.get(basename);
 			if (localeMap != null) {
 				List<String> filenames = localeMap.get(locale);
@@ -344,6 +357,9 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 				this.cachedFilenames.put(basename, localeMap);
 			}
 			return filenames;
+		}
+		finally {
+			this.cachedFilenamesMonitor.unlock();
 		}
 	}
 
@@ -392,7 +408,8 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @return the current PropertiesHolder for the bundle
 	 */
 	private PropertiesHolder getProperties(String filename) {
-		synchronized (this.cachedProperties) {
+		this.cachedPropertiesMonitor.lock();
+		try {
 			PropertiesHolder propHolder = this.cachedProperties.get(filename);
 			if (propHolder != null &&
 					(propHolder.getRefreshTimestamp() < 0 ||
@@ -400,6 +417,9 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 				return propHolder;
 			}
 			return refreshProperties(filename, propHolder);
+		}
+		finally {
+			this.cachedPropertiesMonitor.unlock();
 		}
 	}
 
@@ -539,11 +559,20 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 */
 	public void clearCache() {
 		LOGGER.debug("Clearing entire resource bundle cache");
-		synchronized (this.cachedProperties) {
+		this.cachedPropertiesMonitor.lock();
+		try {
 			this.cachedProperties.clear();
 		}
-		synchronized (this.cachedMergedProperties) {
+		finally {
+			this.cachedPropertiesMonitor.unlock();
+		}
+
+		this.cachedMergedPropertiesMonitor.lock();
+		try {
 			this.cachedMergedProperties.clear();
+		}
+		finally {
+			this.cachedMergedPropertiesMonitor.unlock();
 		}
 	}
 
