@@ -56,8 +56,6 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
 public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 		implements WebSocketConfigurer, SmartLifecycle {
 
-	private final Lock lock = new ReentrantLock();
-
 	private final String[] paths;
 
 	private HandshakeHandler handshakeHandler;

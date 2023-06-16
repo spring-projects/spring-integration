@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,6 +68,8 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 	public static final int DEFAULT_SEND_BUFFER_SIZE = 512 * 1024;
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR
+
+	protected final Lock lock = new ReentrantLock();
 
 	private WebSocketHandler webSocketHandler = new IntegrationWebSocketHandler();
 

@@ -69,7 +69,7 @@ public class UnicastSendingMessageHandler extends
 
 	private static final int DEFAULT_ACK_TIMEOUT = 5000;
 
-	private final Lock lock = new ReentrantLock();
+	protected final Lock lock = new ReentrantLock();
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 

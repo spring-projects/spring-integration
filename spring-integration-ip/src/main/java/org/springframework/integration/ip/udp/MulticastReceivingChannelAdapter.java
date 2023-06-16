@@ -42,8 +42,6 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 
 	private final String group;
 
-	private final Lock lock = new ReentrantLock();
-
 	/**
 	 * Constructs a MulticastReceivingChannelAdapter that listens for packets on the
 	 * specified multichannel address (group) and port.

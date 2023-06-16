@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,17 @@ package org.springframework.integration.core;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
- * @author Christian Tzolov
  *
  */
 class TimeBasedUUIDGenerator {
 
-	static final Lock lock = new ReentrantLock();
+	static final Object lock = new Object();
 
 	private static final Logger logger = Logger.getLogger(TimeBasedUUIDGenerator.class.getName());
 
@@ -59,8 +56,7 @@ class TimeBasedUUIDGenerator {
 	static UUID generateIdFromTimestamp(long currentTimeMillis) {
 		long time;
 
-		lock.lock();
-		try {
+		synchronized (lock) {
 			if (currentTimeMillis > lastTime) {
 				lastTime = currentTimeMillis;
 				clockSequence = 0;
@@ -69,9 +65,7 @@ class TimeBasedUUIDGenerator {
 				++clockSequence;
 			}
 		}
-		finally {
-			lock.unlock();
-		}
+
 
 		time = currentTimeMillis;
 

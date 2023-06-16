@@ -63,7 +63,7 @@ public class JdbcLockRegistryDelegateTests {
 
 		final Lock lock = registry.obtain("foo");
 		for (int i = 0; i < lockCount; i++) {
-			lock.lock();
+			lock.tryLock();
 		}
 		for (int i = 0; i < unlockCount; i++) {
 			lock.unlock();
@@ -79,7 +79,7 @@ public class JdbcLockRegistryDelegateTests {
 
 		final Lock lock = registry.obtain("foo");
 		for (int i = 0; i < lockCount; i++) {
-			lock.lock();
+			lock.tryLock();
 		}
 		for (int i = 0; i < lockCount; i++) {
 			lock.unlock();
@@ -91,7 +91,7 @@ public class JdbcLockRegistryDelegateTests {
 	@Test
 	public void testTransientDataAccessException() {
 		final Lock lock = registry.obtain("foo");
-		lock.lock();
+		lock.tryLock();
 
 		final AtomicBoolean shouldThrow = new AtomicBoolean(true);
 		doAnswer(invocation -> {
@@ -109,7 +109,7 @@ public class JdbcLockRegistryDelegateTests {
 	@Test
 	public void testTransactionTimedOutException() {
 		final Lock lock = registry.obtain("foo");
-		lock.lock();
+		lock.tryLock();
 
 		final AtomicBoolean shouldThrow = new AtomicBoolean(true);
 		doAnswer(invocation -> {
@@ -127,7 +127,7 @@ public class JdbcLockRegistryDelegateTests {
 	@Test
 	public void testTransactionSystemException() {
 		final Lock lock = registry.obtain("foo");
-		lock.lock();
+		lock.tryLock();
 
 		final AtomicBoolean shouldThrow = new AtomicBoolean(true);
 		doAnswer(invocation -> {

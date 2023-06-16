@@ -50,7 +50,7 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 
 	private static final int DEFAULT_MANAGER_PHASE = 0;
 
-	private final Lock lock = new ReentrantLock();
+	protected final Lock lock = new ReentrantLock();
 
 	private final Set<ConnectCallback> connectCallbacks = Collections.synchronizedSet(new HashSet<>());
 

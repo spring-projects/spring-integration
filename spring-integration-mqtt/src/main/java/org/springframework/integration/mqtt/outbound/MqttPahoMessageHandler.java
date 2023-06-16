@@ -61,8 +61,6 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyncClient, MqttConnectOptions>
 		implements MqttCallback, MqttPahoComponent {
 
-	private final Lock lock = new ReentrantLock();
-
 	private final MqttPahoClientFactory clientFactory;
 
 	private boolean async;

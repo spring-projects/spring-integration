@@ -47,8 +47,6 @@ public class Mqttv3ClientManager
 		extends AbstractMqttClientManager<IMqttAsyncClient, MqttConnectOptions>
 		implements MqttCallbackExtended {
 
-	private final Lock lock = new ReentrantLock();
-
 	private final MqttConnectOptions connectionOptions;
 
 	private MqttClientPersistence persistence;

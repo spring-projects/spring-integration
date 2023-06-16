@@ -84,8 +84,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectionOptions>
 		implements MqttCallback, MqttComponent<MqttConnectionOptions> {
 
-	private final Lock lock = new ReentrantLock();
-
 	private final MqttConnectionOptions connectionOptions;
 
 	private IMqttAsyncClient mqttClient;
@@ -234,7 +232,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	protected void doStop() {
-		this.topicLock.lock();
+		this.lock.lock();
 		this.readyToSubscribeOnStart = false;
 		String[] topics = getTopic();
 		try {
@@ -254,7 +252,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			logger.error(ex, () -> "Error unsubscribing from " + Arrays.toString(topics));
 		}
 		finally {
-			this.topicLock.unlock();
+			this.lock.unlock();
 		}
 	}
 
@@ -273,7 +271,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	public void addTopic(String topic, int qos) {
-		this.topicLock.lock();
+		this.lock.lock();
 		try {
 			super.addTopic(topic, qos);
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
@@ -285,13 +283,13 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			throw new MessagingException("Failed to subscribe to topic " + topic, ex);
 		}
 		finally {
-			this.topicLock.unlock();
+			this.lock.unlock();
 		}
 	}
 
 	@Override
 	public void removeTopic(String... topic) {
-		this.topicLock.lock();
+		this.lock.lock();
 		try {
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				this.mqttClient.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
@@ -302,7 +300,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			throw new MessagingException("Failed to unsubscribe from topic(s) " + Arrays.toString(topic), ex);
 		}
 		finally {
-			this.topicLock.unlock();
+			this.lock.unlock();
 		}
 	}
 
@@ -395,7 +393,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 		String[] topics = getTopic();
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		this.topicLock.lock();
+		this.lock.lock();
 		try {
 			if (topics.length == 0) {
 				return;
@@ -424,7 +422,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
 		}
 		finally {
-			this.topicLock.unlock();
+			this.lock.unlock();
 		}
 	}
 

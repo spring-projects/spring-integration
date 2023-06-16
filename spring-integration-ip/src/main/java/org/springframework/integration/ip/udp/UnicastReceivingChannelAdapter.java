@@ -56,7 +56,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
-	private final Lock lock = new ReentrantLock();
+	protected final Lock lock = new ReentrantLock();
 
 	private DatagramSocket socket;
 

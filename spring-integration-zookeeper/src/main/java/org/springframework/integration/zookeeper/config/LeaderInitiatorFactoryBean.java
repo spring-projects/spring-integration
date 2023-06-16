@@ -46,8 +46,6 @@ import org.springframework.util.Assert;
 public class LeaderInitiatorFactoryBean
 		implements FactoryBean<LeaderInitiator>, SmartLifecycle, InitializingBean, ApplicationEventPublisherAware {
 
-	private final Lock lock = new ReentrantLock();
-
 	private CuratorFramework client;
 
 	private Candidate candidate;
@@ -183,13 +181,7 @@ public class LeaderInitiatorFactoryBean
 
 	@Override
 	public LeaderInitiator getObject() {
-		this.lock.lock();
-		try {
-			return this.leaderInitiator;
-		}
-		finally {
-			this.lock.unlock();
-		}
+		return this.leaderInitiator;
 	}
 
 	@Override

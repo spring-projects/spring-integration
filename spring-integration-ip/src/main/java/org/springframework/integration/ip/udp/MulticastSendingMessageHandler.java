@@ -51,8 +51,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	private volatile MulticastSocket multicastSocket;
 
-	private final Lock lock = new ReentrantLock();
-
 	/**
 	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port.
 	 * @param address The multicast address.

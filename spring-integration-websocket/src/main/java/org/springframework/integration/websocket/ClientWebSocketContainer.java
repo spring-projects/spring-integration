@@ -56,8 +56,6 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	private static final int DEFAULT_CONNECTION_TIMEOUT = 10;
 
-	private final Lock lock = new ReentrantLock();
-
 	private final WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
 
 	private final IntegrationWebSocketConnectionManager connectionManager;

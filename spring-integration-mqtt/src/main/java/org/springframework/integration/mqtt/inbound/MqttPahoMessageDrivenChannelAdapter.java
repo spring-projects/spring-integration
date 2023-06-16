@@ -67,8 +67,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectOptions>
 		implements MqttCallbackExtended, MqttPahoComponent {
 
-	private final Lock lock = new ReentrantLock();
-
 	private final MqttPahoClientFactory clientFactory;
 
 	private volatile IMqttAsyncClient client;
@@ -254,7 +252,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	@Override
 	public void addTopic(String topic, int qos) {
-		this.topicLock.lock();
+		this.lock.lock();
 		try {
 			super.addTopic(topic, qos);
 			if (this.client != null && this.client.isConnected()) {
@@ -267,13 +265,13 @@ public class MqttPahoMessageDrivenChannelAdapter
 			throw new MessagingException("Failed to subscribe to topic " + topic, e);
 		}
 		finally {
-			this.topicLock.unlock();
+			this.lock.unlock();
 		}
 	}
 
 	@Override
 	public void removeTopic(String... topic) {
-		this.topicLock.lock();
+		this.lock.lock();
 		try {
 			if (this.client != null && this.client.isConnected()) {
 				this.client.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
@@ -284,12 +282,12 @@ public class MqttPahoMessageDrivenChannelAdapter
 			throw new MessagingException("Failed to unsubscribe from topic(s) " + Arrays.toString(topic), e);
 		}
 		finally {
-			this.topicLock.unlock();
+			this.lock.unlock();
 		}
 	}
 
 	private void subscribe() {
-		this.topicLock.lock();
+		this.lock.lock();
 		String[] topics = getTopic();
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		try {
@@ -316,7 +314,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
 		}
 		finally {
-			this.topicLock.unlock();
+			this.lock.unlock();
 		}
 		if (this.client.isConnected()) {
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
