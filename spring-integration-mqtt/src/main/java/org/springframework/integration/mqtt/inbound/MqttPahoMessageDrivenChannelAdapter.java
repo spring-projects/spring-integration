@@ -17,6 +17,8 @@
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
@@ -56,7 +58,6 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
- * @author Christian Tzolov
  *
  * @since 4.0
  *
@@ -64,6 +65,9 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectOptions>
 		implements MqttCallbackExtended, MqttPahoComponent {
+
+
+	private final Lock lock =  new ReentrantLock();
 
 	private final MqttPahoClientFactory clientFactory;
 
@@ -250,7 +254,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 	@Override
 	public void addTopic(String topic, int qos) {
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			super.addTopic(topic, qos);
 			if (this.client != null && this.client.isConnected()) {
@@ -263,13 +267,13 @@ public class MqttPahoMessageDrivenChannelAdapter
 			throw new MessagingException("Failed to subscribe to topic " + topic, e);
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
 	@Override
 	public void removeTopic(String... topic) {
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			if (this.client != null && this.client.isConnected()) {
 				this.client.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
@@ -280,12 +284,12 @@ public class MqttPahoMessageDrivenChannelAdapter
 			throw new MessagingException("Failed to unsubscribe from topic(s) " + Arrays.toString(topic), e);
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
 	private void subscribe() {
-		this.lock.lock();
+		this.topicLock.lock();
 		String[] topics = getTopic();
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		try {
@@ -312,7 +316,7 @@ public class MqttPahoMessageDrivenChannelAdapter
 			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 		if (this.client.isConnected()) {
 			String message = "Connected and subscribed to " + Arrays.toString(topics);

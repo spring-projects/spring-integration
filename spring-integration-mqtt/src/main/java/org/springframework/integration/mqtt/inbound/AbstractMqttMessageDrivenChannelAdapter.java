@@ -58,7 +58,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends MessageProducerSupport
 		implements ApplicationEventPublisherAware, ClientManager.ConnectCallback {
 
-	protected final Lock lock = new ReentrantLock(); // NOSONAR
+	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
 
 	private final String url;
 
@@ -137,7 +137,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	@ManagedAttribute
 	public int[] getQos() {
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			int[] topicQos = new int[this.topics.size()];
 			int n = 0;
@@ -147,7 +147,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 			return topicQos;
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
@@ -167,12 +167,12 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	@ManagedAttribute
 	public String[] getTopic() {
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			return this.topics.keySet().toArray(new String[0]);
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
@@ -256,7 +256,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	 */
 	@ManagedOperation
 	public void addTopic(String topic, int qos) {
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			if (this.topics.containsKey(topic)) {
 				throw new MessagingException("Topic '" + topic + "' is already subscribed.");
@@ -265,7 +265,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 			logger.debug(LogMessage.format("Added '%s' to subscriptions.", topic));
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
@@ -278,14 +278,14 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	@ManagedOperation
 	public void addTopic(String... topic) {
 		Assert.notNull(topic, "'topic' cannot be null");
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			for (String t : topic) {
 				addTopic(t, 1);
 			}
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
@@ -301,7 +301,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		Assert.notNull(topic, "'topic' cannot be null.");
 		Assert.noNullElements(topic, "'topic' cannot contain any null elements.");
 		Assert.isTrue(topic.length == qos.length, "topic and qos arrays must the be the same length.");
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			for (String newTopic : topic) {
 				if (this.topics.containsKey(newTopic)) {
@@ -313,7 +313,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 			}
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
@@ -325,7 +325,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	 */
 	@ManagedOperation
 	public void removeTopic(String... topic) {
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			for (String name : topic) {
 				if (this.topics.remove(name) != null) {
@@ -334,7 +334,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 			}
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 

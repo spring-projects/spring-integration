@@ -18,6 +18,8 @@ package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.IntStream;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
@@ -73,7 +75,6 @@ import org.springframework.util.Assert;
  * @author Lucas Bowler
  * @author Artem Vozhdayenko
  * @author Matthias Thoma
- * @author Christian Tzolov
  *
  * @since 5.5.5
  *
@@ -81,6 +82,8 @@ import org.springframework.util.Assert;
 public class Mqttv5PahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectionOptions>
 		implements MqttCallback, MqttComponent<MqttConnectionOptions> {
+
+	private final Lock lock =  new ReentrantLock();
 
 	private final MqttConnectionOptions connectionOptions;
 
@@ -213,7 +216,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	}
 
 	private void connect() throws MqttException {
-		this.lock.lock();
+		this.lock.unlock();
 		try {
 			var clientManager = getClientManager();
 			if (clientManager == null) {
@@ -230,7 +233,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	protected void doStop() {
-		this.lock.lock();
+		this.topicLock.lock();
 		this.readyToSubscribeOnStart = false;
 		String[] topics = getTopic();
 		try {
@@ -250,7 +253,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			logger.error(ex, () -> "Error unsubscribing from " + Arrays.toString(topics));
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
@@ -269,7 +272,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	@Override
 	public void addTopic(String topic, int qos) {
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			super.addTopic(topic, qos);
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
@@ -281,13 +284,13 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			throw new MessagingException("Failed to subscribe to topic " + topic, ex);
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
 	@Override
 	public void removeTopic(String... topic) {
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				this.mqttClient.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
@@ -298,7 +301,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			throw new MessagingException("Failed to unsubscribe from topic(s) " + Arrays.toString(topic), ex);
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
@@ -391,7 +394,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 		String[] topics = getTopic();
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		this.lock.lock();
+		this.topicLock.lock();
 		try {
 			if (topics.length == 0) {
 				return;
@@ -420,7 +423,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
 		}
 		finally {
-			this.lock.unlock();
+			this.topicLock.unlock();
 		}
 	}
 
