@@ -66,7 +66,6 @@ public class MqttPahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectOptions>
 		implements MqttCallbackExtended, MqttPahoComponent {
 
-
 	private final Lock lock =  new ReentrantLock();
 
 	private final MqttPahoClientFactory clientFactory;

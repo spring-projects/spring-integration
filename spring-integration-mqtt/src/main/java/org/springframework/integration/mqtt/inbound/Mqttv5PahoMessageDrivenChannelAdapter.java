@@ -216,7 +216,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	}
 
 	private void connect() throws MqttException {
-		this.lock.unlock();
+		this.lock.lock();
 		try {
 			var clientManager = getClientManager();
 			if (clientManager == null) {
