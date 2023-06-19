@@ -81,11 +81,11 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	protected final StompClientSupport stompClient; // NOSONAR final
 
-	private final Lock lock = new ReentrantLock();
-
 	private final CompositeStompSessionHandler compositeStompSessionHandler = new CompositeStompSessionHandler();
 
 	private final Lock lifecycleMonitor = new ReentrantLock();
+
+	private final Lock lock = new ReentrantLock();
 
 	private final AtomicInteger epoch = new AtomicInteger();
 
@@ -390,7 +390,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 				this.delegates.add(delegate);
 			}
 			finally {
-				this.delegatesMonitor.lock();
+				this.delegatesMonitor.unlock();
 			}
 		}
 
