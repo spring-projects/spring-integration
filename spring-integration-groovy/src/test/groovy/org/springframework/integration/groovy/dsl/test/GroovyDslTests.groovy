@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,11 +130,14 @@ class GroovyDslTests {
 		def publisher = Flux.just(2, 3).map { new GenericMessage<>(it) }
 
 		def integrationFlow =
-				integrationFlow(publisher)
-						{
-							transform Message<Integer>, { it.payload * 2 }, { id 'foo' }
-							channel fluxChannel
-						}
+				integrationFlow(publisher) {
+					transform {
+						it.<Message<Integer>, Integer>transformer { it.payload * 2 }
+						expectedType Message<Integer>
+						id 'foo'
+					}
+					channel fluxChannel
+				}
 
 		def registration = this.integrationFlowContext.registration(integrationFlow).register()
 
@@ -217,7 +220,7 @@ class GroovyDslTests {
 		assert groovyTestService.result.get() == 'TEST'
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableIntegration
 	static class Config {
 
@@ -240,7 +243,9 @@ class GroovyDslTests {
 		requestReplyFlow() {
 			integrationFlow {
 				fluxTransform { it.map { it } }
-				transform String, { it.toUpperCase() }
+				transform {
+					transformer { it.toUpperCase() }
+				}
 			}
 		}
 
@@ -257,8 +262,13 @@ class GroovyDslTests {
 			integrationFlow Function<byte[], String>,
 					{ beanName 'functionGateway' },
 					{
-						transform Transformers.objectToString(), { id 'objectToStringTransformer' }
-						transform String, { it.toUpperCase() }
+						transform {
+							transformer Transformers.objectToString()
+							id 'objectToStringTransformer'
+						}
+						transform {
+							transformer { it.toUpperCase() }
+						}
 						split Message<?>, { it.payload }
 						split Object, { it }, { id 'splitterEndpoint' }
 						resequence()
@@ -314,11 +324,13 @@ class GroovyDslTests {
 				wireTap integrationFlow {
 					channel { queue 'wireTapChannel' }
 				}
-				delay  {
+				delay {
 					messageGroupId 'delayGroup'
 					defaultDelay 100
 				}
-				transform String, { it.toUpperCase() }
+				transform {
+					transformer { it.toUpperCase() }
+				}
 			}
 		}
 

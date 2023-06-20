@@ -783,8 +783,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate a {@link MessageTransformingHandler} into the endpoint with provided {@link TransformerSpec} options.
 	 * One of the 'expression', 'ref', 'refName', 'processor' or 'function' must be provided.
-	 * @param <P> the payload type - 'transform from', or {@code Message.class}.
-	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @since 6.2
 	 */

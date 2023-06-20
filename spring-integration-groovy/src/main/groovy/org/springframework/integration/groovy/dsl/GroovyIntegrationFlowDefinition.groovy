@@ -47,6 +47,7 @@ import org.springframework.integration.dsl.ResequencerSpec
 import org.springframework.integration.dsl.RouterSpec
 import org.springframework.integration.dsl.ScatterGatherSpec
 import org.springframework.integration.dsl.SplitterEndpointSpec
+import org.springframework.integration.dsl.TransformerSpec
 import org.springframework.integration.dsl.WireTapSpec
 import org.springframework.integration.filter.MethodInvokingSelector
 import org.springframework.integration.handler.BridgeHandler
@@ -289,8 +290,10 @@ class GroovyIntegrationFlowDefinition {
 	 * for the SpEL {@link org.springframework.expression.Expression}.
 	 * @param expression the {@code Transformer} {@link org.springframework.expression.Expression}.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @see org.springframework.integration.transformer.ExpressionEvaluatingTransformer
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
 	GroovyIntegrationFlowDefinition transform(
 			String expression,
 			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
@@ -308,8 +311,10 @@ class GroovyIntegrationFlowDefinition {
 	 * @param service the service to use.
 	 * @param methodName the method to invoke.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @deprecated since 6.2 in favor of {@link #transform(Closure)}
 	 * @see ExpressionEvaluatingTransformer
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
 	GroovyIntegrationFlowDefinition transform(
 			Object service, String methodName = null,
 			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
@@ -326,8 +331,10 @@ class GroovyIntegrationFlowDefinition {
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @deprecated since 6.2 in favor of {@link #transform(Closure)}
 	 * @see MethodInvokingTransformer
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
 	GroovyIntegrationFlowDefinition transform(
 			MessageProcessorSpec<?> messageProcessorSpec,
 			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
@@ -335,6 +342,24 @@ class GroovyIntegrationFlowDefinition {
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.transform messageProcessorSpec, createConfigurerIfAny(endpointConfigurer)
+		this
+	}
+
+	/**
+	 * Populate the {@link MessageTransformingHandler} instance for the
+	 * {@link org.springframework.integration.handler.MessageProcessor} from provided {@link MessageProcessorSpec}.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
+	 * @param transformerConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @see MethodInvokingTransformer
+	 * @since 6.2
+	 */
+	GroovyIntegrationFlowDefinition transform(
+			@DelegatesTo(value = TransformerSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.TransformerSpec')
+					Closure<?> transformerConfigurer) {
+
+		this.delegate.transformWith createConfigurerIfAny(transformerConfigurer)
 		this
 	}
 
@@ -367,7 +392,9 @@ class GroovyIntegrationFlowDefinition {
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param < P >                                                  the payload type - 'transform from', or {@code Message.class}.
 	 * @param < T >                                                  the target type - 'transform to'.
+	 * @deprecated since 6.2 in favor of {@link #transform(Closure)}
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
 	<P, T> GroovyIntegrationFlowDefinition transform(
 			GenericTransformer<P, T> genericTransformer,
 			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
@@ -389,7 +416,9 @@ class GroovyIntegrationFlowDefinition {
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param < P >                                                  the payload type - 'transform from', or {@code Message.class}.
 	 * @param < T >                                                  the target type - 'transform to'.
+	 * @deprecated since 6.2 in favor of {@link #transform(Closure)}
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
 	<P, T> GroovyIntegrationFlowDefinition transform(
 			Class<P> expectedType,
 			GenericTransformer<P, T> genericTransformer,
@@ -1336,7 +1365,7 @@ class GroovyIntegrationFlowDefinition {
 			return {
 				closure.delegate = it
 				closure.resolveStrategy = Closure.DELEGATE_FIRST
-				closure()
+				closure(it)
 			} as Consumer<T>
 		}
 		null

@@ -448,8 +448,9 @@ public class FileTests {
 						.from(Files.inboundAdapter(directory).recursive(true),
 								e -> e.poller(p -> p.fixedDelay(1000))
 										.id(directory.getName() + ".adapter"))
-						.transform(Files.toStringTransformer(),
-								e -> e.id(directory.getName() + ".transformer"))
+						.transformWith(t -> t
+								.transformer(Files.toStringTransformer())
+								.id(directory.getName() + ".transformer"))
 						.channel(this.dynamicAdaptersResult)
 						.get();
 				this.beanFactory.initializeBean(integrationFlow, directory.getName());

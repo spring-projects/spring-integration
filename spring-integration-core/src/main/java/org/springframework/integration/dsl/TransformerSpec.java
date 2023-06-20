@@ -65,33 +65,67 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 		super(new MessageTransformingHandler());
 	}
 
+	/**
+	 * Provide an expression to use an {@link ExpressionEvaluatingTransformer} for the target handler.
+	 * @param expression the SpEL expression to use.
+	 * @return the TransformerSpec
+	 */
 	public TransformerSpec expression(String expression) {
 		return expression(PARSER.parseExpression(expression));
 	}
 
+	/**
+	 * Provide an expression to use an {@link ExpressionEvaluatingTransformer} for the target handler.
+	 * @param expression the SpEL expression to use.
+	 * @return the TransformerSpec
+	 */
 	public TransformerSpec expression(Expression expression) {
 		assertTransformerSet();
 		this.expression = expression;
 		return this;
 	}
 
+	/**
+	 * Provide a service to use a {@link MethodInvokingTransformer} for the target handler.
+	 * @param ref the service to call as a transformer POJO.
+	 * @return the TransformerSpec
+	 */
 	public TransformerSpec ref(Object ref) {
 		assertTransformerSet();
 		this.ref = ref;
 		return this;
 	}
 
+	/**
+	 * Provide a bean name to use a {@link MethodInvokingTransformer}
+	 * (based on {@link BeanNameMessageProcessor})for the target handler.
+	 * @param refName the bean name for service to call as a transformer POJO.
+	 * @return the TransformerSpec
+	 */
 	public TransformerSpec refName(String refName) {
 		assertTransformerSet();
 		this.refName = refName;
 		return this;
 	}
 
+	/**
+	 * Provide a service method name to call. Optional.
+	 * Use only together with {@link #ref(Object)} or {@link #refName(String)}.
+	 * @param method the service method name to call.
+	 * @return the TransformerSpec
+	 */
 	public TransformerSpec method(@Nullable String method) {
 		this.method = method;
 		return this;
 	}
 
+	/**
+	 * Provide a {@link GenericTransformer} as a direct delegate for {@link MessageTransformingHandler}.
+	 * @param transformer the {@link GenericTransformer} instance to use.
+	 * @param <P> the input type.
+	 * @param <T> the output type.
+	 * @return the TransformerSpec
+	 */
 	public <P, T> TransformerSpec transformer(GenericTransformer<P, T> transformer) {
 		assertTransformerSet();
 		this.transformer = transformer;
@@ -111,6 +145,11 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 		return this;
 	}
 
+	/**
+	 * Provide a {@link MessageProcessorSpec} as a factory for {@link MethodInvokingTransformer} delegate.
+	 * @param processor the {@link MessageProcessorSpec} to use.
+	 * @return the TransformerSpec
+	 */
 	public TransformerSpec processor(MessageProcessorSpec<?> processor) {
 		assertTransformerSet();
 		this.processor = processor;
@@ -180,7 +219,7 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 
 	private Transformer wrapToTransformerIfAny() {
 		return this.transformer instanceof Transformer ? (Transformer) this.transformer :
-				(ClassUtils.isLambda(this.transformer.getClass())
+				(ClassUtils.isLambda(this.transformer)
 						? new MethodInvokingTransformer(new LambdaMessageProcessor(this.transformer, this.expectedType))
 						: new MethodInvokingTransformer(this.transformer, ClassUtils.TRANSFORMER_TRANSFORM_METHOD));
 	}
