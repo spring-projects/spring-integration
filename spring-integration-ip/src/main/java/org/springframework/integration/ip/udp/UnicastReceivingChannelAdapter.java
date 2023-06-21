@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,6 +46,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
@@ -52,6 +55,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	private static final Pattern ADDRESS_PATTERN = Pattern.compile("([^:]*):([0-9]*)");
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+
+	protected final Lock lock = new ReentrantLock();
 
 	private DatagramSocket socket;
 
@@ -248,27 +253,33 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		return this.socket;
 	}
 
-	public synchronized DatagramSocket getSocket() {
-		if (this.socket == null) {
-			try {
-				DatagramSocket datagramSocket;
-				String localAddress = getLocalAddress();
-				int port = super.getPort();
-				if (localAddress == null) {
-					datagramSocket = port == 0 ? new DatagramSocket() : new DatagramSocket(port);
+	public DatagramSocket getSocket() {
+		this.lock.lock();
+		try {
+			if (this.socket == null) {
+				try {
+					DatagramSocket datagramSocket;
+					String localAddress = getLocalAddress();
+					int port = super.getPort();
+					if (localAddress == null) {
+						datagramSocket = port == 0 ? new DatagramSocket() : new DatagramSocket(port);
+					}
+					else {
+						InetAddress whichNic = InetAddress.getByName(localAddress);
+						datagramSocket = new DatagramSocket(new InetSocketAddress(whichNic, port));
+					}
+					setSocketAttributes(datagramSocket);
+					this.socket = datagramSocket;
 				}
-				else {
-					InetAddress whichNic = InetAddress.getByName(localAddress);
-					datagramSocket = new DatagramSocket(new InetSocketAddress(whichNic, port));
+				catch (IOException e) {
+					throw new MessagingException("failed to create DatagramSocket", e);
 				}
-				setSocketAttributes(datagramSocket);
-				this.socket = datagramSocket;
 			}
-			catch (IOException e) {
-				throw new MessagingException("failed to create DatagramSocket", e);
-			}
+			return this.socket;
 		}
-		return this.socket;
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	/**

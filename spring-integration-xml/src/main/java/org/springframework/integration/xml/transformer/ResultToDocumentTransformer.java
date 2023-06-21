@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.xml.transformer;
 
 import java.io.StringReader;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,8 +40,11 @@ import org.springframework.xml.transform.StringResult;
  *
  * @author Jonas Partner
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class ResultToDocumentTransformer implements ResultTransformer {
+
+	private final Lock lock = new ReentrantLock();
 
 	// Not guaranteed to be thread safe
 	private final DocumentBuilderFactory documentBuilderFactory;
@@ -84,12 +89,16 @@ public class ResultToDocumentTransformer implements ResultTransformer {
 		}
 	}
 
-	private synchronized DocumentBuilder getDocumentBuilder() {
+	private DocumentBuilder getDocumentBuilder() {
+		this.lock.lock();
 		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
 		}
 		catch (ParserConfigurationException e) {
 			throw new MessagingException("failed to create a new DocumentBuilder", e);
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

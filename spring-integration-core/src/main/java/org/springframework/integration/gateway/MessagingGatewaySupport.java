@@ -19,6 +19,8 @@ package org.springframework.integration.gateway;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import io.micrometer.observation.ObservationRegistry;
 import org.reactivestreams.Publisher;
@@ -86,6 +88,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Trung Pham
+ * @author Christian Tzolov
  */
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
@@ -99,7 +102,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor =
 			new HistoryWritingMessagePostProcessor();
 
-	private final Object replyMessageCorrelatorMonitor = new Object();
+	private final Lock replyMessageCorrelatorMonitor = new ReentrantLock();
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
 
@@ -892,7 +895,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	protected void registerReplyMessageCorrelatorIfNecessary() {
 		MessageChannel replyChan = getReplyChannel();
 		if (replyChan != null && this.replyMessageCorrelator == null) {
-			synchronized (this.replyMessageCorrelatorMonitor) {
+			this.replyMessageCorrelatorMonitor.lock();
+			try {
 				if (this.replyMessageCorrelator != null) {
 					return;
 				}
@@ -922,6 +926,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				}
 				correlator.afterPropertiesSet();
 				this.replyMessageCorrelator = correlator;
+			}
+			finally {
+				this.replyMessageCorrelatorMonitor.unlock();
 			}
 			if (isRunning()) {
 				this.replyMessageCorrelator.start();

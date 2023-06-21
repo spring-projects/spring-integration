@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -46,6 +48,7 @@ import org.springframework.util.Assert;
  * @author Josh Long
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class CompositeFileListFilter<F>
 		implements ReversibleFileListFilter<F>, ResettableFileListFilter<F>, DiscardAwareFileListFilter<F>, Closeable {
@@ -58,6 +61,7 @@ public class CompositeFileListFilter<F>
 
 	private boolean oneIsForRecursion;
 
+	private final Lock lock = new ReentrantLock();
 
 	public CompositeFileListFilter() {
 		this.fileFilters = new LinkedHashSet<>();
@@ -104,24 +108,30 @@ public class CompositeFileListFilter<F>
 	 * @param filtersToAdd a list of filters to add
 	 * @return this CompositeFileListFilter instance with the added filters
 	 */
-	public synchronized CompositeFileListFilter<F> addFilters(Collection<? extends FileListFilter<F>> filtersToAdd) {
-		for (FileListFilter<F> elf : filtersToAdd) {
-			if (elf instanceof DiscardAwareFileListFilter) {
-				((DiscardAwareFileListFilter<F>) elf).addDiscardCallback(this.discardCallback);
-			}
-			if (elf instanceof InitializingBean) {
-				try {
-					((InitializingBean) elf).afterPropertiesSet();
+	public CompositeFileListFilter<F> addFilters(Collection<? extends FileListFilter<F>> filtersToAdd) {
+		this.lock.lock();
+		try {
+			for (FileListFilter<F> elf : filtersToAdd) {
+				if (elf instanceof DiscardAwareFileListFilter) {
+					((DiscardAwareFileListFilter<F>) elf).addDiscardCallback(this.discardCallback);
 				}
-				catch (Exception e) {
-					throw new IllegalStateException(e);
+				if (elf instanceof InitializingBean) {
+					try {
+						((InitializingBean) elf).afterPropertiesSet();
+					}
+					catch (Exception e) {
+						throw new IllegalStateException(e);
+					}
 				}
+				this.allSupportAccept = this.allSupportAccept && elf.supportsSingleFileFiltering();
+				this.oneIsForRecursion |= elf.isForRecursion();
 			}
-			this.allSupportAccept = this.allSupportAccept && elf.supportsSingleFileFiltering();
-			this.oneIsForRecursion |= elf.isForRecursion();
+			this.fileFilters.addAll(filtersToAdd);
+			return this;
 		}
-		this.fileFilters.addAll(filtersToAdd);
-		return this;
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLSession;
 
@@ -37,6 +39,8 @@ import org.springframework.util.Assert;
  * succeeds or the list is exhausted.
  *
  * @author Gary Russell
+ * @author Christian Tzolov
+ *
  * @since 2.2
  *
  */
@@ -224,6 +228,8 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	 */
 	private final class FailoverTcpConnection extends TcpConnectionSupport implements TcpListener {
 
+		private final Lock lock = new ReentrantLock();
+
 		private final List<AbstractClientConnectionFactory> connectionFactories;
 
 		private final String connectionId;
@@ -257,45 +263,50 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * factories are down.
 		 * @throws InterruptedException if interrupted.
 		 */
-		private synchronized void findAConnection() throws InterruptedException {
-			boolean success = false;
-			AbstractClientConnectionFactory lastFactoryToTry = this.currentFactory;
-			AbstractClientConnectionFactory nextFactory = null;
-			if (!this.factoryIterator.hasNext()) {
-				this.factoryIterator = this.connectionFactories.iterator();
+		private void findAConnection() throws InterruptedException {
+			this.lock.lock();
+			try {
+				boolean success = false;
+				AbstractClientConnectionFactory lastFactoryToTry = this.currentFactory;
+				AbstractClientConnectionFactory nextFactory = null;
+				if (!this.factoryIterator.hasNext()) {
+					this.factoryIterator = this.connectionFactories.iterator();
+				}
+				boolean restartedList = false;
+				while (!success) {
+					try {
+						nextFactory = this.factoryIterator.next();
+						this.delegate = nextFactory.getConnection();
+						if (logger.isDebugEnabled()) {
+							logger.debug("Got " + this.delegate.getConnectionId() + " from " + nextFactory);
+						}
+						this.delegate.registerListener(this);
+						this.currentFactory = nextFactory;
+						success = this.delegate.isOpen();
+					}
+					catch (RuntimeException e) {
+						if (logger.isDebugEnabled()) {
+							logger.debug(nextFactory + " failed with "
+									+ e.toString()
+									+ ", trying another");
+						}
+						if (restartedList && (lastFactoryToTry == null || lastFactoryToTry.equals(nextFactory))) {
+							logger.debug("Failover failed to find a connection");
+							/*
+							 * We've tried every factory including the one the current connection was on.
+							 */
+							this.open = false;
+							throw e;
+						}
+						if (!this.factoryIterator.hasNext()) {
+							this.factoryIterator = this.connectionFactories.iterator();
+							restartedList = true;
+						}
+					}
+				}
 			}
-			boolean restartedList = false;
-			while (!success) {
-				try {
-					nextFactory = this.factoryIterator.next();
-					this.delegate = nextFactory.getConnection();
-					if (logger.isDebugEnabled()) {
-						logger.debug("Got " + this.delegate.getConnectionId() + " from " + nextFactory);
-					}
-					this.delegate.registerListener(this);
-					this.currentFactory = nextFactory;
-					success = this.delegate.isOpen();
-				}
-				catch (RuntimeException e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug(nextFactory + " failed with "
-								+ e.toString()
-								+ ", trying another");
-					}
-					if (restartedList && (lastFactoryToTry == null || lastFactoryToTry.equals(nextFactory))) {
-						logger.debug("Failover failed to find a connection");
-						/*
-						 *  We've tried every factory including the
-						 *  one the current connection was on.
-						 */
-						this.open = false;
-						throw e;
-					}
-					if (!this.factoryIterator.hasNext()) {
-						this.factoryIterator = this.connectionFactories.iterator();
-						restartedList = true;
-					}
-				}
+			finally {
+				this.lock.unlock();
 			}
 		}
 
@@ -316,38 +327,45 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * If send fails on a connection from every factory, we give up.
 		 */
 		@Override
-		public synchronized void send(Message<?> message) {
-			boolean success = false;
-			AbstractClientConnectionFactory lastFactoryToTry = this.currentFactory;
-			AbstractClientConnectionFactory lastFactoryTried = null;
-			boolean retried = false;
-			while (!success) {
-				try {
-					lastFactoryTried = this.currentFactory;
-					this.delegate.send(message);
-					success = true;
-				}
-				catch (RuntimeException e) {
-					if (retried && lastFactoryTried.equals(lastFactoryToTry)) {
-						logger.error("All connection factories exhausted", e);
-						this.open = false;
-						throw e;
-					}
-					retried = true;
-					if (logger.isDebugEnabled()) {
-						logger.debug("Send to " + this.delegate.getConnectionId() + " failed; attempting failover", e);
-					}
-					this.delegate.close();
+		public void send(Message<?> message) {
+			this.lock.lock();
+			try {
+				boolean success = false;
+				AbstractClientConnectionFactory lastFactoryToTry = this.currentFactory;
+				AbstractClientConnectionFactory lastFactoryTried = null;
+				boolean retried = false;
+				while (!success) {
 					try {
-						findAConnection();
+						lastFactoryTried = this.currentFactory;
+						this.delegate.send(message);
+						success = true;
 					}
-					catch (@SuppressWarnings("unused") InterruptedException e1) {
-						Thread.currentThread().interrupt();
-					}
-					if (logger.isDebugEnabled()) {
-						logger.debug("Failing over to " + this.delegate.getConnectionId());
+					catch (RuntimeException e) {
+						if (retried && lastFactoryTried.equals(lastFactoryToTry)) {
+							logger.error("All connection factories exhausted", e);
+							this.open = false;
+							throw e;
+						}
+						retried = true;
+						if (logger.isDebugEnabled()) {
+							logger.debug("Send to " + this.delegate.getConnectionId() + " failed; attempting failover",
+									e);
+						}
+						this.delegate.close();
+						try {
+							findAConnection();
+						}
+						catch (@SuppressWarnings("unused") InterruptedException e1) {
+							Thread.currentThread().interrupt();
+						}
+						if (logger.isDebugEnabled()) {
+							logger.debug("Failing over to " + this.delegate.getConnectionId());
+						}
 					}
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 

@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Vozhdayenko
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 6.0
  */
@@ -87,39 +88,45 @@ public class Mqttv3ClientManager
 	}
 
 	@Override
-	public synchronized void start() {
-		var client = getClient();
-		if (client == null) {
-			try {
-				client = createClient();
-			}
-			catch (MqttException e) {
-				throw new IllegalStateException("could not start client manager", e);
-			}
-		}
-		setClient(client);
+	public void start() {
+		this.lock.lock();
 		try {
-			client.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
-		}
-		catch (MqttException ex) {
-			// See GH-3822
-			if (this.connectionOptions.isAutomaticReconnect()) {
+			var client = getClient();
+			if (client == null) {
 				try {
-					client.reconnect();
+					client = createClient();
 				}
-				catch (MqttException re) {
-					logger.error("MQTT client failed to connect. Never happens.", re);
+				catch (MqttException e) {
+					throw new IllegalStateException("could not start client manager", e);
 				}
 			}
-			else {
-				var applicationEventPublisher = getApplicationEventPublisher();
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+			setClient(client);
+			try {
+				client.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
+			}
+			catch (MqttException ex) {
+				// See GH-3822
+				if (this.connectionOptions.isAutomaticReconnect()) {
+					try {
+						client.reconnect();
+					}
+					catch (MqttException re) {
+						logger.error("MQTT client failed to connect. Never happens.", re);
+					}
 				}
 				else {
-					logger.error("Could not start client manager, client_id=" + getClientId(), ex);
+					var applicationEventPublisher = getApplicationEventPublisher();
+					if (applicationEventPublisher != null) {
+						applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
+					}
+					else {
+						logger.error("Could not start client manager, client_id=" + getClientId(), ex);
+					}
 				}
 			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -133,31 +140,43 @@ public class Mqttv3ClientManager
 	}
 
 	@Override
-	public synchronized void stop() {
-		var client = getClient();
-		if (client == null) {
-			return;
-		}
+	public void stop() {
+		this.lock.lock();
 		try {
-			client.disconnectForcibly(getDisconnectCompletionTimeout());
-		}
-		catch (MqttException e) {
-			logger.error("Could not disconnect from the client", e);
-		}
-		finally {
+			var client = getClient();
+			if (client == null) {
+				return;
+			}
 			try {
-				client.close();
+				client.disconnectForcibly(getDisconnectCompletionTimeout());
 			}
 			catch (MqttException e) {
-				logger.error("Could not close the client", e);
+				logger.error("Could not disconnect from the client", e);
 			}
-			setClient(null);
+			finally {
+				try {
+					client.close();
+				}
+				catch (MqttException e) {
+					logger.error("Could not close the client", e);
+				}
+				setClient(null);
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
 	@Override
-	public synchronized void connectionLost(Throwable cause) {
-		logger.error("Connection lost, client_id=" + getClientId(), cause);
+	public void connectionLost(Throwable cause) {
+		this.lock.lock();
+		try {
+			logger.error("Connection lost, client_id=" + getClientId(), cause);
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override

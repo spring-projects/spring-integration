@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,6 +33,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.1
  *
@@ -38,6 +41,8 @@ import org.springframework.util.Assert;
 public class ClientModeConnectionManager implements Runnable {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+
+	private final Lock lock = new ReentrantLock();
 
 	private final AbstractConnectionFactory clientConnectionFactory;
 
@@ -54,7 +59,8 @@ public class ClientModeConnectionManager implements Runnable {
 
 	@Override
 	public void run() {
-		synchronized (this.clientConnectionFactory) {
+		this.lock.lock();
+		try {
 			try {
 				TcpConnection connection = this.clientConnectionFactory.getConnection();
 				if (!Objects.equals(connection, this.lastConnection)) {
@@ -72,6 +78,9 @@ public class ClientModeConnectionManager implements Runnable {
 			catch (Exception ex) {
 				this.logger.error("Could not establish connection using " + this.clientConnectionFactory, ex);
 			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

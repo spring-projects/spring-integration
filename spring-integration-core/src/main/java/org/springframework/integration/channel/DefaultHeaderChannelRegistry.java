@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
@@ -44,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Trung Pham
+ * @author Christian Tzolov
  *
  * @since 3.0
  *
@@ -68,6 +71,8 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	private volatile boolean running;
 
 	private volatile boolean explicitlyStopped;
+
+	private final Lock lock = new ReentrantLock();
 
 	/**
 	 * Construct a registry with the default delay for channel expiry.
@@ -120,25 +125,37 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 	@Override
-	public synchronized void start() {
-		if (!this.running) {
-			Assert.notNull(getTaskScheduler(), "a task scheduler is required");
-			this.reaperScheduledFuture =
-					getTaskScheduler()
-							.schedule(this, Instant.now().plusMillis(this.reaperDelay));
+	public void start() {
+		this.lock.lock();
+		try {
+			if (!this.running) {
+				Assert.notNull(getTaskScheduler(), "a task scheduler is required");
+				this.reaperScheduledFuture = getTaskScheduler()
+						.schedule(this, Instant.now().plusMillis(this.reaperDelay));
 
-			this.running = true;
+				this.running = true;
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
 	@Override
-	public synchronized void stop() {
-		this.running = false;
-		if (this.reaperScheduledFuture != null) {
-			this.reaperScheduledFuture.cancel(true);
-			this.reaperScheduledFuture = null;
+	public void stop() {
+		this.lock.lock();
+		try {
+			this.running = false;
+			if (this.reaperScheduledFuture != null) {
+				this.reaperScheduledFuture.cancel(true);
+				this.reaperScheduledFuture = null;
+			}
+			this.explicitlyStopped = true;
 		}
-		this.explicitlyStopped = true;
+		finally {
+			this.lock.unlock();
+		}
+
 	}
 
 	public void stop(Runnable callback) {
@@ -200,34 +217,44 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	 * Cancel the scheduled reap task and run immediately; then reschedule.
 	 */
 	@Override
-	public synchronized void runReaper() {
-		if (this.reaperScheduledFuture != null) {
-			this.reaperScheduledFuture.cancel(true);
-			this.reaperScheduledFuture = null;
-		}
+	public void runReaper() {
+		this.lock.lock();
+		try {
+			if (this.reaperScheduledFuture != null) {
+				this.reaperScheduledFuture.cancel(true);
+				this.reaperScheduledFuture = null;
+			}
 
-		run();
+			run();
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override
-	public synchronized void run() {
-		logger.trace(() -> "Reaper started; channels size=" + this.channels.size());
-		Iterator<Entry<String, MessageChannelWrapper>> iterator = this.channels.entrySet().iterator();
-		long now = System.currentTimeMillis();
-		while (iterator.hasNext()) {
-			Entry<String, MessageChannelWrapper> entry = iterator.next();
-			if (entry.getValue().expireAt() < now) {
-				logger.debug(() -> "Expiring " + entry.getKey() + " (" + entry.getValue().channel() + ")");
-				iterator.remove();
+	public void run() {
+		this.lock.lock();
+		try {
+			logger.trace(() -> "Reaper started; channels size=" + this.channels.size());
+			Iterator<Entry<String, MessageChannelWrapper>> iterator = this.channels.entrySet().iterator();
+			long now = System.currentTimeMillis();
+			while (iterator.hasNext()) {
+				Entry<String, MessageChannelWrapper> entry = iterator.next();
+				if (entry.getValue().expireAt() < now) {
+					logger.debug(() -> "Expiring " + entry.getKey() + " (" + entry.getValue().channel() + ")");
+					iterator.remove();
+				}
 			}
+			this.reaperScheduledFuture = getTaskScheduler()
+					.schedule(this, Instant.now().plusMillis(this.reaperDelay));
+
+			logger.trace(() -> "Reaper completed; channels size=" + this.channels.size());
 		}
-		this.reaperScheduledFuture =
-				getTaskScheduler()
-						.schedule(this, Instant.now().plusMillis(this.reaperDelay));
-
-		logger.trace(() -> "Reaper completed; channels size=" + this.channels.size());
+		finally {
+			this.lock.unlock();
+		}
 	}
-
 
 	protected record MessageChannelWrapper(MessageChannel channel, long expireAt) {
 

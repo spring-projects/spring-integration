@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.lang.Nullable;
 
@@ -37,6 +39,7 @@ import org.springframework.lang.Nullable;
  * @author Josh Long
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> implements ReversibleFileListFilter<F>,
 		ResettableFileListFilter<F> {
@@ -46,7 +49,7 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 
 	private final Set<F> seenSet = new HashSet<F>();
 
-	private final Object monitor = new Object();
+	private final Lock monitor = new ReentrantLock();
 
 
 	/**
@@ -69,7 +72,8 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 
 	@Override
 	public boolean accept(F file) {
-		synchronized (this.monitor) {
+		this.monitor.lock();
+		try {
 			if (this.seenSet.contains(file)) {
 				return false;
 			}
@@ -81,11 +85,15 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 			this.seenSet.add(file);
 			return true;
 		}
+		finally {
+			this.monitor.unlock();
+		}
 	}
 
 	@Override
 	public void rollback(F file, List<F> files) {
-		synchronized (this.monitor) {
+		this.monitor.lock();
+		try {
 			boolean rollingBack = false;
 			for (F fileToRollback : files) {
 				if (fileToRollback.equals(file)) {
@@ -95,6 +103,9 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 					remove(fileToRollback);
 				}
 			}
+		}
+		finally {
+			this.monitor.unlock();
 		}
 	}
 

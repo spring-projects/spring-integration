@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.file.config;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.file.filters.AcceptAllFileListFilter;
@@ -34,6 +36,8 @@ import org.springframework.lang.NonNull;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Christian Tzolov
+ *
  * @since 1.0.3
  */
 public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<File>> {
@@ -52,7 +56,7 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 
 	private volatile Boolean alwaysAcceptDirectories;
 
-	private final Object monitor = new Object();
+	private final Lock monitor = new ReentrantLock();
 
 	public void setFilter(FileListFilter<File> filter) {
 		this.filter = filter;
@@ -95,8 +99,12 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 	@NonNull
 	public FileListFilter<File> getObject() {
 		if (this.result == null) {
-			synchronized (this.monitor) {
+			this.monitor.lock();
+			try {
 				this.initializeFileListFilter();
+			}
+			finally {
+				this.monitor.unlock();
 			}
 		}
 		return this.result;

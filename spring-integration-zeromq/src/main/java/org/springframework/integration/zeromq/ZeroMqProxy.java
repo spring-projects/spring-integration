@@ -20,6 +20,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
@@ -58,6 +60,7 @@ import org.springframework.util.Assert;
  * The address for this socket is {@code "inproc://" + beanName + ".capture"}.
  *
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 5.4
  *
@@ -66,6 +69,8 @@ import org.springframework.util.Assert;
 public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAware, DisposableBean {
 
 	private static final Log LOG = LogFactory.getLog(ZeroMqProxy.class);
+
+	private final Lock lock = new ReentrantLock();
 
 	private final ZContext context;
 
@@ -247,64 +252,77 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	}
 
 	@Override
-	public synchronized void start() {
-		if (!this.running.get()) {
-			this.proxyExecutor
-					.execute(() -> {
-						ZMQ.Socket captureSocket = null;
-						if (this.exposeCaptureSocket) {
-							captureSocket = this.context.createSocket(SocketType.PUB);
-						}
-						try (
-								ZMQ.Socket frontendSocket = this.context.createSocket(this.type.getFrontendSocketType());
-								ZMQ.Socket backendSocket = this.context.createSocket(this.type.getBackendSocketType());
-								ZMQ.Socket controlSocket = this.context.createSocket(SocketType.PAIR)
-						) {
-
-							if (this.frontendSocketConfigurer != null) {
-								this.frontendSocketConfigurer.accept(frontendSocket);
+	public void start() {
+		this.lock.lock();
+		try {
+			if (!this.running.get()) {
+				this.proxyExecutor
+						.execute(() -> {
+							ZMQ.Socket captureSocket = null;
+							if (this.exposeCaptureSocket) {
+								captureSocket = this.context.createSocket(SocketType.PUB);
 							}
+							try (
+									ZMQ.Socket frontendSocket = this.context
+											.createSocket(this.type.getFrontendSocketType());
+									ZMQ.Socket backendSocket = this.context
+											.createSocket(this.type.getBackendSocketType());
+									ZMQ.Socket controlSocket = this.context.createSocket(SocketType.PAIR)) {
 
-							if (this.backendSocketConfigurer != null) {
-								this.backendSocketConfigurer.accept(backendSocket);
-							}
+								if (this.frontendSocketConfigurer != null) {
+									this.frontendSocketConfigurer.accept(frontendSocket);
+								}
 
-							this.frontendPort.set(bindSocket(frontendSocket, this.frontendPort.get())); // NOSONAR
-							this.backendPort.set(bindSocket(backendSocket, this.backendPort.get())); // NOSONAR
-							boolean bound = controlSocket.bind(this.controlAddress); // NOSONAR
-							if (!bound) {
-								throw new IllegalArgumentException("Cannot bind ZeroMQ socket to address: "
-										+ this.controlAddress);
-							}
-							if (captureSocket != null) {
-								bound = captureSocket.bind(this.captureAddress);
+								if (this.backendSocketConfigurer != null) {
+									this.backendSocketConfigurer.accept(backendSocket);
+								}
+
+								this.frontendPort.set(bindSocket(frontendSocket, this.frontendPort.get())); // NOSONAR
+								this.backendPort.set(bindSocket(backendSocket, this.backendPort.get())); // NOSONAR
+								boolean bound = controlSocket.bind(this.controlAddress); // NOSONAR
 								if (!bound) {
 									throw new IllegalArgumentException("Cannot bind ZeroMQ socket to address: "
-											+ this.captureAddress);
+											+ this.controlAddress);
+								}
+								if (captureSocket != null) {
+									bound = captureSocket.bind(this.captureAddress);
+									if (!bound) {
+										throw new IllegalArgumentException("Cannot bind ZeroMQ socket to address: "
+												+ this.captureAddress);
+									}
+								}
+								this.running.set(true);
+								ZMQ.proxy(frontendSocket, backendSocket, captureSocket, controlSocket);
+							}
+							catch (Exception ex) { // NOSONAR
+								LOG.error("Cannot start ZeroMQ proxy from bean: " + this.beanName, ex);
+							}
+							finally {
+								if (captureSocket != null) {
+									captureSocket.close();
 								}
 							}
-							this.running.set(true);
-							ZMQ.proxy(frontendSocket, backendSocket, captureSocket, controlSocket);
-						}
-						catch (Exception ex) { // NOSONAR
-							LOG.error("Cannot start ZeroMQ proxy from bean: " + this.beanName, ex);
-						}
-						finally {
-							if (captureSocket != null) {
-								captureSocket.close();
-							}
-						}
-					});
+						});
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
 	@Override
-	public synchronized void stop() {
-		if (this.running.getAndSet(false)) {
-			try (ZMQ.Socket commandSocket = this.context.createSocket(SocketType.PAIR)) {
-				commandSocket.connect(this.controlAddress); // NOSONAR
-				commandSocket.send(zmq.ZMQ.PROXY_TERMINATE);
+	public void stop() {
+		this.lock.lock();
+		try {
+			if (this.running.getAndSet(false)) {
+				try (ZMQ.Socket commandSocket = this.context.createSocket(SocketType.PAIR)) {
+					commandSocket.connect(this.controlAddress); // NOSONAR
+					commandSocket.send(zmq.ZMQ.PROXY_TERMINATE);
+				}
 			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

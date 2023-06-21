@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
@@ -38,6 +40,8 @@ import org.springframework.util.PatternMatchUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
+ *
  * @since 4.1
  */
 @SuppressWarnings("serial")
@@ -46,6 +50,8 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 	private volatile List<Map<String, String>> idempotentEndpointsMapping;
 
 	private volatile Map<String, List<String>> idempotentEndpoints; // double check locking requires volatile
+
+	private final Lock lock = new ReentrantLock();
 
 	public void setIdempotentEndpointsMapping(List<Map<String, String>> idempotentEndpointsMapping) {
 		Assert.notEmpty(idempotentEndpointsMapping, "'idempotentEndpointsMapping' must not be empty");
@@ -85,8 +91,9 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 	}
 
 	private void initIdempotentEndpointsIfNecessary() {
-		if (this.idempotentEndpoints == null) { //NOSONAR (inconsistent sync)
-			synchronized (this) {
+		if (this.idempotentEndpoints == null) { // NOSONAR (inconsistent sync)
+			this.lock.lock();
+			try {
 				if (this.idempotentEndpoints == null) {
 					this.idempotentEndpoints = new LinkedHashMap<String, List<String>>();
 					for (Map<String, String> mapping : this.idempotentEndpointsMapping) {
@@ -103,6 +110,9 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 						endpoints.add(endpoint);
 					}
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 	}

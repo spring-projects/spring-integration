@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 
 import org.apache.commons.logging.Log;
@@ -66,6 +68,7 @@ import org.springframework.util.concurrent.ListenableFuture;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 4.2
  */
@@ -80,7 +83,9 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private final CompositeStompSessionHandler compositeStompSessionHandler = new CompositeStompSessionHandler();
 
-	private final Object lifecycleMonitor = new Object();
+	private final Lock lifecycleMonitor = new ReentrantLock();
+
+	private final Lock lock = new ReentrantLock();
 
 	private final AtomicInteger epoch = new AtomicInteger();
 
@@ -177,41 +182,47 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		return this.phase;
 	}
 
-	private synchronized void connect() {
-		if (this.connecting || this.connected) {
-			this.logger.debug("Aborting connect; another thread is connecting.");
-			return;
-		}
-		final int currentEpoch = this.epoch.get();
-		this.connecting = true;
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("Connecting " + this);
-		}
+	private void connect() {
+		this.lock.lock();
 		try {
-			this.stompSessionFuture = doConnect(this.compositeStompSessionHandler);
-		}
-		catch (Exception e) {
-			if (currentEpoch == this.epoch.get()) {
-				scheduleReconnect(e);
+			if (this.connecting || this.connected) {
+				this.logger.debug("Aborting connect; another thread is connecting.");
+				return;
 			}
-			else {
-				this.logger.error("STOMP doConnect() error for " + this, e);
+			final int currentEpoch = this.epoch.get();
+			this.connecting = true;
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Connecting " + this);
 			}
-			return;
-		}
-		CountDownLatch connectLatch = addStompSessionCallback(currentEpoch);
-
-		try {
-			if (!connectLatch.await(30, TimeUnit.SECONDS)) { // NOSONAR magic number
-				this.logger.error("No response to connection attempt");
+			try {
+				this.stompSessionFuture = doConnect(this.compositeStompSessionHandler);
+			}
+			catch (Exception e) {
 				if (currentEpoch == this.epoch.get()) {
-					scheduleReconnect(null);
+					scheduleReconnect(e);
+				}
+				else {
+					this.logger.error("STOMP doConnect() error for " + this, e);
+				}
+				return;
+			}
+			CountDownLatch connectLatch = addStompSessionCallback(currentEpoch);
+
+			try {
+				if (!connectLatch.await(30, TimeUnit.SECONDS)) { // NOSONAR magic number
+					this.logger.error("No response to connection attempt");
+					if (currentEpoch == this.epoch.get()) {
+						scheduleReconnect(null);
+					}
 				}
 			}
+			catch (InterruptedException e1) {
+				this.logger.error("Interrupted while waiting for connection attempt");
+				Thread.currentThread().interrupt();
+			}
 		}
-		catch (InterruptedException e1) {
-			this.logger.error("Interrupted while waiting for connection attempt");
-			Thread.currentThread().interrupt();
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -294,7 +305,8 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	@Override
 	public void start() {
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.lock();
+		try {
 			if (!isRunning()) {
 				if (this.logger.isInfoEnabled()) {
 					this.logger.info("Starting " + this);
@@ -303,11 +315,15 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 				this.running = true;
 			}
 		}
+		finally {
+			this.lifecycleMonitor.unlock();
+		}
 	}
 
 	@Override
 	public void stop() {
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.lock();
+		try {
 			if (isRunning()) {
 				this.running = false;
 				if (this.logger.isInfoEnabled()) {
@@ -315,6 +331,9 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 				}
 				destroy();
 			}
+		}
+		finally {
+			this.lifecycleMonitor.unlock();
 		}
 	}
 
@@ -355,17 +374,23 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		private final List<StompSessionHandler> delegates = Collections.synchronizedList(new ArrayList<>());
 
+		private final Lock delegatesMonitor = new ReentrantLock();
+
 		private volatile StompSession session;
 
 		CompositeStompSessionHandler() {
 		}
 
 		void addHandler(StompSessionHandler delegate) {
-			synchronized (this.delegates) {
+			this.delegatesMonitor.lock();
+			try {
 				if (this.session != null) {
 					delegate.afterConnected(this.session, getConnectHeaders());
 				}
 				this.delegates.add(delegate);
+			}
+			finally {
+				this.delegatesMonitor.unlock();
 			}
 		}
 
@@ -375,11 +400,15 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		@Override
 		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-			synchronized (this.delegates) {
+			this.delegatesMonitor.lock();
+			try {
 				this.session = session;
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.afterConnected(session, connectedHeaders);
 				}
+			}
+			finally {
+				this.delegatesMonitor.unlock();
 			}
 		}
 
@@ -387,10 +416,14 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		public void handleException(StompSession session, @Nullable StompCommand command, StompHeaders headers,
 				byte[] payload, Throwable exception) {
 
-			synchronized (this.delegates) {
+			this.delegatesMonitor.lock();
+			try {
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.handleException(session, command, headers, payload, exception);
 				}
+			}
+			finally {
+				this.delegatesMonitor.unlock();
 			}
 		}
 
@@ -400,19 +433,27 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 					exception);
 			this.session = null;
 			scheduleReconnect(exception);
-			synchronized (this.delegates) {
+			this.delegatesMonitor.lock();
+			try {
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.handleTransportError(session, exception);
 				}
+			}
+			finally {
+				this.delegatesMonitor.unlock();
 			}
 		}
 
 		@Override
 		public void handleFrame(StompHeaders headers, Object payload) {
-			synchronized (this.delegates) {
+			this.delegatesMonitor.lock();
+			try {
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.handleFrame(headers, payload);
 				}
+			}
+			finally {
+				this.delegatesMonitor.unlock();
 			}
 		}
 

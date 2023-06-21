@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.selector;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiPredicate;
 
 import org.springframework.integration.core.MessageSelector;
@@ -50,10 +52,13 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 4.1
  */
 public class MetadataStoreSelector implements MessageSelector {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final ConcurrentMetadataStore metadataStore;
 
@@ -119,7 +124,8 @@ public class MetadataStoreSelector implements MessageSelector {
 			return this.metadataStore.putIfAbsent(key, value) == null;
 		}
 		else {
-			synchronized (this) {
+			this.lock.lock();
+			try {
 				String oldValue = this.metadataStore.get(key);
 				if (oldValue == null) {
 					return this.metadataStore.putIfAbsent(key, value) == null;
@@ -128,6 +134,9 @@ public class MetadataStoreSelector implements MessageSelector {
 					return this.metadataStore.replace(key, oldValue, value);
 				}
 				return false;
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 	}

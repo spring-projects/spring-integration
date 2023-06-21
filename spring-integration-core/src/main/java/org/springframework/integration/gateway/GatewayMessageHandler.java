@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.integration.gateway;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -28,6 +31,7 @@ import org.springframework.messaging.MessageChannel;
  * The {@link AbstractReplyProducingMessageHandler} implementation for mid-flow Gateway.
  *
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 5.0
  */
@@ -38,6 +42,8 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 	private volatile RequestReplyExchanger exchanger;
 
 	private volatile boolean running;
+
+	private final Lock lock = new ReentrantLock();
 
 	public GatewayMessageHandler() {
 		this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean<>();
@@ -78,10 +84,14 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		if (this.exchanger == null) {
-			synchronized (this) {
+			this.lock.lock();
+			try {
 				if (this.exchanger == null) {
 					initialize();
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 		return this.exchanger.exchange(requestMessage);

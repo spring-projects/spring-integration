@@ -17,6 +17,8 @@
 package org.springframework.integration.mqtt.outbound;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.ApplicationEventPublisher;
@@ -62,6 +64,8 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 
 	private static final MessageProcessor<String> DEFAULT_TOPIC_PROCESSOR =
 			(message) -> message.getHeaders().get(MqttHeaders.TOPIC, String.class);
+
+	protected final Lock lock = new ReentrantLock();
 
 	private final AtomicBoolean running = new AtomicBoolean();
 

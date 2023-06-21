@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.sql.DataSource;
 
@@ -51,6 +53,7 @@ import org.springframework.util.Assert;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 2.1
  *
@@ -63,7 +66,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	private final DataSource dataSource;
 
-	private final Object jdbcCallOperationsMapMonitor = new Object();
+	private final Lock jdbcCallOperationsMapMonitor = new ReentrantLock();
 
 	private Map<String, RowMapper<?>> returningResultSetRowMappers = new HashMap<>(0);
 
@@ -301,9 +304,13 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	private SimpleJdbcCallOperations obtainSimpleJdbcCall(String storedProcedureName) {
 		SimpleJdbcCallOperations operations = this.jdbcCallOperationsMap.get(storedProcedureName);
 		if (operations == null) {
-			synchronized (this.jdbcCallOperationsMapMonitor) {
+			this.jdbcCallOperationsMapMonitor.lock();
+			try {
 				operations =
 						this.jdbcCallOperationsMap.computeIfAbsent(storedProcedureName, this::createSimpleJdbcCall);
+			}
+			finally {
+				this.jdbcCallOperationsMapMonitor.unlock();
 			}
 		}
 		return operations;

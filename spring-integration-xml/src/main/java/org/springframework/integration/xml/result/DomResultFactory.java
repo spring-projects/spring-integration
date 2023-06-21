@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.integration.xml.result;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -30,10 +33,15 @@ import org.springframework.xml.DocumentBuilderFactoryUtils;
  * @author Jonas Partner
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  */
 public class DomResultFactory implements ResultFactory {
 
 	private final DocumentBuilderFactory documentBuilderFactory;
+
+	private final Lock documentBuilderFactoryMonitor = new ReentrantLock();
+
+	private final Lock lock = new ReentrantLock();
 
 
 	public DomResultFactory() {
@@ -48,7 +56,8 @@ public class DomResultFactory implements ResultFactory {
 
 
 	@Override
-	public synchronized Result createResult(Object payload) {
+	public Result createResult(Object payload) {
+		this.lock.lock();
 		try {
 			return new DOMResult(getNewDocumentBuilder().newDocument());
 		}
@@ -56,11 +65,18 @@ public class DomResultFactory implements ResultFactory {
 			throw new MessagingException("failed to create Result for payload type [" +
 					payload.getClass().getName() + "]", e);
 		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	protected DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
-		synchronized (this.documentBuilderFactory) {
+		this.documentBuilderFactoryMonitor.lock();
+		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
+		}
+		finally {
+			this.documentBuilderFactoryMonitor.unlock();
 		}
 	}
 

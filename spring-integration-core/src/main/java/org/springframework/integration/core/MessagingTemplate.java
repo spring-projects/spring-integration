@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.integration.core;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -31,11 +34,14 @@ import org.springframework.messaging.core.GenericMessagingTemplate;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 1.0
  *
  */
 public class MessagingTemplate extends GenericMessagingTemplate {
+
+	private final Lock lock = new ReentrantLock();
 
 	private BeanFactory beanFactory;
 
@@ -84,14 +90,18 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	@Nullable
 	public Message<?> sendAndReceive(MessageChannel destination, Message<?> requestMessage) {
 		if (!this.throwExceptionOnLateReplySet) {
-			synchronized (this) {
+			this.lock.lock();
+			try {
 				if (!this.throwExceptionOnLateReplySet) {
-					IntegrationProperties integrationProperties =
-							IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+					IntegrationProperties integrationProperties = IntegrationContextUtils
+							.getIntegrationProperties(this.beanFactory);
 					super.setThrowExceptionOnLateReply(
 							integrationProperties.isMessagingTemplateThrowExceptionOnLateReply());
 					this.throwExceptionOnLateReplySet = true;
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 		return super.sendAndReceive(destination, requestMessage);

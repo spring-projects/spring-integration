@@ -18,6 +18,8 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLSession;
 
@@ -34,10 +36,13 @@ import org.springframework.messaging.support.ErrorMessage;
  *
  * @author Gary Russell
  * @author Kazuki Shimizu
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
 public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSupport implements TcpConnectionInterceptor {
+
+	private final Lock lock = new ReentrantLock();
 
 	private TcpConnectionSupport theConnection;
 
@@ -238,17 +243,23 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	@Override
-	public synchronized void removeDeadConnection(TcpConnection connection) {
-		if (this.removed) {
-			return;
+	public void removeDeadConnection(TcpConnection connection) {
+		this.lock.lock();
+		try {
+			if (this.removed) {
+				return;
+			}
+			this.removed = true;
+			if (this.theConnection instanceof TcpConnectionInterceptorSupport && !this.theConnection.equals(this)) {
+				((TcpConnectionInterceptorSupport) this.theConnection).removeDeadConnection(this);
+			}
+			TcpSender sender = getSender();
+			if (sender != null && !(sender instanceof TcpConnectionInterceptorSupport)) {
+				this.interceptedSenders.forEach(snder -> snder.removeDeadConnection(connection));
+			}
 		}
-		this.removed = true;
-		if (this.theConnection instanceof TcpConnectionInterceptorSupport && !this.theConnection.equals(this)) {
-			((TcpConnectionInterceptorSupport) this.theConnection).removeDeadConnection(this);
-		}
-		TcpSender sender = getSender();
-		if (sender != null && !(sender instanceof TcpConnectionInterceptorSupport)) {
-			this.interceptedSenders.forEach(snder -> snder.removeDeadConnection(connection));
+		finally {
+			this.lock.unlock();
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2020 the original author or authors.
+ * Copyright 2001-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.messaging.Message;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
@@ -129,11 +130,17 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	@Override
-	protected synchronized DatagramSocket getSocket() throws IOException {
-		if (getTheSocket() == null) {
-			createSocket();
+	protected DatagramSocket getSocket() throws IOException {
+		this.lock.lock();
+		try {
+			if (getTheSocket() == null) {
+				createSocket();
+			}
+			return super.getSocket();
 		}
-		return super.getSocket();
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	private void createSocket() throws IOException {

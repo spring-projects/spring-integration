@@ -98,6 +98,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 1.0.3
  */
@@ -109,6 +110,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	public static final int DEFAULT_MAX_ATTEMPTS = 5;
 
 	public static final long DEFAULT_RETRY_DELAY = 1_000;
+
+	private final Lock lock = new ReentrantLock();
 
 	private final ConcurrentMap<String, AtomicInteger> deliveries = new ConcurrentHashMap<>();
 
@@ -618,22 +621,28 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * behavior is dictated by the avoidance of invocation thread overload.
 	 */
 	@Override
-	public synchronized void reschedulePersistedMessages() {
-		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
-		try (Stream<Message<?>> messageStream = messageGroup.streamMessages()) {
-			TaskScheduler taskScheduler = getTaskScheduler();
-			messageStream.forEach((message) -> // NOSONAR
-					taskScheduler.schedule(() -> {
-						// This is fine to keep the reference to the message,
-						// because the scheduled task is performed immediately.
-						long delay = determineDelayForMessage(message);
-						if (delay > 0) {
-							releaseMessageAfterDelay(message, delay);
-						}
-						else {
-							releaseMessage(message);
-						}
-					}, Instant.now()));
+	public void reschedulePersistedMessages() {
+		this.lock.lock();
+		try {
+			MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
+			try (Stream<Message<?>> messageStream = messageGroup.streamMessages()) {
+				TaskScheduler taskScheduler = getTaskScheduler();
+				messageStream.forEach((message) -> // NOSONAR
+				taskScheduler.schedule(() -> {
+					// This is fine to keep the reference to the message,
+					// because the scheduled task is performed immediately.
+					long delay = determineDelayForMessage(message);
+					if (delay > 0) {
+						releaseMessageAfterDelay(message, delay);
+					}
+					else {
+						releaseMessage(message);
+					}
+				}, Instant.now()));
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

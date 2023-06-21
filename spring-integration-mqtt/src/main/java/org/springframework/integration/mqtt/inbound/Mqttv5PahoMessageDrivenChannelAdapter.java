@@ -18,6 +18,8 @@ package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.IntStream;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
@@ -80,6 +82,8 @@ import org.springframework.util.Assert;
 public class Mqttv5PahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectionOptions>
 		implements MqttCallback, MqttComponent<MqttConnectionOptions> {
+
+	private final Lock lock =  new ReentrantLock();
 
 	private final MqttConnectionOptions connectionOptions;
 
@@ -211,13 +215,19 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		}
 	}
 
-	private synchronized void connect() throws MqttException {
-		var clientManager = getClientManager();
-		if (clientManager == null) {
-			this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
+	private void connect() throws MqttException {
+		this.lock.lock();
+		try {
+			var clientManager = getClientManager();
+			if (clientManager == null) {
+				this.mqttClient.connect(this.connectionOptions).waitForCompletion(getCompletionTimeout());
+			}
+			else {
+				this.mqttClient = clientManager.getClient();
+			}
 		}
-		else {
-			this.mqttClient = clientManager.getClient();
+		finally {
+			this.lock.unlock();
 		}
 	}
 

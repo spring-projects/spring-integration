@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -109,6 +110,7 @@ import org.springframework.util.StringUtils;
  * @author Tony Falabella
  * @author Alen Turkovic
  * @author Trung Pham
+ * @author Christian Tzolov
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
 		implements ManageableLifecycle, MessageTriggerAction {
@@ -129,6 +131,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					PosixFilePermission.OWNER_WRITE,
 					PosixFilePermission.OWNER_READ
 			};
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Map<String, FileState> fileStates = new HashMap<>();
 
@@ -459,11 +463,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	@Override
 	public void stop() {
-		synchronized (this) {
+		this.lock.lock();
+		try {
 			if (this.flushTask != null) {
 				this.flushTask.cancel(true);
 				this.flushTask = null;
 			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 		Flusher flusher = new Flusher();
 		flusher.run();
@@ -873,37 +881,42 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return destinationDirectory;
 	}
 
-	private synchronized FileState getFileState(File fileToWriteTo, boolean isString)
+	private FileState getFileState(File fileToWriteTo, boolean isString)
 			throws FileNotFoundException {
-
-		FileState state;
-		boolean appendNoFlush = FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
-		if (appendNoFlush) {
-			String absolutePath = fileToWriteTo.getAbsolutePath();
-			state = this.fileStates.get(absolutePath);
-			if (state != null // NOSONAR
-					&& ((isString && state.stream != null) || (!isString && state.writer != null))) {
-				state.close();
+		this.lock.lock();
+		try {
+			FileState state;
+			boolean appendNoFlush = FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
+			if (appendNoFlush) {
+				String absolutePath = fileToWriteTo.getAbsolutePath();
+				state = this.fileStates.get(absolutePath);
+				if (state != null // NOSONAR
+						&& ((isString && state.stream != null) || (!isString && state.writer != null))) {
+					state.close();
+					state = null;
+					this.fileStates.remove(absolutePath);
+				}
+				if (state == null) {
+					if (isString) {
+						state = new FileState(createWriter(fileToWriteTo, true),
+								this.lockRegistry.obtain(fileToWriteTo.getAbsolutePath()));
+					}
+					else {
+						state = new FileState(createOutputStream(fileToWriteTo, true),
+								this.lockRegistry.obtain(fileToWriteTo.getAbsolutePath()));
+					}
+					this.fileStates.put(absolutePath, state);
+				}
+				state.lastWrite = Long.MAX_VALUE; // prevent flush while we write
+			}
+			else {
 				state = null;
-				this.fileStates.remove(absolutePath);
 			}
-			if (state == null) {
-				if (isString) {
-					state = new FileState(createWriter(fileToWriteTo, true),
-							this.lockRegistry.obtain(fileToWriteTo.getAbsolutePath()));
-				}
-				else {
-					state = new FileState(createOutputStream(fileToWriteTo, true),
-							this.lockRegistry.obtain(fileToWriteTo.getAbsolutePath()));
-				}
-				this.fileStates.put(absolutePath, state);
-			}
-			state.lastWrite = Long.MAX_VALUE; // prevent flush while we write
+			return state;
 		}
-		else {
-			state = null;
+		finally {
+			this.lock.unlock();
 		}
-		return state;
 	}
 
 	/**
@@ -975,7 +988,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private Map<String, FileState> findFilesToFlush(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
 		Map<String, FileState> toRemove = new HashMap<>();
-		synchronized (this) {
+		this.lock.lock();
+		try {
 			Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
 			while (iterator.hasNext()) {
 				Entry<String, FileState> entry = iterator.next();
@@ -986,12 +1000,21 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 			}
 		}
+		finally {
+			this.lock.unlock();
+		}
 		return toRemove;
 	}
 
-	private synchronized void clearState(final File fileToWriteTo, final FileState state) {
+	private void clearState(final File fileToWriteTo, final FileState state) {
 		if (state != null) {
-			this.fileStates.remove(fileToWriteTo.getAbsolutePath());
+			this.lock.lock();
+			try {
+				this.fileStates.remove(fileToWriteTo.getAbsolutePath());
+			}
+			finally {
+				this.lock.unlock();
+			}
 		}
 	}
 
@@ -1014,10 +1037,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				FileWritingMessageHandler.this.logger
 						.debug("Interrupted during flush; not flushed: " + toRestore.keySet());
 			}
-			synchronized (this) {
+			this.lock.lock();
+			try {
 				for (Entry<String, FileState> entry : toRestore.entrySet()) {
 					this.fileStates.putIfAbsent(entry.getKey(), entry.getValue());
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 	}
@@ -1085,11 +1112,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		@Override
 		public void run() {
 			Map<String, FileState> toRemove = new HashMap<>();
-			synchronized (FileWritingMessageHandler.this) {
+			FileWritingMessageHandler.this.lock.lock();
+			try {
 				long expired = FileWritingMessageHandler.this.flushTask == null ? Long.MAX_VALUE
 						: (System.currentTimeMillis() - FileWritingMessageHandler.this.flushInterval);
-				Iterator<Entry<String, FileState>> iterator =
-						FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+				Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet()
+						.iterator();
 				while (iterator.hasNext()) {
 					Entry<String, FileState> entry = iterator.next();
 					FileState state = entry.getValue();
@@ -1099,6 +1127,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						iterator.remove();
 					}
 				}
+			}
+			finally {
+				FileWritingMessageHandler.this.lock.unlock();
 			}
 			doFlush(toRemove);
 		}

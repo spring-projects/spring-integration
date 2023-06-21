@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2021 the original author or authors.
+ * Copyright 2001-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 import javax.net.ssl.SSLSession;
@@ -43,11 +45,14 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  *
  */
 public class TcpNetConnection extends TcpConnectionSupport implements SchedulingAwareRunnable {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Socket socket;
 
@@ -102,7 +107,8 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public synchronized void send(Message<?> message) {
+	public void send(Message<?> message) {
+		this.lock.lock();
 		try {
 			if (this.socketOutputStream == null) {
 				int writeBufferSize = this.socket.getSendBufferSize();
@@ -120,6 +126,9 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			publishConnectionExceptionEvent(mex);
 			closeConnection(true);
 			throw mex;
+		}
+		finally {
+			this.lock.unlock();
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug(getConnectionId() + " Message sent " + message);

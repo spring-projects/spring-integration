@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.transform.Source;
 
@@ -71,6 +73,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  * @author Wallace Wadge
  * @author Shiliang Li
  * @author Florian Schöffl
+ * @author Christian Tzolov
  *
  * @since 5.0
  */
@@ -80,6 +83,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.TRACE);
 
 	protected final DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory(); // NOSONAR - final
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
@@ -226,9 +231,13 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 * @param uriVariableExpressions The URI variable expressions.
 	 */
 	public void setUriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
-		synchronized (this.uriVariableExpressions) {
+		this.lock.lock();
+		try {
 			this.uriVariableExpressions.clear();
 			this.uriVariableExpressions.putAll(uriVariableExpressions);
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

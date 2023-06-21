@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.stream;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.messaging.MessagingException;
@@ -28,8 +30,11 @@ import org.springframework.messaging.MessagingException;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class ByteStreamReadingMessageSource extends AbstractMessageSource<byte[]> {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final BufferedInputStream stream;
 
@@ -73,12 +78,16 @@ public class ByteStreamReadingMessageSource extends AbstractMessageSource<byte[]
 		try {
 			byte[] bytes;
 			int bytesRead = 0;
-			synchronized (this.stream) {
+			this.lock.lock();
+			try {
 				if (this.stream.available() == 0) {
 					return null;
 				}
 				bytes = new byte[this.bytesPerMessage];
 				bytesRead = this.stream.read(bytes, 0, bytes.length);
+			}
+			finally {
+				this.lock.unlock();
 			}
 			if (bytesRead <= 0) {
 				return null;

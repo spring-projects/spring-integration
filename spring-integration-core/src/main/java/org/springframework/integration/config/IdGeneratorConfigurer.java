@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.config;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,10 +41,13 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0.4
  */
 public final class IdGeneratorConfigurer implements ApplicationListener<ApplicationContextEvent> {
+
+	private final Lock lock = new ReentrantLock();
 
 	private static final Set<String> GENERATOR_CONTEXT_ID = new HashSet<>();
 
@@ -51,21 +56,28 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 	private final Log logger = LogFactory.getLog(getClass());
 
 	@Override
-	public synchronized void onApplicationEvent(ApplicationContextEvent event) {
-		ApplicationContext context = event.getApplicationContext();
-		if (event instanceof ContextRefreshedEvent) {
-			boolean contextHasIdGenerator = context.getBeanNamesForType(IdGenerator.class).length > 0;
-			if (contextHasIdGenerator && setIdGenerator(context)) {
-				IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.add(context.getId());
+	public void onApplicationEvent(ApplicationContextEvent event) {
+		this.lock.lock();
+		try {
+
+			ApplicationContext context = event.getApplicationContext();
+			if (event instanceof ContextRefreshedEvent) {
+				boolean contextHasIdGenerator = context.getBeanNamesForType(IdGenerator.class).length > 0;
+				if (contextHasIdGenerator && setIdGenerator(context)) {
+					IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.add(context.getId());
+				}
+			}
+			else if (event instanceof ContextClosedEvent
+					&& IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.contains(context.getId())) {
+
+				if (IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.size() == 1) {
+					unsetIdGenerator();
+				}
+				IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.remove(context.getId());
 			}
 		}
-		else if (event instanceof ContextClosedEvent
-				&& IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.contains(context.getId())) {
-
-			if (IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.size() == 1) {
-				unsetIdGenerator();
-			}
-			IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.remove(context.getId());
+		finally {
+			this.lock.unlock();
 		}
 	}
 

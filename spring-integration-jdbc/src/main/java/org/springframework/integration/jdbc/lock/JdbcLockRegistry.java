@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Olivier Hubaut
  * @author Fran Aranda
  * @author Unseok Kim
+ * @author Christian Tzolov
  *
  * @since 4.3
  */
@@ -62,6 +63,8 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 	private static final int DEFAULT_IDLE = 100;
 
 	private static final int DEFAULT_CAPACITY = 100_000;
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Map<String, JdbcLock> locks =
 			new LinkedHashMap<String, JdbcLock>(16, 0.75F, true) {
@@ -111,8 +114,12 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
-		synchronized (this.locks) {
+		this.lock.lock();
+		try {
 			return this.locks.computeIfAbsent(path, key -> new JdbcLock(this.client, this.idleBetweenTries, key));
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -123,12 +130,16 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 	@Override
 	public void expireUnusedOlderThan(long age) {
 		long now = System.currentTimeMillis();
-		synchronized (this.locks) {
+		this.lock.lock();
+		try {
 			this.locks.entrySet()
 					.removeIf(entry -> {
 						JdbcLock lock = entry.getValue();
 						return now - lock.getLastUsed() > age && !lock.isAcquiredInThisProcess();
 					});
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -137,9 +148,14 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
 		JdbcLock jdbcLock;
-		synchronized (this.locks) {
+		this.lock.lock();
+		try {
 			jdbcLock = this.locks.get(path);
 		}
+		finally {
+			this.lock.unlock();
+		}
+
 		if (jdbcLock == null) {
 			throw new IllegalStateException("Could not found mutex at " + path);
 		}

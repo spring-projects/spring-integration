@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.lang.Nullable;
@@ -38,10 +40,13 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
 public class SimpleMessageGroup implements MessageGroup {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Object groupId;
 
@@ -189,9 +194,13 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public Message<?> getOne() {
-		synchronized (this.messages) {
+		this.lock.lock();
+		try {
 			Iterator<Message<?>> iterator = this.messages.iterator();
 			return iterator.hasNext() ? iterator.next() : null;
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

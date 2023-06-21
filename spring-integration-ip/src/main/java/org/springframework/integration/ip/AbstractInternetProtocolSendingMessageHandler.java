@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.ip;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.management.ManageableLifecycle;
@@ -27,10 +29,14 @@ import org.springframework.util.Assert;
  * Base class for UDP MessageHandlers.
  *
  * @author Gary Russell
+ * @author Christian Tzolov
+ *
  * @since 2.0
  */
 public abstract class AbstractInternetProtocolSendingMessageHandler extends AbstractMessageHandler
 		implements CommonSocketOptions, ManageableLifecycle {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final SocketAddress destinationAddress;
 
@@ -119,20 +125,32 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 
 
 	@Override
-	public synchronized void start() {
-		if (!this.running) {
-			this.doStart();
-			this.running = true;
+	public void start() {
+		this.lock.lock();
+		try {
+			if (!this.running) {
+				this.doStart();
+				this.running = true;
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 
 	protected abstract void doStart();
 
 	@Override
-	public synchronized void stop() {
-		if (this.running) {
-			this.doStop();
-			this.running = false;
+	public void stop() {
+		this.lock.lock();
+		try {
+			if (this.running) {
+				this.doStop();
+				this.running = false;
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

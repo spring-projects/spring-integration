@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.serializer.Deserializer;
@@ -39,10 +41,14 @@ import org.springframework.messaging.support.ErrorMessage;
  * false, or cache starvation will result.
  *
  * @author Gary Russell
+ * @author Christian Tzolov
+ *
  * @since 2.2
  *
  */
 public class CachingClientConnectionFactory extends AbstractClientConnectionFactory implements DisposableBean {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final AbstractClientConnectionFactory targetConnectionFactory;
 
@@ -385,9 +391,15 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
-	public synchronized void stop() {
-		this.targetConnectionFactory.stop();
-		this.pool.removeAllIdleItems();
+	public void stop() {
+		this.lock.lock();
+		try {
+			this.targetConnectionFactory.stop();
+			this.pool.removeAllIdleItems();
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override

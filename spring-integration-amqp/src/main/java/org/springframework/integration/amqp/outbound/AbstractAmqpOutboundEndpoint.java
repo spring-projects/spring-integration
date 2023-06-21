@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.ReturnedMessage;
@@ -58,6 +60,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 4.3
  *
@@ -114,6 +117,8 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	private volatile boolean running;
 
 	private volatile ScheduledFuture<?> confirmChecker;
+
+	private final Lock lock = new ReentrantLock();
 
 	/**
 	 * Set a custom {@link AmqpHeaderMapper} for mapping request and reply headers.
@@ -336,8 +341,14 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		this.confirmTimeout = Duration.ofMillis(confirmTimeout); // NOSONAR sync inconsistency
 	}
 
-	protected final synchronized void setConnectionFactory(ConnectionFactory connectionFactory) {
-		this.connectionFactory = connectionFactory;
+	protected final void setConnectionFactory(ConnectionFactory connectionFactory) {
+		this.lock.lock();
+		try {
+			this.connectionFactory = connectionFactory;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	protected String getExchangeName() {
@@ -487,26 +498,33 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	}
 
 	@Override
-	public synchronized void start() {
-		if (!this.running) {
-			if (!this.lazyConnect && this.connectionFactory != null) {
-				try {
-					Connection connection = this.connectionFactory.createConnection(); // NOSONAR (close)
-					if (connection != null) {
-						connection.close();
+	public void start() {
+		this.lock.lock();
+		try {
+			if (!this.running) {
+				if (!this.lazyConnect && this.connectionFactory != null) {
+					try {
+						Connection connection = this.connectionFactory.createConnection(); // NOSONAR (close)
+						if (connection != null) {
+							connection.close();
+						}
+					}
+					catch (RuntimeException ex) {
+						logger.error(ex, "Failed to eagerly establish the connection.");
 					}
 				}
-				catch (RuntimeException ex) {
-					logger.error(ex, "Failed to eagerly establish the connection.");
+				doStart();
+				if (this.confirmTimeout != null && getConfirmNackChannel() != null && getRabbitTemplate() != null) {
+					this.confirmChecker = getTaskScheduler()
+							.scheduleAtFixedRate(checkUnconfirmed(), this.confirmTimeout.dividedBy(2L));
 				}
+				this.running = true;
 			}
-			doStart();
-			if (this.confirmTimeout != null && getConfirmNackChannel() != null && getRabbitTemplate() != null) {
-				this.confirmChecker = getTaskScheduler()
-						.scheduleAtFixedRate(checkUnconfirmed(), this.confirmTimeout.dividedBy(2L));
-			}
-			this.running = true;
 		}
+		finally {
+			this.lock.unlock();
+		}
+
 	}
 
 	private Runnable checkUnconfirmed() {
@@ -526,14 +544,20 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	protected abstract RabbitTemplate getRabbitTemplate();
 
 	@Override
-	public synchronized void stop() {
-		if (this.running) {
-			doStop();
+	public void stop() {
+		this.lock.lock();
+		try {
+			if (this.running) {
+				doStop();
+			}
+			this.running = false;
+			if (this.confirmChecker != null) {
+				this.confirmChecker.cancel(false);
+				this.confirmChecker = null;
+			}
 		}
-		this.running = false;
-		if (this.confirmChecker != null) {
-			this.confirmChecker.cancel(false);
-			this.confirmChecker = null;
+		finally {
+			this.lock.unlock();
 		}
 	}
 

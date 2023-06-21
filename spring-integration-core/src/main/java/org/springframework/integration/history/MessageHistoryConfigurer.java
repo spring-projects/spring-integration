@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
@@ -53,6 +56,8 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 		DestructionAwareBeanPostProcessor {
 
 	private static final Log LOGGER = LogFactory.getLog(MessageHistoryConfigurer.class);
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Set<TrackableComponent> currentlyTrackedComponents = ConcurrentHashMap.newKeySet();
 
@@ -180,7 +185,8 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 	@ManagedOperation
 	@Override
 	public void start() {
-		synchronized (this.currentlyTrackedComponents) {
+		this.lock.lock();
+		try {
 			if (!this.running) {
 				for (TrackableComponent component : getTrackableComponents(this.beanFactory)) {
 					trackComponentIfAny(component);
@@ -188,12 +194,16 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 				}
 			}
 		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@ManagedOperation
 	@Override
 	public void stop() {
-		synchronized (this.currentlyTrackedComponents) {
+		this.lock.lock();
+		try {
 			if (this.running) {
 				this.currentlyTrackedComponents.forEach(component -> {
 					component.setShouldTrack(false);
@@ -206,6 +216,9 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 				this.currentlyTrackedComponents.clear();
 				this.running = false;
 			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

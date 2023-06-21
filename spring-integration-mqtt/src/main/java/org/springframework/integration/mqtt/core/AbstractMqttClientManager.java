@@ -19,6 +19,8 @@ package org.springframework.integration.mqtt.core;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +40,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Vozhdayenko
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 6.0
  */
@@ -46,6 +49,8 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
 	private static final int DEFAULT_MANAGER_PHASE = 0;
+
+	protected final Lock lock = new ReentrantLock();
 
 	private final Set<ConnectCallback> connectCallbacks = Collections.synchronizedSet(new HashSet<>());
 
@@ -92,8 +97,14 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 		return this.applicationEventPublisher;
 	}
 
-	protected synchronized void setClient(T client) {
-		this.client = client;
+	protected void setClient(T client) {
+		this.lock.lock();
+		try {
+			this.client = client;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	protected Set<ConnectCallback> getCallbacks() {
@@ -134,8 +145,14 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 	}
 
 	@Override
-	public synchronized T getClient() {
-		return this.client;
+	public T getClient() {
+		this.lock.lock();
+		try {
+			return this.client;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override
@@ -177,8 +194,14 @@ public abstract class AbstractMqttClientManager<T, C> implements ClientManager<T
 		return this.connectCallbacks.remove(connectCallback);
 	}
 
-	public synchronized boolean isRunning() {
-		return this.client != null;
+	public boolean isRunning() {
+		this.lock.lock();
+		try {
+			return this.client != null;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	/**

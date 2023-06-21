@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,13 @@ import org.springframework.messaging.MessagingException;
  * @author Gary Russell
  * @author Marcin Pilaczynski
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
 public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAdapter {
 
 	private final String group;
-
 
 	/**
 	 * Constructs a MulticastReceivingChannelAdapter that listens for packets on the
@@ -65,24 +65,31 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 	}
 
 	@Override
-	public synchronized DatagramSocket getSocket() {
-		if (getTheSocket() == null) {
-			try {
-				int port = getPort();
-				MulticastSocket socket = port == 0 ? new MulticastSocket() : new MulticastSocket(port);
-				String localAddress = getLocalAddress();
-				if (localAddress != null) {
-					socket.setNetworkInterface(NetworkInterface.getByInetAddress(InetAddress.getByName(localAddress)));
+	public DatagramSocket getSocket() {
+		this.lock.lock();
+		try {
+			if (getTheSocket() == null) {
+				try {
+					int port = getPort();
+					MulticastSocket socket = port == 0 ? new MulticastSocket() : new MulticastSocket(port);
+					String localAddress = getLocalAddress();
+					if (localAddress != null) {
+						socket.setNetworkInterface(
+								NetworkInterface.getByInetAddress(InetAddress.getByName(localAddress)));
+					}
+					setSocketAttributes(socket);
+					socket.joinGroup(new InetSocketAddress(this.group, 0), null);
+					setSocket(socket);
 				}
-				setSocketAttributes(socket);
-				socket.joinGroup(new InetSocketAddress(this.group, 0), null);
-				setSocket(socket);
+				catch (IOException e) {
+					throw new MessagingException("failed to create DatagramSocket", e);
+				}
 			}
-			catch (IOException e) {
-				throw new MessagingException("failed to create DatagramSocket", e);
-			}
+			return super.getSocket();
 		}
-		return super.getSocket();
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 }

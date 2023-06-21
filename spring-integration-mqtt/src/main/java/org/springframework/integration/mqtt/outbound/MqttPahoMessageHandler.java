@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Christian Tzolov
  *
  * @since 4.0
  *
@@ -184,41 +185,47 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 		}
 	}
 
-	private synchronized IMqttAsyncClient checkConnection() throws MqttException {
-		var theClientManager = getClientManager();
-		if (theClientManager != null) {
-			return theClientManager.getClient();
-		}
+	private IMqttAsyncClient checkConnection() throws MqttException {
+		this.lock.lock();
+		try {
+			var theClientManager = getClientManager();
+			if (theClientManager != null) {
+				return theClientManager.getClient();
+			}
 
-		if (this.client != null && !this.client.isConnected()) {
-			this.client.setCallback(null);
-			this.client.close();
-			this.client = null;
-		}
-		if (this.client == null) {
-			try {
-				MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
-				Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
-						"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-				this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
-				incrementClientInstance();
-				this.client.setCallback(this);
-				this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
-				logger.debug("Client connected");
+			if (this.client != null && !this.client.isConnected()) {
+				this.client.setCallback(null);
+				this.client.close();
+				this.client = null;
 			}
-			catch (MqttException e) {
-				if (this.client != null) {
-					this.client.close();
-					this.client = null;
+			if (this.client == null) {
+				try {
+					MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
+					Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
+							"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
+					this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
+					incrementClientInstance();
+					this.client.setCallback(this);
+					this.client.connect(connectionOptions).waitForCompletion(getCompletionTimeout());
+					logger.debug("Client connected");
 				}
-				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+				catch (MqttException e) {
+					if (this.client != null) {
+						this.client.close();
+						this.client = null;
+					}
+					ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+					if (applicationEventPublisher != null) {
+						applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+					}
+					throw new MessagingException("Failed to connect", e);
 				}
-				throw new MessagingException("Failed to connect", e);
 			}
+			return this.client;
 		}
-		return this.client;
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override
@@ -252,21 +259,27 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 	}
 
 	@Override
-	public synchronized void connectionLost(Throwable cause) {
-		logger.error("Lost connection; will attempt reconnect on next request");
-		if (this.client != null) {
-			try {
-				this.client.setCallback(null);
-				this.client.close();
+	public void connectionLost(Throwable cause) {
+		this.lock.lock();
+		try {
+			logger.error("Lost connection; will attempt reconnect on next request");
+			if (this.client != null) {
+				try {
+					this.client.setCallback(null);
+					this.client.close();
+				}
+				catch (MqttException e) {
+					// NOSONAR
+				}
+				this.client = null;
+				ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+				if (applicationEventPublisher != null) {
+					applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+				}
 			}
-			catch (MqttException e) {
-				// NOSONAR
-			}
-			this.client = null;
-			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
-			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

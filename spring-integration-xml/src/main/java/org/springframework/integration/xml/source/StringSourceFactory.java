@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.xml.source;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -40,8 +42,11 @@ import org.springframework.xml.transform.TransformerFactoryUtils;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class StringSourceFactory implements SourceFactory {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final TransformerFactory transformerFactory;
 
@@ -96,12 +101,16 @@ public class StringSourceFactory implements SourceFactory {
 		}
 	}
 
-	private synchronized Transformer getTransformer() {
+	private Transformer getTransformer() {
+		this.lock.lock();
 		try {
 			return this.transformerFactory.newTransformer();
 		}
 		catch (Exception e) {
 			throw new MessagingException("Exception creating transformer", e);
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

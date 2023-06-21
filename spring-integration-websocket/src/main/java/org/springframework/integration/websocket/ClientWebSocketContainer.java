@@ -46,6 +46,7 @@ import org.springframework.web.socket.client.WebSocketClient;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 4.1
  */
@@ -183,12 +184,18 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	}
 
 	@Override
-	public synchronized void start() {
-		if (!isRunning()) {
-			this.clientSession = null;
-			this.openConnectionException = null;
-			this.connectionLatch = new CountDownLatch(1);
-			this.connectionManager.start();
+	public void start() {
+		this.lock.lock();
+		try {
+			if (!isRunning()) {
+				this.clientSession = null;
+				this.openConnectionException = null;
+				this.connectionLatch = new CountDownLatch(1);
+				this.connectionManager.start();
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

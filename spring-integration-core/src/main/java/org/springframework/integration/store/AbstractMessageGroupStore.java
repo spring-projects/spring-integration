@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.store;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,6 +35,7 @@ import org.springframework.messaging.Message;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
@@ -41,6 +44,8 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 		implements MessageGroupStore, Iterable<MessageGroup> {
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<>();
 
@@ -122,22 +127,28 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	@Override
 	@ManagedOperation
-	public synchronized int expireMessageGroups(long timeout) {
-		int count = 0;
-		long threshold = System.currentTimeMillis() - timeout;
-		for (MessageGroup group : this) {
+	public int expireMessageGroups(long timeout) {
+		this.lock.lock();
+		try {
+			int count = 0;
+			long threshold = System.currentTimeMillis() - timeout;
+			for (MessageGroup group : this) {
 
-			long timestamp = group.getTimestamp();
-			if (this.isTimeoutOnIdle() && group.getLastModified() > 0) {
-				timestamp = group.getLastModified();
-			}
+				long timestamp = group.getTimestamp();
+				if (this.isTimeoutOnIdle() && group.getLastModified() > 0) {
+					timestamp = group.getLastModified();
+				}
 
-			if (timestamp <= threshold) {
-				count++;
-				expire(copy(group));
+				if (timestamp <= threshold) {
+					count++;
+					expire(copy(group));
+				}
 			}
+			return count;
 		}
-		return count;
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	/**

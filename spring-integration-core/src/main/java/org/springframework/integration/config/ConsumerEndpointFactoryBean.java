@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.config;
 
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
@@ -77,6 +79,7 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class ConsumerEndpointFactoryBean
 		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, BeanClassLoaderAware,
@@ -84,9 +87,9 @@ public class ConsumerEndpointFactoryBean
 
 	private static final LogAccessor LOGGER = new LogAccessor(LogFactory.getLog(ConsumerEndpointFactoryBean.class));
 
-	private final Object initializationMonitor = new Object();
+	private final Lock initializationMonitor = new ReentrantLock();
 
-	private final Object handlerMonitor = new Object();
+	private final Lock handlerMonitor = new ReentrantLock();
 
 	private MessageHandler handler;
 
@@ -127,7 +130,8 @@ public class ConsumerEndpointFactoryBean
 	public void setHandler(Object handler) {
 		Assert.isTrue(handler instanceof MessageHandler || handler instanceof ReactiveMessageHandler,
 				"'handler' must be an instance of 'MessageHandler' or 'ReactiveMessageHandler'");
-		synchronized (this.handlerMonitor) {
+		this.handlerMonitor.lock();
+		try {
 			Assert.isNull(this.handler, "handler cannot be overridden");
 			if (handler instanceof ReactiveMessageHandler) {
 				this.handler = new ReactiveMessageHandlerAdapter((ReactiveMessageHandler) handler);
@@ -135,6 +139,9 @@ public class ConsumerEndpointFactoryBean
 			else {
 				this.handler = (MessageHandler) handler;
 			}
+		}
+		finally {
+			this.handlerMonitor.unlock();
 		}
 	}
 
@@ -303,7 +310,8 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	private void initializeEndpoint() {
-		synchronized (this.initializationMonitor) {
+		this.initializationMonitor.lock();
+		try {
 			if (this.initialized) {
 				return;
 			}
@@ -339,6 +347,9 @@ public class ConsumerEndpointFactoryBean
 			}
 			this.endpoint.afterPropertiesSet();
 			this.initialized = true;
+		}
+		finally {
+			this.initializationMonitor.unlock();
 		}
 	}
 

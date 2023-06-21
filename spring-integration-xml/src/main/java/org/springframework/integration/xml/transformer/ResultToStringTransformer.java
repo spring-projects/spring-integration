@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.xml.transformer;
 
 import java.util.Properties;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
@@ -38,8 +40,11 @@ import org.springframework.xml.transform.TransformerFactoryUtils;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class ResultToStringTransformer implements ResultTransformer {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final TransformerFactory transformerFactory;
 
@@ -90,8 +95,12 @@ public class ResultToStringTransformer implements ResultTransformer {
 
 	private Transformer getNewTransformer() throws TransformerConfigurationException {
 		Transformer transformer;
-		synchronized (this.transformerFactory) {
+		this.lock.lock();
+		try {
 			transformer = this.transformerFactory.newTransformer();
+		}
+		finally {
+			this.lock.unlock();
 		}
 		if (this.outputProperties != null) {
 			transformer.setOutputProperties(this.outputProperties);

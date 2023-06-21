@@ -62,10 +62,13 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Krzysztof Debski
  * @author Auke Zaaiman
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
 public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirEntry>, SharedSessionCapable {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final SshClient sshClient;
 
@@ -323,11 +326,15 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 
 	private void initClient() throws IOException {
 		if (!this.initialized) {
-			synchronized (this) {
+			this.lock.lock();
+			try {
 				if (!this.initialized) {
 					doInitClient();
 					this.initialized = true;
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 	}

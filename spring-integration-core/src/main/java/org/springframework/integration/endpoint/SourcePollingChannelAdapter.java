@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.integration.endpoint;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.BeanCreationException;
@@ -43,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  */
 public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		implements TrackableComponent {
@@ -58,6 +62,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	private volatile String outputChannelName;
 
 	private volatile boolean shouldTrack;
+
+	private final Lock lock = new ReentrantLock();
 
 	/**
 	 * Specify the source to be polled for Messages.
@@ -175,11 +181,15 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	public MessageChannel getOutputChannel() {
 		if (this.outputChannelName != null) {
-			synchronized (this) {
+			this.lock.lock();
+			try {
 				if (this.outputChannelName != null) {
 					this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
 					this.outputChannelName = null;
 				}
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 		return this.outputChannel;

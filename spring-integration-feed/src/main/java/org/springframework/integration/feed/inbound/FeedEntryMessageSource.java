@@ -28,6 +28,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
@@ -56,6 +58,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Aaron Loes
+ * @author Christian Tzolov
  *
  * @since 2.0
  */
@@ -69,13 +72,13 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private final Queue<SyndEntry> entries = new ConcurrentLinkedQueue<>();
 
-	private final Object monitor = new Object();
+	private final Lock monitor = new ReentrantLock();
 
 	private final Comparator<SyndEntry> syndEntryComparator =
 			Comparator.comparing(FeedEntryMessageSource::getLastModifiedDate,
 					Comparator.nullsFirst(Comparator.naturalOrder()));
 
-	private final Object feedMonitor = new Object();
+	private final Lock feedMonitor = new ReentrantLock();
 
 	private SyndFeedInput syndFeedInput = new SyndFeedInput();
 
@@ -176,13 +179,17 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 		Assert.isTrue(this.initialized,
 				"'FeedEntryReaderMessageSource' must be initialized before it can produce Messages.");
 		SyndEntry nextEntry;
-		synchronized (this.monitor) {
+		this.monitor.lock();
+		try {
 			nextEntry = getNextEntry();
 			if (nextEntry == null) {
 				// read feed and try again
 				populateEntryList();
 				nextEntry = getNextEntry();
 			}
+		}
+		finally {
+			this.monitor.unlock();
 		}
 		return nextEntry;
 	}
@@ -225,13 +232,17 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private SyndFeed getFeed() {
 		try {
-			synchronized (this.feedMonitor) {
+			this.feedMonitor.lock();
+			try {
 				SyndFeed feed = buildSyndFeed();
 				logger.debug(() -> "Retrieved feed for [" + this + "]");
 				if (feed == null) {
 					logger.debug(() -> "No feeds updated for [" + this + "], returning null");
 				}
 				return feed;
+			}
+			finally {
+				this.feedMonitor.unlock();
 			}
 		}
 		catch (Exception e) {

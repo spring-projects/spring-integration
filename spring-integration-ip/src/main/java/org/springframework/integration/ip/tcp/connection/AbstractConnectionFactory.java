@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -58,6 +60,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Christian Tzolov
  *
  * @since 2.0
  *
@@ -73,9 +76,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private static final int DEFAULT_READ_DELAY = 100;
 
-	protected final Object lifecycleMonitor = new Object(); // NOSONAR final
+	protected final Lock lifecycleMonitor = new ReentrantLock(); // NOSONAR final
 
 	private final Map<String, TcpConnectionSupport> connections = new ConcurrentHashMap<>();
+
+	private final Lock connectionsMonitor = new ReentrantLock();
 
 	private final BlockingQueue<PendingIO> delayedReads = new LinkedBlockingQueue<>();
 
@@ -546,12 +551,16 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		if (!this.active) {
 			throw new MessagingException("Connection Factory not started");
 		}
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.lock();
+		try {
 			if (this.taskExecutor == null) {
 				this.privateExecutor = true;
 				this.taskExecutor = Executors.newCachedThreadPool();
 			}
 			return this.taskExecutor;
+		}
+		finally {
+			this.lifecycleMonitor.unlock();
 		}
 	}
 
@@ -561,7 +570,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	@Override
 	public void stop() {
 		this.active = false;
-		synchronized (this.connections) {
+		this.connectionsMonitor.lock();
+		try {
 			Iterator<Entry<String, TcpConnectionSupport>> iterator = this.connections.entrySet().iterator();
 			while (iterator.hasNext()) {
 				TcpConnectionSupport connection = iterator.next().getValue();
@@ -575,7 +585,12 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 		}
-		synchronized (this.lifecycleMonitor) {
+		finally {
+			this.connectionsMonitor.unlock();
+		}
+
+		this.lifecycleMonitor.lock();
+		try {
 			if (this.privateExecutor) {
 				ExecutorService executorService = (ExecutorService) this.taskExecutor;
 				executorService.shutdown();
@@ -597,6 +612,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					this.privateExecutor = false;
 				}
 			}
+		}
+		finally {
+			this.lifecycleMonitor.unlock();
 		}
 		logger.info(() -> "stopped " + this);
 	}
@@ -849,13 +867,17 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	protected void addConnection(TcpConnectionSupport connection) {
-		synchronized (this.connections) {
+		this.connectionsMonitor.lock();
+		try {
 			if (!this.active) {
 				connection.close();
 				return;
 			}
 			this.connections.put(connection.getConnectionId(), connection);
 			logger.debug(() -> getComponentName() + ": Added new connection: " + connection.getConnectionId());
+		}
+		finally {
+			this.connectionsMonitor.unlock();
 		}
 	}
 
@@ -864,7 +886,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return a list of open connection ids.
 	 */
 	private List<String> removeClosedConnectionsAndReturnOpenConnectionIds() {
-		synchronized (this.connections) {
+		this.connectionsMonitor.lock();
+		try {
 			List<String> openConnectionIds = new ArrayList<>();
 			Iterator<Entry<String, TcpConnectionSupport>> iterator = this.connections.entrySet().iterator();
 			while (iterator.hasNext()) {
@@ -887,6 +910,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 			return openConnectionIds;
+		}
+		finally {
+			this.connectionsMonitor.unlock();
 		}
 	}
 
@@ -948,7 +974,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	public boolean closeConnection(String connectionId) {
 		Assert.notNull(connectionId, "'connectionId' to close must not be null");
 		// closed connections are removed from #connections in #harvestClosedConnections()
-		synchronized (this.connections) {
+		this.connectionsMonitor.lock();
+		try {
 			boolean closed = false;
 			TcpConnectionSupport connection = this.connections.remove(connectionId);
 			if (connection != null) {
@@ -963,6 +990,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 			return closed;
+		}
+		finally {
+			this.connectionsMonitor.unlock();
 		}
 	}
 

@@ -47,6 +47,7 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 4.1
  */
@@ -224,9 +225,15 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	}
 
 	@Override
-	public synchronized void start() {
-		if (this.handshakeHandler instanceof Lifecycle && !isRunning()) {
-			((Lifecycle) this.handshakeHandler).start();
+	public void start() {
+		this.lock.lock();
+		try {
+			if (this.handshakeHandler instanceof Lifecycle && !isRunning()) {
+				((Lifecycle) this.handshakeHandler).start();
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.config.xml;
 
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -38,9 +40,13 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Christian Tzolov
+ *
  * @since 3.0
  */
 public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
+
+	private final Lock lock = new ReentrantLock();
 
 	private final Map<String, Object> propertyAccessors = new ManagedMap<String, Object>();
 
@@ -86,17 +92,23 @@ public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 		return null;
 	}
 
-	private synchronized void initializeSpelPropertyAccessorRegistrarIfNecessary(ParserContext parserContext) {
-		if (!parserContext.getRegistry()
-				.containsBeanDefinition(IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME)) {
+	private void initializeSpelPropertyAccessorRegistrarIfNecessary(ParserContext parserContext) {
+		this.lock.lock();
+		try {
+			if (!parserContext.getRegistry()
+					.containsBeanDefinition(IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME)) {
 
-			BeanDefinitionBuilder registrarBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(SpelPropertyAccessorRegistrar.class)
-					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-					.addConstructorArgValue(this.propertyAccessors);
-			parserContext.getRegistry()
-					.registerBeanDefinition(IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME,
-							registrarBuilder.getBeanDefinition());
+				BeanDefinitionBuilder registrarBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(SpelPropertyAccessorRegistrar.class)
+						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+						.addConstructorArgValue(this.propertyAccessors);
+				parserContext.getRegistry()
+						.registerBeanDefinition(IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME,
+								registrarBuilder.getBeanDefinition());
+			}
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

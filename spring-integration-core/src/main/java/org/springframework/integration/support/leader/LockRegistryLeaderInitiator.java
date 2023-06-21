@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -56,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Glenn Renfro
  * @author Kiel Boatman
  * @author Gary Russell
+ * @author Christian Tzolov
  *
  * @since 4.3.1
  */
@@ -67,6 +69,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	public static final long DEFAULT_BUSY_WAIT_TIME = 50L;
 
 	private static final LogAccessor LOGGER = new LogAccessor(LockRegistryLeaderInitiator.class);
+
+	private final Lock lock = new ReentrantLock();
 
 	/**
 	 * A lock registry. The locks it manages should be global (whatever that means for the
@@ -286,15 +290,21 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * Start the registration of the {@link #candidate} for leader election.
 	 */
 	@Override
-	public synchronized void start() {
-		if (this.leaderEventPublisher == null && this.applicationEventPublisher != null) {
-			this.leaderEventPublisher = new DefaultLeaderEventPublisher(this.applicationEventPublisher);
+	public void start() {
+		this.lock.lock();
+		try {
+			if (this.leaderEventPublisher == null && this.applicationEventPublisher != null) {
+				this.leaderEventPublisher = new DefaultLeaderEventPublisher(this.applicationEventPublisher);
+			}
+			if (!this.running) {
+				this.leaderSelector = new LeaderSelector(buildLeaderPath());
+				this.running = true;
+				this.future = this.taskExecutor.submit(this.leaderSelector);
+				LOGGER.debug("Started LeaderInitiator");
+			}
 		}
-		if (!this.running) {
-			this.leaderSelector = new LeaderSelector(buildLeaderPath());
-			this.running = true;
-			this.future = this.taskExecutor.submit(this.leaderSelector);
-			LOGGER.debug("Started LeaderInitiator");
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -308,14 +318,20 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * candidate is currently leader, its leadership will be revoked.
 	 */
 	@Override
-	public synchronized void stop() {
-		if (this.running) {
-			this.running = false;
-			if (this.future != null) {
-				this.future.cancel(true);
+	public void stop() {
+		this.lock.lock();
+		try {
+			if (this.running) {
+				this.running = false;
+				if (this.future != null) {
+					this.future.cancel(true);
+				}
+				this.future = null;
+				LOGGER.debug(() -> "Stopped LeaderInitiator for " + getContext());
 			}
-			this.future = null;
-			LOGGER.debug(() -> "Stopped LeaderInitiator for " + getContext());
+		}
+		finally {
+			this.lock.unlock();
 		}
 	}
 

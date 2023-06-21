@@ -18,6 +18,8 @@ package org.springframework.integration.zookeeper.leader;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,6 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Ivan Zaitsev
+ * @author Christian Tzolov
  *
  * @since 4.2
  */
@@ -66,7 +69,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	private final Candidate candidate;
 
-	private final Object lifecycleMonitor = new Object();
+	private final Lock lifecycleMonitor = new ReentrantLock();
 
 	/**
 	 * Base path in a zookeeper
@@ -159,7 +162,8 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	@Override
 	public void start() {
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.lock();
+		try {
 			if (!this.running) {
 				if (this.client.getState() != CuratorFrameworkState.STARTED) {
 					// we want to do curator start here because it needs to
@@ -177,6 +181,9 @@ public class LeaderInitiator implements SmartLifecycle {
 				LOGGER.debug("Started LeaderInitiator");
 			}
 		}
+		finally {
+			this.lifecycleMonitor.unlock();
+		}
 	}
 
 	/**
@@ -185,12 +192,16 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	@Override
 	public void stop() {
-		synchronized (this.lifecycleMonitor) {
+		this.lifecycleMonitor.lock();
+		try {
 			if (this.running) {
 				this.leaderSelector.close();
 				this.running = false;
 				LOGGER.debug("Stopped LeaderInitiator");
 			}
+		}
+		finally {
+			this.lifecycleMonitor.unlock();
 		}
 	}
 
