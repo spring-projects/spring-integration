@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -96,7 +95,6 @@ public class BoundRabbitChannelAdviceTests {
 		public CachingConnectionFactory cf() throws Exception {
 			ConnectionFactory cf = mock(ConnectionFactory.class);
 			cf.setHost("localhost");
-			cf = spy(cf);
 			willAnswer(i -> {
 				this.connection = mock(Connection.class);
 				willAnswer(ii -> {

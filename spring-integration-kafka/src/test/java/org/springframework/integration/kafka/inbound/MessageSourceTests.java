@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -576,7 +576,7 @@ class MessageSourceTests {
 		ack1.acknowledge(AcknowledgmentCallback.Status.REQUEUE);
 		assertThat(received2.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(1L);
 		AcknowledgmentCallback ack2 = StaticMessageHeaderAccessor.getAcknowledgmentCallback(received2);
-		Log log2 = spy(KafkaTestUtils.getPropertyValue(ack1, "logger.log", Log.class));
+		Log log2 = spy(KafkaTestUtils.getPropertyValue(ack2, "logger.log", Log.class));
 		new DirectFieldAccessor(ack2).setPropertyValue("logger.log", log2);
 		given(log2.isWarnEnabled()).willReturn(true);
 		willDoNothing().given(log2).warn(any());
