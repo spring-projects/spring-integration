@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,14 +43,14 @@ import org.springframework.util.Assert;
 public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		implements RetryListener {
 
-	private static final ThreadLocal<Message<?>> MESSAGE_HOLDER = new ThreadLocal<>();
+	private static final IntegrationRetryListener INTEGRATION_RETRY_LISTENER = new IntegrationRetryListener();
 
 	private RetryTemplate retryTemplate = new RetryTemplate();
 
 	private RecoveryCallback<Object> recoveryCallback;
 
 	// Stateless unless a state generator is provided
-	private volatile RetryStateGenerator retryStateGenerator = message -> null;
+	private RetryStateGenerator retryStateGenerator = message -> null;
 
 	/**
 	 * Set the retry template. Cause traversal should be enabled in the retry policy
@@ -74,48 +74,71 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 	@Override
 	protected void onInit() {
 		super.onInit();
-		this.retryTemplate.registerListener(this);
+		this.retryTemplate.registerListener(INTEGRATION_RETRY_LISTENER);
 	}
 
 	@Override
-	protected Object doInvoke(final ExecutionCallback callback, Object target, final Message<?> message) {
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
+		IntegrationRetryCallback retryCallback = new IntegrationRetryCallback(message, callback);
 		RetryState retryState = this.retryStateGenerator.determineRetryState(message);
-		MESSAGE_HOLDER.set(message);
-
 		try {
-			return this.retryTemplate.execute(context -> callback.cloneAndExecute(), this.recoveryCallback, retryState);
+			return this.retryTemplate.execute(retryCallback, this.recoveryCallback, retryState);
 		}
-		catch (MessagingException e) {
-			if (e.getFailedMessage() == null) {
-				throw new MessagingException(message, "Failed to invoke handler", e);
+		catch (MessagingException ex) {
+			if (ex.getFailedMessage() == null) {
+				throw new MessagingException(message, "Failed to invoke handler", ex);
 			}
-			throw e;
+			throw ex;
 		}
-		catch (ThrowableHolderException e) { // NOSONAR catch and rethrow
-			throw e;
+		catch (ThrowableHolderException ex) { // NOSONAR catch and rethrow
+			throw ex;
 		}
-		catch (Exception e) {
-			throw new ThrowableHolderException(e);
-		}
-		finally {
-			MESSAGE_HOLDER.remove();
+		catch (Exception ex) {
+			throw new ThrowableHolderException(ex);
 		}
 	}
 
+	/**
+	 * Set a {@link ErrorMessageUtils#FAILED_MESSAGE_CONTEXT_KEY} attribute into context.
+	 * @param context the current {@link RetryContext}.
+	 * @param callback the current {@link RetryCallback}.
+	 * @param <T> the type of object returned by the callback
+	 * @param <E> the type of exception it declares may be thrown
+	 * @return the open state.
+	 * @deprecated since 6.2 in favor of an internal {@link RetryListener} implementation.
+	 * The {@link RequestHandlerRetryAdvice} must not be used as a listener for external {@link RetryTemplate}
+	 * instances.
+	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	@Override
 	public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-		context.setAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY, MESSAGE_HOLDER.get());
-		return true;
+		return INTEGRATION_RETRY_LISTENER.open(context, callback);
 	}
 
-	@Override
-	public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
-			Throwable throwable) {
+	private static class IntegrationRetryListener implements RetryListener {
+
+		IntegrationRetryListener() {
+		}
+
+		@Override
+		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
+			Assert.state(callback instanceof IntegrationRetryCallback,
+					"A 'RequestHandlerRetryAdvice' cannot be used as a 'RetryListener'");
+			context.setAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY,
+					((IntegrationRetryCallback) callback).messageToTry);
+			return true;
+		}
+
 	}
 
-	@Override
-	public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
-			Throwable throwable) {
+	private record IntegrationRetryCallback(Message<?> messageToTry, ExecutionCallback callback)
+			implements RetryCallback<Object, Exception> {
+
+		@Override
+		public Object doWithRetry(RetryContext context) {
+			return this.callback.cloneAndExecute();
+		}
+
 	}
 
 }
