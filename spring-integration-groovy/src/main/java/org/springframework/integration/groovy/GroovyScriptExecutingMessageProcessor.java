@@ -171,7 +171,6 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		if (this.scriptClass == null || scriptSource.isModified()) {
 			this.scriptLock.lock();
 			try {
-				// synchronized double check
 				if (this.scriptClass == null || scriptSource.isModified()) {
 					String className = scriptSource.suggestedClassName();
 					try {

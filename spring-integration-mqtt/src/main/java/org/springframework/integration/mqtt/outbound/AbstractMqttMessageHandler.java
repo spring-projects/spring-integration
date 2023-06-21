@@ -281,7 +281,7 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	}
 
 	protected void incrementClientInstance() {
-		this.clientInstance++; //NOSONAR - false positive - called from synchronized block
+		this.clientInstance++;
 	}
 
 	/**
@@ -291,7 +291,7 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	 * @since 4.1
 	 */
 	public void setCompletionTimeout(long completionTimeout) {
-		this.completionTimeout = completionTimeout; // NOSONAR (sync)
+		this.completionTimeout = completionTimeout;
 	}
 
 	protected long getCompletionTimeout() {
@@ -305,7 +305,7 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	 * @since 5.1.10
 	 */
 	public void setDisconnectCompletionTimeout(long completionTimeout) {
-		this.disconnectCompletionTimeout = completionTimeout; // NOSONAR (sync)
+		this.disconnectCompletionTimeout = completionTimeout;
 	}
 
 	protected long getDisconnectCompletionTimeout() {

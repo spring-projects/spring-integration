@@ -121,7 +121,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		if (event.getApplicationContext().equals(this.applicationContext)) {
-			buildGraph();
+			rebuild();
 		}
 	}
 
@@ -132,7 +132,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @see #rebuild()
 	 */
 	public Graph getGraph() {
-		if (this.graph == null) { // NOSONAR (sync)
+		if (this.graph == null) {
 			this.lock.lock();
 			try {
 				if (this.graph == null) {
@@ -153,7 +153,13 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @see #getGraph()
 	 */
 	public Graph rebuild() {
-		return buildGraph();
+		this.lock.lock();
+		try {
+			return buildGraph();
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	/**
@@ -170,7 +176,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	}
 
 	private <T extends IntegrationNode> T enhance(T node) {
-		if (this.micrometerEnhancer != null) { // NOSONAR - synchronized inconsistency
+		if (this.micrometerEnhancer != null) {
 			return this.micrometerEnhancer.enhance(node);
 		}
 		else {
@@ -179,40 +185,34 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	}
 
 	private Graph buildGraph() {
-		this.lock.lock();
-		try {
-			if (this.micrometerEnhancer == null && MicrometerMetricsCaptorConfiguration.METER_REGISTRY_PRESENT) {
-				this.micrometerEnhancer = new MicrometerNodeEnhancer(this.applicationContext);
-			}
-			String implementationVersion = IntegrationGraphServer.class.getPackage().getImplementationVersion();
-			if (implementationVersion == null) {
-				implementationVersion = "unknown - is Spring Integration running from the distribution jar?";
-			}
-			Map<String, Object> descriptor = new HashMap<>();
-			descriptor.put("provider", "spring-integration");
-			descriptor.put("providerVersion", implementationVersion);
-			descriptor.put("providerFormatVersion", GRAPH_VERSION);
-			String name = this.applicationName;
-			if (name == null) {
-				name = this.applicationContext.getEnvironment().getProperty("spring.application.name");
-			}
-			if (name != null) {
-				descriptor.put("name", name);
-			}
-			this.nodeFactory.reset();
-			Collection<IntegrationNode> nodes = new ArrayList<>();
-			Collection<LinkNode> links = new ArrayList<>();
-			Map<String, MessageChannelNode> channelNodes = channels(nodes);
-			pollingAdapters(nodes, links, channelNodes);
-			gateways(nodes, links, channelNodes);
-			producers(nodes, links, channelNodes);
-			consumers(nodes, links, channelNodes);
-			this.graph = new Graph(descriptor, nodes, links);
-			return this.graph;
+		if (this.micrometerEnhancer == null && MicrometerMetricsCaptorConfiguration.METER_REGISTRY_PRESENT) {
+			this.micrometerEnhancer = new MicrometerNodeEnhancer(this.applicationContext);
 		}
-		finally {
-			this.lock.unlock();
+		String implementationVersion = IntegrationGraphServer.class.getPackage().getImplementationVersion();
+		if (implementationVersion == null) {
+			implementationVersion = "unknown - is Spring Integration running from the distribution jar?";
 		}
+		Map<String, Object> descriptor = new HashMap<>();
+		descriptor.put("provider", "spring-integration");
+		descriptor.put("providerVersion", implementationVersion);
+		descriptor.put("providerFormatVersion", GRAPH_VERSION);
+		String name = this.applicationName;
+		if (name == null) {
+			name = this.applicationContext.getEnvironment().getProperty("spring.application.name");
+		}
+		if (name != null) {
+			descriptor.put("name", name);
+		}
+		this.nodeFactory.reset();
+		Collection<IntegrationNode> nodes = new ArrayList<>();
+		Collection<LinkNode> links = new ArrayList<>();
+		Map<String, MessageChannelNode> channelNodes = channels(nodes);
+		pollingAdapters(nodes, links, channelNodes);
+		gateways(nodes, links, channelNodes);
+		producers(nodes, links, channelNodes);
+		consumers(nodes, links, channelNodes);
+		this.graph = new Graph(descriptor, nodes, links);
+		return this.graph;
 	}
 
 	private Map<String, MessageChannelNode> channels(Collection<IntegrationNode> nodes) {

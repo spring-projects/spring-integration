@@ -364,7 +364,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	/**
 	 * Blocks until a complete message has been assembled.
-	 * Synchronized to avoid concurrency.
 	 * @return The Message or null if no data is available.
 	 * @throws IOException an IO exception
 	 */
