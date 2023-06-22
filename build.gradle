@@ -127,7 +127,6 @@ allprojects {
             mavenLocal()
         }
         mavenCentral()
-        maven { url 'https://repo.spring.io/release' }
         maven { url 'https://repo.spring.io/milestone' }
         if (version.endsWith('SNAPSHOT')) {
             maven { url 'https://repo.spring.io/snapshot' }
