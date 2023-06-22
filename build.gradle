@@ -509,7 +509,9 @@ project('spring-integration-cassandra') {
         api project(':spring-integration-core')
         api 'org.springframework.data:spring-data-cassandra'
 
-        testImplementation 'org.testcontainers:cassandra'
+        testImplementation ('org.testcontainers:cassandra') {
+            exclude group: 'com.datastax.cassandra'
+        }
     }
 }
 
