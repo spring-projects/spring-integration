@@ -69,14 +69,14 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		fileNameGenerator.setExpression("'foobar.txt'");
 		fileNameGenerator.setBeanFactory(mock(BeanFactory.class));
 		template.setFileNameGenerator(fileNameGenerator);
-		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		template.setRemoteDirectoryExpression(new LiteralExpression("/foo/"));
 		template.setUseTemporaryFileName(false);
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
 
 		template.execute(session -> {
-			session.mkdir("foo/");
-			return session.mkdir("foo/bar/");
+			session.mkdir("/foo/");
+			return session.mkdir("/foo/bar/");
 		});
 		template.append(new GenericMessage<>("foo"));
 		template.append(new GenericMessage<>("bar"));
@@ -91,17 +91,17 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 			}
 		});
 		template.execute((SessionCallbackWithoutResult<SftpClient.DirEntry>) session -> {
-			SftpClient.DirEntry[] files = session.list("foo/");
+			SftpClient.DirEntry[] files = session.list("/foo/");
 			assertThat(files.length).isEqualTo(4);
-			assertThat(session.remove("foo/foobar.txt")).isTrue();
-			assertThat(session.rmdir("foo/bar/")).isTrue();
-			files = session.list("foo/");
+			assertThat(session.remove("/foo/foobar.txt")).isTrue();
+			assertThat(session.rmdir("/foo/bar/")).isTrue();
+			files = session.list("/foo");
 			assertThat(files.length).isEqualTo(2);
 			List<String> fileNames = Arrays.stream(files).map(SftpClient.DirEntry::getFilename).toList();
 			assertThat(fileNames).contains(".", "..");
-			assertThat(session.rmdir("foo/")).isTrue();
+			assertThat(session.rmdir("/foo")).isTrue();
 		});
-		assertThat(template.exists("foo")).isFalse();
+		assertThat(template.exists("/foo")).isFalse();
 	}
 
 	@Test
