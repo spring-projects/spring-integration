@@ -257,6 +257,8 @@ configure(javaProjects) { subproject ->
             }
         }
 
+        testImplementation "org.assertj:assertj-core:$assertjVersion"
+
         // JSR-305 only used for non-required meta-annotations
         compileOnly "com.google.code.findbugs:annotations:$findbugsVersion"
         testImplementation "com.google.code.findbugs:annotations:$findbugsVersion"
