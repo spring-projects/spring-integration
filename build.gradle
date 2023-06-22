@@ -22,7 +22,6 @@ plugins {
     id 'com.jfrog.artifactory' version '4.32.0' apply false
     id 'org.jetbrains.dokka' version "$kotlinVersion"
     id 'org.asciidoctor.jvm.pdf' version '3.3.2'
-    id 'org.asciidoctor.jvm.gems' version '3.3.2'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
