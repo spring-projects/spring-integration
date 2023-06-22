@@ -589,6 +589,7 @@ project('spring-integration-debezium') {
             exclude group: 'org.glassfish.jersey.inject', module: 'jersey-hk2'
             exclude group: 'jakarta.xml.bind', module: 'jakarta.xml.bind-api'
             exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
+            exclude group: 'javax.activation', module: 'javax.activation-api'
         }
 
         testImplementation 'io.debezium:debezium-connector-mysql'
