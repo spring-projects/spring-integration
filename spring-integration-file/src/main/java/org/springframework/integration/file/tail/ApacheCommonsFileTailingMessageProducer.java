@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package org.springframework.integration.file.tail;
 
+import java.time.Duration;
+
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
+import org.apache.commons.io.input.TailerListenerAdapter;
 
 /**
  * File tailer that delegates to the Apache Commons Tailer.
@@ -31,7 +34,9 @@ import org.apache.commons.io.input.TailerListener;
 public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageProducerSupport
 		implements TailerListener {
 
-	private long pollingDelay = 1000; // NOSONAR magic number
+	private final TailerListener tailerListener = new IntegrationTailerListener();
+
+	private Duration pollingDelay = Duration.ofSeconds(1);
 
 	private boolean end = true;
 
@@ -44,6 +49,15 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	 * @param pollingDelay The delay.
 	 */
 	public void setPollingDelay(long pollingDelay) {
+		setPollingDelayDuration(Duration.ofMillis(pollingDelay));
+	}
+
+	/**
+	 * The delay between checks of the file for new content in {@link Duration}.
+	 * @param pollingDelay The delay duration.
+	 * @since 6.2
+	 */
+	public void setPollingDelayDuration(Duration pollingDelay) {
 		this.pollingDelay = pollingDelay;
 	}
 
@@ -73,7 +87,15 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	@Override
 	protected void doStart() {
 		super.doStart();
-		Tailer theTailer = new Tailer(getFile(), this, this.pollingDelay, this.end, this.reopen);
+		Tailer theTailer =
+				Tailer.builder()
+						.setDelayDuration(this.pollingDelay)
+						.setTailFromEnd(this.end)
+						.setReOpen(this.reopen)
+						.setFile(getFile())
+						.setTailerListener(this.tailerListener)
+						.setStartThread(false)
+						.get();
 		getTaskExecutor().execute(theTailer);
 		this.tailer = theTailer;
 	}
@@ -81,37 +103,80 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	@Override
 	protected void doStop() {
 		super.doStop();
-		this.tailer.stop();
+		this.tailer.close();
 	}
 
+	@Deprecated(since = "6.2", forRemoval = true)
 	@Override
 	public void init(Tailer tailer) {
+		tailerListenerIsDeprecatedError();
 	}
 
+	@Deprecated(since = "6.2", forRemoval = true)
 	@Override
 	public void fileNotFound() {
-		publish("File not found: " + getFile().getAbsolutePath());
-		try {
-			Thread.sleep(getMissingFileDelay());
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
+		tailerListenerIsDeprecatedError();
+		this.tailerListener.fileNotFound();
 	}
 
+	@Deprecated(since = "6.2", forRemoval = true)
 	@Override
 	public void fileRotated() {
-		publish("File rotated: " + getFile().getAbsolutePath());
+		tailerListenerIsDeprecatedError();
+		this.tailerListener.fileRotated();
 	}
 
+	@Deprecated(since = "6.2", forRemoval = true)
 	@Override
 	public void handle(String line) {
-		send(line);
+		tailerListenerIsDeprecatedError();
+		this.tailerListener.handle(line);
 	}
 
+	@Deprecated(since = "6.2", forRemoval = true)
 	@Override
 	public void handle(Exception ex) {
-		publish(ex.getMessage());
+		tailerListenerIsDeprecatedError();
+		this.tailerListener.handle(ex);
+	}
+
+	private void tailerListenerIsDeprecatedError() {
+		ApacheCommonsFileTailingMessageProducer.this.logger.error(
+				"The 'TailerListener' implementation on the 'ApacheCommonsFileTailingMessageProducer' " +
+						"is deprecated (in favor of an internal instance) for removal in the next version.");
+	}
+
+	private class IntegrationTailerListener extends TailerListenerAdapter {
+
+		IntegrationTailerListener() {
+		}
+
+		@Override
+		public void fileNotFound() {
+			publish("File not found: " + getFile().getAbsolutePath());
+			try {
+				Thread.sleep(getMissingFileDelay());
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
+
+		@Override
+		public void fileRotated() {
+			publish("File rotated: " + getFile().getAbsolutePath());
+		}
+
+		@Override
+		public void handle(String line) {
+			send(line);
+		}
+
+		@Override
+		public void handle(Exception ex) {
+			publish(ex.getMessage());
+		}
+
 	}
 
 }
