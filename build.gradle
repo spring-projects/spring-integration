@@ -158,22 +158,23 @@ allprojects {
 
         imports {
             mavenBom "com.fasterxml.jackson:jackson-bom:$jacksonVersion"
-            mavenBom "org.junit:junit-bom:$junitJupiterVersion"
-            mavenBom "io.projectreactor:reactor-bom:$reactorVersion"
-            mavenBom "org.apache.logging.log4j:log4j-bom:$log4jVersion"
-            mavenBom "org.mockito:mockito-bom:$mockitoVersion"
+            mavenBom "io.debezium:debezium-bom:$debeziumVersion"
             mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
             mavenBom "io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion"
+            mavenBom "io.projectreactor:reactor-bom:$reactorVersion"
             mavenBom "org.apache.camel:camel-bom:$camelVersion"
-            mavenBom "org.testcontainers:testcontainers-bom:$testcontainersVersion"
             mavenBom "org.apache.groovy:groovy-bom:$groovyVersion"
-            mavenBom "org.springframework.security:spring-security-bom:$springSecurityVersion"
+            mavenBom "org.apache.logging.log4j:log4j-bom:$log4jVersion"
             mavenBom "org.jetbrains.kotlinx:kotlinx-coroutines-bom:$kotlinCoroutinesVersion"
+            mavenBom "org.junit:junit-bom:$junitJupiterVersion"
+            mavenBom "org.mockito:mockito-bom:$mockitoVersion"
             mavenBom "org.springframework.amqp:spring-amqp-bom:$springAmqpVersion"
-            mavenBom "org.springframework.kafka:spring-kafka-bom:$springKafkaVersion"
             mavenBom "org.springframework.data:spring-data-bom:$springDataVersion"
+            mavenBom "org.springframework.kafka:spring-kafka-bom:$springKafkaVersion"
+            mavenBom "org.springframework.security:spring-security-bom:$springSecurityVersion"
             mavenBom "org.springframework:spring-framework-bom:$springVersion"
             mavenBom "org.springframework.ws:spring-ws-bom:$springWsVersion"
+            mavenBom "org.testcontainers:testcontainers-bom:$testcontainersVersion"
         }
 
     }
@@ -580,14 +581,14 @@ project('spring-integration-debezium') {
     description = 'Spring Integration Debezium Support'
     dependencies {
         api project(':spring-integration-core')
-        api("io.debezium:debezium-embedded:$debeziumVersion") {
+        api('io.debezium:debezium-embedded') {
             exclude group: 'org.glassfish.jersey.containers', module: 'jersey-container-servlet'
             exclude group: 'org.glassfish.jersey.inject', module: 'jersey-hk2'
             exclude group: 'jakarta.xml.bind', module: 'jakarta.xml.bind-api'
             exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
         }
 
-        testImplementation "io.debezium:debezium-connector-mysql:$debeziumVersion"
+        testImplementation 'io.debezium:debezium-connector-mysql'
         testImplementation 'org.testcontainers:mysql'
     }
 }
