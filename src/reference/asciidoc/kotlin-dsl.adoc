@@ -32,7 +32,7 @@ fun flowLambda() =
         wireTap {
                     handle { println(it.payload) }
                 }
-        transform<String, String> { it.toUpperCase() }
+        transform<String> { it.toUpperCase() }
     }
 ----
 ====
@@ -67,7 +67,7 @@ For example:
 @Bean
 fun functionFlow() =
         integrationFlow<Function<String, String>>({ beanName("functionGateway") }) {
-            transform<String, String> { it.toUpperCase() }
+            transform<String> { it.toUpperCase() }
         }
 
 @Bean

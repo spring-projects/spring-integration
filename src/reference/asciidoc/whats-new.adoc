@@ -28,3 +28,6 @@ See <<./debezium.adoc#debezium, Debezium Support>>  for more information.
 
 - The XML configuration for `<poller>` and `@Poller` annotation now support ISO 8601 duration format for `fixed-delay`, `fixed-rate` and `initial-delay` options.
 See <<./endpoint.adoc#endpoint-pollingconsumer, Polling Consumer>> for more information.
+
+- Java, Groovy and Kotlin DSLs have now context-specific methods in the `IntegationFlowDefinition` with a single `Consumer` argument to configure an endpoint and its handler with one builder and readable options.
+See, for example, `transformWith()` in <<./dsl.adoc#java-dsl, Java DSL Chapter>>.

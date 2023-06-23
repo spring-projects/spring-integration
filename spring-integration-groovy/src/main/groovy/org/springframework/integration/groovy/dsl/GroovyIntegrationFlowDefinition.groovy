@@ -47,7 +47,7 @@ import org.springframework.integration.dsl.ResequencerSpec
 import org.springframework.integration.dsl.RouterSpec
 import org.springframework.integration.dsl.ScatterGatherSpec
 import org.springframework.integration.dsl.SplitterEndpointSpec
-import org.springframework.integration.dsl.TransformerSpec
+import org.springframework.integration.dsl.TransformerEndpointSpec
 import org.springframework.integration.dsl.WireTapSpec
 import org.springframework.integration.filter.MethodInvokingSelector
 import org.springframework.integration.handler.BridgeHandler
@@ -355,8 +355,8 @@ class GroovyIntegrationFlowDefinition {
 	 * @since 6.2
 	 */
 	GroovyIntegrationFlowDefinition transform(
-			@DelegatesTo(value = TransformerSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.TransformerSpec')
+			@DelegatesTo(value = TransformerEndpointSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.TransformerEndpointSpec')
 					Closure<?> transformerConfigurer) {
 
 		this.delegate.transformWith createConfigurerIfAny(transformerConfigurer)

@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  *
  * @since 6.2
  */
-public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, MessageTransformingHandler> {
+public class TransformerEndpointSpec extends ConsumerEndpointSpec<TransformerEndpointSpec, MessageTransformingHandler> {
 
 	private final AtomicBoolean transformerSet = new AtomicBoolean();
 
@@ -61,7 +61,7 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 
 	private MessageProcessorSpec<?> processor;
 
-	protected TransformerSpec() {
+	protected TransformerEndpointSpec() {
 		super(new MessageTransformingHandler());
 	}
 
@@ -70,7 +70,7 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 	 * @param expression the SpEL expression to use.
 	 * @return the TransformerSpec
 	 */
-	public TransformerSpec expression(String expression) {
+	public TransformerEndpointSpec expression(String expression) {
 		return expression(PARSER.parseExpression(expression));
 	}
 
@@ -79,7 +79,7 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 	 * @param expression the SpEL expression to use.
 	 * @return the TransformerSpec
 	 */
-	public TransformerSpec expression(Expression expression) {
+	public TransformerEndpointSpec expression(Expression expression) {
 		assertTransformerSet();
 		this.expression = expression;
 		return this;
@@ -90,7 +90,7 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 	 * @param ref the service to call as a transformer POJO.
 	 * @return the TransformerSpec
 	 */
-	public TransformerSpec ref(Object ref) {
+	public TransformerEndpointSpec ref(Object ref) {
 		assertTransformerSet();
 		this.ref = ref;
 		return this;
@@ -98,11 +98,11 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 
 	/**
 	 * Provide a bean name to use a {@link MethodInvokingTransformer}
-	 * (based on {@link BeanNameMessageProcessor})for the target handler.
+	 * (based on {@link BeanNameMessageProcessor}) for the target handler.
 	 * @param refName the bean name for service to call as a transformer POJO.
 	 * @return the TransformerSpec
 	 */
-	public TransformerSpec refName(String refName) {
+	public TransformerEndpointSpec refName(String refName) {
 		assertTransformerSet();
 		this.refName = refName;
 		return this;
@@ -114,7 +114,7 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 	 * @param method the service method name to call.
 	 * @return the TransformerSpec
 	 */
-	public TransformerSpec method(@Nullable String method) {
+	public TransformerEndpointSpec method(@Nullable String method) {
 		this.method = method;
 		return this;
 	}
@@ -126,7 +126,7 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 	 * @param <T> the output type.
 	 * @return the TransformerSpec
 	 */
-	public <P, T> TransformerSpec transformer(GenericTransformer<P, T> transformer) {
+	public <P, T> TransformerEndpointSpec transformer(GenericTransformer<P, T> transformer) {
 		assertTransformerSet();
 		this.transformer = transformer;
 		return this;
@@ -140,7 +140,7 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 	 * @param <P> the type ot expect.
 	 * @return the spec.
 	 */
-	public <P> TransformerSpec expectedType(@Nullable Class<P> expectedType) {
+	public <P> TransformerEndpointSpec expectedType(@Nullable Class<P> expectedType) {
 		this.expectedType = expectedType;
 		return this;
 	}
@@ -150,7 +150,7 @@ public class TransformerSpec extends ConsumerEndpointSpec<TransformerSpec, Messa
 	 * @param processor the {@link MessageProcessorSpec} to use.
 	 * @return the TransformerSpec
 	 */
-	public TransformerSpec processor(MessageProcessorSpec<?> processor) {
+	public TransformerEndpointSpec processor(MessageProcessorSpec<?> processor) {
 		assertTransformerSet();
 		this.processor = processor;
 		return this;

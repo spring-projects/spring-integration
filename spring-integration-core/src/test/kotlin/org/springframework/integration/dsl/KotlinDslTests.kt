@@ -161,7 +161,10 @@ class KotlinDslTests {
 
 		val integrationFlow =
 			integrationFlow(publisher) {
-				transform<Message<Int>>({ it.payload * 2 }) { id("foo") }
+				transformWith {
+					transformer<Message<Int>> { it.payload * 2 }
+					id("foo")
+				}
 				channel(fluxChannel)
 			}
 
@@ -249,7 +252,10 @@ class KotlinDslTests {
 		@Bean
 		fun functionFlow() =
 			integrationFlow<Function<ByteArray, String>>({ beanName("functionGateway") }) {
-				transform(Transformers.objectToString()) { id("objectToStringTransformer") }
+				transformWith {
+					transformer(Transformers.objectToString())
+					id("objectToStringTransformer")
+				}
 				transform<String> { it.uppercase() }
 				split<Message<*>> { it.payload }
 				split<String>({ it }) { id("splitterEndpoint") }
@@ -292,7 +298,10 @@ class KotlinDslTests {
 		fun fixedSubscriberFlow() =
 			integrationFlow("fixedSubscriberInput", true) {
 				log<Any>(LoggingHandler.Level.WARN) { it.payload }
-				transform("payload") { id("spelTransformer") }
+				transformWith {
+					expression("payload")
+					id("spelTransformer")
+				}
 			}
 
 		@Bean

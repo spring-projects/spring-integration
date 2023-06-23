@@ -64,7 +64,7 @@ import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.QueueChannelSpec;
-import org.springframework.integration.dsl.TransformerSpec;
+import org.springframework.integration.dsl.TransformerEndpointSpec;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -684,7 +684,7 @@ public class IntegrationFlowTests {
 					.get();
 		}
 
-		private void payloadSerializingTransformer(TransformerSpec spec) {
+		private void payloadSerializingTransformer(TransformerEndpointSpec spec) {
 			spec.transformer(new PayloadSerializingTransformer())
 					.autoStartup(false)
 					.id("payloadSerializingTransformer");

@@ -39,7 +39,10 @@ flowLambda() {
 		    messageGroupId 'delayGroup'
 		    defaultDelay 100
         }
-        transform String, { it.toUpperCase() }
+        transform {
+		    transformer { it.toUpperCase() }
+            expectedType String
+        }
     }
 }
 ----
@@ -78,8 +81,14 @@ functionFlow() {
     integrationFlow Function<byte[], String>,
             { beanName 'functionGateway' },
             {
-                transform Transformers.objectToString(), { id 'objectToStringTransformer' }
-                transform String, { it.toUpperCase() }
+                transform {
+		            transformer Transformers.objectToString()
+                    id 'objectToStringTransformer'
+                }
+                transform {
+		            transformer { it.toUpperCase() }
+                    expectedType String
+                }
                 split Message<?>, { it.payload }
                 split Object, { it }, { id 'splitterEndpoint' }
                 resequence()

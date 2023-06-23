@@ -283,8 +283,10 @@ The following example demonstrates how to change the publishing thread from the 
 public IntegrationFlow reactiveEndpointFlow() {
     return IntegrationFlow
             .from("inputChannel")
-            .<String, Integer>transform(Integer::parseInt,
-                    e -> e.reactive(flux -> flux.publishOn(Schedulers.parallel())))
+            .transformWith(t -> t
+                              .<String, Integer>transformer(Integer::parseInt)
+                              .reactive(flux -> flux.publishOn(Schedulers.parallel()))
+            )
             .get();
 }
 ----
@@ -304,9 +306,13 @@ Each of them has generic arguments, so it lets you configure an endpoint and eve
 @Bean
 public IntegrationFlow flow2() {
     return IntegrationFlow.from(this.inputChannel)
-                .transform(new PayloadSerializingTransformer(),
-                       c -> c.autoStartup(false).id("payloadSerializingTransformer"))
-                .transform((Integer p) -> p * 2, c -> c.advice(this.expressionAdvice()))
+                .transformWith(t -> t
+                              .transformer(new PayloadSerializingTransformer())
+                              .autoStartup(false)
+                              .id("payloadSerializingTransformer"))
+                .transformWith(t -> t
+                              .transformer((Integer p) -> p * 2)
+                              .advice(expressionAdvice()))
                 .get();
 }
 ----
@@ -360,6 +366,10 @@ Note that you can use `Transformers` to declare target `Transformer` instances a
 Nevertheless, the DSL parser takes care of bean declarations for inline objects, if they are not yet defined as beans.
 
 See https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/Transformers.html[Transformers] in the Javadoc for more information and supported factory methods.
+
+Starting with version 6.2, a `transformWith(Consumer<TransformerEndpointSpec>)` variant has been introduced to have all the transformer and its endpoint options to be configured via single builder argument.
+This style gives DSL more readability and increases developer experience while modifying code.
+This also make Groovy and Kotlin DSLs more straightforward.
 
 Also see <<java-dsl-class-cast>>.
 
@@ -1428,4 +1438,4 @@ IntegrationFlow otherFlow() {
 
 The composition in the middle of the flow is simply achievable with an existing `gateway(IntegrationFlow)` EIP-method.
 This way we can build flows with any complexity by composing them from simpler, reusable logical blocks.
-For example, you may add a library of `IntegrationFlow` beans as a dependency and it is just enough to have their configuration classes imported to the final project and autowired for your `IntegrationFlow` definitions.
+For example, you may add a library of `IntegrationFlow` beans as a dependency, and it is just enough to have their configuration classes imported to the final project and autowired for your `IntegrationFlow` definitions.

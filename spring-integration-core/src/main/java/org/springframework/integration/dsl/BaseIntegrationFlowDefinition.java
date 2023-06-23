@@ -781,13 +781,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
-	 * Populate a {@link MessageTransformingHandler} into the endpoint with provided {@link TransformerSpec} options.
+	 * Populate a {@link MessageTransformingHandler} into the endpoint with provided {@link TransformerEndpointSpec} options.
 	 * One of the 'expression', 'ref', 'refName', 'processor' or 'function' must be provided.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @since 6.2
 	 */
-	public B transformWith(Consumer<TransformerSpec> transformerConfigurer) {
-		return register(new TransformerSpec(), transformerConfigurer);
+	public B transformWith(Consumer<TransformerEndpointSpec> transformerConfigurer) {
+		return register(new TransformerEndpointSpec(), transformerConfigurer);
 	}
 
 	/**
