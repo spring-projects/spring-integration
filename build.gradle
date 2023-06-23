@@ -157,7 +157,6 @@ allprojects {
 
         imports {
             mavenBom "com.fasterxml.jackson:jackson-bom:$jacksonVersion"
-            mavenBom "io.debezium:debezium-bom:$debeziumVersion"
             mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
             mavenBom "io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion"
             mavenBom "io.projectreactor:reactor-bom:$reactorVersion"
@@ -255,8 +254,6 @@ configure(javaProjects) { subproject ->
                 exclude group: 'org.hamcrest'
             }
         }
-
-        testImplementation "org.assertj:assertj-core:$assertjVersion"
 
         // JSR-305 only used for non-required meta-annotations
         compileOnly "com.google.code.findbugs:annotations:$findbugsVersion"
@@ -584,7 +581,7 @@ project('spring-integration-debezium') {
     description = 'Spring Integration Debezium Support'
     dependencies {
         api project(':spring-integration-core')
-        api('io.debezium:debezium-embedded') {
+        api("io.debezium:debezium-embedded:$debeziumVersion") {
             exclude group: 'org.glassfish.jersey.containers', module: 'jersey-container-servlet'
             exclude group: 'org.glassfish.jersey.inject', module: 'jersey-hk2'
             exclude group: 'jakarta.xml.bind', module: 'jakarta.xml.bind-api'
@@ -592,7 +589,7 @@ project('spring-integration-debezium') {
             exclude group: 'javax.activation', module: 'javax.activation-api'
         }
 
-        testImplementation 'io.debezium:debezium-connector-mysql'
+        testImplementation "io.debezium:debezium-connector-mysql:$debeziumVersion"
         testImplementation 'org.testcontainers:mysql'
     }
 }
@@ -954,6 +951,7 @@ project('spring-integration-stomp') {
         testImplementation project(':spring-integration-event')
         testImplementation("org.apache.activemq:artemis-stomp-protocol:$artemisVersion") {
             exclude group: 'org.jboss.logmanager'
+            exclude group: 'io.netty'
         }
         testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
