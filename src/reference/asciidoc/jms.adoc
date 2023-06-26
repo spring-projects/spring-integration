@@ -279,8 +279,8 @@ The following configuration produces an adapter that receives Spring Integration
 ----
 @Bean
 public IntegrationFlow jmsOutboundFlow() {
-    return f -> f
-            .handle(Jms.outboundAdapter(cachingConnectionFactory())
+    return IntegrationFlow.from("exampleChannel")
+                .handle(Jms.outboundAdapter(cachingConnectionFactory())
                     .destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
                     .configureJmsTemplate(t -> t.id("jmsOutboundFlowTemplate")));
 }
@@ -290,7 +290,7 @@ public IntegrationFlow jmsOutboundFlow() {
 ----
 @Bean
 fun jmsOutboundFlow() =
-        integrationFlow {
+        integrationFlow("exampleChannel") {
             handle(Jms.outboundAdapter(jmsConnectionFactory())
                     .apply {
                         destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
@@ -300,6 +300,25 @@ fun jmsOutboundFlow() =
                     }
             )
         }
+----
+[source, groovy, role="secondary"]
+.Groovy DSL
+----
+@Bean
+jmsOutboundFlow() {
+    integrationFlow('exampleChannel') {
+        handle(Jms.outboundAdapter(new ActiveMQConnectionFactory())
+                .with {
+                    destinationExpression 'headers.' + SimpMessageHeaderAccessor.DESTINATION_HEADER
+                    deliveryModeFunction { DeliveryMode.NON_PERSISTENT }
+                    timeToLiveExpression '10000'
+                    configureJmsTemplate {
+                        it.explicitQosEnabled true
+                    }
+                }
+        )
+    }
+}
 ----
 [source, java, role="secondary"]
 .Java
