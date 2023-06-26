@@ -30,6 +30,7 @@ import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.core.MessagingTemplate
 import org.springframework.integration.dsl.context.IntegrationFlowContext
+import org.springframework.integration.endpoint.AbstractEndpoint
 import org.springframework.integration.endpoint.MessageProcessorMessageSource
 import org.springframework.integration.handler.LoggingHandler
 import org.springframework.integration.scheduling.PollerMetadata
@@ -69,7 +70,7 @@ class KotlinDslTests {
 
 	@Test
 	fun `convert extension`() {
-		assertThat(this.beanFactory.containsBean("kotlinConverter"))
+		assertThat(this.beanFactory.containsBean("kotlinConverter")).isTrue()
 
 		val replyChannel = QueueChannel()
 		val date = Date()
@@ -93,6 +94,8 @@ class KotlinDslTests {
 	@Test
 	fun `uppercase function`() {
 		assertThat(beanFactory.containsBean("objectToStringTransformer")).isTrue()
+		assertThat(this.beanFactory.containsBean("splitterEndpoint")).isTrue()
+		assertThat(this.beanFactory.getBean("splitterEndpoint", AbstractEndpoint::class.java).phase).isEqualTo(257)
 		assertThat(this.upperCaseFunction.apply("test".toByteArray())).isEqualTo("TEST")
 	}
 
@@ -247,7 +250,10 @@ class KotlinDslTests {
 				transform(Transformers.objectToString()) { id("objectToStringTransformer") }
 				transform<String> { it.uppercase() }
 				split<Message<*>> { it.payload }
-				split<String>({ it }) { id("splitterEndpoint") }
+				split<String>({ it }) {
+					id("splitterEndpoint")
+					phase(257)
+				}
 				resequence()
 				aggregate {
 					id("aggregator")

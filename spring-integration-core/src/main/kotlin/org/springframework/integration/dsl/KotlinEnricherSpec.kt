@@ -30,8 +30,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
-class KotlinEnricherSpec(val delegate: EnricherSpec)
-	: ConsumerEndpointSpec<EnricherSpec, ContentEnricher>(delegate.handler) {
+class KotlinEnricherSpec(override val delegate: EnricherSpec)
+	: KotlinConsumerEndpointSpec<EnricherSpec, ContentEnricher>(delegate) {
 
 	fun requestChannel(requestChannel: MessageChannel) {
 		this.delegate.requestChannel(requestChannel)

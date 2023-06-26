@@ -28,8 +28,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
-class KotlinSplitterEndpointSpec<H : AbstractMessageSplitter>(val delegate: SplitterEndpointSpec<H>)
-	: ConsumerEndpointSpec<KotlinSplitterEndpointSpec<H>, H>(delegate.handler) {
+class KotlinSplitterEndpointSpec<H : AbstractMessageSplitter>(override val delegate: SplitterEndpointSpec<H>)
+	: KotlinConsumerEndpointSpec<SplitterEndpointSpec<H>, H>(delegate) {
 
 	fun applySequence(applySequence: Boolean) {
 		this.delegate.applySequence(applySequence)
