@@ -271,6 +271,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		String endpointBeanName =
 				generateHandlerBeanName(beanName, mergedAnnotations)
 						.replaceFirst("\\.(handler|source)$", "");
+		this.beanFactory.registerDependentBean(beanName, endpointBeanName);
 		this.definitionRegistry.registerBeanDefinition(endpointBeanName, endpointBeanDefinition);
 	}
 
