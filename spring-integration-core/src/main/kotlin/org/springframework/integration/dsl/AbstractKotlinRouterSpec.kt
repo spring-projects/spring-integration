@@ -28,9 +28,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
-abstract class AbstractKotlinRouterSpec<S : AbstractRouterSpec<S, R>, R : AbstractMessageRouter>(
-		open val delegate: AbstractRouterSpec<S, R>)
-	: ConsumerEndpointSpec<S, R>(delegate.handler) {
+abstract class AbstractKotlinRouterSpec<S : AbstractRouterSpec<S, R>, R : AbstractMessageRouter>(override val delegate: S)
+	: KotlinConsumerEndpointSpec<S, R>(delegate) {
 
 	fun ignoreSendFailures(ignoreSendFailures: Boolean) {
 		this.delegate.ignoreSendFailures(ignoreSendFailures)
