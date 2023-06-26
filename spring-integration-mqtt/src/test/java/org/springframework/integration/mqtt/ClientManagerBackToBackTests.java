@@ -28,6 +28,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.mqtt.core.Mqttv3ClientManager;
@@ -195,8 +196,9 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		}
 
 		@Bean
-		public IntegrationFlow mqttOutFlow(Mqttv5ClientManager mqttv5ClientManager) {
-			return f -> f.handle(new Mqttv5PahoMessageHandler(mqttv5ClientManager));
+		@ServiceActivator(inputChannel = "mqttOutFlow.input")
+		public Mqttv5PahoMessageHandler mqttv5PahoMessageHandler(Mqttv5ClientManager mqttv5ClientManager) {
+			return new Mqttv5PahoMessageHandler(mqttv5ClientManager);
 		}
 
 		@Bean
