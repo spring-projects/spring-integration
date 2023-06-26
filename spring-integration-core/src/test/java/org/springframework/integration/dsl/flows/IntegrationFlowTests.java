@@ -64,6 +64,7 @@ import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.QueueChannelSpec;
+import org.springframework.integration.dsl.TransformerEndpointSpec;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -671,15 +672,22 @@ public class IntegrationFlowTests {
 					.fixedSubscriberChannel()
 					.<String, Integer>transform(Integer::parseInt)
 					.transform(Foo::new)
-					.transform(new PayloadSerializingTransformer(),
-							c -> c.autoStartup(false).id("payloadSerializingTransformer"))
+					.transformWith(this::payloadSerializingTransformer)
 					.channel(MessageChannels.queue(new SimpleMessageStore(), "fooQueue"))
 					.transform(Transformers.deserializer(Foo.class.getName()))
 					.<Foo, Integer>transform(f -> f.value)
 					.filter("true", e -> e.id("expressionFilter"))
 					.channel(publishSubscribeChannel())
-					.transform((Integer p) -> p * 2, c -> c.advice(this.expressionAdvice()))
+					.transformWith(t -> t
+							.transformer((Integer p) -> p * 2)
+							.advice(expressionAdvice()))
 					.get();
+		}
+
+		private void payloadSerializingTransformer(TransformerEndpointSpec spec) {
+			spec.transformer(new PayloadSerializingTransformer())
+					.autoStartup(false)
+					.id("payloadSerializingTransformer");
 		}
 
 		@Bean

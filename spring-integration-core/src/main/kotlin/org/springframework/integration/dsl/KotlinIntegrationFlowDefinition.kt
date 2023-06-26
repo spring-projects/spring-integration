@@ -92,15 +92,32 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	}
 
 	/**
-	 * Inline function for [IntegrationFlowDefinition.transform] providing a `transform<MyTypeIn, MyTypeOut>()` variant
+	 * Inline function for [IntegrationFlowDefinition.transform] providing a `transform<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				transformWith { 
+					transformer<Type> { }
+					id("value")
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	inline fun <reified P> transform(
 		crossinline function: (P) -> Any,
 		crossinline configurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit
 	) {
 
 		this.delegate.transform(P::class.java, { function(it) }) { configurer(it) }
+	}
+
+	/**
+	 * Inline function for [IntegrationFlowDefinition.transformWith]
+	 * providing a `transform<MyTypeIn>()` variant
+	 * with reified generic type.
+	 * @since 6.2
+	 */
+	fun transformWith(configurer: KotlinTransformerEndpointSpec.() -> Unit) {
+		this.delegate.register(KotlinTransformerEndpointSpec(), configurer)
 	}
 
 	/**
@@ -305,6 +322,13 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * for the provided `Transformer` instance.
 	 * @since 5.3.1
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				transformWith { 
+					transformer(transformer)
+					id("value")
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun transform(
 		transformer: Transformer,
 		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
@@ -315,14 +339,40 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 
 	/**
 	 * Populate the [Transformer] EI Pattern specific [MessageHandler] implementation
+	 * for the provided [Transformer] instance.
+	 * @since 6.2
+	 */
+	fun transform(transformer: Transformer) {
+		this.delegate.transform(transformer)
+	}
+
+	/**
+	 * Populate the [Transformer] EI Pattern specific [MessageHandler] implementation
 	 * for the SpEL [Expression].
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				transformWith { 
+					expression("value")
+					id("value")
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun transform(
 		expression: String,
 		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
 	) {
 
 		this.delegate.transform(expression, endpointConfigurer)
+	}
+
+
+	/**
+	 * Populate the [Transformer] EI Pattern specific [MessageHandler] implementation
+	 * for the SpEL [Expression].
+	 * @since 6.2
+	 */
+	fun transform(expression: String) {
+		this.delegate.transform(expression)
 	}
 
 	/**
@@ -337,6 +387,14 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate the [MessageTransformingHandler] for the [MethodInvokingTransformer]
 	 * to invoke the service method at runtime.
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				transformWith { 
+					ref("value")
+					method("value")
+					id("value")
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun transform(
 		service: Any, methodName: String?,
 		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit
@@ -350,12 +408,28 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * [org.springframework.integration.handler.MessageProcessor] from provided [MessageProcessorSpec].
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				transformWith { 
+					processor("value")
+					id("value")
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun transform(
 		messageProcessorSpec: MessageProcessorSpec<*>,
 		endpointConfigurer: GenericEndpointSpec<MessageTransformingHandler>.() -> Unit = {}
 	) {
 
 		this.delegate.transform(messageProcessorSpec, endpointConfigurer)
+	}
+
+	/**
+	 * Populate the [MessageTransformingHandler] instance for the
+	 * [org.springframework.integration.handler.MessageProcessor] from provided [MessageProcessorSpec].
+	 * @since 6.2
+	 */
+	fun transform(messageProcessorSpec: MessageProcessorSpec<*>) {
+		this.delegate.transform(messageProcessorSpec)
 	}
 
 	/**
@@ -566,7 +640,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 				delay { 
 					messageGroupId(groupId) 
 				}"""))
-	@Suppress("DEPRECATION")
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun delay(groupId: String, endpointConfigurer: DelayerEndpointSpec.() -> Unit = {}) {
 		this.delegate.delay(groupId, endpointConfigurer)
 	}

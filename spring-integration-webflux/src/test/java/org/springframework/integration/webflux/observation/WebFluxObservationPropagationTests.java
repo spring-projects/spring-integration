@@ -212,7 +212,9 @@ public class WebFluxObservationPropagationTests {
 							.payloadExpression("#requestParams.name[0]")
 							.requestChannel(webFluxRequestChannel)
 							.id("webFluxGateway"))
-					.<String, String>transform(String::toLowerCase, e -> e.id("testTransformer"))
+					.transformWith(t -> t
+							.<String, String>transformer(String::toLowerCase)
+							.id("testTransformer"))
 					.get();
 		}
 

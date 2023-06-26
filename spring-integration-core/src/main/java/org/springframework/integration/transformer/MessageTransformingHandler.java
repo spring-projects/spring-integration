@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,16 @@ import org.springframework.util.Assert;
  */
 public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
-	private final Transformer transformer;
+	private Transformer transformer;
+
+	/**
+	 * Create a {@link MessageTransformingHandler} instance.
+	 * The target delegate {@link Transformer} must be provided then via setter.
+	 * @since 6.2
+	 */
+	public MessageTransformingHandler() {
+		setRequiresReply(true);
+	}
 
 	/**
 	 * Create a {@link MessageTransformingHandler} instance that delegates to
@@ -49,11 +58,20 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	 * @param transformer The transformer.
 	 */
 	public MessageTransformingHandler(Transformer transformer) {
+		this();
 		Assert.notNull(transformer, "transformer must not be null");
 		this.transformer = transformer;
-		this.setRequiresReply(true);
 	}
 
+	/**
+	 * Provide a {@link Transformer} delegate.
+	 * @param transformer the {@link Transformer} to use.
+	 * @since 6.2
+	 */
+	public void setTransformer(Transformer transformer) {
+		Assert.notNull(transformer, "transformer must not be null");
+		this.transformer = transformer;
+	}
 
 	@Override
 	public String getComponentType() {
@@ -77,6 +95,7 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 
 	@Override
 	protected void doInit() {
+		Assert.notNull(this.transformer, "transformer must not be null");
 		BeanFactory beanFactory = getBeanFactory();
 		if (beanFactory != null && this.transformer instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.transformer).setBeanFactory(beanFactory);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.util;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -221,6 +222,19 @@ public abstract class ClassUtils {
 	@Nullable
 	public static Class<?> resolvePrimitiveType(Class<?> clazz) {
 		return PRIMITIVE_WRAPPER_TYPE_MAP.get(clazz);
+	}
+
+	/**
+	 * Check if object is Java, Kotlin or Groovy lambda.
+	 * @param candidate the {@link Object} to check.
+	 * @return true if object is a Java, Kotlin or Groovy lambda.
+	 * @since 6.2
+	 */
+	public static boolean isLambda(Object candidate) {
+		Class<?> aClass = candidate.getClass();
+		return isLambda(aClass) ||
+				(Proxy.isProxyClass(aClass)  // Groovy Closure is a Lambda in Java terms
+						&& Proxy.getInvocationHandler(candidate).getClass().getSimpleName().equals("ConvertedClosure"));
 	}
 
 	/**
