@@ -28,8 +28,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
-class KotlinFilterEndpointSpec(val delegate: FilterEndpointSpec)
-	: ConsumerEndpointSpec<FilterEndpointSpec, MessageFilter>(delegate.handler) {
+class KotlinFilterEndpointSpec(override val delegate: FilterEndpointSpec)
+	: KotlinConsumerEndpointSpec<FilterEndpointSpec, MessageFilter>(delegate) {
 
 	fun throwExceptionOnRejection(throwExceptionOnRejection: Boolean) {
 		this.delegate.throwExceptionOnRejection(throwExceptionOnRejection)
