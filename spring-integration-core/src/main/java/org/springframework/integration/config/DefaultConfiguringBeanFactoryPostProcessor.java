@@ -16,17 +16,14 @@
 
 package org.springframework.integration.config;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.beans.Introspector;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.HierarchicalBeanFactory;
-import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -74,8 +71,7 @@ import org.springframework.util.ClassUtils;
  *
  * @see IntegrationContextUtils
  */
-public class DefaultConfiguringBeanFactoryPostProcessor
-		implements BeanDefinitionRegistryPostProcessor, SmartInitializingSingleton {
+public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitionRegistryPostProcessor {
 
 	private static final LogAccessor LOGGER = new LogAccessor(DefaultConfiguringBeanFactoryPostProcessor.class);
 
@@ -130,25 +126,11 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 		registerArgumentResolverMessageConverter();
 		registerMessageHandlerMethodFactory();
 		registerListMessageHandlerMethodFactory();
+		registerIntegrationConfigurationReport();
 	}
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-	}
-
-	@Override
-	public void afterSingletonsInstantiated() {
-		if (LOGGER.isDebugEnabled()) {
-			Properties integrationProperties =
-					IntegrationContextUtils.getIntegrationProperties(this.beanFactory)
-							.toProperties();
-
-			StringWriter writer = new StringWriter();
-			integrationProperties.list(new PrintWriter(writer));
-			StringBuffer propertiesBuffer = writer.getBuffer()
-					.delete(0, "-- listing properties --".length());
-			LOGGER.debug("\nSpring Integration global properties:\n" + propertiesBuffer);
-		}
 	}
 
 	private void registerBeanFactoryChannelResolver() {
@@ -448,6 +430,13 @@ public class DefaultConfiguringBeanFactoryPostProcessor
 			this.registry.registerBeanDefinition(IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME,
 					messageHandlerMethodFactoryBuilder.getBeanDefinition());
 		}
+	}
+
+	private void registerIntegrationConfigurationReport() {
+		this.registry.registerBeanDefinition(Introspector.decapitalize(IntegrationConfigurationReport.class.getName()),
+				BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigurationReport.class)
+						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+						.getBeanDefinition());
 	}
 
 	private static BeanDefinitionBuilder createMessageHandlerMethodFactoryBeanDefinition(boolean listCapable) {
