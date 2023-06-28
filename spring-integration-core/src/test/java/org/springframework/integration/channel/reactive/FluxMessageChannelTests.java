@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel.reactive;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -143,6 +144,7 @@ public class FluxMessageChannelTests {
 		flowRegistration.destroy();
 
 		await()
+				.atMost(Duration.ofSeconds(30))
 				.until(() -> TestUtils.getPropertyValue(flux, "sink.sink.done", Boolean.class));
 	}
 
@@ -184,7 +186,7 @@ public class FluxMessageChannelTests {
 			if (payload == 5) {
 				throw new IllegalStateException("intentional");
 			}
-			return "" + payload;
+			return String.valueOf(payload);
 		}
 
 		@Bean
