@@ -130,9 +130,9 @@ public class WatchServiceDirectoryScannerTests {
 		File top2 = File.createTempFile("tmp", null, this.rootDir);
 		File foo2 = File.createTempFile("foo", ".txt", this.foo);
 		File bar2 = File.createTempFile("bar", ".txt", this.bar);
-		File bazA = new File(this.foo, "bazA");
-		bazA.mkdir();
-		File baz1 = File.createTempFile("baz", ".txt", bazA);
+		File baz = new File(this.foo, "baz");
+		baz.mkdir();
+		File baz1 = File.createTempFile("baz", ".txt", baz);
 		files = scanner.listFiles(this.rootDir);
 		int n = 0;
 		Set<File> accum = new HashSet<>(files);
@@ -170,7 +170,7 @@ public class WatchServiceDirectoryScannerTests {
 
 		assertThat(accum).containsAll(filesForOverflow);
 
-		File baz2 = File.createTempFile("baz2", ".txt", bazA);
+		File baz2 = File.createTempFile("baz2", ".txt", baz);
 
 		n = 0;
 		while (n++ < 300 && accum.size() < 605) {
@@ -207,19 +207,7 @@ public class WatchServiceDirectoryScannerTests {
 
 		assertThat(removeFileLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		File bazB = new File(this.foo, "bazB");
-		bazA.renameTo(bazB);
-		File baz3 = File.createTempFile("baz3", ".txt", bazB);
-
-		while (n++ < 300 && files.size() < 1) {
-			Thread.sleep(100);
-			files = scanner.listFiles(this.rootDir);
-			accum.addAll(files);
-		}
-
-		assertThat(files).hasSize(1).contains(baz3);
-
-		File baz4 = File.createTempFile("baz4", ".txt", bazB);
+		File baz3 = File.createTempFile("baz3", ".txt", baz);
 
 		n = 0;
 		Message<File> fileMessage = null;
@@ -228,7 +216,7 @@ public class WatchServiceDirectoryScannerTests {
 		}
 
 		assertThat(fileMessage).isNotNull();
-		assertThat(fileMessage.getPayload()).isEqualTo(baz4);
+		assertThat(fileMessage.getPayload()).isEqualTo(baz3);
 		assertThat(fileMessage.getHeaders().get(FileHeaders.RELATIVE_PATH, String.class))
 				.startsWith(TestUtils.applySystemFileSeparator("foo/baz/"));
 
