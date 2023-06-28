@@ -150,6 +150,7 @@ public class ImapMailReceiverTests {
 		imapSearches.stores.clear();
 		ServerSetup imap = ServerSetupTest.IMAP.verbose(true).dynamicPort();
 		imap.setServerStartupTimeout(10000);
+		imap.setReadTimeout(2000);
 		imapIdleServer = new GreenMail(imap);
 		user = imapIdleServer.setUser("user", "pw");
 		imapIdleServer.start();
