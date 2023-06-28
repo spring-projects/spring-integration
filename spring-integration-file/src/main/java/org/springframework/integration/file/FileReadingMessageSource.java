@@ -533,8 +533,9 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 			logger.debug(() -> "Watch event [" + event.kind() + "] for file [" + file + "]");
 
 			if (StandardWatchEventKinds.ENTRY_DELETE.equals(event.kind())) {
-				if (this.pathKeys.containsKey(file.toPath())) {
-					WatchKey watchKey = this.pathKeys.remove(file.toPath());
+				Path filePath = file.toPath();
+				if (this.pathKeys.containsKey(filePath)) {
+					WatchKey watchKey = this.pathKeys.remove(filePath);
 					watchKey.cancel();
 				}
 				if (getFilter() instanceof ResettableFileListFilter<File> resettableFileListFilter) {
