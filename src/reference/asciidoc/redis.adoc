@@ -558,7 +558,7 @@ If only the `expression` attribute is present and the result of an expression is
 If you want the evaluation result to go to a specific channel, add a `channel` attribute.
 If the result of an expression is null or void, no message is generated.
 
-The `RedisStoreMessageSource` adds a `store` attribute with a produced `RedisStore` instance into bound to the transaction `IntegrationResourceHolder` which can be accessed from a `TransactionSynchronizationProcessor` implementation.
+The `RedisStoreMessageSource` adds a `store` attribute with a `RedisStore` instance bound to the transaction `IntegrationResourceHolder`, which can be accessed from a `TransactionSynchronizationProcessor` implementation.
 
 For more information about transaction synchronization, see <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>>.
 
