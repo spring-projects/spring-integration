@@ -533,6 +533,10 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 			logger.debug(() -> "Watch event [" + event.kind() + "] for file [" + file + "]");
 
 			if (StandardWatchEventKinds.ENTRY_DELETE.equals(event.kind())) {
+				if (this.pathKeys.containsKey(file.toPath())) {
+					WatchKey watchKey = this.pathKeys.remove(file.toPath());
+					watchKey.cancel();
+				}
 				if (getFilter() instanceof ResettableFileListFilter<File> resettableFileListFilter) {
 					resettableFileListFilter.remove(file);
 				}
@@ -554,7 +558,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 				}
 				else {
 					logger.debug(() -> "A file [" + file + "] for the event [" + event.kind() +
-							"] doesn't exist. Ignored.");
+							"] doesn't exist. Ignored. Maybe DELETE event is not watched ?");
 				}
 			}
 		}
