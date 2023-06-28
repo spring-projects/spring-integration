@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,18 +46,16 @@ import org.springframework.util.Assert;
  */
 public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 
-	private final ThreadLocal<RedisStore> resourceHolder = new ThreadLocal<>();
-
-	private volatile StandardEvaluationContext evaluationContext;
-
-	private volatile Expression keyExpression;
-
-	private volatile CollectionType collectionType = CollectionType.LIST;
-
 	private final RedisTemplate<String, ?> redisTemplate;
 
+	private final Expression keyExpression;
+
+	private StandardEvaluationContext evaluationContext;
+
+	private CollectionType collectionType = CollectionType.LIST;
+
 	/**
-	 * Creates an instance with the provided {@link RedisTemplate} and SpEL expression
+	 * Create an instance with the provided {@link RedisTemplate} and SpEL expression
 	 * which should resolve to a 'key' name of the collection to be used.
 	 * It assumes that {@link RedisTemplate} is fully initialized and ready to be used.
 	 * The 'keyExpression' will be evaluated on every call to the {@link #receive()} method.
@@ -73,7 +71,7 @@ public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 	}
 
 	/**
-	 * Creates an instance with the provided {@link RedisConnectionFactory} and SpEL expression
+	 * Create an instance with the provided {@link RedisConnectionFactory} and SpEL expression
 	 * which should resolve to a 'key' name of the collection to be used.
 	 * It will create and initialize an instance of {@link StringRedisTemplate} that uses
 	 * {@link org.springframework.data.redis.serializer.StringRedisSerializer} for all
@@ -82,9 +80,7 @@ public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 	 * @param connectionFactory The connection factory.
 	 * @param keyExpression The key expression.
 	 */
-	public RedisStoreMessageSource(RedisConnectionFactory connectionFactory,
-			Expression keyExpression) {
-
+	public RedisStoreMessageSource(RedisConnectionFactory connectionFactory, Expression keyExpression) {
 		Assert.notNull(keyExpression, "'keyExpression' must not be null");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 
@@ -105,7 +101,7 @@ public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 	}
 
 	/**
-	 * Returns a Message with the view into a {@link RedisStore} identified
+	 * Return a Message with the view into a {@link RedisStore} identified
 	 * by {@link #keyExpression}
 	 */
 	@Override
@@ -113,7 +109,7 @@ public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 		String key = this.keyExpression.getValue(this.evaluationContext, String.class);
 		Assert.hasText(key, "Failed to determine the key for the collection");
 
-		RedisStore store = this.createStoreView(key);
+		RedisStore store = createStoreView(key);
 
 		Object holder = TransactionSynchronizationManager.getResource(this);
 		if (holder != null) {
@@ -141,18 +137,6 @@ public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 	@Override
 	public String getComponentType() {
 		return "redis:store-inbound-channel-adapter";
-	}
-
-	public RedisStore getResource() {
-		return this.resourceHolder.get();
-	}
-
-	public void afterCommit(Object object) {
-		this.resourceHolder.remove();
-	}
-
-	public void afterRollback(Object object) {
-		this.resourceHolder.remove();
 	}
 
 }
