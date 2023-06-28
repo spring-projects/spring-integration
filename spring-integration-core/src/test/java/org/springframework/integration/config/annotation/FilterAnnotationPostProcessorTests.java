@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.MessagingAnnotationBeanPostProcessor;
 import org.springframework.integration.config.MessagingAnnotationPostProcessor;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
@@ -50,19 +50,15 @@ public class FilterAnnotationPostProcessorTests {
 
 	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
 
-	private final MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-
 	private final DirectChannel inputChannel = new DirectChannel();
 
 	private final QueueChannel outputChannel = new QueueChannel();
 
 	@BeforeEach
 	public void init() {
+		this.context.registerBean(MessagingAnnotationPostProcessor.class);
 		this.context.registerChannel("input", this.inputChannel);
 		this.context.registerChannel("output", this.outputChannel);
-		this.postProcessor.postProcessBeanDefinitionRegistry((BeanDefinitionRegistry) this.context.getBeanFactory());
-		this.postProcessor.postProcessBeanFactory(this.context.getBeanFactory());
-		this.postProcessor.afterSingletonsInstantiated();
 	}
 
 	@AfterEach
@@ -175,21 +171,26 @@ public class FilterAnnotationPostProcessorTests {
 
 	@Test
 	public void invalidMethodWithStringReturnType() {
-		Object filter = new TestFilterWithStringReturnType();
+		context.refresh();
+		var postProcessor = context.getBean(MessagingAnnotationBeanPostProcessor.class);
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> this.postProcessor.postProcessAfterInitialization(filter, "testFilter"));
+				.isThrownBy(() ->
+						postProcessor.postProcessAfterInitialization(
+								new TestFilterWithStringReturnType(), "testFilter"));
 	}
 
 	@Test
 	public void invalidMethodWithVoidReturnType() {
-		Object filter = new TestFilterWithVoidReturnType();
+		context.refresh();
+		var postProcessor = context.getBean(MessagingAnnotationBeanPostProcessor.class);
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> postProcessor.postProcessAfterInitialization(filter, "testFilter"));
+				.isThrownBy(() ->
+						postProcessor.postProcessAfterInitialization(new TestFilterWithVoidReturnType(), "testFilter"));
 	}
 
 
 	private void testValidFilter(Object filter) {
-		postProcessor.postProcessAfterInitialization(filter, "testFilter");
+		context.registerEndpoint("testFilter", filter);
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("good"));
 		Message<?> passed = outputChannel.receive(0);

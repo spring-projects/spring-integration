@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
@@ -55,6 +54,7 @@ public class DirectChannelSubscriptionTests {
 
 	@BeforeEach
 	public void setupChannels() {
+		this.context.registerBean(MessagingAnnotationPostProcessor.class);
 		this.context.registerChannel("sourceChannel", this.sourceChannel);
 		this.context.registerChannel("targetChannel", this.targetChannel);
 	}
@@ -80,13 +80,9 @@ public class DirectChannelSubscriptionTests {
 
 	@Test
 	public void sendAndReceiveForAnnotatedEndpoint() {
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-		postProcessor.postProcessBeanDefinitionRegistry((BeanDefinitionRegistry) this.context.getBeanFactory());
-		postProcessor.postProcessBeanFactory(this.context.getBeanFactory());
-		postProcessor.afterSingletonsInstantiated();
-		TestEndpoint endpoint = new TestEndpoint();
-		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
+		this.context.registerEndpoint("testEndpoint", new TestEndpoint());
 		this.context.refresh();
+
 		this.sourceChannel.send(new GenericMessage<>("foo"));
 		Message<?> response = this.targetChannel.receive();
 		assertThat(response.getPayload()).isEqualTo("foo-from-annotated-endpoint");
@@ -113,11 +109,7 @@ public class DirectChannelSubscriptionTests {
 	public void exceptionThrownFromAnnotatedEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
 		this.context.registerChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME, errorChannel);
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-		postProcessor.postProcessBeanFactory(this.context.getBeanFactory());
-		postProcessor.afterSingletonsInstantiated();
-		FailingTestEndpoint endpoint = new FailingTestEndpoint();
-		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
+		this.context.registerEndpoint("testEndpoint", new FailingTestEndpoint());
 		this.context.refresh();
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> this.sourceChannel.send(new GenericMessage<>("foo")));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.DirectChannel;
@@ -44,8 +43,6 @@ public class RouterAnnotationPostProcessorTests {
 
 	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
 
-	private final MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-
 	private final DirectChannel inputChannel = new DirectChannel();
 
 	private final QueueChannel outputChannel = new QueueChannel();
@@ -59,14 +56,12 @@ public class RouterAnnotationPostProcessorTests {
 
 	@BeforeEach
 	public void init() {
+		this.context.registerBean(MessagingAnnotationPostProcessor.class);
 		context.registerChannel("input", inputChannel);
 		context.registerChannel("output", outputChannel);
 		context.registerChannel("routingChannel", routingChannel);
 		context.registerChannel("integerChannel", integerChannel);
 		context.registerChannel("stringChannel", stringChannel);
-		this.postProcessor.postProcessBeanDefinitionRegistry((BeanDefinitionRegistry) this.context.getBeanFactory());
-		this.postProcessor.postProcessBeanFactory(this.context.getBeanFactory());
-		this.postProcessor.afterSingletonsInstantiated();
 	}
 
 	@AfterEach
@@ -76,8 +71,7 @@ public class RouterAnnotationPostProcessorTests {
 
 	@Test
 	public void testRouter() {
-		TestRouter testRouter = new TestRouter();
-		postProcessor.postProcessAfterInitialization(testRouter, "test");
+		context.registerEndpoint("test", new TestRouter());
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("foo"));
 		Message<?> replyMessage = outputChannel.receive(0);
@@ -87,8 +81,7 @@ public class RouterAnnotationPostProcessorTests {
 
 	@Test
 	public void testRouterWithListParam() {
-		TestRouter testRouter = new TestRouter();
-		postProcessor.postProcessAfterInitialization(testRouter, "test");
+		context.registerEndpoint("test", new TestRouter());
 		context.refresh();
 
 		routingChannel.send(new GenericMessage<>(Collections.singletonList("foo")));
