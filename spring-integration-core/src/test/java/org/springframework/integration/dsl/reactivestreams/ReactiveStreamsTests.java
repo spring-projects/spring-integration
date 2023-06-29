@@ -191,7 +191,7 @@ public class ReactiveStreamsTests {
 		QueueChannel resultChannel = new QueueChannel();
 
 		IntegrationFlow integrationFlow = f -> f
-				.split((splitter) -> splitter.delimiters(","))
+				.splitWith((splitter) -> splitter.delimiters(","))
 				.<String, String>fluxTransform(flux -> flux
 						.map(Message::getPayload)
 						.map(String::toUpperCase))
@@ -261,7 +261,7 @@ public class ReactiveStreamsTests {
 		public Publisher<Message<Integer>> pollableReactiveFlow() {
 			return IntegrationFlow
 					.from("inputChannel")
-					.split(s -> s.delimiters(","))
+					.splitWith(s -> s.delimiters(","))
 					.transformWith(t -> t
 							.<String, Integer>transformer(Integer::parseInt)
 							.reactive(flux -> flux.publishOn(Schedulers.parallel()))

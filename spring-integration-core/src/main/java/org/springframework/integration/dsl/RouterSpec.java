@@ -57,6 +57,12 @@ public class RouterSpec<K, R extends AbstractMappingMessageRouter> extends Abstr
 		this.mappingProvider = new RouterMappingProvider(this.handler);
 	}
 
+	@Override
+	public RouterSpec<K, R> sendTimeout(long sendTimeout) {
+		this.handler.setSendTimeout(sendTimeout);
+		return this;
+	}
+
 	/**
 	 * @param resolutionRequired the resolutionRequired.
 	 * @return the router spec.

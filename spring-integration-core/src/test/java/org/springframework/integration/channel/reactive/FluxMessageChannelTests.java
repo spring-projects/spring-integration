@@ -128,7 +128,7 @@ public class FluxMessageChannelTests {
 		CountDownLatch finishLatch = new CountDownLatch(1);
 
 		IntegrationFlow testFlow = f -> f
-				.<String>split(__ -> Flux.fromStream(IntStream.range(0, 100).boxed()), null)
+				.splitWith(s -> s.function(__ -> Flux.fromStream(IntStream.range(0, 100).boxed())))
 				.channel(flux)
 				.aggregate(a -> a.releaseStrategy(m -> m.size() == 100).releaseLockBeforeSend(true))
 				.handle(__ -> finishLatch.countDown());

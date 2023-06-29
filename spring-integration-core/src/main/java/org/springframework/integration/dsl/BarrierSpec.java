@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.dsl;
 
 import reactor.util.function.Tuple2;
 
-import org.springframework.core.Ordered;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.BarrierMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
@@ -44,14 +43,6 @@ public class BarrierSpec extends ConsumerEndpointSpec<BarrierSpec, BarrierMessag
 	private CorrelationStrategy correlationStrategy =
 			new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 
-	private boolean requiresReply;
-
-	private long sendTimeout = -1;
-
-	private int order = Ordered.LOWEST_PRECEDENCE;
-
-	private boolean async;
-
 	protected BarrierSpec(long timeout) {
 		super(null);
 		this.timeout = timeout;
@@ -70,39 +61,8 @@ public class BarrierSpec extends ConsumerEndpointSpec<BarrierSpec, BarrierMessag
 	}
 
 	@Override
-	public BarrierSpec requiresReply(boolean requiresReply) {
-		this.requiresReply = requiresReply;
-		return this;
-	}
-
-	@Override
-	public BarrierSpec sendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
-		return this;
-	}
-
-	@Override
-	public BarrierSpec order(int order) {
-		this.order = order;
-		return this;
-	}
-
-	@Override
-	public BarrierSpec async(boolean async) {
-		this.async = async;
-		return this;
-	}
-
-	@Override
 	public Tuple2<ConsumerEndpointFactoryBean, BarrierMessageHandler> doGet() {
 		this.handler = new BarrierMessageHandler(this.timeout, this.outputProcessor, this.correlationStrategy);
-		if (!this.adviceChain.isEmpty()) {
-			this.handler.setAdviceChain(this.adviceChain);
-		}
-		this.handler.setRequiresReply(this.requiresReply);
-		this.handler.setSendTimeout(this.sendTimeout);
-		this.handler.setAsync(this.async);
-		this.handler.setOrder(this.order);
 		return super.doGet();
 	}
 

@@ -1405,7 +1405,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B split() {
-		return split((Consumer<SplitterEndpointSpec<DefaultMessageSplitter>>) null);
+		return splitWith((splitterSpec) -> { });
 	}
 
 	/**
@@ -1420,10 +1420,36 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link DefaultMessageSplitter}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
 	 * @see SplitterEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public B split(@Nullable Consumer<SplitterEndpointSpec<DefaultMessageSplitter>> endpointConfigurer) {
 		return split(new DefaultMessageSplitter(), endpointConfigurer);
+	}
+
+
+	/**
+	 * Populate the splitter with provided options to the current integration flow position:
+	 * <pre class="code">
+	 * {@code
+	 *  .splitWith(s -> s.applySequence(false).delimiters(","))
+	 * }
+	 * </pre>
+	 * or with the refenrence to POJO service method call:
+	 * <pre class="code">
+	 * {@code
+	 *  .splitWith(s -> s.ref("someService").method("someMethod"))
+	 * }
+	 * </pre>
+	 * @param splitterConfigurer the {@link Consumer} to provide options splitter endpoint.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @since 6.2
+	 * @see SplitterSpec
+	 */
+	public B splitWith(Consumer<SplitterSpec> splitterConfigurer) {
+		return register(new SplitterSpec(), splitterConfigurer);
 	}
 
 	/**
@@ -1431,10 +1457,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param expression the splitter SpEL expression.
 	 * and for {@link ExpressionEvaluatingSplitter}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @see SplitterEndpointSpec
+	 * @see SplitterSpec
 	 */
 	public B split(String expression) {
-		return split(expression, (Consumer<SplitterEndpointSpec<ExpressionEvaluatingSplitter>>) null);
+		return splitWith((splitterSpec) -> splitterSpec.expression(expression));
 	}
 
 	/**
@@ -1443,8 +1469,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link ExpressionEvaluatingSplitter}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
 	 * @see SplitterEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public B split(String expression,
 			@Nullable Consumer<SplitterEndpointSpec<ExpressionEvaluatingSplitter>> endpointConfigurer) {
 
@@ -1472,7 +1501,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see MethodInvokingSplitter
 	 */
 	public B split(Object service, @Nullable String methodName) {
-		return split(service, methodName, null);
+		return splitWith((splitterSpec) -> splitterSpec.ref(service).method(methodName));
 	}
 
 	/**
@@ -1484,9 +1513,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link MethodInvokingSplitter}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
 	 * @see SplitterEndpointSpec
 	 * @see MethodInvokingSplitter
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public B split(Object service, @Nullable String methodName,
 			@Nullable Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 
@@ -1508,7 +1540,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B split(String beanName, @Nullable String methodName) {
-		return split(beanName, methodName, null);
+		return splitWith((splitterSpec) -> splitterSpec.refName(beanName).method(methodName));
 	}
 
 	/**
@@ -1520,8 +1552,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link MethodInvokingSplitter}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
 	 * @see SplitterEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public B split(String beanName, @Nullable String methodName,
 			@Nullable Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 
@@ -1540,10 +1575,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * </pre>
 	 * @param messageProcessorSpec the splitter {@link MessageProcessorSpec}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @see SplitterEndpointSpec
+	 * @see SplitterSpec
 	 */
 	public B split(MessageProcessorSpec<?> messageProcessorSpec) {
-		return split(messageProcessorSpec, (Consumer<SplitterEndpointSpec<MethodInvokingSplitter>>) null);
+		return splitWith((splitterSpec) -> splitterSpec.ref(messageProcessorSpec));
 	}
 
 	/**
@@ -1561,8 +1596,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link MethodInvokingSplitter}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
 	 * @see SplitterEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public B split(MessageProcessorSpec<?> messageProcessorSpec,
 			@Nullable Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 
@@ -1595,7 +1633,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see LambdaMessageProcessor
 	 */
 	public <P> B split(Class<P> expectedType, Function<P, ?> splitter) {
-		return split(expectedType, splitter, null);
+		return splitWith((splitterSpec) -> splitterSpec.function(splitter).expectedType(expectedType));
 	}
 
 	/**
@@ -1621,9 +1659,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <P> the payload type or {@code Message.class}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
 	 * @see LambdaMessageProcessor
 	 * @see SplitterEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public <P> B split(@Nullable Class<P> expectedType, Function<P, ?> splitter,
 			@Nullable Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 
@@ -1640,10 +1681,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param splitterMessageHandlerSpec the {@link MessageHandlerSpec} to populate.
 	 * @param <S> the {@link AbstractMessageSplitter}
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @see SplitterEndpointSpec
+	 * @see SplitterSpec
 	 */
 	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec) {
-		return split(splitterMessageHandlerSpec, (Consumer<SplitterEndpointSpec<S>>) null);
+		return splitWith((splitterSpec) -> splitterSpec.ref(splitterMessageHandlerSpec));
 	}
 
 	/**
@@ -1653,8 +1694,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <S> the {@link AbstractMessageSplitter}
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
 	 * @see SplitterEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec,
 			@Nullable Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
 
@@ -1667,10 +1711,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * flow position.
 	 * @param splitter the {@link AbstractMessageSplitter} to populate.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @see SplitterEndpointSpec
+	 * @see SplitterSpec
 	 */
 	public B split(AbstractMessageSplitter splitter) {
-		return split(splitter, (Consumer<SplitterEndpointSpec<AbstractMessageSplitter>>) null);
+		return splitWith((splitterSpec) -> splitterSpec.ref(splitter));
 	}
 
 	/**
@@ -1680,8 +1724,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <S> the {@link AbstractMessageSplitter}
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
 	 * @see SplitterEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public <S extends AbstractMessageSplitter> B split(S splitter,
 			@Nullable Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
 

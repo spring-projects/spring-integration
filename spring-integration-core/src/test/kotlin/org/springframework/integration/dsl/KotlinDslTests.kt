@@ -261,7 +261,8 @@ class KotlinDslTests {
 				}
 				transform<String> { it.uppercase() }
 				split<Message<*>> { it.payload }
-				split<String>({ it }) {
+				splitWith {
+					function<String>{ it }
 					id("splitterEndpoint")
 					phase(257)
 				}

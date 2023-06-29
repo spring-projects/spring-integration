@@ -416,11 +416,12 @@ public class FileTests {
 											.addFilter(new AcceptOnceFileListFilter<>())
 											.addFilter(fileExpressionFileListFilter)),
 							e -> e.poller(p -> p.fixedDelay(100)))
-					.split(Files.splitter()
+					.splitWith(s -> s
+							.id("fileSplitter")
+							.ref(Files.splitter()
 									.markers()
 									.charset(StandardCharsets.US_ASCII)
-									.applySequence(true),
-							e -> e.id("fileSplitter"))
+									.applySequence(true)))
 					.channel(c -> c.queue("fileSplittingResultChannel"))
 					.get();
 		}

@@ -110,7 +110,7 @@ public ProducerFactory<Integer, String> producerFactory() {
 @Bean
 public IntegrationFlow sendToKafkaFlow() {
     return f -> f
-            .<String>split(p -> Stream.generate(() -> p).limit(101).iterator(), null)
+            .splitWith(s -> s.<String>function(p -> Stream.generate(() -> p).limit(101).iterator()))
             .publishSubscribeChannel(c -> c
                     .subscribe(sf -> sf.handle(
                             kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
