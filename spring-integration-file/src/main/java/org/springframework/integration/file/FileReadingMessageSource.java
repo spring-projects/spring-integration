@@ -93,6 +93,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Steven Pearce
+ * @author Patryk Ziobron
  */
 public class FileReadingMessageSource extends AbstractMessageSource<File> implements ManageableLifecycle {
 
