@@ -93,6 +93,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Steven Pearce
+ * @author Patryk Ziobron
  */
 public class FileReadingMessageSource extends AbstractMessageSource<File> implements ManageableLifecycle {
 
@@ -533,6 +534,11 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 			logger.debug(() -> "Watch event [" + event.kind() + "] for file [" + file + "]");
 
 			if (StandardWatchEventKinds.ENTRY_DELETE.equals(event.kind())) {
+				Path filePath = file.toPath();
+				if (this.pathKeys.containsKey(filePath)) {
+					WatchKey watchKey = this.pathKeys.remove(filePath);
+					watchKey.cancel();
+				}
 				if (getFilter() instanceof ResettableFileListFilter<File> resettableFileListFilter) {
 					resettableFileListFilter.remove(file);
 				}
@@ -554,7 +560,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 				}
 				else {
 					logger.debug(() -> "A file [" + file + "] for the event [" + event.kind() +
-							"] doesn't exist. Ignored.");
+							"] doesn't exist. Ignored. Maybe DELETE event is not watched ?");
 				}
 			}
 		}

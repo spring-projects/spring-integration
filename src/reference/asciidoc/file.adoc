@@ -371,6 +371,11 @@ For this purpose, the `watch-events` property (`FileReadingMessageSource.setWatc
 With such an option, we can use one downstream flow logic for new files and use some other logic for modified files.
 The following example shows how to configure different logic for create and modify events in the same directory:
 
+It is worth mentioning that the `ENTRY_DELETE` event is involved in the rename operation of sub-directory of the watched directory.
+More specifically, `ENTRY_DELETE` event, which is related to the previous directory name, precedes `ENTRY_CREATE` event which notifies about the new (renamed) directory.
+On some operating systems (like Windows), the `ENTRY_DELETE` event has to be registered to deal with that situation.
+Otherwise, renaming watched sub-directory in the File Explorer could result in the new files not being detected in that sub-directory.
+
 ====
 [source,xml]
 ----
