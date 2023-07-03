@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ public final class JavaUtils {
 	 * @return this.
 	 * @since 5.2
 	 */
-	public JavaUtils acceptIfHasText(String value, Consumer<String> consumer) {
+	public JavaUtils acceptIfHasText(@Nullable String value, Consumer<String> consumer) {
 		if (StringUtils.hasText(value)) {
 			consumer.accept(value);
 		}
@@ -95,7 +95,7 @@ public final class JavaUtils {
 	 * @return this.
 	 * @since 5.2
 	 */
-	public <T> JavaUtils acceptIfNotEmpty(List<T> value, Consumer<List<T>> consumer) {
+	public <T> JavaUtils acceptIfNotEmpty(@Nullable List<T> value, Consumer<List<T>> consumer) {
 		if (!CollectionUtils.isEmpty(value)) {
 			consumer.accept(value);
 		}
@@ -110,7 +110,7 @@ public final class JavaUtils {
 	 * @return this.
 	 * @since 5.2
 	 */
-	public <T> JavaUtils acceptIfNotEmpty(T[] value, Consumer<T[]> consumer) {
+	public <T> JavaUtils acceptIfNotEmpty(@Nullable T[] value, Consumer<T[]> consumer) {
 		if (!ObjectUtils.isEmpty(value)) {
 			consumer.accept(value);
 		}

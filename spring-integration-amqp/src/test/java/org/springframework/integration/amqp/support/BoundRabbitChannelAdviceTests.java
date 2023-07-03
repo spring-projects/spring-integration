@@ -118,7 +118,7 @@ public class BoundRabbitChannelAdviceTests {
 		@Bean
 		public IntegrationFlow flow(RabbitTemplate template) {
 			return IntegrationFlow.from(Gate.class)
-					.split(s -> s.delimiters(",")
+					.splitWith(s -> s.delimiters(",")
 							.advice(new BoundRabbitChannelAdvice(template, Duration.ofSeconds(10))))
 					.<String, String>transform(String::toUpperCase)
 					.handle(Amqp.outboundAdapter(template).routingKey("rk"))

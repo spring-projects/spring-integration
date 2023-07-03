@@ -203,15 +203,17 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <P> the payload type.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
 	 * @see org.springframework.integration.handler.LambdaMessageProcessor
 	 * @see SplitterEndpointSpec
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
+	@SuppressWarnings("removal")
 	public <P> B split(Function<P, ?> splitter,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 
 		return split(null, splitter, endpointConfigurer);
 	}
-
 
 	/**
 	 * Populate the {@link MethodInvokingRouter} for provided {@link Function}

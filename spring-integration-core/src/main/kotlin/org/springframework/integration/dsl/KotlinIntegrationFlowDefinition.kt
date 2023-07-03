@@ -111,9 +111,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	}
 
 	/**
-	 * Inline function for [IntegrationFlowDefinition.transformWith]
-	 * providing a `transform<MyTypeIn>()` variant
-	 * with reified generic type.
+	 * Populate a transformer endpoint.
 	 * @since 6.2
 	 */
 	fun transformWith(configurer: KotlinTransformerEndpointSpec.() -> Unit) {
@@ -128,11 +126,24 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 		this.delegate.split(P::class.java) { function(it) }
 	}
 
+	/**
+	 * Populate a splitter endpoint.
+	 * @since 6.2
+	 */
+	fun splitWith(configurer: KotlinSplitterSpec.() -> Unit) {
+		this.delegate.register(KotlinSplitterSpec(), configurer)
+	}
 
 	/**
 	 * Inline function for [IntegrationFlowDefinition.split] providing a `split<MyTypeIn>()` variant
 	 * with reified generic type.
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				splitWith { 
+					function {} 
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	inline fun <reified P> split(
 		crossinline function: (P) -> Any,
 		crossinline configurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit
@@ -708,10 +719,19 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 		this.delegate.split()
 	}
 
+	fun split(expression: String) {
+		this.delegate.split(expression)
+	}
+
 	/**
-	 * Populate the [ExpressionEvaluatingSplitter] with provided
-	 * SpEL expression.
+	 * Populate the [ExpressionEvaluatingSplitter] with provided SpEL expression.
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				splitWith { 
+					expression() 
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun split(
 		expression: String,
 		endpointConfigurer: KotlinSplitterEndpointSpec<ExpressionEvaluatingSplitter>.() -> Unit = {}
@@ -733,6 +753,13 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * `method` of the `bean` at runtime.
 	 * In addition, accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				splitWith { 
+					ref()
+					method()
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun split(
 		service: Any, methodName: String?,
 		splitterConfigurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit
@@ -754,6 +781,13 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * `method` of the `bean` at runtime.
 	 * In addition, accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				splitWith { 
+					refName()
+					method() 
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun split(
 		beanName: String, methodName: String?,
 		splitterConfigurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit
@@ -762,37 +796,67 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 		this.delegate.split(beanName, methodName) { splitterConfigurer(KotlinSplitterEndpointSpec(it)) }
 	}
 
+	fun split(messageProcessorSpec: MessageProcessorSpec<*>) {
+		this.delegate.split(messageProcessorSpec)
+	}
+
 	/**
 	 * Populate the [MethodInvokingSplitter] to evaluate the
 	 * [MessageProcessor] at runtime from provided [MessageProcessorSpec].
 	 * In addition, accept options for the integration endpoint using [KotlinSplitterEndpointSpec].
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				splitWith { 
+					ref()
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun split(
 		messageProcessorSpec: MessageProcessorSpec<*>,
-		splitterConfigurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit = {}
+		splitterConfigurer: KotlinSplitterEndpointSpec<MethodInvokingSplitter>.() -> Unit
 	) {
 
 		this.delegate.split(messageProcessorSpec) { splitterConfigurer(KotlinSplitterEndpointSpec(it)) }
 	}
 
+	fun split(splitterMessageHandlerSpec: MessageHandlerSpec<*, out AbstractMessageSplitter>) {
+		this.delegate.split(splitterMessageHandlerSpec)
+	}
+
 	/**
 	 * Populate the provided [AbstractMessageSplitter] to the current integration flow position.
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				splitWith { 
+					ref()
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun <S : AbstractMessageSplitter> split(
 		splitterMessageHandlerSpec: MessageHandlerSpec<*, S>,
-		splitterConfigurer: KotlinSplitterEndpointSpec<S>.() -> Unit = {}
+		splitterConfigurer: KotlinSplitterEndpointSpec<S>.() -> Unit
 	) {
 
 		this.delegate.split(splitterMessageHandlerSpec) { splitterConfigurer(KotlinSplitterEndpointSpec(it)) }
+	}
+
+	fun split(splitter: AbstractMessageSplitter) {
+		this.delegate.split(splitter)
 	}
 
 	/**
 	 * Populate the provided [AbstractMessageSplitter] to the current integration
 	 * flow position.
 	 */
+	@Deprecated("since 6.2",
+			ReplaceWith("""
+				splitWith { 
+					ref()
+				}"""))
+	@Suppress("DEPRECATION", "REMOVAL")
 	fun <S : AbstractMessageSplitter> split(
 		splitter: S,
-		splitterConfigurer: KotlinSplitterEndpointSpec<S>.() -> Unit = {}
+		splitterConfigurer: KotlinSplitterEndpointSpec<S>.() -> Unit
 	) {
 
 		this.delegate.split(splitter) { splitterConfigurer(KotlinSplitterEndpointSpec(it)) }

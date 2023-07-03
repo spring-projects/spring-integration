@@ -1396,7 +1396,7 @@ Consider the following integration flow:
 @Bean
 public IntegrationFlow flow(RabbitTemplate template) {
     return IntegrationFlow.from(Gateway.class)
-            .split(s -> s.delimiters(","))
+            .splitWith(s -> s.delimiters(","))
             .<String, String>transform(String::toUpperCase)
             .handle(Amqp.outboundAdapter(template).routingKey("rk"))
             .get();
@@ -1420,7 +1420,7 @@ The following example shows how to use `BoundRabbitChannelAdvice`:
 @Bean
 public IntegrationFlow flow(RabbitTemplate template) {
     return IntegrationFlow.from(Gateway.class)
-            .split(s -> s.delimiters(",")
+            .splitWith(s -> s.delimiters(",")
                     .advice(new BoundRabbitChannelAdvice(template, Duration.ofSeconds(10))))
             .<String, String>transform(String::toUpperCase)
             .handle(Amqp.outboundAdapter(template).routingKey("rk"))

@@ -205,7 +205,7 @@ public class FlowServiceTests {
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {
 			return fromSupplier(this::messageSource, e -> e.poller(p -> p.trigger(this::nextExecution)))
-					.split(this, null, e -> e.applySequence(false))
+					.splitWith(s -> s.applySequence(false).ref(this))
 					.transform(this)
 					.aggregate(a -> a.processor(this, null))
 					.enrichHeaders(Collections.singletonMap("foo", "FOO"))
@@ -268,7 +268,7 @@ public class FlowServiceTests {
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {
 			return from("delaysBetweenPollsInput")
-					.split(splitter -> splitter.delimiters(","))
+					.splitWith(splitter -> splitter.delimiters(","))
 					.channel(MessageChannels.queue())
 					.handle(this, "handle", e -> e.poller(poller -> poller.fixedDelay(500).maxMessagesPerPoll(1)))
 					.channel(MessageChannels.queue("delaysBetweenPollsOutput"));

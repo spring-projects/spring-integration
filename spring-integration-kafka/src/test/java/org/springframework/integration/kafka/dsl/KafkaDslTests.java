@@ -349,7 +349,7 @@ public class KafkaDslTests {
 		public IntegrationFlow sendToKafkaFlow(
 				KafkaProducerMessageHandlerSpec<Integer, String, ?> kafkaMessageHandlerTopic2) {
 			return f -> f
-					.<String>split(p -> Stream.generate(() -> p).limit(101).iterator(), null)
+					.splitWith(s -> s.function(p -> Stream.generate(() -> p).limit(101).iterator()))
 					.enrichHeaders(h -> h.header(KafkaIntegrationHeaders.FUTURE_TOKEN, "foo"))
 					.publishSubscribeChannel(c -> c
 							.subscribe(sf -> sf.handle(

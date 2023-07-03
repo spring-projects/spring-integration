@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,8 +108,7 @@ public class BoundRabbitChannelAdviceIntegrationTests {
 		@Bean
 		public IntegrationFlow flow(RabbitTemplate template, BoundRabbitChannelAdvice advice) {
 			return IntegrationFlow.from(Gate.class)
-					.split(s -> s.delimiters(",")
-							.advice(advice))
+					.splitWith(s -> s.delimiters(",").advice(advice))
 					.<String, String>transform(String::toUpperCase)
 					.handle(Amqp.outboundAdapter(template).routingKey(QUEUE))
 					.get();

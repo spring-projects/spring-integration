@@ -29,13 +29,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.HandleMessageAdviceAdapter;
 import org.springframework.integration.handler.advice.ReactiveRequestHandlerAdvice;
-import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.lang.Nullable;
@@ -61,6 +61,21 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 		extends EndpointSpec<S, ConsumerEndpointFactoryBean, H> {
 
 	protected final List<Advice> adviceChain = new LinkedList<>(); // NOSONAR final
+
+	@Nullable
+	private Boolean requiresReply;
+
+	@Nullable
+	private Long sendTimeout;
+
+	@Nullable
+	private Integer order;
+
+	@Nullable
+	private Boolean async;
+
+	@Nullable
+	private String[] notPropagatedHeaders;
 
 	protected ConsumerEndpointSpec(@Nullable H messageHandler) {
 		super(messageHandler, new ConsumerEndpointFactoryBean());
@@ -242,12 +257,16 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractReplyProducingMessageHandler#setRequiresReply(boolean)
 	 */
 	public S requiresReply(boolean requiresReply) {
-		assertHandler();
-		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
-			((AbstractReplyProducingMessageHandler) this.handler).setRequiresReply(requiresReply);
+		if (this.handler != null) {
+			if (this.handler instanceof AbstractReplyProducingMessageHandler producingHandler) {
+				producingHandler.setRequiresReply(requiresReply);
+			}
+			else {
+				this.logger.warn("'requiresReply' can be applied only for AbstractReplyProducingMessageHandler");
+			}
 		}
 		else {
-			this.logger.warn("'requiresReply' can be applied only for AbstractReplyProducingMessageHandler");
+			this.requiresReply = requiresReply;
 		}
 		return _this();
 	}
@@ -258,16 +277,16 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractMessageProducingHandler#setSendTimeout(long)
 	 */
 	public S sendTimeout(long sendTimeout) {
-		assertHandler();
-		if (this.handler instanceof AbstractMessageProducingHandler) {
-			((AbstractMessageProducingHandler) this.handler).setSendTimeout(sendTimeout);
-		}
-		else if (this.handler instanceof AbstractMessageRouter) {
-			// This should probably go on the RouterSpec, but we put it here for consistency
-			((AbstractMessageRouter) this.handler).setSendTimeout(sendTimeout);
+		if (this.handler != null) {
+			if (this.handler instanceof AbstractMessageProducingHandler producingHandler) {
+				producingHandler.setSendTimeout(sendTimeout);
+			}
+			else {
+				this.logger.warn("'sendTimeout' can be applied only for AbstractMessageProducingHandler");
+			}
 		}
 		else {
-			this.logger.warn("'sendTimeout' can be applied only for AbstractMessageProducingHandler");
+			this.sendTimeout = sendTimeout;
 		}
 		return _this();
 	}
@@ -278,33 +297,41 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractMessageHandler#setOrder(int)
 	 */
 	public S order(int order) {
-		assertHandler();
-		if (this.handler instanceof AbstractMessageHandler) {
-			((AbstractMessageHandler) this.handler).setOrder(order);
+		if (this.handler != null) {
+			if (this.handler instanceof AbstractMessageHandler abstractMessageHandler) {
+				abstractMessageHandler.setOrder(order);
+			}
+			else {
+				this.logger.warn("'order' can be applied only for AbstractMessageHandler");
+			}
 		}
 		else {
-			this.logger.warn("'order' can be applied only for AbstractMessageHandler");
+			this.order = order;
 		}
 		return _this();
 	}
 
 	/**
 	 * Allow async replies. If the handler reply is a
-	 * {@code org.springframework.util.concurrent.ListenableFuture}, send the output when
+	 * {@link java.util.concurrent.CompletableFuture}, send the output when
 	 * it is satisfied rather than sending the future as the result. Ignored for handler
 	 * return types other than
-	 * {@link org.springframework.util.concurrent.ListenableFuture}.
+	 * {@link java.util.concurrent.CompletableFuture}.
 	 * @param async true to allow.
 	 * @return the endpoint spec.
 	 * @see AbstractMessageProducingHandler#setAsync(boolean)
 	 */
 	public S async(boolean async) {
-		assertHandler();
-		if (this.handler instanceof AbstractMessageProducingHandler) {
-			((AbstractMessageProducingHandler) this.handler).setAsync(async);
+		if (this.handler != null) {
+			if (this.handler instanceof AbstractMessageProducingHandler producingHandler) {
+				producingHandler.setAsync(async);
+			}
+			else {
+				this.logger.warn("'async' can be applied only for AbstractMessageProducingHandler");
+			}
 		}
 		else {
-			this.logger.warn("'async' can be applied only for AbstractMessageProducingHandler");
+			this.async = async;
 		}
 		return _this();
 	}
@@ -318,12 +345,16 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractMessageProducingHandler#setNotPropagatedHeaders(String...)
 	 */
 	public S notPropagatedHeaders(String... headerPatterns) {
-		assertHandler();
-		if (this.handler instanceof AbstractMessageProducingHandler) {
-			((AbstractMessageProducingHandler) this.handler).setNotPropagatedHeaders(headerPatterns);
+		if (this.handler != null) {
+			if (this.handler instanceof AbstractMessageProducingHandler producingHandler) {
+				producingHandler.setNotPropagatedHeaders(headerPatterns);
+			}
+			else {
+				this.logger.warn("'headerPatterns' can be applied only for AbstractMessageProducingHandler");
+			}
 		}
 		else {
-			this.logger.warn("'headerPatterns' can be applied only for AbstractMessageProducingHandler");
+			this.notPropagatedHeaders = headerPatterns;
 		}
 		return _this();
 	}
@@ -331,9 +362,17 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	@Override
 	protected Tuple2<ConsumerEndpointFactoryBean, H> doGet() {
 		this.endpointFactoryBean.setAdviceChain(this.adviceChain);
-		if (this.handler instanceof AbstractReplyProducingMessageHandler && !this.adviceChain.isEmpty()) {
-			((AbstractReplyProducingMessageHandler) this.handler).setAdviceChain(this.adviceChain);
+
+		if (this.handler instanceof AbstractReplyProducingMessageHandler producingMessageHandler) {
+			JavaUtils.INSTANCE
+					.acceptIfNotNull(this.requiresReply, producingMessageHandler::setRequiresReply)
+					.acceptIfNotNull(this.sendTimeout, producingMessageHandler::setSendTimeout)
+					.acceptIfNotNull(this.async, producingMessageHandler::setAsync)
+					.acceptIfNotNull(this.order, producingMessageHandler::setOrder)
+					.acceptIfNotEmpty(this.notPropagatedHeaders, producingMessageHandler::setNotPropagatedHeaders)
+					.acceptIfNotEmpty(this.adviceChain, producingMessageHandler::setAdviceChain);
 		}
+
 		this.endpointFactoryBean.setHandler(this.handler);
 		return super.doGet();
 	}

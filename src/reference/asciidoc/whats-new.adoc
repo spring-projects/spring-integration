@@ -30,4 +30,4 @@ See <<./debezium.adoc#debezium, Debezium Support>>  for more information.
 See <<./endpoint.adoc#endpoint-pollingconsumer, Polling Consumer>> for more information.
 
 - Java, Groovy and Kotlin DSLs have now context-specific methods in the `IntegationFlowDefinition` with a single `Consumer` argument to configure an endpoint and its handler with one builder and readable options.
-See, for example, `transformWith()` in <<./dsl.adoc#java-dsl, Java DSL Chapter>>.
+See, for example, `transformWith()`, `splitWith()` in <<./dsl.adoc#java-dsl, Java DSL Chapter>>.

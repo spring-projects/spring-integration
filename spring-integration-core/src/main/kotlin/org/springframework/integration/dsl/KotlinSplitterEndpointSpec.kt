@@ -28,6 +28,8 @@ import org.springframework.messaging.MessageChannel
  *
  * @since 5.3
  */
+@Deprecated("since 6.2", ReplaceWith("KotlinSplitterSpec"))
+@Suppress("REMOVAL", "DEPRECATION")
 class KotlinSplitterEndpointSpec<H : AbstractMessageSplitter>(override val delegate: SplitterEndpointSpec<H>)
 	: KotlinConsumerEndpointSpec<SplitterEndpointSpec<H>, H>(delegate) {
 

@@ -228,11 +228,17 @@ public class CorrelationHandlerTests {
 		@SuppressWarnings("rawtypes")
 		public IntegrationFlow splitResequenceFlow(MessageChannel executorChannel, TaskExecutor taskExecutor) {
 			return f -> f.enrichHeaders(s -> s.header("FOO", "BAR"))
-					.split("testSplitterData", "buildList", c -> c.applySequence(false))
+					.splitWith(s -> s
+							.applySequence(false)
+							.refName("testSplitterData")
+							.method("buildList"))
 					.channel(executorChannel)
-					.split(Message.class, Message::getPayload, c -> c.applySequence(false))
+					.splitWith(s -> s
+							.applySequence(false)
+							.<Message>function(Message::getPayload)
+							.expectedType(Message.class))
 					.channel(MessageChannels.executor(taskExecutor))
-					.split(s -> s
+					.splitWith(s -> s
 							.applySequence(false)
 							.delimiters(","))
 					.channel(MessageChannels.executor(taskExecutor))
@@ -248,8 +254,9 @@ public class CorrelationHandlerTests {
 		public IntegrationFlow splitAggregateFlow() {
 			return IntegrationFlow.from("splitAggregateInput", true)
 					.transform(Transformers.toJson(ObjectToJsonTransformer.ResultType.NODE))
-					.split((splitter) -> splitter
-							.discardFlow((subFlow) -> subFlow.channel((c) -> c.queue("discardChannel"))))
+					.splitWith((splitter) -> splitter
+							.discardFlow((subFlow) -> subFlow
+									.channel((c) -> c.queue("discardChannel"))))
 					.channel(MessageChannels.flux())
 					.resequence()
 					.aggregate()
