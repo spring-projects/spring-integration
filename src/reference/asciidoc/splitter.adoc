@@ -97,7 +97,10 @@ fun someFlow() =
 @Bean
 someFlow() {
     integrationFlow {
-        split Message<?>, { it.payload }
+        splitWith {
+		    expectedType Message<?>
+		    function { it.payload }
+        }
     }
 }
 ----

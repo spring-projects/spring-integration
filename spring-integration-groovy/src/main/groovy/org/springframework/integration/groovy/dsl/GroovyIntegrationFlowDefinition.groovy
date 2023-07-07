@@ -47,6 +47,7 @@ import org.springframework.integration.dsl.ResequencerSpec
 import org.springframework.integration.dsl.RouterSpec
 import org.springframework.integration.dsl.ScatterGatherSpec
 import org.springframework.integration.dsl.SplitterEndpointSpec
+import org.springframework.integration.dsl.SplitterSpec
 import org.springframework.integration.dsl.TransformerEndpointSpec
 import org.springframework.integration.dsl.WireTapSpec
 import org.springframework.integration.filter.MethodInvokingSelector
@@ -711,17 +712,46 @@ class GroovyIntegrationFlowDefinition {
 	}
 
 	/**
+	 * Populate the {@link DefaultMessageSplitter} with default options to the current integration flow position.
+	 */
+	GroovyIntegrationFlowDefinition split() {
+		this.delegate.split()
+		this
+	}
+
+	/**
 	 * Populate the {@link DefaultMessageSplitter} with provided options
 	 * to the current integration flow position.
 	 * Used with a Closure expression (optional).
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link DefaultMessageSplitter}.
+	 * @since 6.2
+	 * @see SplitterSpec
+	 */
+	GroovyIntegrationFlowDefinition splitWith(
+			@DelegatesTo(value = SplitterSpec, strategy = Closure.DELEGATE_FIRST)
+			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterSpec')
+					Closure<?> splitConfigurer) {
+
+		this.delegate.splitWith createConfigurerIfAny(splitConfigurer)
+		this
+	}
+
+	/**
+	 * Populate the {@link DefaultMessageSplitter} with provided options
+	 * to the current integration flow position.
+	 * Used with a Closure expression.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
+	 * and for {@link DefaultMessageSplitter}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
 	 * @see SplitterEndpointSpec
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
+	@SuppressWarnings(['removal', 'deprecation'])
 	GroovyIntegrationFlowDefinition split(
 			@DelegatesTo(value = SplitterEndpointSpec<DefaultMessageSplitter>, strategy = Closure.DELEGATE_FIRST)
 			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
+					Closure<?> endpointConfigurer) {
 
 		this.delegate.split createConfigurerIfAny(endpointConfigurer)
 		this
@@ -733,7 +763,10 @@ class GroovyIntegrationFlowDefinition {
 	 * @param expression the splitter SpEL expression.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link ExpressionEvaluatingSplitter}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
+	@SuppressWarnings(['removal', 'deprecation'])
 	GroovyIntegrationFlowDefinition split(
 			String expression,
 			@DelegatesTo(value = SplitterEndpointSpec<ExpressionEvaluatingSplitter>, strategy = Closure.DELEGATE_FIRST)
@@ -752,7 +785,10 @@ class GroovyIntegrationFlowDefinition {
 	 * @param methodName the method to invoke.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link MethodInvokingSplitter}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
+	@SuppressWarnings(['removal', 'deprecation'])
 	GroovyIntegrationFlowDefinition split(
 			Object service, String methodName = null,
 			@DelegatesTo(value = SplitterEndpointSpec<MethodInvokingSplitter>, strategy = Closure.DELEGATE_FIRST)
@@ -772,7 +808,10 @@ class GroovyIntegrationFlowDefinition {
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link MethodInvokingSplitter}.
 	 * @see org.springframework.integration.dsl.SplitterEndpointSpec
+	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
+	@SuppressWarnings(['removal', 'deprecation'])
 	GroovyIntegrationFlowDefinition split(
 			String beanName, String methodName,
 			@DelegatesTo(value = SplitterEndpointSpec<MethodInvokingSplitter>, strategy = Closure.DELEGATE_FIRST)
@@ -791,7 +830,10 @@ class GroovyIntegrationFlowDefinition {
 	 * @param messageProcessorSpec the splitter {@link MessageProcessorSpec}.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link MethodInvokingSplitter}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
+	@SuppressWarnings(['removal', 'deprecation'])
 	GroovyIntegrationFlowDefinition split(
 			MessageProcessorSpec<?> messageProcessorSpec,
 			@DelegatesTo(value = SplitterEndpointSpec<MethodInvokingSplitter>, strategy = Closure.DELEGATE_FIRST)
@@ -811,8 +853,11 @@ class GroovyIntegrationFlowDefinition {
 	 * Conversion to this type will be attempted, if necessary.
 	 * @param splitter the splitter {@link Function}.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param < P >                                                  the payload type or {@code Message.class}.
+	 * @param <P> the payload type or {@code Message.class}.
+	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
+	@SuppressWarnings(['removal', 'deprecation'])
 	<P> GroovyIntegrationFlowDefinition split(
 			Class<P> expectedType, Function<P, ?> splitter,
 			@DelegatesTo(value = SplitterEndpointSpec<MethodInvokingSplitter>, strategy = Closure.DELEGATE_FIRST)
@@ -830,9 +875,12 @@ class GroovyIntegrationFlowDefinition {
 	 * flow position.
 	 * @param splitterMessageHandlerSpec the {@link MessageHandlerSpec} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param < S >                                                  the {@link AbstractMessageSplitter}
+	 * @param <S> the {@link AbstractMessageSplitter}
+	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
 	 * @see org.springframework.integration.dsl.SplitterEndpointSpec
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
+	@SuppressWarnings(['removal', 'deprecation'])
 	<S extends AbstractMessageSplitter> GroovyIntegrationFlowDefinition split(
 			MessageHandlerSpec<?, S> splitterMessageHandlerSpec,
 			@DelegatesTo(value = SplitterEndpointSpec<S>, strategy = Closure.DELEGATE_FIRST)
@@ -848,9 +896,12 @@ class GroovyIntegrationFlowDefinition {
 	 * flow position.
 	 * @param splitter the {@link AbstractMessageSplitter} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param < S >                                                  the {@link AbstractMessageSplitter}
+	 * @param <S> the {@link AbstractMessageSplitter}
+	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
 	 * @see org.springframework.integration.dsl.SplitterEndpointSpec
 	 */
+	@Deprecated(since = '6.2', forRemoval = true)
+	@SuppressWarnings(['removal', 'deprecation'])
 	<S extends AbstractMessageSplitter> GroovyIntegrationFlowDefinition split(
 			S splitter,
 			@DelegatesTo(value = SplitterEndpointSpec<S>, strategy = Closure.DELEGATE_FIRST)
