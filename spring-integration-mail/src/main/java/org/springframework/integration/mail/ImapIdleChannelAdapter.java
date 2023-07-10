@@ -17,10 +17,9 @@
 package org.springframework.integration.mail;
 
 import java.io.Serial;
-import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import jakarta.mail.Folder;
@@ -31,15 +30,13 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mail.event.MailIntegrationEvent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.IntegrationResourceHolderSynchronization;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.messaging.MessagingException;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.TriggerContext;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -63,11 +60,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private static final int DEFAULT_RECONNECT_DELAY = 10000;
 
-	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger();
-
-	private final IdleTask idleTask = new IdleTask();
-
 	private final ImapMailReceiver mailReceiver;
+
+	private Executor taskExecutor;
 
 	private TransactionSynchronizationFactory transactionSynchronizationFactory;
 
@@ -98,6 +93,16 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	public void setAdviceChain(List<Advice> adviceChain) {
 		this.adviceChain = adviceChain;
+	}
+
+	/**
+	 * Provide a managed {@link Executor} to schedule a receiving IDLE task.
+	 * @param taskExecutor the {@link Executor} to use.
+	 * @since 6.2
+	 */
+	public void setTaskExecutor(Executor taskExecutor) {
+		Assert.notNull(taskExecutor, "'taskExecutor' must not be null");
+		this.taskExecutor = taskExecutor;
 	}
 
 	/**
@@ -139,6 +144,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	protected void onInit() {
 		super.onInit();
 
+		if (this.taskExecutor == null) {
+			this.taskExecutor = new SimpleAsyncTaskExecutor(getBeanName() + "-");
+		}
+
 		Consumer<?> messageSenderToUse = new MessageSender();
 
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
@@ -153,16 +162,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		this.messageSender = (Consumer<Object>) messageSenderToUse;
 	}
 
-
-	/*
-	 * Lifecycle implementation
-	 */
-
-	@Override // guarded by super#lifecycleLock
+	@Override
 	protected void doStart() {
-		TaskScheduler scheduler = getTaskScheduler();
-		Assert.notNull(scheduler, "'taskScheduler' must not be null");
-		this.receivingTask = scheduler.schedule(new ReceivingTask(), this.receivingTaskTrigger);
+		this.taskExecutor.execute(this::callIdle);
 	}
 
 	@Override
@@ -187,6 +189,70 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 		else {
 			logger.debug(() -> "No application event publisher for exception: " + ex.getMessage());
+		}
+	}
+
+	private void callIdle() {
+		while (isActive()) {
+			try {
+				processIdle();
+				logger.debug("Task completed successfully. Re-scheduling it again right away.");
+			}
+			catch (Exception ex) {
+				publishException(ex);
+				if (this.shouldReconnectAutomatically
+						&& ex.getCause() instanceof jakarta.mail.MessagingException messagingException) {
+
+					//run again after a delay
+					logger.info(messagingException,
+							() -> "Failed to execute IDLE task. Will attempt to resubmit in "
+									+ this.reconnectDelay + " milliseconds.");
+					delayNextIdleCall();
+				}
+				else {
+					logger.warn(ex,
+							"Failed to execute IDLE task. " +
+									"Won't resubmit since not a 'shouldReconnectAutomatically' " +
+									"or not a 'jakarta.mail.MessagingException'");
+					break;
+				}
+			}
+		}
+	}
+
+	private void processIdle() {
+		try {
+			logger.debug("waiting for mail");
+			this.mailReceiver.waitForNewMessages();
+			Folder folder = this.mailReceiver.getFolder();
+			if (folder != null && folder.isOpen() && isRunning()) {
+				Object[] mailMessages = this.mailReceiver.receive();
+				logger.debug(() -> "received " + mailMessages.length + " mail messages");
+				for (Object mailMessage : mailMessages) {
+					if (isRunning()) {
+						this.messageSender.accept(mailMessage);
+					}
+				}
+			}
+		}
+		catch (jakarta.mail.MessagingException ex) {
+			logger.warn(ex, "error occurred in idle task");
+			if (this.shouldReconnectAutomatically) {
+				throw new IllegalStateException("Failure in 'idle' task. Will resubmit.", ex);
+			}
+			else {
+				throw new MessagingException("Failure in 'idle' task. Will NOT resubmit.", ex);
+			}
+		}
+	}
+
+	private void delayNextIdleCall() {
+		try {
+			Thread.sleep(this.reconnectDelay);
+		}
+		catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException(ex);
 		}
 	}
 
@@ -223,112 +289,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 				}
 			}
 			sendMessage(messageToSend);
-		}
-
-	}
-
-	private class ReceivingTask implements Runnable {
-
-		ReceivingTask() {
-		}
-
-		@Override
-		public void run() {
-			if (isRunning()) {
-				try {
-					ImapIdleChannelAdapter.this.idleTask.run();
-					logger.debug("Task completed successfully. Re-scheduling it again right away.");
-				}
-				catch (Exception ex) {
-					if (ImapIdleChannelAdapter.this.shouldReconnectAutomatically
-							&& ex.getCause() instanceof jakarta.mail.MessagingException messagingException) {
-
-						//run again after a delay
-						logger.info(messagingException,
-								() -> "Failed to execute IDLE task. Will attempt to resubmit in "
-										+ ImapIdleChannelAdapter.this.reconnectDelay + " milliseconds.");
-						ImapIdleChannelAdapter.this.receivingTaskTrigger.delayNextExecution();
-					}
-					else {
-						logger.warn(ex,
-								"Failed to execute IDLE task. " +
-										"Won't resubmit since not a 'shouldReconnectAutomatically' " +
-										"or not a 'jakarta.mail.MessagingException'");
-						ImapIdleChannelAdapter.this.receivingTaskTrigger.stop();
-					}
-					publishException(ex);
-				}
-			}
-		}
-
-	}
-
-
-	private class IdleTask implements Runnable {
-
-		IdleTask() {
-		}
-
-		@Override
-		public void run() {
-			if (isRunning()) {
-				try {
-					logger.debug("waiting for mail");
-					ImapIdleChannelAdapter.this.mailReceiver.waitForNewMessages();
-					Folder folder = ImapIdleChannelAdapter.this.mailReceiver.getFolder();
-					if (folder != null && folder.isOpen() && isRunning()) {
-						Object[] mailMessages = ImapIdleChannelAdapter.this.mailReceiver.receive();
-						logger.debug(() -> "received " + mailMessages.length + " mail messages");
-						for (Object mailMessage : mailMessages) {
-							if (isRunning()) {
-								ImapIdleChannelAdapter.this.messageSender.accept(mailMessage);
-							}
-						}
-					}
-				}
-				catch (jakarta.mail.MessagingException ex) {
-					logger.warn(ex, "error occurred in idle task");
-					if (ImapIdleChannelAdapter.this.shouldReconnectAutomatically) {
-						throw new IllegalStateException("Failure in 'idle' task. Will resubmit.", ex);
-					}
-					else {
-						throw new MessagingException("Failure in 'idle' task. Will NOT resubmit.", ex);
-					}
-				}
-			}
-		}
-
-	}
-
-	private class ExceptionAwarePeriodicTrigger implements Trigger {
-
-		private final AtomicBoolean delayNextExecution = new AtomicBoolean();
-
-		private final AtomicBoolean stop = new AtomicBoolean();
-
-
-		ExceptionAwarePeriodicTrigger() {
-		}
-
-		@Override
-		public Instant nextExecution(TriggerContext triggerContext) {
-			if (this.stop.getAndSet(false)) {
-				return null;
-			}
-			if (this.delayNextExecution.getAndSet(false)) {
-				return Instant.now().plusMillis(ImapIdleChannelAdapter.this.reconnectDelay);
-			}
-			else {
-				return Instant.now();
-			}
-		}
-
-		void delayNextExecution() {
-			this.delayNextExecution.set(true);
-		}
-
-		void stop() {
-			this.stop.set(true);
 		}
 
 	}

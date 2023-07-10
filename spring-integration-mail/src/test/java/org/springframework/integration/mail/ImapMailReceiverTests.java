@@ -59,7 +59,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -187,7 +186,6 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	@Disabled("GreenMail server closes socket for some reason")
 	public void testIdleWithMessageMapping() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
@@ -228,7 +226,6 @@ public class ImapMailReceiverTests {
 		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(receiver);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		adapter.setTaskScheduler(taskScheduler);
 		adapter.setReconnectDelay(10);
 		adapter.afterPropertiesSet();
 		adapter.start();
@@ -781,17 +778,14 @@ public class ImapMailReceiverTests {
 			theEvent.set(event);
 			latch.countDown();
 		});
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
 		adapter.setReconnectDelay(10);
+		adapter.afterPropertiesSet();
 		adapter.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(theEvent.get().toString())
 				.endsWith("cause=java.lang.IllegalStateException: Failure in 'idle' task. Will resubmit.]");
 
 		adapter.stop();
-		taskScheduler.destroy();
 	}
 
 	@Test // see INT-1801
@@ -967,19 +961,15 @@ public class ImapMailReceiverTests {
 			i.callRealMethod();
 			throw new FolderClosedException(folder, "test");
 		}).given(receiver).waitForNewMessages();
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
 		adapter.setReconnectDelay(10);
-		adapter.afterPropertiesSet();
-		final CountDownLatch latch = new CountDownLatch(3);
+		CountDownLatch latch = new CountDownLatch(3);
 		adapter.setApplicationEventPublisher(e -> latch.countDown());
+		adapter.afterPropertiesSet();
 		adapter.start();
 		assertThat(latch.await(60, TimeUnit.SECONDS)).isTrue();
 		verify(store, atLeast(3)).connect();
 
 		adapter.stop();
-		taskScheduler.shutdown();
 	}
 
 	private void setUpScheduler(ImapMailReceiver mailReceiver, ThreadPoolTaskScheduler taskScheduler) {

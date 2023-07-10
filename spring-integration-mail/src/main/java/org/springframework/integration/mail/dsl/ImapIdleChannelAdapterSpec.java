@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -393,6 +394,17 @@ public class ImapIdleChannelAdapterSpec
 		assertReceiver();
 		this.receiver.setSimpleContent(simpleContent);
 		return _this();
+	}
+
+	/**
+	 * Provide a managed {@link Executor} to schedule a receiving IDLE task.
+	 * @param taskExecutor the {@link Executor} to use.
+	 * @return the spec.
+	 * @since 6.2
+	 */
+	public ImapIdleChannelAdapterSpec taskExecutor(Executor taskExecutor) {
+		this.target.setTaskExecutor(taskExecutor);
+		return this;
 	}
 
 	@Override
