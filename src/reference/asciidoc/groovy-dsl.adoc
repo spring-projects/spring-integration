@@ -90,14 +90,14 @@ functionFlow() {
                     expectedType String
                 }
                 splitWith {
-				    expectedType Message<?>
-				    function { it.payload }
-				}
-				splitWith {
-				    expectedType Object
-				    id 'splitterEndpoint'
-				    function { it }
-				}
+                    expectedType Message<?>
+                    function { it.payload }
+                }
+                splitWith {
+                    expectedType Object
+                    id 'splitterEndpoint'
+                    function { it }
+                }
                 resequence()
                 aggregate {
                     id 'aggregator'
