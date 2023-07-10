@@ -229,8 +229,12 @@ fun unzipFlow(executor: Executor) =
 unzipFlow(Executor executor) {
     integrationFlow 'unzipChannel',
             {
-                transform new UnZipTransformer()
-                split new UnZipResultSplitter()
+                transformWith {
+                    ref new UnZipTransformer()
+                }
+                splitWith {
+                    ref new UnZipResultSplitter()
+                }
                 channel { executor 'entriesChannel', executor }
             }
 }

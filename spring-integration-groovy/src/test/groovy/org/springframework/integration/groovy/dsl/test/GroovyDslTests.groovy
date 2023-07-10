@@ -269,8 +269,15 @@ class GroovyDslTests {
 						transform {
 							transformer { it.toUpperCase() }
 						}
-						split Message<?>, { it.payload }
-						split Object, { it }, { id 'splitterEndpoint' }
+						splitWith {
+							expectedType Message<?>
+							function { it.payload }
+						}
+						splitWith {
+							expectedType Object
+							id 'splitterEndpoint'
+							function { it }
+						}
 						resequence()
 						aggregate {
 							id 'aggregator'
