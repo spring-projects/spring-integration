@@ -70,7 +70,7 @@ ext {
     hazelcastVersion = '5.3.1'
     hibernateVersion = '6.2.5.Final'
     hsqldbVersion = '2.7.2'
-    h2Version = '2.1.214'
+    h2Version = '2.2.220'
     jacksonVersion = '2.15.2'
     jaxbVersion = '4.0.3'
     jcifsVersion = '2.1.34'
