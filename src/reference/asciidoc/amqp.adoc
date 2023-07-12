@@ -285,6 +285,8 @@ However, the return value from a `@RabbitListener` method is treated as an AMQP 
 Therefore, such an approach cannot be used together with a `@Publisher`, so a `@Payload` annotation with respective SpEL expression against method arguments is a recommended way for this combination.
 See more information about the `@Publisher` in the <<./message-publishing.adoc#publisher-annotation, Annotation-driven Configuration>> section.
 
+IMPORTANT: When using exclusive or single-active consumers in the listener container, it is recommended that you set the container property `forceStop` to `true`.
+This will prevent a race condition where, after stopping the container, another consumer could start consuming messages before this instance has fully stopped.
 
 [[amqp-debatching]]
 ==== Batched Messages
