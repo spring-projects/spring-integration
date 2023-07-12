@@ -18,7 +18,7 @@ plugins {
     id 'org.sonarqube' version '4.2.1.3168'
     id 'io.spring.nohttp' version '0.0.11' apply false
     id 'org.ajoberstar.grgit' version '4.1.1'
-    id 'io.spring.dependency-management' version '1.1.0'
+    id 'io.spring.dependency-management' version '1.1.1'
     id 'com.jfrog.artifactory' version '4.32.0' apply false
     id 'org.jetbrains.dokka' version "$kotlinVersion"
     id 'org.asciidoctor.jvm.pdf' version '3.3.2'
@@ -87,8 +87,8 @@ ext {
     lettuceVersion = '6.2.4.RELEASE'
     log4jVersion = '2.20.0'
     mailVersion = '2.0.2'
-    micrometerTracingVersion = '1.1.2'
-    micrometerVersion = '1.11.1'
+    micrometerTracingVersion = '1.2.0-M1'
+    micrometerVersion = '1.12.0-M1'
     mockitoVersion = '5.4.0'
     mongoDriverVersion = '4.9.1'
     mysqlVersion = '8.0.33'
@@ -96,7 +96,7 @@ ext {
     postgresVersion = '42.6.0'
     protobufVersion = '3.23.3'
     r2dbch2Version = '1.0.0.RELEASE'
-    reactorVersion = '2022.0.8'
+    reactorVersion = '2023.0.0-M1'
     resilience4jVersion = '2.0.2'
     romeToolsVersion = '2.1.0'
     rsocketVersion = '1.1.4'
