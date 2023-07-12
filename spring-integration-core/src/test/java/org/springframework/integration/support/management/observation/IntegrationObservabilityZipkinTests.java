@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,14 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.test.SampleTestRunner;
 import io.micrometer.tracing.test.simple.SpansAssert;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.ObservationPropagationChannelInterceptor;
 import org.springframework.integration.config.EnableIntegration;
@@ -64,19 +66,34 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 	public SampleTestRunnerConsumer yourCode() {
 		return (bb, meterRegistry) -> {
 			ObservationRegistry observationRegistry = getObservationRegistry();
+
+			observationRegistry.observationConfig()
+					.observationPredicate((name, context) ->
+							!(context instanceof MessageRequestReplyReceiverContext messageRequestReplyReceiverContext)
+									|| !messageRequestReplyReceiverContext.getGatewayName()
+									.equals("skippedObservationInboundGateway"));
+
 			try (AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext()) {
 				applicationContext.registerBean(ObservationRegistry.class, () -> observationRegistry);
 				applicationContext.register(ObservationIntegrationTestConfiguration.class);
 				applicationContext.refresh();
 
 				TestMessagingGatewaySupport messagingGateway =
-						applicationContext.getBean(TestMessagingGatewaySupport.class);
+						applicationContext.getBean("testInboundGateway", TestMessagingGatewaySupport.class);
 
 				Message<?> receive = messagingGateway.process(new GenericMessage<>("test data"));
 
 				assertThat(receive).isNotNull()
 						.extracting("payload").isEqualTo("test data");
 				var configuration = applicationContext.getBean(ObservationIntegrationTestConfiguration.class);
+
+				messagingGateway =
+						applicationContext.getBean("skippedObservationInboundGateway",
+								TestMessagingGatewaySupport.class);
+
+				receive = messagingGateway.process(new GenericMessage<>("void data"));
+
+				assertThat(receive).isNull();
 
 				assertThat(configuration.observedHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 			}
@@ -112,7 +129,7 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 	@EnableIntegration
 	@EnableIntegrationManagement(
 			observationPatterns = {
-					"${spring.integration.management.observation-patterns:testInboundGateway,queueChannel,observedEndpoint}",
+					"${spring.integration.management.observation-patterns:testInboundGateway,skippedObservationInboundGateway,queueChannel,observedEndpoint}",
 					"${spring.integration.management.observation-patterns:}"
 			})
 	public static class ObservationIntegrationTestConfiguration {
@@ -126,7 +143,7 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 		}
 
 		@Bean
-		TestMessagingGatewaySupport testInboundGateway(PollableChannel queueChannel) {
+		TestMessagingGatewaySupport testInboundGateway(@Qualifier("queueChannel") PollableChannel queueChannel) {
 			TestMessagingGatewaySupport messagingGatewaySupport = new TestMessagingGatewaySupport();
 			messagingGatewaySupport.setObservationConvention(
 					new DefaultMessageRequestReplyReceiverObservationConvention() {
@@ -144,6 +161,15 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 		@Bean
 		public PollableChannel queueChannel() {
 			return new QueueChannel();
+		}
+
+
+		@Bean
+		TestMessagingGatewaySupport skippedObservationInboundGateway() {
+			TestMessagingGatewaySupport messagingGatewaySupport = new TestMessagingGatewaySupport();
+			messagingGatewaySupport.setRequestChannel(new NullChannel());
+			messagingGatewaySupport.setReplyTimeout(0);
+			return messagingGatewaySupport;
 		}
 
 		@Bean
