@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,18 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 
 	@Override
 	public boolean remove(String path) throws IOException {
-		this.sftpClient.remove(path);
+		try {
+			this.sftpClient.remove(path);
+		}
+		catch (SftpException sftpEx) {
+			if (SftpConstants.SSH_FX_NO_SUCH_FILE == sftpEx.getStatus()) {
+				return false;
+			}
+			else {
+				throw sftpEx;
+			}
+		}
+
 		return true;
 	}
 
@@ -174,19 +185,8 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 			this.sftpClient.rename(pathFrom, pathTo, SftpClient.CopyMode.Overwrite);
 		}
 		else {
-			try {
-				this.sftpClient.rename(pathFrom, pathTo);
-			}
-			catch (SftpException sftpex) {
-				if (SftpConstants.SSH_FX_FILE_ALREADY_EXISTS == sftpex.getStatus()) {
-					remove(pathTo);
-					// attempt to rename again
-					this.sftpClient.rename(pathFrom, pathTo);
-				}
-				else {
-					throw sftpex;
-				}
-			}
+			remove(pathTo);
+			this.sftpClient.rename(pathFrom, pathTo);
 		}
 	}
 
