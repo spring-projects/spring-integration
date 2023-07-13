@@ -255,6 +255,7 @@ See `setMessageRecoverer()` JavaDocs for more information.
 
 IMPORTANT: When using exclusive or single-active consumers in the listener container, it is recommended that you set the container property `forceStop` to `true`.
 This will prevent a race condition where, after stopping the container, another consumer could start consuming messages before this instance has fully stopped.
+
 [[amqp-debatching]]
 ==== Batched Messages
 
