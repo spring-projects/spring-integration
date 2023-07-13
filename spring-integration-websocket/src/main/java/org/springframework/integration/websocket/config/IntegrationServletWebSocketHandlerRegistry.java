@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2021-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.ServletWebSocketHandlerRegistration;
 import org.springframework.web.socket.config.annotation.ServletWebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
 /**
  * The {@link ServletWebSocketHandlerRegistry} extension for Spring Integration purpose, especially
@@ -45,8 +46,6 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistra
  */
 class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandlerRegistry
 		implements ApplicationContextAware, DestructionAwareBeanPostProcessor {
-
-	private final ThreadLocal<IntegrationDynamicWebSocketHandlerRegistration> currentRegistration = new ThreadLocal<>();
 
 	private final Map<WebSocketHandler, List<String>> dynamicRegistrations = new HashMap<>();
 
@@ -79,29 +78,16 @@ class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandler
 	}
 
 	@Override
-	public WebSocketHandlerRegistration addHandler(WebSocketHandler handler, String... paths) {
-		if (this.dynamicHandlerMapping != null) {
-			IntegrationDynamicWebSocketHandlerRegistration registration =
-					new IntegrationDynamicWebSocketHandlerRegistration();
-			registration.addHandler(handler, paths);
-			this.currentRegistration.set(registration);
-			return registration;
-		}
-		else {
-			return super.addHandler(handler, paths);
-		}
-	}
-
-	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (this.dynamicHandlerMapping != null && bean instanceof ServerWebSocketContainer) {
-			ServerWebSocketContainer serverWebSocketContainer = (ServerWebSocketContainer) bean;
+		if (this.dynamicHandlerMapping != null && bean instanceof ServerWebSocketContainer serverWebSocketContainer) {
 			if (serverWebSocketContainer.getSockJsTaskScheduler() == null) {
 				serverWebSocketContainer.setSockJsTaskScheduler(this.sockJsTaskScheduler);
 			}
-			serverWebSocketContainer.registerWebSocketHandlers(this);
-			IntegrationDynamicWebSocketHandlerRegistration registration = this.currentRegistration.get();
-			this.currentRegistration.remove();
+
+			DynamicHandlerRegistrationProxy dynamicHandlerRegistrationProxy = new DynamicHandlerRegistrationProxy();
+
+			serverWebSocketContainer.registerWebSocketHandlers(dynamicHandlerRegistrationProxy);
+			IntegrationDynamicWebSocketHandlerRegistration registration = dynamicHandlerRegistrationProxy.registration;
 			MultiValueMap<HttpRequestHandler, String> mappings = registration.getMapping();
 			for (Map.Entry<HttpRequestHandler, List<String>> entry : mappings.entrySet()) {
 				HttpRequestHandler httpHandler = entry.getKey();
@@ -136,10 +122,29 @@ class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandler
 		}
 	}
 
+	private static final class DynamicHandlerRegistrationProxy implements WebSocketHandlerRegistry {
+
+		private IntegrationDynamicWebSocketHandlerRegistration registration;
+
+		DynamicHandlerRegistrationProxy() {
+		}
+
+		@Override
+		public WebSocketHandlerRegistration addHandler(WebSocketHandler webSocketHandler, String... paths) {
+			this.registration = new IntegrationDynamicWebSocketHandlerRegistration();
+			this.registration.addHandler(webSocketHandler, paths);
+			return this.registration;
+		}
+
+	}
+
 	private static final class IntegrationDynamicWebSocketHandlerRegistration
 			extends ServletWebSocketHandlerRegistration {
 
 		private WebSocketHandler handler;
+
+		IntegrationDynamicWebSocketHandlerRegistration() {
+		}
 
 		@Override
 		public WebSocketHandlerRegistration addHandler(WebSocketHandler handler, String... paths) {
