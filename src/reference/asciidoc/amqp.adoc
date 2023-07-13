@@ -254,7 +254,7 @@ See `setMessageRecoverer()` JavaDocs for more information.
 
 IMPORTANT: When using exclusive or single-active consumers in the listener container, it is recommended that you set the container property `forceStop` to `true`.
 This will prevent a race condition where, after stopping the container, another consumer could start consuming messages before this instance has fully stopped.
-For this option to be available, the Spring AMQP dependency has to be explicitly upgraded to the latest version of `2.4.x` generation (this is automatic with Boot 2.6.x, 2.7.x).
+For this option to be available, the Spring AMQP dependency has to be explicitly upgraded to the latest version of the `2.4.x` generation (this is automatic when using Spring Boot 2.7.14 or later).
 
 [[amqp-debatching]]
 ==== Batched Messages
