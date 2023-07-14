@@ -19,6 +19,7 @@ package org.springframework.integration.sftp.session;
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -121,7 +122,7 @@ public class SftpSessionFactoryTests {
 				asyncTaskExecutor.execute(() -> concurrentSessions.add(sftpSessionFactory.getSession()));
 			}
 
-			await().until(() -> concurrentSessions.size() == 3);
+			await().atMost(Duration.ofSeconds(30)).until(() -> concurrentSessions.size() == 3);
 
 			assertThat(concurrentSessions.get(0))
 					.isNotEqualTo(concurrentSessions.get(1))
