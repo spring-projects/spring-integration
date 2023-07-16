@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.socket.CloseStatus;
@@ -67,6 +68,9 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
 	public static final int DEFAULT_SEND_BUFFER_SIZE = 512 * 1024;
 
+	public static final ConcurrentWebSocketSessionDecorator.OverflowStrategy DEFAULT_SEND_BUFFER_OVERFLOW_STRATEGY =
+			ConcurrentWebSocketSessionDecorator.OverflowStrategy.TERMINATE;
+
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR
 
 	protected final Lock lock = new ReentrantLock();
@@ -83,12 +87,34 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
 	private int sendBufferSizeLimit = DEFAULT_SEND_BUFFER_SIZE;
 
+	@NonNull
+	private ConcurrentWebSocketSessionDecorator.OverflowStrategy sendBufferOverflowStrategy =
+			DEFAULT_SEND_BUFFER_OVERFLOW_STRATEGY;
+
 	public void setSendTimeLimit(int sendTimeLimit) {
 		this.sendTimeLimit = sendTimeLimit;
 	}
 
 	public void setSendBufferSizeLimit(int sendBufferSizeLimit) {
 		this.sendBufferSizeLimit = sendBufferSizeLimit;
+	}
+
+	/**
+	 * Set the send buffer overflow strategy.
+	 * <p>
+	 * Concurrently generated outbound messages are buffered if sending is slow.
+	 * This strategy determines the behavior when the buffer has reached the limit
+	 * configured with {@link #setSendBufferSizeLimit}.
+	 * <p>
+	 * By default, the session associated with the culpable message is terminated.
+	 *
+	 * @param overflowStrategy The overflow strategy to use (see {@link ConcurrentWebSocketSessionDecorator.OverflowStrategy}).
+	 *
+	 * @see ConcurrentWebSocketSessionDecorator
+	 */
+	public void setSendBufferOverflowStrategy(@NonNull ConcurrentWebSocketSessionDecorator.OverflowStrategy overflowStrategy) {
+		Assert.notNull(overflowStrategy, "Overflow strategy must not be null");
+		this.sendBufferOverflowStrategy = overflowStrategy;
 	}
 
 	public void setMessageListener(WebSocketListener messageListener) {
@@ -190,7 +216,8 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 			WebSocketSession session =
 					new ConcurrentWebSocketSessionDecorator(sessionToDecorate,
 							IntegrationWebSocketContainer.this.sendTimeLimit,
-							IntegrationWebSocketContainer.this.sendBufferSizeLimit);
+							IntegrationWebSocketContainer.this.sendBufferSizeLimit,
+							IntegrationWebSocketContainer.this.sendBufferOverflowStrategy);
 
 			IntegrationWebSocketContainer.this.sessions.put(session.getId(), session);
 			if (IntegrationWebSocketContainer.this.logger.isDebugEnabled()) {
