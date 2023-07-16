@@ -150,7 +150,7 @@ public class ClientWebSocketContainerTests {
 		webSocketClient.setUserProperties(userProperties);
 
 		ClientWebSocketContainer container =
-				new ClientWebSocketContainer(webSocketClient, new URI(server.getWsBaseUrl() + "/ws/websocket"));
+				new ClientWebSocketContainer(webSocketClient, server.getWsBaseUrl() + "/ws/websocket");
 
 		container.setSendTimeLimit(10_000);
 		container.setSendBufferSizeLimit(12345);
