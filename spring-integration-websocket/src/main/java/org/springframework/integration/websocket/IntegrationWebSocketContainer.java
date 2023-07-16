@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.socket.CloseStatus;
@@ -55,6 +56,7 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Julian Koch
  *
  * @since 4.1
  *
@@ -83,12 +85,30 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
 	private int sendBufferSizeLimit = DEFAULT_SEND_BUFFER_SIZE;
 
+	@Nullable
+	private ConcurrentWebSocketSessionDecorator.OverflowStrategy sendBufferOverflowStrategy;
+
 	public void setSendTimeLimit(int sendTimeLimit) {
 		this.sendTimeLimit = sendTimeLimit;
 	}
 
 	public void setSendBufferSizeLimit(int sendBufferSizeLimit) {
 		this.sendBufferSizeLimit = sendBufferSizeLimit;
+	}
+
+	/**
+	 * Set the send buffer overflow strategy.
+	 * <p>Concurrently generated outbound messages are buffered if sending is slow.
+	 * This strategy determines the behavior when the buffer has reached the limit
+	 * configured with {@link #setSendBufferSizeLimit}.
+	 * @param overflowStrategy The {@link ConcurrentWebSocketSessionDecorator.OverflowStrategy} to use.
+	 * @since 5.5.19
+	 * @see ConcurrentWebSocketSessionDecorator
+	 */
+	public void setSendBufferOverflowStrategy(
+			@Nullable ConcurrentWebSocketSessionDecorator.OverflowStrategy overflowStrategy) {
+
+		this.sendBufferOverflowStrategy = overflowStrategy;
 	}
 
 	public void setMessageListener(WebSocketListener messageListener) {
@@ -166,6 +186,17 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		}
 	}
 
+	private WebSocketSession decorateSession(WebSocketSession sessionToDecorate) {
+		if (this.sendBufferOverflowStrategy == null) {
+			return new ConcurrentWebSocketSessionDecorator(sessionToDecorate, this.sendTimeLimit,
+					this.sendBufferSizeLimit);
+		}
+		else {
+			return new ConcurrentWebSocketSessionDecorator(sessionToDecorate, this.sendTimeLimit,
+					this.sendBufferSizeLimit, this.sendBufferOverflowStrategy);
+		}
+	}
+
 	/**
 	 * An internal {@link WebSocketHandler} implementation to be used with native
 	 * Web-Socket containers.
@@ -187,10 +218,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		public void afterConnectionEstablished(WebSocketSession sessionToDecorate)
 				throws Exception { // NOSONAR
 
-			WebSocketSession session =
-					new ConcurrentWebSocketSessionDecorator(sessionToDecorate,
-							IntegrationWebSocketContainer.this.sendTimeLimit,
-							IntegrationWebSocketContainer.this.sendBufferSizeLimit);
+			WebSocketSession session = decorateSession(sessionToDecorate);
 
 			IntegrationWebSocketContainer.this.sessions.put(session.getId(), session);
 			if (IntegrationWebSocketContainer.this.logger.isDebugEnabled()) {
