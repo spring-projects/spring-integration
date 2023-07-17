@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.jms.listener.SimpleMessageListenerContainer;
 import org.springframework.util.StringUtils;
 
 /**
@@ -119,10 +121,10 @@ public class JmsChannelParser extends AbstractChannelParser {
 		String containerClass = element.getAttribute(CONTAINER_CLASS_ATTRIBUTE);
 		if (!StringUtils.hasText(containerClass) && StringUtils.hasText(containerType)) {
 			if ("default".equals(containerType)) {
-				containerClass = "org.springframework.jms.listener.DefaultMessageListenerContainer";
+				containerClass = DefaultMessageListenerContainer.class.getName();
 			}
 			else if ("simple".equals(containerType)) {
-				containerClass = "org.springframework.jms.listener.SimpleMessageListenerContainer";
+				containerClass = SimpleMessageListenerContainer.class.getName();
 			}
 		}
 		/*
@@ -151,7 +153,7 @@ public class JmsChannelParser extends AbstractChannelParser {
 				}
 			}
 			else {
-				builder.addPropertyValue("cacheLevelName", "CACHE_" + cache.toUpperCase());
+				builder.addPropertyValue("cacheLevelName", "CACHE_" + cache);
 			}
 		}
 	}

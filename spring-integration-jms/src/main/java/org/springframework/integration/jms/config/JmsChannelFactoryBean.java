@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,9 +203,10 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	}
 
 	public void setCacheLevelName(String cacheLevelName) {
+		Assert.hasText(cacheLevelName, "The 'cacheLevelName' must not be empty");
 		Assert.isTrue(this.messageDriven, "'cacheLevelName' is allowed only in case of 'messageDriven = true'");
 		Assert.state(this.cacheLevel == null, "'cacheLevelName' and 'cacheLevel' are mutually exclusive");
-		this.cacheLevelName = cacheLevelName;
+		this.cacheLevelName = cacheLevelName.toUpperCase();
 	}
 
 	public void setCacheLevel(Integer cacheLevel) {
