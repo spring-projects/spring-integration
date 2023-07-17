@@ -75,7 +75,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<String> messageUnderTest =
 				MessageBuilder.withPayload("test data")
-						.setHeader("exchangePattern", "InOptionalOut")
+						.setHeader("exchangePattern", "InOut")
 						.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 						.build();
 
