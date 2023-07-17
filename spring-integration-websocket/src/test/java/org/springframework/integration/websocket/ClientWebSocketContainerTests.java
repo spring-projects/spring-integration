@@ -34,6 +34,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.PongMessage;
@@ -42,6 +44,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
@@ -138,15 +141,59 @@ public class ClientWebSocketContainerTests {
 		assertThat(session.isOpen()).isTrue();
 	}
 
+	@Test
+	public void testWebSocketContainerOverflowStrategyPropagation() throws Exception {
+		StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
+
+		Map<String, Object> userProperties = new HashMap<>();
+		userProperties.put(Constants.IO_TIMEOUT_MS_PROPERTY, "" + (Constants.IO_TIMEOUT_MS_DEFAULT * 6));
+		webSocketClient.setUserProperties(userProperties);
+
+		ClientWebSocketContainer container =
+				new ClientWebSocketContainer(webSocketClient, new URI(server.getWsBaseUrl() + "/ws/websocket"));
+
+		// We expect the options we set here to be propagated to the concrete ConcurrentWebSocketSessionDecorator
+		container.setSendTimeLimit(10_000);
+		container.setSendBufferSizeLimit(12345);
+		container.setSendBufferOverflowStrategy(ConcurrentWebSocketSessionDecorator.OverflowStrategy.DROP);
+
+		TestWebSocketListener messageListener = new TestWebSocketListener();
+		container.setMessageListener(messageListener);
+		container.setConnectionTimeout(30);
+
+		container.start();
+
+		// We must wait at least until the session has been started before we can check the propagated options
+		assertThat(messageListener.sessionStartedLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		assertThat(messageListener.optionsPropagatedToSession).isNotNull();
+		assertThat(messageListener.optionsPropagatedToSession.sendTimeLimit).isEqualTo(10_000);
+		assertThat(messageListener.optionsPropagatedToSession.sendBufferSizeLimit).isEqualTo(12345);
+		assertThat(messageListener.optionsPropagatedToSession.sendBufferOverflowStrategy)
+				.isEqualTo(ConcurrentWebSocketSessionDecorator.OverflowStrategy.DROP);
+	}
+
+	private record OptionsPropagatedToSession(
+			int sendTimeLimit,
+			int sendBufferSizeLimit,
+			ConcurrentWebSocketSessionDecorator.OverflowStrategy sendBufferOverflowStrategy
+	) {
+	}
+
 	private static class TestWebSocketListener implements WebSocketListener {
 
 		public final CountDownLatch messageLatch = new CountDownLatch(1);
+
+		public final CountDownLatch sessionStartedLatch = new CountDownLatch(1);
 
 		public final CountDownLatch sessionEndedLatch = new CountDownLatch(1);
 
 		public WebSocketMessage<?> message;
 
 		public boolean started;
+
+		@Nullable
+		public OptionsPropagatedToSession optionsPropagatedToSession;
 
 		TestWebSocketListener() {
 		}
@@ -160,6 +207,15 @@ public class ClientWebSocketContainerTests {
 		@Override
 		public void afterSessionStarted(WebSocketSession session) {
 			this.started = true;
+
+			var sessionDecorator = (ConcurrentWebSocketSessionDecorator) session;
+			this.optionsPropagatedToSession = new OptionsPropagatedToSession(
+					sessionDecorator.getSendTimeLimit(),
+					sessionDecorator.getBufferSizeLimit(),
+					TestUtils.getPropertyValue(sessionDecorator, "overflowStrategy", ConcurrentWebSocketSessionDecorator.OverflowStrategy.class)
+			);
+
+			this.sessionStartedLatch.countDown();
 		}
 
 		@Override
