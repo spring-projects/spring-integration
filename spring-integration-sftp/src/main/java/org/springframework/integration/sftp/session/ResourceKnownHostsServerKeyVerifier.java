@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,18 +66,19 @@ public class ResourceKnownHostsServerKeyVerifier implements ServerKeyVerifier {
 	@Override
 	public boolean verifyServerKey(ClientSession clientSession, SocketAddress remoteAddress, PublicKey serverKey) {
 		Collection<KnownHostsServerKeyVerifier.HostEntryPair> knownHosts = this.keysSupplier.get();
-		KnownHostsServerKeyVerifier.HostEntryPair match = findKnownHostEntry(clientSession, remoteAddress, knownHosts);
-		if (match == null) {
+		List<KnownHostsServerKeyVerifier.HostEntryPair> matches =
+				findKnownHostEntries(clientSession, remoteAddress, knownHosts);
+
+		if (matches.isEmpty()) {
 			return false;
 		}
 
-		KnownHostEntry entry = match.getHostEntry();
-		PublicKey expected = match.getServerKey();
-		if (KeyUtils.compareKeys(expected, serverKey)) {
-			return !"revoked".equals(entry.getMarker());
-		}
+		String serverKeyType = KeyUtils.getKeyType(serverKey);
 
-		return false;
+		return matches.stream()
+				.filter(match -> serverKeyType.equals(match.getHostEntry().getKeyEntry().getKeyType()))
+				.filter(match -> KeyUtils.compareKeys(match.getServerKey(), serverKey))
+				.anyMatch(match -> !"revoked".equals(match.getHostEntry().getMarker()));
 	}
 
 	private static Supplier<Collection<KnownHostsServerKeyVerifier.HostEntryPair>> getKnownHostSupplier(
@@ -106,26 +107,32 @@ public class ResourceKnownHostsServerKeyVerifier implements ServerKeyVerifier {
 		return authEntry.resolvePublicKey(null, PublicKeyEntryResolver.IGNORING);
 	}
 
-	private static KnownHostsServerKeyVerifier.HostEntryPair findKnownHostEntry(
+	private static List<KnownHostsServerKeyVerifier.HostEntryPair> findKnownHostEntries(
 			ClientSession clientSession, SocketAddress remoteAddress,
 			Collection<KnownHostsServerKeyVerifier.HostEntryPair> knownHosts) {
+
+		if (GenericUtils.isEmpty(knownHosts)) {
+			return Collections.emptyList();
+		}
 
 		Collection<SshdSocketAddress> candidates = resolveHostNetworkIdentities(clientSession, remoteAddress);
 
 		if (GenericUtils.isEmpty(candidates)) {
-			return null;
+			return Collections.emptyList();
 		}
 
+		List<KnownHostsServerKeyVerifier.HostEntryPair> matches = new ArrayList<>();
 		for (KnownHostsServerKeyVerifier.HostEntryPair match : knownHosts) {
 			KnownHostEntry entry = match.getHostEntry();
 			for (SshdSocketAddress host : candidates) {
 				if (entry.isHostMatch(host.getHostName(), host.getPort())) {
-					return match;
+					matches.add(match);
+					break;
 				}
 			}
 		}
 
-		return null; // no match found
+		return matches;
 	}
 
 	private static Collection<SshdSocketAddress> resolveHostNetworkIdentities(
