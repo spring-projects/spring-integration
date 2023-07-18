@@ -16,12 +16,10 @@ jobs:
     steps:
 
       # to get spec file in .github
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # Setup jfrog cli
-      - uses: jfrog/setup-jfrog-cli@v1
-        with:
-          version: 1.46.4
+      - uses: jfrog/setup-jfrog-cli@v3
         env:
           JF_ARTIFACTORY_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
 
@@ -39,7 +37,7 @@ jobs:
             --spec-vars "buildname=$JFROG_CLI_BUILD_NAME;buildnumber=$JFROG_CLI_BUILD_NUMBER"
 
       # Create checksums, signatures and create staging repo on central and upload
-      - uses: jvalkeal/nexus-sync@v0
+      - uses: jvalkeal/nexus-sync@v0.0.2
         id: nexus
         with:
           url: ${{ secrets.OSSRH_URL }}
@@ -50,6 +48,7 @@ jobs:
           upload: true
           generate-checksums: true
           pgp-sign: true
+          nexus-timeout: 600
           pgp-sign-passphrase: ${{ secrets.GPG_PASSPHRASE }}
           pgp-sign-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
 
