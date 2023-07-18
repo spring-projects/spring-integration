@@ -48,7 +48,7 @@ jobs:
           upload: true
           generate-checksums: true
           pgp-sign: true
-          nexus-timeout: 600
+          upload-parallel: 10
           pgp-sign-passphrase: ${{ secrets.GPG_PASSPHRASE }}
           pgp-sign-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
 
