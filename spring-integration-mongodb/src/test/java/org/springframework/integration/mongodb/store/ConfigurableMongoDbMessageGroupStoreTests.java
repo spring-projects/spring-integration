@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,29 @@ class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGr
 	@Test
 	void testWithAggregatorWithShutdown() {
 		super.testWithAggregatorWithShutdown("mongo-aggregator-configurable-config.xml");
+	}
+
+	@Test
+	void groupIsForceReleaseAfterTimeoutWhenGroupConditionIsSet() {
+		try(var context = new ClassPathXmlApplicationContext("mongo-aggregator-configurable-config.xml", getClass())) {
+			MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
+			QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
+
+			Message<?> message = MessageBuilder.withPayload("test")
+					.setSequenceNumber(1)
+					.setSequenceSize(10)
+					.setCorrelationId("test")
+					.build();
+
+			input.send(message);
+
+			Message<?> receive = output.receive(10_000);
+
+			assertThat(receive)
+					.extracting("payload")
+					.asList()
+					.hasSize(1);
+		}
 	}
 
 	@Test
