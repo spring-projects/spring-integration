@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -478,9 +478,9 @@ public abstract class AbstractMongoDbMessageGroupStoreTests implements MongoDbCo
 				.setCorrelationId(1)
 				.build();
 		input.send(m1);
-		assertThat(output.receive(1000)).isNull();
+		assertThat(output.receive(10)).isNull();
 		input.send(m2);
-		assertThat(output.receive(1000)).isNull();
+		assertThat(output.receive(10)).isNull();
 
 		for (int i = 3; i < 10; i++) {
 			input.send(MessageBuilder.withPayload("" + i)
