@@ -171,18 +171,19 @@ The following listing shows the attributes available for the `<int-websocket:cli
 [source,xml]
 ----
 <int-websocket:client-container
-                  id=""                        <1>
-                  client=""                    <2>
-                  uri=""                       <3>
-                  uri-variables=""             <4>
-                  origin=""                    <5>
-                  send-time-limit=""           <6>
-                  send-buffer-size-limit=""    <7>
-                  auto-startup=""              <8>
-                  phase="">                    <9>
+                  id=""                             <1>
+                  client=""                         <2>
+                  uri=""                            <3>
+                  uri-variables=""                  <4>
+                  origin=""                         <5>
+                  send-time-limit=""                <6>
+                  send-buffer-size-limit=""         <7>
+                  send-buffer-overflow-strategy=""  <8>
+                  auto-startup=""                   <9>
+                  phase="">                        <10>
                 <int-websocket:http-headers>
                   <entry key="" value=""/>
-                </int-websocket:http-headers>  <10>
+                </int-websocket:http-headers>      <11>
 </int-websocket:client-container>
 ----
 
@@ -198,14 +199,17 @@ See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/w
 Defaults to `10000`.
 <7> The WebSocket session 'send' message size limit.
 Defaults to `524288`.
-<8> Boolean value indicating whether this endpoint should start automatically.
+<8> The WebSocket session send buffer overflow strategy
+determines the behavior when a session's outbound message buffer has reached the `send-buffer-size-limit`.
+See `ConcurrentWebSocketSessionDecorator.OverflowStrategy` for possible values and more details.
+<9> Boolean value indicating whether this endpoint should start automatically.
 Defaults to `false`, assuming that this container is started from the <<web-socket-inbound-adapter, WebSocket inbound adapter>>.
-<9> The lifecycle phase within which this endpoint should start and stop.
+<10> The lifecycle phase within which this endpoint should start and stop.
 The lower the value, the earlier this endpoint starts and the later it stops.
 The default is `Integer.MAX_VALUE`.
 Values can be negative.
 See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/SmartLifecycle.html[`SmartLifeCycle`].
-<10> A `Map` of `HttpHeaders` to be used with the Handshake request.
+<11> A `Map` of `HttpHeaders` to be used with the Handshake request.
 ====
 
 ==== `<int-websocket:server-container>` Attributes
@@ -216,26 +220,27 @@ The following listing shows the attributes available for the `<int-websocket:ser
 [source,xml]
 ----
 <int-websocket:server-container
-          id=""                         <1>
-          path=""                       <2>
-          handshake-handler=""          <3>
-          handshake-interceptors=""     <4>
-          decorator-factories=""        <5>
-          send-time-limit=""            <6>
-          send-buffer-size-limit=""     <7>
-          allowed-origins="">           <8>
+          id=""                             <1>
+          path=""                           <2>
+          handshake-handler=""              <3>
+          handshake-interceptors=""         <4>
+          decorator-factories=""            <5>
+          send-time-limit=""                <6>
+          send-buffer-size-limit=""         <7>
+          send-buffer-overflow-strategy=""  <8>
+          allowed-origins="">               <9>
           <int-websocket:sockjs
-            client-library-url=""       <9>
-            stream-bytes-limit=""       <10>
-            session-cookie-needed=""    <11>
-            heartbeat-time=""           <12>
-            disconnect-delay=""         <13>
-            message-cache-size=""       <14>
-            websocket-enabled=""        <15>
-            scheduler=""                <16>
-            message-codec=""            <17>
-            transport-handlers=""       <18>
-            suppress-cors="true"="" />  <19>
+            client-library-url=""          <10>
+            stream-bytes-limit=""          <11>
+            session-cookie-needed=""       <12>
+            heartbeat-time=""              <13>
+            disconnect-delay=""            <14>
+            message-cache-size=""          <15>
+            websocket-enabled=""           <16>
+            scheduler=""                   <17>
+            message-codec=""               <18>
+            transport-handlers=""          <19>
+            suppress-cors="true" />        <20>
 </int-websocket:server-container>
 ----
 
@@ -251,41 +256,44 @@ the WebSocket session when the corresponding HTTP session expires).
 See the https://docs.spring.io/spring-session/docs/current/reference/html5/#websocket[Spring Session Project] for more information.
 <6> See the same option on the <<websocket-client-container-attributes,`<int-websocket:client-container>`>>.
 <7> See the same option on the <<websocket-client-container-attributes,`<int-websocket:client-container>`>>.
-<8> The allowed origin header values.
+<8> The WebSocket session send buffer overflow strategy
+determines the behavior when a session's outbound message buffer has reached the `send-buffer-size-limit`.
+See `ConcurrentWebSocketSessionDecorator.OverflowStrategy` for possible values and more details.
+<9> The allowed origin header values.
 You can specify multiple origins as a comma-separated list.
 This check is mostly designed for browser clients.
 There is nothing preventing other types of client from modifying the origin header value.
 When SockJS is enabled and allowed origins are restricted, transport types that do not use origin headers for cross-origin requests (`jsonp-polling`, `iframe-xhr-polling`, `iframe-eventsource`, and `iframe-htmlfile`) are disabled.
 As a consequence, IE6 and IE7 are not supported, and IE8 and IE9 are supported only without cookies.
 By default, all origins are allowed.
-<9> Transports with no native cross-domain communication (such as `eventsource` and `htmlfile`) must get a simple page from the "`foreign`" domain in an invisible iframe so that code in the iframe can run from a domain local to the SockJS server.
+<10> Transports with no native cross-domain communication (such as `eventsource` and `htmlfile`) must get a simple page from the "`foreign`" domain in an invisible iframe so that code in the iframe can run from a domain local to the SockJS server.
 Since the iframe needs to load the SockJS javascript client library, this property lets you specify the location from which to load it.
 By default, it points to `https://d1fxtkz8shb9d2.cloudfront.net/sockjs-0.3.4.min.js`.
 However, you can also set it to point to a URL served by the application.
 Note that it is possible to specify a relative URL, in which case the URL must be relative to the iframe URL.
 For example, assuming a SockJS endpoint mapped to `/sockjs` and the resulting iframe URL is `/sockjs/iframe.html`, the relative URL must start with "../../" to traverse up to the location above the SockJS mapping.
 For prefix-based servlet mapping, you may need one more traversal.
-<10> Minimum number of bytes that can be sent over a single HTTP streaming request before it is closed.
+<11> Minimum number of bytes that can be sent over a single HTTP streaming request before it is closed.
 Defaults to `128K` (that is, 128*1024 or 131072 bytes).
-<11> The `cookie_needed` value in the response from the SockJs `/info` endpoint.
+<12> The `cookie_needed` value in the response from the SockJs `/info` endpoint.
 This property indicates whether a `JSESSIONID` cookie is required for the application to function correctly (for example, for load balancing or in Java Servlet containers for the use of an HTTP session).
-<12> The amount of time (in milliseconds) when the server has not sent any messages and after which the server should
+<13> The amount of time (in milliseconds) when the server has not sent any messages and after which the server should
 send a heartbeat frame to the client in order to keep the connection from breaking.
 The default value is `25,000` (25 seconds).
-<13> The amount of time (in milliseconds) before a client is considered disconnected after not having a receiving connection (that is, an active connection over which the server can send data to the client).
+<14> The amount of time (in milliseconds) before a client is considered disconnected after not having a receiving connection (that is, an active connection over which the server can send data to the client).
 The default value is `5000`.
-<14> The number of server-to-client messages that a session can cache while waiting for the next HTTP polling request from the client.
+<15> The number of server-to-client messages that a session can cache while waiting for the next HTTP polling request from the client.
 The default size is `100`.
-<15> Some load balancers do not support WebSockets.
+<16> Some load balancers do not support WebSockets.
 Set this option to `false` to disable the WebSocket transport on the server side.
 The default value is `true`.
-<16> The `TaskScheduler` bean reference.
+<17> The `TaskScheduler` bean reference.
 A new `ThreadPoolTaskScheduler` instance is created if no value is provided.
 This scheduler instance is used for scheduling heart-beat messages.
-<17> The `SockJsMessageCodec` bean reference to use for encoding and decoding SockJS messages.
+<18> The `SockJsMessageCodec` bean reference to use for encoding and decoding SockJS messages.
 By default, `Jackson2SockJsMessageCodec` is used, which requires the Jackson library to be present on the classpath.
-<18> List of `TransportHandler` bean references.
-<19> Whether to disable automatic addition of CORS headers for SockJS requests.
+<19> List of `TransportHandler` bean references.
+<20> Whether to disable automatic addition of CORS headers for SockJS requests.
 The default value is `false`.
 ====
 

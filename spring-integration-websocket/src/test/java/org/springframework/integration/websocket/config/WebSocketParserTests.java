@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.WebSocketClient;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.WebSocketHandlerDecoratorFactory;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.server.HandshakeHandler;
@@ -60,6 +61,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ * @author Julian Koch
  *
  * @since 4.1
  */
@@ -155,6 +157,8 @@ public class WebSocketParserTests {
 		assertThat(interceptors[0]).isSameAs(this.handshakeInterceptor);
 		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendTimeLimit")).isEqualTo(100);
 		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendBufferSizeLimit")).isEqualTo(100000);
+		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendBufferOverflowStrategy"))
+				.isEqualTo(ConcurrentWebSocketSessionDecorator.OverflowStrategy.DROP);
 		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "origins", String[].class))
 				.isEqualTo(new String[] {"https://foo.com"});
 
@@ -244,6 +248,8 @@ public class WebSocketParserTests {
 				.isSameAs(this.customInboundAdapter);
 		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "sendTimeLimit")).isEqualTo(100);
 		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "sendBufferSizeLimit")).isEqualTo(1000);
+		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "sendBufferOverflowStrategy"))
+				.isEqualTo(ConcurrentWebSocketSessionDecorator.OverflowStrategy.DROP);
 		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "connectionManager.uri", URI.class))
 				.isEqualTo(new URI("ws://foo.bar/ws?service=user"));
 		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "connectionManager.client"))
@@ -258,6 +264,8 @@ public class WebSocketParserTests {
 				.isEqualTo(10 * 1000);
 		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "sendBufferSizeLimit"))
 				.isEqualTo(512 * 1024);
+		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "sendBufferOverflowStrategy"))
+				.isNull();
 		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.uri", URI.class))
 				.isEqualTo(new URI("ws://foo.bar"));
 		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.client"))

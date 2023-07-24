@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.xml.DomUtils;
  * the {@code <websocket:server-container/>} element.
  *
  * @author Artem Bilan
+ * @author Julian Koch
  * @since 4.1
  */
 public class ServerWebSocketContainerParser extends AbstractSingleBeanDefinitionParser {
@@ -104,6 +105,7 @@ public class ServerWebSocketContainerParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "handshake-handler");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-buffer-size-limit");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-time-limit");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-buffer-overflow-strategy");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "allowed-origins");
 	}
 

@@ -31,3 +31,10 @@ See <<./endpoint.adoc#endpoint-pollingconsumer, Polling Consumer>> for more info
 
 - Java, Groovy and Kotlin DSLs have now context-specific methods in the `IntegationFlowDefinition` with a single `Consumer` argument to configure an endpoint and its handler with one builder and readable options.
 See, for example, `transformWith()`, `splitWith()` in <<./dsl.adoc#java-dsl, Java DSL Chapter>>.
+
+[[x6.2-websockets]]
+=== WebSockets Changes
+
+- For the server and client WebSocket containers, the send buffer overflow strategy is now configurable in `IntegrationWebSocketContainer` and in XML via `send-buffer-overflow-strategy`.
+This strategy determines the behavior when a session's outbound message buffer has reached the configured limit.
+See <<./web-sockets.adoc#websocket-client-container-attributes, WebSockets Support>> for more information.

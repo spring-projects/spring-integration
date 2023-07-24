@@ -94,6 +94,20 @@
 					<xsd:union memberTypes="xsd:int xsd:string"/>
 				</xsd:simpleType>
 			</xsd:attribute>
+			<xsd:attribute name="send-buffer-overflow-strategy">
+				<xsd:annotation>
+					<xsd:documentation>
+						The WebSocket session's outbound message buffer overflow strategy.
+
+						Concurrently generated outbound messages are buffered if sending is slow.
+						This strategy determines the behavior when the buffer has reached the limit
+						configured with &lt;send-buffer-size-limit&gt;.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="overflowStrategyEnumeration xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
@@ -320,6 +334,20 @@
 					<xsd:union memberTypes="xsd:int xsd:string"/>
 				</xsd:simpleType>
 			</xsd:attribute>
+			<xsd:attribute name="send-buffer-overflow-strategy">
+				<xsd:annotation>
+					<xsd:documentation>
+						The WebSocket session's outbound message buffer overflow strategy.
+
+						Concurrently generated outbound messages are buffered if sending is slow.
+						This strategy determines the behavior when the buffer has reached the limit
+						configured with &lt;send-buffer-size-limit&gt;.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="overflowStrategyEnumeration xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
 			<xsd:attribute name="allowed-origins" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -504,5 +532,12 @@
 		</xsd:attribute>
 		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 	</xsd:complexType>
+
+	<xsd:simpleType name="overflowStrategyEnumeration">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="TERMINATE"/>
+			<xsd:enumeration value="DROP"/>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

@@ -17,6 +17,7 @@
 									path="/ws"
 									send-buffer-size-limit="100000"
 									send-time-limit="100"
+									send-buffer-overflow-strategy="DROP"
 									handshake-handler="handshakeHandler"
 									handshake-interceptors="handshakeInterceptor"
 									decorator-factories="decoratorFactory"
@@ -66,6 +67,7 @@
 									uri-variables="ws,user"
 									send-buffer-size-limit="1000"
 									send-time-limit="100"
+									send-buffer-overflow-strategy="DROP"
 									origin="FOO"
 									phase="100">
 		<int-websocket:http-headers>
