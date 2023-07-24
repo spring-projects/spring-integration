@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -565,7 +565,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			this.logger.trace(() -> "Adding message to group [ " + messageGroupToLog + "]");
 			messageGroup = store(correlationKey, message);
 
-			setGroupConditionIfAny(message, messageGroup);
+			messageGroup = setGroupConditionIfAny(message, messageGroup);
 
 			if (this.releaseStrategy.canRelease(messageGroup)) {
 				Collection<Message<?>> completedMessages = null;
@@ -604,12 +604,19 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 	}
 
-	private void setGroupConditionIfAny(Message<?> message, MessageGroup messageGroup) {
+	private MessageGroup setGroupConditionIfAny(Message<?> message, MessageGroup messageGroup) {
+		MessageGroup messageGroupToUse = messageGroup;
+
 		if (this.groupConditionSupplier != null) {
-			String condition = this.groupConditionSupplier.apply(message, messageGroup.getCondition());
-			this.messageStore.setGroupCondition(messageGroup.getGroupId(), condition);
-			messageGroup.setCondition(condition);
+			String condition = this.groupConditionSupplier.apply(message, messageGroupToUse.getCondition());
+			this.messageStore.setGroupCondition(messageGroupToUse.getGroupId(), condition);
+			messageGroupToUse = this.messageStore.getMessageGroup(messageGroupToUse.getGroupId());
+			if (this.sequenceAware) {
+				messageGroupToUse = new SequenceAwareMessageGroup(messageGroupToUse);
+			}
 		}
+
+		return messageGroupToUse;
 	}
 
 	protected boolean isExpireGroupsUponCompletion() {

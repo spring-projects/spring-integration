@@ -81,6 +81,29 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 		//		System. out .println(watch.prettyPrint()); // checkstyle
 	}
 
+	@Test
+	void groupIsForceReleaseAfterTimeoutWhenGroupConditionIsSet() {
+		try (var context = new ClassPathXmlApplicationContext("mongo-aggregator-configurable-config.xml", getClass())) {
+			MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
+			QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
+
+			Message<?> message = MessageBuilder.withPayload("test")
+					.setSequenceNumber(1)
+					.setSequenceSize(10)
+					.setCorrelationId("test")
+					.build();
+
+			input.send(message);
+
+			Message<?> receive = output.receive(10_000);
+
+			assertThat(receive)
+					.extracting("payload")
+					.asList()
+					.hasSize(1);
+		}
+	}
+
 	private void performLazyLoadEagerTest(StopWatch watch, int sequenceSize, boolean lazyLoad) {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("mongo-aggregator-configurable-config.xml", getClass());
