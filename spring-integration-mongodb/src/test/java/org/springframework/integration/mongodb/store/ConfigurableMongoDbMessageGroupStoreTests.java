@@ -82,7 +82,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	}
 
 	@Test
-	void groupIsForceReleaseAfterTimeoutWhenGroupConditionIsSet() {
+	public void groupIsForceReleaseAfterTimeoutWhenGroupConditionIsSet() {
 		try (var context = new ClassPathXmlApplicationContext("mongo-aggregator-configurable-config.xml", getClass())) {
 			MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
 			QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
