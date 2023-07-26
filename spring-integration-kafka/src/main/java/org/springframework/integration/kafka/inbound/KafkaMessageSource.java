@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +47,7 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
@@ -58,6 +60,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
+import org.springframework.kafka.listener.ListenerUtils;
 import org.springframework.kafka.listener.LoggingCommitCallback;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
@@ -69,9 +72,13 @@ import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
+import org.springframework.kafka.support.serializer.DeserializationException;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
+import org.springframework.kafka.support.serializer.SerializationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -102,7 +109,8 @@ import org.springframework.util.StringUtils;
  * @since 5.4
  *
  */
-public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> implements Pausable {
+public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
+		implements Pausable, BeanClassLoaderAware {
 
 	private static final long MIN_ASSIGN_TIMEOUT = 2000L;
 
@@ -146,6 +154,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private Duration closeTimeout = Duration.ofSeconds(DEFAULT_CLOSE_TIMEOUT);
 
+	private boolean checkNullKeyForExceptions;
+
+	private boolean checkNullValueForExceptions;
+
 	private volatile Consumer<K, V> consumer;
 
 	private volatile boolean pausing;
@@ -157,6 +169,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	private volatile boolean stopped;
 
 	public volatile boolean newAssignment; // NOSONAR - direct access from inner
+
+	private ClassLoader classLoader;
 
 	/**
 	 * Construct an instance with the supplied parameters. Fetching multiple
@@ -258,10 +272,67 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	}
 
 	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+	}
+
+	@Override
 	protected void onInit() {
 		if (!StringUtils.hasText(this.consumerProperties.getClientId())) {
 			this.consumerProperties.setClientId(getComponentName());
 		}
+
+		Map<String, Object> props = this.consumerFactory.getConfigurationProperties();
+		Properties kafkaConsumerProperties = this.consumerProperties.getKafkaConsumerProperties();
+		this.checkNullKeyForExceptions =
+				this.consumerProperties.isCheckDeserExWhenKeyNull() ||
+						checkDeserializer(findDeserializerClass(props, kafkaConsumerProperties, false));
+		this.checkNullValueForExceptions =
+				this.consumerProperties.isCheckDeserExWhenValueNull() ||
+						checkDeserializer(findDeserializerClass(props, kafkaConsumerProperties, true));
+	}
+
+	@Nullable
+	private Object findDeserializerClass(Map<String, Object> props, Properties consumerOverrides, boolean isValue) {
+		Object configuredDeserializer =
+				isValue
+						? this.consumerFactory.getValueDeserializer()
+						: this.consumerFactory.getKeyDeserializer();
+		if (configuredDeserializer == null) {
+			Object deser = consumerOverrides.get(
+					isValue
+							? ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG
+							: ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG);
+			if (deser == null) {
+				deser = props.get(
+						isValue
+								? ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG
+								: ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG);
+			}
+			return deser;
+		}
+		else {
+			return configuredDeserializer.getClass();
+		}
+	}
+
+	private boolean checkDeserializer(@Nullable Object deser) {
+		Class<?> deserializer = null;
+		if (deser instanceof Class<?> deserClass) {
+			deserializer = deserClass;
+		}
+		else if (deser instanceof String str) {
+			try {
+				deserializer = ClassUtils.forName(str, this.classLoader);
+			}
+			catch (ClassNotFoundException | LinkageError e) {
+				throw new IllegalStateException(e);
+			}
+		}
+		else if (deser != null) {
+			throw new IllegalStateException("Deserializer must be a class or class name, not a " + deser.getClass());
+		}
+		return deserializer != null && ErrorHandlingDeserializer.class.isAssignableFrom(deserializer);
 	}
 
 	/**
@@ -609,6 +680,13 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	}
 
 	private Object recordToMessage(ConsumerRecord<K, V> record) {
+		if (record.value() == null && this.checkNullValueForExceptions) {
+			checkDeserializationException(record, SerializationUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER);
+		}
+		if (record.key() == null && this.checkNullKeyForExceptions) {
+			checkDeserializationException(record, SerializationUtils.KEY_DESERIALIZER_EXCEPTION_HEADER);
+		}
+
 		TopicPartition topicPartition = new TopicPartition(record.topic(), record.partition());
 		KafkaAckInfo<K, V> ackInfo = new KafkaAckInfoImpl(record, topicPartition);
 		AcknowledgmentCallback ackCallback = this.ackCallbackFactory.createCallback(ackInfo);
@@ -636,6 +714,13 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				builder.setHeader(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
 			}
 			return builder;
+		}
+	}
+
+	private void checkDeserializationException(ConsumerRecord<K, V> cRecord, String headerName) {
+		DeserializationException exception = ListenerUtils.getExceptionFromHeader(cRecord, headerName, this.logger);
+		if (exception != null) {
+			throw exception;
 		}
 	}
 
