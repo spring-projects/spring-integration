@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.channel.NullChannel;
@@ -32,11 +34,17 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ConsumerProperties;
+import org.springframework.kafka.support.serializer.DeserializationException;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.ClassUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -50,9 +58,17 @@ class MessageSourceIntegrationTests {
 
 	static final String TOPIC1 = "MessageSourceIntegrationTests1";
 
+	static final String TOPIC2 = "MessageSourceIntegrationTests2";
+
+	static String brokers;
+
+	@BeforeAll
+	static void setup() {
+		brokers = System.getProperty("spring.global.embedded.kafka.brokers");
+	}
+
 	@Test
 	void testSource() throws Exception {
-		String brokers = System.getProperty("spring.global.embedded.kafka.brokers");
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(brokers, "testSource", "false");
 		consumerProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -120,6 +136,50 @@ class MessageSourceIntegrationTests {
 		assertThat(KafkaTestUtils.getPropertyValue(source, "consumer.fetcher.minBytes")).isEqualTo(2);
 		source.destroy();
 		template.destroy();
+	}
+
+	@Test
+	void deserializationErrorIsThrownFromSource() throws Exception {
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(brokers, "testErrorChannelSource", "false");
+		consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+		consumerProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, FailingDeserializer.class);
+
+		DefaultKafkaConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
+		ConsumerProperties consumerProperties = new ConsumerProperties(TOPIC2);
+
+		consumerProperties.setPollTimeout(10);
+
+		KafkaMessageSource<Integer, String> source = new KafkaMessageSource<>(consumerFactory, consumerProperties);
+		source.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
+		source.setBeanFactory(mock());
+		source.afterPropertiesSet();
+		source.start();
+
+		Map<String, Object> producerProps = KafkaTestUtils.producerProps(brokers);
+		DefaultKafkaProducerFactory<Object, Object> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
+		KafkaTemplate<Object, Object> template = new KafkaTemplate<>(producerFactory);
+
+		String testData = "test data";
+		template.send(TOPIC2, testData);
+
+		await().untilAsserted(() ->
+				assertThatExceptionOfType(DeserializationException.class)
+						.isThrownBy(source::receive)
+						.hasFieldOrPropertyWithValue("data", testData.getBytes())
+						.withMessage("failed to deserialize")
+						.withStackTraceContaining("failed deserialization"));
+
+		source.destroy();
+		template.destroy();
+	}
+
+	public static class FailingDeserializer implements Deserializer<String> {
+
+		@Override
+		public String deserialize(String topic, byte[] data) {
+			throw new RuntimeException("failed deserialization");
+		}
+
 	}
 
 }

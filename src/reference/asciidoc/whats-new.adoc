@@ -38,3 +38,10 @@ See, for example, `transformWith()`, `splitWith()` in <<./dsl.adoc#java-dsl, Jav
 - For the server and client WebSocket containers, the send buffer overflow strategy is now configurable in `IntegrationWebSocketContainer` and in XML via `send-buffer-overflow-strategy`.
 This strategy determines the behavior when a session's outbound message buffer has reached the configured limit.
 See <<./web-sockets.adoc#websocket-client-container-attributes, WebSockets Support>> for more information.
+
+
+[[x6.2-kafka]]
+=== Apache Kafka Support Changes
+
+The `KafkaMessageSource` now extracts an `ErrorHandlingDeserializer` configuration from the consumer properties and re-throws `DeserializationException` extracted from failed record headers.
+See <<./kafka.adoc#kafka-inbound-pollable, Kafka Inbound Channel Adapter>> for more information.
