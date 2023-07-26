@@ -60,6 +60,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
+import org.springframework.kafka.listener.ErrorHandlingUtils;
 import org.springframework.kafka.listener.ListenerUtils;
 import org.springframework.kafka.listener.LoggingCommitCallback;
 import org.springframework.kafka.support.Acknowledgment;
@@ -73,12 +74,10 @@ import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.kafka.support.serializer.DeserializationException;
-import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.SerializationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -286,53 +285,12 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		Properties kafkaConsumerProperties = this.consumerProperties.getKafkaConsumerProperties();
 		this.checkNullKeyForExceptions =
 				this.consumerProperties.isCheckDeserExWhenKeyNull() ||
-						checkDeserializer(findDeserializerClass(props, kafkaConsumerProperties, false));
+						ErrorHandlingUtils.checkDeserializer(this.consumerFactory, kafkaConsumerProperties, false,
+								this.classLoader);
 		this.checkNullValueForExceptions =
 				this.consumerProperties.isCheckDeserExWhenValueNull() ||
-						checkDeserializer(findDeserializerClass(props, kafkaConsumerProperties, true));
-	}
-
-	@Nullable
-	private Object findDeserializerClass(Map<String, Object> props, Properties consumerOverrides, boolean isValue) {
-		Object configuredDeserializer =
-				isValue
-						? this.consumerFactory.getValueDeserializer()
-						: this.consumerFactory.getKeyDeserializer();
-		if (configuredDeserializer == null) {
-			Object deser = consumerOverrides.get(
-					isValue
-							? ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG
-							: ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG);
-			if (deser == null) {
-				deser = props.get(
-						isValue
-								? ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG
-								: ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG);
-			}
-			return deser;
-		}
-		else {
-			return configuredDeserializer.getClass();
-		}
-	}
-
-	private boolean checkDeserializer(@Nullable Object deser) {
-		Class<?> deserializer = null;
-		if (deser instanceof Class<?> deserClass) {
-			deserializer = deserClass;
-		}
-		else if (deser instanceof String str) {
-			try {
-				deserializer = ClassUtils.forName(str, this.classLoader);
-			}
-			catch (ClassNotFoundException | LinkageError e) {
-				throw new IllegalStateException(e);
-			}
-		}
-		else if (deser != null) {
-			throw new IllegalStateException("Deserializer must be a class or class name, not a " + deser.getClass());
-		}
-		return deserializer != null && ErrorHandlingDeserializer.class.isAssignableFrom(deserializer);
+						ErrorHandlingUtils.checkDeserializer(this.consumerFactory, kafkaConsumerProperties, true,
+								this.classLoader);
 	}
 
 	/**
