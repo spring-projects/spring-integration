@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,26 +141,11 @@ class MessageSourceIntegrationTests {
 	@Test
 	void deserializationErrorIsThrownFromSource() throws Exception {
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(brokers, "testErrorChannelSource", "false");
-		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
 		consumerProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, FailingDeserializer.class);
 
 		DefaultKafkaConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
 		ConsumerProperties consumerProperties = new ConsumerProperties(TOPIC2);
-		CountDownLatch assigned = new CountDownLatch(1);
-		consumerProperties.setConsumerRebalanceListener(
-				new ConsumerRebalanceListener() {
-
-					@Override
-					public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-					}
-
-					@Override
-					public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-						assigned.countDown();
-					}
-
-				});
 
 		consumerProperties.setPollTimeout(10);
 
@@ -176,9 +161,6 @@ class MessageSourceIntegrationTests {
 
 		String testData = "test data";
 		template.send(TOPIC2, testData);
-
-		source.receive(); // Trigger Kafka Consumer creation and poll()
-		assertThat(assigned.await(10, TimeUnit.SECONDS)).isTrue();
 
 		await().untilAsserted(() ->
 				assertThatExceptionOfType(DeserializationException.class)
