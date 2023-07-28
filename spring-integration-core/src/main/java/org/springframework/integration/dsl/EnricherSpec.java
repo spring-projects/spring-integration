@@ -219,10 +219,11 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	 * Set a header with the value if it is not already present.
 	 * @param name the header name.
 	 * @param value the value.
+	 * @param <V> the value type.
 	 * @return the enricher spec.
 	 * @see ContentEnricher#setHeaderExpressions(Map)
 	 */
-	public EnricherSpec header(String name, Object value) {
+	public <V> EnricherSpec header(String name, V value) {
 		return header(name, value, null);
 	}
 
@@ -302,10 +303,11 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	 * Set a header value using an explicit {@link HeaderValueMessageProcessor}.
 	 * @param headerName the header name.
 	 * @param headerValueMessageProcessor the headerValueMessageProcessor.
+	 * @param <V> the value type.
 	 * @return the enricher spec.
 	 * @see ContentEnricher#setHeaderExpressions(Map)
 	 */
-	public EnricherSpec header(String headerName, HeaderValueMessageProcessor<Object> headerValueMessageProcessor) {
+	public <V> EnricherSpec header(String headerName, HeaderValueMessageProcessor<V> headerValueMessageProcessor) {
 		Assert.hasText(headerName, "'headerName' must not be empty");
 		this.headerExpressions.put(headerName, headerValueMessageProcessor);
 		return _this();
