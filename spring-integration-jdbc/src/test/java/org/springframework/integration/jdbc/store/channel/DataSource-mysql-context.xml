@@ -4,7 +4,7 @@
 	   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	   xsi:schemaLocation="
 	   http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-	   http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+	   http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
 
 	<import resource="classpath:org/springframework/integration/jdbc/store/channel/DataSource-common-context.xml"/>
 
