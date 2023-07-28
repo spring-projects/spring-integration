@@ -178,8 +178,8 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	}
 
 	/**
-	 * The flag to perform database check query on start or not.
-	 * @param checkDatabaseOnStart false to not perform database check.
+	 * The flag to perform a database check query on start or not.
+	 * @param checkDatabaseOnStart false to not perform the database check.
 	 * @since 6.2
 	 */
 	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
