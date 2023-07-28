@@ -16,9 +16,12 @@
 
 package org.springframework.integration.jdbc.metadata;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
@@ -34,6 +37,11 @@ import org.springframework.util.Assert;
  * where <code>*</code> is the target database type.
  * <p>
  * The transaction management is required to use this {@link ConcurrentMetadataStore}.
+ * <p>
+ * This class implements {@link SmartLifecycle} and calls
+ * {@code SELECT COUNT(METADATA_KEY) FROM %sMETADATA_STORE} query
+ * according to the provided prefix on {@link #start()} to check if required table is present in DB.
+ * The application context is going to fail starting if table is not present.
  *
  * @author Bojan Vukasovic
  * @author Artem Bilan
@@ -41,7 +49,7 @@ import org.springframework.util.Assert;
  *
  * @since 5.0
  */
-public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingBean {
+public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingBean, SmartLifecycle {
 
 	private static final String KEY_CANNOT_BE_NULL = "'key' cannot be null";
 
@@ -51,6 +59,8 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
 	private final JdbcOperations jdbcTemplate;
+
+	private final AtomicBoolean started = new AtomicBoolean();
 
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
@@ -91,6 +101,10 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 				FROM %sMETADATA_STORE
 				WHERE METADATA_KEY=? AND REGION=?
 			HAVING COUNT(*)=0
+			""";
+
+	private String countQuery = """
+			SELECT COUNT(METADATA_KEY) FROM %sMETADATA_STORE
 			""";
 
 	/**
@@ -137,7 +151,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	 * Specify a row lock hint for the query in the lock-based operations.
 	 * Defaults to {@code FOR UPDATE}. Can be specified as an empty string,
 	 * if the target RDBMS doesn't support locking on tables from queries.
-	 * The value depends from RDBMS vendor, e.g. SQL Server requires {@code WITH (ROWLOCK)}.
+	 * The value depends on RDBMS vendor, e.g. SQL Server requires {@code WITH (ROWLOCK)}.
 	 * @param lockHint the RDBMS vendor-specific lock hint.
 	 * @since 5.0.7
 	 */
@@ -154,6 +168,24 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		this.replaceValueByKeyQuery = String.format(this.replaceValueByKeyQuery, this.tablePrefix);
 		this.removeValueQuery = String.format(this.removeValueQuery, this.tablePrefix);
 		this.putIfAbsentValueQuery = String.format(this.putIfAbsentValueQuery, this.tablePrefix, this.tablePrefix);
+		this.countQuery = String.format(this.putIfAbsentValueQuery, this.tablePrefix);
+	}
+
+	@Override
+	public void start() {
+		if (this.started.compareAndSet(false, true)) {
+			this.jdbcTemplate.queryForObject(this.countQuery, Integer.class); // If no table in DB, an exception is thrown
+		}
+	}
+
+	@Override
+	public void stop() {
+		this.started.set(false);
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.started.get();
 	}
 
 	@Override
@@ -162,7 +194,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");
 		while (true) {
-			//try to insert if does not exists
+			//try to insert if entry does not exist
 			int affectedRows = tryToPutIfAbsent(key, value);
 			if (affectedRows > 0) {
 				//it was not in the table, so we have just inserted
@@ -218,7 +250,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");
 		while (true) {
-			//try to insert if does not exist, if exists we will try to update it
+			//try to insert if entry does not exist, if exists we will try to update it
 			int affectedRows = tryToPutIfAbsent(key, value);
 			if (affectedRows == 0) {
 				//since value is not inserted, means it is already present

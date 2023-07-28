@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.sql.DataSource;
 
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -45,6 +47,11 @@ import org.springframework.util.Assert;
  * Otherwise, it opens a possibility to break {@link java.util.concurrent.locks.Lock} contract,
  * where {@link JdbcLockRegistry} uses non-shared {@link java.util.concurrent.locks.ReentrantLock}s
  * for local synchronizations.
+ * <p>
+ * This class implements {@link SmartLifecycle} and calls
+ * {@code SELECT COUNT(REGION) FROM %sLOCK} query
+ * according to the provided prefix on {@link #start()} to check if required table is present in DB.
+ * The application context is going to fail starting if table is not present.
  *
  * @author Dave Syer
  * @author Artem Bilan
@@ -56,7 +63,8 @@ import org.springframework.util.Assert;
  * @since 4.3
  */
 public class DefaultLockRepository
-		implements LockRepository, InitializingBean, ApplicationContextAware, SmartInitializingSingleton {
+		implements LockRepository, InitializingBean, ApplicationContextAware, SmartInitializingSingleton,
+		SmartLifecycle {
 
 	/**
 	 * Default value for the table prefix property.
@@ -71,6 +79,8 @@ public class DefaultLockRepository
 	private final String id;
 
 	private final JdbcTemplate template;
+
+	private final AtomicBoolean started = new AtomicBoolean();
 
 	private Duration ttl = DEFAULT_TTL;
 
@@ -114,6 +124,10 @@ public class DefaultLockRepository
 			UPDATE %sLOCK
 			SET CREATED_DATE=?
 			WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?
+			""";
+
+	private String countAllQuery = """
+			SELECT COUNT(REGION) FROM %sLOCK
 			""";
 
 	private ApplicationContext applicationContext;
@@ -293,6 +307,7 @@ public class DefaultLockRepository
 		this.insertQuery = String.format(this.insertQuery, this.prefix);
 		this.countQuery = String.format(this.countQuery, this.prefix);
 		this.renewQuery = String.format(this.renewQuery, this.prefix);
+		this.countAllQuery = String.format(this.countAllQuery, this.prefix);
 	}
 
 	@Override
@@ -323,6 +338,23 @@ public class DefaultLockRepository
 		transactionDefinition.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
 
 		this.serializableTransactionTemplate = new TransactionTemplate(this.transactionManager, transactionDefinition);
+	}
+
+	@Override
+	public void start() {
+		if (this.started.compareAndSet(false, true)) {
+			this.template.queryForObject(this.countAllQuery, Integer.class); // If no table in DB, an exception is thrown
+		}
+	}
+
+	@Override
+	public void stop() {
+		this.started.set(false);
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.started.get();
 	}
 
 	@Override

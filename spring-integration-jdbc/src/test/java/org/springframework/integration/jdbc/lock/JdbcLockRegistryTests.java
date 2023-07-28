@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,17 +29,20 @@ import java.util.concurrent.locks.Lock;
 
 import javax.sql.DataSource;
 
+import org.h2.jdbc.JdbcSQLSyntaxErrorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextException;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -67,6 +70,9 @@ public class JdbcLockRegistryTests {
 
 	@Autowired
 	private DataSource dataSource;
+
+	@Autowired
+	private PlatformTransactionManager transactionManager;
 
 	@Autowired
 	private ApplicationContext context;
@@ -481,6 +487,20 @@ public class JdbcLockRegistryTests {
 		assertThat(getRegistryLocks(registry)).containsKeys(toUUID("foo:3"),
 				toUUID("foo:4"),
 				toUUID("foo:5"));
+	}
+
+	@Test
+	void noTableThrowsExceptionOnStart() {
+		try (TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext()) {
+			DefaultLockRepository client = new DefaultLockRepository(this.dataSource);
+			client.setPrefix("TEST_");
+			client.setTransactionManager(this.transactionManager);
+			testApplicationContext.registerBean("client", client);
+			assertThatExceptionOfType(ApplicationContextException.class)
+					.isThrownBy(testApplicationContext::refresh)
+					.withRootCauseExactlyInstanceOf(JdbcSQLSyntaxErrorException.class)
+					.withStackTraceContaining("Table \"TEST_LOCK\" not found");
+		}
 	}
 
 	@SuppressWarnings("unchecked")

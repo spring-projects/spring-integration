@@ -45,3 +45,9 @@ See <<./web-sockets.adoc#websocket-client-container-attributes, WebSockets Suppo
 
 The `KafkaMessageSource` now extracts an `ErrorHandlingDeserializer` configuration from the consumer properties and re-throws `DeserializationException` extracted from failed record headers.
 See <<./kafka.adoc#kafka-inbound-pollable, Kafka Inbound Channel Adapter>> for more information.
+
+[[x6.2-jdbc]]
+=== JDBC Support Changes
+
+The `JdbcMessageStore`, `JdbcChannelMessageStore`, `JdbcMetadataStore`, and `DefaultLockRepository` implement `SmartLifecycle` and perform `SELECT COUNT` query in their `start()` method to be sure that required table (according to the provided prefix) is present in the target database.
+See <<./jdbc.adoc#jdbc-db-init, Initializing the Database>> for more information.

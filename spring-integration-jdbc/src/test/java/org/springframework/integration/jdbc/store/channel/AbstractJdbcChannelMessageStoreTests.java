@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,8 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.serializer.support.SerializingConverter;
@@ -33,7 +32,7 @@ import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -50,13 +49,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  */
 
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public abstract class AbstractJdbcChannelMessageStoreTests {
 
 	protected static final String TEST_MESSAGE_GROUP = "AbstractJdbcChannelMessageStoreTests";
 
-	private static final String REGION = "AbstractJdbcChannelMessageStoreTests";
+	protected static final String REGION = "AbstractJdbcChannelMessageStoreTests";
 
 	@Autowired
 	protected DataSource dataSource;
@@ -69,8 +68,8 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 	@Autowired
 	protected ChannelMessageStoreQueryProvider queryProvider;
 
-	@Before
-	public void init() throws Exception {
+	@BeforeEach
+	public void init() {
 		messageStore = new JdbcChannelMessageStore(dataSource);
 		messageStore.setRegion(REGION);
 		messageStore.setChannelMessageStoreQueryProvider(queryProvider);

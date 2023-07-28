@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.integration.jdbc.config;
 import java.sql.Types;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -42,6 +42,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  *
  */
@@ -54,7 +56,7 @@ public class StoredProcMessageHandlerParserTests {
 	private static volatile int adviceCalled;
 
 	@Test
-	public void testProcedureNameIsSet() throws Exception {
+	public void testProcedureNameIsSet() {
 		setUp("basicStoredProcOutboundChannelAdapterTest.xml", getClass());
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(this.consumer);
@@ -72,7 +74,7 @@ public class StoredProcMessageHandlerParserTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testProcedurepParametersAreSet() throws Exception {
+	public void testProcedureParametersAreSet() {
 		setUp("basicStoredProcOutboundChannelAdapterTest.xml", getClass());
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(this.consumer);
@@ -114,7 +116,7 @@ public class StoredProcMessageHandlerParserTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSqlParametersAreSet() throws Exception {
+	public void testSqlParametersAreSet() {
 		setUp("basicStoredProcOutboundChannelAdapterTest.xml", getClass());
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(this.consumer);
@@ -161,15 +163,15 @@ public class StoredProcMessageHandlerParserTests {
 	}
 
 	@Test
-	public void adviceCalled() throws Exception {
+	public void adviceCalled() {
 		setUp("advisedStoredProcOutboundChannelAdapterTest.xml", getClass());
 
 		MessageHandler handler = TestUtils.getPropertyValue(this.consumer, "handler", MessageHandler.class);
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		if (context != null) {
 			context.close();

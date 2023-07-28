@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,13 @@ import org.apache.commons.dbcp2.PoolingDataSource;
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.hsqldb.HsqlException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ApplicationContextException;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -51,6 +53,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.predicate.MessagePredicate;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -62,6 +65,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Dave Syer
@@ -575,6 +579,19 @@ public class JdbcMessageStoreTests {
 		}
 
 		pooledMessageStore.removeMessageGroup(groupId);
+	}
+
+	@Test
+	void noTableThrowsExceptionOnStart() {
+		try (TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext()) {
+			JdbcMessageStore jdbcMessageStore = new JdbcMessageStore(this.dataSource);
+			jdbcMessageStore.setTablePrefix("TEST_");
+			testApplicationContext.registerBean("jdbcMessageStore", jdbcMessageStore);
+			assertThatExceptionOfType(ApplicationContextException.class)
+					.isThrownBy(testApplicationContext::refresh)
+					.withRootCauseExactlyInstanceOf(HsqlException.class)
+					.withStackTraceContaining("user lacks privilege or object not found: TEST_MESSAGE_GROUP");
+		}
 	}
 
 	public void methodForCollectionOfPayloads(Collection<String> payloads) {
