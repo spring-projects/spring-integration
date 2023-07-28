@@ -12,9 +12,7 @@
 <int:channel id="target"/>
     <jdbc:embedded-database id="dataSource" type="HSQL"/>
     
-    <int-jdbc:message-store id="messageStore" data-source="dataSource"/>
-
-	<int-jdbc:stored-proc-outbound-channel-adapter id="storedProcedureOutboundChannelAdapter" 
+	<int-jdbc:stored-proc-outbound-channel-adapter id="storedProcedureOutboundChannelAdapter"
 	                                               data-source="dataSource" channel="target"
 	                                               stored-procedure-name="testProcedure1">
 	    <int-jdbc:sql-parameter-definition name="username" direction="IN"    type="VARCHAR"/>

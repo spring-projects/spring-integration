@@ -26,11 +26,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
@@ -66,6 +68,11 @@ import org.springframework.util.StringUtils;
  * please consider using the channel-specific {@link JdbcChannelMessageStore} instead.
  * This implementation is intended for correlation components (e.g. {@code <aggregator>}),
  * {@code <delayer>} and similar.
+ * <p>
+ * This class implements {@link SmartLifecycle} and calls {@link #getMessageGroupCount()}
+ * on {@link #start()} to check if required tables are present in DB.
+ * The application context will fail to start if the table is not present.
+ * This check can be disabled via {@link #setCheckDatabaseOnStart(boolean)}.
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
@@ -77,7 +84,8 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
+public class JdbcMessageStore extends AbstractMessageGroupStore
+		implements MessageStore, BeanClassLoaderAware, SmartLifecycle {
 
 	/**
 	 * Default value for the table prefix property.
@@ -234,6 +242,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private final Map<Query, String> queryCache = new ConcurrentHashMap<>();
 
+	private final AtomicBoolean started = new AtomicBoolean();
+
 	private String region = "DEFAULT";
 
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
@@ -246,6 +256,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private SerializingConverter serializer;
 
 	private LobHandler lobHandler = new DefaultLobHandler();
+
+	private boolean checkDatabaseOnStart = true;
 
 	/**
 	 * Create a {@link MessageStore} with all mandatory properties.
@@ -329,6 +341,41 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 */
 	public void addAllowedPatterns(String... patterns) {
 		this.deserializer.addAllowedPatterns(patterns);
+	}
+
+	/**
+	 * The flag to perform a database check query on start or not.
+	 * @param checkDatabaseOnStart false to not perform the database check.
+	 * @since 6.2
+	 */
+	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
+		this.checkDatabaseOnStart = checkDatabaseOnStart;
+		if (!checkDatabaseOnStart) {
+			logger.info("The 'DefaultLockRepository' won't be started automatically " +
+					"and required table is not going be checked.");
+		}
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.checkDatabaseOnStart;
+	}
+
+	@Override
+	public void start() {
+		if (this.started.compareAndSet(false, true) && this.checkDatabaseOnStart) {
+			getMessageGroupCount(); // If no table in DB, an exception is thrown
+		}
+	}
+
+	@Override
+	public void stop() {
+		this.started.set(false);
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.started.get();
 	}
 
 	@Override

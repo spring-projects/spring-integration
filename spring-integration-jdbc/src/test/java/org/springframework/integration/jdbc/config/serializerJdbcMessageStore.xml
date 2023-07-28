@@ -5,7 +5,10 @@
 			http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
 			http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<jdbc:embedded-database id="dataSource" type="HSQL" />
+	<jdbc:embedded-database id="dataSource">
+		<jdbc:script location="org/springframework/integration/jdbc/schema-drop-h2.sql"/>
+		<jdbc:script location="org/springframework/integration/jdbc/schema-h2.sql" />
+	</jdbc:embedded-database>
 
 	<bean id="serializer" class="org.springframework.integration.jdbc.config.JdbcMessageStoreParserTests$EnhancedSerializer" />
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,19 @@ package org.springframework.integration.jdbc.metadata;
 
 import javax.sql.DataSource;
 
+import org.apache.derby.shared.common.error.StandardException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContextException;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Bojan Vukasovic
@@ -103,6 +107,19 @@ public class JdbcMetadataStoreTests {
 		metadataStore.replace("foo", "bar1", "bar2");
 		String bar = metadataStore.get("foo");
 		assertThat(bar).isEqualTo("bar");
+	}
+
+	@Test
+	void noTableThrowsExceptionOnStart() {
+		try (TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext()) {
+			JdbcMetadataStore jdbcMetadataStore = new JdbcMetadataStore(this.dataSource);
+			jdbcMetadataStore.setTablePrefix("TEST_");
+			testApplicationContext.registerBean("jdbcMetadataStore", jdbcMetadataStore);
+			assertThatExceptionOfType(ApplicationContextException.class)
+					.isThrownBy(testApplicationContext::refresh)
+					.withRootCauseExactlyInstanceOf(StandardException.class)
+					.withStackTraceContaining("Table/View 'TEST_METADATA_STORE' does not exist");
+		}
 	}
 
 }

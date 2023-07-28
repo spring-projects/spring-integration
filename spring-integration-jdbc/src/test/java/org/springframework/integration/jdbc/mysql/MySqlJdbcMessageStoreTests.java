@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
@@ -509,12 +508,7 @@ public class MySqlJdbcMessageStoreTests implements MySqlContainerTest {
 
 		@Bean
 		DataSource dataSource() {
-			BasicDataSource dataSource = new BasicDataSource();
-			dataSource.setDriverClassName(MySqlContainerTest.getDriverClassName());
-			dataSource.setUrl(MySqlContainerTest.getJdbcUrl());
-			dataSource.setUsername(MySqlContainerTest.getUsername());
-			dataSource.setPassword(MySqlContainerTest.getPassword());
-			return dataSource;
+			return MySqlContainerTest.dataSource();
 		}
 
 		@Bean

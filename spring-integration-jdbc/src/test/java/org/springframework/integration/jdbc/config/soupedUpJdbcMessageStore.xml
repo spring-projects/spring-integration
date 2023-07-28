@@ -2,15 +2,19 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
 	xsi:schemaLocation="http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
-			http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
 			http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<jdbc:embedded-database id="dataSource" type="HSQL"/>
-	
-	<int-jdbc:message-store id="messageStore" data-source="dataSource" lob-handler="lobHandler" region="FOO" table-prefix="BAR_"/>
-	
+
+	<bean id="messageStore" class="org.springframework.integration.jdbc.store.JdbcMessageStore">
+		<constructor-arg ref="dataSource"/>
+		<property name="lobHandler" ref="lobHandler"/>
+		<property name="region" value="FOO"/>
+		<property name="tablePrefix" value="BAR_"/>
+		<property name="checkDatabaseOnStart" value="false"/>
+	</bean>
+
 	<bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler"/>
 
 </beans>

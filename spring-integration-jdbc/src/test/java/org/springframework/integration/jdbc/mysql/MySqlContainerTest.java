@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 the original author or authors.
+ * Copyright 2021-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.integration.jdbc.mysql;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -55,6 +58,15 @@ public interface MySqlContainerTest {
 
 	static String getPassword() {
 		return MY_SQL_CONTAINER.getPassword();
+	}
+
+	static DataSource dataSource() {
+		BasicDataSource dataSource = new BasicDataSource();
+		dataSource.setDriverClassName(getDriverClassName());
+		dataSource.setUrl(getJdbcUrl());
+		dataSource.setUsername(getUsername());
+		dataSource.setPassword(getPassword());
+		return dataSource;
 	}
 
 }

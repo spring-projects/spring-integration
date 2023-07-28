@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -31,6 +32,7 @@ import java.util.function.Supplier;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
 import org.springframework.core.serializer.Deserializer;
@@ -73,6 +75,11 @@ import org.springframework.util.StringUtils;
  * The SQL scripts for creating the table are packaged
  * under {@code org/springframework/integration/jdbc/schema-*.sql},
  * where {@code *} denotes the target database type.
+ * <p>
+ * This class implements {@link SmartLifecycle} and calls {@link #getMessageGroupCount()}
+ * on {@link #start()} to check if required table is present in DB.
+ * The application context will fail to start if the table is not present.
+ * This check can be disabled via {@link #setCheckDatabaseOnStart(boolean)}.
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
@@ -83,7 +90,7 @@ import org.springframework.util.StringUtils;
  * @since 2.2
  */
 @ManagedResource
-public class JdbcChannelMessageStore implements PriorityCapableChannelMessageStore, InitializingBean {
+public class JdbcChannelMessageStore implements PriorityCapableChannelMessageStore, InitializingBean, SmartLifecycle {
 
 	private static final LogAccessor LOGGER = new LogAccessor(JdbcChannelMessageStore.class);
 
@@ -121,6 +128,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private final Lock idCacheWriteLock = this.idCacheLock.writeLock();
 
+	private final AtomicBoolean started = new AtomicBoolean();
+
 	private ChannelMessageStoreQueryProvider channelMessageStoreQueryProvider;
 
 	private String region = DEFAULT_REGION;
@@ -144,6 +153,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	private boolean usingIdCache = false;
 
 	private boolean priorityEnabled;
+
+	private boolean checkDatabaseOnStart = true;
 
 	/**
 	 * Convenient constructor for configuration use.
@@ -409,6 +420,41 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 					this.lobHandler);
 		}
 		this.jdbcTemplate.afterPropertiesSet();
+	}
+
+	/**
+	 * The flag to perform a database check query on start or not.
+	 * @param checkDatabaseOnStart false to not perform the database check.
+	 * @since 6.2
+	 */
+	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
+		this.checkDatabaseOnStart = checkDatabaseOnStart;
+		if (!checkDatabaseOnStart) {
+			LOGGER.info("The 'DefaultLockRepository' won't be started automatically " +
+					"and required table is not going be checked.");
+		}
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.checkDatabaseOnStart;
+	}
+
+	@Override
+	public void start() {
+		if (this.started.compareAndSet(false, true) && this.checkDatabaseOnStart) {
+			getMessageGroupCount(); // If no table in DB, an exception is thrown
+		}
+	}
+
+	@Override
+	public void stop() {
+		this.started.set(false);
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.started.get();
 	}
 
 	/**

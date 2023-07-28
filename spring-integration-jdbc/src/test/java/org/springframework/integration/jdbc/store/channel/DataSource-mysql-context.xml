@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-	xsi:schemaLocation="
-		http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
-		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	   xsi:schemaLocation="
+	   http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	   http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
 
-	<import resource="classpath:org/springframework/integration/jdbc/store/channel/DataSource-common-context.xml" />
+	<import resource="classpath:org/springframework/integration/jdbc/store/channel/DataSource-common-context.xml"/>
 
-	<bean id="dataSource" destroy-method="close"
-		class="org.apache.commons.dbcp2.BasicDataSource">
-		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
-		<property name="url" value="jdbc:mysql://localhost/test" />
-		<property name="username" value="root" />
-		<property name="password" value="" />
-		<property name="initialSize" value="10" />
-	</bean>
+	<bean id="dataSource" class="org.springframework.integration.jdbc.mysql.MySqlContainerTest"
+		  factory-method="dataSource"/>
 
-	<bean id="queryProvider" class="org.springframework.integration.jdbc.store.channel.MySqlChannelMessageStoreQueryProvider"/>
+	<jdbc:initialize-database ignore-failures="ALL">
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-drop-mysql.sql" />
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-mysql.sql" />
+	</jdbc:initialize-database>
+
+	<bean id="queryProvider"
+		  class="org.springframework.integration.jdbc.store.channel.MySqlChannelMessageStoreQueryProvider"/>
 
 </beans>
