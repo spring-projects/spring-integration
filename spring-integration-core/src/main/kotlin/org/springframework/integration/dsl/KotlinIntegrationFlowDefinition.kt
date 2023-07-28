@@ -1043,7 +1043,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * current integration flow position.
 	 * In addition, accept options for the integration endpoint using [GenericEndpointSpec].
 	 */
-	fun <R : AbstractMessageRouter?> route(router: R, endpointConfigurer: GenericEndpointSpec<R>.() -> Unit = {}) {
+	fun <R : AbstractMessageRouter> route(router: R, endpointConfigurer: GenericEndpointSpec<R>.() -> Unit = {}) {
 		this.delegate.route(router, endpointConfigurer)
 	}
 

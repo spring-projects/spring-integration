@@ -182,11 +182,10 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	/**
 	 * @param key the key.
 	 * @param value the value.
-	 * @param <V> the value type.
 	 * @return the enricher spec.
 	 * @see ContentEnricher#setPropertyExpressions(Map)
 	 */
-	public <V> EnricherSpec property(String key, V value) {
+	public EnricherSpec property(String key, Object value) {
 		this.propertyExpressions.put(key, new ValueExpression<>(value));
 		return _this();
 	}
@@ -220,11 +219,10 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	 * Set a header with the value if it is not already present.
 	 * @param name the header name.
 	 * @param value the value.
-	 * @param <V> the value type.
 	 * @return the enricher spec.
 	 * @see ContentEnricher#setHeaderExpressions(Map)
 	 */
-	public <V> EnricherSpec header(String name, V value) {
+	public EnricherSpec header(String name, Object value) {
 		return header(name, value, null);
 	}
 
@@ -232,13 +230,12 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	 * @param name the header name.
 	 * @param value the value.
 	 * @param overwrite true to overwrite the header if already present.
-	 * @param <V> the value type.
 	 * @return the enricher spec.
 	 * @see ContentEnricher#setHeaderExpressions(Map)
 	 */
-	public <V> EnricherSpec header(String name, V value, @Nullable Boolean overwrite) {
-		AbstractHeaderValueMessageProcessor<V> headerValueMessageProcessor =
-				new StaticHeaderValueMessageProcessor<V>(value);
+	public EnricherSpec header(String name, Object value, @Nullable Boolean overwrite) {
+		AbstractHeaderValueMessageProcessor<Object> headerValueMessageProcessor =
+				new StaticHeaderValueMessageProcessor<>(value);
 		headerValueMessageProcessor.setOverwrite(overwrite);
 		return header(name, headerValueMessageProcessor);
 	}
@@ -305,11 +302,10 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	 * Set a header value using an explicit {@link HeaderValueMessageProcessor}.
 	 * @param headerName the header name.
 	 * @param headerValueMessageProcessor the headerValueMessageProcessor.
-	 * @param <V> the value type.
 	 * @return the enricher spec.
 	 * @see ContentEnricher#setHeaderExpressions(Map)
 	 */
-	public <V> EnricherSpec header(String headerName, HeaderValueMessageProcessor<V> headerValueMessageProcessor) {
+	public EnricherSpec header(String headerName, HeaderValueMessageProcessor<Object> headerValueMessageProcessor) {
 		Assert.hasText(headerName, "'headerName' must not be empty");
 		this.headerExpressions.put(headerName, headerValueMessageProcessor);
 		return _this();

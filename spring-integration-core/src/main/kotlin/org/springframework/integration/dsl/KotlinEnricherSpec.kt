@@ -85,7 +85,7 @@ class KotlinEnricherSpec(override val delegate: EnricherSpec)
 		this.delegate.shouldClonePayload(shouldClonePayload)
 	}
 
-	fun <V> property(key: String, value: V) {
+	fun property(key: String, value: Any) {
 		this.delegate.property(key, value)
 	}
 
@@ -97,7 +97,7 @@ class KotlinEnricherSpec(override val delegate: EnricherSpec)
 		this.delegate.propertyFunction(key, function)
 	}
 
-	fun <V> header(name: String, value: V, overwrite: Boolean?) {
+	fun header(name: String, value: Any, overwrite: Boolean?) {
 		this.delegate.header(name, value, overwrite)
 	}
 
@@ -109,7 +109,7 @@ class KotlinEnricherSpec(override val delegate: EnricherSpec)
 		this.delegate.header(name, function, overwrite)
 	}
 
-	fun <V> header(headerName: String, headerValueMessageProcessor: HeaderValueMessageProcessor<V>) {
+	fun header(headerName: String, headerValueMessageProcessor: HeaderValueMessageProcessor<Any>) {
 		this.delegate.header(headerName, headerValueMessageProcessor)
 	}
 

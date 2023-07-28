@@ -51,19 +51,19 @@ class KotlinRouterSpec<K, R : AbstractMappingMessageRouter>(override val delegat
 		this.delegate.channelKeyFallback(channelKeyFallback)
 	}
 
-	fun channelMapping(key: K, channelName: String) {
+	fun channelMapping(key: K & Any, channelName: String) {
 		this.delegate.channelMapping(key, channelName)
 	}
 
-	fun channelMapping(key: K, channel: MessageChannel) {
+	fun channelMapping(key: K & Any, channel: MessageChannel) {
 		this.delegate.channelMapping(key, channel)
 	}
 
-	fun subFlowMapping(key: K, subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
+	fun subFlowMapping(key: K & Any, subFlow: KotlinIntegrationFlowDefinition.() -> Unit) {
 		subFlowMapping(key) { definition -> subFlow(KotlinIntegrationFlowDefinition(definition)) }
 	}
 
-	fun subFlowMapping(key: K, subFlow: IntegrationFlow) {
+	fun subFlowMapping(key: K & Any, subFlow: IntegrationFlow) {
 		this.delegate.subFlowMapping(key, subFlow)
 	}
 
