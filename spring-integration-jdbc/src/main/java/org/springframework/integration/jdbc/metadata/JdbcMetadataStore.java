@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * This class implements {@link SmartLifecycle} and calls
  * {@code SELECT COUNT(METADATA_KEY) FROM %sMETADATA_STORE} query
  * according to the provided prefix on {@link #start()} to check if required table is present in DB.
- * The application context is going to fail starting if table is not present.
+ * The application context will fail to start if the table is not present.
  *
  * @author Bojan Vukasovic
  * @author Artem Bilan
@@ -151,7 +151,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	 * Specify a row lock hint for the query in the lock-based operations.
 	 * Defaults to {@code FOR UPDATE}. Can be specified as an empty string,
 	 * if the target RDBMS doesn't support locking on tables from queries.
-	 * The value depends on RDBMS vendor, e.g. SQL Server requires {@code WITH (ROWLOCK)}.
+	 * The value depends on the RDBMS vendor, e.g. SQL Server requires {@code WITH (ROWLOCK)}.
 	 * @param lockHint the RDBMS vendor-specific lock hint.
 	 * @since 5.0.7
 	 */
@@ -194,7 +194,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");
 		while (true) {
-			//try to insert if entry does not exist
+			//try to insert if the entry does not exist
 			int affectedRows = tryToPutIfAbsent(key, value);
 			if (affectedRows > 0) {
 				//it was not in the table, so we have just inserted
@@ -250,7 +250,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");
 		while (true) {
-			//try to insert if entry does not exist, if exists we will try to update it
+			//try to insert if the entry does not exist, if it exists we will try to update it
 			int affectedRows = tryToPutIfAbsent(key, value);
 			if (affectedRows == 0) {
 				//since value is not inserted, means it is already present

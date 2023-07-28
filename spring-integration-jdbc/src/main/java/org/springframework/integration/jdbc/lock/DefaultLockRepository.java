@@ -51,7 +51,7 @@ import org.springframework.util.Assert;
  * This class implements {@link SmartLifecycle} and calls
  * {@code SELECT COUNT(REGION) FROM %sLOCK} query
  * according to the provided prefix on {@link #start()} to check if required table is present in DB.
- * The application context is going to fail starting if table is not present.
+ * The application context will fail to start if the table is not present.
  *
  * @author Dave Syer
  * @author Artem Bilan

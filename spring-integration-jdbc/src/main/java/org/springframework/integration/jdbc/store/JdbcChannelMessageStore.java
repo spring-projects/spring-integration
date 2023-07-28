@@ -78,7 +78,7 @@ import org.springframework.util.StringUtils;
  * <p>
  * This class implements {@link SmartLifecycle} and calls {@link #getMessageGroupCount()}
  * on {@link #start()} to check if required table is present in DB.
- * The application context is going to fail starting if table is not present.
+ * The application context will fail to start if the table is not present.
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
