@@ -72,6 +72,7 @@ import org.springframework.util.StringUtils;
  * This class implements {@link SmartLifecycle} and calls {@link #getMessageGroupCount()}
  * on {@link #start()} to check if required tables are present in DB.
  * The application context will fail to start if the table is not present.
+ * This check can be disabled via {@link #setCheckDatabaseOnStart(boolean)}.
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
@@ -256,6 +257,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	private LobHandler lobHandler = new DefaultLobHandler();
 
+	private boolean checkDatabaseOnStart = true;
+
 	/**
 	 * Create a {@link MessageStore} with all mandatory properties.
 	 * @param dataSource a {@link DataSource}
@@ -340,9 +343,27 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 		this.deserializer.addAllowedPatterns(patterns);
 	}
 
+	/**
+	 * The flag to perform database check query on start or not.
+	 * @param checkDatabaseOnStart false to not perform database check.
+	 * @since 6.2
+	 */
+	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
+		this.checkDatabaseOnStart = checkDatabaseOnStart;
+		if (!checkDatabaseOnStart) {
+			logger.info("The 'DefaultLockRepository' won't be started automatically " +
+					"and required table is not going be checked.");
+		}
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.checkDatabaseOnStart;
+	}
+
 	@Override
 	public void start() {
-		if (this.started.compareAndSet(false, true)) {
+		if (this.started.compareAndSet(false, true) && this.checkDatabaseOnStart) {
 			getMessageGroupCount(); // If no table in DB, an exception is thrown
 		}
 	}

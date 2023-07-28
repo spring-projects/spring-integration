@@ -79,6 +79,7 @@ import org.springframework.util.StringUtils;
  * This class implements {@link SmartLifecycle} and calls {@link #getMessageGroupCount()}
  * on {@link #start()} to check if required table is present in DB.
  * The application context will fail to start if the table is not present.
+ * This check can be disabled via {@link #setCheckDatabaseOnStart(boolean)}.
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
@@ -152,6 +153,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	private boolean usingIdCache = false;
 
 	private boolean priorityEnabled;
+
+	private boolean checkDatabaseOnStart = true;
 
 	/**
 	 * Convenient constructor for configuration use.
@@ -419,9 +422,27 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		this.jdbcTemplate.afterPropertiesSet();
 	}
 
+	/**
+	 * The flag to perform database check query on start or not.
+	 * @param checkDatabaseOnStart false to not perform database check.
+	 * @since 6.2
+	 */
+	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
+		this.checkDatabaseOnStart = checkDatabaseOnStart;
+		if (!checkDatabaseOnStart) {
+			LOGGER.info("The 'DefaultLockRepository' won't be started automatically " +
+					"and required table is not going be checked.");
+		}
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.checkDatabaseOnStart;
+	}
+
 	@Override
 	public void start() {
-		if (this.started.compareAndSet(false, true)) {
+		if (this.started.compareAndSet(false, true) && this.checkDatabaseOnStart) {
 			getMessageGroupCount(); // If no table in DB, an exception is thrown
 		}
 	}

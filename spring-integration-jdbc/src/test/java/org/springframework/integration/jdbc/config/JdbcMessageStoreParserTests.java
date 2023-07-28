@@ -77,7 +77,7 @@ public class JdbcMessageStoreParserTests {
 		setUp("soupedUpJdbcMessageStore.xml", getClass());
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
 		assertThat(ReflectionTestUtils.getField(store, "region")).isEqualTo("FOO");
-		assertThat(ReflectionTestUtils.getField(store, "tablePrefix")).isEqualTo("int_");
+		assertThat(ReflectionTestUtils.getField(store, "tablePrefix")).isEqualTo("BAR_");
 		assertThat(ReflectionTestUtils.getField(store, "lobHandler")).isEqualTo(context.getBean(LobHandler.class));
 	}
 

@@ -400,6 +400,7 @@ You may find that you need to enhance them for production use (for, example, by 
 
 Starting with version 6.2, the `JdbcMessageStore`, `JdbcChannelMessageStore`, `JdbcMetadataStore`, and `DefaultLockRepository` implement `SmartLifecycle` and perform a`SELECT COUNT` query, on their respective tables, in the `start()` method to ensure that the required table (according to the provided prefix) is present in the target database.
 If the required table does not exist, the application context fails to start.
+The check can be disabled via `setCheckDatabaseOnStart(false)`.
 
 [[jdbc-message-store-generic]]
 ==== The Generic JDBC Message Store

@@ -31,6 +31,7 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -52,6 +53,7 @@ import org.springframework.util.Assert;
  * {@code SELECT COUNT(REGION) FROM %sLOCK} query
  * according to the provided prefix on {@link #start()} to check if required table is present in DB.
  * The application context will fail to start if the table is not present.
+ * This check can be disabled via {@link #setCheckDatabaseOnStart(boolean)}.
  *
  * @author Dave Syer
  * @author Artem Bilan
@@ -65,6 +67,8 @@ import org.springframework.util.Assert;
 public class DefaultLockRepository
 		implements LockRepository, InitializingBean, ApplicationContextAware, SmartInitializingSingleton,
 		SmartLifecycle {
+
+	private static final LogAccessor LOGGER = new LogAccessor(DefaultLockRepository.class);
 
 	/**
 	 * Default value for the table prefix property.
@@ -139,6 +143,8 @@ public class DefaultLockRepository
 	private TransactionTemplate readOnlyTransactionTemplate;
 
 	private TransactionTemplate serializableTransactionTemplate;
+
+	private boolean checkDatabaseOnStart = true;
 
 	/**
 	 * Constructor that initializes the client id that will be associated for
@@ -340,9 +346,27 @@ public class DefaultLockRepository
 		this.serializableTransactionTemplate = new TransactionTemplate(this.transactionManager, transactionDefinition);
 	}
 
+	/**
+	 * The flag to perform database check query on start or not.
+	 * @param checkDatabaseOnStart false to not perform database check.
+	 * @since 6.2
+	 */
+	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
+		this.checkDatabaseOnStart = checkDatabaseOnStart;
+		if (!checkDatabaseOnStart) {
+			LOGGER.info("The 'DefaultLockRepository' won't be started automatically " +
+					"and required table is not going be checked.");
+		}
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.checkDatabaseOnStart;
+	}
+
 	@Override
 	public void start() {
-		if (this.started.compareAndSet(false, true)) {
+		if (this.started.compareAndSet(false, true) && this.checkDatabaseOnStart) {
 			this.template.queryForObject(this.countAllQuery, Integer.class); // If no table in DB, an exception is thrown
 		}
 	}

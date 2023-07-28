@@ -22,6 +22,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
@@ -42,6 +43,7 @@ import org.springframework.util.Assert;
  * {@code SELECT COUNT(METADATA_KEY) FROM %sMETADATA_STORE} query
  * according to the provided prefix on {@link #start()} to check if required table is present in DB.
  * The application context will fail to start if the table is not present.
+ * This check can be disabled via {@link #setCheckDatabaseOnStart(boolean)}.
  *
  * @author Bojan Vukasovic
  * @author Artem Bilan
@@ -50,6 +52,8 @@ import org.springframework.util.Assert;
  * @since 5.0
  */
 public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingBean, SmartLifecycle {
+
+	private static final LogAccessor LOGGER = new LogAccessor(JdbcMetadataStore.class);
 
 	private static final String KEY_CANNOT_BE_NULL = "'key' cannot be null";
 
@@ -106,6 +110,8 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	private String countQuery = """
 			SELECT COUNT(METADATA_KEY) FROM %sMETADATA_STORE
 			""";
+
+	private boolean checkDatabaseOnStart = true;
 
 	/**
 	 * Instantiate a {@link JdbcMetadataStore} using provided dataSource {@link DataSource}.
@@ -171,9 +177,27 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		this.countQuery = String.format(this.putIfAbsentValueQuery, this.tablePrefix);
 	}
 
+	/**
+	 * The flag to perform database check query on start or not.
+	 * @param checkDatabaseOnStart false to not perform database check.
+	 * @since 6.2
+	 */
+	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
+		this.checkDatabaseOnStart = checkDatabaseOnStart;
+		if (!checkDatabaseOnStart) {
+			LOGGER.info("The 'DefaultLockRepository' won't be started automatically " +
+					"and required table is not going be checked.");
+		}
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.checkDatabaseOnStart;
+	}
+
 	@Override
 	public void start() {
-		if (this.started.compareAndSet(false, true)) {
+		if (this.started.compareAndSet(false, true) && this.checkDatabaseOnStart) {
 			this.jdbcTemplate.queryForObject(this.countQuery, Integer.class); // If no table in DB, an exception is thrown
 		}
 	}
