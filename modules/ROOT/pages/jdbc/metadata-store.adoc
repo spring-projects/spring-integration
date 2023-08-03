@@ -1,0 +1,55 @@
+[[jdbc-metadata-store]]
+= JDBC Metadata Store
+
+Version 5.0 introduced the JDBC `MetadataStore` (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>) implementation.
+You can use the `JdbcMetadataStore` to maintain the metadata state across application restarts.
+This `MetadataStore` implementation can be used with adapters such as the following:
+
+
+* <<./feed.adoc#feed-inbound-channel-adapter,Feed inbound channel adapters>>
+* <<./file.adoc#file-reading,File inbound channel adapters>>
+* <<./ftp.adoc#ftp-inbound,FTP inbound channel adapters>>
+* <<./sftp.adoc#sftp-inbound,SFTP inbound channel adapters>>
+
+To configure these adapters to use the `JdbcMetadataStore`, declare a Spring bean by using a bean name of `metadataStore`.
+The Feed inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `JdbcMetadataStore`, as the following example shows:
+
+====
+[source,java]
+----
+@Bean
+public MetadataStore metadataStore(DataSource dataSource) {
+    return new JdbcMetadataStore(dataSource);
+}
+----
+====
+
+The `org.springframework.integration.jdbc` package has Database schema scripts for several RDMBS vendors.
+For example, the following listing shows the H2 DDL for the metadata table:
+
+====
+[source,sql]
+----
+CREATE TABLE INT_METADATA_STORE  (
+	METADATA_KEY VARCHAR(255) NOT NULL,
+	METADATA_VALUE VARCHAR(4000),
+	REGION VARCHAR(100) NOT NULL,
+	constraint INT_METADATA_STORE_PK primary key (METADATA_KEY, REGION)
+);
+----
+====
+
+You can change the `INT_` prefix to match the target database design requirements.
+You can also configure `JdbcMetadataStore` to use the custom prefix.
+
+The `JdbcMetadataStore` implements `ConcurrentMetadataStore`, letting it be reliably shared across multiple application instances, where only one instance can store or modify a key's value.
+All of these operations are atomic, thanks to transaction guarantees.
+
+Transaction management must use `JdbcMetadataStore`.
+Inbound channel adapters can be supplied with a reference to the `TransactionManager` in the poller configuration.
+Unlike non-transactional `MetadataStore` implementations, with `JdbcMetadataStore`, the entry appears in the target table only after the transaction commits.
+When a rollback occurs, no entries are added to the `INT_METADATA_STORE` table.
+
+Since version 5.0.7, you can configure the `JdbcMetadataStore` with the RDBMS vendor-specific `lockHint` option for lock-based queries on metadata store entries.
+By default, it is `FOR UPDATE` and can be configured with an empty string if the target database does not support row locking functionality.
+Consult with your vendor for particular and possible hints in the `SELECT` expression for locking rows before updates.

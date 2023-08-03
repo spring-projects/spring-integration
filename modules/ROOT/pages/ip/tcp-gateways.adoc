@@ -1,0 +1,83 @@
+[[tcp-gateways]]
+= TCP Gateways
+
+The inbound TCP gateway `TcpInboundGateway` and outbound TCP gateway `TcpOutboundGateway` use a server and client connection factory, respectively.
+Each connection can process a single request or response at a time.
+
+The inbound gateway, after constructing a message with the incoming payload and sending it to the `requestChannel`, waits for a response and sends the payload from the response message by writing it to the connection.
+
+NOTE: For the inbound gateway, you must retain or populate, the `ip_connectionId` header, because it is used to correlate the message to a connection.
+Messages that originate at the gateway automatically have the header set.
+If the reply is constructed as a new message, you need to set the header.
+The header value can be captured from the incoming message.
+
+As with inbound adapters, inbound gateways normally use a `type="server"` connection factory, which listens for incoming connection requests.
+In some cases, you may want to establish the connection in reverse, such that the inbound gateway connects to an external server and then waits for and replies to inbound messages on that connection.
+
+This topology is supported by using `client-mode="true"` on the inbound gateway.
+In this case, the connection factory must be of type `client` and must have `single-use` set to `false`.
+
+Two additional attributes support this mechanism.
+The `retry-interval` specifies (in milliseconds) how often the framework tries to reconnect after a connection failure.
+The `scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
+
+If the gateway is started, you may force the gateway to establish a connection by sending a `<control-bus/>` command: `@adapter_id.retryConnection()` and examine the current state with `@adapter_id.isClientModeConnected()`.
+
+The outbound gateway, after sending a message over the connection, waits for a response, constructs a response message, and puts it on the reply channel.
+Communications over the connections are single-threaded.
+Only one message can be handled at a time.
+If another thread attempts to send a message before the current response has been received, it blocks until any previous requests are complete (or time out).
+If, however, the client connection factory is configured for single-use connections, each new request gets its own connection and is processed immediately.
+The following example configures an inbound TCP gateway:
+
+====
+[source,xml]
+----
+
+<int-ip:tcp-inbound-gateway id="inGateway"
+    request-channel="tcpChannel"
+    reply-channel="replyChannel"
+    connection-factory="cfServer"
+    reply-timeout="10000"/>
+----
+====
+
+If a connection factory configured with the default serializer or deserializer is used, messages is `\r\n` delimited data and the gateway can be used by a simple client such as telnet.
+
+The following example shows an outbound TCP gateway:
+
+====
+[source,xml]
+----
+
+<int-ip:tcp-outbound-gateway id="outGateway"
+    request-channel="tcpChannel"
+    reply-channel="replyChannel"
+    connection-factory="cfClient"
+    request-timeout="10000"
+    remote-timeout="10000"/> <!-- or e.g. remote-timeout-expression="headers['timeout']" -->
+----
+====
+
+The `client-mode` is not currently available with the outbound gateway.
+
+Starting with version 5.2, the outbound gateway can be configured with the property `closeStreamAfterSend`.
+If the connection factory is configured for `single-use` (a new connection for each request/reply) the gateway will close the output stream; this signals EOF to the server.
+This is useful if the server uses the EOF to determine the end of message, rather than some delimiter in the stream, but leaves the connection open in order to receive the reply.
+
+Normally, the calling thread will block in the gateway, waiting for the reply (or a timeout).
+Starting with version 5.3, you can set the `async` property on the gateway and the sending thread is released to do other work.
+The reply (or error) will be sent on the receiving thread.
+This only applies when using the `TcpNetClientConnectionFactory`, it is ignored when using NIO because there is a race condition whereby a socket error that occurs after the reply is received can be passed to the gateway before the reply.
+
+IMPORTANT: When using a shared connection (`singleUse=false`), a new request, while another is in process, will be blocked until the current reply is received.
+Consider using the `CachingClientConnectionFactory` if you wish to support concurrent requests on a pool of long-lived connections.
+
+Starting with version 5.4, the inbound can be configured with an `unsolicitedMessageChannel`.
+Unsolicited inbound messages will be sent to this channel, as well as late replies (where the client timed out).
+To support this on the server side, you can now register multiple `TcpSender` s with the connection factory.
+Gateways and Channel Adapters automatically register themselves.
+When sending unsolicited messages from the server, you must add the appropriate `IpHeaders.CONNECTION_ID` to the messages sent.
+
+Also see <<ip-annotation>> and <<ip-dsl>>.
+

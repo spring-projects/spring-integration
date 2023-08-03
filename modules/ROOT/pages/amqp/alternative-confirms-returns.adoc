@@ -1,0 +1,33 @@
+[[alternative-confirms-returns]]
+= Alternative Mechanism for Publisher Confirms and Returns
+
+When the connection factory is configured for publisher confirms and returns, the sections above discuss the configuration of message channels to receive the confirms and returns asynchronously.
+Starting with version 5.4, there is an additional mechanism which is generally easier to use.
+
+In this case, do not configure a `confirm-correlation-expression` or the confirm and return channels.
+Instead, add a `CorrelationData` instance in the `AmqpHeaders.PUBLISH_CONFIRM_CORRELATION` header; you can then wait for the result(s) later, by checking the state of the future in the `CorrelationData` instances for which you have sent messages.
+The `returnedMessage` field will always be populated (if a message is returned) before the future is completed.
+
+====
+[source, java]
+----
+CorrelationData corr = new CorrelationData("someId"); // <--- Unique "id" is required for returns
+someFlow.getInputChannel().send(MessageBuilder.withPayload("test")
+        .setHeader("rk", "someKeyThatWontRoute")
+        .setHeader(AmqpHeaders.PUBLISH_CONFIRM_CORRELATION, corr)
+        .build());
+...
+try {
+    Confirm Confirm = corr.getFuture().get(10, TimeUnit.SECONDS);
+    Message returned = corr.getReturnedMessage();
+    if (returned !- null) {
+        // message could not be routed
+    }
+}
+catch { ... }
+----
+====
+
+To improve performance, you may wish to send multiple messages and wait for the confirmations later, rather than one-at-a-time.
+The returned message is the raw message after conversion; you can sub-class a `CorrelationData` with whatever additional data you need.
+

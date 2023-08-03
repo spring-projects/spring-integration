@@ -1,0 +1,48 @@
+[[java-dsl-endpoints]]
+= DSL and Endpoint Configuration
+
+All `IntegrationFlowBuilder` EIP methods have a variant that applies the lambda parameter to provide options for `AbstractEndpoint` instances: `SmartLifecycle`, `PollerMetadata`, `request-handler-advice-chain`, and others.
+Each of them has generic arguments, so it lets you configure an endpoint and even its `MessageHandler` in the context, as the following example shows:
+
+====
+[source,java]
+----
+@Bean
+public IntegrationFlow flow2() {
+    return IntegrationFlow.from(this.inputChannel)
+                .transformWith(t -> t
+                              .transformer(new PayloadSerializingTransformer())
+                              .autoStartup(false)
+                              .id("payloadSerializingTransformer"))
+                .transformWith(t -> t
+                              .transformer((Integer p) -> p * 2)
+                              .advice(expressionAdvice()))
+                .get();
+}
+----
+====
+
+In addition, the `EndpointSpec` provides an `id()` method to let you register an endpoint bean with a given bean name, rather than a generated one.
+
+If the `MessageHandler` is referenced as a bean, then any existing `adviceChain` configuration will be overridden if the `.advice()` method is present in the DSL definition:
+
+[source,java]
+----
+@Bean
+public TcpOutboundGateway tcpOut() {
+    TcpOutboundGateway gateway = new TcpOutboundGateway();
+    gateway.setConnectionFactory(cf());
+    gateway.setAdviceChain(Collections.singletonList(fooAdvice()));
+    return gateway;
+}
+
+@Bean
+public IntegrationFlow clientTcpFlow() {
+    return f -> f
+        .handle(tcpOut(), e -> e.advice(testAdvice()))
+        .transform(Transformers.objectToString());
+}
+----
+
+They are not merged, only the `testAdvice()` bean is used in this case.
+

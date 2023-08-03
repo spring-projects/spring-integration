@@ -1,0 +1,87 @@
+[[http-samples]]
+= HTTP Samples
+
+This section wraps up our coverage of Spring Integration's HTTP support with a few examples.
+
+[[multipart-rest-inbound]]
+== Multipart HTTP Request -- RestTemplate (Client) and Http Inbound Gateway (Server)
+
+This example shows how simple it is to send a multipart HTTP request with Spring's `RestTemplate` and receive it with a Spring Integration HTTP inbound adapter.
+We create a `MultiValueMap` and populate it with multipart data.
+The `RestTemplate` takes care of the rest (no pun intended) by converting it to a `MultipartHttpServletRequest`.
+This particular client sends a multipart HTTP Request that contains the name of the company and an image file (the company logo).
+The following listing shows the example:
+
+====
+[source,java]
+----
+RestTemplate template = new RestTemplate();
+String uri = "http://localhost:8080/multipart-http/inboundAdapter.htm";
+Resource s2logo =
+   new ClassPathResource("org/springframework/samples/multipart/spring09_logo.png");
+MultiValueMap map = new LinkedMultiValueMap();
+map.add("company", "SpringSource");
+map.add("company-logo", s2logo);
+HttpHeaders headers = new HttpHeaders();
+headers.setContentType(new MediaType("multipart", "form-data"));
+HttpEntity request = new HttpEntity(map, headers);
+ResponseEntity<?> httpResponse = template.exchange(uri, HttpMethod.POST, request, null);
+----
+====
+
+That is all we need for the client.
+
+On the server side, we have the following configuration:
+
+====
+[source,xml]
+----
+<int-http:inbound-channel-adapter id="httpInboundAdapter"
+    channel="receiveChannel"
+    path="/inboundAdapter.htm"
+    supported-methods="GET, POST"/>
+
+<int:channel id="receiveChannel"/>
+
+<int:service-activator input-channel="receiveChannel">
+    <bean class="org.springframework.integration.samples.multipart.MultipartReceiver"/>
+</int:service-activator>
+
+<bean id="multipartResolver"
+    class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+----
+====
+
+The 'httpInboundAdapter' receives the request and converts it to a `Message` with a payload that is a `LinkedMultiValueMap`.
+We then parse that in the 'multipartReceiver' service-activator, as the following example shows:
+
+====
+[source,java]
+----
+public void receive(LinkedMultiValueMap<String, Object> multipartRequest){
+    System.out.println("### Successfully received multipart request ###");
+    for (String elementName : multipartRequest.keySet()) {
+        if (elementName.equals("company")){
+            System.out.println("\t" + elementName + " - " +
+                ((String[]) multipartRequest.getFirst("company"))[0]);
+        }
+        else if (elementName.equals("company-logo")){
+            System.out.println("\t" + elementName + " - as UploadedMultipartFile: " +
+                ((UploadedMultipartFile) multipartRequest
+                    .getFirst("company-logo")).getOriginalFilename());
+        }
+    }
+}
+----
+====
+
+You should see the following output:
+
+====
+[source,xml]
+----
+### Successfully received multipart request ###
+   company - SpringSource
+   company-logo - as UploadedMultipartFile: spring09_logo.png
+----
+====

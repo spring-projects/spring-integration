@@ -1,0 +1,97 @@
+[[ip-annotation]]
+= Annotation-Based Configuration
+
+The following example from the samples repository shows some of the configuration options available when you use  annotations instead of XML:
+
+====
+[source, java]
+----
+@EnableIntegration <1>
+@IntegrationComponentScan <2>
+@Configuration
+public static class Config {
+
+    @Value(${some.port})
+    private int port;
+
+    @MessagingGateway(defaultRequestChannel="toTcp") <3>
+    public interface Gateway {
+
+        String viaTcp(String in);
+
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel="toTcp") <4>
+    public MessageHandler tcpOutGate(AbstractClientConnectionFactory connectionFactory) {
+        TcpOutboundGateway gate = new TcpOutboundGateway();
+        gate.setConnectionFactory(connectionFactory);
+        gate.setOutputChannelName("resultToString");
+        return gate;
+    }
+
+    @Bean <5>
+    public TcpInboundGateway tcpInGate(AbstractServerConnectionFactory connectionFactory)  {
+        TcpInboundGateway inGate = new TcpInboundGateway();
+        inGate.setConnectionFactory(connectionFactory);
+        inGate.setRequestChannel(fromTcp());
+        return inGate;
+    }
+
+    @Bean
+    public MessageChannel fromTcp() {
+        return new DirectChannel();
+    }
+
+    @MessageEndpoint
+    public static class Echo { <6>
+
+        @Transformer(inputChannel="fromTcp", outputChannel="toEcho")
+        public String convert(byte[] bytes) {
+            return new String(bytes);
+        }
+
+        @ServiceActivator(inputChannel="toEcho")
+        public String upCase(String in) {
+            return in.toUpperCase();
+        }
+
+        @Transformer(inputChannel="resultToString")
+        public String convertResult(byte[] bytes) {
+            return new String(bytes);
+        }
+
+    }
+
+    @Bean
+    public AbstractClientConnectionFactory clientCF() { <7>
+        return new TcpNetClientConnectionFactory("localhost", this.port);
+    }
+
+    @Bean
+    public AbstractServerConnectionFactory serverCF() { <8>
+        return new TcpNetServerConnectionFactory(this.port);
+    }
+
+}
+----
+
+<1> Standard Spring Integration annotation enabling the infrastructure for an integration application.
+
+<2> Searches for `@MessagingGateway` interfaces.
+
+<3> The entry point to the client-side of the flow.
+The calling application can use `@Autowired` for this `Gateway` bean and invoke its method.
+
+<4> Outbound endpoints consist of a `MessageHandler` and a consumer that wraps it.
+In this scenario, the `@ServiceActivator` configures the endpoint, according to the channel type.
+
+<5> Inbound endpoints (in the TCP/UDP module) are all message-driven and so only need to be declared as simple `@Bean` instances.
+
+<6> This class provides a number of POJO methods for use in this sample flow (a `@Transformer` and `@ServiceActivator` on the server side and a `@Transformer` on the client side).
+
+<7> The client-side connection factory.
+
+<8> The server-side connection factory.
+====
+

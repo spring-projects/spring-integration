@@ -1,0 +1,13 @@
+[[amqp-user-id]]
+= Outbound User ID
+
+Spring AMQP version 1.6 introduced a mechanism to allow the specification of a default user ID for outbound messages.
+It has always been possible to set the `AmqpHeaders.USER_ID` header, which now takes precedence over the default.
+This might be useful to message recipients.
+For inbound messages, if the message publisher sets the property, it is made available in the `AmqpHeaders.RECEIVED_USER_ID` header.
+Note that RabbitMQ https://www.rabbitmq.com/validated-user-id.html[validates that the user ID is the actual user ID for the connection or that the connection allows impersonation].
+
+To configure a default user ID for outbound messages, configure it on a `RabbitTemplate` and configure the outbound adapter or gateway to use that template.
+Similarly, to set the user ID property on replies, inject an appropriately configured template into the inbound gateway.
+See the https://docs.spring.io/spring-amqp/reference/html/_reference.html#template-user-id[Spring AMQP documentation] for more information.
+

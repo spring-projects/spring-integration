@@ -1,0 +1,74 @@
+[[channel-interceptors]]
+= Channel Interceptors
+
+One of the advantages of a messaging architecture is the ability to provide common behavior and capture meaningful information about the messages passing through the system in a non-invasive way.
+Since the `Message` instances are sent to and received from `MessageChannel` instances, those channels provide an opportunity for intercepting the send and receive operations.
+The `ChannelInterceptor` strategy interface, shown in the following listing, provides methods for each of those operations:
+
+====
+[source,java]
+----
+public interface ChannelInterceptor {
+
+    Message<?> preSend(Message<?> message, MessageChannel channel);
+
+    void postSend(Message<?> message, MessageChannel channel, boolean sent);
+
+    void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex);
+
+    boolean preReceive(MessageChannel channel);
+
+    Message<?> postReceive(Message<?> message, MessageChannel channel);
+
+    void afterReceiveCompletion(Message<?> message, MessageChannel channel, Exception ex);
+}
+----
+====
+
+After implementing the interface, registering the interceptor with a channel is just a matter of making the following call:
+
+====
+[source,java]
+----
+channel.addInterceptor(someChannelInterceptor);
+----
+====
+
+The methods that return a `Message` instance can be used for transforming the `Message` or can return 'null' to prevent further processing (of course, any of the methods can throw a `RuntimeException`).
+Also, the `preReceive` method can return `false` to prevent the receive operation from proceeding.
+
+NOTE: Keep in mind that `receive()` calls are only relevant for `PollableChannels`.
+In fact, the `SubscribableChannel` interface does not even define a `receive()` method.
+The reason for this is that when a `Message` is sent to a `SubscribableChannel`, it is sent directly to zero or more subscribers, depending on the type of channel (for example,
+a `PublishSubscribeChannel` sends to all of its subscribers).
+Therefore, the `preReceive(...)`, `postReceive(...)`, and `afterReceiveCompletion(...)` interceptor methods are invoked only when the interceptor is applied to a `PollableChannel`.
+
+Spring Integration also provides an implementation of the https://www.enterpriseintegrationpatterns.com/WireTap.html[Wire Tap] pattern.
+It is a simple interceptor that sends the `Message` to another channel without otherwise altering the existing flow.
+It can be very useful for debugging and monitoring.
+An example is shown in <<channel-wiretap>>.
+
+Because it is rarely necessary to implement all of the interceptor methods, the interface provides no-op methods (those returning `void` method have no code, the `Message`-returning methods return the `Message` as-is, and the `boolean` method returns `true`).
+
+TIP: The order of invocation for the interceptor methods depends on the type of channel.
+As described earlier, the queue-based channels are the only ones where the `receive()` method is intercepted in the first place.
+Additionally, the relationship between send and receive interception depends on the timing of the separate sender and receiver threads.
+For example, if a receiver is already blocked while waiting for a message, the order could be as follows: `preSend`, `preReceive`, `postReceive`, `postSend`.
+However, if a receiver polls after the sender has placed a message on the channel and has already returned, the order would be as follows: `preSend`, `postSend` (some-time-elapses), `preReceive`, `postReceive`.
+The time that elapses in such a case depends on a number of factors and is therefore generally unpredictable (in fact, the receive may never happen).
+The type of queue also plays a role (for example, rendezvous versus priority).
+In short, you cannot rely on the order beyond the fact that `preSend` precedes `postSend` and `preReceive` precedes `postReceive`.
+
+Starting with Spring Framework 4.1 and Spring Integration 4.1, the `ChannelInterceptor` provides new methods: `afterSendCompletion()` and `afterReceiveCompletion()`.
+They are invoked after `send()' and 'receive()` calls, regardless of any exception that is raised, which allow for resource cleanup.
+Note that the channel invokes these methods on the `ChannelInterceptor` list in the reverse order of the initial `preSend()` and `preReceive()` calls.
+
+Starting with version 5.1, global channel interceptors now apply to dynamically registered channels - such as through beans that are initialized by using `beanFactory.initializeBean()` or `IntegrationFlowContext` when using the Java DSL.
+Previously, interceptors were not applied when beans were created after the application context was refreshed.
+
+Also, starting with version 5.1, `ChannelInterceptor.postReceive()` is no longer called when no message is received; it is no longer necessary to check for a `null` `Message<?>`.
+Previously, the method was called.
+If you have an interceptor that relies on the previous behavior, implement `afterReceiveCompleted()` instead, since that method is invoked, regardless of whether a message is received or not.
+
+NOTE: Starting with version 5.2, the `ChannelInterceptorAware` is deprecated in favor of `InterceptableChannel` from the Spring Messaging module, which it extends now for backward compatibility.
+

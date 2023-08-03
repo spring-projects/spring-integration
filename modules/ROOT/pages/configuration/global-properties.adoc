@@ -1,0 +1,75 @@
+[[global-properties]]
+= Global Properties
+
+Certain global framework properties can be overridden by providing a properties file on the classpath.
+
+The default properties can be found in `org.springframework.integration.context.IntegrationProperties` class.
+The following listing shows the default values:
+
+====
+[source]
+----
+spring.integration.channels.autoCreate=true <1>
+spring.integration.channels.maxUnicastSubscribers=0x7fffffff <2>
+spring.integration.channels.maxBroadcastSubscribers=0x7fffffff <3>
+spring.integration.taskScheduler.poolSize=10 <4>
+spring.integration.messagingTemplate.throwExceptionOnLateReply=false <5>
+spring.integration.readOnly.headers= <6>
+spring.integration.endpoints.noAutoStartup= <7>
+spring.integration.channels.error.requireSubscribers=true <8>
+spring.integration.channels.error.ignoreFailures=true <9>
+----
+
+<1> When true, `input-channel` instances are automatically declared as `DirectChannel` instances when not explicitly found in the application context.
+
+<2> Sets the default number of subscribers allowed on, for example, a `DirectChannel`.
+It can be used to avoid inadvertently subscribing multiple endpoints to the same channel.
+You can override it on individual channels by setting the `max-subscribers` attribute.
+
+<3> This property provides the default number of subscribers allowed on, for example, a `PublishSubscribeChannel`.
+It can be used to avoid inadvertently subscribing more than the expected number of endpoints to the same channel.
+You can override it on individual channels by setting the `max-subscribers` attribute.
+
+<4> The number of threads available in the default `taskScheduler` bean.
+See <<namespace-taskscheduler>>.
+
+<5> When `true`, messages that arrive at a gateway reply channel throw an exception when the gateway is not expecting a reply (because the sending thread has timed out or already received a reply).
+
+<6> A comma-separated list of message header names that should not be populated into `Message` instances during a header copying operation.
+The list is used by the `DefaultMessageBuilderFactory` bean and propagated to the `IntegrationMessageHeaderAccessor` instances (see <<./message.adoc#message-header-accessor,`MessageHeaderAccessor` API>>) used to build messages via `MessageBuilder` (see <<./message.adoc#message-builder,The `MessageBuilder` Helper Class>>).
+By default, only `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are not copied during message building.
+Since version 4.3.2.
+
+<7> A comma-separated list of `AbstractEndpoint` bean names patterns (`xxx*`, `*xxx`, `*xxx*` or `xxx*yyy`) that should not be started automatically during application startup.
+You can manually start these endpoints later by their bean name through a `Control Bus` (see <<./control-bus.adoc#control-bus,Control Bus>>), by their role with the `SmartLifecycleRoleController` (see <<./endpoint.adoc#endpoint-roles,Endpoint Roles>>), or by `Lifecycle` bean injection.
+You can explicitly override the effect of this global property by specifying `auto-startup` XML annotation or the `autoStartup` annotation attribute or by calling `AbstractEndpoint.setAutoStartup()` in the bean definition.
+Since version 4.3.12.
+
+<8> A boolean flag to indicate that default global `errorChannel` must be configured with the `requireSubscribers` option.
+Since version 5.4.3.
+See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
+
+<9> A boolean flag to indicate that default global `errorChannel` must ignore dispatching errors and pass the message to the next handler.
+Since version 5.5.
+====
+
+These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath or an `IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME` bean for the `org.springframework.integration.context.IntegrationProperties` instance.
+You need not provide all the properties -- only those that you want to override.
+
+Starting with version 5.1, all the merged global properties are printed in the logs after application context startup when a `DEBUG` logic level is turned on for the `org.springframework.integration` category.
+The output looks like this:
+====
+[source]
+----
+Spring Integration global properties:
+
+spring.integration.endpoints.noAutoStartup=fooService*
+spring.integration.taskScheduler.poolSize=20
+spring.integration.channels.maxUnicastSubscribers=0x7fffffff
+spring.integration.channels.autoCreate=true
+spring.integration.channels.maxBroadcastSubscribers=0x7fffffff
+spring.integration.readOnly.headers=
+spring.integration.messagingTemplate.throwExceptionOnLateReply=true
+----
+====
+

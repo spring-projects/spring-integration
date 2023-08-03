@@ -1,0 +1,405 @@
+[[sftp-outbound-gateway]]
+= SFTP Outbound Gateway
+
+The SFTP outbound gateway provides a limited set of commands that let you interact with a remote SFTP server:
+
+* `ls` (list files)
+* `nlst` (list file names)
+* `get` (retrieve a file)
+* `mget` (retrieve multiple files)
+* `rm` (remove file(s))
+* `mv` (move and rename file)
+* `put` (send a file)
+* `mput` (send multiple files)
+
+[[using-the-ls-command]]
+== Using the `ls` Command
+
+`ls` lists remote files and supports the following options:
+
+* `-1`: Retrieve a list of filenames.
+The default is to retrieve a list of `FileInfo` objects
+* `-a`: Include all files (including those starting with '.')
+* `-f`: Do not sort the list
+* `-dirs`: Include directories (excluded by default)
+* `-links`: Include symbolic links (excluded by default)
+* `-R`: List the remote directory recursively
+
+In addition, filename filtering is provided in the same manner as the `inbound-channel-adapter`.
+
+The message payload resulting from an `ls` operation is a list of file names or a list of `FileInfo` objects (depending on whether you usr the `-1` switch).
+These objects provide information such as modified time, permissions, and others.
+
+The remote directory that the `ls` command acted on is provided in the `file_remoteDirectory` header.
+
+When using the recursive option (`-R`), the `fileName` includes any subdirectory elements and represents the relative path to the file (relative to the remote directory).
+If you use the `-dirs` option, each recursive directory is also returned as an element in the list.
+In this case, we recommend that you not use the `-1` option, because you would not be able to distinguish files from directories, which you can do when you use `FileInfo` objects.
+
+If remote path to list starts with a `/` symbol, it is treated by SFTP as an absolute path; without - as a relative path in the current user home.
+
+[[using-nlst-command]]
+== Using `nlst` Command
+
+Version 5 introduced support for the `nlst` command.
+
+`nlst` lists remote file names and supports only one option:
+
+* `-f`: Do not sort the list
+
+The message payload resulting from an `nlst` operation is a list of file names.
+
+The `file_remoteDirectory` header holds the remote directory on which the `nlst` command acted.
+
+The SFTP protocol does not provide the ability to list names.
+This command is the equivalent of the `ls` command with the `-1` option and is added here for convenience.
+
+[[using-the-get-command]]
+== Using the `get` Command
+
+`get` retrieves a remote file and supports the following options:
+
+* `-P`: Preserve the timestamp of the remote file.
+* `-stream`: Retrieve the remote file as a stream.
+* `-D`: Delete the remote file after successful transfer.
+The remote file is not deleted if the transfer is ignored, because the `FileExistsMode` is `IGNORE` and the local file already exists.
+
+The `file_remoteDirectory` header holds the remote directory, and the `file_remoteFile` header holds the filename.
+
+The message payload resulting from a `get` operation is a `File` object representing the retrieved file.
+If you use the `-stream` option, the payload is an `InputStream` rather than a `File`.
+For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,file splitter>> or a <<./transformer.adoc#stream-transformer,stream transformer>>.
+When consuming remote files as streams, you are responsible for closing the `Session` after the stream is consumed.
+For convenience, the `Session` is provided in the `closeableResource` header, and `IntegrationMessageHeaderAccessor` offers convenience method:
+
+====
+[source, java]
+----
+Closeable closeable = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
+if (closeable != null) {
+    closeable.close();
+}
+----
+====
+
+Framework components, such as the <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>>, automatically close the session after the data is transferred.
+
+The following example shows how to consume a file as a stream:
+
+====
+[source, xml]
+----
+<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+                            request-channel="inboundGetStream"
+                            command="get"
+                            command-options="-stream"
+                            expression="payload"
+                            remote-directory="ftpTarget"
+                            reply-channel="stream" />
+
+<int-file:splitter input-channel="stream" output-channel="lines" />
+----
+====
+
+NOTE: If you consume the input stream in a custom component, you must close the `Session`.
+You can either do that in your custom code or route a copy of the message to a `service-activator` and use SpEL, as the following example shows:
+
+====
+[source, xml]
+----
+<int:service-activator input-channel="closeSession"
+    expression="headers['closeableResource'].close()" />
+----
+====
+
+[[using-the-mget-command]]
+== Using the `mget` Command
+
+`mget` retrieves multiple remote files based on a pattern and supports the following options:
+
+* `-P`: Preserve the timestamps of the remote files.
+
+* `-R`: Retrieve the entire directory tree recursively.
+
+* `-x`: Throw an exception if no files match the pattern (otherwise, an empty list is returned).
+
+* `-D`: Delete each remote file after successful transfer.
+If the transfer is ignored, the remote file is not deleted, because the `FileExistsMode` is `IGNORE` and the local file already exists.
+
+The message payload resulting from an `mget` operation is a `List<File>` object (that is, a `List` of `File` objects, each representing a retrieved file).
+
+IMPORTANT: Starting with version 5.0, if the `FileExistsMode` is `IGNORE`, the payload of the output message no longer contain files that were not fetched due to the file already existing.
+Previously, the array contained all files, including those that already existed.
+
+The expression you use determine the remote path should produce a result that ends with `\*` for example `myfiles/*` fetches the complete tree under `myfiles`.
+
+Starting with version 5.0, you can use a recursive `MGET`, combined with the `FileExistsMode.REPLACE_IF_MODIFIED` mode, to periodically synchronize an entire remote directory tree locally.
+This mode sets the local file's last modified timestamp to the remote file's timestamp, regardless of the `-P` (preserve timestamp) option.
+
+.Notes for when using recursion (`-R`)
+[IMPORTANT]
+=====
+
+The pattern is ignored and `*` is assumed.
+By default, the entire remote tree is retrieved.
+However, you can filter files in the tree by providing a `FileListFilter`.
+You can also filter directories in the tree this way.
+A `FileListFilter` can be provided by reference or by `filename-pattern` or `filename-regex` attributes.
+For example, `filename-regex="(subDir|.*1.txt)"` retrieves all files ending with `1.txt` in the remote directory and the subdirectory `subDir`.
+However, we describe an alternative available after this note.
+
+If you filter a subdirectory, no additional traversal of that subdirectory is performed.
+
+The `-dirs` option is not allowed (the recursive `mget` uses the recursive `ls` to obtain the directory tree and the directories themselves cannot be included in the list).
+
+Typically, you would use the `#remoteDirectory` variable in the `local-directory-expression` so that the remote directory structure is retained locally.
+=====
+
+The persistent file list filters now have a boolean property `forRecursion`.
+Setting this property to `true`, also sets `alwaysAcceptDirectories`, which means that the recursive operation on the outbound gateways (`ls` and `mget`) will now always traverse the full directory tree each time.
+This is to solve a problem where changes deep in the directory tree were not detected.
+In addition, `forRecursion=true` causes the full path to files to be used as the metadata store keys; this solves a problem where the filter did not work properly if a file with the same name appears multiple times in different directories.
+IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
+For this reason, the property is `false` by default; this may change in a future release.
+
+Starting with version 5.0, you can configure the `SftpSimplePatternFileListFilter` and `SftpRegexPatternFileListFilter` to always pass directories by setting the `alwaysAcceptDirectorties` to `true`.
+Doing so allows recursion for a simple pattern, as the following examples show:
+
+====
+[source, xml]
+----
+<bean id="starDotTxtFilter"
+            class="org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter">
+    <constructor-arg value="*.txt" />
+    <property name="alwaysAcceptDirectories" value="true" />
+</bean>
+
+<bean id="dotStarDotTxtFilter"
+            class="org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter">
+    <constructor-arg value="^.*\.txt$" />
+    <property name="alwaysAcceptDirectories" value="true" />
+</bean>
+----
+====
+
+You can provide one of these filters by using the `filter` property on the gateway.
+
+
+See also <<sftp-partial>>.
+
+[[sftp-put-command]]
+== Using the `put` Command
+
+`put` sends a file to the remote server.
+The payload of the message can be a `java.io.File`, a `byte[]`, or a `String`.
+A `remote-filename-generator` (or expression) is used to name the remote file.
+Other available attributes include `remote-directory`, `temporary-remote-directory` and their `*-expression` equivalents: `use-temporary-file-name` and `auto-create-directory`.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema documentation] for more information.
+
+The message payload resulting from a `put` operation is a `String` that contains the full path of the file on the server after transfer.
+
+Version 4.3 introduced the `chmod` attribute, which changes the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+When configuring the adapter using java, you can use `setChmod(0600)`.
+
+[[using-the-mput-command]]
+== Using the `mput` Command
+
+`mput` sends multiple files to the server and supports the following option:
+
+* `-R`: Recursive -- send all files (possibly filtered) in the directory and subdirectories
+
+The message payload must be a `java.io.File` (or `String`) that represents a local directory.
+Since version 5.1, a collection of `File` or `String` is also supported.
+
+The same attributes as the <<sftp-put-command,`put` command>> are supported.
+In addition, you can filter files in the local directory with one of `mput-pattern`, `mput-regex`, `mput-filter`, or `mput-filter-expression`.
+The filter works with recursion, as long as the subdirectories themselves pass the filter.
+Subdirectories that do not pass the filter are not recursed.
+
+The message payload resulting from an `mput` operation is a `List<String>` object (that is, a `List` of remote file paths resulting from the transfer).
+
+See also <<sftp-partial>>.
+
+Version 4.3 introduced the `chmod` attribute, which lets you change the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
+
+[[using-the-rm-command]]
+== Using the `rm` Command
+
+The `rm` command has no options.
+
+If the remove operation was successful, the resulting message payload is `Boolean.TRUE`.
+Otherwise, the message payload is `Boolean.FALSE`.
+The `file_remoteDirectory` header holds the remote directory, and the `file_remoteFile` header holds the file name.
+
+[[using-the-mv-command]]
+== Using the `mv` Command
+
+The `mv` command has no options.
+
+The `expression` attribute defines the "`from`" path, and the `rename-expression` attribute defines the "`to`" path.
+By default, the `rename-expression` is `headers['file_renameTo']`.
+This expression must not evaluate to null or an empty `String`.
+If necessary, any remote directories needed are created.
+The payload of the result message is `Boolean.TRUE`.
+The `file_remoteDirectory` header holds the original remote directory, and the `file_remoteFile` header holds the filename.
+The `file_renameTo` header holds the new path.
+
+Starting with version 5.5.6, the `remoteDirectoryExpression` can be used in the `mv` command for convenience.
+If the "`from`" file is not a full file path, the result of `remoteDirectoryExpression` is used as the remote directory.
+The same applies for the "`to`" file, for example, if the task is just to rename a remote file in some directory.
+
+[[additional-command-information]]
+== Additional Command Information
+
+The `get` and `mget` commands support the `local-filename-generator-expression` attribute.
+It defines a SpEL expression to generate the names of local files during the transfer.
+The root object of the evaluation context is the request message.
+The `remoteFileName` variable is also available.
+It is particularly useful for `mget` (for example: `local-filename-generator-expression="#remoteFileName.toUpperCase() + headers.foo"`).
+
+The `get` and `mget` commands support the `local-directory-expression` attribute.
+It defines a SpEL expression to generate the names of local directories during the transfer.
+The root object of the evaluation context is the request message.
+The `remoteDirectory` variable is also available.
+It is particularly useful for mget (for example: `local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.myheader"`).
+This attribute is mutually exclusive with the `local-directory` attribute.
+
+For all commands, the 'expression' property of the gateway holds the path on which the command acts.
+For the `mget` command, the expression might evaluate to `\*`, meaning to retrieve all files, `somedirectory/*`, and other values that end with `*`.
+
+The following example shows a gateway configured for an `ls` command:
+
+====
+[source,xml]
+----
+<int-ftp:outbound-gateway id="gateway1"
+        session-factory="ftpSessionFactory"
+        request-channel="inbound1"
+        command="ls"
+        command-options="-1"
+        expression="payload"
+        reply-channel="toSplitter"/>
+----
+====
+
+The payload of the message sent to the `toSplitter` channel is a list of `String` objects, each of which contains the name of a file.
+If you omitted `command-options="-1"`, the payload would be a list of `FileInfo` objects.
+You can provide options as a space-delimited list (for example, `command-options="-1 -dirs -links"`).
+
+Starting with version 4.2, the `GET`, `MGET`, `PUT`, and `MPUT` commands support a `FileExistsMode` property (`mode` when using the namespace support).
+This affects the behavior when the local file exists (`GET` and `MGET`) or the remote file exists (`PUT` and `MPUT`).
+The supported modes are `REPLACE`, `APPEND`, `FAIL`, and `IGNORE`.
+For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE`.
+For `GET` and `MGET` operations, the default is `FAIL`.
+
+[[configuring-with-java-configuration]]
+== Configuring with Java Configuration
+
+The following Spring Boot application shows an example of how to configure the outbound gateway with Java:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SftpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "sftpChannel")
+    public MessageHandler handler() {
+        return new SftpOutboundGateway(ftpSessionFactory(), "ls", "'my_remote_dir/'");
+    }
+
+}
+----
+====
+
+[[configuring-with-the-java-dsl]]
+== Configuring with the Java DSL
+
+The following Spring Boot application shows an example of how to configure the outbound gateway with the Java DSL:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SftpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public SessionFactory<SftpClient.DirEntry> sftpSessionFactory() {
+        DefaultSftpSessionFactory sf = new DefaultSftpSessionFactory();
+        sf.setHost("localhost");
+        sf.setPort(port);
+        sf.setUsername("foo");
+        sf.setPassword("foo");
+        factory.setTestSession(true);
+        return new CachingSessionFactory<>(sf);
+    }
+
+    @Bean
+    public QueueChannelSpec remoteFileOutputChannel() {
+        return MessageChannels.queue();
+    }
+
+    @Bean
+    public IntegrationFlow sftpMGetFlow() {
+        return IntegrationFlow.from("sftpMgetInputChannel")
+            .handle(Sftp.outboundGateway(sftpSessionFactory(),
+                            AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
+                    .options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
+                    .regexFileNameFilter("(subSftpSource|.*1.txt)")
+                    .localDirectoryExpression("'myDir/' + #remoteDirectory")
+                    .localFilenameExpression("#remoteFileName.replaceFirst('sftpSource', 'localTarget')"))
+            .channel("remoteFileOutputChannel")
+            .get();
+    }
+
+}
+----
+====
+
+[[sftp-partial]]
+== Outbound Gateway Partial Success (`mget` and `mput`)
+
+When performing operations on multiple files (by using `mget` and `mput`) an exception can occur some time after one or more files have been transferred.
+In this case (starting with version 4.2), a `PartialSuccessException` is thrown.
+As well as the usual `MessagingException` properties (`failedMessage` and `cause`), this exception has two additional properties:
+
+* `partialResults`: The successful transfer results.
+* `derivedInput`: The list of files generated from the request message (such as local files to transfer for an `mput`).
+
+These attributes let you determine which files were successfully transferred and which were not.
+
+In the case of a recursive `mput`, the `PartialSuccessException` may have nested `PartialSuccessException` instances.
+
+Consider the following directory structure:
+
+====
+[source]
+----
+root/
+|- file1.txt
+|- subdir/
+   | - file2.txt
+   | - file3.txt
+|- zoo.txt
+----
+====
+
+If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by the gateway has `derivedInput` of `file1.txt`, `subdir`, and `zoo.txt` and `partialResults` of `file1.txt`.
+Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.txt` and `file3.txt` and `partialResults` of `file2.txt`.
+

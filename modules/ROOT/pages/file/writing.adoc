@@ -1,0 +1,326 @@
+[[file-writing]]
+= Writing files
+
+To write messages to the file system, you can use a https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html[`FileWritingMessageHandler`].
+This class can deal with the following payload types:
+
+* `File`
+* `String`
+* byte array
+* `InputStream` (since _version 4.2_)
+
+For a String payload, you can configure the encoding and the charset.
+
+To make things easier, you can configure the `FileWritingMessageHandler` as part of an outbound channel adapter or outbound gateway by using the XML namespace.
+
+Starting with version 4.3, you can specify the buffer size to use when writing files.
+
+Starting with version 5.1, you can provide a `BiConsumer<File, Message<?>>` `newFileCallback` which is triggered if you use `FileExistsMode.APPEND` or `FileExistsMode.APPEND_NO_FLUSH` and a new file has to be created.
+This callback receives a newly created file and the message which triggered it.
+This callback could be used to write a CSV header defined in the message header, for an example.
+
+[[file-writing-file-names]]
+== Generating File Names
+
+In its simplest form, the `FileWritingMessageHandler` requires only a destination directory for writing the files.
+The name of the file to be written is determined by the handler's https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html[`FileNameGenerator`].
+The https://docs.spring.io/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html[default implementation] looks for a message header whose key matches the constant defined as https://docs.spring.io/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME[`FileHeaders.FILENAME`].
+
+Alternatively, you can specify an expression to be evaluated against the message to generate a file name -- for example, `headers['myCustomHeader'] + '.something'`.
+The expression must evaluate to a `String`.
+For convenience, the `DefaultFileNameGenerator` also provides the `setHeaderName` method, letting you explicitly specify the message header whose value is to be used as the filename.
+
+Once set up, the `DefaultFileNameGenerator` employs the following resolution steps to determine the filename for a given message payload:
+
+. Evaluate the expression against the message and, if the result is a non-empty `String`, use it as the filename.
+. Otherwise, if the payload is a `java.io.File`, use the `File` object's filename.
+. Otherwise, use the message ID appended with .`msg` as the filename.
+
+When you use the XML namespace support, both the file outbound channel adapter and the file outbound gateway support the following mutually exclusive configuration attributes:
+
+* `filename-generator` (a reference to a `FileNameGenerator` implementation)
+* `filename-generator-expression` (an expression that evaluates to a `String`)
+
+While writing files, a temporary file suffix is used (its default is `.writing`).
+It is appended to the filename while the file is being written.
+To customize the suffix, you can set the `temporary-file-suffix` attribute on both the file outbound channel adapter and the file outbound gateway.
+
+NOTE: When using the `APPEND` file `mode`, the `temporary-file-suffix` attribute is ignored, since the data is appended to the file directly.
+
+Starting with ,version 4.2.5, the generated file name (as a result of `filename-generator` or `filename-generator-expression` evaluation) can represent a child path together with the target file name.
+It is used as a second constructor argument for `File(File parent, String child)` as before.
+However, in the past we did not create (`mkdirs()`) directories for the child path, assuming only the file name.
+This approach is useful for cases when we need to restore the file system tree to match the source directory -- for example, when unzipping the archive and saving all the files in the target directory in the original order.
+
+[[file-writing-output-directory]]
+== Specifying the Output Directory
+
+Both, the file outbound channel adapter and the file outbound gateway provide two mutually exclusive configuration attributes for specifying the output directory:
+
+* `directory`
+* `directory-expression`
+
+NOTE: Spring Integration 2.2 introduced the `directory-expression` attribute.
+
+[[using-the-directory-attribute]]
+=== Using the `directory` Attribute
+
+When you use the `directory` attribute, the output directory is set to a fixed value, which is set when the `FileWritingMessageHandler` is initialized.
+If you do not specify this attribute, you must use the `directory-expression` attribute.
+
+[[using-the-directory-expression-attribute]]
+=== Using the `directory-expression` Attribute
+
+If you want to have full SpEL support, you can use the `directory-expression` attribute.
+This attribute accepts a SpEL expression that is evaluated for each message being processed.
+Thus, you have full access to a message's payload and its headers when you dynamically specify the output file directory.
+
+The SpEL expression must resolve to either a `String`, `java.io.File` or `org.springframework.core.io.Resource`.
+(The latter is evaluated into a `File` anyway.)
+Furthermore, the resulting `String` or `File` must point to a directory.
+If you do not specify the `directory-expression` attribute, then you must set the `directory` attribute.
+
+[[using-the-auto-create-directory-attribute]]
+=== Using the `auto-create-directory` Attribute
+
+By default, if the destination directory does not exist, the respective destination directory and any non-existing parent directories are  automatically created.
+To prevent that behavior, you can set the `auto-create-directory` attribute to `false`.
+This attribute applies to both the `directory` and the `directory-expression` attributes.
+
+[NOTE]
+====
+When using the `directory` attribute and `auto-create-directory` is `false`, the following change was made starting with Spring Integration 2.2:
+
+Instead of checking for the existence of the destination directory when the adapter is initialized, this check is now performed for each message being processed.
+
+Furthermore, if `auto-create-directory` is `true` and the directory was deleted between the processing of messages, the directory is re-created for each message being processed.
+====
+
+[[file-writing-destination-exists]]
+== Dealing with Existing Destination Files
+
+When you write files and the destination file already exists, the default behavior is to overwrite that target file.
+You can change this behavior by setting the `mode` attribute on the relevant file outbound components.
+The following options exist:
+
+* `REPLACE` (Default)
+* `REPLACE_IF_MODIFIED`
+* `APPEND`
+* `APPEND_NO_FLUSH`
+* `FAIL`
+* `IGNORE`
+
+NOTE: Spring Integration 2.2 introduced the `mode` attribute and the `APPEND`, `FAIL`, and `IGNORE` options.
+
+`REPLACE`::
+If the target file already exists, it is overwritten.
+If the `mode` attribute is not specified, this is the default behavior when writing files.
+`REPLACE_IF_MODIFIED`::
+If the target file already exists, it is overwritten only if the last modified timestamp differs from that of the source file.
+For `File` payloads, the payload `lastModified` time is compared to the existing file.
+For other payloads, the `FileHeaders.SET_MODIFIED` (`file_setModified`) header is compared to the existing file.
+If the header is missing or has a value that is not a `Number`, the file is always replaced.
+`APPEND`::
+This mode lets you append message content to the existing file instead of creating a new file each time.
+Note that this attribute is mutually exclusive with the `temporary-file-suffix` attribute because, when it appends content to the existing file, the adapter no longer uses a temporary file.
+The file is closed after each message.
+`APPEND_NO_FLUSH`::
+This option has the same semantics as `APPEND`, but the data is not flushed and the file is not closed after each message.
+This can provide a significant performance at the risk of data loss in the event of a failure.
+See <<file-flushing>> for more information.
+`FAIL`::
+If the target file exists, a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/MessageHandlingException.html[`MessageHandlingException`] is thrown.
+`IGNORE`::
+If the target file exists, the message payload is silently ignored.
+
+NOTE: When using a temporary file suffix (the default is `.writing`), the `IGNORE` option applies if either the final file name or the temporary file name exists.
+
+[[file-flushing]]
+== Flushing Files When Using `APPEND_NO_FLUSH`
+
+The `APPEND_NO_FLUSH` mode was added in version 4.3.
+Using it can improve performance because the file is not closed after each message.
+However, this can cause data loss in the event of a failure.
+
+Spring Integration provides several flushing strategies to mitigate this data loss:
+
+* Use `flushInterval`.
+If a file is not written to for this period of time, it is automatically flushed.
+This is approximate and may be up to `1.33x` this time (with an average of `1.167x`).
+* Send a message containing a regular expression to the message handler's `trigger` method.
+Files with absolute path names matching the pattern are flushed.
+* Provide the handler with a custom `MessageFlushPredicate` implementation to modify the action taken when a message is sent to the `trigger` method.
+* Invoke one of the handler's `flushIfNeeded` methods by passing in a custom `FileWritingMessageHandler.FlushPredicate` or `FileWritingMessageHandler.MessageFlushPredicate` implementation.
+
+The predicates are called for each open file.
+See the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for these interfaces for more information.
+Note that, since version 5.0, the predicate methods provide another parameter: the time that the current file was first written to if new or previously closed.
+
+When using `flushInterval`, the interval starts at the last write.
+The file is flushed only if it is idle for the interval.
+Starting with version 4.3.7, an additional property (`flushWhenIdle`) can be set to `false`, meaning that the interval starts with the first write to a previously flushed (or new) file.
+
+[[file-timestamps]]
+== File Timestamps
+
+By default, the destination file's `lastModified` timestamp is the time when the file was created (except that an in-place rename retains the current timestamp).
+Starting with version 4.3, you can now configure `preserve-timestamp` (or `setPreserveTimestamp(true)` when using Java configuration).
+For `File` payloads, this transfers the timestamp from the inbound file to the outbound (regardless of whether a copy was required).
+For other payloads, if the `FileHeaders.SET_MODIFIED` header (`file_setModified`) is present, it is used to set the destination file's `lastModified` timestamp, as long as the header is a `Number`.
+
+[[file-permissions]]
+== File Permissions
+
+Starting with version 5.0, when writing files to a file system that supports Posix permissions, you can specify those permissions on the outbound channel adapter or gateway.
+The property is an integer and is usually supplied in the familiar octal format -- for example, `0640`, meaning that the owner has read/write permissions, the group has read-only permission, and others have no access.
+
+[[file-outbound-channel-adapter]]
+== File Outbound Channel Adapter
+
+The following example configures a file outbound channel adapter:
+
+====
+[source,xml]
+----
+<int-file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>
+----
+====
+
+The namespace-based configuration also supports a `delete-source-files` attribute.
+If set to `true`, it triggers the deletion of the original source files after writing to a destination.
+The default value for that flag is `false`.
+The following example shows how to set it to `true`:
+
+====
+[source,xml]
+----
+<int-file:outbound-channel-adapter id="filesOut"
+    directory="${output.directory}"
+    delete-source-files="true"/>
+----
+====
+
+NOTE: The `delete-source-files` attribute has an effect only if the inbound message has a `File` payload or if the `FileHeaders.ORIGINAL_FILE` header value contains either the source `File` instance or a `String` representing the original file path.
+
+Starting with version 4.2, the `FileWritingMessageHandler` supports an `append-new-line` option.
+If set to `true`, a new line is appended to the file after a message is written.
+The default attribute value is `false`.
+The following example shows how to use the `append-new-line` option:
+
+====
+[source,xml]
+----
+<int-file:outbound-channel-adapter id="newlineAdapter"
+	append-new-line="true"
+    directory="${output.directory}"/>
+----
+====
+
+[[file-writing-output-gateway]]
+== Outbound Gateway
+
+In cases where you want to continue processing messages based on the written file, you can use the `outbound-gateway` instead.
+It plays a role similar to that of the `outbound-channel-adapter`.
+However, after writing the file, it also sends it to the reply channel as the payload of a message.
+
+The following example configures an outbound gateway:
+
+====
+[source,xml]
+----
+<int-file:outbound-gateway id="mover" request-channel="moveInput"
+    reply-channel="output"
+    directory="${output.directory}"
+    mode="REPLACE" delete-source-files="true"/>
+----
+====
+
+As mentioned earlier, you can also specify the `mode` attribute, which defines the behavior of how to deal with situations where the destination file already exists.
+See <<file-writing-destination-exists>> for further details.
+Generally, when using the file outbound gateway, the result file is returned as the message payload on the reply channel.
+
+This also applies when specifying the `IGNORE` mode.
+In that case the pre-existing destination file is returned.
+If the payload of the request message was a file, you still have access to that original file through the message header.
+See https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileHeaders.html[FileHeaders.ORIGINAL_FILE].
+
+NOTE: The 'outbound-gateway' works well in cases where you want to first move a file and then send it through a processing pipeline.
+In such cases, you may connect the file namespace's `inbound-channel-adapter` element to the `outbound-gateway` and then connect that gateway's `reply-channel` to the beginning of the pipeline.
+
+If you have more elaborate requirements or need to support additional payload types as input to be converted to file content, you can extend the `FileWritingMessageHandler`, but a much better option is to rely on a <<file-transforming,`Transformer`>>.
+
+[[configuring-with-java-configuration]]
+== Configuring with Java Configuration
+
+The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
+
+====
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class FileWritingJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+                      new SpringApplicationBuilder(FileWritingJavaApplication.class)
+                              .web(false)
+                              .run(args);
+             MyGateway gateway = context.getBean(MyGateway.class);
+             gateway.writeToFile("foo.txt", new File(tmpDir.getRoot(), "fileWritingFlow"), "foo");
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "writeToFileChannel")
+    public MessageHandler fileWritingMessageHandler() {
+         Expression directoryExpression = new SpelExpressionParser().parseExpression("headers.directory");
+         FileWritingMessageHandler handler = new FileWritingMessageHandler(directoryExpression);
+         handler.setFileExistsMode(FileExistsMode.APPEND);
+         return handler;
+    }
+
+    @MessagingGateway(defaultRequestChannel = "writeToFileChannel")
+    public interface MyGateway {
+
+        void writeToFile(@Header(FileHeaders.FILENAME) String fileName,
+                       @Header(FileHeaders.FILENAME) File directory, String data);
+
+    }
+}
+----
+====
+
+[[configuring-with-the-java-dsl]]
+== Configuring with the Java DSL
+
+The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class FileWritingJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+                 new SpringApplicationBuilder(FileWritingJavaApplication.class)
+                         .web(false)
+                         .run(args);
+        MessageChannel fileWritingInput = context.getBean("fileWritingInput", MessageChannel.class);
+        fileWritingInput.send(new GenericMessage<>("foo"));
+    }
+
+    @Bean
+   	public IntegrationFlow fileWritingFlow() {
+   	    return IntegrationFlow.from("fileWritingInput")
+   		        .enrichHeaders(h -> h.header(FileHeaders.FILENAME, "foo.txt")
+   		                  .header("directory", new File(tmpDir.getRoot(), "fileWritingFlow")))
+   	            .handle(Files.outboundGateway(m -> m.getHeaders().get("directory")))
+   	            .channel(MessageChannels.queue("fileWritingResultChannel"))
+   	            .get();
+    }
+
+}
+----
+====
+

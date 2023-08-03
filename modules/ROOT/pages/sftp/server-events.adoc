@@ -1,0 +1,46 @@
+[[sftp-server-events]]
+= Apache Mina SFTP Server Events
+
+The `ApacheMinaSftpEventListener`, added in version 5.2, listens for certain Apache Mina SFTP server events and publishes them as `ApplicationEvent` s which can be received by any `ApplicationListener` bean, `@EventListener` bean method, or <<./event.adoc#appevent-inbound, Event Inbound Channel Adapter>>.
+
+Currently, supported events are:
+
+* `SessionOpenedEvent` - a client session was opened
+* `DirectoryCreatedEvent` - a directory was created
+* `FileWrittenEvent` - a file was written to
+* `PathMovedEvent` - a file or directory was renamed
+* `PathRemovedEvent` - a file or directory was removed
+* `SessionClosedEvent` - the client has disconnected
+
+Each of these is a subclass of `ApacheMinaSftpEvent`; you can configure a single listener to receive all the event types.
+The `source` property of each event is a `ServerSession`, from which you can obtain information such as the client address; a convenient `getSession()` method is provided on the abstract event.
+
+To configure the server with the listener (which must be a Spring bean), simply add it to the `SftpSubsystemFactory`:
+
+====
+[source, java]
+----
+server = SshServer.setUpDefaultServer();
+...
+SftpSubsystemFactory sftpFactory = new SftpSubsystemFactory();
+sftpFactory.addSftpEventListener(apacheMinaSftpEventListenerBean);
+...
+----
+====
+
+To consume these events using a Spring Integration event adapter:
+
+====
+[source, java]
+----
+@Bean
+public ApplicationEventListeningMessageProducer eventsAdapter() {
+    ApplicationEventListeningMessageProducer producer =
+        new ApplicationEventListeningMessageProducer();
+    producer.setEventTypes(ApacheMinaSftpEvent.class);
+    producer.setOutputChannel(eventChannel());
+    return producer;
+}
+----
+====
+

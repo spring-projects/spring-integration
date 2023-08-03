@@ -1,0 +1,12 @@
+[[advice-order]]
+= Ordering Advices within Advice Chain
+
+Advice classes are "`around`" advices and are applied in a nested fashion.
+The first advice is the outermost, while the last advice is the innermost (that is, closest to the handler being advised).
+It is important to put the advice classes in the correct order to achieve the functionality you desire.
+
+For example, suppose you want to add a retry advice and a transaction advice.
+You may want to place the retry advice first, followed by the transaction advice.
+Consequently, each retry is performed in a new transaction.
+On the other hand, if you want all the attempts and any recovery operations (in the retry `RecoveryCallback`) to be scoped within the transaction, you could put the transaction advice first.
+

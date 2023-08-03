@@ -1,0 +1,91 @@
+[[tcp-adapters]]
+= TCP Adapters
+
+TCP inbound and outbound channel adapters that use connection factories <<tcp-events,mentioned earlier>> are provided.
+These adapters have two relevant attributes: `connection-factory` and `channel`.
+The `connection-factory` attribute indicates which connection factory is to be used to manage connections for the adapter.
+The `channel` attribute specifies the channel on which messages arrive at an outbound adapter and on which messages are placed by an inbound adapter.
+While both inbound and outbound adapters can share a connection factory, server connection factories are always "`owned`" by an inbound adapter.
+Client connection factories are always "`owned`" by an outbound adapter.
+Only one adapter of each type may get a reference to a connection factory.
+The following example shows how to define client and server TCP connection factories:
+
+====
+[source,xml]
+----
+<bean id="javaSerializer"
+      class="org.springframework.core.serializer.DefaultSerializer"/>
+<bean id="javaDeserializer"
+      class="org.springframework.core.serializer.DefaultDeserializer"/>
+
+<int-ip:tcp-connection-factory id="server"
+    type="server"
+    port="1234"
+    deserializer="javaDeserializer"
+    serializer="javaSerializer"
+    using-nio="true"
+    single-use="true"/>
+
+<int-ip:tcp-connection-factory id="client"
+    type="client"
+    host="localhost"
+    port="#{server.port}"
+    single-use="true"
+    so-timeout="10000"
+    deserializer="javaDeserializer"
+    serializer="javaSerializer"/>
+
+<int:channel id="input" />
+
+<int:channel id="replies">
+    <int:queue/>
+</int:channel>
+
+<int-ip:tcp-outbound-channel-adapter id="outboundClient"
+    channel="input"
+    connection-factory="client"/>
+
+<int-ip:tcp-inbound-channel-adapter id="inboundClient"
+    channel="replies"
+    connection-factory="client"/>
+
+<int-ip:tcp-inbound-channel-adapter id="inboundServer"
+    channel="loop"
+    connection-factory="server"/>
+
+<int-ip:tcp-outbound-channel-adapter id="outboundServer"
+    channel="loop"
+    connection-factory="server"/>
+
+<int:channel id="loop"/>
+----
+====
+
+Also see <<ip-annotation>> and <<ip-dsl>>.
+
+In the preceding configuration, messages arriving in the `input` channel are serialized over connections created by `client` connection factory, received at the server, and placed on the `loop` channel.
+Since `loop` is the input channel for `outboundServer`, the message is looped back over the same connection, received by `inboundClient`, and deposited in the `replies` channel.
+Java serialization is used on the wire.
+
+Normally, inbound adapters use a `type="server"` connection factory, which listens for incoming connection requests.
+In some cases, you may want to establish the connection in reverse, such that the inbound adapter connects to an external server and then waits for inbound messages on that connection.
+
+This topology is supported by setting `client-mode="true"` on the inbound adapter.
+In this case, the connection factory must be of type `client` and must have `single-use` set to `false`.
+
+Two additional attributes support this mechanism.
+The `retry-interval` specifies (in milliseconds) how often the framework attempts to reconnect after a connection failure.
+The `scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
+
+If you don't provide a scheduler, the framework's default <<./configuration.adoc#namespace-taskscheduler,taskScheduler>> bean is used.
+
+For an outbound adapter, the connection is normally established when the first message is sent.
+The `client-mode="true"` on an outbound adapter causes the connection to be established when the adapter is started.
+By default, adapters are automatically started.
+Again, the connection factory must be of type `client` and have `single-use="false"`.
+A `retry-interval` and `scheduler` are also supported.
+If a connection fails, it is re-established either by the scheduler or when the next message is sent.
+
+For both inbound and outbound, if the adapter is started, you can force the adapter to establish a connection by sending a `<control-bus />` command: `@adapter_id.retryConnection()`.
+Then you can examine the current state with `@adapter_id.isClientModeConnected()`.
+

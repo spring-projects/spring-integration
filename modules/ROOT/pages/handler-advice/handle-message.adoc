@@ -1,0 +1,43 @@
+[[handle-message-advice]]
+= Handling Message Advice
+
+As discussed in <<message-handler-advice-chain, the introduction to this section>>, advice objects in a request handler advice chain are applied to just the current endpoint, not the downstream flow (if any).
+For `MessageHandler` objects that produce a reply (such as those that extend `AbstractReplyProducingMessageHandler`), the advice is applied to an internal method: `handleRequestMessage()` (called from `MessageHandler.handleMessage()`).
+For other message handlers, the advice is applied to `MessageHandler.handleMessage()`.
+
+There are some circumstances where, even if a message handler is an `AbstractReplyProducingMessageHandler`, the advice must be applied to the `handleMessage` method.
+For example, the <<idempotent-receiver, idempotent receiver>> might return `null`, which would cause an exception if the handler's `replyRequired` property is set to `true`.
+Another example is the `BoundRabbitChannelAdvice` -- see <<./amqp.adoc#amqp-strict-ordering,Strict Message Ordering>>.
+
+Starting with version 4.3.1, a new `HandleMessageAdvice` interface and its base implementation (`AbstractHandleMessageAdvice`) have been introduced.
+`Advice` objects that implement `HandleMessageAdvice` are always applied to the `handleMessage()` method, regardless of the handler type.
+
+It is important to understand that `HandleMessageAdvice` implementations (such as <<idempotent-receiver, idempotent receiver>>), when applied to a handlers that return responses, are dissociated from the `adviceChain` and properly applied to the `MessageHandler.handleMessage()` method.
+
+NOTE: Because of this disassociation, the advice chain order is not honored.
+
+Consider the following configuration:
+
+====
+[source,xml]
+----
+<some-reply-producing-endpoint ... >
+    <int:request-handler-advice-chain>
+        <tx:advice ... />
+        <ref bean="myHandleMessageAdvice" />
+    </int:request-handler-advice-chain>
+</some-reply-producing-endpoint>
+----
+====
+
+In the preceding example, the `<tx:advice>` is applied to the `AbstractReplyProducingMessageHandler.handleRequestMessage()`.
+However, `myHandleMessageAdvice` is applied for to `MessageHandler.handleMessage()`.
+Therefore, it is invoked *before* the `<tx:advice>`.
+To retain the order, you should follow the standard https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#aop-api[Spring AOP] configuration approach and use an endpoint `id` together with the `.handler` suffix to obtain the target `MessageHandler` bean.
+Note that, in that case, the entire downstream flow is within the transaction scope.
+
+In the case of a `MessageHandler` that does not return a response, the advice chain order is retained.
+
+Starting with version 5.3, the `HandleMessageAdviceAdapter` is provided to apply any `MethodInterceptor` for the `MessageHandler.handleMessage()` method and, therefore, the whole sub-flow.
+For example, a `RetryOperationsInterceptor` could be applied to the whole sub-flow starting from some endpoint; this is not possible, by default, because the consumer endpoint applies advices only to the `AbstractReplyProducingMessageHandler.RequestHandler.handleRequestMessage()`.
+

@@ -1,0 +1,109 @@
+[[jdbc-outbound-channel-adapter]]
+= Outbound Channel Adapter
+
+The outbound channel adapter is the inverse of the inbound: its role is to handle a message and use it to execute a SQL query.
+By default, the message payload and headers are available as input parameters to the query, as the following example shows:
+
+====
+[source,xml]
+----
+<int-jdbc:outbound-channel-adapter
+    query="insert into foos (id, status, name) values (:headers[id], 0, :payload[something])"
+    data-source="dataSource"
+    channel="input"/>
+----
+====
+
+In the preceding example, messages arriving at the channel labelled `input` have a payload of a map with a key of `something`, so the `[]` operator dereferences that value from the map.
+The headers are also accessed as a map.
+
+NOTE: The parameters in the preceding query are bean property expressions on the incoming message (not SpEL expressions).
+This behavior is part of the `SqlParameterSource`, which is the default source created by the outbound adapter.
+You can inject a different `SqlParameterSourceFactory` to get different behavior.
+
+The outbound adapter requires a reference to either a `DataSource` or a `JdbcTemplate`.
+You can also inject a `SqlParameterSourceFactory` to control the binding of each incoming message to a query.
+
+If the input channel is a direct channel, the outbound adapter runs its query in the same thread and, therefore, the same transaction (if there is one) as the sender of the message.
+
+[[passing-parameters-by-using-spel-expressions]]
+== Passing Parameters by Using SpEL Expressions
+
+A common requirement for most JDBC channel adapters is to pass parameters as part of SQL queries or stored procedures or functions.
+As mentioned earlier, these parameters are by default bean property expressions, not SpEL expressions.
+However, if you need to pass SpEL expression as parameters, you must explicitly inject a `SqlParameterSourceFactory`.
+
+The following example uses a `ExpressionEvaluatingSqlParameterSourceFactory` to achieve that requirement:
+
+====
+[source,xml]
+----
+<jdbc:outbound-channel-adapter data-source="dataSource" channel="input"
+    query="insert into MESSAGES (MESSAGE_ID,PAYLOAD,CREATED_DATE) values (:id, :payload, :createdDate)"
+    sql-parameter-source-factory="spelSource"/>
+
+<bean id="spelSource"
+      class="o.s.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory">
+    <property name="parameterExpressions">
+        <map>
+            <entry key="id"          value="headers['id'].toString()"/>
+            <entry key="createdDate" value="new java.util.Date()"/>
+            <entry key="payload"     value="payload"/>
+        </map>
+    </property>
+</bean>
+----
+====
+
+For further information, see <<sp-defining-parameter-sources>>.
+
+[[using-the-preparedstatement-callback]]
+== Using the `PreparedStatement` Callback
+
+Sometimes, the flexibility and loose-coupling of `SqlParameterSourceFactory` does not do what we need for the target `PreparedStatement` or we need to do some low-level JDBC work.
+The Spring JDBC module provides APIs to configure the execution environment (such as `ConnectionCallback` or `PreparedStatementCreator`) and manipulate parameter values (such as `SqlParameterSource`).
+It can even access APIs for low-level operations, such as `StatementCallback`.
+
+Starting with Spring Integration 4.2, `MessagePreparedStatementSetter` allows the specification of parameters on the `PreparedStatement` manually, in the `requestMessage` context.
+This class plays exactly the same role as `PreparedStatementSetter` in the standard Spring JDBC API.
+Actually, it is invoked directly from an inline `PreparedStatementSetter` implementation when the `JdbcMessageHandler` invokes `execute` on the `JdbcTemplate`.
+
+This functional interface option is mutually exclusive with `sqlParameterSourceFactory` and can be used as a more powerful alternative to populate parameters of the `PreparedStatement` from the `requestMessage`.
+For example, it is useful when we need to store `File` data to the DataBase `BLOB` column in a streaming manner.
+The following example shows how to do so:
+
+====
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "storeFileChannel")
+public MessageHandler jdbcMessageHandler(DataSource dataSource) {
+    JdbcMessageHandler jdbcMessageHandler = new JdbcMessageHandler(dataSource,
+            "INSERT INTO imagedb (image_name, content, description) VALUES (?, ?, ?)");
+    jdbcMessageHandler.setPreparedStatementSetter((ps, m) -> {
+        ps.setString(1, m.getHeaders().get(FileHeaders.FILENAME));
+        try (FileInputStream inputStream = new FileInputStream((File) m.getPayload()); ) {
+            ps.setBlob(2, inputStream);
+        }
+        catch (Exception e) {
+            throw new MessageHandlingException(m, e);
+        }
+        ps.setClob(3, new StringReader(m.getHeaders().get("description", String.class)));
+    });
+    return jdbcMessageHandler;
+}
+----
+====
+
+From the XML configuration perspective, the `prepared-statement-setter` attribute is available on the `<int-jdbc:outbound-channel-adapter>` component.
+It lets you specify a `MessagePreparedStatementSetter` bean reference.
+
+[[batch-update]]
+== Batch Update
+
+Starting with version 5.1, the `JdbcMessageHandler` performs a `JdbcOperations.batchUpdate()` if the payload of the request message is an `Iterable` instance.
+Each element of the `Iterable` is wrapped to a `Message` with the headers from the request message if such an element is not a `Message` already.
+In the case of regular `SqlParameterSourceFactory`-based configuration these messages are used to build an `SqlParameterSource[]` for an argument used in the mentioned `JdbcOperations.batchUpdate()` function.
+When a `MessagePreparedStatementSetter` configuration is applied, a `BatchPreparedStatementSetter` variant is used to iterate over those messages for each item and the provided `MessagePreparedStatementSetter` is called against them.
+The batch update is not supported when `keysGenerated` mode is selected.
+

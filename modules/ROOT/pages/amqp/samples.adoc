@@ -1,0 +1,20 @@
+[[amqp-samples]]
+= AMQP Samples
+
+To experiment with the AMQP adapters, check out the samples available in the Spring Integration samples git repository at https://github.com/spring-projects/spring-integration-samples[https://github.com/SpringSource/spring-integration-samples]
+
+Currently, one sample demonstrates the basic functionality of the Spring Integration AMQP adapter by using an outbound channel adapter and an inbound channel adapter.
+As AMQP broker implementation in the sample uses https://www.rabbitmq.com/[RabbitMQ].
+
+NOTE: In order to run the example, you need a running instance of RabbitMQ.
+A local installation with just the basic defaults suffices.
+For detailed RabbitMQ installation procedures, see https://www.rabbitmq.com/install.html[https://www.rabbitmq.com/install.html]
+
+Once the sample application is started, enter some text on the command prompt and a message containing that entered text is dispatched to the AMQP queue.
+In return, that message is retrieved by Spring Integration and printed to the console.
+
+The following image illustrates the basic set of Spring Integration components used in this sample:
+
+.The Spring Integration graph of the AMQP sample
+image::spring-integration-amqp-sample-graph.png[align="center"]
+

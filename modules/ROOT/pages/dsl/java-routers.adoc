@@ -1,0 +1,78 @@
+[[java-dsl-routers]]
+= Message Routers
+
+Spring Integration natively provides specialized router types, including:
+
+* `HeaderValueRouter`
+* `PayloadTypeRouter`
+* `ExceptionTypeRouter`
+* `RecipientListRouter`
+* `XPathRouter`
+
+As with many other DSL `IntegrationFlowBuilder` EIP methods, the `route()` method can apply any `AbstractMessageRouter` implementation or, for convenience, a `String` as a SpEL expression or a `ref`-`method` pair.
+In addition, you can configure `route()` with a lambda and use a lambda for a `Consumer<RouterSpec<MethodInvokingRouter>>`.
+The fluent API also provides `AbstractMappingMessageRouter` options such as `channelMapping(String key, String channelName)` pairs, as the following example shows:
+
+====
+[source,java]
+----
+@Bean
+public IntegrationFlow routeFlowByLambda() {
+    return IntegrationFlow.from("routerInput")
+            .<Integer, Boolean>route(p -> p % 2 == 0,
+                    m -> m.suffix("Channel")
+                            .channelMapping(true, "even")
+                            .channelMapping(false, "odd")
+            )
+            .get();
+}
+----
+====
+
+The following example shows a simple expression-based router:
+
+====
+[source,java]
+----
+@Bean
+public IntegrationFlow routeFlowByExpression() {
+    return IntegrationFlow.from("routerInput")
+            .route("headers['destChannel']")
+            .get();
+}
+----
+====
+
+The `routeToRecipients()` method takes a `Consumer<RecipientListRouterSpec>`, as the following example shows:
+
+====
+[source,java]
+----
+@Bean
+public IntegrationFlow recipientListFlow() {
+    return IntegrationFlow.from("recipientListInput")
+            .<String, String>transform(p -> p.replaceFirst("Payload", ""))
+            .routeToRecipients(r -> r
+                    .recipient("thing1-channel", "'thing1' == payload")
+                    .recipientMessageSelector("thing2-channel", m ->
+                            m.getHeaders().containsKey("recipient")
+                                    && (boolean) m.getHeaders().get("recipient"))
+                    .recipientFlow("'thing1' == payload or 'thing2' == payload or 'thing3' == payload",
+                            f -> f.<String, String>transform(String::toUpperCase)
+                                    .channel(c -> c.queue("recipientListSubFlow1Result")))
+                    .recipientFlow((String p) -> p.startsWith("thing3"),
+                            f -> f.transform("Hello "::concat)
+                                    .channel(c -> c.queue("recipientListSubFlow2Result")))
+                    .recipientFlow(new FunctionExpression<Message<?>>(m ->
+                                    "thing3".equals(m.getPayload())),
+                            f -> f.channel(c -> c.queue("recipientListSubFlow3Result")))
+                    .defaultOutputToParentFlow())
+            .get();
+}
+----
+====
+
+The `.defaultOutputToParentFlow()` of the `.routeToRecipients()` definition lets you set the router's `defaultOutput` as a gateway to continue a process for the unmatched messages in the main flow.
+
+Also see <<java-dsl-class-cast>>.
+

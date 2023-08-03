@@ -1,0 +1,24 @@
+[[java-dsl-splitters]]
+= Splitters
+
+To create a splitter, use the `split()` EIP method.
+By default, if the payload is an `Iterable`, an `Iterator`, an `Array`, a `Stream`, or a reactive `Publisher`, the `split()` method outputs each item as an individual message.
+It accepts a lambda, a SpEL expression, or any `AbstractMessageSplitter` implementation.
+Alternatively, you can use it without parameters to provide the `DefaultMessageSplitter`.
+The following example shows how to use the `splitWith()` method by providing a lambda:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow splitFlow() {
+    return IntegrationFlow.from("splitInput")
+              .splitWith(s -> s.applySequence(false).delimiters(","))
+              .channel(MessageChannels.executor(taskExecutor()))
+              .get();
+}
+----
+
+The preceding example creates a splitter that splits a message containing a comma-delimited `String`.
+
+Also see <<java-dsl-class-cast>>.
+

@@ -1,0 +1,62 @@
+[[integration-flow-as-gateway]]
+= `IntegrationFlow` as a Gateway
+
+The `IntegrationFlow` can start from the service interface that provides a `GatewayProxyFactoryBean` component, as the following example shows:
+
+====
+[source,java]
+----
+public interface ControlBusGateway {
+
+    void send(String command);
+}
+
+...
+
+@Bean
+public IntegrationFlow controlBusFlow() {
+    return IntegrationFlow.from(ControlBusGateway.class)
+            .controlBus()
+            .get();
+}
+----
+====
+
+All the proxy for interface methods are supplied with the channel to send messages to the next integration component in the `IntegrationFlow`.
+You can mark the service interface with the `@MessagingGateway` annotation and mark the methods with the `@Gateway` annotations.
+Nevertheless, the `requestChannel` is ignored and overridden with that internal channel for the next component in the `IntegrationFlow`.
+Otherwise, creating such a configuration by using `IntegrationFlow` does not make sense.
+
+By default, a `GatewayProxyFactoryBean` gets a conventional bean name, such as `[FLOW_BEAN_NAME.gateway]`.
+You can change that ID by using the `@MessagingGateway.name()` attribute or the overloaded `IntegrationFlow.from(Class<?> serviceInterface, Consumer<GatewayProxySpec> endpointConfigurer)` factory method.
+Also, all the attributes from the `@MessagingGateway` annotation on the interface are applied to the target `GatewayProxyFactoryBean`.
+When annotation configuration is not applicable, the `Consumer<GatewayProxySpec>` variant can be used for providing appropriate option for the target proxy.
+This DSL method is available starting with version 5.2.
+
+With Java 8, you can even create an integration gateway with the `java.util.function` interfaces, as the following example shows:
+
+====
+[source,java]
+----
+@Bean
+public IntegrationFlow errorRecovererFlow() {
+    return IntegrationFlow.from(Function.class, (gateway) -> gateway.beanName("errorRecovererFunction"))
+            .<Object>handle((p, h) -> {
+                throw new RuntimeException("intentional");
+            }, e -> e.advice(retryAdvice()))
+            .get();
+}
+----
+====
+
+That `errorRecovererFlow` can be used as follows:
+
+====
+[source,java]
+----
+@Autowired
+@Qualifier("errorRecovererFunction")
+private Function<String, String> errorRecovererFlowGateway;
+----
+====
+

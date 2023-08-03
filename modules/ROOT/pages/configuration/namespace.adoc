@@ -1,0 +1,86 @@
+[[configuration-namespace]]
+= Namespace Support
+
+You can configure Spring Integration components with XML elements that map directly to the terminology and concepts of enterprise integration.
+In many cases, the element names match those of the https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_] book.
+
+To enable Spring Integration's core namespace support within your Spring configuration files, add the following namespace reference and schema mapping in your top-level 'beans' element:
+
+====
+// We lose coloring here, but we want to bold the lines we're talking about...
+[subs="+quotes"]
+----
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       *xmlns:int="http://www.springframework.org/schema/integration"*
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd
+           *http://www.springframework.org/schema/integration*
+           *https://www.springframework.org/schema/integration/spring-integration.xsd*">
+----
+====
+
+(We have emphasized the lines that are particular to Spring Integration.)
+
+You can choose any name after "xmlns:".
+We use `int` (short for Integration) for clarity, but you might prefer another abbreviation.
+On the other hand, if you use an XML editor or IDE support, the availability of auto-completion may convince you to keep the longer name for clarity.
+Alternatively, you can create configuration files that use the Spring Integration schema as the primary namespace, as the following example shows:
+
+====
+// We lose coloring here, but we want to bold the lines we're talking about...
+[subs=+quotes]
+----
+*<beans:beans xmlns="http://www.springframework.org/schema/integration"*
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:beans="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd
+           *http://www.springframework.org/schema/integration*
+           *https://www.springframework.org/schema/integration/spring-integration.xsd*">
+----
+====
+
+(We have emphasized the lines that are particular to Spring Integration.)
+
+When using this alternative, no prefix is necessary for the Spring Integration elements.
+On the other hand, if you define a generic Spring bean within the same configuration file, the bean element requires a prefix (`<beans:bean .../>`).
+Since it is generally a good idea to modularize the configuration files themselves (based on responsibility or architectural layer), you may find it appropriate to use the latter approach in the integration-focused configuration files, since generic beans are seldom necessary within those files.
+For the purposes of this documentation, we assume the integration namespace is the primary.
+
+Spring Integration provides many other namespaces.
+In fact, each adapter type (JMS, file, and so on) that provides namespace support defines its elements within a separate schema.
+In order to use these elements, add the necessary namespaces with an `xmlns` entry and the corresponding `schemaLocation` mapping.
+For example, the following root element shows several of these namespace declarations:
+
+====
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:int-file="http://www.springframework.org/schema/integration/file"
+  xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+  xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
+  xmlns:int-ws="http://www.springframework.org/schema/integration/ws"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/file
+    https://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+    http://www.springframework.org/schema/integration/jms
+    https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+    http://www.springframework.org/schema/integration/mail
+    https://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
+    http://www.springframework.org/schema/integration/ws
+    https://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd">
+ ...
+</beans>
+----
+====
+
+This reference manual provides specific examples of the various elements in their corresponding chapters.
+Here, the main thing to recognize is the consistency of the naming for each namespace URI and schema location.
+

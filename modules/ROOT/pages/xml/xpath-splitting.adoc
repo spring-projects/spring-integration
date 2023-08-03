@@ -1,0 +1,71 @@
+[[xml-xpath-splitting]]
+= Splitting XML Messages
+
+`XPathMessageSplitter` supports messages with either `String` or `Document` payloads.
+The splitter uses the provided XPath expression to split the payload into a number of nodes.
+By default, this results in each `Node` instance becoming the payload of a new message.
+When each message should be a `Document`, you can set the `createDocuments` flag.
+Where a `String` payload is passed in, the payload is converted and then split before being converted back to a number of `String` messages.
+The XPath splitter implements `MessageHandler` and should therefore be configured in conjunction with an appropriate endpoint (see the namespace support example after the following example for a simpler configuration alternative).
+The following example configures a bean that uses an `XPathMessageSplitter`:
+
+[source,xml]
+----
+<bean id="splittingEndpoint"
+      class="org.springframework.integration.endpoint.EventDrivenConsumer">
+    <constructor-arg ref="orderChannel" />
+    <constructor-arg>
+        <bean class="org.springframework.integration.xml.splitter.XPathMessageSplitter">
+            <constructor-arg value="/order/items" />
+            <property name="documentBuilder" ref="customisedDocumentBuilder" />
+            <property name="outputChannel" ref="orderItemsChannel" />
+        </bean>
+    </constructor-arg>
+</bean>
+----
+
+XPath splitter namespace support lets you create a message endpoint with an input channel and output channel, as the following example shows:
+
+[source,xml]
+----
+<!-- Split the order into items and create a new message for each item node -->
+<int-xml:xpath-splitter id="orderItemSplitter"
+                       input-channel="orderChannel"
+                       output-channel="orderItemsChannel">
+    <int-xml:xpath-expression expression="/order/items"/>
+</int-xml:xpath-splitter>
+
+<!-- Split the order into items, create a new document for each item-->
+<int-xml:xpath-splitter id="orderItemDocumentSplitter"
+                       input-channel="orderChannel"
+                       output-channel="orderItemsChannel"
+                       create-documents="true">
+    <int-xml:xpath-expression expression="/order/items"/>
+    <int:poller fixed-rate="2000"/>
+</int-xml:xpath-splitter>
+----
+
+Starting with version 4.2, the `XPathMessageSplitter` exposes the `outputProperties` (such as `OutputKeys.OMIT_XML_DECLARATION`) property for an `javax.xml.transform.Transformer` instance when a request `payload` is not of type `org.w3c.dom.Node`.
+The following example defines a property and uses it with the `output-properties` property:
+
+====
+[source,xml]
+----
+<util:properties id="outputProperties">
+	<beans:prop key="#{T (javax.xml.transform.OutputKeys).OMIT_XML_DECLARATION}">yes</beans:prop>
+</util:properties>
+
+<xpath-splitter input-channel="input"
+             output-properties="outputProperties">
+    <xpath-expression expression="/orders/order"/>
+</xpath-splitter>
+----
+====
+
+Starting with `version 4.2`, the `XPathMessageSplitter` exposes an `iterator` option as a `boolean` flag (defaults to `true`).
+This allows the "`streaming`" of split nodes in the downstream flow.
+With the `iterator` mode set to `true`, each node is transformed while iterating.
+When `false`, all entries are first transformed, before the split nodes start being sent to the output channel.
+(You can think of the difference as "`transform, send, transform, send`" versus "`transform, transform, send, send`".)
+See <<./splitter.adoc#splitter,Splitter>> for more information.
+

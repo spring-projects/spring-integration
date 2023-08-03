@@ -1,0 +1,97 @@
+[[sftp-session-factory]]
+= SFTP Session Factory
+
+IMPORTANT: As of version 3.0, sessions are no longer cached by default.
+See <<sftp-session-caching>>.
+
+Before configuring SFTP adapters, you must configure an SFTP session factory.
+You can configure the SFTP session factory with a regular bean definition, as the following example shows:
+
+====
+[source,xml]
+----
+<beans:bean id="sftpSessionFactory"
+    class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+    <beans:property name="host" value="localhost"/>
+    <beans:property name="privateKey" value="classpath:META-INF/keys/sftpTest"/>
+    <beans:property name="privateKeyPassphrase" value="springIntegration"/>
+    <beans:property name="port" value="22"/>
+    <beans:property name="user" value="kermit"/>
+</beans:bean>
+----
+====
+
+Every time an adapter requests a session object from its `SessionFactory`, a new SFTP session is created.
+Under the covers, the SFTP Session Factory relies on the https://mina.apache.org/sshd-project/index.html[Apache MINA SSHD] library to provide the SFTP capabilities.
+
+However, Spring Integration also supports the caching of SFTP sessions.
+See <<sftp-session-caching>> for more information.
+
+NOTE: The `DefaultSftpSessionFactory` can use an externally configured or extended `SshClient`.
+For example, the `org.eclipse.jgit.internal.transport.sshd.JGitSshClient` extension from the `org.eclipse.jgit:org.eclipse.jgit.ssh.apache` library may be used to provide support for HTTP/SOCKS proxies.
+
+[IMPORTANT]
+=====
+The `SshClient` supports multiple channels (operations) over a connection to the server.
+By default, the Spring Integration session factory uses a separate physical connection for each channel.
+Since Spring Integration 3.0, you can configure the session factory (using a boolean constructor arg - default `false`) to use a single connection to the server and create multiple `SftpClient` instances on that single connection.
+
+When using this feature, you must wrap the session factory in a caching session factory, as <<sftp-session-caching,described later>>, so that the connection is not physically closed when an operation completes.
+
+If the cache is reset, the session is disconnected only when the last channel is closed.
+
+The connection is refreshed if it is found to be disconnected when a new operation obtains a session.
+=====
+
+Now all you need to do is inject this SFTP session factory into your adapters.
+
+NOTE: A more practical way to provide values for the SFTP session factory is to use Spring's https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-placeholderconfigurer[property placeholder support].
+
+[[sftp-session-factory-properties]]
+== Configuration Properties
+
+The following list describes all the properties that are exposed by the https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[`DefaultSftpSessionFactory`].
+
+`isSharedSession` (constructor argument)::When `true`, a single `SftpClient` is used for all the requested `SftpSession` instances.
+It defaults to `false`.
+
+`sftpVersionSelector`::An `SftpVersionSelector` instance for SFTP protocol selection.
+The default one is `SftpVersionSelector.CURRENT`.
+
+`host`::The URL of the host to which to connect.
+Required.
+
+`hostConfig`::An `org.apache.sshd.client.config.hosts.HostConfigEntry` instance as an alternative for the user/host/port options.
+Can be configured with a proxy jump property.
+
+`port`::The port over which the SFTP connection shall be established.
+If not specified, this value defaults to `22`.
+If specified, this properties must be a positive number.
+
+`user`::The remote user to use.
+Required.
+
+`knownHostsResource`::An `org.springframework.core.io.Resource` that used for a host key repository.
+The content of the resource has to be the same format as OpenSSH `known_hosts` file and is required and must be pre-populated if `allowUnknownKeys` is false.
+
+`password`::The password to authenticate against the remote host.
+If a password is not provided, then the `privateKey` property is required.
+
+`privateKey`::An `org.springframework.core.io.Resource` that represents the location of the private key used for authenticating against the remote host.
+If the `privateKey` is not provided, then the `password` property is required.
+
+`privateKeyPassphrase`::The password for the private key.
+If you set `userInfo`, `privateKeyPassphrase` is not allowed .
+The passphrase is obtained from that object.
+Optional.
+
+`timeout`::The timeout property is used as the socket timeout parameter, as well as the default connection timeout.
+Defaults to `0`, which means, that no timeout will occur.
+
+[[sftp-unk-keys]]
+`allowUnknownKeys`::Set to `true` to allow connections to hosts with unknown (or changed) keys.
+Its default is 'false'.
+If `false`, a pre-populated `knownHosts` file is required.
+
+`userInteraction`::A custom `org.apache.sshd.client.auth.keyboard.UserInteraction` to be used during authentication.
+

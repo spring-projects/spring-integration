@@ -1,0 +1,68 @@
+[[ftp-session-factory]]
+= FTP Session Factory
+
+Spring Integration provides factories you can use to create FTP (or FTPS) sessions.
+
+[[default-factories]]
+== Default Factories
+
+IMPORTANT: Starting with version 3.0, sessions are no longer cached by default.
+See <<ftp-session-caching>>.
+
+Before configuring FTP adapters, you must configure an FTP session factory.
+You can configure the FTP Session Factory with a regular bean definition where the implementation class is `o.s.i.ftp.session.DefaultFtpSessionFactory`.
+The following example shows a basic configuration:
+
+====
+[source,xml]
+----
+<bean id="ftpClientFactory"
+    class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+    <property name="host" value="localhost"/>
+    <property name="port" value="22"/>
+    <property name="username" value="kermit"/>
+    <property name="password" value="frog"/>
+    <property name="clientMode" value="0"/>
+    <property name="fileType" value="2"/>
+    <property name="bufferSize" value="100000"/>
+</bean>
+----
+====
+
+For FTPS connections, you can use `o.s.i.ftp.session.DefaultFtpsSessionFactory` instead.
+
+The following example shows a complete configuration:
+
+====
+[source,xml]
+----
+<bean id="ftpClientFactory"
+    class="org.springframework.integration.ftp.session.DefaultFtpsSessionFactory">
+    <property name="host" value="localhost"/>
+    <property name="port" value="22"/>
+    <property name="username" value="oleg"/>
+    <property name="password" value="password"/>
+    <property name="clientMode" value="1"/>
+    <property name="fileType" value="2"/>
+    <property name="useClientMode" value="true"/>
+    <property name="cipherSuites" value="a,b.c"/>
+    <property name="keyManager" ref="keyManager"/>
+    <property name="protocol" value="SSL"/>
+    <property name="trustManager" ref="trustManager"/>
+    <property name="prot" value="P"/>
+    <property name="needClientAuth" value="true"/>
+    <property name="authValue" value="oleg"/>
+    <property name="sessionCreation" value="true"/>
+    <property name="protocols" value="SSL, TLS"/>
+    <property name="implicit" value="true"/>
+</bean>
+----
+====
+
+NOTE: If you experience connectivity problems and would like to trace session creation as well as see which sessions are polled, you can enable session tracing by setting the logger to the `TRACE` level (for example, `log4j.category.org.springframework.integration.file=TRACE`).
+
+Now you need only inject these session factories into your adapters.
+The protocol (FTP or FTPS) that an adapter uses depends on the type of session factory that has been injected into the adapter.
+
+NOTE: A more practical way to provide values for FTP or FTPS session factories is to use Spring's property placeholder support (See https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-placeholderconfigurer).
+

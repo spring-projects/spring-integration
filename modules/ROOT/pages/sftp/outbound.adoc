@@ -1,0 +1,164 @@
+[[sftp-outbound]]
+= SFTP Outbound Channel Adapter
+
+The SFTP outbound channel adapter is a special `MessageHandler` that connects to the remote directory and initiates a file transfer for every file it receives as the payload of an incoming `Message`.
+It also supports several representations of the file so that you are not limited to the `File` object.
+Similar to the FTP outbound adapter, the SFTP outbound channel adapter supports the following payloads:
+
+* `java.io.File`: The actual file object
+* `byte[]`: A byte array that represents the file contents
+* `java.lang.String`: Text that represents the file contents
+* `java.io.InputStream`: a stream of data to transfer to remote file
+* `org.springframework.core.io.Resource`: a resource for data to transfer to remote file
+
+The following example shows how to configure an SFTP outbound channel adapter:
+
+====
+[source,xml]
+----
+<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
+    session-factory="sftpSessionFactory"
+    channel="inputChannel"
+    charset="UTF-8"
+    remote-file-separator="/"
+    remote-directory="foo/bar"
+    remote-filename-generator-expression="payload.getName() + '-mysuffix'"
+    filename-generator="fileNameGenerator"
+    use-temporary-filename="true"
+    chmod="600"
+    mode="REPLACE"/>
+----
+====
+
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
+
+[[spel-and-the-sftp-outbound-adapter]]
+== SpEL and the SFTP Outbound Adapter
+
+As with many other components in Spring Integration, you can use the Spring Expression Language (SpEL) when you configure an SFTP outbound channel adapter by specifying two attributes: `remote-directory-expression` and `remote-filename-generator-expression` (<<sftp-inbound,described earlier>>).
+The expression evaluation context has the message as its root object, which lets you use expressions that can dynamically compute the file name or the existing directory path based on the data in the message (from either the 'payload' or the 'headers').
+In the preceding example, we define the `remote-filename-generator-expression` attribute with an expression value that computes the file name based on its original name while also appending a suffix: '-mysuffix'.
+
+Starting with version 4.1, you can specify the `mode` when you are transferring the file.
+By default, an existing file is overwritten.
+The modes are defined by the `FileExistsMode` enumeration, which includes the following values:
+
+* `REPLACE` (default)
+* `REPLACE_IF_MODIFIED`
+* `APPEND`
+* `APPEND_NO_FLUSH`
+* `IGNORE`
+* `FAIL`
+
+With `IGNORE` and `FAIL`, the file is not transferred.
+`FAIL` causes an exception to be thrown, while `IGNORE` silently ignores the transfer (although a `DEBUG` log entry is produced).
+
+Version 4.3 introduced the `chmod` attribute, which you can use to change the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
+
+[[avoiding-partially-written-files]]
+== Avoiding Partially Written Files
+
+One of the common problems when dealing with file transfers is the possibility of processing a partial file.
+A file might appear in the file system before its transfer is actually complete.
+
+To deal with this issue, Spring Integration SFTP adapters use a common algorithm in which files are transferred under a temporary name and than renamed once they are fully transferred.
+
+By default, every file that is in the process of being transferred appear in the file system with an additional suffix, which, by default, is `.writing`.
+You can change by setting the `temporary-file-suffix` attribute.
+
+However, there may be situations where you do not want to use this technique (for example, if the server does not permit renaming files).
+For situations like this, you can disable this feature by setting `use-temporary-file-name` to `false` (the default is `true`).
+When this attribute is `false`, the file is written with its final name, and the consuming application needs some other mechanism to detect that the file is completely uploaded before accessing it.
+
+[[configuring-with-java-configuration]]
+== Configuring with Java Configuration
+
+The following Spring Boot application shows an example of how to configure the outbound adapter with Java:
+
+====
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+                    new SpringApplicationBuilder(SftpJavaApplication.class)
+                        .web(false)
+                        .run(args);
+        MyGateway gateway = context.getBean(MyGateway.class);
+        gateway.sendToSftp(new File("/foo/bar.txt"));
+    }
+
+    @Bean
+    public SessionFactory<SftpClient.DirEntry> sftpSessionFactory() {
+        DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
+        factory.setHost("localhost");
+        factory.setPort(port);
+        factory.setUser("foo");
+        factory.setPassword("foo");
+        factory.setAllowUnknownKeys(true);
+        factory.setTestSession(true);
+        return new CachingSessionFactory<SftpClient.DirEntry>(factory);
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "toSftpChannel")
+    public MessageHandler handler() {
+        SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
+        handler.setRemoteDirectoryExpressionString("headers['remote-target-dir']");
+        handler.setFileNameGenerator(new FileNameGenerator() {
+
+            @Override
+            public String generateFileName(Message<?> message) {
+                 return "handlerContent.test";
+            }
+
+        });
+        return handler;
+    }
+
+    @MessagingGateway
+    public interface MyGateway {
+
+         @Gateway(requestChannel = "toSftpChannel")
+         void sendToSftp(File file);
+
+    }
+}
+----
+====
+
+[[configuring-with-the-java-dsl]]
+== Configuring with the Java DSL
+
+The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SftpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public IntegrationFlow sftpOutboundFlow() {
+        return IntegrationFlow.from("toSftpChannel")
+            .handle(Sftp.outboundAdapter(this.sftpSessionFactory, FileExistsMode.FAIL)
+                         .useTemporaryFileName(false)
+                         .remoteDirectory("/foo")
+            ).get();
+    }
+
+}
+----
+====
+

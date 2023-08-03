@@ -1,0 +1,96 @@
+[[http-timeout]]
+= Timeout Handling
+
+In the context of HTTP components, there are two timing areas that have to be considered:
+
+* Timeouts when interacting with Spring Integration Channels
+* Timeouts when interacting with a remote HTTP server
+
+The components interact with message channels, for which timeouts can be specified.
+For example, an HTTP Inbound Gateway forwards messages received from connected HTTP Clients to a message channel (which uses a request timeout) and consequently the HTTP Inbound Gateway receives a reply message from the reply channel (which uses a reply timeout) that is used to generate the HTTP Response.
+The following illustration offers a visual explanation:
+
+.How timeout settings apply to an HTTP Inbound Gateway
+image::http-inbound-gateway.png[align="center"]
+
+For outbound endpoints, we need to consider how timing works while interacting with the remote server.
+The following image shows this scenario:
+
+.How timeout settings apply to an HTTP Outbound Gateway
+image::http-outbound-gateway.png[align="center"]
+
+//TODO These images are too small, and the text within them is much too small.
+
+You may want to configure the HTTP related timeout behavior, when making active HTTP requests by using the HTTP outbound gateway or the HTTP outbound channel adapter.
+In those instances, these two components use Spring's https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html[`RestTemplate`] support to execute HTTP requests.
+
+To configure timeouts for the HTTP outbound gateway and the HTTP outbound channel adapter, you can either reference a `RestTemplate` bean directly (by using the `rest-template` attribute) or you can provide a reference to a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[`ClientHttpRequestFactory`] bean (by using the `request-factory` attribute).
+Spring provides the following implementations of the `ClientHttpRequestFactory` interface:
+
+* https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html[`SimpleClientHttpRequestFactory`]: Uses standard J2SE facilities for making HTTP Requests
+* https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html[`HttpComponentsClientHttpRequestFactory`]: Uses https://hc.apache.org/httpcomponents-client-ga/[Apache HttpComponents HttpClient] (since Spring 3.1)
+
+If you do not explicitly configure the `request-factory` or `rest-template` attribute, a default `RestTemplate` (which uses a `SimpleClientHttpRequestFactory`) is instantiated.
+
+[NOTE]
+=====
+With some JVM implementations, the handling of timeouts by the `URLConnection` class may not be consistent.
+
+For example, from the Java™ Platform, Standard Edition 6 API Specification on `setConnectTimeout`:
+
+[quote]
+Some non-standard implementation of this method may ignore the specified timeout.
+To see the `connect timeout` set, please call getConnectTimeout().
+
+If you have specific needs, you should test your timeouts.
+Consider using the `HttpComponentsClientHttpRequestFactory`, which, in turn, uses https://hc.apache.org/httpcomponents-client-ga/[Apache HttpComponents HttpClient] rather than relying on implementations provided by a JVM.
+=====
+
+IMPORTANT: When you use the Apache HttpComponents HttpClient with a pooling connection manager, you should be aware that, by default, the connection manager creates no more than two concurrent connections per given route and no more than 20 connections in total.
+For many real-world applications, these limits may prove to be too constraining.
+See the https://hc.apache.org/httpcomponents-client-ga/[Apache documentation] for information about configuring this important component.
+
+The following example configures an HTTP outbound gateway by using a `SimpleClientHttpRequestFactory` that is configured with connect and read timeouts of 5 seconds, respectively:
+
+====
+[source,xml]
+----
+<int-http:outbound-gateway url="https://samples.openweathermap.org/data/2.5/weather?q={city}"
+                           http-method="GET"
+                           expected-response-type="java.lang.String"
+                           request-factory="requestFactory"
+                           request-channel="requestChannel"
+                           reply-channel="replyChannel">
+    <int-http:uri-variable name="city" expression="payload"/>
+</int-http:outbound-gateway>
+
+<bean id="requestFactory"
+      class="org.springframework.http.client.SimpleClientHttpRequestFactory">
+    <property name="connectTimeout" value="5000"/>
+    <property name="readTimeout"    value="5000"/>
+</bean>
+----
+====
+
+_HTTP Outbound Gateway_
+
+For the _HTTP Outbound Gateway_, the XML Schema defines only the _reply-timeout_.
+The _reply-timeout_ maps to the _sendTimeout_ property of the _org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler_ class.
+More precisely, the property is set on the extended `AbstractReplyProducingMessageHandler` class, which ultimately sets the property on the `MessagingTemplate`.
+
+The value of the _sendTimeout_ property defaults to `30` seconds and will be applied to the connected `MessageChannel`.
+This means, that depending on the implementation, the Message Channel's _send_ method may block indefinitely.
+Furthermore, the _sendTimeout_ property is only used, when the actual MessageChannel implementation has a blocking send (such as 'full' bounded QueueChannel).
+
+[[http-inbound-gateway]]
+== HTTP Inbound Gateway
+
+For the HTTP inbound gateway, the XML Schema defines the `request-timeout` attribute, which is used to set the `requestTimeout` property on the `HttpRequestHandlingMessagingGateway` class (on the extended `MessagingGatewaySupport` class).
+You can also use the `reply-timeout` attribute to map to the `replyTimeout` property on the same class.
+
+The default for both timeout properties is `1000ms` (one thousand milliseconds or one second).
+Ultimately, the `request-timeout` property is used to set the `sendTimeout` on the `MessagingTemplate` instance.
+The `replyTimeout` property, on the other hand, is used to set the `receiveTimeout` property on the `MessagingTemplate` instance.
+
+TIP: To simulate connection timeouts, you can connect to a non-routable IP address, such as 10.255.255.10.
+

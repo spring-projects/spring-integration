@@ -1,0 +1,465 @@
+[[stored-procedures]]
+= Stored Procedures
+
+In certain situations, plain JDBC support is not sufficient.
+Maybe you deal with legacy relational database schemas or you have complex data processing needs, but, ultimately, you have to use https://en.wikipedia.org/wiki/Stored_procedure[stored procedures] or stored functions.
+Since Spring Integration 2.1, we provide three components to execute stored procedures or stored functions:
+
+* Stored Procedures Inbound Channel Adapter
+* Stored Procedures Outbound Channel Adapter
+* Stored Procedures Outbound Gateway
+
+[[sp-supported-databases]]
+== Supported Databases
+
+In order to enable calls to stored procedures and stored functions, the stored procedure components use the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`org.springframework.jdbc.core.simple.SimpleJdbcCall`] class.
+Consequently, the following databases are fully supported for executing stored procedures:
+
+* Apache Derby
+* DB2
+* MySQL
+* Microsoft SQL Server
+* Oracle
+* PostgreSQL
+* Sybase
+
+
+If you want to execute stored functions instead, the following databases are fully supported:
+
+* MySQL
+* Microsoft SQL Server
+* Oracle
+* PostgreSQL
+
+[NOTE]
+=====
+Even though your particular database may not be fully supported, chances are that you can use the stored procedure Spring Integration components quite successfully anyway, provided your RDBMS supports stored procedures or stored functions.
+
+As a matter of fact, some provided integration tests use the https://www.h2database.com/[H2 database].
+Nevertheless, it is very important to thoroughly test those usage scenarios.
+=====
+
+[[sp-configuration]]
+== Configuration
+
+The stored procedure components provide full XML Namespace support, and configuring the components is similar as for the general purpose JDBC components discussed earlier.
+
+[[sp-common-config-params]]
+== Common Configuration Attributes
+
+All stored procedure components share certain configuration parameters:
+
+* `auto-startup`: Lifecycle attribute signaling whether this component should be started during application context startup.
+It defaults to `true`.
+Optional.
+* `data-source`: Reference to a `javax.sql.DataSource`, which is used to access the database.
+Required.
+* `id`:  Identifies the underlying Spring bean definition, which is an instance of either `EventDrivenConsumer` or `PollingConsumer`, depending on whether the outbound channel adapter's `channel` attribute references a `SubscribableChannel` or a `PollableChannel`.
+Optional.
+* `ignore-column-meta-data`:  For fully supported databases, the underlying https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`SimpleJdbcCall`] class can automatically retrieve the parameter information for the stored procedure or stored function from the JDBC metadata.
++
+However, if the database does not support metadata lookups or if you need to provide customized parameter definitions, this flag can be set to `true`.
+It defaults to `false`.
+Optional.
+* `is-function`:  If `true`, a SQL Function is called.
+In that case, the `stored-procedure-name` or `stored-procedure-name-expression` attributes define the name of the called function.
+It defaults to `false`.
+Optional.
+* `stored-procedure-name`: This attribute specifies the name of the stored procedure.
+If the `is-function` attribute is set to `true`, this attribute specifies the function name instead.
+Either this property or `stored-procedure-name-expression` must be specified.
+* `stored-procedure-name-expression`: This attribute specifies the name of the stored procedure by using a SpEL expression.
+By using SpEL, you have access to the full message (if available), including its headers and payload.
+You can use this attribute to invoke different stored procedures at runtime.
+For example, you can provide stored procedure names that you would like to execute as a message header.
+The expression must resolve to a `String`.
++
+If the `is-function` attribute is set to `true`, this attribute specifies a stored function.
+Either this property or `stored-procedure-name` must be specified.
+* `jdbc-call-operations-cache-size`: Defines the maximum number of cached `SimpleJdbcCallOperations` instances.
+Basically, for each stored procedure name, a new https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCallOperations.html[`SimpleJdbcCallOperations`] instance is created that, in return, is cached.
++
+NOTE: Spring Integration 2.2 added the `stored-procedure-name-expression` attribute and the `jdbc-call-operations-cache-size` attribute.
++
+The default cache size is `10`.
+A value of `0` disables caching.
+Negative values are not permitted.
++
+If you enable JMX, statistical information about the `jdbc-call-operations-cache` is exposed as an MBean.
+See <<./jmx.adoc#jmx-mbean-exporter,MBean Exporter>> for more information.
+* `sql-parameter-source-factory`: (Not available for the stored procedure inbound channel adapter.)
+Reference to a `SqlParameterSourceFactory`.
+By default, bean properties of the passed in `Message` payload are used as a source for the stored procedure's input parameters by using a `BeanPropertySqlParameterSourceFactory`.
++
+This may suffice for basic use cases.
+For more sophisticated options, consider passing in one or more `ProcedureParameter` values.
+See <<sp-defining-parameter-sources>>.
+Optional.
+* `use-payload-as-parameter-source`: (Not available for the stored procedure inbound channel adapter.)
+If set to `true`, the payload of the `Message` is used as a source for providing parameters.
+If set to `false`, however, the entire `Message` is available as a source for parameters.
++
+If no procedure parameters are passed in, this property defaults to `true`.
+This means that, by using a default `BeanPropertySqlParameterSourceFactory`, the bean properties of the payload are used as a source for parameter values for the stored procedure or stored function.
++
+However, if procedure parameters are passed in, this property (by default) evaluates to `false`.
+`ProcedureParameter` lets SpEL Expressions be provided.
+Therefore, it is highly beneficial to have access to the entire `Message`.
+The property is set on the underlying `StoredProcExecutor`.
+Optional.
+
+[[sp-common-config-subelements]]
+== Common Configuration Sub-Elements
+
+The stored procedure components share a common set of child elements that you can use to define and pass parameters to stored procedures or stored functions.
+The following elements are available:
+
+* `parameter`
+* `returning-resultset`
+* `sql-parameter-definition`
+* `poller`
+
+* `parameter`: Provides a mechanism to provide stored procedure parameters.
+Parameters can be either static or provided by using a SpEL Expressions.
++
+====
+[source,xml]
+----
+<int-jdbc:parameter name=""         <1>
+                    type=""         <2>
+                    value=""/>      <3>
+
+<int-jdbc:parameter name=""
+                    expression=""/> <4>
+----
++
+<1> The name of the parameter to be passed into the Stored Procedure or Stored Function.
+Required.
+<2> This attribute specifies the type of the value.
+If nothing is provided, this attribute defaults to `java.lang.String`.
+This attribute is used only when the `value` attribute is used.
+Optional.
+<3> The value of the parameter.
+You must provide either this attribute or the `expression` attribute.
+Optional.
+<4> Instead of the `value` attribute, you can specify a SpEL expression for passing the value of the parameter.
+If you specify the `expression`, the `value` attribute is not allowed.
+Optional.
+====
+Optional.
++
+* `returning-resultset`: Stored procedures may return multiple result sets.
+By setting one or more `returning-resultset` elements, you can specify `RowMappers` to convert each returned `ResultSet` to meaningful objects.
+Optional.
++
+====
+[source,xml]
+----
+<int-jdbc:returning-resultset name="" row-mapper="" />
+----
+====
+
+* `sql-parameter-definition`: If you use a database that is fully supported, you typically do not have to specify the stored procedure parameter definitions.
+Instead, those parameters can be automatically derived from the JDBC metadata.
+However, if you use databases that are not fully supported, you must set those parameters explicitly by using the `sql-parameter-definition` element.
++
+You can also choose to turn off any processing of parameter metadata information obtained through JDBC by using the `ignore-column-meta-data` attribute.
++
+====
+[source,xml]
+----
+<int-jdbc:sql-parameter-definition
+                                   name=""                           <1>
+                                   direction="IN"                    <2>
+                                   type="STRING"                     <3>
+                                   scale="5"                         <4>
+                                   type-name="FOO_STRUCT"            <5>
+                                   return-type="fooSqlReturnType"/>  <6>
+----
+
+<1> Specifies the name of the SQL parameter.
+Required.
+<2> Specifies the direction of the SQL parameter definition.
+Defaults to `IN`.
+Valid values are: `IN`, `OUT`, and `INOUT`.
+If your procedure is returning result sets, use the `returning-resultset` element.
+Optional.
+<3> The SQL type used for this SQL parameter definition.
+Translates into an integer value, as defined by `java.sql.Types`.
+Alternatively, you can provide the integer value as well.
+If this attribute is not explicitly set, it defaults to 'VARCHAR'.
+Optional.
+<4> The scale of the SQL parameter.
+Only used for numeric and decimal parameters.
+Optional.
+<5> The `typeName` for types that are user-named, such as: `STRUCT`, `DISTINCT`, `JAVA_OBJECT`, and named array types.
+This attribute is mutually exclusive with the `scale` attribute.
+Optional.
+<6> The reference to a custom value handler for complex types.
+An implementation of https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/SqlReturnType.html[`SqlReturnType`].
+This attribute is mutually exclusive with the `scale` attribute and is only applicable for OUT and INOUT parameters.
+Optional.
+====
+* `poller`: Lets you configure a message poller if this endpoint is a `PollingConsumer`.
+Optional.
+
+[[sp-defining-parameter-sources]]
+== Defining Parameter Sources
+
+Parameter sources govern the techniques of retrieving and mapping the Spring Integration message properties to the relevant stored procedure input parameters.
+
+The stored procedure components follow certain rules.
+By default, the bean properties of the `Message` payload are used as a source for the stored procedure's input parameters.
+In that case, a `BeanPropertySqlParameterSourceFactory` is used.
+This may suffice for basic use cases.
+The next example illustrates that default behavior.
+
+IMPORTANT: For the "`automatic`" lookup of bean properties by using the `BeanPropertySqlParameterSourceFactory` to work, your bean properties must be defined in lower case.
+This is due to the fact that in `org.springframework.jdbc.core.metadata.CallMetaDataContext` (the Java method is `matchInParameterValuesWithCallParameters()`), the retrieved stored procedure parameter declarations are converted to lower case.
+As a result, if you have camel-case bean properties (such as `lastName`), the lookup fails.
+In that case, provide an explicit `ProcedureParameter`.
+
+Suppose we have a payload that consists of a simple bean with the following three properties: `id`, `name`, and `description`.
+Furthermore, we have a simplistic Stored Procedure called `INSERT_COFFEE` that accepts three input parameters: `id`, `name`, and `description`.
+We also use a fully supported database.
+In that case, the following configuration for a stored procedure outbound adapter suffices:
+
+====
+[source,xml]
+----
+<int-jdbc:stored-proc-outbound-channel-adapter data-source="dataSource"
+    channel="insertCoffeeProcedureRequestChannel"
+    stored-procedure-name="INSERT_COFFEE"/>
+----
+====
+
+For more sophisticated options, consider passing in one or more `ProcedureParameter` values.
+
+If you do provide `ProcedureParameter` values explicitly, by default, an `ExpressionEvaluatingSqlParameterSourceFactory` is used for parameter processing, to enable the full power of SpEL expressions.
+
+If you need even more control over how parameters are retrieved, consider passing in a custom implementation of `SqlParameterSourceFactory` by using the `sql-parameter-source-factory` attribute.
+
+[[stored-procedure-inbound-channel-adapter]]
+== Stored Procedure Inbound Channel Adapter
+
+The following listing calls out the attributes that matter for a stored procedure inbound channel adapter:
+
+====
+[source,xml]
+----
+<int-jdbc:stored-proc-inbound-channel-adapter
+                                   channel=""                                    <1>
+                                   stored-procedure-name=""
+                                   data-source=""
+                                   auto-startup="true"
+                                   id=""
+                                   ignore-column-meta-data="false"
+                                   is-function="false"
+                                   skip-undeclared-results=""                    <2>
+                                   return-value-required="false"                 <3>
+    <int:poller/>
+    <int-jdbc:sql-parameter-definition name="" direction="IN"
+                                               type="STRING"
+                                               scale=""/>
+    <int-jdbc:parameter name="" type="" value=""/>
+    <int-jdbc:parameter name="" expression=""/>
+    <int-jdbc:returning-resultset name="" row-mapper="" />
+</int-jdbc:stored-proc-inbound-channel-adapter>
+----
+
+<1> Channel to which polled messages are sent.
+If the stored procedure or function does not return any data, the payload of the `Message` is null.
+Required.
+<2> If this attribute is set to `true`, all results from a stored procedure call that do not have a corresponding `SqlOutParameter` declaration are bypassed.
+For example, stored procedures can return an update count value, even though your stored procedure declared only a single result parameter.
+The exact behavior depends on the database implementation.
+The value is set on the underlying `JdbcTemplate`.
+The value defaults to `true`.
+Optional.
+<3> Indicates whether this procedure's return value should be included.
+Since Spring Integration 3.0.
+Optional.
+====
+
+[[stored-procedure-outbound-channel-adapter]]
+== Stored Procedure Outbound Channel Adapter
+
+The following listing calls out the attributes that matter for a stored procedure outbound channel adapter:
+
+====
+[source,xml]
+----
+<int-jdbc:stored-proc-outbound-channel-adapter channel=""                        <1>
+                                               stored-procedure-name=""
+                                               data-source=""
+                                               auto-startup="true"
+                                               id=""
+                                               ignore-column-meta-data="false"
+                                               order=""                          <2>
+                                               sql-parameter-source-factory=""
+                                               use-payload-as-parameter-source="">
+    <int:poller fixed-rate=""/>
+    <int-jdbc:sql-parameter-definition name=""/>
+    <int-jdbc:parameter name=""/>
+
+</int-jdbc:stored-proc-outbound-channel-adapter>
+----
+
+<1> The receiving message channel of this endpoint.
+Required.
+<2> Specifies the order for invocation when this endpoint is connected as a subscriber to a channel.
+This is particularly relevant when that channel is using a `failover` dispatching strategy.
+It has no effect when this endpoint is itself a polling consumer for a channel with a queue.
+Optional.
+====
+
+[[stored-procedure-outbound-gateway]]
+== Stored Procedure Outbound Gateway
+
+The following listing calls out the attributes that matter for a stored procedure outbound channel adapter:
+
+====
+[source,xml]
+----
+<int-jdbc:stored-proc-outbound-gateway request-channel=""                        <1>
+                                       stored-procedure-name=""
+                                       data-source=""
+                                   auto-startup="true"
+                                   id=""
+                                   ignore-column-meta-data="false"
+                                   is-function="false"
+                                   order=""
+                                   reply-channel=""                              <2>
+                                   reply-timeout=""                              <3>
+                                   return-value-required="false"                 <4>
+                                   skip-undeclared-results=""                    <5>
+                                   sql-parameter-source-factory=""
+                                   use-payload-as-parameter-source="">
+<int-jdbc:sql-parameter-definition name="" direction="IN"
+                                   type=""
+                                   scale="10"/>
+<int-jdbc:sql-parameter-definition name=""/>
+<int-jdbc:parameter name="" type="" value=""/>
+<int-jdbc:parameter name="" expression=""/>
+<int-jdbc:returning-resultset name="" row-mapper="" />
+----
+
+<1> The receiving message channel of this endpoint.
+Required.
+<2> Message channel to which replies should be sent after receiving the database response.
+Optional.
+<3> Lets you specify how long this gateway waits for the reply message to be sent successfully before throwing an exception.
+Keep in mind that, when sending to a `DirectChannel`, the invocation occurs in the sender's thread.
+Consequently, the failing of the send operation may be caused by other components further downstream.
+The value is specified in milliseconds.
+Optional.
+<4> Indicates whether this procedure's return value should be included.
+Optional.
+<5> If the `skip-undeclared-results` attribute is set to `true`, all results from a stored procedure call that do not have a corresponding `SqlOutParameter` declaration are bypassed.
+For example, stored procedures may return an update count value, even though your stored procedure only declared a single result parameter.
+The exact behavior depends on the database.
+The value is set on the underlying `JdbcTemplate`.
+The value defaults to `true`.
+Optional.
+====
+
+[[sp-examples]]
+== Examples
+
+This section contains two examples that call https://db.apache.org/derby/[Apache Derby] stored procedures.
+The first procedure calls a stored procedure that returns a `ResultSet`.
+By using a `RowMapper`, the data is converted into a domain object, which then becomes the Spring Integration message payload.
+
+In the second sample, we call a stored procedure that uses output parameters to return data instead.
+
+[NOTE]
+=====
+Have a look at the https://github.com/spring-projects/spring-integration-samples[Spring Integration Samples project].
+
+The project contains the Apache Derby example referenced here, as well as instructions on how to run it.
+The Spring Integration Samples project also provides an https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/stored-procedures-oracle[example] of using Oracle stored procedures.
+=====
+
+In the first example, we call a stored procedure named `FIND_ALL_COFFEE_BEVERAGES` that does not define any input parameters but that returns a `ResultSet`.
+
+In Apache Derby, stored procedures are implemented in Java.
+The following listing shows the method signature:
+
+====
+[source,java]
+----
+public static void findAllCoffeeBeverages(ResultSet[] coffeeBeverages)
+            throws SQLException {
+    ...
+}
+----
+====
+
+The following listing shows the corresponding SQL:
+
+====
+[source,sql]
+----
+CREATE PROCEDURE FIND_ALL_COFFEE_BEVERAGES() \
+PARAMETER STYLE JAVA LANGUAGE JAVA MODIFIES SQL DATA DYNAMIC RESULT SETS 1 \
+EXTERNAL NAME 'o.s.i.jdbc.storedproc.derby.DerbyStoredProcedures.findAllCoffeeBeverages';
+----
+====
+
+In Spring Integration, you can now call this stored procedure by using, for example, a `stored-proc-outbound-gateway`, as the following example shows:
+
+====
+[source,xml]
+----
+<int-jdbc:stored-proc-outbound-gateway id="outbound-gateway-storedproc-find-all"
+                                       data-source="dataSource"
+                                       request-channel="findAllProcedureRequestChannel"
+                                       expect-single-result="true"
+                                       stored-procedure-name="FIND_ALL_COFFEE_BEVERAGES">
+<int-jdbc:returning-resultset name="coffeeBeverages"
+    row-mapper="org.springframework.integration.support.CoffeBeverageMapper"/>
+</int-jdbc:stored-proc-outbound-gateway>
+----
+====
+
+In the second example, we call a stored procedure named `FIND_COFFEE` that has one input parameter.
+Instead of returning a `ResultSet`, it uses an output parameter.
+The following example shows the method signature:
+
+====
+[source,java]
+----
+public static void findCoffee(int coffeeId, String[] coffeeDescription)
+            throws SQLException {
+    ...
+}
+----
+====
+
+The following listing shows the corresponding SQL:
+
+====
+[source,sql]
+----
+CREATE PROCEDURE FIND_COFFEE(IN ID INTEGER, OUT COFFEE_DESCRIPTION VARCHAR(200)) \
+PARAMETER STYLE JAVA LANGUAGE JAVA EXTERNAL NAME \
+'org.springframework.integration.jdbc.storedproc.derby.DerbyStoredProcedures.findCoffee';
+----
+====
+
+In Spring Integration, you can now call this Stored Procedure by using, for example, a `stored-proc-outbound-gateway`, as the following example shows:
+
+====
+[source,xml]
+----
+<int-jdbc:stored-proc-outbound-gateway id="outbound-gateway-storedproc-find-coffee"
+                                       data-source="dataSource"
+                                       request-channel="findCoffeeProcedureRequestChannel"
+                                       skip-undeclared-results="true"
+                                       stored-procedure-name="FIND_COFFEE"
+                                       expect-single-result="true">
+    <int-jdbc:parameter name="ID" expression="payload" />
+</int-jdbc:stored-proc-outbound-gateway>
+----
+====
+

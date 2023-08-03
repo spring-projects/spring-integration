@@ -1,0 +1,5 @@
+[[jpa-supported-persistence-providers]]
+= Supported Persistence Providers
+
+The Spring Integration JPA support has been tested against Hibernate persistence provider.
+

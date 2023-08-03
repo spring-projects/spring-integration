@@ -1,0 +1,25 @@
+[[ftp-session-callback]]
+= Using `MessageSessionCallback`
+
+Starting with Spring Integration 4.2, you can use a `MessageSessionCallback<F, T>` implementation with the `<int-ftp:outbound-gateway/>` (`FtpOutboundGateway` in Java) to perform any operations on the `Session<FTPFile>` with the `requestMessage` context.
+It can be used for any non-standard or low-level FTP operations and allows access from an integration flow definition and functional interface (Lambda) implementation injection, as the following example shows:
+
+====
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "ftpChannel")
+public MessageHandler ftpOutboundGateway(SessionFactory<FTPFile> sessionFactory) {
+    return new FtpOutboundGateway(sessionFactory,
+         (session, requestMessage) -> session.list(requestMessage.getPayload()));
+}
+----
+====
+
+Another example might be to pre- or post-process the file data being sent or retrieved.
+
+When using XML configuration, the `<int-ftp:outbound-gateway/>` provides a `session-callback` attribute to let you specify the `MessageSessionCallback` bean name.
+
+NOTE: The `session-callback` is mutually exclusive with the `command` and `expression` attributes.
+When configuring with Java, different constructors are available in the https://docs.spring.io/spring-integration/api/org/springframework/integration/ftp/gateway/FtpOutboundGateway.html[`FtpOutboundGateway`] class.
+

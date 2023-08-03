@@ -1,0 +1,14 @@
+[[amqp-conversion-inbound]]
+= Inbound Message Conversion
+
+Inbound messages, arriving at the channel adapter or gateway, are converted to the `spring-messaging` `Message<?>` payload using a message converter.
+By default, a `SimpleMessageConverter` is used, which handles java serialization and text.
+Headers are mapped using the `DefaultHeaderMapper.inboundMapper()` by default.
+If a conversion error occurs, and there is no error channel defined, the exception is thrown to the container and handled by the listener container's error handler.
+The default error handler treats conversion errors as fatal and the message will be rejected (and routed to a dead-letter exchange, if the queue is so configured).
+If an error channel is defined, the `ErrorMessage` payload is a `ListenerExecutionFailedException` with properties `failedMessage` (the Spring AMQP message that could not be converted) and the `cause`.
+If the container `AcknowledgeMode` is `AUTO` (the default) and the error flow consumes the error without throwing an exception, the original message will be acknowledged.
+If the error flow throws an exception, the exception type, in conjunction with the container's error handler, will determine whether the message is requeued.
+If the container is configured with `AcknowledgeMode.MANUAL`, the payload is a `ManualAckListenerExecutionFailedException` with additional properties `channel` and `deliveryTag`.
+This enables the error flow to call `basicAck` or `basicNack` (or `basicReject`) for the message, to control its disposition.
+

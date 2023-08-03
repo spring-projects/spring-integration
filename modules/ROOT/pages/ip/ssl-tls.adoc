@@ -1,0 +1,100 @@
+[[ssl-tls]]
+= SSL/TLS Support
+
+Secure Sockets Layer/Transport Layer Security is supported.
+When using NIO, the JDK 5+ `SSLEngine` feature is used to handle handshaking after the connection is established.
+When not using NIO, standard `SSLSocketFactory` and `SSLServerSocketFactory` objects are used to create connections.
+A number of strategy interfaces are provided to allow significant customization.
+The default implementations of these interfaces provide for the simplest way to get started with secure communications.
+
+[[ip-ssl-tls-getting-started]]
+== Getting Started
+
+Regardless of whether you use NIO, you need to configure the `ssl-context-support` attribute on the connection factory.
+This attribute references a <bean/> definition that describes the location and passwords for the required key stores.
+
+SSL/TLS peers require two key stores each:
+
+* A keystore that contains private and public key pairs to identify the peer
+* A truststore that contains the public keys for peers that are trusted.
+See the documentation for the `keytool` utility provided with the JDK.
+The essential steps are
+
+. Create a new key pair and store it in a keystore.
+. Export the public key.
+. Import the public key into the peer's truststore.
+. Repeat for the other peer.
+
+NOTE: It is common in test cases to use the same key stores on both peers, but this should be avoided for production.
+
+After establishing the key stores, the next step is to indicate their locations to the `TcpSSLContextSupport` bean and provide a reference to that bean to the connection factory.
+
+The following example configures an SSL connection:
+
+====
+[source,xml]
+----
+<bean id="sslContextSupport"
+    class="o.sf.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport">
+    <constructor-arg value="client.ks"/>
+    <constructor-arg value="client.truststore.ks"/>
+    <constructor-arg value="secret"/>
+    <constructor-arg value="secret"/>
+</bean>
+
+<ip:tcp-connection-factory id="clientFactory"
+    type="client"
+    host="localhost"
+    port="1234"
+    ssl-context-support="sslContextSupport" />
+----
+====
+
+The `DefaultTcpSSLContextSupport` class also has an optional `protocol` property, which can be `SSL` or `TLS` (the default).
+
+The keystore file names (the first two constructor arguments) use the Spring `Resource` abstraction.
+By default, the files are located on the classpath, but you can override this by using the `file:` prefix (to find the files on the filesystem instead).
+
+Starting with version 4.3.6, when you use NIO, you can specify an `ssl-handshake-timeout` (in seconds) on the connection factory.
+This timeout (the default is 30 seconds) is used during SSL handshake when waiting for data.
+If the timeout is exceeded, the process is stopped and the socket is closed.
+
+[[tcp-ssl-host-verification]]
+== Host Verification
+
+Starting with version 5.0.8, you can configure whether to enable host verification.
+Starting with version 5.1, it is enabled by default; the mechanism to disable it depends on whether you are using NIO.
+
+Host verification is used to ensure the server you are connected to matches information in the certificate, even if the certificate is trusted.
+
+When using NIO, configure the `DefaultTcpNioSSLConnectionSupport`, for example.
+
+====
+[source, java]
+----
+@Bean
+public DefaultTcpNioSSLConnectionSupport connectionSupport() {
+    DefaultTcpSSLContextSupport sslContextSupport = new DefaultTcpSSLContextSupport("test.ks",
+            "test.truststore.ks", "secret", "secret");
+    sslContextSupport.setProtocol("SSL");
+    DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
+            new DefaultTcpNioSSLConnectionSupport(sslContextSupport, false);
+    return tcpNioConnectionSupport;
+}
+----
+====
+
+The second constructor argument disables host verification.
+The `connectionSupport` bean is then injected into the NIO connection factory.
+
+When not using NIO, the configuration is in the `TcpSocketSupport`:
+
+====
+[source, java]
+----
+connectionFactory.setTcpSocketSupport(new DefaultTcpSocketSupport(false));
+----
+====
+
+Again, the constructor argument disables host verification.
+

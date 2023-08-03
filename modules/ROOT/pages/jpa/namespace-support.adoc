@@ -1,0 +1,162 @@
+[[jpa-namespace-support]]
+= Namespace Support
+
+When using XML namespace support, the underlying parser classes instantiate the relevant Java classes for you.
+Thus, you typically need not deal with the inner workings of the JPA adapter.
+This section documents the XML namespace support provided by Spring Integration and shows you how to use the XML Namespace support to configure the JPA components.
+
+[[jpa-namespace-support-common-attributes]]
+== Common XML Namespace Configuration Attributes
+
+Certain configuration parameters are shared by all JPA components:
+
+`auto-startup`::
+Lifecycle attribute that signals whether this component should be started during application context startup.
+Defaults to `true`.
+Optional.
+
+`id`::
+Identifies the underlying Spring bean definition, which is an instance of either `EventDrivenConsumer` or `PollingConsumer`.
+Optional.
+
+`entity-manager-factory`::
+The reference to the JPA entity manager factory that the adapter uses to create the `EntityManager`.
+You must provide this attribute, the `entity-manager` attribute, or the `jpa-operations` attribute.
+
+`entity-manager`::
+The reference to the JPA Entity Manager that the component uses.
+You must provide this attribute, the `entity-manager-factory` attribute, or the `jpa-operations` attribute.
++
+NOTE: Usually, your Spring application context defines only a JPA entity manager factory, and the `EntityManager` is injected by using the `@PersistenceContext` annotation.
+This approach does not apply for the Spring Integration JPA components.
+Usually, injecting the JPA entity manager factory is best, but, when you want to inject an `EntityManager` explicitly, you have to define a `SharedEntityManagerBean`.
+For more information, see the relevant https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/support/SharedEntityManagerBean.html[Javadoc].
++
+The following example shows how to explicitly include an entity manager factory:
++
+====
+[source,xml]
+----
+<bean id="entityManager"
+      class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
+    <property name="entityManagerFactory" ref="entityManagerFactoryBean" />
+</bean>
+----
+====
+
+`jpa-operations`::
+A reference to a bean that implements the `JpaOperations` interface.
+In rare cases, it might be advisable to provide your own implementation of the `JpaOperations` interface instead of relying on the default implementation (`org.springframework.integration.jpa.core.DefaultJpaOperations`).
+If you use the `jpa-operations` attribute, you must not provide the JPA entity manager or JPA entity manager factory, because `JpaOperations` wraps the necessary datasource.
+
+`entity-class`::
+The fully qualified name of the entity class.
+The exact semantics of this attribute vary, depending on whether we are performing a `persist` or `update` operation or whether we are retrieving objects from the database.
++
+When retrieving data, you can specify the `entity-class` attribute to indicate that you would like to retrieve objects of this type from the database.
+In that case, you must not define any of the query attributes (`jpa-query`, `native-query`, or `named-query`).
++
+When persisting data, the `entity-class` attribute indicates the type of object to persist.
+If not specified (for persist operations) the entity class is automatically retrieved from the message's payload.
+
+`jpa-query`::
+Defines the JPA query (Java Persistence Query Language) to be used.
+
+`native-query`::
+Defines the native SQL query to be used.
+
+`named-query`::
+Refers to a named query.
+A named query can be defined in either Native SQL or JPAQL, but the underlying JPA persistence provider handles that distinction internally.
+
+[[jpa-parameters]]
+== Providing JPA Query Parameters
+
+To provide parameters, you can use the `parameter` XML element.
+It has a mechanism that lets you provide parameters for queries that are based on either the Java Persistence Query Language (JPQL) or native SQL queries.
+You can also provide parameters for named queries.
+
+Expression-based Parameters::
+The following example shows how to set an expression-based parameter:
++
+====
+[source,xml]
+----
+<int-jpa:parameter expression="payload.name" name="firstName"/>
+----
+====
+
+Value-based Parameters::
+The following example shows how to set an value-based parameter:
++
+====
+[source,xml]
+----
+<int-jpa:parameter name="name" type="java.lang.String" value="myName"/>
+----
+====
+
+Positional Parameters::
+The following example shows how to set an expression-based parameter:
++
+====
+[source,xml]
+----
+<int-jpa:parameter expression="payload.name"/>
+<int-jpa:parameter type="java.lang.Integer" value="21"/>
+----
+====
+
+[[jpa-transactions]]
+== Transaction Handling
+
+All JPA operations (such as `INSERT`, `UPDATE`, and `DELETE`) require a transaction to be active whenever they are performed.
+For inbound channel adapters, you need do nothing special.
+It works similarly to the way we configure transaction managers with pollers that are used with other inbound channel adapters.
+The following XML example configures a transaction manager that uses a poller with an inbound channel adapter:
+
+====
+[source,xml]
+----
+<int-jpa:inbound-channel-adapter
+    channel="inboundChannelAdapterOne"
+    entity-manager="em"
+    auto-startup="true"
+    jpa-query="select s from Student s"
+    expect-single-result="true"
+    delete-after-poll="true">
+    <int:poller fixed-rate="2000" >
+        <int:transactional propagation="REQUIRED"
+            transaction-manager="transactionManager"/>
+    </int:poller>
+</int-jpa:inbound-channel-adapter>
+----
+====
+
+However, you may need to specifically start a transaction when using an outbound channel adapter or gateway.
+If a `DirectChannel` is an input channel for the outbound adapter or gateway and if the transaction is active in the current thread of execution, the JPA operation is performed in the same transaction context.
+You can also configure this JPA operation to run as a new transaction, as the following example shows:
+
+====
+[source,xml]
+----
+<int-jpa:outbound-gateway
+    request-channel="namedQueryRequestChannel"
+    reply-channel="namedQueryResponseChannel"
+    named-query="updateStudentByRollNumber"
+    entity-manager="em"
+    gateway-type="UPDATING">
+    <int-jpa:parameter name="lastName" expression="payload"/>
+    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
+		<int-jpa:transactional propagation="REQUIRES_NEW"
+        transaction-manager="transactionManager"/>
+</int-jpa:outbound-gateway>
+----
+====
+
+In the preceding example, the transactional element of the outbound gateway or adapter specifies the transaction attributes.
+It is optional to define this child element if you have `DirectChannel` as an input channel to the adapter and you want the adapter to execute the operations in the same transaction context as the caller.
+If, however, you use an `ExecutorChannel`, you must have the `transactional` element, because the invoking client's transaction context is not propagated.
+
+NOTE: Unlike the `transactional` element of the poller, which is defined in Spring Integration's namespace, the `transactional` element for the outbound gateway or adapter is defined in the JPA namespace.
+

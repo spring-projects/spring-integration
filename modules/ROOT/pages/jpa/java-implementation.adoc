@@ -1,0 +1,37 @@
+[[jpa-java-implementation]]
+= Java Implementation
+
+Each of the provided components uses the `o.s.i.jpa.core.JpaExecutor` class, which, in turn, uses an implementation of the `o.s.i.jpa.core.JpaOperations` interface.
+`JpaOperations` operates like a typical Data Access Object (DAO) and provides methods such as find, persist, executeUpdate, and so on.
+For most use cases, the default implementation (`o.s.i.jpa.core.DefaultJpaOperations`) should be sufficient.
+However, you can specify your own implementation if you require custom behavior.
+
+To initialize a `JpaExecutor`, you must use one of the constructors that accept one of:
+
+* EntityManagerFactory
+* EntityManager
+* JpaOperations
+
+The following example shows how to initialize a `JpaExecutor` with an `entityManagerFactory` and use it in an outbound gateway:
+
+[source,java]
+----
+@Bean
+public JpaExecutor jpaExecutor() {
+    JpaExecutor executor = new JpaExecutor(this.entityManagerFactory);
+    executor.setJpaParameters(Collections.singletonList(new JpaParameter("firstName", null, "#this")));
+    executor.setUsePayloadAsParameterSource(true);
+    executor.setExpectSingleResult(true);
+    return executor;
+}
+
+@ServiceActivator(inputChannel = "getEntityChannel")
+@Bean
+public MessageHandler retrievingJpaGateway() {
+    JpaOutboundGateway gateway = new JpaOutboundGateway(jpaExecutor());
+    gateway.setGatewayType(OutboundGatewayType.RETRIEVING);
+    gateway.setOutputChannelName("resultsChannel");
+    return gateway;
+}
+----
+

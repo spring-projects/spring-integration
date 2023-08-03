@@ -1,0 +1,33 @@
+[[java-dsl-inbound-adapters]]
+= Inbound Channel Adapters
+
+Typically, message flows start from an inbound channel adapter (such as `<int-jdbc:inbound-channel-adapter>`).
+The adapter is configured with `<poller>`, and it asks a `MessageSource<?>` to periodically produce messages.
+Java DSL allows for starting `IntegrationFlow` from a `MessageSource<?>`, too.
+For this purpose, the `IntegrationFlow` fluent API provides an overloaded `IntegrationFlow.from(MessageSource<?> messageSource)` method.
+You can configure the `MessageSource<?>` as a bean and provide it as an argument for that method.
+The second parameter of `IntegrationFlow.from()` is a `Consumer<SourcePollingChannelAdapterSpec>` lambda that lets you provide options (such as `PollerMetadata` or `SmartLifecycle`) for the `SourcePollingChannelAdapter`.
+The following example shows how to use the fluent API and a lambda to create an `IntegrationFlow`:
+
+====
+[source,java]
+----
+@Bean
+public MessageSource<Object> jdbcMessageSource() {
+    return new JdbcPollingChannelAdapter(this.dataSource, "SELECT * FROM something");
+}
+
+@Bean
+public IntegrationFlow pollingFlow() {
+    return IntegrationFlow.from(jdbcMessageSource(),
+                c -> c.poller(Pollers.fixedRate(100).maxMessagesPerPoll(1)))
+            .transform(Transformers.toJson())
+            .channel("furtherProcessChannel")
+            .get();
+}
+----
+====
+
+For those cases that have no requirements to build `Message` objects directly, you can use a `IntegrationFlow.fromSupplier()` variant that is based on the `java.util.function.Supplier` .
+The result of the `Supplier.get()` is automatically wrapped in a `Message` (if it is not already a `Message`).
+

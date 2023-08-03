@@ -1,0 +1,162 @@
+[[amqp-outbound-gateway]]
+= Outbound Gateway
+
+The following listing shows the possible properties for an AMQP Outbound Gateway:
+
+====
+[source,java,role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate) {
+    return f -> f.handle(Amqp.outboundGateway(amqpTemplate)
+                    .routingKey("foo")) // default exchange - route to queue 'foo'
+            .get();
+}
+
+@MessagingGateway(defaultRequestChannel = "amqpOutbound.input")
+public interface MyGateway {
+
+    String sendToRabbit(String data);
+
+}
+----
+[source,java,role="secondary"]
+.Java
+----
+@Bean
+@ServiceActivator(inputChannel = "amqpOutboundChannel")
+public AmqpOutboundEndpoint amqpOutbound(AmqpTemplate amqpTemplate) {
+    AmqpOutboundEndpoint outbound = new AmqpOutboundEndpoint(amqpTemplate);
+    outbound.setExpectReply(true);
+    outbound.setRoutingKey("foo"); // default exchange - route to queue 'foo'
+    return outbound;
+}
+
+@Bean
+public MessageChannel amqpOutboundChannel() {
+    return new DirectChannel();
+}
+
+@MessagingGateway(defaultRequestChannel = "amqpOutboundChannel")
+public interface MyGateway {
+
+    String sendToRabbit(String data);
+
+}
+----
+[source,xml,role="secondary"]
+.XML
+----
+<int-amqp:outbound-gateway id="outboundGateway"               <1>
+                           request-channel="myRequestChannel" <2>
+                           amqp-template=""                   <3>
+                           exchange-name=""                   <4>
+                           exchange-name-expression=""        <5>
+                           order="1"                          <6>
+                           reply-channel=""                   <7>
+                           reply-timeout=""                   <8>
+                           requires-reply=""                  <9>
+                           routing-key=""                     <10>
+                           routing-key-expression=""          <11>
+                           default-delivery-mode""            <12>
+                           confirm-correlation-expression=""  <13>
+                           confirm-ack-channel=""             <14>
+                           confirm-nack-channel=""            <15>
+                           confirm-timeout=""                 <16>
+                           return-channel=""                  <17>
+                           error-message-strategy=""          <18>
+                           lazy-connect="true" />             <19>
+
+----
+
+<1> The unique ID for this adapter.
+Optional.
+<2> Message channel to which messages are sent to have them converted and published to an AMQP exchange.
+Required.
+<3> Bean reference to the configured AMQP template.
+Optional (defaults to `amqpTemplate`).
+<4> The name of the AMQP exchange to which messages should be sent.
+If not provided, messages are sent to the default, no-name cxchange.
+Mutually exclusive with 'exchange-name-expression'.
+Optional.
+<5> A SpEL expression that is evaluated to determine the name of the AMQP exchange to which messages should be sent, with the message as the root object.
+If not provided, messages are sent to the default, no-name exchange.
+Mutually exclusive with 'exchange-name'.
+Optional.
+<6> The order for this consumer when multiple consumers are registered, thereby enabling load-balancing and failover.
+Optional (defaults to `Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE]`).
+<7> Message channel to which replies should be sent after being received from an AMQP queue and converted.
+Optional.
+<8> The time the gateway waits when sending the reply message to the `reply-channel`.
+This only applies if the `reply-channel` can block -- such as a `QueueChannel` with a capacity limit that is currently full.
+Defaults to infinity.
+<9> When `true`, the gateway throws an exception if no reply message is received within the `AmqpTemplate`'s `replyTimeout` property.
+Defaults to `true`.
+<10> The `routing-key` to use when sending messages.
+By default, this is an empty `String`.
+Mutually exclusive with 'routing-key-expression'.
+Optional.
+<11> A SpEL expression that is evaluated to determine the `routing-key` to use when sending messages, with the message as the root object (for example, 'payload.key').
+By default, this is an empty `String`.
+Mutually exclusive with 'routing-key'.
+Optional.
+<12> The default delivery mode for messages: `PERSISTENT` or `NON_PERSISTENT`.
+Overridden if the `header-mapper` sets the delivery mode.
+If the Spring Integration message header `amqp_deliveryMode` is present, the `DefaultHeaderMapper` sets the value.
+If this attribute is not supplied and the header mapper does not set it, the default depends on the underlying Spring AMQP `MessagePropertiesConverter` used by the `RabbitTemplate`.
+If that is not customized at all, the default is `PERSISTENT`.
+Optional.
+<13> Since version 4.2.
+An expression defining correlation data.
+When provided, this configures the underlying AMQP template to receive publisher confirms.
+Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with the `publisherConfirms` property set to `true`.
+When a publisher confirm is received and correlation data is supplied, it is written to either the `confirm-ack-channel` or the `confirm-nack-channel`, depending on the confirmation type.
+The payload of the confirm is the correlation data, as defined by this expression.
+The message has a header 'amqp_publishConfirm' set to `true` (`ack`) or `false` (`nack`).
+For `nack` confirmations, Spring Integration provides an additional header `amqp_publishConfirmNackCause`.
+Examples: `headers['myCorrelationData']` and `payload`.
+If the expression resolves to a `Message<?>` instance (such as `#this`), the message
+emitted on the `ack`/`nack` channel is based on that message, with the additional headers added.
+Previously, a new message was created with the correlation data as its payload, regardless of type.
+Also see <<alternative-confirms-returns>>.
+Optional.
+<14> The channel to which positive (`ack`) publisher confirmations are sent.
+The payload is the correlation data defined by `confirm-correlation-expression`.
+If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `true`.
+Also see <<alternative-confirms-returns>>.
+Optional (the default is `nullChannel`).
+<15> The channel to which negative (`nack`) publisher confirmations are sent.
+The payload is the correlation data defined by `confirm-correlation-expression` (if there is no `ErrorMessageStrategy` configured).
+If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `false`.
+When there is an `ErrorMessageStrategy`, the message is an `ErrorMessage` with a `NackedAmqpMessageException` payload.
+Also see <<alternative-confirms-returns>>.
+Optional (the default is `nullChannel`).
+<16> When set, the gateway will synthesize a negative acknowledgment (nack) if a publisher confirm is not received within this time in milliseconds.
+Pending confirms are checked every 50% of this value, so the actual time a nack is sent will be between 1x and 1.5x this value.
+Default none (nacks will not be generated).
+<17> The channel to which returned messages are sent.
+When provided, the underlying AMQP template is configured to return undeliverable messages to the adapter.
+When there is no `ErrorMessageStrategy` configured, the message is constructed from the data received from AMQP, with the following additional headers: `amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, and `amqp_returnRoutingKey`.
+When there is an `ErrorMessageStrategy`, the message is an `ErrorMessage` with a `ReturnedAmqpMessageException` payload.
+Also see <<alternative-confirms-returns>>.
+Optional.
+<18> A reference to an `ErrorMessageStrategy` implementation used to build `ErrorMessage` instances when sending returned or negatively acknowledged messages.
+<19> When set to `false`, the endpoint attempts to connect to the broker during application context initialization.
+This allows "`fail fast`" detection of bad configuration by logging an error message if the broker is down.
+When `true` (the default), the connection is established (if it does not already exist because some other component established it) when the first message is sent.
+====
+
+[IMPORTANT]
+.return-channel
+=====
+Using a `return-channel` requires a `RabbitTemplate` with the `mandatory` property set to `true` and a `CachingConnectionFactory` with the `publisherReturns` property set to `true`.
+When using multiple outbound endpoints with returns, a separate `RabbitTemplate` is needed for each endpoint.
+=====
+
+IMPORTANT: The underlying `AmqpTemplate` has a default `replyTimeout` of five seconds.
+If you require a longer timeout, you must configure it on the `template`.
+
+Note that the only difference between the outbound adapter and outbound gateway configuration is the setting of the
+`expectReply` property.
+

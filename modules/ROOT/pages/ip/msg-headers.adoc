@@ -1,0 +1,72 @@
+[[ip-msg-headers]]
+= IP Message Headers
+
+This module uses the following `MessageHeader` instances:
+
+[cols="3,3,4", options="header"]
+|===
+| Header Name
+| IpHeaders Constant
+| Description
+
+| `ip_hostname`
+| `HOSTNAME`
+| The host name from which a TCP message or UDP packet was received.
+If `lookupHost` is `false`, this contains the IP address.
+
+| `ip_address`
+| `IP_ADDRESS`
+| The IP address from which a TCP message or UDP packet was received.
+
+| `ip_port`
+| `PORT`
+| The remote port for a UDP packet.
+
+| ip_localInetAddress
+| `IP_LOCAL_ADDRESS`
+| The local `InetAddress` to which the socket is connected (since version 4.2.5).
+
+| `ip_ackTo`
+| `ACKADDRESS`
+| The remote IP address to which UDP application-level acknowledgments are sent.
+The framework includes acknowledgment information in the data packet.
+
+| `ip_ackId`
+| `ACK_ID`
+| A correlation ID for UDP application-level acknowledgments.
+The framework includes acknowledgment information in the data packet.
+
+| `ip_tcp_remotePort`
+| `REMOTE_PORT`
+| The remote port for a TCP connection.
+
+| `ip_connectionId`
+| `CONNECTION_ID`
+| A unique identifier for a TCP connection.
+Set by the framework for inbound messages.
+When sending to a server-side inbound channel adapter or replying to an inbound gateway, this header is required so that the endpoint can determine the connection to which to send the message.
+
+| `ip_actualConnectionId`
+| `ACTUAL_CONNECTION_ID`
+| For information only.
+When using a cached or failover client connection factory, it contains the actual underlying connection ID.
+
+| `contentType`
+| `MessageHeaders.`
+`CONTENT_TYPE`
+| An optional content type for inbound messages
+Described after this table.
+Note that, unlike the other header constants, this constant is in the `MessageHeaders` class, not the `IpHeaders` class.
+|===
+
+For inbound messages, `ip_hostname`, `ip_address`, `ip_tcp_remotePort`, and `ip_connectionId` are mapped by the default `TcpHeaderMapper`.
+If you set the mapper's `addContentTypeHeader` property to `true`, the mapper sets the `contentType` header (`application/octet-stream;charset="UTF-8"`, by default).
+You can change the default by setting the `contentType` property.
+You can add additional headers by subclassing `TcpHeaderMapper` and overriding the `supplyCustomHeaders` method.
+For example, when you use SSL, you can add properties of the `SSLSession` by obtaining the session object from the `TcpConnection` object, which is provided as an argument to the `supplyCustomHeaders` method.
+
+For outbound messages, `String` payloads are converted to `byte[]` with the default (`UTF-8`) charset.
+Set the `charset` property to change the default.
+
+When customizing the mapper properties or subclassing, declare the mapper as a bean and provide an instance to the connection factory by using the `mapper` property.
+

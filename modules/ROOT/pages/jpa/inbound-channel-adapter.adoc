@@ -1,0 +1,201 @@
+[[jpa-inbound-channel-adapter]]
+= Inbound Channel Adapter
+
+An inbound channel adapter is used to execute a select query over the database using JPA QL and return the result.
+The message payload is either a single entity or a `List` of entities.
+The following XML configures an `inbound-channel-adapter`:
+
+====
+[source,xml]
+----
+<int-jpa:inbound-channel-adapter channel="inboundChannelAdapterOne"  <1>
+                    entity-manager="em"                              <2>
+                    auto-startup="true"                              <3>
+                    query="select s from Student s"                  <4>
+                    expect-single-result="true"                      <5>
+                    max-results=""                                   <6>
+                    max-results-expression=""                        <7>
+                    delete-after-poll="true"                         <8>
+                    flush-after-delete="true">                       <9>
+    <int:poller fixed-rate="2000" >
+      <int:transactional propagation="REQUIRED" transaction-manager="transactionManager"/>
+    </int:poller>
+</int-jpa:inbound-channel-adapter>
+----
+
+<1> The channel over which the `inbound-channel-adapter` puts the messages (with the payload) after executing the JPA QL in the `query` attribute.
+<2> The `EntityManager` instance used to perform the required JPA operations.
+<3> Attribute signaling whether the component should automatically start when the application context starts.
+The value defaults to `true`.
+<4> The JPA QL whose result are sent out as the payload of the message
+<5> This attribute tells whether the JPQL query gives a single entity in the result or a `List` of entities.
+If the value is set to `true`, the single entity is sent as the payload of the message.
+If, however, multiple results are returned after setting this to `true`, a `MessagingException` is thrown.
+The value defaults to `false`.
+<6> This non-zero, non-negative integer value tells the adapter not to select more than the given number of rows on execution of the select operation.
+By default, if this attribute is not set, all possible records are selected by the query.
+This attribute is mutually exclusive with `max-results-expression`.
+Optional.
+<7> An expression that is evaluated to find the maximum number of results in a result set.
+Mutually exclusive with `max-results`.
+Optional.
+<8> Set this value to `true` if you want to delete the rows received after execution of the query.
+You must ensure that the component operates as part of a transaction.
+Otherwise, you may encounter an exception such as: `java.lang.IllegalArgumentException: Removing a detached instance ...`
+<9> Set this value to `true` if you want to flush the persistence context immediately after deleting received entities and if you do not want to rely on the `flushMode` of the `EntityManager`.
+The value defaults to `false`.
+====
+
+[[jpaInboundChannelAdapterParameters]]
+== Configuration Parameter Reference
+
+The following listing shows all the values that can be set for an `inbound-channel-adapter`:
+
+====
+[source,xml]
+----
+<int-jpa:inbound-channel-adapter
+  auto-startup="true"           <1>
+  channel=""                    <2>
+  delete-after-poll="false"     <3>
+  delete-per-row="false"        <4>
+  entity-class=""               <5>
+  entity-manager=""             <6>
+  entity-manager-factory=""     <7>
+  expect-single-result="false"  <8>
+  id=""
+  jpa-operations=""             <9>
+  jpa-query=""                  <10>
+  named-query=""                <11>
+  native-query=""               <12>
+  parameter-source=""           <13>
+  send-timeout="">              <14>
+  <int:poller ref="myPoller"/>
+ </int-jpa:inbound-channel-adapter>
+----
+
+<1> This lifecycle attribute signals whether this component should automatically start when the application context starts.
+This attribute defaults to `true`.
+Optional.
+<2> The channel to which the adapter sends a message with the payload from performing the desired JPA operation.
+<3> A boolean flag that indicates whether to delete the selected records after they have been polled by the adapter.
+By default, the value is `false` (that is, the records are not deleted).
+You must ensure that the component operates as part of a transaction.
+Otherwise, you may encounter an exception, such as: `java.lang.IllegalArgumentException: Removing a detached instance ...`.
+Optional.
+<4> A boolean flag that indicates whether the records can be deleted in bulk or must be deleted one record at a time.
+By default, the value is `false` (that is, the records can be bulk-deleted).
+Optional.
+<5> The fully qualified name of the entity class to be queried from the database.
+The adapter automatically builds a JPA Query based on the entity class name.
+Optional.
+<6> An instance of `jakarta.persistence.EntityManager` used to perform the JPA operations.
+Optional.
+<7> An instance of `jakarta.persistence.EntityManagerFactory` used to obtain an instance of `jakarta.persistence.EntityManager` that performs the JPA operations.
+Optional.
+<8> A boolean flag indicating whether the select operation is expected to return a single result or a `List` of results.
+If this flag is set to `true`, the single entity selected is sent as the payload of the message.
+If multiple entities are returned, an exception is thrown.
+If `false`, the `List` of entities is sent as the payload of the message.
+The value defaults to `false`.
+Optional.
+<9> An implementation of `org.springframework.integration.jpa.core.JpaOperations` used to perform the JPA operations.
+We recommend not providing an implementation of your own but using the default `org.springframework.integration.jpa.core.DefaultJpaOperations` implementation.
+You can use any of the `entity-manager`, `entity-manager-factory`, or `jpa-operations` attributes.
+Optional.
+<10> The JPA QL to be executed by this adapter.
+Optional.
+<11> The named query that needs to be executed by this adapter.
+Optional.
+<12> The native query executed by this adapter.
+You can use any of the `jpa-query`, `named-query`, `entity-class`, or `native-query` attributes.
+Optional.
+<13> An implementation of `o.s.i.jpa.support.parametersource.ParameterSource` used to resolve the values of the parameters in the query.
+Ignored if the `entity-class` attribute has a value.
+Optional.
+<14> Maximum amount of time (in milliseconds) to wait when sending a message to the channel.
+Optional.
+====
+
+[[configuring-with-java-configuration]]
+== Configuring with Java Configuration
+
+The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
+
+====
+[source, java]
+----
+@SpringBootApplication
+@EntityScan(basePackageClasses = StudentDomain.class)
+public class JpaJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(JpaJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
+
+    @Bean
+    public JpaExecutor jpaExecutor() {
+        JpaExecutor executor = new JpaExecutor(this.entityManagerFactory);
+        jpaExecutor.setJpaQuery("from Student");
+        return executor;
+    }
+
+    @Bean
+    @InboundChannelAdapter(channel = "jpaInputChannel",
+                     poller = @Poller(fixedDelay = "${poller.interval}"))
+    public MessageSource<?> jpaInbound() {
+        return new JpaPollingChannelAdapter(jpaExecutor());
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "jpaInputChannel")
+    public MessageHandler handler() {
+        return message -> System.out.println(message.getPayload());
+    }
+
+}
+----
+====
+
+[[configuring-with-the-java-dsl]]
+== Configuring with the Java DSL
+
+The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
+
+====
+[source, java]
+----
+@SpringBootApplication
+@EntityScan(basePackageClasses = StudentDomain.class)
+public class JpaJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(JpaJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
+
+    @Bean
+    public IntegrationFlow pollingAdapterFlow() {
+        return IntegrationFlow
+            .from(Jpa.inboundAdapter(this.entityManagerFactory)
+                        .entityClass(StudentDomain.class)
+                        .maxResults(1)
+                        .expectSingleResult(true),
+                e -> e.poller(p -> p.trigger(new OnlyOnceTrigger())))
+            .channel(c -> c.queue("pollingResults"))
+            .get();
+    }
+
+}
+----
+====
+

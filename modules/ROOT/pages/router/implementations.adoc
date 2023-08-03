@@ -1,0 +1,414 @@
+[[router-implementations]]
+= Router Implementations
+
+Since content-based routing often requires some domain-specific logic, most use cases require Spring Integration's options for delegating to POJOs by using either the XML namespace support or annotations.
+Both of these are discussed later.
+However, we first present a couple of implementations that fulfill common requirements.
+
+[[router-implementations-payloadtyperouter]]
+== `PayloadTypeRouter`
+
+A `PayloadTypeRouter` sends messages to the channel defined by payload-type mappings, as the following example shows:
+
+====
+[source,xml]
+----
+<bean id="payloadTypeRouter"
+      class="org.springframework.integration.router.PayloadTypeRouter">
+    <property name="channelMapping">
+        <map>
+            <entry key="java.lang.String" value-ref="stringChannel"/>
+            <entry key="java.lang.Integer" value-ref="integerChannel"/>
+        </map>
+    </property>
+</bean>
+----
+====
+
+Configuration of the `PayloadTypeRouter` is also supported by the namespace provided by Spring Integration (see `<<./configuration.adoc#configuration-namespace,Namespace Support>>`), which essentially simplifies configuration by combining the `<router/>` configuration and its corresponding implementation (defined by using a `<bean/>` element) into a single and more concise configuration element.
+The following example shows a `PayloadTypeRouter` configuration that is equivalent to the one above but uses the namespace support:
+
+====
+[source,xml]
+----
+<int:payload-type-router input-channel="routingChannel">
+    <int:mapping type="java.lang.String" channel="stringChannel" />
+    <int:mapping type="java.lang.Integer" channel="integerChannel" />
+</int:payload-type-router>
+----
+====
+
+The following example shows the equivalent router configured in Java:
+
+====
+[source, java]
+----
+@ServiceActivator(inputChannel = "routingChannel")
+@Bean
+public PayloadTypeRouter router() {
+    PayloadTypeRouter router = new PayloadTypeRouter();
+    router.setChannelMapping(String.class.getName(), "stringChannel");
+    router.setChannelMapping(Integer.class.getName(), "integerChannel");
+    return router;
+}
+----
+====
+
+When using the Java DSL, there are two options.
+
+First, you can define the router object as shown in the preceding example:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow1() {
+    return IntegrationFlow.from("routingChannel")
+            .route(router())
+            .get();
+}
+
+public PayloadTypeRouter router() {
+    PayloadTypeRouter router = new PayloadTypeRouter();
+    router.setChannelMapping(String.class.getName(), "stringChannel");
+    router.setChannelMapping(Integer.class.getName(), "integerChannel");
+    return router;
+}
+----
+
+Note that the router can be, but does not have to be, a `@Bean`.
+The flow registers it if it is not a `@Bean`.
+
+Second, you can define the routing function within the DSL flow itself, as the following example shows:
+
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow2() {
+    return IntegrationFlow.from("routingChannel")
+            .<Object, Class<?>>route(Object::getClass, m -> m
+                    .channelMapping(String.class, "stringChannel")
+                    .channelMapping(Integer.class, "integerChannel"))
+            .get();
+}
+----
+====
+
+[[router-implementations-headervaluerouter]]
+== `HeaderValueRouter`
+
+A `HeaderValueRouter` sends Messages to the channel based on the individual header value mappings.
+When a `HeaderValueRouter` is created, it is initialized with the name of the header to be evaluated.
+The value of the header could be one of two things:
+
+* An arbitrary value
+* A channel name
+
+If it is an arbitrary value, additional mappings for these header values to channel names are required.
+Otherwise, no additional configuration is needed.
+
+Spring Integration provides a simple namespace-based XML configuration to configure a `HeaderValueRouter`.
+The following example demonstrates configuration for the `HeaderValueRouter` when mapping of header values to channels is required:
+
+====
+[source,xml]
+----
+<int:header-value-router input-channel="routingChannel" header-name="testHeader">
+    <int:mapping value="someHeaderValue" channel="channelA" />
+    <int:mapping value="someOtherHeaderValue" channel="channelB" />
+</int:header-value-router>
+----
+====
+
+During the resolution process, the router defined in the preceding example may encounter channel resolution failures, causing an exception.
+If you want to suppress such exceptions and send unresolved messages to the default output channel (identified with the `default-output-channel` attribute) set `resolution-required` to `false`.
+
+Normally, messages for which the header value is not explicitly mapped to a channel are sent to the `default-output-channel`.
+However, when the header value is mapped to a channel name but the channel cannot be resolved, setting the `resolution-required` attribute to `false` results in routing such messages to the `default-output-channel`.
+
+The following example shows the equivalent router configured in Java:
+
+====
+[source, java]
+----
+@ServiceActivator(inputChannel = "routingChannel")
+@Bean
+public HeaderValueRouter router() {
+    HeaderValueRouter router = new HeaderValueRouter("testHeader");
+    router.setChannelMapping("someHeaderValue", "channelA");
+    router.setChannelMapping("someOtherHeaderValue", "channelB");
+    return router;
+}
+----
+====
+
+When using the Java DSL, there are two options.
+First, you can define the router object as shown in the preceding example:
+
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow1() {
+    return IntegrationFlow.from("routingChannel")
+            .route(router())
+            .get();
+}
+
+public HeaderValueRouter router() {
+    HeaderValueRouter router = new HeaderValueRouter("testHeader");
+    router.setChannelMapping("someHeaderValue", "channelA");
+    router.setChannelMapping("someOtherHeaderValue", "channelB");
+    return router;
+}
+----
+====
+
+Note that the router can be, but does not have to be, a `@Bean`.
+The flow registers it if it is not a `@Bean`.
+
+Second, you can define the routing function within the DSL flow itself, as the following example shows:
+
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow2() {
+    return IntegrationFlow.from("routingChannel")
+            .route(Message.class, m -> m.getHeaders().get("testHeader", String.class),
+                    m -> m
+                        .channelMapping("someHeaderValue", "channelA")
+                        .channelMapping("someOtherHeaderValue", "channelB"),
+                e -> e.id("headerValueRouter"))
+            .get();
+}
+----
+====
+
+Configuration where mapping of header values to channel names is not required, because header values themselves represent channel names.
+The following example shows a router that does not require mapping of header values to channel names:
+
+====
+[source,xml]
+----
+<int:header-value-router input-channel="routingChannel" header-name="testHeader"/>
+----
+====
+
+[NOTE]
+=====
+Since Spring Integration 2.1, the behavior of resolving channels is more explicit.
+For example, if you omit the `default-output-channel` attribute, the router was unable to resolve at least one valid channel, and any channel name resolution failures were ignored by setting `resolution-required` to `false`, then a `MessageDeliveryException` is thrown.
+
+Basically, by default, the router must be able to route messages successfully to at least one channel.
+If you really want to drop messages, you must also have `default-output-channel` set to `nullChannel`.
+=====
+
+[[router-implementations-recipientlistrouter]]
+== `RecipientListRouter`
+
+A `RecipientListRouter` sends each received message to a statically defined list of message channels.
+The following example creates a `RecipientListRouter`:
+
+====
+[source,xml]
+----
+<bean id="recipientListRouter"
+      class="org.springframework.integration.router.RecipientListRouter">
+    <property name="channels">
+        <list>
+            <ref bean="channel1"/>
+            <ref bean="channel2"/>
+            <ref bean="channel3"/>
+        </list>
+    </property>
+</bean>
+----
+====
+
+Spring Integration also provides namespace support for the `RecipientListRouter` configuration (see <<./configuration.adoc#configuration-namespace,Namespace Support>>) as the following example shows:
+
+====
+[source,xml]
+----
+<int:recipient-list-router id="customRouter" input-channel="routingChannel"
+        timeout="1234"
+        ignore-send-failures="true"
+        apply-sequence="true">
+  <int:recipient channel="channel1"/>
+  <int:recipient channel="channel2"/>
+</int:recipient-list-router>
+----
+====
+
+The following example shows the equivalent router configured in Java:
+
+====
+[source, java]
+----
+@ServiceActivator(inputChannel = "routingChannel")
+@Bean
+public RecipientListRouter router() {
+    RecipientListRouter router = new RecipientListRouter();
+    router.setSendTimeout(1_234L);
+    router.setIgnoreSendFailures(true);
+    router.setApplySequence(true);
+    router.addRecipient("channel1");
+    router.addRecipient("channel2");
+    router.addRecipient("channel3");
+    return router;
+}
+----
+====
+
+The following example shows the equivalent router configured by using the Java DSL:
+
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow() {
+    return IntegrationFlow.from("routingChannel")
+            .routeToRecipients(r -> r
+                    .applySequence(true)
+                    .ignoreSendFailures(true)
+                    .recipient("channel1")
+                    .recipient("channel2")
+                    .recipient("channel3")
+                    .sendTimeout(1_234L))
+            .get();
+}
+----
+====
+
+NOTE: The 'apply-sequence' flag here has the same effect as it does for a publish-subscribe-channel, and, as with a publish-subscribe-channel, it is disabled by default on the `recipient-list-router`.
+See <<./channel.adoc#channel-configuration-pubsubchannel,`PublishSubscribeChannel` Configuration>> for more information.
+
+Another convenient option when configuring a `RecipientListRouter` is to use Spring Expression Language (SpEL) support as selectors for individual recipient channels.
+Doing so is similar to using a filter at the beginning of a 'chain' to act as a "`selective consumer`".
+However, in this case, it is all combined rather concisely into the router's configuration, as the following example shows:
+
+====
+[source,xml]
+----
+<int:recipient-list-router id="customRouter" input-channel="routingChannel">
+    <int:recipient channel="channel1" selector-expression="payload.equals('foo')"/>
+    <int:recipient channel="channel2" selector-expression="headers.containsKey('bar')"/>
+</int:recipient-list-router>
+----
+====
+
+In the preceding configuration, a SpEL expression identified by the `selector-expression` attribute is evaluated to determine whether this recipient should be included in the recipient list for a given input message.
+The evaluation result of the expression must be a `boolean`.
+If this attribute is not defined, the channel is always among the list of recipients.
+
+[[recipient-list-router-management]]
+== `RecipientListRouterManagement`
+
+Starting with version 4.1, the `RecipientListRouter` provides several operations to manipulate recipients dynamically at runtime.
+These management operations are presented by `RecipientListRouterManagement` through the `@ManagedResource` annotation.
+They are available by using <<./control-bus.adoc#control-bus,Control Bus>> as well as by using JMX, as the following example shows:
+
+====
+[source,xml]
+----
+<control-bus input-channel="controlBus"/>
+
+<recipient-list-router id="simpleRouter" input-channel="routingChannelA">
+   <recipient channel="channel1"/>
+</recipient-list-router>
+
+<channel id="channel2"/>
+----
+[source,java]
+----
+messagingTemplate.convertAndSend(controlBus, "@'simpleRouter.handler'.addRecipient('channel2')");
+----
+====
+
+From the application start up the `simpleRouter`, has only one `channel1` recipient.
+But after the `addRecipient` command, `channel2` recipient is added.
+It is a "`registering an interest in something that is part of the message`" use case, when we may be interested in messages from the router at some time period, so we are subscribing to the `recipient-list-router` and, at some point, decide to unsubscribe.
+
+Because of the runtime management operation for the `<recipient-list-router>`, it can be configured without any `<recipient>` from the start.
+In this case, the behavior of `RecipientListRouter` is the same when there is no one matching recipient for the message.
+If `defaultOutputChannel` is configured, the message is sent there.
+Otherwise, the `MessageDeliveryException` is thrown.
+
+[[router-implementations-xpath-router]]
+== XPath Router
+
+The XPath Router is part of the XML Module.
+See <<./xml.adoc#xml-xpath-routing,Routing XML Messages with XPath>>.
+
+[[router-implementations-exception-router]]
+== Routing and Error Handling
+
+Spring Integration also provides a special type-based router called `ErrorMessageExceptionTypeRouter` for routing error messages (defined as messages whose `payload` is a `Throwable` instance).
+`ErrorMessageExceptionTypeRouter` is similar to the `PayloadTypeRouter`.
+In fact, they are almost identical.
+The only difference is that, while `PayloadTypeRouter` navigates the instance hierarchy of a payload instance (for example, `payload.getClass().getSuperclass()`) to find the most specific type and channel mappings, the `ErrorMessageExceptionTypeRouter` navigates the hierarchy of 'exception causes' (for example, `payload.getCause()`) to find the most specific `Throwable` type or channel mappings and uses `mappingClass.isInstance(cause)` to match the `cause` to the class or any super class.
+
+IMPORTANT: The channel mapping order in this case matters.
+So, if there is a requirement to get mapping for an `IllegalArgumentException`, but not a `RuntimeException`, the last one must be configured on router first.
+
+NOTE: Since version 4.3 the `ErrorMessageExceptionTypeRouter` loads all mapping classes during the initialization phase to fail-fast for a `ClassNotFoundException`.
+
+The following example shows a sample configuration for `ErrorMessageExceptionTypeRouter`:
+
+====
+[source, java, role="primary"]
+.Java DSL
+----
+@Bean
+public IntegrationFlow someFlow() {
+    return f -> f
+            .routeByException(r -> r
+                 .channelMapping(IllegalArgumentException.class, "illegalChannel")
+                 .channelMapping(NullPointerException.class, "npeChannel")
+                 .defaultOutputChannel("defaultChannel"));
+}
+----
+[source, kotlin, role="secondary"]
+.Kotlin DSL
+----
+@Bean
+fun someFlow() =
+    integrationFlow {
+        routeByException {
+                    channelMapping(IllegalArgumentException::class.java, "illegalChannel")
+                    channelMapping(NullPointerException::class.java, "npeChannel")
+                    defaultOutputChannel("defaultChannel")
+                }
+    }
+----
+[source, groovy, role="secondary"]
+.Groovy DSL
+----
+@Bean
+someFlow() {
+    integrationFlow {
+        routeByException {
+            channelMapping IllegalArgumentException, 'illegalChannel'
+            channelMapping NullPointerException, 'npeChannel'
+            defaultOutputChannel 'defaultChannel'
+        }
+    }
+}
+----
+[source, xml, role="secondary"]
+.XML DSL
+----
+<int:exception-type-router input-channel="inputChannel"
+                           default-output-channel="defaultChannel">
+    <int:mapping exception-type="java.lang.IllegalArgumentException"
+                 channel="illegalChannel"/>
+    <int:mapping exception-type="java.lang.NullPointerException"
+                 channel="npeChannel"/>
+</int:exception-type-router>
+
+<int:channel id="illegalChannel" />
+<int:channel id="npeChannel" />
+----
+====
+

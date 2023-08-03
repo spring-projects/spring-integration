@@ -1,0 +1,69 @@
+[[ip-dsl]]
+= Using the Java DSL for TCP Components
+
+DSL support for TCP components includes specs for adapters and gateways, the `Tcp` class with factory methods to create connection factory beans, and the `TcpCodecs` class with factory methods to create serializers and deserializers.
+Refer to their javadocs for more information.
+
+Here are some examples of using the DSL to configure flows using the DSL.
+
+.Server Adapter Flow
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow server() {
+    return IntegrationFlow.from(Tcp.inboundAdapter(Tcp.netServer(1234)
+                            .deserializer(TcpCodecs.lengthHeader1())
+                            .backlog(30))
+                        .errorChannel("tcpIn.errorChannel")
+                        .id("tcpIn"))
+            .transform(Transformers.objectToString())
+            .channel("tcpInbound")
+            .get();
+}
+----
+====
+
+.Client Adapter Flow
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow client() {
+    return f -> f.handle(Tcp.outboundAdapter(Tcp.nioClient("localhost", 1234)
+                        .serializer(TcpCodecs.lengthHeader1())));
+}
+----
+====
+
+.Server Gateway Flow
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow server() {
+    return IntegrationFlow.from(Tcp.inboundGateway(Tcp.netServer(1234)
+                            .deserializer(TcpCodecs.lengthHeader1())
+                            .serializer(TcpCodecs.lengthHeader1())
+                            .backlog(30))
+                        .errorChannel("tcpIn.errorChannel")
+                        .id("tcpIn"))
+            .transform(Transformers.objectToString())
+            .channel("tcpInbound")
+            .get();
+}
+----
+====
+
+.Client Gateway Flow
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow client() {
+    return f -> f.handle(Tcp.outboundGateway(Tcp.nioClient("localhost", 1234)
+                        .deserializer(TcpCodecs.lengthHeader1())
+                        .serializer(TcpCodecs.lengthHeader1())));
+}
+----
+====

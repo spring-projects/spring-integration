@@ -1,0 +1,56 @@
+[[http-header-mapping]]
+= HTTP Header Mappings
+
+Spring Integration provides support for HTTP header mapping for both HTTP Request and HTTP Responses.
+
+By default, all standard https://en.wikipedia.org/wiki/List_of_HTTP_header_fields[HTTP headers] are mapped from the message to HTTP request or response headers without further configuration.
+However, if you do need further customization, you can provide additional configuration by taking advantage of the namespace support.
+You can provide a comma-separated list of header names, and you can include simple patterns with the '*' character acting as a wildcard.
+Provide such values overrides the default behavior.
+Basically, it assumes you are in complete control at that point.
+However, if you do want to include all the standard HTTP headers, you can use the shortcut patterns: `HTTP_REQUEST_HEADERS` and `HTTP_RESPONSE_HEADERS`.
+The following listing shows two examples (the first of which uses a wildcard):
+
+====
+[source,xml]
+----
+<int-http:outbound-gateway id="httpGateway"
+    url="http://localhost/test2"
+    mapped-request-headers="thing1, thing2"
+    mapped-response-headers="X-*, HTTP_RESPONSE_HEADERS"
+    channel="someChannel"/>
+
+<int-http:outbound-channel-adapter id="httpAdapter"
+    url="http://localhost/test2"
+    mapped-request-headers="thing1, thing2, HTTP_REQUEST_HEADERS"
+    channel="someChannel"/>
+----
+====
+
+The adapters and gateways use the `DefaultHttpHeaderMapper`, which now provides two static factory methods for inbound and outbound adapters so that the proper direction can be applied (mapping HTTP requests and responses either in or out, as appropriate).
+
+If you need further customization, you can also configure a `DefaultHttpHeaderMapper` independently and inject it into the adapter through the `header-mapper` attribute.
+
+Before version 5.0, the `DefaultHttpHeaderMapper` the default prefix for user-defined, non-standard HTTP headers was `X-`.
+Version 5.0 changed the default prefix to an empty string.
+According to https://tools.ietf.org/html/rfc6648[RFC-6648], the use of such prefixes is now discouraged.
+You can still customize this option by setting the `DefaultHttpHeaderMapper.setUserDefinedHeaderPrefix()` property.
+The following example configures a header mapper for an HTTP gateway:
+
+====
+[source,xml]
+----
+<int-http:outbound-gateway id="httpGateway"
+    url="http://localhost/test2"
+    header-mapper="headerMapper"
+    channel="someChannel"/>
+
+<bean id="headerMapper" class="o.s.i.http.support.DefaultHttpHeaderMapper">
+    <property name="inboundHeaderNames" value="thing1*, *thing2, thing3"/>
+    <property name="outboundHeaderNames" value="a*b, d"/>
+</bean>
+----
+====
+
+If you need to do something other than what the `DefaultHttpHeaderMapper` supports, you can implement the `HeaderMapper` strategy interface directly and provide a reference to your implementation.
+

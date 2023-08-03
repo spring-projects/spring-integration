@@ -1,0 +1,63 @@
+[[jdbc-lock-registry]]
+= JDBC Lock Registry
+
+Version 4.3 introduced the `JdbcLockRegistry`.
+Certain components (for example, aggregator and resequencer) use a lock obtained from a `LockRegistry` instance to ensure that only one thread manipulates a group at a time.
+The `DefaultLockRegistry` performs this function within a single component.
+You can now configure an external lock registry on these components.
+When used with a shared `MessageGroupStore`, you can use the `JdbcLockRegistry` to provide this functionality across multiple application instances, such that only one instance can manipulate the group at a time.
+
+When a lock is released by a local thread, another local thread can generally acquire the lock immediately.
+If a lock is released by a thread that uses a different registry instance, it can take up to 100ms to acquire the lock.
+
+The `JdbcLockRegistry` is based on the `LockRepository` abstraction, which has a `DefaultLockRepository` implementation.
+The database schema scripts are located in the `org.springframework.integration.jdbc` package, which is divided for the particular RDBMS vendors.
+For example, the following listing shows the H2 DDL for the lock table:
+
+====
+[source,sql]
+----
+CREATE TABLE INT_LOCK  (
+    LOCK_KEY CHAR(36),
+    REGION VARCHAR(100),
+    CLIENT_ID CHAR(36),
+    CREATED_DATE TIMESTAMP NOT NULL,
+    constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
+);
+----
+====
+
+The `INT_` can be changed according to the target database design requirements.
+Therefore, you must use `prefix` property on the `DefaultLockRepository` bean definition.
+
+Sometimes, one application has moved to such a state that it cannot release the distributed lock and remove the particular record in the database.
+For this purpose, such deadlocks can be expired by the other application on the next locking invocation.
+The `timeToLive` (TTL) option on the `DefaultLockRepository` is provided for this purpose.
+You may also want to specify `CLIENT_ID` for the locks stored for a given `DefaultLockRepository` instance.
+If so, you can specify the `id` to be associated with the `DefaultLockRepository` as a constructor parameter.
+
+Starting with version 5.1.8, the `JdbcLockRegistry` can be configured with the `idleBetweenTries` - a `Duration` to sleep between lock record insert/update executions.
+By default, it is `100` milliseconds and in some environments non-leaders pollute connections with data source too often.
+
+Starting with version 5.4, the `RenewableLockRegistry` interface has been introduced and added to `JdbcLockRegistry`.
+The `renewLock()` method must be called during locked process in case of the locked process would be longer than time to live of the lock.
+So the time to live can be highly reduce and deployments can retake a lost lock quickly.
+
+NOTE: The lock renewal can be done only if the lock is held by the current thread.
+
+String with version 5.5.6, the `JdbcLockRegistry` is support automatically clean up cache for JdbcLock in `JdbcLockRegistry.locks` via `JdbcLockRegistry.setCacheCapacity()`.
+See its JavaDocs for more information.
+
+String with version 6.0, the `DefaultLockRepository` can be supplied with a `PlatformTransactionManager` instead of relying on the primary bean from the application context.
+
+String with version 6.1, the `DefaultLockRepository` can be configured for custom `insert`, `update` and `renew` queries.
+For this purpose the respective setters and getters are exposed.
+For example, an insert query for PostgreSQL hint can be configured like this:
+
+====
+[source,java]
+----
+lockRepository.setInsertQuery(lockRepository.getInsertQuery() + " ON CONFLICT DO NOTHING");
+----
+====
+

@@ -1,0 +1,32 @@
+[[xpath-spel-function]]
+= #xpath SpEL Function
+
+Spring Integration, since version 3.0, provides the built-in `#xpath` SpEL function, which invokes the `XPathUtils.evaluate(...)` static method.
+This method delegates to an `org.springframework.xml.xpath.XPathExpression`.
+The following listing shows some usage examples:
+
+====
+[source,xml]
+----
+<transformer expression="#xpath(payload, '/name')"/>
+
+<filter expression="#xpath(payload, headers.xpath, 'boolean')"/>
+
+<splitter expression="#xpath(payload, '//book', 'document_list')"/>
+
+<router expression="#xpath(payload, '/person/@age', 'number')">
+    <mapping channel="output1" value="16"/>
+    <mapping channel="output2" value="45"/>
+</router>
+----
+====
+
+The `#xpath()` also supports a third optional parameter for converting the result of the XPath evaluation.
+It can be one of the String constants (`string`, `boolean`, `number`, `node`, `node_list` and `document_list`) or an `org.springframework.xml.xpath.NodeMapper` instance.
+By default, the `#xpath` SpEL function returns a `String` representation of the XPath evaluation.
+
+NOTE: To enable the `#xpath` SpEL function, you can add the `spring-integration-xml.jar` to the classpath.
+You need no declare any components from the Spring Integration XML Namespace.
+
+For more information, see "`<<./spel.adoc#spel,Spring Expression Language (SpEL)>>.
+

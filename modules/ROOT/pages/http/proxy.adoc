@@ -1,0 +1,53 @@
+[[http-proxy]]
+= HTTP Proxy configuration
+
+If you are behind a proxy and need to configure proxy settings for HTTP outbound adapters or gateways, you can apply one of two approaches.
+In most cases, you can rely on the standard Java system properties that control the proxy settings.
+Otherwise, you can explicitly configure a Spring bean for the HTTP client request factory instance.
+
+[[standard-java-proxy-configuration]]
+== Standard Java Proxy configuration
+
+You can set three system properties to configure the proxy settings that are used by the HTTP protocol handler:
+
+* `http.proxyHost`: The host name of the proxy server.
+* `http.proxyPort`: The port number (the default is `80`).
+* `http.nonProxyHosts`: A list of hosts that should be reached directly, bypassing the proxy.
+This is a list of patterns separated by `|`.
+The patterns may start or end with a `*` for wildcards.
+Any host that matches one of these patterns is reached through a direct connection instead of through a proxy.
+
+For HTTPS, the following properties are available:
+
+* `https.proxyHost`: The host name of the proxy server.
+* `https.proxyPort`: The port number, the default value being 80.
+
+For more information, see https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
+
+[[spring-s-simpleclienthttprequestfactory]]
+== Spring's `SimpleClientHttpRequestFactory`
+
+If you need more explicit control over the proxy configuration, you can use Spring's `SimpleClientHttpRequestFactory` and configure its 'proxy' property, as the following example shows:
+
+====
+[source,xml]
+----
+<bean id="requestFactory"
+    class="org.springframework.http.client.SimpleClientHttpRequestFactory">
+    <property name="proxy">
+        <bean id="proxy" class="java.net.Proxy">
+            <constructor-arg>
+                <util:constant static-field="java.net.Proxy.Type.HTTP"/>
+            </constructor-arg>
+            <constructor-arg>
+                <bean class="java.net.InetSocketAddress">
+                    <constructor-arg value="123.0.0.1"/>
+                    <constructor-arg value="8080"/>
+                </bean>
+            </constructor-arg>
+        </bean>
+    </property>
+</bean>
+----
+====
+

@@ -1,0 +1,43 @@
+[[tcp-events]]
+= TCP Connection Events
+
+Beginning with version 3.0, changes to `TcpConnection` instances are reported by `TcpConnectionEvent` instances.
+`TcpConnectionEvent` is a subclass of `ApplicationEvent` and can thus be received by any `ApplicationListener` defined in the `ApplicationContext`, or an `@EventListener` method. 
+Also see <<./event.adoc#appevent-inbound,an event inbound channel adapter>>.
+
+`TcpConnectionEvents` have the following properties:
+
+* `connectionId`: The connection identifier, which you can use in a message header to send data to the connection.
+* `connectionFactoryName`: The bean name of the connection factory to which the connection belongs.
+* `throwable`: The `Throwable` (for `TcpConnectionExceptionEvent` events only).
+* `source`: The `TcpConnection`.
+You can use this, for example, to determine the remote IP Address with `getHostAddress()` (cast required).
+
+Available `TcpConnectionEvent` s, related to a specific connection include: 
+
+* `TcpConnectionOpenEvent`
+* `TcpConnectionCloseEvent`
+* `TcpConnectionExceptionEvent`
+
+In addition, since version 4.0, the standard deserializers discussed in <<tcp-connection-factories>> now emit `TcpDeserializationExceptionEvent` instances when they encounter problems while decoding the data stream.
+These events contain the exception, the buffer that was in the process of being built, and an offset into the buffer (if available) at the point where the exception occurred.
+Applications can use a normal `ApplicationListener`, an `@EventListener` method, or an `ApplicationEventListeningMessageProducer` (see <<./event.adoc#appevent-inbound,Receiving Spring Application Events>>) to capture these events, allowing analysis of the problem.
+
+Starting with versions 4.0.7 and 4.1.3, `TcpConnectionServerExceptionEvent` instances are published whenever an unexpected exception occurs on a server socket (such as a `BindException` when the server socket is in use).
+These events have a reference to the connection factory and the cause.
+
+Starting with version 4.2, `TcpConnectionFailedCorrelationEvent` instances are published whenever an endpoint (inbound gateway or collaborating outbound channel adapter) receives a message that cannot be routed to a connection because the `ip_connectionId` header is invalid.
+Outbound gateways also publish this event when a late reply is received (the sender thread has timed out).
+The event contains the connection ID as well as an exception in the `cause` property, which contains the failed message.
+
+Starting with version 4.3, a `TcpConnectionServerListeningEvent` is emitted when a server connection factory is started.
+This is useful when the factory is configured to listen on port `0`, meaning that the operating system chooses the port.
+It can also be used instead of polling `isListening()`, if you need to wait before starting some other process that connects to the socket.
+
+IMPORTANT: To avoid delaying the listening thread from accepting connections, the event is published on a separate thread.
+
+Starting with version 4.3.2, a `TcpConnectionFailedEvent` is emitted whenever a client connection cannot be created.
+The source of the event is the connection factory, which you can use to determine the host and port to which the connection could not be established.
+
+To use a single `ApplicationListener` (or `@EventListener` method) to receive all of these events (including `TcpConnectionEvent` s), configure the listener to receive `IpIntegrationEvent` s.
+

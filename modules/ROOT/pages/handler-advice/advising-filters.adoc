@@ -1,0 +1,11 @@
+[[advising-filters]]
+= Advising Filters
+
+There is an additional consideration when advising `Filter` advices.
+By default, any discard actions (when the filter returns `false`) are performed within the scope of the advice chain.
+This could include all the flow downstream of the discard channel.
+So, for example, if an element downstream of the discard channel throws an exception and there is a retry advice, the process is retried.
+Also, if `throwExceptionOnRejection` is set to `true` (the exception is thrown within the scope of the advice).
+
+Setting `discard-within-advice` to `false` modifies this behavior and the discard (or exception) occurs after the advice chain is called.
+

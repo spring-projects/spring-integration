@@ -1,0 +1,97 @@
+[[amqp-message-headers]]
+= AMQP Message Headers
+
+[[overview]]
+== Overview
+
+The Spring Integration AMQP Adapters automatically map all AMQP properties and headers.
+(This is a change from 4.3 - previously, only standard headers were mapped).
+By default, these properties are copied to and from Spring Integration `MessageHeaders` by using the
+https://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html[`DefaultAmqpHeaderMapper`].
+
+You can pass in your own implementation of AMQP-specific header mappers, as the adapters have properties to support doing so.
+
+Any user-defined headers within the AMQP https://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[`MessageProperties`] are copied to or from an AMQP message, unless explicitly negated by the `requestHeaderNames` or `replyHeaderNames` properties of the `DefaultAmqpHeaderMapper`.
+By default, for an outbound mapper, no `x-*` headers are mapped.
+See the <<header-copy-caution,caution>> that appears later in this section for why.
+
+To override the default and revert to the pre-4.3 behavior, use `STANDARD_REQUEST_HEADERS` and
+`STANDARD_REPLY_HEADERS` in the properties.
+
+TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (such as `thing*` or `\*thing`) to be matched.
+The `*` matches all headers.
+
+Starting with version 4.1, the `AbstractHeaderMapper` (a `DefaultAmqpHeaderMapper` superclass) lets the `NON_STANDARD_HEADERS` token be configured for the `requestHeaderNames` and `replyHeaderNames` properties (in addition to the existing `STANDARD_REQUEST_HEADERS` and `STANDARD_REPLY_HEADERS`) to map all user-defined headers.
+
+The `org.springframework.amqp.support.AmqpHeaders` class identifies the default headers that are used by the `DefaultAmqpHeaderMapper`:
+
+* `amqp_appId`
+* `amqp_clusterId`
+* `amqp_contentEncoding`
+* `amqp_contentLength`
+* `content-type` (see <<amqp-content-type>>)
+* `amqp_correlationId`
+* `amqp_delay`
+* `amqp_deliveryMode`
+* `amqp_deliveryTag`
+* `amqp_expiration`
+* `amqp_messageCount`
+* `amqp_messageId`
+* `amqp_receivedDelay`
+* `amqp_receivedDeliveryMode`
+* `amqp_receivedExchange`
+* `amqp_receivedRoutingKey`
+* `amqp_redelivered`
+* `amqp_replyTo`
+* `amqp_timestamp`
+* `amqp_type`
+* `amqp_userId`
+* `amqp_publishConfirm`
+* `amqp_publishConfirmNackCause`
+* `amqp_returnReplyCode`
+* `amqp_returnReplyText`
+* `amqp_returnExchange`
+* `amqp_returnRoutingKey`
+* `amqp_channel`
+* `amqp_consumerTag`
+* `amqp_consumerQueue`
+
+[[header-copy-caution]]
+CAUTION: As mentioned earlier in this section, using a header mapping pattern of `\*` is a common way to copy all headers.
+However, this can have some unexpected side effects, because certain RabbitMQ proprietary properties/headers are also copied.
+For example, when you use https://www.rabbitmq.com/federated-exchanges.html[federation], the received message may have a property named `x-received-from`, which contains the node that sent the message.
+If you use the wildcard character `*` for the request and reply header mapping on the inbound gateway, this header is copied, which may cause some issues with federation.
+This reply message may be federated back to the sending broker, which may think that a message is looping and, as a result, silently drop it.
+If you wish to use the convenience of wildcard header mapping, you may need to filter out some headers in the downstream flow.
+For example, to avoid copying the `x-received-from` header back to the reply you can use `<int:header-filter ... header-names="x-received-from">` before sending the reply to the AMQP inbound gateway.
+Alternatively, you can explicitly list those properties that you actually want mapped, instead of using wildcards.
+For these reasons, for inbound messages, the mapper (by default) does not map any `x-*` headers.
+It also does not map the `deliveryMode` to the `amqp_deliveryMode` header, to avoid propagation of that header from an inbound message to an outbound message.
+Instead, this header is mapped to `amqp_receivedDeliveryMode`, which is not mapped on output.
+
+Starting with version 4.3, patterns in the header mappings can be negated by preceding the pattern with `!`.
+Negated patterns get priority, so a list such as `STANDARD_REQUEST_HEADERS,thing1,ba*,!thing2,!thing3,qux,!thing1` does not map `thing1` (nor `thing2` nor `thing3`).
+The standard headers plus `bad` and `qux` are mapped.
+The negation technique can be useful for example to not map JSON type headers for incoming messages when a JSON deserialization logic is done in the receiver downstream different way.
+For this purpose a `!json_*` pattern should be configured for header mapper of the inbound channel adapter/gateway.
+
+IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you need to escape it with `\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`.
+The header named `!myBangHeader` is now mapped.
+
+NOTE: Starting with version 5.1, the `DefaultAmqpHeaderMapper` will fall back to mapping `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` to `MessageProperties.messageId` and `MessageProperties.timestamp` respectively, if the corresponding `amqp_messageId` or `amqp_timestamp` headers are not present on outbound messages.
+Inbound properties will be mapped to the `amqp_*` headers as before.
+It is useful to populate the `messageId` property when message consumers are using stateful retry.
+
+[[amqp-content-type]]
+== The `contentType` Header
+
+Unlike other headers, the `AmqpHeaders.CONTENT_TYPE` is not prefixed with `amqp_`; this allows transparent passing of the contentType header across different technologies.
+For example an inbound HTTP message sent to a RabbitMQ queue.
+
+The `contentType` header is mapped to Spring AMQP's `MessageProperties.contentType` property and that is subsequently mapped to RabbitMQ's `content_type` property.
+
+Prior to version 5.1, this header was also mapped as an entry in the `MessageProperties.headers` map; this was incorrect and, furthermore, the value could be wrong since the underlying Spring AMQP message converter might have changed the content type.
+Such a change would be reflected in the first-class `content_type` property, but not in the RabbitMQ headers map.
+Inbound mapping ignored the headers map value.
+`contentType` is no longer mapped to an entry in the headers map.
+

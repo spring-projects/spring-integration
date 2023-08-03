@@ -1,0 +1,9 @@
+[[amqp-outbound-endpoints]]
+= Outbound Endpoints
+
+The following outbound endpoints have many similar configuration options.
+Starting with version 5.2, the `confirm-timeout` has been added.
+Normally, when publisher confirms are enabled, the broker will quickly return an ack (or nack) which will be sent to the appropriate channel.
+If a channel is closed before the confirm is received, the Spring AMQP framework will synthesize a nack.
+"Missing" acks should never occur but, if you set this property, the endpoint will periodically check for them and synthesize a nack if the time elapses without a confirm being received.
+

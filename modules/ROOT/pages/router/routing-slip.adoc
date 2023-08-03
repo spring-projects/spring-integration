@@ -1,0 +1,90 @@
+[[routing-slip]]
+= Routing Slip
+
+Starting with version 4.1, Spring Integration provides an implementation of the https://www.enterpriseintegrationpatterns.com/RoutingTable.html[routing slip] enterprise integration pattern.
+It is implemented as a `routingSlip` message header, which is used to determine the next channel in `AbstractMessageProducingHandler` instances, when an `outputChannel` is not specified for the endpoint.
+This pattern is useful in complex, dynamic cases, when it can become difficult to configure multiple routers to determine message flow.
+When a message arrives at an endpoint that has no `output-channel`, the `routingSlip` is consulted to determine the next channel to which the message is sent.
+When the routing slip is exhausted, normal `replyChannel` processing resumes.
+
+Configuration for the routing slip is presented as a `HeaderEnricher` option -- a semicolon-separated routing slip that contains `path` entries, as the following example shows:
+
+====
+[source,xml]
+----
+<util:properties id="properties">
+    <beans:prop key="myRoutePath1">channel1</beans:prop>
+    <beans:prop key="myRoutePath2">request.headers[myRoutingSlipChannel]</beans:prop>
+</util:properties>
+
+<context:property-placeholder properties-ref="properties"/>
+
+<header-enricher input-channel="input" output-channel="process">
+    <routing-slip
+        value="${myRoutePath1}; @routingSlipRoutingPojo.get(request, reply);
+               routingSlipRoutingStrategy; ${myRoutePath2}; finishChannel"/>
+</header-enricher>
+----
+====
+
+The preceding example has:
+
+* A `<context:property-placeholder>` configuration to demonstrate that the entries in the routing slip `path` can be specified as resolvable keys.
+* The `<header-enricher>` `<routing-slip>` sub-element is used to populate the `RoutingSlipHeaderValueMessageProcessor` to the `HeaderEnricher` handler.
+* The `RoutingSlipHeaderValueMessageProcessor` accepts a `String` array of resolved routing slip `path` entries and returns (from `processMessage()`) a `singletonMap` with the `path` as `key` and `0` as initial `routingSlipIndex`.
+
+Routing Slip `path` entries can contain `MessageChannel` bean names, `RoutingSlipRouteStrategy` bean names, and Spring expressions (SpEL).
+The `RoutingSlipHeaderValueMessageProcessor` checks each routing slip `path` entry against the `BeanFactory` on the first `processMessage` invocation.
+It converts entries (which are not bean names in the application context) to `ExpressionEvaluatingRoutingSlipRouteStrategy` instances.
+`RoutingSlipRouteStrategy` entries are invoked multiple times, until they return null or an empty `String`.
+
+Since the routing slip is involved in the `getOutputChannel` process, we have a request-reply context.
+The `RoutingSlipRouteStrategy` has been introduced to determine the next `outputChannel` that uses the `requestMessage` and the `reply` object.
+An implementation of this strategy should be registered as a bean in the application context, and its bean name is used in the routing slip `path`.
+The `ExpressionEvaluatingRoutingSlipRouteStrategy` implementation is provided.
+It accepts a SpEL expression and an internal `ExpressionEvaluatingRoutingSlipRouteStrategy.RequestAndReply` object is used as the root object of the evaluation context.
+This is to avoid the overhead of `EvaluationContext` creation for each `ExpressionEvaluatingRoutingSlipRouteStrategy.getNextPath()` invocation.
+It is a simple Java bean with two properties: `Message<?> request` and `Object reply`.
+With this expression implementation, we can specify routing slip `path` entries by using SpEL (for example, `@routingSlipRoutingPojo.get(request, reply)` and `request.headers[myRoutingSlipChannel]`) and avoid defining a bean for the `RoutingSlipRouteStrategy`.
+
+NOTE: The `requestMessage` argument is always a `Message<?>`.
+Depending on context, the reply object may be a `Message<?>`, an `AbstractIntegrationMessageBuilder`, or an arbitrary application domain object (when, for example, it is returned by a POJO method invoked by a service activator).
+In the first two cases, the usual `Message` properties (`payload` and `headers`) are available when using SpEL (or a Java implementation).
+For an arbitrary domain object, these properties are not available.
+For this reason, be careful when you use routing slips in conjunction with POJO methods if the result is used to determine the next path.
+
+IMPORTANT: If a routing slip is involved in a distributed environment, we recommend not using inline expressions for the Routing Slip `path`.
+This recommendation applies to distributed environments such as cross-JVM applications, using a `request-reply` through a message broker (such as<<./amqp.adoc#amqp,AMQP Support>> or <<./jms.adoc#jms,JMS Support>>), or using a persistent `MessageStore` (<<./message-store.adoc#message-store,Message Store>>) in the integration flow.
+The framework uses `RoutingSlipHeaderValueMessageProcessor` to convert them to `ExpressionEvaluatingRoutingSlipRouteStrategy` objects, and they are used in the `routingSlip` message header.
+Since this class is not `Serializable` (it cannot be, because it depends on the `BeanFactory`), the entire `Message` becomes non-serializable and, in any distributed operation, we end up with a `NotSerializableException`.
+To overcome this limitation, register an `ExpressionEvaluatingRoutingSlipRouteStrategy` bean with the desired SpEL and use its bean name in the routing slip `path` configuration.
+
+For Java configuration, you can add a `RoutingSlipHeaderValueMessageProcessor` instance to the `HeaderEnricher` bean definition, as the following example shows:
+
+====
+[source,java]
+----
+@Bean
+@Transformer(inputChannel = "routingSlipHeaderChannel")
+public HeaderEnricher headerEnricher() {
+    return new HeaderEnricher(Collections.singletonMap(IntegrationMessageHeaderAccessor.ROUTING_SLIP,
+            new RoutingSlipHeaderValueMessageProcessor("myRoutePath1",
+                                                       "@routingSlipRoutingPojo.get(request, reply)",
+                                                       "routingSlipRoutingStrategy",
+                                                       "request.headers[myRoutingSlipChannel]",
+                                                       "finishChannel")));
+}
+----
+====
+
+The routing slip algorithm works as follows when an endpoint produces a reply and no `outputChannel` has been defined:
+
+* The `routingSlipIndex` is used to get a value from the routing slip `path` list.
+* If the value from `routingSlipIndex` is `String`, it is used to get a bean from `BeanFactory`.
+* If a returned bean is an instance of `MessageChannel`, it is used as the next `outputChannel` and the `routingSlipIndex` is incremented in the reply message header (the routing slip `path` entries remain unchanged).
+* If a returned bean is an instance of `RoutingSlipRouteStrategy` and its `getNextPath` does not return an empty `String`, that result is used as a bean name for the next `outputChannel`.
+The `routingSlipIndex` remains unchanged.
+* If `RoutingSlipRouteStrategy.getNextPath` returns an empty `String` or `null`, the `routingSlipIndex` is incremented and the `getOutputChannelFromRoutingSlip` is invoked recursively for the next Routing Slip `path` item.
+* If the next routing slip `path` entry is not a `String`, it must be an instance of `RoutingSlipRouteStrategy`.
+* When the `routingSlipIndex` exceeds the size of the routing slip `path` list, the algorithm moves to the default behavior for the standard `replyChannel` header.
+

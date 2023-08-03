@@ -1,0 +1,36 @@
+[[remote-persistent-flf]]
+= Remote Persistent File List Filters
+
+Inbound and streaming inbound remote file channel adapters (`FTP`, `SFTP`, and other technologies) are configured with corresponding implementations of `AbstractPersistentFileListFilter` by default, configured with an in-memory `MetadataStore`.
+To run in a cluster, these can be replaced with filters using a shared `MetadataStore` (see <<./meta-data-store.adoc#metadata-store,Metadata Store>> for more information).
+These filters are used to prevent fetching the same file multiple times (unless it's modified time changes).
+Starting with version 5.2, a file is added to the filter immediately before the file is fetched (and reversed if the fetch fails).
+
+IMPORTANT: In the event of a catastrophic failure (such as power loss), it is possible that the file currently being fetched will remain in the filter and won't be re-fetched when restarting the application.
+In this case you would need to manually remove this file from the `MetadataStore`.
+
+In previous versions, the files were filtered before any were fetched, meaning that several files could be in this state after a catastrophic failure.
+
+In order to facilitate this new behavior, two new methods have been added to `FileListFilter`.
+
+====
+[source, java]
+----
+boolean accept(F file);
+
+boolean supportsSingleFileFiltering();
+----
+====
+
+If a filter returns `true` in `supportsSingleFileFiltering`, it **must** implement `accept()`.
+
+If a remote filter does not support single file filtering (such as the `AbstractMarkerFilePresentFileListFilter`), the adapters revert to the previous behavior.
+
+If multiple filters are in used (using a `CompositeFileListFilter` or `ChainFileListFilter`), then **all** of the delegate filters must support single file filtering in order for the composite filter to support it.
+
+The persistent file list filters now have a boolean property `forRecursion`.
+Setting this property to `true`, also sets `alwaysAcceptDirectories`, which means that the recursive operation on the outbound gateways (`ls` and `mget`) will now always traverse the full directory tree each time.
+This is to solve a problem where changes deep in the directory tree were not detected.
+In addition, `forRecursion=true` causes the full path to files to be used as the metadata store keys; this solves a problem where the filter did not work properly if a file with the same name appears multiple times in different directories.
+IMPORTANT: This means that existing keys in a persistent metadata store will not be found for files beneath the top level directory.
+For this reason, the property is `false` by default; this may change in a future release.
