@@ -12,7 +12,7 @@ The rest of this chapter describes these configuration options.
 
 NOTE: For the sake of maximizing flexibility, Spring does not require XML-based message payloads.
 Nevertheless, the framework does provide some convenient transformers for dealing with XML-based payloads if that is indeed the right choice for your application.
-For more information on those transformers, see <<./xml.adoc#xml,XML Support - Dealing with XML Payloads>>.
+For more information on those transformers, see xref:xml.adoc[XML Support - Dealing with XML Payloads].
 
 [[configuring-a-transformer-with-java-and-other-dsls]]
 == Configuring a Transformer with Java and other DSLs
@@ -33,7 +33,7 @@ public class SomeService {
 ----
 ====
 
-See more information in the <<./configuration.adoc#annotations, Annotation Support>>.
+See more information in the xref:configuration/annotations.adoc[Annotation Support].
 
 For Java, Groovy or Kotlin DSLs, the `.transform()` operator of an `IntegrationFlow` represents a transformer endpoint:
 
@@ -77,15 +77,15 @@ someFlow() {
 See more information about the DSLs in the respective chapters:
 
 * <<./dsl.adoc#java-dsl,Java DSL>>
-* <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>>
-* <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
+* xref:kotlin-dsl.adoc[Kotlin DSL]
+* xref:groovy-dsl.adoc[Groovy DSL]
 
 [[transformer-namespace]]
 == Configuring a Transformer with XML
 
 The `<transformer>` element is used to create a message-transforming endpoint.
 In addition to `input-channel` and `output-channel` attributes, it requires a `ref` attribute.
-The `ref` may either point to an object that contains the `@Transformer` annotation on a single method (see <<transformer-annotation>>), or it may be combined with an explicit method name value provided in the `method` attribute.
+The `ref` may either point to an object that contains the `@Transformer` annotation on a single method (see xref:transformer.adoc#transformer-annotation[Configuring a Transformer with Annotations]), or it may be combined with an explicit method name value provided in the `method` attribute.
 
 ====
 [source,xml]
@@ -204,7 +204,7 @@ That works fine as long as the result of the `toString()` call is what you want 
 Otherwise, you can provide a custom POJO-based transformer by using the generic 'transformer' element shown previously.
 
 TIP: When debugging, this transformer is not typically necessary, since the `logging-channel-adapter` is capable of logging the message payload.
-See <<./channel.adoc#channel-wiretap,Wire Tap>> for more detail.
+See xref:channel/configuration.adoc#channel-wiretap[Wire Tap] for more detail.
 
 The object-to-string transformer is very simple.
 It invokes `toString()` on the inbound payload.
@@ -464,7 +464,7 @@ Also, if you use the 'ref' attribute, you must point to a 'prototype' scoped bea
 Otherwise, a `BeanCreationException` is thrown.
 
 Starting with version 5.0, you can supply the `ObjectToMapTransformer` with a customized `JsonObjectMapper` -- for when you need special formats for dates or nulls for empty collections (and other uses).
-See <<json-transformers>> for more information about `JsonObjectMapper` implementations.
+See xref:transformer.adoc#json-transformers[JSON Transformers] for more information about `JsonObjectMapper` implementations.
 
 [[stream-transformer]]
 === Stream Transformer
@@ -611,17 +611,17 @@ Where both adapters are configured with a `SimpleMessageConverter`.
 NOTE: When using the headers to determine the type, you should not provide a `class` attribute, because it takes precedence over the headers.
 
 In addition to JSON Transformers, Spring Integration provides a built-in `#jsonPath` SpEL function for use in expressions.
-For more information see <<./spel.adoc#spel,Spring Expression Language (SpEL)>>.
+For more information see xref:spel.adoc[Spring Expression Language (SpEL)].
 
 [[transformer-xpath-spel-function]]
 Since version 3.0, Spring Integration also provides a built-in `#xpath` SpEL function for use in expressions.
-For more information see <<./xml.adoc#xpath-spel-function,#xpath SpEL Function>>.
+For more information see xref:xml/xpath-spel-function.adoc[#xpath SpEL Function].
 
 Beginning with version 4.0, the `ObjectToJsonTransformer` supports the `resultType` property, to specify the node JSON representation.
 The result node tree representation depends on the implementation of the provided `JsonObjectMapper`.
 By default, the `ObjectToJsonTransformer` uses a `Jackson2JsonObjectMapper` and delegates the conversion of the object to the node tree to the `ObjectMapper#valueToTree` method.
 The node JSON representation provides efficiency for using the `JsonPropertyAccessor` when the downstream message flow uses SpEL expressions with access to the properties of the JSON data.
-See <<./spel.adoc#spel-property-accessors,Property Accessors>> for more information.
+See xref:spel.adoc#spel-property-accessors[Property Accessors] for more information.
 
 Beginning with version 5.1, the `resultType` can be configured as `BYTES` to produce a message with the `byte[]` payload for convenience when working with downstream handlers which operate with this data type.
 
@@ -725,7 +725,7 @@ Order generateOrder(String productId) {
 ----
 ====
 
-Transformer methods can also accept the `@Header` and `@Headers` annotations, as documented in `<<./configuration.adoc#annotations,Annotation Support>>`.
+Transformer methods can also accept the `@Header` and `@Headers` annotations, as documented in `xref:configuration/annotations.adoc[Annotation Support]`.
 The following examples shows how to use the `@Header` annotation:
 
 ====
@@ -738,7 +738,7 @@ Order generateOrder(String productId, @Header("customerName") String customer) {
 ----
 ====
 
-See also <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>>.
+See also xref:handler-advice/advising-with-annotations.adoc[Advising Endpoints Using Annotations].
 
 [[header-filter]]
 == Header Filter
@@ -746,7 +746,7 @@ See also <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Us
 Sometimes, your transformation use case might be as simple as removing a few headers.
 For such a use case, Spring Integration provides a header filter that lets you specify certain header names that should be removed from the output message (for example, removing headers for security reasons or a value that was needed only temporarily).
 Basically, the header filter is the opposite  of the header enricher.
-The latter is discussed in <<./content-enrichment.adoc#header-enricher,Header Enricher>>.
+The latter is discussed in xref:content-enrichment.adoc#header-enricher[Header Enricher].
 The following example defines a header filter:
 
 ====
@@ -779,4 +779,4 @@ So, in the preceding example, the headers named 'lastName' and 'state' are not p
 [[codec-based-transformers]]
 == Codec-Based Transformers
 
-See <<./codec.adoc#codec,Codec>>.
+See xref:codec.adoc[Codec].

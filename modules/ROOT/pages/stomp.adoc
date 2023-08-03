@@ -52,14 +52,14 @@ See `StompSessionManager` (and its implementations) JavaDocs for more informatio
 The `StompInboundChannelAdapter` is a one-stop `MessageProducer` component that subscribes your Spring Integration application to the provided STOMP destinations and receives messages from them (converted from the STOMP frames by using the provided `MessageConverter` on the connected `StompSession`).
 You can change the destinations (and therefore STOMP subscriptions) at runtime by using appropriate `@ManagedOperation` annotations on the `StompInboundChannelAdapter`.
 
-For more configuration options, see <<stomp-namespace>> and the `StompInboundChannelAdapter` https://docs.spring.io/spring-integration/api/org/springframework/integration/stomp/inbound/StompInboundChannelAdapter.html[Javadoc].
+For more configuration options, see xref:stomp.adoc#stomp-namespace[STOMP Namespace Support] and the `StompInboundChannelAdapter` https://docs.spring.io/spring-integration/api/org/springframework/integration/stomp/inbound/StompInboundChannelAdapter.html[Javadoc].
 
 [[stomp-outbound-adapter]]
 == STOMP Outbound Channel Adapter
 
 The `StompMessageHandler` is the `MessageHandler` for the `<int-stomp:outbound-channel-adapter>` and is used to send the outgoing `Message<?>` instances to the STOMP `destination` (pre-configured or determined at runtime with a SpEL expression) through the `StompSession` (which is provided by the shared `StompSessionManager`).
 
-For more configuration options see <<stomp-namespace>> and the `StompMessageHandler` https://docs.spring.io/spring-integration/api/org/springframework/integration/stomp/outbound/StompMessageHandler.html[Javadoc].
+For more configuration options see xref:stomp.adoc#stomp-namespace[STOMP Namespace Support] and the `StompMessageHandler` https://docs.spring.io/spring-integration/api/org/springframework/integration/stomp/outbound/StompMessageHandler.html[Javadoc].
 
 [[stomp-headers]]
 == STOMP Headers Mapping
@@ -90,14 +90,14 @@ It provides `fromHeaders()` and `toHeaders()` operations for the inbound and out
 As with many other Spring Integration modules, the `IntegrationStompHeaders` class has been introduced to map standard STOMP headers to `MessageHeaders`, with `stomp_` as the header name prefix.
 In addition, all `MessageHeaders` instances with that prefix are mapped to the `StompHeaders` when sending to a destination.
 
-For more information, see the https://docs.spring.io/spring-integration/api/[Javadoc] for those classes and the `mapped-headers` attribute description in the <<stomp-namespace>>.
+For more information, see the https://docs.spring.io/spring-integration/api/[Javadoc] for those classes and the `mapped-headers` attribute description in the xref:stomp.adoc#stomp-namespace[STOMP Namespace Support].
 
 [[stomp-events]]
 == STOMP Integration Events
 
 Many STOMP operations are asynchronous, including error handling.
 For example, STOMP has a `RECEIPT` server frame that it returns when a client frame has requested one by adding the `RECEIPT` header.
-To provide access to these asynchronous events, Spring Integration emits `StompIntegrationEvent` instances, which you can obtain by implementing an `ApplicationListener` or by using an `<int-event:inbound-channel-adapter>` (see <<./event.adoc#appevent-inbound,Receiving Spring Application Events>>).
+To provide access to these asynchronous events, Spring Integration emits `StompIntegrationEvent` instances, which you can obtain by implementing an `ApplicationListener` or by using an `<int-event:inbound-channel-adapter>` (see xref:event.adoc#appevent-inbound[Receiving Spring Application Events]).
 
 Specifically, a `StompExceptionEvent` is emitted from the `AbstractStompSessionManager` when a `stompSessionListenableFuture` receives `onFailure()` due to failure to connect to STOMP broker.
 Another example is the `StompMessageHandler`.
@@ -110,7 +110,7 @@ It defaults to `15 * 1000` (in milliseconds, so 15 seconds).
 NOTE: The `StompSession.Receiptable` callbacks are added only if the `RECEIPT` STOMP header of the message to send is not `null`.
 You can enable automatic `RECEIPT` header generation on the `StompSession` through its `autoReceipt` option and on the `StompSessionManager` respectively.
 
-See <<stomp-java-config>> for more information how to configure Spring Integration to accept those `ApplicationEvent` instances.
+See xref:stomp.adoc#stomp-java-config[STOMP Adapters Java Configuration] for more information how to configure Spring Integration to accept those `ApplicationEvent` instances.
 
 [[stomp-java-config]]
 == STOMP Adapters Java Configuration

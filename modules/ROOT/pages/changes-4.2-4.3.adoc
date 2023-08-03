@@ -21,26 +21,26 @@ See <<./amqp.adoc#amqp-async-outbound-gateway,Asynchronous Outbound Gateway>>.
 We introduced the `MessageGroupFactory` strategy to allow control over `MessageGroup` instances in `MessageGroupStore` logic.
 We added `SimpleMessageGroupFactory` implementation for the `SimpleMessageGroup`, with the `GroupType.HASH_SET` as the default
 factory for the standard `MessageGroupStore` implementations.
-See <<./message-store.adoc#message-store,Message Store>> for more information.
+See xref:message-store.adoc[Message Store] for more information.
 
 [[persistentmessagegroup]]
 === `PersistentMessageGroup`
 
 We added the `PersistentMessageGroup` (lazy-load proxy) implementation for persistent `MessageGroupStore` instances,
 which return this instance for the `getMessageGroup()` when their `lazyLoadMessageGroups` is `true` (the default).
-See <<./message-store.adoc#message-store,Message Store>> for more information.
+See xref:message-store.adoc[Message Store] for more information.
 
 [[ftp-and-sftp-streaming-inbound-channel-adapters]]
 === FTP and SFTP Streaming Inbound Channel Adapters
 
 We added inbound channel adapters that return an `InputStream` for each file, letting you retrieve remote files without writing them to the local file system.
-See <<./ftp.adoc#ftp-streaming,FTP Streaming Inbound Channel Adapter>> and <<./sftp.adoc#sftp-streaming,SFTP Streaming Inbound Channel Adapter>> for more information.
+See xref:ftp/streaming.adoc[FTP Streaming Inbound Channel Adapter] and xref:sftp/streaming.adoc[SFTP Streaming Inbound Channel Adapter] for more information.
 
 [[streamtransformer]]
 === `StreamTransformer`
 
 We added `StreamTransformer` to transform an `InputStream` payload to either a `byte[]` or a `String`.
-See <<./transformer.adoc#stream-transformer,Stream Transformer>> for more information.
+See xref:transformer.adoc#stream-transformer[Stream Transformer] for more information.
 
 [[integration-graph]]
 === Integration Graph
@@ -58,7 +58,7 @@ See <<./jdbc.adoc#jdbc-lock-registry,JDBC Lock Registry>> for more information.
 === `LeaderInitiator` for `LockRegistry`
 
 We added `LeaderInitiator` implementation based on the `LockRegistry` strategy.
-See <<./endpoint.adoc#leadership-event-handling,Leadership Event Handling>> for more information.
+See xref:endpoint.adoc#leadership-event-handling[Leadership Event Handling] for more information.
 
 [[x4.3-general]]
 == General Changes
@@ -83,7 +83,7 @@ If you have such a configuration, remove the `reply-channel`.
 ==== Asynchronous Service Activator
 
 We added an option to make the service activator be synchronous.
-See <<./service-activator.adoc#async-service-activator,Asynchronous Service Activator>> for more information.
+See xref:service-activator.adoc#async-service-activator[Asynchronous Service Activator] for more information.
 
 [[messaging-annotation-support-changes]]
 ==== Messaging Annotation Support changes
@@ -91,7 +91,7 @@ See <<./service-activator.adoc#async-service-activator,Asynchronous Service Acti
 The messaging annotation support does not require a `@MessageEndpoint` (or any other `@Component`) annotation declaration on the class level.
 To restore the previous behavior, set the `spring.integration.messagingAnnotations.require.componentAnnotation` of
 `spring.integration.properties` to `true`.
-See <<./configuration.adoc#global-properties,Global Properties>> and <<./configuration.adoc#annotations,Annotation Support>> for more information.
+See xref:configuration/global-properties.adoc[Global Properties] and xref:configuration/annotations.adoc[Annotation Support] for more information.
 
 [[mail-changes]]
 === Mail Changes
@@ -103,14 +103,14 @@ This section describes general changes to the Spring Integration Mail functional
 
 The customizable `userFlag` (added in 4.2.2 to provide customization of the flag used to denote that the mail has been
 seen) is now available in the XML namespace.
-See <<./mail.adoc#imap-seen,Marking IMAP Messages When `\Recent` Is Not Supported>> for more information.
+See xref:mail.adoc#imap-seen[Marking IMAP Messages When `Recent` Is Not Supported] for more information.
 
 [[mail-message-mapping]]
 ==== Mail Message Mapping
 
 You can now map inbound mail messages with the `MessageHeaders` containing the mail headers and the payload containing the email content.
 Previously, the payload was always the raw `MimeMessage`.
-See <<./mail.adoc#mail-mapping,Inbound Mail Message Mapping>> for more information.
+See xref:mail.adoc#mail-mapping[Inbound Mail Message Mapping] for more information.
 
 [[jms-changes]]
 === JMS Changes
@@ -121,20 +121,20 @@ This section describes general changes to the Spring Integration JMS functionali
 ==== Header Mapper
 
 The `DefaultJmsHeaderMapper` now maps the standard `correlationId` header as a message property by invoking its `toString()` method.
-See <<./jms.adoc#jms-header-mapping,Mapping Message Headers to and from JMS Message>> for more information.
+See xref:changes-3.0-4.0.adoc#x4.0-jms-header-mapping[Mapping Message Headers to and from JMS Message] for more information.
 
 [[asynchronous-gateway]]
 ==== Asynchronous Gateway
 
 The JMS outbound gateway now has an `async` property.
-See <<./jms.adoc#jms-async-gateway,Async Gateway>> for more information.
+See xref:jms.adoc#jms-async-gateway[Async Gateway] for more information.
 
 [[aggregator-changes]]
 === Aggregator Changes
 
 There is a change in behavior when a POJO aggregator releases a collection of `Message<?>` objects.
 This is rare, but, if your application does that, you need to make a small change to your POJO.
-See this <<./aggregator.adoc#agg-message-collection,IMPORTANT: The `SimpleMessageGroup.getMessages()` method returns an `unmodifiableCollection`.>> note for more information.
+See this xref:aggregator.adoc#agg-message-collection[IMPORTANT: The `SimpleMessageGroup.getMessages()` method returns an `unmodifiableCollection`.] note for more information.
 
 [[tcp/udp-changes]]
 === TCP/UDP Changes
@@ -145,22 +145,22 @@ This section describes general changes to the Spring Integration TCP/UDP functio
 ==== Events
 
 A new `TcpConnectionServerListeningEvent` is emitted when a server connection factory is started.
-See <<./ip.adoc#tcp-events,TCP Connection Events>> for more information.
+See xref:changes-4.1-4.2.adoc#x4.2-tcp-events[TCP Connection Events] for more information.
 
 You can now use the `destination-expression` and `socket-expression` attributes on `<int-ip:udp-outbound-channel-adapter>`.
-See <<./ip.adoc#udp-adapters,UDP Adapters>> for more information.
+See xref:ip/udp-adapters.adoc[UDP Adapters] for more information.
 
 [[stream-deserializers]]
 ==== Stream Deserializers
 
 The various deserializers that cannot allocate the final buffer until the whole message has been assembled now support pooling the raw buffer into which the data is received rather than creating and discarding a buffer for each message.
-See <<./ip.adoc#tcp-connection-factories,TCP Connection Factories>> for more information.
+See xref:ip/tcp-connection-factories.adoc[TCP Connection Factories] for more information.
 
 [[tcp-message-mapper]]
 ==== TCP Message Mapper
 
 The message mapper now, optionally, sets a configured content type header.
-See <<./ip.adoc#ip-msg-headers,IP Message Headers>> for more information.
+See xref:ip/msg-headers.adoc[IP Message Headers] for more information.
 
 [[file-changes]]
 === File Changes
@@ -171,7 +171,7 @@ This section describes general changes to the Spring Integration File functional
 ==== Destination Directory Creation
 
 The generated file name for the `FileWritingMessageHandler` can represent a sub-path to save the desired directory structure for a file in the target directory.
-See <<./file.adoc#file-writing-file-names,Generating File Names>> for more information.
+See xref:file/writing.adoc#file-writing-file-names[Generating File Names] for more information.
 
 The `FileReadingMessageSource` now hides the `WatchService` directory scanning logic in the inner class.
 We added the `use-watch-service` and `watch-events` options to enable this behavior.
@@ -187,13 +187,13 @@ When writing files, you can now specify the buffer size.
 ==== Appending and Flushing
 
 You can now avoid flushing files when appending and use a number of strategies to flush the data during idle periods.
-See <<./file.adoc#file-flushing,Flushing Files When Using `APPEND_NO_FLUSH`>> for more information.
+See xref:file/writing.adoc#file-flushing[Flushing Files When Using `APPEND_NO_FLUSH`] for more information.
 
 [[preserving-timestamps]]
 ==== Preserving Timestamps
 
 You can now configure the outbound channel adapter to set the destination file's `lastmodified` timestamp.
-See <<./file.adoc#file-timestamps,File Timestamps>> for more information.
+See xref:file/writing.adoc#file-timestamps[File Timestamps] for more information.
 
 [[splitter-changes]]
 ==== Splitter Changes
@@ -201,13 +201,13 @@ See <<./file.adoc#file-timestamps,File Timestamps>> for more information.
 The `FileSplitter` now automatically closes an FTP or SFTP session when the file is completely read.
 This applies when the outbound gateway returns an `InputStream` or when you use the new FTP or SFTP streaming channel adapters.
 We also introduced a new `markers-json` option to convert `FileSplitter.FileMarker` to JSON `String` for relaxed downstream network interaction.
-See <<./file.adoc#file-splitter,File Splitter>> for more information.
+See xref:file/splitter.adoc[File Splitter] for more information.
 
 [[file-filters]]
 ==== File Filters
 
 We added `ChainFileListFilter` as an alternative to `CompositeFileListFilter`.
-See <<./file.adoc#file-reading,Reading Files>> for more information.
+See xref:file/reading.adoc[Reading Files] for more information.
 
 [[amqp-changes]]
 === AMQP Changes
@@ -219,7 +219,7 @@ This section describes general changes to the Spring Integration AMQP functional
 
 The outbound endpoints now support a `RabbitTemplate` configured with a `ContentTypeDelegatingMessageConverter` such
 that you can choose the converter based on the message content type.
-See <<./amqp.adoc#content-type-conversion-outbound,Outbound Message Conversion>> for more information.
+See xref:amqp/content-type-conversion-outbound.adoc[Outbound Message Conversion] for more information.
 
 [[headers-for-delayed-message-handling]]
 ==== Headers for Delayed Message Handling
@@ -231,7 +231,7 @@ Header mapping now supports the headers (`amqp_delay` and `amqp_receivedDelay`) 
 ==== AMQP-Backed Channels
 
 AMQP-backed channels now support message mapping.
-See <<./amqp.adoc#amqp-channels,AMQP-backed Message Channels>> for more information.
+See xref:amqp/channels.adoc[AMQP-backed Message Channels] for more information.
 
 [[redis-changes]]
 === Redis Changes
@@ -244,13 +244,13 @@ This section describes general changes to the Spring Integration Redis functiona
 Previously, the queue channel adapters always used the Redis list in a fixed direction, pushing to the left end and reading from the right end.
 You can now configure the reading and writing direction with the `rightPop` and `leftPush` options for the
 `RedisQueueMessageDrivenEndpoint` and `RedisQueueOutboundChannelAdapter`, respectively.
-See <<./redis.adoc#redis-queue-inbound-channel-adapter,Redis Queue Inbound Channel Adapter>> and <<./redis.adoc#redis-queue-outbound-channel-adapter,Redis Queue Outbound Channel Adapter>> for more information.
+See xref:redis.adoc#redis-queue-inbound-channel-adapter[Redis Queue Inbound Channel Adapter] and xref:redis.adoc#redis-queue-outbound-channel-adapter[Redis Queue Outbound Channel Adapter] for more information.
 
 [[queue-inbound-gateway-default-serializer]]
 ==== Queue Inbound Gateway Default Serializer
 
 The default serializer in the inbound gateway has been changed to a `JdkSerializationRedisSerializer` for compatibility with the outbound gateway.
-See <<./redis.adoc#redis-queue-inbound-gateway,Redis Queue Inbound Gateway>> for more information.
+See xref:redis.adoc#redis-queue-inbound-gateway[Redis Queue Inbound Gateway] for more information.
 
 [[http-changes]]
 === HTTP Changes
@@ -258,10 +258,10 @@ See <<./redis.adoc#redis-queue-inbound-gateway,Redis Queue Inbound Gateway>> for
 Previously, with requests that had a body (such as `POST`) that had no `content-type` header, the body was ignored.
 With this release, the content type of such requests is considered to be `application/octet-stream` as recommended
 by RFC 2616.
-See <<./http.adoc#http-inbound,Http Inbound Components>> for more information.
+See xref:http/inbound.adoc[Http Inbound Components] for more information.
 
 `uriVariablesExpression` now uses a `SimpleEvaluationContext` by default (since 4.3.15).
-See <<./http.adoc#mapping-uri-variables,Mapping URI Variables>> for more information.
+See xref:http/namespace.adoc#mapping-uri-variables[Mapping URI Variables] for more information.
 
 [[sftp-changes]]
 === SFTP Changes
@@ -278,7 +278,7 @@ See `JschProxyFactoryBean` for more information.
 ==== `chmod` Changes
 
 The SFTP outbound gateway (for `put` and `mput` commands) and the SFTP outbound channel adapter now support the `chmod` attribute to change the remote file permissions after uploading.
-See `<<./sftp.adoc#sftp-outbound,SFTP Outbound Channel Adapter>>` and `<<./sftp.adoc#sftp-outbound-gateway,SFTP Outbound Gateway>>` for more information.
+See `xref:sftp/outbound.adoc[SFTP Outbound Channel Adapter]` and `xref:sftp/outbound-gateway.adoc[SFTP Outbound Gateway]` for more information.
 
 [[ftp-changes]]
 === FTP Changes
@@ -291,7 +291,7 @@ This section describes general changes to the Spring Integration FTP functionali
 The `FtpSession` now supports `null` for the `list()` and `listNames()` methods, since underlying FTP Client can use it.
 With that, you can now configure the `FtpOutboundGateway` without the `remoteDirectory` expression.
 You can also configure the `<int-ftp:inbound-channel-adapter>` without `remote-directory` or `remote-directory-expression`.
-See <<./ftp.adoc#ftp,FTP/FTPS Adapters>> for more information.
+See xref:ftp.adoc[FTP/FTPS Adapters] for more information.
 
 [[router-changes]]
 === Router Changes
@@ -299,7 +299,7 @@ See <<./ftp.adoc#ftp,FTP/FTPS Adapters>> for more information.
 The `ErrorMessageExceptionTypeRouter` now supports the `Exception` superclass mappings to avoid duplication for the same channel in case of multiple inheritors.
 For this purpose, the `ErrorMessageExceptionTypeRouter` loads mapping classes during initialization to fail-fast for a `ClassNotFoundException`.
 
-See <<./router.adoc#router,Routers>> for more information.
+See xref:router.adoc[Routers] for more information.
 
 [[header-mapping]]
 === Header Mapping
@@ -310,7 +310,7 @@ This section describes the changes to header mapping between version 4.2 and 4.3
 ==== General
 
 AMQP, WS, and XMPP header mappings (such as `request-header-mapping` and `reply-header-mapping`) now support negated patterns.
-See <<./amqp.adoc#amqp-message-headers,AMQP Message Headers>>, <<./ws.adoc#ws-message-headers,WS Message Headers>>, and <<./xmpp.adoc#xmpp-message-headers,XMPP Message Headers>> for more information.
+See xref:amqp/message-headers.adoc[AMQP Message Headers], xref:ws.adoc#ws-message-headers[WS Message Headers], and xref:xmpp.adoc#xmpp-message-headers[XMPP Message Headers] for more information.
 
 [[amqp-header-mapping]]
 ==== AMQP Header Mapping
@@ -319,42 +319,42 @@ Previously, only standard AMQP headers were mapped by default.
 You had to explicitly enable mapping of user-defined headers.
 With this release, all headers are mapped by default.
 In addition, the inbound `amqp_deliveryMode` header is no longer mapped by default.
-See <<./amqp.adoc#amqp-message-headers,AMQP Message Headers>> for more information.
+See xref:amqp/message-headers.adoc[AMQP Message Headers] for more information.
 
 [[groovy-scripts]]
 === Groovy Scripts
 
 You can now configure groovy scripts with the `compile-static` hint or any other `CompilerConfiguration` options.
-See <<./groovy.adoc#groovy-config,Groovy Configuration>> for more information.
+See xref:groovy.adoc#groovy-config[Groovy Configuration] for more information.
 
 [[inboundchanneladapter-changes]]
 === `@InboundChannelAdapter` Changes
 
 The `@InboundChannelAdapter` now has an alias `channel` attribute for the regular `value`.
 In addition, the target `SourcePollingChannelAdapter` components can now resolve the target `outputChannel` bean from its provided name (`outputChannelName` options) in a late-binding manner.
-See <<./configuration.adoc#annotations,Annotation Support>> for more information.
+See xref:configuration/annotations.adoc[Annotation Support] for more information.
 
 [[xmpp-changes]]
 === XMPP Changes
 
 The XMPP channel adapters now support the XMPP Extensions (XEP).
-See <<./xmpp.adoc#xmpp-extensions,XMPP Extensions>> for more information.
+See xref:xmpp.adoc#xmpp-extensions[XMPP Extensions] for more information.
 
 [[wiretap-late-binding]]
 === WireTap Late Binding
 
 The `WireTap` `ChannelInterceptor` now can accept a `channelName` that is resolved to the target `MessageChannel`
 later, during the first active interceptor operation.
-See <<./channel.adoc#channel-wiretap,Wire Tap>> for more information.
+See xref:channel/configuration.adoc#channel-wiretap[Wire Tap] for more information.
 
 [[channelmessagestorequeryprovider-changes]]
 === `ChannelMessageStoreQueryProvider` Changes
 
 The `ChannelMessageStoreQueryProvider` now supports H2 databases.
-See <<./jdbc.adoc#jdbc-message-store-channels,Backing Message Channels>> for more information.
+See xref:jdbc/message-store.adoc#jdbc-message-store-channels[Backing Message Channels] for more information.
 
 [[websocket-changes]]
 === WebSocket Changes
 
 The `ServerWebSocketContainer` now exposes an `allowedOrigins` option, and `SockJsServiceOptions` exposes a `suppressCors` option.
-See <<./web-sockets.adoc#web-sockets,WebSockets Support>> for more information.
+See xref:web-sockets.adoc[WebSockets Support] for more information.

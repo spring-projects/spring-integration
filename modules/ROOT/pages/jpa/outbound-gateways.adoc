@@ -27,7 +27,7 @@ An updating outbound gateway is functionally similar to an outbound channel adap
 
 A retrieving outbound gateway is similar to an inbound channel adapter.
 
-NOTE: We recommend you first read the <<jpa-outbound-channel-adapter>> section and the <<jpa-inbound-channel-adapter>> sections earlier in this chapter, as most of the common concepts are explained there.
+NOTE: We recommend you first read the xref:jpa/outbound-channel-adapter.adoc[Outbound Channel Adapter] section and the xref:jpa/inbound-channel-adapter.adoc[Inbound Channel Adapter] sections earlier in this chapter, as most of the common concepts are explained there.
 
 This similarity was the main factor to use the central `JpaExecutor` class to unify common functionality as much as possible.
 
@@ -38,7 +38,7 @@ Common for all JPA outbound gateways and similar to the `outbound-channel-adapte
 * Native query
 * Named query
 
-For configuration examples see <<outboundGatewaySamples>>.
+For configuration examples see xref:jpa/outbound-gateways.adoc#outboundGatewaySamples[JPA Outbound Gateway Samples].
 
 [[jpa-outbound-gateway-common-parameters]]
 == Common Configuration Parameters
@@ -109,7 +109,7 @@ Optional.
 ====
 
 The remaining attributes are described earlier in this chapter.
-See <<jpaInboundChannelAdapterParameters>> and <<jpaOutboundChannelAdapterParameters>>.
+See xref:jpa/inbound-channel-adapter.adoc#jpaInboundChannelAdapterParameters[Configuration Parameter Reference] and xref:jpa/outbound-channel-adapter.adoc#jpaOutboundChannelAdapterParameters[Configuration Parameter Reference].
 
 [[configuring-with-java-configuration]]
 == Configuring with Java Configuration
@@ -353,7 +353,7 @@ NOTE: Starting with version 6.0, the `Jpa.retrievingGateway()` returns an empty 
 Previously `null` was returned ending the flow, or throwing an exception, depending on `requiresReply`.
 Or, to revert to the previous behavior, add a `filter` after the gateway to filter out empty lists.
 It requires extra configuration in applications where empty list handling is a part of the downstream logic.
-See <<./splitter.adoc#split-stream-and-flux,Splitter Discard Channel>> for possible empty list handling options.
+See xref:splitter.adoc#split-stream-and-flux[Splitter Discard Channel] for possible empty list handling options.
 
 [[outboundGatewaySamples]]
 == JPA Outbound Gateway Samples

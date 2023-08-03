@@ -29,8 +29,8 @@ We added convenience methods so that you can more easily do so from a message fl
 ----
 ====
 
-IMPORTANT: When using session caching (see <<sftp-session-caching>>), each of the delegates should be cached.
+IMPORTANT: When using session caching (see xref:sftp/session-caching.adoc[SFTP Session Caching]), each of the delegates should be cached.
 You cannot cache the `DelegatingSessionFactory` itself.
 
-Starting with version 5.0.7, the `DelegatingSessionFactory` can be used in conjunction with a `RotatingServerAdvice` to poll multiple servers; see <<sftp-rotating-server-advice>>.
+Starting with version 5.0.7, the `DelegatingSessionFactory` can be used in conjunction with a `RotatingServerAdvice` to poll multiple servers; see xref:sftp/rotating-server-advice.adoc[Inbound Channel Adapters: Polling Multiple Servers and Directories].
 

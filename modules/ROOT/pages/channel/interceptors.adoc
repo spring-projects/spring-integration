@@ -46,7 +46,7 @@ Therefore, the `preReceive(...)`, `postReceive(...)`, and `afterReceiveCompletio
 Spring Integration also provides an implementation of the https://www.enterpriseintegrationpatterns.com/WireTap.html[Wire Tap] pattern.
 It is a simple interceptor that sends the `Message` to another channel without otherwise altering the existing flow.
 It can be very useful for debugging and monitoring.
-An example is shown in <<channel-wiretap>>.
+An example is shown in xref:channel/configuration.adoc#channel-wiretap[Wire Tap].
 
 Because it is rarely necessary to implement all of the interceptor methods, the interface provides no-op methods (those returning `void` method have no code, the `Message`-returning methods return the `Message` as-is, and the `boolean` method returns `true`).
 

@@ -39,7 +39,7 @@ NOTE: Starting with version 5.5.4, the `JpaOutboundGateway`, with a `JpaExecutor
 [[jpa-using-jpaql]]
 == Using JPA Query Language (JPA QL)
 
-The <<jpa-outbound-channel-adapter-entity-class,previous section>> showed how to perform a `PERSIST` action by using an entity.
+The xref:jpa/outbound-channel-adapter.adoc#jpa-outbound-channel-adapter-entity-class[previous section] showed how to perform a `PERSIST` action by using an entity.
 This section shows how to use an outbound channel adapter with JPA QL.
 
 The following XML configures the outbound channel adapter to persist an entity to the database:
@@ -101,7 +101,7 @@ Using native queries is similar to using JPA QL, except that the queries are nat
 By using native queries, we lose database vendor independence, which we get using JPA QL.
 
 One of the things we can achieve by using native queries is to perform database inserts, which is not possible with JPA QL.
-(To perform inserts, we send JPA entities to the channel adapter, as <<jpa-outbound-channel-adapter-entity-class,described earlier>>).
+(To perform inserts, we send JPA entities to the channel adapter, as xref:jpa/outbound-channel-adapter.adoc#jpa-outbound-channel-adapter-entity-class[described earlier]).
 Below is a small xml fragment that demonstrates the use of native query to insert values in a table.
 
 IMPORTANT: Named parameters may not be supported by your JPA provider in conjunction with native SQL queries.
@@ -130,7 +130,7 @@ Note that the other attributes (such as `channel` and `entity-manager`) and the 
 [[using-named-queries]]
 == Using Named Queries
 
-Using named queries is similar to using <<jpa-using-jpaql,JPA QL>> or a <<jpa-using-native-queries,native query>>, except that we specify a named query instead of a query.
+Using named queries is similar to using xref:jpa/outbound-channel-adapter.adoc#jpa-using-jpaql[JPA QL] or a xref:jpa/outbound-channel-adapter.adoc#jpa-using-native-queries[native query], except that we specify a named query instead of a query.
 First, we cover how to define a JPA named query.
 Then we cover how to declare an outbound channel adapter to work with a named query.
 If we have an entity called `Student`, we can use annotations on the `Student` class to define two named queries: `selectStudent` and `updateStudent`.

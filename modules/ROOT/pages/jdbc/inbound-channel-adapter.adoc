@@ -138,7 +138,7 @@ Under normal circumstances, you would likely not want to set the poller's `max-m
 Its default value is `1`, which means that the JDBC inbound channel adapter's https://docs.spring.io/spring-integration/api/org/springframework/integration/jdbc/JdbcPollingChannelAdapter.html#receive()[`receive()`] method is executed exactly once for each poll interval.
 
 Setting the `max-messages-per-poll` attribute to a larger value means that the query is executed that many times back to back.
-For more information regarding the `max-messages-per-poll` attribute, see <<./channel-adapter.adoc#channel-adapter-namespace-inbound,Configuring An Inbound Channel Adapter>>.
+For more information regarding the `max-messages-per-poll` attribute, see xref:channel-adapter.adoc#channel-adapter-namespace-inbound[Configuring An Inbound Channel Adapter].
 
 In contrast, the `max-rows` attribute, if greater than `0`, specifies the maximum number of rows to be used from the query result set created by the `receive()` method.
 If the attribute is set to `0`, all rows are included in the resulting message.

@@ -23,7 +23,7 @@ See also the https://github.com/spring-projects/spring-integration/wiki/Spring-I
 We created a new Spring Integration Test Framework to help with testing Spring Integration applications.
 Now, with the `@SpringIntegrationTest` annotation on test classes and the `MockIntegration` factory, you can make your JUnit tests for integration flows somewhat easier.
 
-See <<./testing.adoc#testing,Testing support>> for more information.
+See xref:testing.adoc[Testing support] for more information.
 
 [[mongodb-outbound-gateway]]
 === MongoDB Outbound Gateway
@@ -37,7 +37,7 @@ See <<./mongodb.adoc#mongodb-outbound-gateway,MongoDB Outbound Gateway>> for mor
 
 We introduced the new WebFlux support module for Spring WebFlux Framework gateways and channel adapters.
 
-See <<./webflux.adoc#webflux,WebFlux Support>> for more information.
+See xref:webflux.adoc[WebFlux Support] for more information.
 
 [[content-type-conversion]]
 === Content Type Conversion
@@ -51,7 +51,7 @@ See <<./endpoint.adoc#content-type-conversion,Content Type Conversion>> for more
 
 We added `ErrorMessagePublisher` and the `ErrorMessageStrategy` for creating `ErrorMessage` instances.
 
-See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
+See xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] for more information.
 
 [[jdbc-metadata-store]]
 === JDBC Metadata Store
@@ -71,36 +71,36 @@ Previous Project Reactor versions are no longer supported.
 === Core Changes
 
 The `@Poller` annotation now has the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
-See <<./configuration.adoc#annotations,Annotation Support>> for more information.
+See xref:configuration/annotations.adoc[Annotation Support] for more information.
 
 All the request-reply endpoints (based on `AbstractReplyProducingMessageHandler`) can now start transactions and, therefore, make the whole downstream flow transactional.
-See <<./handler-advice.adoc#tx-handle-message-advice,Transaction Support>> for more information.
+See xref:handler-advice/tx-handle-message.adoc[Transaction Support] for more information.
 
 The `SmartLifecycleRoleController` now provides methods to obtain status of endpoints in roles.
-See <<./endpoint.adoc#endpoint-roles,Endpoint Roles>> for more information.
+See xref:endpoint.adoc#endpoint-roles[Endpoint Roles] for more information.
 
 By default, POJO methods are now invoked by using an `InvocableHandlerMethod`, but you can configure them to use SpEL, as before.
-See <<./overview.adoc#pojo-invocation,POJO Method invocation>> for more information.
+See xref:overview.adoc#pojo-invocation[POJO Method invocation] for more information.
 
 When targeting POJO methods as message handlers, you can now mark one of the service methods with the `@Default` annotation to provide a fallback mechanism for non-matched conditions.
-See <<./service-activator.adoc#service-activator-namespace,Configuring Service Activator>> for more information.
+See xref:service-activator.adoc#service-activator-namespace[Configuring Service Activator] for more information.
 
 We added a simple `PassThroughTransactionSynchronizationFactory` to always store a polled message in the current transaction context.
 That message is used as a `failedMessage` property of the `MessagingException`, which wraps any raw exception thrown during transaction completion.
-See <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>> for more information.
+See xref:transactions.adoc#transaction-synchronization[Transaction Synchronization] for more information.
 
 The aggregator expression-based `ReleaseStrategy` now evaluates the expression against the `MessageGroup` instead of just the collection of `Message<?>`.
-See <<./aggregator.adoc#aggregator-spel,Aggregators and Spring Expression Language (SpEL)>> for more information.
+See xref:aggregator.adoc#aggregator-spel[Aggregators and Spring Expression Language (SpEL)] for more information.
 
 You can now supply the `ObjectToMapTransformer` with a customized `JsonObjectMapper`.
 
-See <<./aggregator.adoc#aggregator-spel,Aggregators and Spring Expression Language (SpEL)>> for more information.
+See xref:aggregator.adoc#aggregator-spel[Aggregators and Spring Expression Language (SpEL)] for more information.
 
 The `@GlobalChannelInterceptor` annotation and `<int:channel-interceptor>` now support negative patterns (via `!` prepending) for component names matching.
-See <<./channel.adoc#global-channel-configuration-interceptors,Global Channel Interceptor Configuration>> for more information.
+See xref:channel/configuration.adoc#global-channel-configuration-interceptors[Global Channel Interceptor Configuration] for more information.
 
 When a candidate failed to acquire the lock, the `LockRegistryLeaderInitiator` now emits a new `OnFailedToAcquireMutexEvent` through `DefaultLeaderEventPublisher`.
-See `<<./endpoint.adoc#leadership-event-handling,Leadership Event Handling>>` for more information.
+See `xref:endpoint.adoc#leadership-event-handling[Leadership Event Handling]` for more information.
 
 [[gateway-changes]]
 === Gateway Changes
@@ -112,14 +112,14 @@ This caused synchronous downstream flows (running on the calling thread) to send
 The `RequestReplyExchanger` interface now has a `throws MessagingException` clause to meet the proposed messages exchange contract.
 
 You can now specify the request and reply timeouts with SpEL expressions.
-See <<./gateway.adoc#gateway,Messaging Gateways>> for more information.
+See xref:gateway.adoc[Messaging Gateways] for more information.
 
 [[aggregator-performance-changes]]
 === Aggregator Performance Changes
 
 By default, aggregators now use a `SimpleSequenceSizeReleaseStrategy`, which is more efficient, especially with large groups.
 Empty groups are now scheduled for removal after `empty-group-min-timeout`.
-See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
+See xref:overview.adoc#overview-endpoints-aggregator[Aggregator] for more information.
 
 [[splitter-changes]]
 === Splitter Changes
@@ -127,7 +127,7 @@ See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 The splitter component can now handle and split Java `Stream` and Reactive Streams `Publisher` objects.
 If the output channel is a `ReactiveStreamsSubscribableChannel`, the `AbstractMessageSplitter` builds a `Flux` for subsequent iteration instead of a regular `Iterator`, independent of the object being split.
 In addition, `AbstractMessageSplitter` provides `protected obtainSizeIfPossible()` methods to allow determination of the size of the `Iterable` and `Iterator` objects, if that is possible.
-See <<./splitter.adoc#splitter,Splitter>> for more information.
+See xref:splitter.adoc[Splitter] for more information.
 
 [[jms-changes]]
 === JMS Changes
@@ -136,19 +136,19 @@ Previously, Spring Integration JMS XML configuration used a default bean name of
 We renamed it to `jmsConnectionFactory`, which is the bean name used by Spring Boot to auto-configure the JMS connection factory bean.
 
 If your application relies on the previous behavior, you can rename your `connectionFactory` bean to `jmsConnectionFactory` or specifically configure your components to use your bean by using its current name.
-See <<./jms.adoc#jms,JMS Support>> for more information.
+See xref:jms.adoc[JMS Support] for more information.
 
 [[mail-changes]]
 === Mail Changes
 
 Some inconsistencies with rendering IMAP mail content have been resolved.
-See <<./mail.adoc#imap-format-important,the note in the "`Mail-receiving Channel Adapter`" section>> for more information.
+See xref:mail.adoc#imap-format-important[the note in the "`Mail-receiving Channel Adapter`" section] for more information.
 
 [[feed-changes]]
 === Feed Changes
 
 Instead of the `com.rometools.fetcher.FeedFetcher`, which is deprecated in ROME, we introduced a new `Resource` property for the `FeedEntryMessageSource`.
-See <<./feed.adoc#feed,Feed Adapter>> for more information.
+See xref:feed.adoc[Feed Adapter] for more information.
 
 [[file-changes]]
 === File Changes
@@ -164,11 +164,11 @@ The file outbound channel adapter and gateway (`FileWritingMessageHandler`) now 
 They also now support setting file permissions on the newly written file.
 
 A new `FileSystemMarkerFilePresentFileListFilter` is now available.
-See <<./file.adoc#file-incomplete,Dealing With Incomplete Data>> for more information.
+See xref:file/reading.adoc#file-incomplete[Dealing With Incomplete Data] for more information.
 
 The `FileSplitter` now provides a `firstLineAsHeader` option to carry the first line of content as a header in the messages emitted for the remaining lines.
 
-See <<./file.adoc#files,File Support>> for more information.
+See xref:file.adoc[File Support] for more information.
 
 [[ftp-and-sftp-changes]]
 === FTP and SFTP Changes
@@ -190,7 +190,7 @@ The FTP and SFTP streaming inbound channel adapters now add remote file informat
 The FTP and SFTP outbound channel adapters (as well as the `PUT` command for outbound gateways) now support `InputStream` as `payload`, too.
 
 The inbound channel adapters can now build file trees locally by using a newly introduced `RecursiveDirectoryScanner`.
-See the `scanner` option in the <<./ftp.adoc#ftp-inbound,FTP Inbound Channel Adapter>> section for injection.
+See the `scanner` option in the xref:ftp/inbound.adoc[FTP Inbound Channel Adapter] section for injection.
 Also, you can now switch these adapters to the `WatchService` instead.
 
 We added The `NLST` command to the `AbstractRemoteFileOutboundGateway` to perform the list files names remote command.
@@ -203,25 +203,25 @@ We added new filters for detecting incomplete remote files.
 
 The `FtpOutboundGateway` and `SftpOutboundGateway` now support an option to remove the remote file after a successful transfer by using the `GET` or `MGET` commands.
 
-See <<./ftp.adoc#ftp,FTP/FTPS Adapters>> and <<./sftp.adoc#sftp,SFTP Adapters>> for more information.
+See xref:ftp.adoc[FTP/FTPS Adapters] and xref:sftp.adoc[SFTP Adapters] for more information.
 
 [[integration-properties]]
 === Integration Properties
 
 Version 4.3.2 added a new `spring.integration.readOnly.headers` global property to let you customize the list of headers that should not be copied to a newly created `Message` by the `MessageBuilder`.
-See <<./configuration.adoc#global-properties,Global Properties>> for more information.
+See xref:configuration/global-properties.adoc[Global Properties] for more information.
 
 [[stream-changes]]
 === Stream Changes
 
 We added a new option on the `CharacterStreamReadingMessageSource` to let it be used to "`pipe`" stdin and publish an application event when the pipe is closed.
-See <<./stream.adoc#stream-reading,Reading from Streams>> for more information.
+See xref:stream.adoc#stream-reading[Reading from Streams] for more information.
 
 [[barrier-changes]]
 === Barrier Changes
 
 The `BarrierMessageHandler` now supports a discard channel to which late-arriving trigger messages are sent.
-See <<./barrier.adoc#barrier,Thread Barrier>> for more information.
+See xref:barrier.adoc[Thread Barrier] for more information.
 
 [[amqp-changes]]
 === AMQP Changes
@@ -235,17 +235,17 @@ Pollable AMQP-backed channels now block the poller thread for the poller's confi
 Headers, such as `contentType`, that are added to message properties by the message converter are now used in the final message.
 Previously, it depended on the converter type as to which headers and message properties appeared in the final message.
 To override the headers set by the converter, set the `headersMappedLast` property to `true`.
-See <<./amqp.adoc#amqp,AMQP Support>> for more information.
+See xref:amqp.adoc[AMQP Support] for more information.
 
 [[http-changes]]
 === HTTP Changes
 
 By default, the `DefaultHttpHeaderMapper.userDefinedHeaderPrefix` property is now an empty string instead of `X-`.
-See <<./http.adoc#http-header-mapping,HTTP Header Mappings>> for more information.
+See xref:http/header-mapping.adoc[HTTP Header Mappings] for more information.
 
 By default, `uriVariablesExpression` now uses a `SimpleEvaluationContext` (since 5.0.4).
 
-See <<./http.adoc#mapping-uri-variables,Mapping URI Variables>> for more information.
+See xref:http/namespace.adoc#mapping-uri-variables[Mapping URI Variables] for more information.
 
 [[mqtt-changes]]
 === MQTT Changes
@@ -254,14 +254,14 @@ Inbound messages are now mapped with the `RECEIVED_TOPIC`, `RECEIVED_QOS`, and `
 
 The outbound channel adapter now supports expressions for the topic, qos, and retained properties.
 The defaults remain the same.
-See <<./mqtt.adoc#mqtt,MQTT Support>> for more information.
+See xref:mqtt.adoc[MQTT Support] for more information.
 
 [[stomp-changes]]
 === STOMP Changes
 
 We changed the STOMP module to use `ReactorNettyTcpStompClient`, based on the Project Reactor `3.1` and `reactor-netty` extension.
 We renamed `Reactor2TcpStompSessionManager` to `ReactorNettyTcpStompSessionManager`, according to the `ReactorNettyTcpStompClient` foundation.
-See <<./stomp.adoc#stomp,STOMP Support>> for more information.
+See xref:stomp.adoc[STOMP Support] for more information.
 
 [[web-services-changes]]
 === Web Services Changes
@@ -272,7 +272,7 @@ You can now supply `WebServiceOutboundGateway` instances with an externally conf
 
 Simple WebService inbound and outbound gateways can now deal with the complete `WebServiceMessage` as a `payload`, allowing the manipulation of MTOM attachments.
 
-See <<./ws.adoc#ws,Web Services Support>> for more information.
+See xref:ws.adoc[Web Services Support] for more information.
 
 [[redis-changes]]
 === Redis Changes
@@ -284,7 +284,7 @@ In addition, this property has been changed from `true` to `false` since the `IN
 You can now supply the `RedisInboundChannelAdapter` with an `Executor` for executing Redis listener invokers.
 In addition, the received messages now contain a `RedisHeaders.MESSAGE_SOURCE` header to indicate the source of the message (topic or pattern).
 
-See <<./redis.adoc#redis,Redis Support>> for more information.
+See xref:redis.adoc[Redis Support] for more information.
 
 [[tcp-changes]]
 === TCP Changes
@@ -295,7 +295,7 @@ You can now configure the TCP connection factories to support `PushbackInputStre
 
 We added a `ByteArrayElasticRawDeserializer` without `maxMessageSize` to control and buffer incoming data as needed.
 
-See <<./ip.adoc#ip,TCP and UDP Support>> for more information.
+See xref:ip.adoc[TCP and UDP Support] for more information.
 
 [[jdbc-changes]]
 === JDBC Changes
@@ -304,14 +304,14 @@ The `JdbcMessageChannelStore` now provides a setter for `ChannelMessageStorePrep
 
 The `ExpressionEvaluatingSqlParameterSourceFactory` now provides a setter for `sqlParameterTypes`, letting you customize the SQL types of the parameters.
 
-See <<./jdbc.adoc#jdbc,JDBC Support>> for more information.
+See xref:jdbc.adoc[JDBC Support] for more information.
 
 
 [[metrics-changes]]
 === Metrics Changes
 
 https://micrometer.io/[Micrometer] application monitoring is now supported (since version 5.0.2).
-See <<./metrics.adoc#micrometer-integration,Micrometer Integration>> for more information.
+See xref:metrics.adoc#micrometer-integration[Micrometer Integration] for more information.
 
 IMPORTANT: Changes were made to the Micrometer `Meters` in version 5.0.3 to make them more suitable for use in dimensional systems.
 Further changes were made in 5.0.4.
@@ -322,4 +322,4 @@ If you use Micrometer, we recommend a minimum of version 5.0.4.
 === `@EndpointId` Annotations
 
 Introduced in version 5.0.4, this annotation provides control over bean naming when you use Java configuration.
-See <<./overview.adoc#endpoint-bean-names,Endpoint Bean Names>> for more information.
+See xref:overview.adoc#endpoint-bean-names[Endpoint Bean Names] for more information.

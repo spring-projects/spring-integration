@@ -20,7 +20,7 @@ Now you have the ability to use any scripting language that supports JSR-223 inc
 * Python and Jython
 * Groovy
 
-For further details, see <<./scripting.adoc#scripting,Scripting Support>>.
+For further details, see xref:scripting.adoc[Scripting Support].
 
 [[x2.1-new-amqp-support]]
 === AMQP Support
@@ -28,21 +28,21 @@ For further details, see <<./scripting.adoc#scripting,Scripting Support>>.
 Spring Integration 2.1 added several channel adapters for receiving and sending messages by using the https://www.amqp.org/[Advanced Message Queuing Protocol] (AMQP).
 Furthermore, Spring Integration also provides a point-to-point message channel and a publish-subscribe message channel, both of which are backed by AMQP Exchanges and Queues.
 
-For further details, see <<./amqp.adoc#amqp,AMQP Support>>.
+For further details, see xref:amqp.adoc[AMQP Support].
 
 [[x2.1-new-mongodb-support]]
 === MongoDB Support
 
 As of version 2.1, Spring Integration provides support for https://www.mongodb.org/[MongoDB] by providing a MongoDB-based `MessageStore`.
 
-For further details, see <<./mongodb.adoc#mongodb,MongoDb Support>>.
+For further details, see xref:mongodb.adoc[MongoDb Support].
 
 [[x2.1-new-redis-support]]
 === Redis Support
 
 As of version 2.1, Spring Integration supports https://redis.io/[Redis], an advanced key-value store, by providing a Redis-based `MessageStore` as well as publish-subscribe messaging adapters.
 
-For further details, see <<./redis.adoc#redis,Redis Support>>.
+For further details, see xref:redis.adoc[Redis Support].
 
 [[x2.1-new-resource-support]]
 === Support for Spring's Resource abstraction
@@ -50,7 +50,7 @@ For further details, see <<./redis.adoc#redis,Redis Support>>.
 In version 2.1, we introduced a new resource inbound channel adapter that builds upon Spring's resource abstraction to support greater flexibility across a variety of actual types of underlying resources, such as a file, a URL, or a classpath resource.
 Therefore, it is similar to but more generic than the file inbound channel adapter.
 
-For further details, see <<./resource.adoc#resource-inbound-channel-adapter,Resource Inbound Channel Adapter>>.
+For further details, see xref:resource.adoc#resource-inbound-channel-adapter[Resource Inbound Channel Adapter].
 
 [[x2.1-new-stored-proc-support]]
 === Stored Procedure Components
@@ -73,7 +73,7 @@ The stored procedure components also support SQL functions for the following dat
 * Oracle
 * PostgreSQL
 
-For further details, see <<./jdbc.adoc#stored-procedures,Stored Procedures>>.
+For further details, see xref:jdbc/stored-procedures.adoc[Stored Procedures].
 
 [[x2.1-new-xpath-filter-support]]
 === XPath and XML Validating Filter
@@ -83,7 +83,7 @@ It is part of the `XML` module.
 The XPath filter lets you filter messages by using XPath Expressions.
 We also added documentation for the XML validating filter.
 
-For more details, see <<./xml.adoc#xml-xpath-filter,Using the XPath Filter>> and <<./xml.adoc#xml-validating-filter,XML Validating Filter>>.
+For more details, see xref:xml/xpath-filter.adoc[Using the XPath Filter] and xref:xml/validating-filter.adoc[XML Validating Filter].
 
 [[x2.1-new-payload-enricher-support]]
 === Payload Enricher
@@ -92,7 +92,7 @@ Since Spring Integration 2.1, we added the payload enricher.
 A payload enricher defines an endpoint that typically passes a https://docs.spring.io/spring-integration/api/org/springframework/integration/Message.html[`Message`] to the exposed request channel and then expects a reply message.
 The reply message then becomes the root object for evaluation of expressions to enrich the target payload.
 
-For further details, see <<./content-enrichment.adoc#payload-enricher,Payload Enricher>>.
+For further details, see xref:content-enrichment.adoc#payload-enricher[Payload Enricher].
 
 [[x2.1-new-ftp-outbound-gateway]]
 === FTP and SFTP Outbound Gateways
@@ -102,7 +102,7 @@ These two gateways let you directly execute a limited set of remote commands.
 
 For instance, you can use these outbound gateways to list, retrieve, and delete remote files and have the Spring Integration message flow continue with the remote server's response.
 
-For further details, see <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>> and <<./sftp.adoc#sftp-outbound-gateway,SFTP Outbound Gateway>>.
+For further details, see xref:ftp/outbound-gateway.adoc[FTP Outbound Gateway] and xref:sftp/outbound-gateway.adoc[SFTP Outbound Gateway].
 
 [[x2.1-new-ftp-session-caching]]
 === FTP Session Caching
@@ -112,7 +112,7 @@ As of version 2.1, we have exposed more flexibility with regards to session mana
 Specifically, we deprecated the `cache-sessions` attribute (which is available via the XML namespace support).
 As an alternative, we added the `sessionCacheSize` and `sessionWaitTimeout` attributes on the `CachingSessionFactory`.
 
-For further details, see <<./ftp.adoc#ftp-session-caching,FTP Session Caching>> and <<./sftp.adoc#sftp-session-caching,SFTP Session Caching>>.
+For further details, see xref:ftp/session-caching.adoc[FTP Session Caching] and xref:sftp/session-caching.adoc[SFTP Session Caching].
 
 [[x2.1-framework-refactorings]]
 == Framework Refactoring
@@ -134,13 +134,13 @@ If, however, you do want to drop messages silently, you can set `default-output-
 
 IMPORTANT: With the standardization of router parameters and the consolidation of the parameters described earlier, older Spring Integration based applications may break.
 
-For further details, see `<<./router.adoc#router,Routers>>`.
+For further details, see `xref:router.adoc[Routers]`.
 
 [[x2.1-schema-updated]]
 === XML Schemas updated to 2.1
 
 Spring Integration 2.1 ships with an updated XML Schema (version 2.1).
-It provides many improvements, such as the Router standardizations <<x2.1-router-standardization,discussed earlier>>.
+It provides many improvements, such as the Router standardizations xref:changes-2.0-2.1.adoc#x2.1-router-standardization[discussed earlier].
 
 From now on, developers must always declare the latest XML schema (currently version 2.1).
 Alternatively, they can use the version-less schema.

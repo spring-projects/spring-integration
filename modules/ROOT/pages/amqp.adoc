@@ -24,13 +24,13 @@ compile "org.springframework.integration:spring-integration-amqp:{project-versio
 
 The following adapters are available:
 
-* <<amqp-inbound-channel-adapter,Inbound Channel Adapter>>
-* <<amqp-inbound-gateway,Inbound Gateway>>
-* <<amqp-outbound-channel-adapter,Outbound Channel Adapter>>
-* <<amqp-outbound-gateway,Outbound Gateway>>
+* xref:amqp/inbound-channel-adapter.adoc[Inbound Channel Adapter]
+* xref:amqp/inbound-gateway.adoc[Inbound Gateway]
+* xref:amqp/outbound-channel-adapter.adoc[Outbound Channel Adapter]
+* xref:amqp/outbound-gateway.adoc[Outbound Gateway]
 * <<amqp-async-outbound-gateway,Async Outbound Gateway>>
-* <<rmq-stream-inbound-channel-adapter,RabbitMQ Stream Queue Inbound Channel Adapter>>
-* <<rmq-stream-outbound-channel-adapter,RabbitMQ Stream Queue Outbound Channel Adapter>>
+* xref:amqp/rmq-streams.adoc#rmq-stream-inbound-channel-adapter[RabbitMQ Stream Queue Inbound Channel Adapter]
+* xref:amqp/rmq-streams.adoc#rmq-stream-outbound-channel-adapter[RabbitMQ Stream Queue Outbound Channel Adapter]
 
 Spring Integration also provides a point-to-point message channel and a publish-subscribe message channel backed by AMQP Exchanges and Queues.
 

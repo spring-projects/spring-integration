@@ -60,7 +60,7 @@ In other words, with a `RendezvousChannel`, the sender knows that some receiver 
 
 TIP: Keep in mind that all of these queue-based channels are storing messages in-memory only by default.
 When persistence is required, you can either provide a 'message-store' attribute within the 'queue' element to reference a persistent `MessageStore` implementation or you can replace the local channel with one that is backed by a persistent broker, such as a JMS-backed channel or channel adapter.
-The latter option lets you take advantage of any JMS provider's implementation for message persistence, as discussed in <<./jms.adoc#jms,JMS Support>>.
+The latter option lets you take advantage of any JMS provider's implementation for message persistence, as discussed in xref:jms.adoc[JMS Support].
 However, when buffering in a queue is not necessary, the simplest approach is to rely upon the `DirectChannel`, discussed in the next section.
 
 The `RendezvousChannel` is also useful for implementing request-reply operations.
@@ -168,7 +168,7 @@ This channel implementation is neither a `SubscribableChannel`, nor a `PollableC
 On the other hand, the `FluxMessageChannel` implements a `ReactiveStreamsSubscribableChannel` with its `subscribeTo(Publisher<Message<?>>)` contract allowing receiving events from reactive source publishers, bridging a reactive stream into the integration flow.
 To achieve fully reactive behavior for the whole integration flow, such a channel must be placed between all the endpoints in the flow.
 
-See <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for more information about interaction with Reactive Streams.
+See xref:reactive-streams.adoc[Reactive Streams Support] for more information about interaction with Reactive Streams.
 
 [[channel-implementations-threadlocalchannel]]
 == Scoped Channel

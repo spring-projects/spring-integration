@@ -25,7 +25,7 @@ public List<String> route(Foo payload) {...}
 ====
 
 In addition to payload-based routing, a message may be routed based on metadata available within the message header as either a property or an attribute.
-In this case, a method annotated with `@Router` may include a parameter annotated with `@Header`, which is mapped to a header value as the following example shows and documented in <<./configuration.adoc#annotations,Annotation Support>>:
+In this case, a method annotated with `@Router` may include a parameter annotated with `@Header`, which is mapped to a header value as the following example shows and documented in xref:configuration/annotations.adoc[Annotation Support]:
 
 ====
 [source,java]
@@ -35,7 +35,7 @@ public List<String> route(@Header("orderStatus") OrderStatus status)
 ----
 ====
 
-NOTE: For routing of XML-based Messages, including XPath support, see <<./xml.adoc#xml,XML Support - Dealing with XML Payloads>>.
+NOTE: For routing of XML-based Messages, including XPath support, see xref:xml.adoc[XML Support - Dealing with XML Payloads].
 
-See also <<./dsl.adoc#java-dsl-routers,Message Routers>> in the Java DSL chapter for more information about router configuration.
+See also xref:dsl/java-routers.adoc[Message Routers] in the Java DSL chapter for more information about router configuration.
 

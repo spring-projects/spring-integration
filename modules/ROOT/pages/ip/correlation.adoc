@@ -4,9 +4,9 @@
 One goal of the IP endpoints is to provide communication with systems other than Spring Integration applications.
 For this reason, only message payloads are sent and received by default.
 Since 3.0, you can transfer headers by using JSON, Java serialization, or custom serializers and deserializers.
-See <<ip-headers>> for more information.
+See xref:ip/correlation.adoc#ip-headers[Transferring Headers] for more information.
 No message correlation is provided by the framework (except when using the gateways) or collaborating channel adapters on the server side.
-<<ip-collaborating-adapters,Later in this document>>, we discuss the various correlation techniques available to applications.
+xref:ip/correlation.adoc#ip-collaborating-adapters[Later in this document], we discuss the various correlation techniques available to applications.
 In most cases, this requires specific application-level correlation of messages, even when message payloads contain some natural correlation data (such as an order number).
 
 [[ip-gateways]]
@@ -27,7 +27,7 @@ Another solution, introduced in Spring Integration 2.2, is to use a `CachingClie
 [[ip-collaborating-adapters]]
 == Collaborating Outbound and Inbound Channel Adapters
 
-To achieve high-volume throughput (avoiding the pitfalls of using gateways, as <<ip-gateways,mentioned earlier>>) you can configure a pair of collaborating outbound and inbound channel adapters.
+To achieve high-volume throughput (avoiding the pitfalls of using gateways, as xref:ip/correlation.adoc#ip-gateways[mentioned earlier]) you can configure a pair of collaborating outbound and inbound channel adapters.
 You can also use collaborating adapters (server-side or client-side) for totally asynchronous communication (rather than with request-reply semantics).
 On the server side, message correlation is automatically handled by the adapters, because the inbound adapter adds a header that allows the outbound adapter to determine which connection to use when sending the reply message.
 
@@ -48,7 +48,7 @@ Such a transformer may transform the original payload to a new object that conta
 Of course, live objects (such as reply channels) from the headers cannot be included in the transformed payload.
 
 If you choose such a strategy, you need to ensure the connection factory has an appropriate serializer-deserializer pair to handle such a payload (such as `DefaultSerializer` and `DefaultDeserializer`, which use java serialization, or a custom serializer and deserializer).
-The `ByteArray*Serializer` options mentioned in <<tcp-connection-factories>>, including the default `ByteArrayCrLfSerializer`, do not support such payloads unless the transformed payload is a `String` or `byte[]`.
+The `ByteArray*Serializer` options mentioned in xref:ip/tcp-connection-factories.adoc[TCP Connection Factories], including the default `ByteArrayCrLfSerializer`, do not support such payloads unless the transformed payload is a `String` or `byte[]`.
 
 [NOTE]
 =====
@@ -61,7 +61,7 @@ You can reinstate the previous default behavior by setting the `so-timeout` attr
 
 Starting with version 5.4, multiple outbound channel adapters and one `TcpInboundChannelAdapter` can share the same connection factory.
 This allows an application to support both request/reply and arbitrary server -> client messaging.
-See <<tcp-gateways>> for more information.
+See xref:ip/tcp-gateways.adoc[TCP Gateways] for more information.
 
 [[ip-headers]]
 == Transferring Headers

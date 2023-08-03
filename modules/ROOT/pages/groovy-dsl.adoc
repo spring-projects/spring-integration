@@ -3,7 +3,7 @@
 
 The Groovy DSL is a wrapper and extension to <<./dsl.adoc#java-dsl,Java DSL>>.
 The main goal we pursue here is to make Spring Integration development on Groovy as smooth and straightforward as is it possible with interoperability with existing Java DSL and some Groovy extensions or language-specific structures.
-The implementation is a part of <<./groovy.adoc#groovy,Groovy Support>> module.
+The implementation is a part of xref:groovy.adoc[Groovy Support] module.
 
 All you need to get started is just an import for `import static org.springframework.integration.groovy.dsl.IntegrationGroovyDsl.integrationFlow` - a class containing overloaded factory methods for the Groovy DSL.
 

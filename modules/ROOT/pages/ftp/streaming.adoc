@@ -8,7 +8,7 @@ Since the session remains open, the consuming application is responsible for clo
 consumed.
 The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
 Standard framework components, such as the `FileSplitter` and `StreamTransformer`, automatically close the session.
-See <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>> for more information about these components.
+See xref:file/splitter.adoc[File Splitter] and xref:transformer.adoc#stream-transformer[Stream Transformer] for more information about these components.
 The following example shows how to configure an `inbound-streaming-channel-adapter`:
 
 ====
@@ -36,20 +36,20 @@ IMPORTANT: Starting with version 5.0, by default, the `FtpStreamingMessageSource
 By default, this filter is also applied with the filename pattern (or regex).
 If you need to allow duplicates, you can use `AcceptAllFileListFilter`.
 Any other use cases can be handled by `CompositeFileListFilter` (or `ChainFileListFilter`).
-The Java configuration (<<ftp-streaming-java,later in the document>>) shows one technique to remove the remote file after processing to avoid duplicates.
+The Java configuration (xref:ftp/streaming.adoc#ftp-streaming-java[later in the document]) shows one technique to remove the remote file after processing to avoid duplicates.
 
-For more information about the `FtpPersistentAcceptOnceFileListFilter`, and how it is used, see <<./file.adoc#remote-persistent-flf,Remote Persistent File List Filters>>.
+For more information about the `FtpPersistentAcceptOnceFileListFilter`, and how it is used, see xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters].
 
 Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary.
 Set it to `1` and use a persistent filter when running in a clustered environment.
-See <<ftp-max-fetch>> for more information.
+See xref:ftp/max-fetch.adoc[Inbound Channel Adapters: Controlling Remote File Fetching] for more information.
 
 The adapter puts the remote directory and file name in the `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` headers, respectively.
 Starting with version 5.0, the `FileHeaders.REMOTE_FILE_INFO` header provides additional remote file information (represented in JSON by default).
 If you set the `fileInfoJson` property on the `FtpStreamingMessageSource` to `false`, the header contains an `FtpFileInfo` object.
 The `FTPFile` object provided by the underlying Apache Net library can be accessed by using the `FtpFileInfo.getFileInfo()` method.
 The `fileInfoJson` property is not available when you use XML configuration, but you can set it by injecting the `FtpStreamingMessageSource` into one of your configuration classes.
-See also <<ftp-remote-file-info>>.
+See also xref:ftp/remote-file-info.adoc[Remote File Information].
 
 Starting with version 5.1, the generic type of the `comparator` is `FTPFile`.
 Previously, it was `AbstractFileInfo<FTPFile>`.

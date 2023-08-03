@@ -2,8 +2,8 @@
 = Operator gateway()
 
 The `gateway()` operator in an `IntegrationFlow` definition is a special service activator implementation, to call some other endpoint or integration flow via its input channel and wait for reply.
-Technically it plays the same role as a nested `<gateway>` component in a `<chain>` definition (see <<./chain.adoc#chain-gateway,Calling a Chain from within a Chain>>) and allows a flow  to be cleaner and more straightforward.
-Logically, and from business perspective, it is a messaging gateway to allow the distribution and reuse of functionality between different parts of the target integration solution (see <<./gateway.adoc#gateway,Messaging Gateways>>).
+Technically it plays the same role as a nested `<gateway>` component in a `<chain>` definition (see xref:chain.adoc#chain-gateway[Calling a Chain from within a Chain]) and allows a flow  to be cleaner and more straightforward.
+Logically, and from business perspective, it is a messaging gateway to allow the distribution and reuse of functionality between different parts of the target integration solution (see xref:gateway.adoc[Messaging Gateways]).
 This operator has several overloads for different goals:
 
 - `gateway(String requestChannel)` to send a message to some endpoint's input channel by its name;

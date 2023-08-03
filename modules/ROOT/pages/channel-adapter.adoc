@@ -76,10 +76,10 @@ fun messageSourceFlow() =
 ----
 ====
 
-See also <<channel-adapter-expressions-and-scripts>>.
+See also xref:channel-adapter.adoc#channel-adapter-expressions-and-scripts[Channel Adapter Expressions and Scripts].
 
 NOTE: If no poller is provided, then a single default poller must be registered within the context.
-See <<./endpoint.adoc#endpoint-namespace,Endpoint Namespace Support>> for more detail.
+See xref:endpoint.adoc#endpoint-namespace[Endpoint Namespace Support] for more detail.
 
 [IMPORTANT]
 .Important: Poller Configuration
@@ -128,7 +128,7 @@ Starting with version 5.5, a `0` value for `max-messages-per-poll` has a special
 Starting with version 6.2, the `fixed-delay` and `fixed-rate` can be configured in https://en.wikipedia.org/wiki/ISO_8601#Durations[ISO 8601 Duration] format, e.g. `PT10S`, `P1D` etc.
 In addition, an `initial-interval` of the underlying `PeriodicTrigger` is also exposed with similar value formats as `fixed-delay` and `fixed-rate`.
 
-Also see <<./endpoint.adoc#global-default-poller,Global Default Poller>> for more information.
+Also see xref:endpoint.adoc#global-default-poller[Global Default Poller] for more information.
 =====
 
 [[channel-adapter-namespace-outbound]]
@@ -244,8 +244,8 @@ If you want the script to be checked on each poll, you would need to coordinate 
 ====
 
 See also the `cacheSeconds` property on the `ReloadableResourceBundleExpressionSource` when using the `<expression/>` sub-element.
-For more information regarding expressions, see <<./spel.adoc#spel,Spring Expression Language (SpEL)>>.
-For scripts, see <<./groovy.adoc#groovy,Groovy support>> and <<./scripting.adoc#scripting,Scripting Support>>.
+For more information regarding expressions, see xref:spel.adoc[Spring Expression Language (SpEL)].
+For scripts, see xref:groovy.adoc[Groovy support] and xref:scripting.adoc[Scripting Support].
 
 IMPORTANT: The `<int:inbound-channel-adapter/>` (`SourcePollingChannelAdapter`) is an endpoint which starts a message flow by periodically triggering to poll some underlying `MessageSource`.
 Since, at the time of polling, there is no message object, expressions and scripts do not have access to a root `Message`, so there are no payload or headers properties that are available in most other messaging SpEL expressions.

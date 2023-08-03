@@ -27,7 +27,7 @@ The default is to retrieve a list of `FileInfo` objects.
 * `-R`: List the remote directory recursively
 
 In addition, filename filtering is provided, in the same manner as the `inbound-channel-adapter`.
-See <<ftp-inbound>>.
+See xref:ftp/inbound.adoc[FTP Inbound Channel Adapter].
 
 The message payload resulting from an `ls` operation is a list of file names or a list of `FileInfo` objects.
 These objects provide information such as modified time, permissions, and other details.
@@ -58,7 +58,7 @@ The message payload resulting from an `nlst` operation is a list of file names.
 
 The remote directory that the `nlst` command acted on is provided in the `file_remoteDirectory` header.
 
-Unlike the `-1` option for the <<ftp-using-ls,`ls` command>>, which uses the `LIST` command, the `nlst` command sends an `NLST` command to the target FTP server.
+Unlike the `-1` option for the xref:ftp/outbound-gateway.adoc#ftp-using-ls[`ls` command], which uses the `LIST` command, the `nlst` command sends an `NLST` command to the target FTP server.
 This command is useful when the server does not support `LIST` (due to security restrictions, for example).
 The result of the `nlst` operation is the names without other detail.
 Therefore, the framework cannot determine if an entity is a directory, to perform filtering or recursive listing, for example.
@@ -79,7 +79,7 @@ The `file_remoteDirectory` header provides the remote directory name, and the `f
 
 The message payload resulting from a `get` operation is a `File` object that represents the retrieved file or an `InputStream` when you use the `-stream` option.
 The `-stream` option allows retrieving the file as a stream.
-For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,file splitter>> or a <<./transformer.adoc#stream-transformer,stream transformer>>.
+For text files, a common use case is to combine this operation with a xref:file/splitter.adoc[file splitter] or a xref:transformer.adoc#stream-transformer[stream transformer].
 When consuming remote files as streams, you are responsible for closing the `Session` after the stream is consumed.
 For convenience, the `Session` is provided in the `closeableResource` header, which you can access with a convenience method on `IntegrationMessageHeaderAccessor`
 The following example shows how to use the convenience method:
@@ -94,7 +94,7 @@ if (closeable != null) {
 ----
 ====
 
-Framework components such as the <<./file.adoc#file-splitter,file splitter>> and the <<./transformer.adoc#stream-transformer,stream transformer>> automatically close the session after the data is transferred.
+Framework components such as the xref:file/splitter.adoc[file splitter] and the xref:transformer.adoc#stream-transformer[stream transformer] automatically close the session after the data is transferred.
 
 The following example shows how to consume a file as a stream:
 
@@ -195,7 +195,7 @@ Doing so allows recursion for a simple pattern, as the following examples show:
 
 Once you have defined filters such as those in the preceding example, you can use one by setting the `filter` property on the gateway.
 
-See also <<ftp-partial>>.
+See also xref:ftp/outbound-gateway.adoc#ftp-partial[Outbound Gateway Partial Success (`mget` and `mput`)].
 
 [[ftp-put-command]]
 == Using the `put` Command
@@ -224,14 +224,14 @@ Send all files (possibly filtered) in the directory and its subdirectories.
 The message payload must be a `java.io.File` (or `String`) that represents a local directory.
 Since version 5.1, a collection of `File` or `String` is also supported.
 
-This command supports the same attributes as the <<ftp-put-command,`put` command>>.
+This command supports the same attributes as the xref:ftp/outbound-gateway.adoc#ftp-put-command[`put` command].
 In addition, files in the local directory can be filtered with one of `mput-pattern`, `mput-regex`, `mput-filter`, or `mput-filter-expression`.
 The filter works with recursion, as long as the subdirectories themselves pass the filter.
 Subdirectories that do not pass the filter are not recursed.
 
 The message payload resulting from an `mput` operation is a `List<String>` object (that is, a `List` of remote file paths that result from the transfer).
 
-See also <<ftp-partial>>.
+See also xref:ftp/outbound-gateway.adoc#ftp-partial[Outbound Gateway Partial Success (`mget` and `mput`)].
 
 Version 5.2 introduced the `chmod` attribute, which lets you change the remote file permissions after upload.
 You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).

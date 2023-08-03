@@ -61,7 +61,7 @@ The https://github.com/spring-cloud/stream-applications/tree/main/functions/supp
 
 [TIP]
 ====
-The <<debezium-java-dsl,Debezium Java DSL>> can create a `DebeziumMessageProducer` instance from a provided `DebeziumEngine.Builder`, as well as from a plain Debezium configuration (e.g. `java.util.Properties`).
+The xref:debezium.adoc#debezium-java-dsl[Debezium Java DSL] can create a `DebeziumMessageProducer` instance from a provided `DebeziumEngine.Builder`, as well as from a plain Debezium configuration (e.g. `java.util.Properties`).
 Later can be handy for some common use-cases with opinionated configuration and serialization formats.
 ====
 

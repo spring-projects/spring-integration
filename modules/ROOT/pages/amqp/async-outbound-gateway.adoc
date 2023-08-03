@@ -139,28 +139,28 @@ The payload of the confirmation is the correlation data as defined by this expre
 For `nack` instances, an additional header (`amqp_publishConfirmNackCause`) is provided.
 Examples: `headers['myCorrelationData']`, `payload`.
 If the expression resolves to a `Message<?>` instance (such as "`#this`"), the message emitted on the `ack`/`nack` channel is based on that message, with the additional headers added.
-Also see <<alternative-confirms-returns>>.
+Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Optional.
 <14> The channel to which positive (`ack`) publisher confirmations are sent.
 The payload is the correlation data defined by the `confirm-correlation-expression`.
 Requires the underlying `AsyncRabbitTemplate` to have its `enableConfirms` property set to `true`.
-Also see <<alternative-confirms-returns>>.
+Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Optional (the default is `nullChannel`).
 <15> Since version 4.2.
 The channel to which negative (`nack`) publisher confirmations are sent.
 The payload is the correlation data defined by the `confirm-correlation-expression`.
 Requires the underlying `AsyncRabbitTemplate` to have its `enableConfirms` property set to `true`.
-Also see <<alternative-confirms-returns>>.
+Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Optional (the default is `nullChannel`).
 <16> When set, the gateway will synthesize a negative acknowledgment (nack) if a publisher confirm is not received within this time in milliseconds.
 Pending confirms are checked every 50% of this value, so the actual time a nack is sent will be between 1x and 1.5x this value.
-Also see <<alternative-confirms-returns>>.
+Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Default none (nacks will not be generated).
 <17> The channel to which returned messages are sent.
 When provided, the underlying AMQP template is configured to return undeliverable messages to the gateway.
 The message is constructed from the data received from AMQP, with the following additional headers: `amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, and `amqp_returnRoutingKey`.
 Requires the underlying `AsyncRabbitTemplate` to have its `mandatory` property set to `true`.
-Also see <<alternative-confirms-returns>>.
+Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Optional.
 <18> When set to `false`, the endpoint tries to connect to the broker during application context initialization.
 Doing so allows "`fail fast`" detection of bad configuration, by logging an error message if the broker is down.
@@ -168,7 +168,7 @@ When `true` (the default), the connection is established (if it does not already
 it) when the first message is sent.
 ====
 
-See also <<./service-activator.adoc#async-service-activator,Asynchronous Service Activator>> for more information.
+See also xref:service-activator.adoc#async-service-activator[Asynchronous Service Activator] for more information.
 
 [IMPORTANT]
 .RabbitTemplate

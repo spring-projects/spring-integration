@@ -1,7 +1,7 @@
 [[sftp-server-events]]
 = Apache Mina SFTP Server Events
 
-The `ApacheMinaSftpEventListener`, added in version 5.2, listens for certain Apache Mina SFTP server events and publishes them as `ApplicationEvent` s which can be received by any `ApplicationListener` bean, `@EventListener` bean method, or <<./event.adoc#appevent-inbound, Event Inbound Channel Adapter>>.
+The `ApacheMinaSftpEventListener`, added in version 5.2, listens for certain Apache Mina SFTP server events and publishes them as `ApplicationEvent` s which can be received by any `ApplicationListener` bean, `@EventListener` bean method, or xref:event.adoc#appevent-inbound[Event Inbound Channel Adapter].
 
 Currently, supported events are:
 

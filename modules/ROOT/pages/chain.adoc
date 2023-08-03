@@ -126,7 +126,7 @@ In this case, it is 'somethingChain$child#1'.
 Note, this transformer is not registered as a bean within the application context, so it does not get a `beanName`.
 However, its `componentName` has a value that is useful for logging and other purposes.
 
-The `id` attribute for `<chain>` elements lets them be eligible for <<./jmx.adoc#jmx-mbean-exporter,JMX export>>, and they are trackable in the <<./message-history.adoc#message-history,message history>>.
+The `id` attribute for `<chain>` elements lets them be eligible for xref:jmx.adoc#jmx-mbean-exporter[JMX export], and they are trackable in the xref:message-history.adoc[message history].
 You can access them from the `BeanFactory` by using the appropriate bean name, as discussed earlier.
 
 TIP: It is useful to provide an explicit `id` attribute on `<chain>` elements to simplify the identification of sub-components in logs and to provide access to them from the `BeanFactory` etc.

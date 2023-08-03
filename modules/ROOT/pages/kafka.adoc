@@ -28,12 +28,12 @@ compile "org.springframework.integration:spring-integration-kafka:{project-versi
 
 It provides the following components:
 
-* <<kafka-outbound>>
-* <<kafka-inbound>>
-* <<kafka-inbound-pollable>>
-* <<kafka-outbound-gateway>>
-* <<kafka-inbound-gateway>>
-* <<kafka-channels>>
+* xref:kafka.adoc#kafka-outbound[Outbound Channel Adapter]
+* xref:kafka.adoc#kafka-inbound[Message-driven Channel Adapter]
+* xref:kafka.adoc#kafka-inbound-pollable[Inbound Channel Adapter]
+* xref:kafka.adoc#kafka-outbound-gateway[Outbound Gateway]
+* xref:kafka.adoc#kafka-inbound-gateway[Inbound Gateway]
+* xref:kafka.adoc#kafka-channels[Channels Backed by Apache Kafka Topics]
 
 [[kafka-outbound]]
 == Outbound Channel Adapter
@@ -510,7 +510,7 @@ public KafkaProducerMessageHandler<String, String> outGateway(
 
 Refer to the javadocs for available properties.
 
-Notice that the same class as the <<kafka-outbound,outbound channel adapter>> is used, the only difference being that the `KafkaTemplate` passed into the constructor is a `ReplyingKafkaTemplate`.
+Notice that the same class as the xref:kafka.adoc#kafka-outbound[outbound channel adapter] is used, the only difference being that the `KafkaTemplate` passed into the constructor is a `ReplyingKafkaTemplate`.
 See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation]  for more information.
 
 The outbound topic, partition, key, and so on are determined in the same way as the outbound adapter.
@@ -632,7 +632,7 @@ public IntegrationFlow serverGateway() {
 ====
 
 You can also use the container factory that is used for `@KafkaListener` annotations to create `ConcurrentMessageListenerContainer` instances for other purposes.
-See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] and <<kafka-inbound>> for examples.
+See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] and xref:kafka.adoc#kafka-inbound[Message-driven Channel Adapter] for examples.
 
 [[kafka-channels]]
 == Channels Backed by Apache Kafka Topics

@@ -66,7 +66,7 @@ The https://groovy-lang.org/[Groovy] and https://www.jruby.org[JRuby] projects p
 IMPORTANT: Various JSR223 language implementations have been developed by third parties.
 A particular implementation's compatibility with Spring Integration depends on how well it conforms to the specification and the implementer's interpretation of the specification.
 
-TIP: If you plan to use Groovy as your scripting language, we recommended you use <<./groovy.adoc#groovy,Spring-Integration's Groovy Support>> as it offers additional features specific to Groovy.
+TIP: If you plan to use Groovy as your scripting language, we recommended you use xref:groovy.adoc[Spring-Integration's Groovy Support] as it offers additional features specific to Groovy.
 However, this section is relevant as well.
 
 [[scripting-config]]

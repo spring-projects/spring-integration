@@ -39,7 +39,7 @@ public MessageChannel exampleChannel() {
 ----
 ====
 
-You can alternatively provide a variety of `<queue/>` sub-elements to create any of the pollable channel types (as described in <<channel-implementations>>).
+You can alternatively provide a variety of `<queue/>` sub-elements to create any of the pollable channel types (as described in xref:channel/implementations.adoc[Message Channel Implementations]).
 The following sections shows examples of each channel type.
 
 [[channel-configuration-directchannel]]
@@ -64,7 +64,7 @@ public MessageChannel directChannel() {
 ----
 ====
 
-A default channel has a round-robin load-balancer and also has failover enabled (see <<channel-implementations-directchannel>> for more detail).
+A default channel has a round-robin load-balancer and also has failover enabled (see xref:channel/implementations.adoc#channel-implementations-directchannel[`DirectChannel`] for more detail).
 To disable one or both of these, add a `<dispatcher/>` sub-element (a `LoadBalancingStrategy` constructor of the `DirectChannel`) and configure the attributes as follows:
 
 ====
@@ -221,7 +221,7 @@ Or on the `StringToIntegerConverter` class when it is marked with the `@Componen
 When the 'converter' element is parsed, it creates the `integrationConversionService` bean if one is not already defined.
 With that converter in place, the `send` operation would now be successful, because the datatype channel uses that converter to convert the `String` payload to an `Integer`.
 
-For more information regarding payload type conversion, see <<./endpoint.adoc#payload-type-conversion,Payload Type Conversion>>.
+For more information regarding payload type conversion, see xref:endpoint.adoc#payload-type-conversion[Payload Type Conversion].
 
 Beginning with version 4.0, the `integrationConversionService` is invoked by the `DefaultDatatypeChannelMessageConverter`, which looks up the conversion service in the application context.
 To use a different conversion technique, you can specify the `message-converter` attribute on the channel.
@@ -265,7 +265,7 @@ To avoid issues such as running out of memory, we highly recommend that you set 
 
 Since a `QueueChannel` provides the capability to buffer messages but does so in-memory only by default, it also introduces a possibility that messages could be lost in the event of a system failure.
 To mitigate this risk, a `QueueChannel` may be backed by a persistent implementation of the `MessageGroupStore` strategy interface.
-For more details on `MessageGroupStore` and `MessageStore`, see <<./message-store.adoc#message-store,Message Store>>.
+For more details on `MessageGroupStore` and `MessageStore`, see xref:message-store.adoc[Message Store].
 
 IMPORTANT: The `capacity` attribute is not allowed when the `message-store` attribute is used.
 
@@ -306,7 +306,7 @@ Since version 4.0, we recommend that `QueueChannel` instances be configured to u
 These are generally optimized for this use, as compared to a general message store.
 If the `ChannelMessageStore` is a `ChannelPriorityMessageStore`, the messages are received in FIFO within priority order.
 The notion of priority is determined by the message store implementation.
-For example, the following example shows the Java configuration for the <<./mongodb.adoc#mongodb-priority-channel-message-store,MongoDB Channel Message Store>>:
+For example, the following example shows the Java configuration for the xref:mongodb.adoc#mongodb-priority-channel-message-store[MongoDB Channel Message Store]:
 
 ====
 [source, java, role="primary"]
@@ -459,7 +459,7 @@ public MessageChannel executorChannel() {
 
 [NOTE]
 =====
-The `load-balancer` and `failover` options are also both available on the <dispatcher/> sub-element, as described earlier in <<channel-configuration-directchannel>>.
+The `load-balancer` and `failover` options are also both available on the <dispatcher/> sub-element, as described earlier in xref:channel/configuration.adoc#channel-configuration-directchannel[`DirectChannel` Configuration].
 The same defaults apply.
 Consequently, the channel has a round-robin load-balancing strategy with failover enabled unless explicit configuration is provided for one or both of those attributes, as the following example shows:
 
@@ -526,8 +526,8 @@ public PollableChannel priorityChannel() {
 Since version 4.0, the `priority-channel` child element supports the `message-store` option (`comparator` and `capacity` are not allowed in that case).
 The message store must be a `PriorityCapableChannelMessageStore`.
 Implementations of the `PriorityCapableChannelMessageStore` are currently provided for `Redis`, `JDBC`, and `MongoDB`.
-See <<channel-configuration-queuechannel>> and <<./message-store.adoc#message-store,Message Store>> for more information.
-You can find sample configuration in <<./jdbc.adoc#jdbc-message-store-channels,Backing Message Channels>>.
+See xref:channel/configuration.adoc#channel-configuration-queuechannel[`QueueChannel` Configuration] and xref:message-store.adoc[Message Store] for more information.
+You can find sample configuration in xref:jdbc/message-store.adoc#jdbc-message-store-channels[Backing Message Channels].
 
 [[channel-configuration-rendezvouschannel]]
 == `RendezvousChannel` Configuration
@@ -571,7 +571,7 @@ Any channel can be configured with a `scope` attribute, as the following example
 [[channel-configuration-interceptors]]
 == Channel Interceptor Configuration
 
-Message channels may also have interceptors, as described in <<channel-interceptors>>.
+Message channels may also have interceptors, as described in xref:channel/interceptors.adoc[Channel Interceptors].
 The `<interceptors/>` sub-element can be added to a `<channel/>` (or the more specific element types).
 You can provide the `ref` attribute to reference any Spring-managed object that implements the `ChannelInterceptor` interface, as the following example shows:
 
@@ -671,7 +671,7 @@ By default, it is `false` so that only the payload is logged.
 Setting it to `true` enables logging of all headers in addition to the payload.
 The 'expression' option provides the most flexibility (for example, `expression="payload.user.name"`).
 
-One of the common misconceptions about the wire tap and other similar components (<<./message-publishing.adoc#message-publishing-config,Message Publishing Configuration>>) is that they are automatically asynchronous in nature.
+One of the common misconceptions about the wire tap and other similar components (xref:message-publishing.adoc#message-publishing-config[Message Publishing Configuration]) is that they are automatically asynchronous in nature.
 By default, wire tap as a component is not invoked asynchronously.
 Instead, Spring Integration focuses on a single unified approach to configuring asynchronous behavior: the message channel.
 What makes certain parts of the message flow synchronous or asynchronous is the type of Message Channel that has been configured within that flow.
@@ -748,7 +748,7 @@ Similarly, the `selector-expression` is a boolean SpEL expression that performs 
 [[channel-global-wiretap]]
 == Global Wire Tap Configuration
 
-It is possible to configure a global wire tap as a special case of the <<global-channel-configuration-interceptors>>.
+It is possible to configure a global wire tap as a special case of the xref:channel/configuration.adoc#global-channel-configuration-interceptors[Global Channel Interceptor Configuration].
 To do so, configure a top level `wire-tap` element.
 Now, in addition to the normal `wire-tap` namespace support, the `pattern` and `order` attributes are supported and work in exactly the same way as they do for the `channel-interceptor`.
 The following example shows how to configure a global wire tap:

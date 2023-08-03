@@ -11,9 +11,9 @@ If using a simple default `DirectChannel` (when the `<channel>` element that has
 In that case, if an `Exception` is thrown, it can be caught by the sender, or it may propagate past the sender if it is an uncaught `RuntimeException`.
 This is the same behavior as an exception-throwing operation in a normal Java call stack.
 
-A message flow that runs on a caller thread might be invoked through a messaging gateway (see <<./gateway.adoc#gateway,Messaging Gateways>>) or a `MessagingTemplate` (see <<./channel.adoc#channel-template,`MessagingTemplate`>>).
+A message flow that runs on a caller thread might be invoked through a messaging gateway (see xref:gateway.adoc[Messaging Gateways]) or a `MessagingTemplate` (see xref:channel/template.adoc[`MessagingTemplate`]).
 In either case, the default behavior is to throw any exceptions to the caller.
-For the messaging gateway, see <<./gateway.adoc#gateway-error-handling,Error Handling>> for details about how the exception is thrown and how to configure the gateway to route the errors to an error channel instead.
+For the messaging gateway, see xref:gateway.adoc#gateway-error-handling[Error Handling] for details about how the exception is thrown and how to configure the gateway to route the errors to an error channel instead.
 When using a `MessagingTemplate` or sending to a `MessageChannel` directly, exceptions are always thrown to the caller.
 
 When adding asynchronous processing, things become rather more complicated.
@@ -71,7 +71,7 @@ Starting with version 4.3.10, Spring Integration provides the `ErrorMessagePubli
 You can use them as a general mechanism for publishing `ErrorMessage` instances.
 You can call or extend them in any error handling scenarios.
 The `ErrorMessageSendingRecoverer` extends this class as a `RecoveryCallback` implementation that can be used with retry, such as the
-<<./handler-advice.adoc#retry-advice,`RequestHandlerRetryAdvice`>>.
+xref:handler-advice/classes.adoc#retry-advice[`RequestHandlerRetryAdvice`].
 The `ErrorMessageStrategy` is used to build an `ErrorMessage` based on the provided exception and an `AttributeAccessor` context.
 It can be injected into any `MessageProducerSupport` or `MessagingGatewaySupport`.
 The `requestMessage` is stored under `ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY` in the `AttributeAccessor` context.
@@ -88,6 +88,6 @@ Including a resource and source of the bean definition helps to determine possib
 Starting with version 5.4.3, the default error channel is configured with the property `requireSubscribers = true` to not silently ignore messages when there are no subscribers on this channel (e.g. when application context is stopped).
 In this case a `MessageDispatchingException` is thrown which may lend on the client callback of the inbound channel adapter to negatively acknowledge (or roll back) an original message in the source system for redelivery or other future consideration.
 To restore the previous behavior (ignore non-dispatched error messages), the global integration property `spring.integration.channels.error.requireSubscribers` must be set to `false`.
-See <<./configuration.adoc#global-properties,Global Properties>> and <<./channel.adoc#channel-configuration-pubsubchannel,`PublishSubscribeChannel` Configuration>> (if you configure a global `errorChannel` manually) for more information.
+See xref:configuration/global-properties.adoc[Global Properties] and xref:channel/configuration.adoc#channel-configuration-pubsubchannel[`PublishSubscribeChannel` Configuration] (if you configure a global `errorChannel` manually) for more information.
 
 See also https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/errorhandling[Error Handling Sample] for more information.

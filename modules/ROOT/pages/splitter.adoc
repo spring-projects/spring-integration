@@ -112,8 +112,8 @@ someFlow() {
 See more information about the DSLs in the respective chapters:
 
 * <<./dsl.adoc#java-dsl,Java DSL>>
-* <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>>
-* <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
+* xref:kotlin-dsl.adoc[Kotlin DSL]
+* xref:groovy-dsl.adoc[Groovy DSL]
 
 [[configuring-a-splitter-with-xml]]
 == Configuring a Splitter with XML
@@ -190,4 +190,4 @@ List<LineItem> extractItems(Order order) {
 ----
 ====
 
-See also <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>> and <<./file.adoc#file-splitter, File Splitter>>.
+See also xref:handler-advice/advising-with-annotations.adoc[Advising Endpoints Using Annotations] and xref:file/splitter.adoc[File Splitter].

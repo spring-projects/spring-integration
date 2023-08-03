@@ -5,31 +5,31 @@
 = New Components
 
 A Groovy DSL implementation for integration flow definitions has been added.
-See <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>  for more information.
+See xref:groovy-dsl.adoc[Groovy DSL]  for more information.
 
 [[x6.0-mqtt]]
 == MQTT ClientManager
 
 A new MQTT `ClientManager` has been added to support a reusable MQTT connection across different channel adapters.
-See <<./mqtt.adoc#mqtt-shared-client,Shared MQTT Client Support>> for more information.
+See xref:mqtt.adoc#mqtt-shared-client[Shared MQTT Client Support] for more information.
 
 [[x6.0-graphql]]
 == GraphQL Support
 
 The GraphQL support has been added.
-See <<./graphql.adoc#graphql,GraphQL Support>> for more information.
+See xref:graphql.adoc[GraphQL Support] for more information.
 
 [[x6.0-camel]]
 == Apache Camel Support
 
 Support for Apache Camel routes has been introduced.
-See <<./camel.adoc#camel,Apache Camel Support>> for more information.
+See xref:camel.adoc[Apache Camel Support] for more information.
 
 [[x6.0-hazelcast]]
 == Hazelcast Support
 
 The Hazelcast Spring Integration Extensions project has been migrated as the `spring-integration-hazelcast` module.
-See <<./hazelcast.adoc#hazelcast,Hazelcast Support>>  for more information.
+See xref:hazelcast.adoc[Hazelcast Support]  for more information.
 
 [[x6.0-smb]]
 == SMB Support
@@ -37,59 +37,59 @@ See <<./hazelcast.adoc#hazelcast,Hazelcast Support>>  for more information.
 SMB support has been added from the Spring Integration Extensions project.
 The Java DSL (see `org.springframework.integration.smb.dsl.Smb` factory) also has been added to this module.
 An `SmbStreamingMessageSource` and `SmbOutboundGateway` implementation are introduced.
-See <<./smb.adoc#smb,SMB Support>> for more information.
+See xref:smb.adoc[SMB Support] for more information.
 
 [[x6.0-postgres]]
 == PostgreSQL Push Notification
 
 A `PostgresSubscribableChannel` allows to receive push notifications via `PostgresChannelMessageTableSubscriber` upon new messages add to the `JdbcChannelMessageStore`.
 
-See <<./jdbc.adoc#postgresql-push,PostgreSQL: Receiving Push Notifications>> for more information.
+See xref:jdbc/message-store.adoc#postgresql-push[PostgreSQL: Receiving Push Notifications] for more information.
 
 [[x6.0-rmq]]
 == RabbitMQ Stream Queue Support
 
 The AMQP module has been enhanced to provide support for inbound and outbound channel adapters using RabbitMQ Stream Queues.
-See <<./amqp.adoc#rmq-streams,RabbitMQ Stream Queue Support>> for more information.
+See xref:amqp/rmq-streams.adoc[RabbitMQ Stream Queue Support] for more information.
 
 [[x6.0-sftp]]
 == Apache MINA SFTP
 
 The SFTP modules has been fully reworked from outdated JCraft JSch library to more robust and modern `org.apache.sshd:sshd-sftp` module of the Apache MINA project.
 
-See <<./sftp.adoc#sftp,SFTP Adapters>> for more information.
+See xref:sftp.adoc[SFTP Adapters] for more information.
 
 [[x6.0-micrometer-observation]]
 == Micrometer Observation
 
 Enabling observation for timers and tracing using Micrometer is now supported.
-See <<./metrics.adoc#micrometer-observation,Micrometer Observation>> for more information.
+See xref:metrics.adoc#micrometer-observation[Micrometer Observation] for more information.
 
 [[x6.0-graalmv-polyglot]]
 == GraalVM Polyglot Support
 
 The Scripting module now provides a `PolyglotScriptExecutor` implementation based on the GraalVM Polyglot support.
 JavaScript support is now based on this executor since its JSR223 implementation has been removed from Java by itself.
-See <<./scripting.adoc#scripting,Scripting Support>> for more information.
+See xref:scripting.adoc[Scripting Support] for more information.
 
 [[x6.0-cassandra]]
 == Apache Cassandra Support
 
 The Apache Cassandra Spring Integration Extensions project has been migrated as the `spring-integration-cassandra` module.
-See <<./cassandra.adoc#cassandra,Apache Cassandra Support>> for more information.
+See xref:cassandra.adoc[Apache Cassandra Support] for more information.
 
 [[x6.0-kotlin-coroutines]]
 == Kotlin Coroutines
 
 Kotlin Coroutines support has been introduced to the framework.
 
-See <<./kotlin-functions.adoc#kotlin-coroutines,Kotlin Coroutines>> for more information.
+See xref:kotlin-functions.adoc#kotlin-coroutines[Kotlin Coroutines] for more information.
 
 [[x6.0-aot]]
 == Native Images
 
 Support for creating GraalVM native images is provided.
-See <<./native-aot.adoc#native-images-support,Native Images Support>> for more information.
+See xref:native-aot.adoc[Native Images Support] for more information.
 
 [[x6.0-general]]
 = General Changes
@@ -97,20 +97,20 @@ See <<./native-aot.adoc#native-images-support,Native Images Support>> for more i
 The messaging annotations are now `@Repeatable` and the same type can be declared several times on the same service method.
 The messaging annotations don't require a `poller` attribute as an array of `@Poller` anymore.
 
-See <<./configuration.adoc#annotations,Annotation Support>> for more information.
+See xref:configuration/annotations.adoc[Annotation Support] for more information.
 
 For convenience, the XML and Java DSL for Scatter-Gather, based on the `RecipientListRouter`, now sets an `applySequence = true`, so the gatherer part can rely on the default correlation strategies.
 
-See <<./scatter-gather.adoc#scatter-gather,Scatter-Gather>> for more information.
+See xref:scatter-gather.adoc[Scatter-Gather] for more information.
 
 Another convenient behavior change has been made to the `AbstractMappingMessageRouter`.
 Now, setting a `defaultOutputChannel` also resets the `channelKeyFallback` property to `false`, so no attempts will be made to resolve a channel from its key, but the logic immediately falls back to sending the message to the `defaultOutputChannel`.
 
-See <<./router.adoc#router-common-parameters-all,Router Options>> for more information.
+See xref:router/common-parameters.adoc#router-common-parameters-all[Router Options] for more information.
 
 The `AggregatingMessageHandler` now does not split a `Collection<Message<?>>` result of the `MessageGroupProcessor` (unless it is a `SimpleMessageGroupProcessor`) on the output, but emits a single message containing this whole collection as a payload.
 
-See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
+See xref:overview.adoc#overview-endpoints-aggregator[Aggregator] for more information.
 
 The `IntegrationFlows` factory is now marked as deprecated in favor of the fluent API available in the `IntegrationFlow` interface itself.
 The factory class will be removed in the future releases.
@@ -129,7 +129,7 @@ Alongside with a `@MessagingGateway` annotation the interface can also be marked
 The default naming strategy for gateway proxy beans can be customized via `@IntegrationComponentScan.nameGenerator()` attribute.
 If `AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR` bean is present, it is consulted otherwise before falling back to the `AnnotationBeanNameGenerator`.
 
-See <<./gateway.adoc#gateway, Messaging Gateway>> for more information.
+See xref:gateway.adoc[Messaging Gateway] for more information.
 
 The `integrationGlobalProperties` bean is now declared by the framework as an instance of `org.springframework.integration.context.IntegrationProperties` instead of the previously deprecated `java.util.Properties`.
 
@@ -151,7 +151,7 @@ The `spring-integration-gemfire` module has been removed altogether since there 
 = HTTP Changes
 
 The `#cookies` variable for expression evaluation context, exposed in the `HttpRequestHandlingEndpointSupport`, is now a `MultiValueMap` to carry all the values for cookies set by the client.
-See <<./http.adoc#http,HTTP Support>> for more information.
+See xref:http.adoc[HTTP Support] for more information.
 
 [[x6.0-kafka]]
 = Apache Kafka Changes
@@ -160,7 +160,7 @@ When providing a `RetryTemplate` on the inbound gateway or message-driven channe
 
 In addition, the new `KafkaErrorMessageSendingRecoverer` is provided; this can be used with a `DefaultErrorHandler` to avoid issues with long aggregated retry delays causing partitions rebalances.
 
-See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
+See xref:kafka.adoc[Spring for Apache Kafka Support] for more information.
 
 [[x6.0-jdbc]]
 = JDBC Changes
@@ -174,25 +174,25 @@ See <<./jdbc.adoc#jdbc-lock-registry,JDBC Lock Registry>> for more information.
 
 The `lookupHost` property of the `AbstractConnectionFactory` and `DatagramPacketMessageMapper` is now set to `false` by default to avoid delays in the environments where DNS is not configured.
 
-See <<./ip.adoc#ip,TCP and UDP Support>> for more information.
+See xref:ip.adoc[TCP and UDP Support] for more information.
 
 [[x6.0-jms]]
 = JMS Changes
 
 The `JmsOutboundGateway` now creates a `TemporaryTopic` instead of `TemporaryQueue` if `replyPubSubDomain` option is set to `true`.
 
-See <<./jms.adoc#jms,JMS Support>> for more information.
+See xref:jms.adoc[JMS Support] for more information.
 
 [[x6.0-security]]
 = Security Changes
 
 The `ChannelSecurityInterceptor` and its annotation `@SecuredChannel` and XML `<secured-channels>` configurations have been deprecated in favor of `AuthorizationChannelInterceptor`.
 
-See <<./security.adoc#security,Security Support>> for more information.
+See xref:security.adoc[Security Support] for more information.
 
 [[x6.0-webflux]]
 = Webflux Request Attributes Support
 
 Webclient Request attributes support has been added for `WebFluxRequestExecutingMessageHandler`.
 
-See <<./webflux.adoc#webflux-request-attributes,WebFlux Request Attributes>> for more information.
+See xref:webflux.adoc#webflux-request-attributes[WebFlux Request Attributes] for more information.

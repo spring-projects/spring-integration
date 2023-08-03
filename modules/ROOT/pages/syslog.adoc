@@ -113,7 +113,7 @@ The following example shows a `UDP` adapter that sends messages to channel `from
 The preceding example also shows two `SmartLifecycle` attributes: `auto-startup` and `phase`.
 It has a reference to a custom `org.springframework.integration.syslog.MessageConverter` with an ID of `converter` and an `error-channel`.
 Also notice the `udp-attributes` child element.
-You can set various UDP attributes here, as defined in <<./ip.adoc#ip-udp-ib-atts,.UDP Inbound Channel Adapter Attributes>>.
+You can set various UDP attributes here, as defined in xref:ip/endpoint-reference.adoc#ip-udp-ib-atts[.UDP Inbound Channel Adapter Attributes].
 
 NOTE: When you use the `udp-attributes` element, you must provide the `port` attribute there rather than on the `inbound-channel-adapter` element itself.
 
@@ -132,7 +132,7 @@ The following example shows a `TCP` adapter that sends messages to channel `from
 ====
 
 It also shows how to reference an externally defined connection factory, which can be used for advanced configuration (socket keep-alive and other uses).
-For more information, see <<./ip.adoc#tcp-connection-factories,TCP Connection Factories>>.
+For more information, see xref:ip/tcp-connection-factories.adoc[TCP Connection Factories].
 
 NOTE: The externally configured `connection-factory` must be of type `server`, and the port is defined there rather than on the `inbound-channel-adapter` element itself.
 

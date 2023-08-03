@@ -33,5 +33,5 @@ public Message<?> receive(final PollableChannel<?> channel) { ...
 ----
 ====
 
-NOTE: A less invasive approach that lets you invoke simple interfaces with payload or header values instead of `Message` instances is described in <<./gateway.adoc#gateway-proxy,Enter the `GatewayProxyFactoryBean`>>.
+NOTE: A less invasive approach that lets you invoke simple interfaces with payload or header values instead of `Message` instances is described in xref:gateway.adoc#gateway-proxy[Enter the `GatewayProxyFactoryBean`].
 

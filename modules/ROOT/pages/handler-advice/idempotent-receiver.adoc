@@ -6,7 +6,7 @@ It is a functional pattern and the whole idempotency logic should be implemented
 However, to simplify the decision-making, the `IdempotentReceiverInterceptor` component is provided.
 This is an AOP `Advice` that is applied to the `MessageHandler.handleMessage()` method and that can `filter` a request message or mark it as a `duplicate`, according to its configuration.
 
-Previously, you could have implemented this pattern by using a custom `MessageSelector` in a `<filter/>` (see <<./filter.adoc#filter,Filter>>), for example.
+Previously, you could have implemented this pattern by using a custom `MessageSelector` in a `<filter/>` (see xref:filter.adoc[Filter]), for example.
 However, since this pattern really defines the behavior of an endpoint rather than being an endpoint itself, the idempotent receiver implementation does not provide an endpoint component.
 Rather, it is applied to endpoints declared in the application.
 
@@ -17,7 +17,7 @@ Rather, it is discarded.
 If you want to discard (do nothing with) the duplicate message, the `discardChannel` should be configured with a `NullChannel`, such as the default `nullChannel` bean.
 
 To maintain state between messages and provide the ability to compare messages for the idempotency, we provide the `MetadataStoreSelector`.
-It accepts a `MessageProcessor` implementation (which creates a lookup key based on the `Message`) and an optional `ConcurrentMetadataStore` (<<./meta-data-store.adoc#metadata-store,Metadata Store>>).
+It accepts a `MessageProcessor` implementation (which creates a lookup key based on the `Message`) and an optional `ConcurrentMetadataStore` (xref:meta-data-store.adoc[Metadata Store]).
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/selector/MetadataStoreSelector.html[`MetadataStoreSelector` Javadoc] for more information.
 You can also customize the `value` for `ConcurrentMetadataStore` by using an additional `MessageProcessor`.
 By default, `MetadataStoreSelector` uses the `timestamp` message header.
@@ -27,7 +27,7 @@ In some cases, it is useful to compare the current and new values for a key, to 
 Starting with version 5.3, the `compareValues` property is provided which references a `BiPredicate<String, String>`; the first parameter is the old value; return `true` to accept the message and replace the old value with the new value in the `MetadataStore`.
 This can be useful to reduce the number of keys; for example, when processing lines in a file, you can store the file name in the key and the current line number in the value.
 Then, after a restart, you can skip lines that have already been processed.
-See <<./file.adoc#idempotent-file-splitter,Idempotent Downstream Processing a Split File>> for an example.
+See xref:file/splitter.adoc#idempotent-file-splitter[Idempotent Downstream Processing a Split File] for an example.
 
 For convenience, the `MetadataStoreSelector` options are configurable directly on the `<idempotent-receiver>` component.
 The following listing shows all the possible attributes:
@@ -131,4 +131,4 @@ public IntegrationFlow flow() {
 
 NOTE: The `IdempotentReceiverInterceptor` is designed only for the `MessageHandler.handleMessage(Message<?>)` method.
 Starting with version 4.3.1, it implements `HandleMessageAdvice`, with the `AbstractHandleMessageAdvice` as a base class, for better dissociation.
-See <<handle-message-advice>> for more information.
+See xref:handler-advice/handle-message.adoc[Handling Message Advice] for more information.

@@ -36,7 +36,7 @@ This is because the template "`borrows`" a channel from the cache for each send 
 One solution is to start a transaction before the splitter, but transactions are expensive in RabbitMQ and can reduce performance several hundred-fold.
 
 To solve this problem in a more efficient manner, starting with version 5.1, Spring Integration provides the `BoundRabbitChannelAdvice` which is a `HandleMessageAdvice`.
-See <<./handler-advice.adoc#handle-message-advice,Handling Message Advice>>.
+See xref:handler-advice/handle-message.adoc[Handling Message Advice].
 When applied before the splitter, it ensures that all downstream operations are performed on the same channel and, optionally, can wait until publisher confirmations for all sent messages are received (if the connection factory is configured for confirmations).
 The following example shows how to use `BoundRabbitChannelAdvice`:
 

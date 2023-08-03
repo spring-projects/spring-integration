@@ -42,7 +42,7 @@ Starting with version 5.0, you can limit the number of files fetched from the SF
 This can be beneficial when the target files are large or when running in a clustered system with a persistent file list filter, discussed later in this section.
 Use `max-fetch-size` for this purpose.
 A negative value (the default) means no limit and all matching files are retrieved.
-See <<sftp-max-fetch>> for more information.
+See xref:sftp/max-fetch.adoc[Inbound Channel Adapters: Controlling Remote File Fetching] for more information.
 Since version 5.0, you can also provide a custom `DirectoryScanner` implementation to the `inbound-channel-adapter` by setting the `scanner` attribute.
 
 Starting with Spring Integration 3.0, you can specify the `preserve-timestamp` attribute (the default is `false`).
@@ -59,7 +59,7 @@ You can also combine a pattern-based filter with other filters (such as an `Acce
 
 The `AcceptOnceFileListFilter` stores its state in memory.
 If you wish the state to survive a system restart, consider using the `SftpPersistentAcceptOnceFileListFilter` instead.
-This filter stores the accepted file names in an instance of the `MetadataStore` strategy (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>).
+This filter stores the accepted file names in an instance of the `MetadataStore` strategy (see xref:meta-data-store.adoc[Metadata Store]).
 This filter matches on the filename and the remote modified time.
 
 Since version 4.0, this filter requires a `ConcurrentMetadataStore`.
@@ -76,17 +76,17 @@ Unless your application removes files after processing, the adapter re-processes
 
 Also, if you configure the `filter` to use a `SftpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not allow this new file to be processed.
 
-For more information about this filter, and how it is used, see <<./file.adoc#remote-persistent-flf,Remote Persistent File List Filters>>.
+For more information about this filter, and how it is used, see xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters].
 
 You can use the `local-filter` attribute to configure the behavior of the local file system filter.
 Starting with version 4.3.8, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
-This filter stores the accepted file names and modified timestamp in an instance of the `MetadataStore` strategy (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>) and detects changes to the local file modified time.
+This filter stores the accepted file names and modified timestamp in an instance of the `MetadataStore` strategy (see xref:meta-data-store.adoc[Metadata Store]) and detects changes to the local file modified time.
 The default `MetadataStore` is a `SimpleMetadataStore` that stores state in memory.
 
 Since version 4.1.5, these filters have a new property called `flushOnUpdate`, which causes them to flush the
 metadata store on every update (if the store implements `Flushable`).
 
-IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<./redis.adoc#redis-metadata-store,Redis Metadata Store>>), you can have multiple instances of the same adapter or application and be sure that one and only one instance processes a file.
+IMPORTANT: Further, if you use a distributed `MetadataStore` (such as xref:redis.adoc#redis-metadata-store[Redis Metadata Store]), you can have multiple instances of the same adapter or application and be sure that one and only one instance processes a file.
 
 The actual local filter is a `CompositeFileListFilter` that contains the supplied filter and a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`).
 Files are downloaded with this suffix (the default is `.writing`), and the files are renamed to their final names when the transfer is complete, making them 'visible' to the filter.
@@ -128,7 +128,7 @@ The following example shows how to do so:
 
 You should understand the architecture of the adapter.
 A file synchronizer fetches the files, and a `FileReadingMessageSource` emits a message for each synchronized file.
-As <<sftp-inbound,discussed earlier>>, two filters are involved.
+As xref:sftp/inbound.adoc[discussed earlier], two filters are involved.
 The `filter` attribute (and patterns) refers to the remote (SFTP) file list, to avoid fetching files that have already been fetched.
 the `FileReadingMessageSource` uses the `local-filter` to determine which files are to be sent as messages.
 
@@ -285,7 +285,7 @@ public class SftpJavaApplication {
 [[sftp-incomplete]]
 == Dealing With Incomplete Data
 
-See <<./file.adoc#file-incomplete,Dealing With Incomplete Data>>.
+See xref:file/reading.adoc#file-incomplete[Dealing With Incomplete Data].
 
 The `SftpSystemMarkerFilePresentFileListFilter` is provided to filter remote files that don't have the corresponding marker file on the remote system.
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/filters/SftpSystemMarkerFilePresentFileListFilter.html[Javadoc] for configuration information.

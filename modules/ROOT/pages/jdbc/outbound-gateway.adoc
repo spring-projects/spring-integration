@@ -76,7 +76,7 @@ It lets you specify a `MessagePreparedStatementSetter` bean reference, which imp
 
 Starting with the version 6.0, the `JdbcOutboundGateway` returns an empty list result as is instead of converting it to `null` as it was before with the meaning "no reply".
 This caused an extra configuration in applications where handling of empty lists is a part of downstream logic.
-See <<./splitter.adoc#split-stream-and-flux,Splitter Discard Channel>> for possible empty list handling option.
+See xref:splitter.adoc#split-stream-and-flux[Splitter Discard Channel] for possible empty list handling option.
 
-See <<jdbc-outbound-channel-adapter>> for more information about `MessagePreparedStatementSetter`.
+See xref:jdbc/outbound-channel-adapter.adoc[Outbound Channel Adapter] for more information about `MessagePreparedStatementSetter`.
 

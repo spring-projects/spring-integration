@@ -102,7 +102,7 @@ public MessageSource<Object> jmsIn(ConnectionFactory connectionFactory) {
 TIP: Notice from the preceding configuration that the `inbound-channel-adapter` is a polling consumer.
 That means that it invokes `receive()` when triggered.
 You should use this should only in situations where polling is done relatively infrequently and timeliness is not important.
-For all other situations (a vast majority of JMS-based use-cases), the `message-driven-channel-adapter` (<<jms-message-driven-channel-adapter,described later>>) is a better option.
+For all other situations (a vast majority of JMS-based use-cases), the `message-driven-channel-adapter` (xref:changes-2.2-3.0.adoc#x3.0-jms-mdca-te[described later]) is a better option.
 
 NOTE:  By default, all JMS adapters that require a reference to the `ConnectionFactory` automatically look for a bean named `jmsConnectionFactory`.
 That is why you do not see a `connection-factory` attribute in many of the examples.
@@ -229,7 +229,7 @@ The `poller` element is not applicable for a message-driven channel adapter, as 
 For most scenarios, the message-driven approach is better, since the messages are passed along to the `MessageChannel` as soon as they are received from the underlying JMS consumer.
 
 Finally, the `<message-driven-channel-adapter>` element also accepts the 'error-channel' attribute.
-This provides the same basic functionality, as described in <<./gateway.adoc#gateway-proxy,Enter the `GatewayProxyFactoryBean`>>.
+This provides the same basic functionality, as described in xref:gateway.adoc#gateway-proxy[Enter the `GatewayProxyFactoryBean`].
 The following example shows how to set an error channel on a message-driven channel adapter:
 
 ====
@@ -385,7 +385,7 @@ The following example defines a JMS `inbound-gateway` that receives from the JMS
 ----
 ====
 
-Since the gateways provide request-reply behavior instead of unidirectional send or receive behavior, they also have two distinct properties for "`payload extraction`" (as <<jms-inbound-channel-adapter,discussed earlier>> for the channel adapters' 'extract-payload' setting).
+Since the gateways provide request-reply behavior instead of unidirectional send or receive behavior, they also have two distinct properties for "`payload extraction`" (as xref:changes-3.0-4.0.adoc#x4.0-jms-ib[discussed earlier] for the channel adapters' 'extract-payload' setting).
 For an inbound gateway, the 'extract-request-payload' property determines whether the received JMS Message body is extracted.
 If 'false', the JMS message itself becomes the Spring Integration message payload.
 The default is 'true'.
@@ -413,10 +413,10 @@ You can use the error-channel attribute to configure such a channel, as the foll
 ----
 ====
 
-You might notice that this example looks very similar to that included within <<./gateway.adoc#gateway-proxy,Enter the `GatewayProxyFactoryBean`>>.
+You might notice that this example looks very similar to that included within xref:gateway.adoc#gateway-proxy[Enter the `GatewayProxyFactoryBean`].
 The same idea applies here: The `exceptionTransformer` could be a POJO that creates error-response objects, you could reference the `nullChannel` to suppress the errors, or you could leave 'error-channel' out to let the exception propagate.
 
-See <<jms-md-conversion-errors>>.
+See xref:jms.adoc#jms-md-conversion-errors[Inbound Conversion Errors].
 
 When consuming from topics, set the `pub-sub-domain` attribute to true.
 Set `subscription-durable` to `true` for a durable subscription or `subscription-shared` for a shared subscription (requires a JMS 2.0 broker and has been available since version 4.2).
@@ -465,7 +465,7 @@ This is because each request gets a new consumer with a new selector (selecting 
 Given that these selectors are unique, they remain in the cache (unused) after the current request completes.
 
 If you specify a reply destination, you are advised to not use cached consumers.
-Alternatively, consider using a `<reply-listener/>` as <<jms-outbound-gateway-reply-listener,described below>>.
+Alternatively, consider using a `<reply-listener/>` as xref:jms.adoc#jms-outbound-gateway-reply-listener[described below].
 =====
 
 The following example shows how to configure an outbound gateway:
@@ -480,7 +480,7 @@ The following example shows how to configure an outbound gateway:
 ----
 ====
 
-The 'outbound-gateway' payload extraction properties are inversely related to those of the 'inbound-gateway' (see the <<jms-message-driven-channel-adapter,earlier discussion>>).
+The 'outbound-gateway' payload extraction properties are inversely related to those of the 'inbound-gateway' (see the xref:changes-2.2-3.0.adoc#x3.0-jms-mdca-te[earlier discussion]).
 That means that the 'extract-request-payload' property value applies to the Spring Integration message being converted into a JMS message to be sent as a request.
 The 'extract-reply-payload' property value applies to the JMS message received as a reply and is then converted into a Spring Integration message to be subsequently sent to the 'reply-channel', as shown in the preceding configuration example.
 
@@ -489,7 +489,7 @@ The 'extract-reply-payload' property value applies to the JMS message received a
 
 Spring Integration 2.2 introduced an alternative technique for handling replies.
 If you add a `<reply-listener/>` child element to the gateway instead of creating a consumer for each reply, a `MessageListener` container is used to receive the replies and hand them over to the requesting thread.
-This provides a number of performance benefits as well as alleviating the cached consumer memory utilization problem described in the <<jms-outbound-gateway-memory-caution,earlier caution>>.
+This provides a number of performance benefits as well as alleviating the cached consumer memory utilization problem described in the xref:jms.adoc#jms-outbound-gateway-memory-caution[earlier caution].
 
 When using a `<reply-listener/>` with an outbound gateway that has no `reply-destination`, instead of creating a `TemporaryQueue` for each request, a single `TemporaryQueue` is used.
 (The gateway creates an additional `TemporaryQueue`, as necessary, if the connection to the broker is lost and recovered).
@@ -533,13 +533,13 @@ One such situation is a context with many (inactive) partitioned https://spring.
 If all the reply listeners are active, the JMS broker has an active consumer for each gateway.
 By enabling the idle timeout, each consumer exists only while the corresponding batch job is running (and for a short time after it finishes).
 
-See `idle-reply-listener-timeout` in <<jms-og-attributes>>.
+See `idle-reply-listener-timeout` in xref:jms.adoc#jms-og-attributes[Attribute Reference].
 
 [[gateway-reply-correlation]]
 === Gateway Reply Correlation
 
 This section describes the mechanisms used for reply correlation (ensuring the originating gateway receives replies to only its requests), depending on how the gateway is configured.
-See <<jms-og-attributes>> for complete description of the attributes discussed here.
+See xref:jms.adoc#jms-og-attributes[Attribute Reference] for complete description of the attributes discussed here.
 
 The following list describes the various scenarios (the numbers are for identification -- order does not matter):
 
@@ -767,7 +767,7 @@ When this value is greater than `0`, the container is started on demand (when a 
 The container continues to run until at least this time elapses with no requests being received (and until no replies are outstanding).
 The container is started again on the next request.
 The stop time is a minimum and may actually be up to 1.5x this value.
-<26> See <<jms-async-gateway>>.
+<26> See xref:jms.adoc#jms-async-gateway[Async Gateway].
 <27> When this element is included, replies are received by an asynchronous `MessageListenerContainer` rather than creating a consumer for each reply.
 This can be more efficient in many cases.
 ====

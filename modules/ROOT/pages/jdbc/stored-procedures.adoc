@@ -86,14 +86,14 @@ A value of `0` disables caching.
 Negative values are not permitted.
 +
 If you enable JMX, statistical information about the `jdbc-call-operations-cache` is exposed as an MBean.
-See <<./jmx.adoc#jmx-mbean-exporter,MBean Exporter>> for more information.
+See xref:jmx.adoc#jmx-mbean-exporter[MBean Exporter] for more information.
 * `sql-parameter-source-factory`: (Not available for the stored procedure inbound channel adapter.)
 Reference to a `SqlParameterSourceFactory`.
 By default, bean properties of the passed in `Message` payload are used as a source for the stored procedure's input parameters by using a `BeanPropertySqlParameterSourceFactory`.
 +
 This may suffice for basic use cases.
 For more sophisticated options, consider passing in one or more `ProcedureParameter` values.
-See <<sp-defining-parameter-sources>>.
+See xref:jdbc/stored-procedures.adoc#sp-defining-parameter-sources[Defining Parameter Sources].
 Optional.
 * `use-payload-as-parameter-source`: (Not available for the stored procedure inbound channel adapter.)
 If set to `true`, the payload of the `Message` is used as a source for providing parameters.

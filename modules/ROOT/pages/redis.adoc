@@ -112,7 +112,7 @@ The following example shows how to create an instance of `RedisTemplate` in Spri
 [[redis-messages]]
 == Messaging with Redis
 
-As mentioned in <<redis,the introduction>>, Redis provides support for publish-subscribe messaging through its `PUBLISH`, `SUBSCRIBE`, and `UNSUBSCRIBE` commands.
+As mentioned in xref:redis.adoc[the introduction], Redis provides support for publish-subscribe messaging through its `PUBLISH`, `SUBSCRIBE`, and `UNSUBSCRIBE` commands.
 As with JMS and AMQP, Spring Integration provides message channels and adapters for sending and receiving messages through Redis.
 
 [[redis-pub-sub-channel]]
@@ -391,10 +391,10 @@ Starting with version 4.3.12, `RedisMessageStore` supports the `prefix` option t
 [[redis-cms]]
 === Redis Channel Message Stores
 
-The `RedisMessageStore` <<redis-message-store,shown earlier>> maintains each group as a value under a single key (the group ID).
+The `RedisMessageStore` xref:redis.adoc#redis-message-store[shown earlier] maintains each group as a value under a single key (the group ID).
 While you can use this to back a `QueueChannel` for persistence, a specialized `RedisChannelMessageStore` is provided for that purpose (since version 4.0).
 This store uses a `LIST` for each channel, `LPUSH` when sending messages, and `RPOP` when receiving messages.
-By default, this store also uses JDK serialization, but you can modify the value serializer, as <<redis-message-store,described earlier>>.
+By default, this store also uses JDK serialization, but you can modify the value serializer, as xref:redis.adoc#redis-message-store[described earlier].
 
 We recommend using this store backing channels, instead of using the general `RedisMessageStore`.
 The following example defines a Redis message store and uses it in a channel with a queue:
@@ -425,15 +425,15 @@ They can be used only for situations such as backing a `QueueChannel`.
 [[redis-metadata-store]]
 == Redis Metadata Store
 
-Spring Integration 3.0 introduced a new Redis-based https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[`MetadataStore`] (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>) implementation.
+Spring Integration 3.0 introduced a new Redis-based https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[`MetadataStore`] (see xref:meta-data-store.adoc[Metadata Store]) implementation.
 You can use the `RedisMetadataStore` to maintain the state of a `MetadataStore` across application restarts.
 You can use this new `MetadataStore` implementation with adapters such as:
 
 
-* <<./feed.adoc#feed-inbound-channel-adapter,Feed>>
-* <<./file.adoc#file-reading,File>>
-* <<./ftp.adoc#ftp-inbound,FTP>>
-* <<./sftp.adoc#sftp-inbound,SFTP>>
+* xref:feed.adoc#feed-inbound-channel-adapter[Feed]
+* xref:file/reading.adoc[File]
+* xref:ftp/inbound.adoc[FTP]
+* xref:sftp/inbound.adoc[SFTP]
 
 To instruct these adapters to use the new `RedisMetadataStore`, declare a Spring bean named `metadataStore`.
 The Feed inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `RedisMetadataStore`.
@@ -562,7 +562,7 @@ If the result of an expression is null or void, no message is generated.
 
 The `RedisStoreMessageSource` adds a `store` attribute with a `RedisStore` instance bound to the transaction `IntegrationResourceHolder`, which can be accessed from a `TransactionSynchronizationProcessor` implementation.
 
-For more information about transaction synchronization, see <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>>.
+For more information about transaction synchronization, see xref:transactions.adoc#transaction-synchronization[Transaction Synchronization].
 
 [[redis-store-outbound-channel-adapter]]
 == RedisStore Outbound Channel Adapter

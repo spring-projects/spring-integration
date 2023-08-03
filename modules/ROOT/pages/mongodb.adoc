@@ -219,15 +219,15 @@ To configure that scenario, you can extend one message store bean from the other
 [[mongodb-metadata-store]]
 === MongoDB Metadata Store
 
-Spring Integration 4.2 introduced a new MongoDB-based `MetadataStore` (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>) implementation.
+Spring Integration 4.2 introduced a new MongoDB-based `MetadataStore` (see xref:meta-data-store.adoc[Metadata Store]) implementation.
 You can use the `MongoDbMetadataStore` to maintain metadata state across application restarts.
 You can use this new `MetadataStore` implementation with adapters such as:
 
 
-* <<./feed.adoc#feed-inbound-channel-adapter,Feed>>
-* <<./file.adoc#file-reading,File>>
-* <<./ftp.adoc#ftp-inbound,FTP>>
-* <<./sftp.adoc#sftp-inbound,SFTP>>
+* xref:feed.adoc#feed-inbound-channel-adapter[Feed]
+* xref:file/reading.adoc[File]
+* xref:ftp/inbound.adoc[FTP]
+* xref:sftp/inbound.adoc[SFTP]
 
 To instruct these adapters to use the new `MongoDbMetadataStore`, declare a Spring bean with a bean name of `metadataStore`.
 The feed inbound channel adapter automatically picks up and use the declared `MongoDbMetadataStore`.
@@ -347,7 +347,7 @@ If only the `expression` attribute is present and the result of an expression is
 If you want the evaluation result to go to a specific channel, add a `channel` attribute.
 If the result of an expression is null or void, no message is generated.
 
-For more information about transaction synchronization, see <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>>.
+For more information about transaction synchronization, see xref:transactions.adoc#transaction-synchronization[Transaction Synchronization].
 
 Starting with version 5.5, the `MongoDbMessageSource` can be configured with an `updateExpression`, which must evaluate to a `String` with the MongoDb `update` syntax or to an `org.springframework.data.mongodb.core.query.Update` instance.
 It can be used as an alternative to described above post-processing procedure, and it modifies those entities that were fetched from the collection, so they won't be pulled from the collection again on the next polling cycle (assuming the update changes some value used in the query).
@@ -573,7 +573,7 @@ Starting with version 5.3, the `ReactiveMongoDbStoringMessageHandler` and `React
 They are based on the `ReactiveMongoOperations` from Spring Data and requires a `org.mongodb:mongodb-driver-reactivestreams` dependency.
 
 The `ReactiveMongoDbStoringMessageHandler` is an implementation of the `ReactiveMessageHandler` which is supported natively in the framework when reactive streams composition is involved in the integration flow definition.
-See more information in the <<./reactive-streams.adoc#reactive-message-handler,ReactiveMessageHandler>>.
+See more information in the xref:reactive-streams.adoc#reactive-message-handler[ReactiveMessageHandler].
 
 From configuration perspective there is no difference with many other standard channel adapters.
 For example with Java DSL such a channel adapter could be used like:
@@ -618,4 +618,4 @@ public IntegrationFlow reactiveMongoDbFlow(ReactiveMongoDatabaseFactory mongoDbF
 
 Starting with version 5.5, the `ReactiveMongoDbMessageSource` can be configured with an `updateExpression`.
 It has the same functionality as the blocking `MongoDbMessageSource`.
-See <<mongodb-inbound-channel-adapter>> and `AbstractMongoDbMessageSourceSpec` JavaDocs for more information.
+See xref:mongodb.adoc#mongodb-inbound-channel-adapter[MongoDB Inbound Channel Adapter] and `AbstractMongoDbMessageSourceSpec` JavaDocs for more information.

@@ -28,5 +28,5 @@ By default, the `#xpath` SpEL function returns a `String` representation of the 
 NOTE: To enable the `#xpath` SpEL function, you can add the `spring-integration-xml.jar` to the classpath.
 You need no declare any components from the Spring Integration XML Namespace.
 
-For more information, see "`<<./spel.adoc#spel,Spring Expression Language (SpEL)>>.
+For more information, see "`xref:spel.adoc[Spring Expression Language (SpEL)].
 

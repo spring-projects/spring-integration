@@ -1,7 +1,7 @@
 [[jmx-shutdown]]
 = Orderly Shutdown
 
-As described in "<<./jmx.adoc#jmx-mbean-exporter,MBean Exporter>>", the MBean exporter provides a JMX operation called `stopActiveComponents`, which is used to stop the application in an orderly manner.
+As described in "xref:jmx.adoc#jmx-mbean-exporter[MBean Exporter]", the MBean exporter provides a JMX operation called `stopActiveComponents`, which is used to stop the application in an orderly manner.
 The operation has a single `Long` parameter.
 The parameter indicates how long (in milliseconds) the operation waits to allow in-flight messages to complete.
 The operation works as follows:
@@ -21,7 +21,7 @@ It is therefore important to select an appropriate timeout when invoking this op
 +
 Doing so lets such components perform final shutdown tasks (closing all open sockets, for example).
 
-As discussed in <<./jmx.adoc#jmx-mbean-shutdown,Orderly Shutdown Managed Operation>>, this operation can be invoked by using JMX.
+As discussed in xref:jmx.adoc#jmx-mbean-shutdown[Orderly Shutdown Managed Operation], this operation can be invoked by using JMX.
 If you wish to programmatically invoke the method, you need to inject or otherwise get a reference to the `IntegrationMBeanExporter`.
 If no `id` attribute is provided on the `<int-jmx:mbean-export/>` definition, the bean has a generated name.
 This name contains a random component to avoid `ObjectName` collisions if multiple Spring Integration contexts exist in the same JVM (`MBeanServer`).

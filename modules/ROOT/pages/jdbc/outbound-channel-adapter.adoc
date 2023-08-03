@@ -55,7 +55,7 @@ The following example uses a `ExpressionEvaluatingSqlParameterSourceFactory` to 
 ----
 ====
 
-For further information, see <<sp-defining-parameter-sources>>.
+For further information, see xref:jdbc/stored-procedures.adoc#sp-defining-parameter-sources[Defining Parameter Sources].
 
 [[using-the-preparedstatement-callback]]
 == Using the `PreparedStatement` Callback

@@ -18,26 +18,26 @@ Upon parsing of the HTTP inbound endpoint, either a new `IntegrationRequestMappi
 To achieve flexible request mapping configuration, Spring Integration provides the `<request-mapping/>` child element for `<http:inbound-channel-adapter/>` and the `<http:inbound-gateway/>`.
 Both HTTP inbound endpoints are now fully based on the request mapping infrastructure that was introduced with Spring MVC 3.1.
 For example, multiple paths are supported on a single inbound endpoint.
-For more information see <<./http.adoc#http-namespace,HTTP Namespace Support>>.
+For more information see xref:http/namespace.adoc[HTTP Namespace Support].
 
 [[x3.0-spel-customization]]
 === Spring Expression Language (SpEL) Configuration
 
 We added a new `IntegrationEvaluationContextFactoryBean` to allow configuration of custom `PropertyAccessor` implementations and functions for use in SpEL expressions throughout the framework.
-For more information, see <<./spel.adoc#spel,Spring Expression Language (SpEL)>>.
+For more information, see xref:spel.adoc[Spring Expression Language (SpEL)].
 
 [[x3.0-spel-functions]]
 === SpEL Functions Support
 
 To customize the SpEL `EvaluationContext` with static `Method` functions, we introduced the `<spel-function/>` component.
 We also added two built-in functions: `#jsonPath` and `#xpath`.
-For more information, see <<./spel.adoc#spel-functions,SpEL Functions>>.
+For more information, see xref:spel.adoc#spel-functions[SpEL Functions].
 
 [[x3.0-spel-property-accessors]]
 === SpEL PropertyAccessors Support
 
 To customize the SpEL `EvaluationContext` with `PropertyAccessor` implementations, we added the `<spel-property-accessors/>` component.
-For more information, see <<./spel.adoc#spel-property-accessors,Property Accessors>>.
+For more information, see xref:spel.adoc#spel-property-accessors[Property Accessors].
 
 [[x3.0-redis-new-components]]
 === Redis: New Components
@@ -52,14 +52,14 @@ This new `MetadataStore` implementation can be used with adapters, such as:
 We added new queue-based components.
 We added the `<int-redis:queue-inbound-channel-adapter/>` and `<int-redis:queue-outbound-channel-adapter/>` components to perform 'right pop' and 'left push' operations, respectively, on a Redis List.
 
-For more information, "`see <<./redis.adoc#redis,Redis Support>>`".
+For more information, "`see xref:redis.adoc[Redis Support]`".
 
 [[x3.0-hcr]]
 === Header Channel Registry
 
 You can now instruct the framework to store reply channels and error channels in a registry for later resolution.
 This is useful for cases where the `replyChannel` or `errorChannel` might be lost (for example, when serializing a message).
-See <<./content-enrichment.adoc#header-enricher,Header Enricher>> for more information.
+See xref:content-enrichment.adoc#header-enricher[Header Enricher] for more information.
 
 [[x3.0-configurable-mongo-MS]]
 === MongoDB support: New `ConfigurableMongoDbMessageStore`
@@ -68,19 +68,19 @@ In addition to the existing `eMongoDbMessageStore`, we introduced a new `Configu
 This provides a more robust and flexible implementation of `MessageStore` for MongoDB.
 It does not have backward compatibility with the existing store, but we recommend using it for new applications.
 Existing applications can use it, but messages in the old store are not available.
-See <<./mongodb.adoc#mongodb,MongoDb Support>> for more information.
+See xref:mongodb.adoc[MongoDb Support] for more information.
 
 [[x3.0-syslog]]
 === Syslog Support
 
 Building on the 2.2 `SyslogToMapTransformer`, Spring Integration 3.0 introduces `UDP` and `TCP` inbound channel adapters especially tailored for receiving SYSLOG messages.
-For more information, see <<./syslog.adoc#syslog,Syslog Support>>.
+For more information, see xref:syslog.adoc[Syslog Support].
 
 [[x3.0-tail]]
 === `tail` Support
 
 We added file inbound channel adapters that use the `tail` command to generate messages when lines are added to the end of text files.
-See <<./file.adoc#file-tailing,'tail'ing Files>>.
+See xref:file/reading.adoc#file-tailing['tail'ing Files].
 
 [[x3.0-jmx]]
 === JMX Support
@@ -92,7 +92,7 @@ It permits simple transformation to, for example, JSON.
 
 The `IntegrationMBeanExporter` now allows the configuration of a custom `ObjectNamingStrategy` by using the `naming-strategy` attribute.
 
-For more information, see <<./jmx.adoc#jmx,JMX Support>>.
+For more information, see xref:jmx.adoc[JMX Support].
 
 [[x3.0-tcp-events]]
 === TCP/IP Connection Events and Connection Management
@@ -112,19 +112,19 @@ It lets applications broadcast to all open connections, among other uses.
 
 Finally, the connection factories also provide a new method called `closeConnection(String connectionId)`, which lets applications explicitly close a connection by using its ID.
 
-For more information see <<./ip.adoc#tcp-events,TCP Connection Events>>.
+For more information see xref:changes-4.1-4.2.adoc#x4.2-tcp-events[TCP Connection Events].
 
 [[x3.0-inbound-script]]
 === Inbound Channel Adapter Script Support
 
 The `<int:inbound-channel-adapter/>` now supports using `<expression/>` and `<script/>` child elements to create a `MessageSource`.
-See <<./channel-adapter.adoc#channel-adapter-expressions-and-scripts,Channel Adapter Expressions and Scripts>>.
+See xref:channel-adapter.adoc#channel-adapter-expressions-and-scripts[Channel Adapter Expressions and Scripts].
 
 [[x3.0-content-enricher-headers]]
 === Content Enricher: Headers Enrichment Support
 
 The content enricher now provides configuration for `<header/>` child elements, to enrich the outbound message with headers based on the reply message from the underlying message flow.
-For more information see <<./content-enrichment.adoc#payload-enricher,Payload Enricher>>.
+For more information see xref:content-enrichment.adoc#payload-enricher[Payload Enricher].
 
 [[x3.0-general]]
 == General Changes
@@ -137,7 +137,7 @@ This section describes general changes from version 2.2 to version 3.0.
 Previously, message IDs were generated by using the JDK `UUID.randomUUID()` method.
 With this release, the default mechanism has been changed to use a more efficient and significantly faster algorithm.
 In addition, we added the ability to change the strategy used to generate message IDs.
-For more information see <<./message.adoc#message-id-generation,Message ID Generation>>.
+For more information see xref:message.adoc#message-id-generation[Message ID Generation].
 
 [[x3.0-gateway]]
 === "`<gateway>`" Changes
@@ -149,7 +149,7 @@ You can now entirely customize the way that gateway method calls are mapped to m
 The `GatewayMethodMetadata` is now a public class.
 It lets you programmatically configure the `GatewayProxyFactoryBean` from Java.
 
-For more information, see <<./gateway.adoc#gateway,Messaging Gateways>>.
+For more information, see xref:gateway.adoc[Messaging Gateways].
 
 [[x3.0-http-endpointss]]
 === HTTP Endpoint Changes
@@ -167,7 +167,7 @@ These variables are available in both payload and header expressions.
 * *Outbound Endpoint 'uri-variables-expression'*: HTTP outbound endpoints now support the `uri-variables-expression` attribute to specify an `Expression` to evaluate a `Map` for all URI variable placeholders within URL template.
 This allows selection of a different map of expressions based on the outgoing message.
 
-For more information, see <<./http.adoc#http,HTTP Support>>.
+For more information, see xref:http.adoc[HTTP Support].
 
 [[x3.0-json-transformers]]
 === Jackson Support (JSON)
@@ -178,7 +178,7 @@ Previously, only Jackson 1.x was supported.
 
 * The `ObjectToJsonTransformer` and `JsonToObjectTransformer` now emit/consume headers containing type information.
 
-For more information, see "`JSON Transformers`" in <<./transformer.adoc#transformer,Transformer>>.
+For more information, see "`JSON Transformers`" in xref:transformer.adoc[Transformer].
 
 [[x3.0-id-for-chain-sub-components]]
 === Chain Elements `id` Attribute
@@ -187,35 +187,35 @@ Previously, the `id` attribute for elements within a `<chain>` was ignored and, 
 Now, the `id` attribute is allowed for all elements within a `<chain>`.
 The bean names of chain elements is a combination of the surrounding chain's `id` and the `id` of the element itself.
 For example: 'myChain$child.myTransformer.handler'.
-For more information see, <<./chain.adoc#chain,Message Handler Chain>>.
+For more information see, xref:chain.adoc[Message Handler Chain].
 
 [[x3.0-corr-endpoint-empty-groups]]
 === Aggregator 'empty-group-min-timeout' property
 
 The `AbstractCorrelatingMessageHandler` provides a new property called `empty-group-min-timeout` to allow empty group expiry to run on a longer schedule than expiring partial groups.
 Empty groups are not removed from the `MessageStore` until they have not been modified for at least this number of milliseconds.
-For more information, see <<./aggregator.adoc#aggregator-xml,Configuring an Aggregator with XML>>.
+For more information, see xref:aggregator.adoc#aggregator-xml[Configuring an Aggregator with XML].
 
 [[x3.0-filelistfilter]]
 === Persistent File List Filters (file, (S)FTP)
 
 New `FileListFilter` implementations that use a persistent `MetadataStore` are now available.
 You can use these to prevent duplicate files after a system restart.
-See <<./file.adoc#file-reading,Reading Files>>, <<./ftp.adoc#ftp-inbound,FTP Inbound Channel Adapter>>, and <<./sftp.adoc#sftp-inbound,SFTP Inbound Channel Adapter>> for more information.
+See xref:file/reading.adoc[Reading Files], xref:ftp/inbound.adoc[FTP Inbound Channel Adapter], and xref:sftp/inbound.adoc[SFTP Inbound Channel Adapter] for more information.
 
 [[x3.0-scripting-variables]]
 === Scripting Support: Variables Changes
 
 We introduced a new `variables` attribute for scripting components.
 In addition, variable bindings are now allowed for inline scripts.
-See <<./groovy.adoc#groovy,Groovy support>> and <<./scripting.adoc#scripting,Scripting Support>> for more information.
+See xref:groovy.adoc[Groovy support] and xref:scripting.adoc[Scripting Support] for more information.
 
 [[x3.0-direct-channel-lb-ref]]
 === Direct Channel Load Balancing configuration
 
 Previously, when configuring `LoadBalancingStrategy` on the channel's `dispatcher` child element, the only available option was to use a pre-defined enumeration of values which did not let developers set a custom implementation of the `LoadBalancingStrategy`.
 You can now use `load-balancer-ref` to provide a reference to a custom implementation of the `LoadBalancingStrategy`.
-For more information, see <<./channel.adoc#channel-implementations-directchannel,`DirectChannel`>>.
+For more information, see xref:channel/implementations.adoc#channel-implementations-directchannel[`DirectChannel`].
 
 [[x3.0-pub-sub]]
 === PublishSubscribeChannel Behavior
@@ -274,7 +274,7 @@ A new higher-level abstraction (`RemoteFileTemplate`) is provided over the `Sess
 While it is used internally by endpoints, you can also use this abstraction programmatically.
 Like all Spring `*Template` implementations, it reliably closes the underlying session while allowing low level access to the session.
 
-For more information, see <<./ftp.adoc#ftp,FTP/FTPS Adapters>> and <<./sftp.adoc#sftp,SFTP Adapters>>.
+For more information, see xref:ftp.adoc[FTP/FTPS Adapters] and xref:sftp.adoc[SFTP Adapters].
 
 [[x3.0-outbound-gateway-requires-reply]]
 === 'requires-reply' Attribute for Outbound Gateways
@@ -323,13 +323,13 @@ For more complex database-specific types not supported by the standard `Callable
 The `row-mapper` attribute of the stored procedure inbound channel adapter `<returning-resultset/>` child element now supports a reference to a `RowMapper` bean definition.
 Previously, it contained only a class name (which is still supported).
 
-For more information, see <<./jdbc.adoc#stored-procedures,Stored Procedures>>.
+For more information, see xref:jdbc/stored-procedures.adoc[Stored Procedures].
 
 [[x3.0-ws-outbound-uri-substitution]]
 === Web Service Outbound URI Configuration
 
 The web service outbound gateway 'uri' attribute now supports `<uri-variable/>` substitution for all URI schemes supported by Spring Web Services.
-For more information, see <<./ws.adoc#outbound-uri,Outbound URI Configuration>>.
+For more information, see xref:ws.adoc#outbound-uri[Outbound URI Configuration].
 
 [[x3.0-redis]]
 === Redis Adapter Changes
@@ -340,26 +340,26 @@ The Redis outbound channel adapter now has the `topic-expression` property to de
 
 The Redis inbound channel adapter, in addition to the existing `topics` attribute, now has the `topic-patterns` attribute.
 
-For more information, see <<./redis.adoc#redis,Redis Support>>.
+For more information, see xref:redis.adoc[Redis Support].
 
 [[x3.0-advising-filters]]
 === Advising Filters
 
 Previously, when a `<filter/>` had a `<request-handler-advice-chain/>`, the discard action was all performed within the scope of the advice chain (including any downstream flow on the `discard-channel`).
 The filter element now has an attribute called `discard-within-advice` (default: `true`) to allow the discard action to be performed after the advice chain completes.
-See <<./handler-advice.adoc#advising-filters,Advising Filters>>.
+See xref:handler-advice/advising-filters.adoc[Advising Filters].
 
 [[x3.0-annotation-advice]]
 === Advising Endpoints using Annotations
 
 Request handler advice chains can now be configured using annotations.
-See <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>>.
+See xref:handler-advice/advising-with-annotations.adoc[Advising Endpoints Using Annotations].
 
 [[x3.0-o-t-s-t]]
 === ObjectToStringTransformer Improvements
 
 This transformer now correctly transforms `byte[]` and `char[]` payloads to `String`.
-For more information, see <<./transformer.adoc#transformer,Transformer>>.
+For more information, see xref:transformer.adoc[Transformer].
 
 [[x3.0-jpa-changes]]
 === JPA Support Changes
@@ -373,13 +373,13 @@ The JPA adapters now have additional attributes to optionally flush and clear en
 
 Retrieving gateways had no mechanism to specify the first record to be retrieved, which is a common use case.
 The retrieving gateways now support specifying this parameter by adding the `first-result` and `first-result-expression` attributes to the gateway definition.
-For more information, see <<./jpa.adoc#jpa-retrieving-outbound-gateway,Retrieving Outbound Gateway>>.
+For more information, see xref:jpa/outbound-gateways.adoc#jpa-retrieving-outbound-gateway[Retrieving Outbound Gateway].
 
 The JPA retrieving gateway and inbound adapter now have an attribute to specify the maximum number of results in a result set as an expression.
 In addition, we introduced the `max-results` attribute to replace `max-number-of-results`, which has been deprecated.
 `max-results` and `max-results-expression` are used to provide the maximum number of results or an expression to compute the maximum number of results, respectively, in the result set.
 
-For more information, see <<./jpa.adoc#jpa,JPA Support>>.
+For more information, see xref:jpa.adoc[JPA Support].
 
 [[x3.0-dalay-expression]]
 === Delayer: delay expression
@@ -389,14 +389,14 @@ In complex cases, the `<delayer>` had to be preceded with a `<header-enricher>`.
 Spring Integration 3.0 introduced the `expression` attribute and `expression` child element for dynamic delay determination.
 The `delay-header-name` attribute is now deprecated, because you can specify the header evaluation in the `expression`.
 In addition, we introduced the `ignore-expression-failures` to control the behavior when an expression evaluation fails.
-For more information, see <<./delayer.adoc#delayer,Delayer>>.
+For more information, see xref:delayer.adoc[Delayer].
 
 [[x3.0-jdbc-mysql-v5_6_4]]
 === JDBC Message Store Improvements
 
 Spring Integration 3.0 adds a new set of DDL scripts for MySQL version 5.6.4 and higher.
 Now MySQL supports fractional seconds and is thus improving the FIFO ordering when polling from a MySQL-based message store.
-For more information, see <<./jdbc.adoc#jdbc-message-store-generic,The Generic JDBC Message Store>>.
+For more information, see xref:jdbc/message-store.adoc#jdbc-message-store-generic[The Generic JDBC Message Store].
 
 [[x3.0-event-for-imap-idle]]
 === IMAP Idle Connection Exceptions
@@ -411,7 +411,7 @@ Applications can obtain these events by using an `<int-event:inbound-channel-ada
 The TCP connection factories now enable the configuration of a flexible mechanism to transfer selected headers (as well as the payload) over TCP.
 A new `TcpMessageMapper` enables the selection of the headers, and you need to configure an appropriate serializer or deserializer to write the resulting `Map` to the TCP stream.
 We added a `MapJsonSerializer` as a convenient mechanism to transfer headers and payload over TCP.
-For more information, see <<./ip.adoc#ip-headers,Transferring Headers>>.
+For more information, see xref:ip/correlation.adoc#ip-headers[Transferring Headers].
 
 [[x3.0-jms-mdca-te]]
 === JMS Message Driven Channel Adapter
@@ -424,4 +424,4 @@ This is in addition to several other container attributes that were already avai
 === `XsltPayloadTransformer`
 
 You can now specify the transformer factory class name by setting the `transformer-factory-class` attribute.
-See `<<./xml.adoc#xml-xslt-payload-transformers,XsltPayloadTransformer>>`.
+See `xref:xml/transformation.adoc#xml-xslt-payload-transformers[XsltPayloadTransformer]`.

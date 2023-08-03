@@ -41,5 +41,5 @@ For example, the `ConsumerEndpointFactoryBean` for the `.transform("Hello "::con
 The `Transformer` implementation bean for that endpoint  has a bean name of `lambdaFlow.transformer#0` (starting with version 5.1), where instead of a fully qualified name of the `MethodInvokingTransformer` class, its component type is used.
 The same pattern is applied for all the `NamedComponent` s when the bean name has to be generated within the flow.
 These generated bean names are prepended with the flow ID for purposes such as parsing logs or grouping components together in some analysis tool, as well as to avoid a race condition when we concurrently register integration flows at runtime.
-See <<java-dsl-runtime-flows>> for more information.
+See xref:dsl/java-runtime-flows.adoc[Dynamic and Runtime Integration Flows] for more information.
 

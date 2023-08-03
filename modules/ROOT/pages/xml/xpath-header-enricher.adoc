@@ -51,7 +51,7 @@ Optional.
 The result of the XPath evaluation is converted to this type by `ConversionService`.
 This allows, for example, a `NUMBER_RESULT` (a double) to be converted to an `Integer`.
 The type can be declared as a primitive (such as `int`), but the result is always the equivalent wrapper class (such as `Integer`).
-The same integration `ConversionService` discussed in <<./endpoint.adoc#payload-type-conversion,Payload Type Conversion>> is used for the conversion, so conversion to custom types is supported by adding a custom converter to the service.
+The same integration `ConversionService` discussed in xref:endpoint.adoc#payload-type-conversion[Payload Type Conversion] is used for the conversion, so conversion to custom types is supported by adding a custom converter to the service.
 Optional.
 <10> Boolean value to indicate whether this header value should overwrite an existing header value for the same name if already present on the input `Message`.
 <11> The XPath expression as a `String`.

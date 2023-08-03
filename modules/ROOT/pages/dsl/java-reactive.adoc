@@ -23,5 +23,5 @@ public IntegrationFlow reactiveEndpointFlow() {
 ----
 ====
 
-See <<./reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
+See xref:reactive-streams.adoc[Reactive Streams Support] for more information.
 

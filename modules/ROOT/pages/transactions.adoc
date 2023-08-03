@@ -4,10 +4,10 @@
 This chapter covers Spring Integration's support for transactions.
 It covers the following topics:
 
-* <<understanding-transaction>>
-* <<transaction-boundaries>>
-* <<transaction-synchronization>>
-* <<pseudo-transactions>>
+* xref:transactions.adoc#understanding-transaction[Understanding Transactions in Message flows]
+* xref:transactions.adoc#transaction-boundaries[Transaction Boundaries]
+* xref:transactions.adoc#transaction-synchronization[Transaction Synchronization]
+* xref:transactions.adoc#pseudo-transactions[Pseudo Transactions]
 
 [[understanding-transaction]]
 == Understanding Transactions in Message flows
@@ -94,11 +94,11 @@ Internally, the process is wrapped in Spring's native transaction, where `Transa
 For more information on how to configure a transaction manager, the types of transaction managers (such as JTA, Datasource, and others), and other details related to transaction configuration, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#transaction[Spring Framework Reference Guide].
 
 With the preceding configuration, all message flows initiated by this poller are transactional.
-For more information and details on a poller's transactional configuration, see <<./jdbc.adoc#jdbc-polling-transactions,Polling and Transactions>>.
+For more information and details on a poller's transactional configuration, see xref:jdbc/inbound-channel-adapter.adoc#jdbc-polling-transactions[Polling and Transactions].
 
 Along with transactions, you might need to address several more cross-cutting concerns when you run a poller.
 To help with that, the poller element accepts an `<advice-chain>` child element, which lets you define a custom chain of advice instances to be applied on the Poller.
-(See <<./polling-consumer.adoc#pollable-message-source,Pollable Message Source>> for more details.)
+(See xref:polling-consumer.adoc#pollable-message-source[Pollable Message Source] for more details.)
 In Spring Integration 2.0, the Poller went through a refactoring effort and now uses a proxy mechanism to address transactional concerns as well as other cross-cutting concerns.
 One of the significant changes evolving from this effort is that we made the `<transactional>` and `<advice-chain>` elements be mutually exclusive.
 The rationale behind this is that, if you need more than one advice and one of them is Transaction advice, you can include it in the `<advice-chain>` with the same convenience as before but with much more control, since you now have an option to position the advice in the desired order.
@@ -148,7 +148,7 @@ If the transaction commits, we might want to move the file to a `success` direct
 
 Spring Integration 2.2 introduced the capability of synchronizing these operations with a transaction.
 In addition, you can configure a `PseudoTransactionManager` if you do not have a 'real' transaction but still want to perform different actions on success or failure.
-For more information, see <<pseudo-transactions>>.
+For more information, see xref:transactions.adoc#pseudo-transactions[Pseudo Transactions].
 
 The following listing shows the key strategy interfaces for this feature:
 
@@ -236,7 +236,7 @@ In that case, if the evaluation (or downstream processing) throws an exception, 
 [[pseudo-transactions]]
 == Pseudo Transactions
 
-After reading the <<transaction-synchronization>> section, you might think it would be useful to take these 'success' or 'failure' actions when a flow completes, even if there is no "`real`" transactional resources (such as JDBC) downstream of the poller.
+After reading the xref:transactions.adoc#transaction-synchronization[Transaction Synchronization] section, you might think it would be useful to take these 'success' or 'failure' actions when a flow completes, even if there is no "`real`" transactional resources (such as JDBC) downstream of the poller.
 For example, consider a "`<file:inbound-channel-adapter/>`" followed by an "`<ftp:outbout-channel-adapter/>`".
 Neither of these components is transactional, but we might want to move the input file to different directories, based on the success or failure of the FTP transfer.
 

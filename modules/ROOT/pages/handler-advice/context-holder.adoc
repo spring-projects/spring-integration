@@ -34,5 +34,5 @@ And it is just enough to send a message to the `in` channel with a `FACTORY_KEY`
 The `ContextHolderRequestHandlerAdvice` sets the value from that header into a `DelegatingSessionFactory` via its `setThreadKey`.
 Then when `FtpOutboundGateway` executes an `ls` command a proper delegating `SessionFactory` is chosen from the `DelegatingSessionFactory` according to the value in its `ThreadLocal`.
 When the result is produced from the `FtpOutboundGateway`, a `ThreadLocal` value in the `DelegatingSessionFactory` is cleared according to the `clearThreadKey()` call from the `ContextHolderRequestHandlerAdvice`.
-See <<./ftp.adoc#ftp-dsf,Delegating Session Factory>> for more information.
+See xref:ftp/dsf.adoc[Delegating Session Factory] for more information.
 

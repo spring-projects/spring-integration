@@ -31,7 +31,7 @@ NOTE: If you do not explicitly set a `SourceFactory`, the property on the `Unmar
 
 Starting with version 5.0, the `UnmarshallingTransformer` also supports an `org.springframework.ws.mime.MimeMessage` as the incoming payload.
 This can be useful when we receive a raw `WebServiceMessage` with MTOM attachments over SOAP .
-See <<./ws.adoc#mtom-support,MTOM Support>> for more information.
+See xref:ws.adoc#mtom-support[MTOM Support] for more information.
 
 The following example shows how to define an unmarshalling transformer:
 
@@ -129,7 +129,7 @@ By default, if the input payload is an instance of `String` or https://docs.orac
 However, if the input payload is a https://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Source.html[`Source`] or any other type, the `resultTransformer` property is applied.
 Additionally, you can set the `alwaysUseResultFactory` property to `true`, which also causes the specified `resultTransformer` to be used.
 
-For more information and examples, see <<xml-using-result-transformers-namespace>>.
+For more information and examples, see xref:xml/transformation.adoc#xml-using-result-transformers-namespace[Namespace Configuration and Result Transformers].
 
 [[xml-transformer-namespace]]
 == Namespace Support for XML Transformers
@@ -251,7 +251,7 @@ Starting with Spring Integration 3.0, you can now specify the transformer factor
 [[xml-using-result-transformers-namespace]]
 == Namespace Configuration and Result Transformers
 
-We cover using result transformers in <<xml-using-result-transformers>>.
+We cover using result transformers in xref:xml/transformation.adoc#xml-using-result-transformers[Using `ResultTransformer` Implementations].
 The examples in this section use XML namespace configuration to illustrates several special use cases.
 First, we define the `ResultTransformer`, as the following example shows:
 

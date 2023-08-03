@@ -152,7 +152,7 @@ PRIORITY
 DUPLICATE_MESSAGE
 | java.lang.Boolean
 | True if a message was detected as a duplicate by an idempotent receiver interceptor.
-See <<./handler-advice.adoc#idempotent-receiver,Idempotent Receiver Enterprise Integration Pattern>>.
+See xref:handler-advice/idempotent-receiver.adoc[Idempotent Receiver Enterprise Integration Pattern].
 
 | IntegrationMessageHeaderAccessor.
 CLOSEABLE_RESOURCE
@@ -172,7 +172,7 @@ ACKNOWLEDGMENT_CALLBACK
 Acknowledgment
 Callback
 | If an inbound endpoint supports it, a call back to accept, reject, or requeue a message.
-See <<./polling-consumer.adoc#deferred-acks-message-source,Deferred Acknowledgment Pollable Message Source>> and <<./mqtt.adoc#mqtt-ack-mode,MQTT Manual Acks>>.
+See xref:polling-consumer.adoc#deferred-acks-message-source[Deferred Acknowledgment Pollable Message Source] and xref:mqtt.adoc#mqtt-ack-mode[MQTT Manual Acks].
 |===
 
 Convenient typed getters for some of these headers are provided on the `IntegrationMessageHeaderAccessor` class, as the following example shows:
@@ -207,7 +207,7 @@ List<List<Object>>
 ROUTING_SLIP
 | java.util.
 Map<List<Object>, Integer>
-| See <<./router.adoc#routing-slip,Routing Slip>>.
+| See xref:router/routing-slip.adoc[Routing Slip].
 |===
 
 [[message-id-generation]]
@@ -239,18 +239,18 @@ The `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read-only headers and
 
 Since version 4.3.2, the `MessageBuilder` provides the `readOnlyHeaders(String... readOnlyHeaders)` API to customize a list of headers that should not be copied from an upstream `Message`.
 Only the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read only by default.
-The global `spring.integration.readOnly.headers` property (see <<./configuration.adoc#global-properties,Global Properties>>) is provided to customize `DefaultMessageBuilderFactory` for framework components.
-This can be useful when you would like do not populate some out-of-the-box headers, such as `contentType` by the `ObjectToJsonTransformer` (see <<./transformer.adoc#json-transformers,JSON Transformers>>).
+The global `spring.integration.readOnly.headers` property (see xref:configuration/global-properties.adoc[Global Properties]) is provided to customize `DefaultMessageBuilderFactory` for framework components.
+This can be useful when you would like do not populate some out-of-the-box headers, such as `contentType` by the `ObjectToJsonTransformer` (see xref:transformer.adoc#json-transformers[JSON Transformers]).
 
 When you try to build a new message using `MessageBuilder`, this kind of header is ignored and a particular `INFO` message is emitted to logs.
 
-Starting with version 5.0, <<./gateway.adoc#gateway,Messaging Gateway>>, <<./content-enrichment.adoc#header-enricher,Header Enricher>>, <<./content-enrichment.adoc#payload-enricher,Content Enricher>> and <<./transformer.adoc#header-filter,Header Filter>> do not let you configure the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` header names when `DefaultMessageBuilderFactory` is used, and they throw `BeanInitializationException`.
+Starting with version 5.0, xref:gateway.adoc[Messaging Gateway], xref:content-enrichment.adoc#header-enricher[Header Enricher], xref:content-enrichment.adoc#payload-enricher[Content Enricher] and xref:transformer.adoc#header-filter[Header Filter] do not let you configure the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` header names when `DefaultMessageBuilderFactory` is used, and they throw `BeanInitializationException`.
 
 [[header-propagation]]
 === Header Propagation
 
-When messages are processed (and modified) by message-producing endpoints (such as a <<./service-activator.adoc#service-activator,service activator>>), in general, inbound headers are propagated to the outbound message.
-One exception to this is a <<./transformer.adoc#transformer,transformer>>, when a complete message is returned to the framework.
+When messages are processed (and modified) by message-producing endpoints (such as a xref:service-activator.adoc[service activator]), in general, inbound headers are propagated to the outbound message.
+One exception to this is a xref:transformer.adoc[transformer], when a complete message is returned to the framework.
 In that case, the user code is responsible for the entire outbound message.
 When a transformer just returns the payload, the inbound headers are propagated.
 Also, a header is only propagated if it does not already exist in the outbound message, letting you change header values as needed.
@@ -268,7 +268,7 @@ In that case, the service activator behaves the same way as a transformer and an
 The `notPropagatedHeaders()` option is available in the `ConsumerEndpointSpec` for the Java DSL
 It is also available for XML configuration of the `<service-activator>` component as a `not-propagated-headers` attribute.
 
-IMPORTANT: Header propagation suppression does not apply to those endpoints that do not modify the message, such as <<./bridge.adoc#bridge,bridges>> and <<./router.adoc#router,routers>>.
+IMPORTANT: Header propagation suppression does not apply to those endpoints that do not modify the message, such as xref:bridge.adoc[bridges] and xref:router.adoc[routers].
 
 [[message-implementations]]
 == Message Implementations

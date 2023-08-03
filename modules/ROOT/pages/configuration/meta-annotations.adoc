@@ -106,7 +106,7 @@ public class MyFlowConfiguration {
 ----
 ====
 
-The meta-annotation rules work on `@Bean` methods as well (the `@MyServiceActivator` annotation <<meta-annotations,described earlier>> can be applied to a `@Bean` definition).
+The meta-annotation rules work on `@Bean` methods as well (the `@MyServiceActivator` annotation xref:configuration/meta-annotations.adoc[described earlier] can be applied to a `@Bean` definition).
 
 NOTE: When you use these annotations on consumer `@Bean` definitions, if the bean definition returns an appropriate `MessageHandler` (depending on the annotation type), you must set attributes (such as `outputChannel`, `requiresReply`, `order`, and others), on the `MessageHandler` `@Bean` definition itself.
 Only the following annotation attributes are used: `adviceChain`, `autoStartup`, `inputChannel`, `phase`, and `poller`.
@@ -117,9 +117,9 @@ NOTE: The bean names are generated with the following algorithm:
 * The `MessageHandler` (`MessageSource`) `@Bean` gets its own standard name from the method name or `name` attribute on the `@Bean`.
 This works as though there were no messaging annotation on the `@Bean` method.
 * The `AbstractEndpoint` bean name is generated with the following pattern: `[@Bean name].[decapitalizedAnnotationClassShortName]`.
-For example, the `SourcePollingChannelAdapter` endpoint for the `consoleSource()` definition <<annotations_on_beans,shown earlier>> gets a bean name of `consoleSource.inboundChannelAdapter`.
+For example, the `SourcePollingChannelAdapter` endpoint for the `consoleSource()` definition xref:configuration/meta-annotations.adoc#annotations_on_beans[shown earlier] gets a bean name of `consoleSource.inboundChannelAdapter`.
 Unlike with POJO methods, the bean method name is not included in the endpoint bean name.
-See also <<./overview.adoc#endpoint-bean-names,Endpoint Bean Names>>.
+See also xref:overview.adoc#endpoint-bean-names[Endpoint Bean Names].
 * If `@Bean` cannot be used directly in the target endpoint (not an instance of a `MessageSource`, `AbstractReplyProducingMessageHandler` or `AbstractMessageRouter`), a respective `AbstractStandardMessageHandlerFactoryBean` is registered to delegate to this `@Bean`.
 The bean name for this wrapper is generated with the following pattern: `[@Bean name].[decapitalizedAnnotationClassShortName].[handler (or source)]`.
 
@@ -182,5 +182,5 @@ You can use these annotations as meta-annotations as well.
 [[advising-annotated-endpoints]]
 == Advising Annotated Endpoints
 
-See <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>>.
+See xref:handler-advice/advising-with-annotations.adoc[Advising Endpoints Using Annotations].
 

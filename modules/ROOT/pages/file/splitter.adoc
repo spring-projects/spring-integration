@@ -135,7 +135,7 @@ The default is `true`.
 
 The `FileSplitter` also splits any text-based `InputStream` into lines.
 Starting with version 4.3, when used in conjunction with an FTP or SFTP streaming inbound channel adapter or an FTP or SFTP outbound gateway that uses the `stream` option to retrieve a file, the splitter automatically closes the session that supports the stream when the file is completely consumed
-See <<./ftp.adoc#ftp-streaming,FTP Streaming Inbound Channel Adapter>> and <<./sftp.adoc#sftp-streaming,SFTP Streaming Inbound Channel Adapter>> as well as <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>> and <<./sftp.adoc#sftp-outbound-gateway,SFTP Outbound Gateway>> for more information about these facilities.
+See xref:ftp/streaming.adoc[FTP Streaming Inbound Channel Adapter] and xref:sftp/streaming.adoc[SFTP Streaming Inbound Channel Adapter] as well as xref:ftp/outbound-gateway.adoc[FTP Outbound Gateway] and xref:sftp/outbound-gateway.adoc[SFTP Outbound Gateway] for more information about these facilities.
 
 When using Java configuration, an additional constructor is available, as the following example shows:
 
@@ -155,14 +155,14 @@ NOTE: Starting with version 5.5, the lineCount` is also included as a `FileHeade
 If a file contains only the header line, the file is treated as empty and, therefore, only `FileMarker` instances are emitted during splitting (if markers are enabled -- otherwise, no messages are emitted).
 By default (if no header name is set), the first line is considered to be data and becomes the payload of the first emitted message.
 
-If you need more complex logic about header extraction from the file content (not first line, not the whole content of the line, not one particular header, and so on), consider using  <<./content-enrichment.adoc#header-enricher,header enricher>> ahead of the `FileSplitter`.
+If you need more complex logic about header extraction from the file content (not first line, not the whole content of the line, not one particular header, and so on), consider using  xref:content-enrichment.adoc#header-enricher[header enricher] ahead of the `FileSplitter`.
 Note that the lines that have been moved to the headers might be filtered downstream from the normal content process.
 
 [[idempotent-file-splitter]]
 == Idempotent Downstream Processing a Split File
 
 When `apply-sequence` is true, the splitter adds the line number in the `SEQUENCE_NUMBER` header (when `markers` is true, the markers are counted as lines).
-The line number can be used with an <<./handler-advice.adoc#idempotent-receiver,Idempotent Receiver>> to avoid reprocessing lines after a restart.
+The line number can be used with an xref:handler-advice/idempotent-receiver.adoc[Idempotent Receiver] to avoid reprocessing lines after a restart.
 
 For example:
 

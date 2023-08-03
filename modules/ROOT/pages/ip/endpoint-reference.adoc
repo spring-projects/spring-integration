@@ -51,7 +51,7 @@ Defaults to `ByteArrayCrLfSerializer`
 | `true`, `false`
 | Whether the connection uses NIO.
 Refer to the `java.nio` package for more information.
-See <<note-nio>>.
+See xref:ip/note-nio.adoc[About Non-blocking I/O (NIO)].
 Default: `false`.
 
 | `using-direct-buffers`
@@ -68,7 +68,7 @@ Must be `false` if `using-nio` is `false`.
 | `true`, `false`
 | When you use NIO, it may be necessary to resequence messages.
 When this attribute is set to `true`, `correlationId` and `sequenceNumber` headers are added to received messages.
-See <<note-nio>>.
+See xref:ip/note-nio.adoc[About Non-blocking I/O (NIO)].
 Default: `false`.
 
 | `so-timeout`
@@ -164,31 +164,31 @@ Default: `false`.
 | Y
 | Y
 |
-| See <<ip-interceptors>>.
+| See xref:ip/interceptors.adoc[TCP Connection Interceptors].
 
 | `ssl-context-support`
 | Y
 | Y
 |
-| See `<<ssl-tls>>`.
+| See `xref:ip/ssl-tls.adoc[SSL/TLS Support]`.
 
 | `socket-factory-support`
 | Y
 | Y
 |
-| See `<<ssl-tls>>`.
+| See `xref:ip/ssl-tls.adoc[SSL/TLS Support]`.
 
 | `socket-support`
 | Y
 | Y
 |
-| See <<ssl-tls>>.
+| See xref:ip/ssl-tls.adoc[SSL/TLS Support].
 
 | `nio-connection-support`
 | Y
 | Y
 |
-| See <<tcp-advanced-techniques>>.
+| See xref:ip/tcp-advanced-techniques.adoc[Advanced Techniques].
 
 | `read-delay`
 | Y
@@ -403,7 +403,7 @@ Default: 60000 (60 seconds).
 | `true`, `false`
 | Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
 If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
-See <<./configuration.adoc#namespace-taskscheduler,Configuring the Task Scheduler>>.
+See xref:configuration/namespace-taskscheduler.adoc[Configuring the Task Scheduler].
 |===
 
 The following table describes attributes that you can set to configure TCP outbound channel adapters:
@@ -441,7 +441,7 @@ Default: 60000 (60 seconds).
 | `true`, `false`
 | Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
 If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
-See <<./configuration.adoc#namespace-taskscheduler,Configuring the Task Scheduler>>.
+See xref:configuration/namespace-taskscheduler.adoc[Configuring the Task Scheduler].
 |===
 
 The following table describes attributes that you can set to configure TCP inbound gateways:
@@ -492,7 +492,7 @@ Default: 60000 (60 seconds).
 | `true`, `false`
 | Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
 If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
-See <<./configuration.adoc#namespace-taskscheduler,Configuring the Task Scheduler>>.
+See xref:configuration/namespace-taskscheduler.adoc[Configuring the Task Scheduler].
 |===
 
 The following table describes attributes that you can set to configure TCP outbound gateways:

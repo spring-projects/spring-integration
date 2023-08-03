@@ -143,7 +143,7 @@ This is an exact behavior present currently with `@MessageMapping` semantics.
 To restore a previous behavior or decode the whole `Flux` as single unit according application requirements, the `decodeFluxAsUnit` has to be set to `true`.
 However the target decoding logic depends on the `Decoder` selected, e.g. a `StringDecoder` requires a new line separator (by default) to be present in the stream to indicate a byte buffer end.
 
-See <<rsocket-java-config>> for samples how to configure an `RSocketInboundGateway` endpoint and deal with payloads downstream.
+See xref:rsocket.adoc#rsocket-java-config[Configuring RSocket Endpoints with Java] for samples how to configure an `RSocketInboundGateway` endpoint and deal with payloads downstream.
 
 [[rsocket-outbound]]
 == RSocket Outbound Gateway
@@ -191,7 +191,7 @@ Or subscribed explicitly in the target application logic.
 The expected response type can also be configured (or evaluated via expression) to `void` treating this gateway as an outbound channel adapter.
 However, the `outputChannel` still has to be configured (even if it just a `NullChannel`) to initiate a subscription to the returned `Mono`.
 
-See <<rsocket-java-config>> for samples how to configure an `RSocketOutboundGateway` endpoint a deal with payloads downstream.
+See xref:rsocket.adoc#rsocket-java-config[Configuring RSocket Endpoints with Java] for samples how to configure an `RSocketOutboundGateway` endpoint a deal with payloads downstream.
 
 [[rsocket-namespace]]
 == RSocket Namespace Support
@@ -345,4 +345,4 @@ public IntegrationFlow rsocketUpperCaseRequestFlow(ClientRSocketConnector client
 ----
 ====
 
-See <<./dsl.adoc#integration-flow-as-gateway,`IntegrationFlow` as a Gateway>> for more information how to use a mentioned `Function` interface in the beginning of the flow above.
+See xref:dsl/integration-flow-as-gateway.adoc[`IntegrationFlow` as a Gateway] for more information how to use a mentioned `Function` interface in the beginning of the flow above.

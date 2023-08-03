@@ -14,7 +14,7 @@ The following example shows how to create such a router:
 ----
 ====
 
-NOTE: For an overview of attributes that are common among Routers, see <<./router.adoc#router-common-parameters,Common Router Parameters>>.
+NOTE: For an overview of attributes that are common among Routers, see xref:router/common-parameters.adoc[Common Router Parameters].
 
 Internally, XPath expressions are evaluated as type `NODESET` and converted to a `List<String>` that represents channel names.
 Typically, such a list contains a single channel name.

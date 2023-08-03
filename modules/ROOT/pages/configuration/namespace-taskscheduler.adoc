@@ -14,7 +14,7 @@ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME
 ====
 
 By default, Spring Integration relies on an instance of `ThreadPoolTaskScheduler`, as described in the https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling[Task Execution and Scheduling] section of the Spring Framework reference manual.
-That default `TaskScheduler` starts up automatically with a pool of ten threads, but see <<global-properties>>.
+That default `TaskScheduler` starts up automatically with a pool of ten threads, but see xref:configuration/global-properties.adoc[Global Properties].
 If you provide your own `TaskScheduler` instance instead, you can set the 'autoStartup' property to `false` or provide your own pool size value.
 
 When polling consumers provide an explicit task executor reference in their configuration, the invocation of the handler methods happens within that executor's thread pool and not the main scheduler pool.
@@ -49,5 +49,5 @@ To do so, define a bean with the appropriate JNDI name for your environment, as 
 
 IMPORTANT: When a custom `TaskScheduler` is configured in the application context (like the above mentioned `DefaultManagedTaskScheduler`), it is recommended to supply it with a `MessagePublishingErrorHandler` (`integrationMessagePublishingErrorHandler` bean) to be able to handle exceptions as `ErrorMessage`s sent to the error channel, as is done with the default `TaskScheduler` bean provided by the framework.
 
-See also <<./error-handling.adoc#error-handling,Error Handling>> for more information.
+See also xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] for more information.
 

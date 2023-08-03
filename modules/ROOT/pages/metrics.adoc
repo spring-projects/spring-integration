@@ -196,4 +196,4 @@ A `DirectChannel`, though, is ignored since its consumer is executed directly on
 [[spring-integration-jmx-support]]
 == Spring Integration JMX Support
 
-Also see <<./jmx.adoc#jmx,JMX Support>>.
+Also see xref:jmx.adoc[JMX Support].

@@ -26,10 +26,10 @@ The JPA API must be included via some vendor-specific implementation, e.g. Hiber
 
 The following components are provided:
 
-* <<jpa-inbound-channel-adapter,Inbound channel adapter>>
-* <<jpa-outbound-channel-adapter,Outbound channel adapter>>
-* <<jpa-updating-outbound-gateway,Updating outbound gateway>>
-* <<jpa-retrieving-outbound-gateway,Retrieving outbound gateway>>
+* xref:jpa/inbound-channel-adapter.adoc[Inbound channel adapter]
+* xref:jpa/outbound-channel-adapter.adoc[Outbound channel adapter]
+* xref:jpa/outbound-gateways.adoc#jpa-updating-outbound-gateway[Updating outbound gateway]
+* xref:jpa/outbound-gateways.adoc#jpa-retrieving-outbound-gateway[Retrieving outbound gateway]
 
 These components can be used to perform `select`, `create`, `update`, and `delete` operations on the target databases by sending and receiving messages to them.
 

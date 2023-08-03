@@ -13,7 +13,7 @@ You can pass in your own implementation of AMQP-specific header mappers, as the 
 
 Any user-defined headers within the AMQP https://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[`MessageProperties`] are copied to or from an AMQP message, unless explicitly negated by the `requestHeaderNames` or `replyHeaderNames` properties of the `DefaultAmqpHeaderMapper`.
 By default, for an outbound mapper, no `x-*` headers are mapped.
-See the <<header-copy-caution,caution>> that appears later in this section for why.
+See the xref:amqp/message-headers.adoc#header-copy-caution[caution] that appears later in this section for why.
 
 To override the default and revert to the pre-4.3 behavior, use `STANDARD_REQUEST_HEADERS` and
 `STANDARD_REPLY_HEADERS` in the properties.
@@ -29,7 +29,7 @@ The `org.springframework.amqp.support.AmqpHeaders` class identifies the default 
 * `amqp_clusterId`
 * `amqp_contentEncoding`
 * `amqp_contentLength`
-* `content-type` (see <<amqp-content-type>>)
+* `content-type` (see xref:amqp/message-headers.adoc#amqp-content-type[The `contentType` Header])
 * `amqp_correlationId`
 * `amqp_delay`
 * `amqp_deliveryMode`

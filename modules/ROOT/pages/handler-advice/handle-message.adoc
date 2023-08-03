@@ -1,18 +1,18 @@
 [[handle-message-advice]]
 = Handling Message Advice
 
-As discussed in <<message-handler-advice-chain, the introduction to this section>>, advice objects in a request handler advice chain are applied to just the current endpoint, not the downstream flow (if any).
+As discussed in xref:handler-advice.adoc[the introduction to this section], advice objects in a request handler advice chain are applied to just the current endpoint, not the downstream flow (if any).
 For `MessageHandler` objects that produce a reply (such as those that extend `AbstractReplyProducingMessageHandler`), the advice is applied to an internal method: `handleRequestMessage()` (called from `MessageHandler.handleMessage()`).
 For other message handlers, the advice is applied to `MessageHandler.handleMessage()`.
 
 There are some circumstances where, even if a message handler is an `AbstractReplyProducingMessageHandler`, the advice must be applied to the `handleMessage` method.
-For example, the <<idempotent-receiver, idempotent receiver>> might return `null`, which would cause an exception if the handler's `replyRequired` property is set to `true`.
-Another example is the `BoundRabbitChannelAdvice` -- see <<./amqp.adoc#amqp-strict-ordering,Strict Message Ordering>>.
+For example, the xref:handler-advice/idempotent-receiver.adoc[idempotent receiver] might return `null`, which would cause an exception if the handler's `replyRequired` property is set to `true`.
+Another example is the `BoundRabbitChannelAdvice` -- see xref:amqp/strict-ordering.adoc[Strict Message Ordering].
 
 Starting with version 4.3.1, a new `HandleMessageAdvice` interface and its base implementation (`AbstractHandleMessageAdvice`) have been introduced.
 `Advice` objects that implement `HandleMessageAdvice` are always applied to the `handleMessage()` method, regardless of the handler type.
 
-It is important to understand that `HandleMessageAdvice` implementations (such as <<idempotent-receiver, idempotent receiver>>), when applied to a handlers that return responses, are dissociated from the `adviceChain` and properly applied to the `MessageHandler.handleMessage()` method.
+It is important to understand that `HandleMessageAdvice` implementations (such as xref:handler-advice/idempotent-receiver.adoc[idempotent receiver]), when applied to a handlers that return responses, are dissociated from the `adviceChain` and properly applied to the `MessageHandler.handleMessage()` method.
 
 NOTE: Because of this disassociation, the advice chain order is not honored.
 

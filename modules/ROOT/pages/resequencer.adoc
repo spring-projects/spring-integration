@@ -20,7 +20,7 @@ If you have a large number of disjoint sequences with many gaps, you may experie
 [[configuring-a-resequencer]]
 == Configuring a Resequencer
 
-See <<./dsl.adoc#java-dsl-aggregators,Aggregators and Resequencers>> for configuring a resequencer in Java DSL.
+See xref:dsl/java-aggregators.adoc[Aggregators and Resequencers] for configuring a resequencer in Java DSL.
 
 Configuring a resequencer requires only including the appropriate element in XML.
 
@@ -73,7 +73,7 @@ Optional.
 <7> Whether, upon the expiration of the group, the ordered group should be sent out (even if some messages are missing).
 Optional.
 (The default is false.)
-See <<./aggregator.adoc#reaper,Managing State in an Aggregator: `MessageGroupStore`>>.
+See xref:aggregator.adoc#reaper[Managing State in an Aggregator: `MessageGroupStore`].
 <8> The timeout interval to wait when sending a reply `Message` to the `output-channel` or `discard-channel`.
 It is applied only if the output channel has some 'sending' limitations, such as a  `QueueChannel` with a fixed 'capacity'.
 In this case, a `MessageDeliveryException` is thrown.
@@ -107,10 +107,10 @@ This is to enable the detection and discarding of late-arriving messages.
 If you wish to expire empty groups on a longer schedule than expiring partial groups, set this property.
 Empty groups are then not removed from the `MessageStore` until they have not been modified for at least this number of milliseconds.
 Note that the actual time to expire an empty group is also affected by the reaper's timeout property, and it could be as much as this value plus the timeout.
-<16> See <<./aggregator.adoc#aggregator-xml,Configuring an Aggregator with XML>>.
-<17> See <<./aggregator.adoc#aggregator-xml,Configuring an Aggregator with XML>>.
-<18> See <<./aggregator.adoc#aggregator-xml,Configuring an Aggregator with XML>>.
-<19> See <<./aggregator.adoc#aggregator-xml,Configuring an Aggregator with XML>>.
+<16> See xref:aggregator.adoc#aggregator-xml[Configuring an Aggregator with XML].
+<17> See xref:aggregator.adoc#aggregator-xml[Configuring an Aggregator with XML].
+<18> See xref:aggregator.adoc#aggregator-xml[Configuring an Aggregator with XML].
+<19> See xref:aggregator.adoc#aggregator-xml[Configuring an Aggregator with XML].
 <20> By default, when a group is completed due to a timeout (or by a `MessageGroupStoreReaper`), the empty group's metadata is retained.
 Late arriving messages are immediately discarded.
 Set this to `true` to remove the group completely.
@@ -121,6 +121,6 @@ Starting with version 5.0, empty groups are also scheduled for removal after the
 The default is 'false'.
 ====
 
-Also see <<./aggregator.adoc#aggregator-expiring-groups, Aggregator Expiring Groups>> for more information.
+Also see xref:aggregator.adoc#aggregator-expiring-groups[Aggregator Expiring Groups] for more information.
 
 NOTE: Since there is no custom behavior to be implemented in Java classes for resequencers, there is no annotation support for it.

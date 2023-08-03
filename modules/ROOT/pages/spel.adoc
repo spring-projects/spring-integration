@@ -51,7 +51,7 @@ For convenience, Spring Integration provides namespace support for both property
 The framework automatically configures the factory bean on your behalf.
 
 This factory bean definition overrides the default `integrationEvaluationContext` bean definition.
-It adds the custom accessor and one custom function to the list (which also includes the standard accessors <<spel,mentioned earlier>>).
+It adds the custom accessor and one custom function to the list (which also includes the standard accessors xref:spel.adoc[mentioned earlier]).
 
 Note that custom functions are static methods.
 In the preceding example, the custom function is a static method called `calc` on a class called `MyFunctions` and takes a single parameter of type `MyThing`.
@@ -157,10 +157,10 @@ The following listing shows some usage examples:
 NOTE: Using this function requires the Jayway JsonPath library (`json-path.jar`) to be on the classpath.
 Otherwise, the `#jsonPath` SpEL function is not registered.
 +
-For more information regarding JSON see 'JSON Transformers' in <<./transformer.adoc#transformer,Transformer>>.
+For more information regarding JSON see 'JSON Transformers' in xref:transformer.adoc[Transformer].
 
 * `#xpath`: To evaluate an 'xpath' on some provided object.
-For more information regarding XML and XPath, see <<./xml.adoc#xml,XML Support - Dealing with XML Payloads>>.
+For more information regarding XML and XPath, see xref:xml.adoc[XML Support - Dealing with XML Payloads].
 
 [[spel-property-accessors]]
 == Property Accessors

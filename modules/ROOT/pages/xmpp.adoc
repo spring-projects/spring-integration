@@ -122,7 +122,7 @@ See the https://www.igniterealtime.org/builds/smack/docs/latest/javadoc/org/jive
 
 Version 4.3 introduced the `payload-expression` attribute for the `ChatMessageListeningEndpoint`.
 The incoming `org.jivesoftware.smack.packet.Message` represents a root object for the evaluation context.
-This option is useful when you use <<xmpp-extensions,XMPP extensions>>.
+This option is useful when you use xref:xmpp.adoc#xmpp-extensions[XMPP extensions].
 For example, for the GCM protocol we can extract the body by using the following expression:
 
 ====
@@ -261,7 +261,7 @@ The following example shows how to do so:
 
 Like its inbound counterpart, it requires a reference to an XMPP Connection.
 
-NOTE: If you rely on the default naming convention for an XMPP Connection bean (<<xmpp-connection,described earlier>>) and you have only one XMPP Connection bean configured in your application context, you can omit the `xmpp-connection` attribute.
+NOTE: If you rely on the default naming convention for an XMPP Connection bean (xref:xmpp.adoc#xmpp-connection[described earlier]) and you have only one XMPP Connection bean configured in your application context, you can omit the `xmpp-connection` attribute.
 In that case, the bean with named `xmppConnection` is located and injected into the adapter.
 
 [[xmpp-advanced]]
@@ -269,7 +269,7 @@ In that case, the bean with named `xmppConnection` is located and injected into 
 
 Spring Integration's XMPP support is based on the Smack 4.0 API (https://www.igniterealtime.org/projects/smack/), which allows more complex configuration of the XMPP Connection object.
 
-As <<xmpp-connection,stated earlier>>, the `xmpp-connection` namespace support is designed to simplify basic connection configuration and supports only a few common configuration attributes.
+As xref:xmpp.adoc#xmpp-connection[stated earlier], the `xmpp-connection` namespace support is designed to simplify basic connection configuration and supports only a few common configuration attributes.
 However, the `org.jivesoftware.smack.ConnectionConfiguration` object defines about 20 attributes, and adding namespace support for all of them offers no real value.
 So, for more complex connection configurations, you can configure an instance of our `XmppConnectionFactoryBean` as a regular bean and inject a `org.jivesoftware.smack.ConnectionConfiguration` as a constructor argument to that `FactoryBean`.
 You can specify every property you need directly on that `ConnectionConfiguration` instance.
@@ -460,4 +460,4 @@ smackMessage.addExtension(packetExtension);
 ----
 ====
 
-See <<xmpp-message-inbound-channel-adapter>> and <<xmpp-message-outbound-channel-adapter>> earlier in this chapter for more information.
+See xref:xmpp.adoc#xmpp-message-inbound-channel-adapter[Inbound Message Channel Adapter] and xref:xmpp.adoc#xmpp-message-outbound-channel-adapter[Outbound Message Channel Adapter] earlier in this chapter for more information.

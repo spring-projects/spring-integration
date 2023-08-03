@@ -25,5 +25,5 @@ If the associated connection factory is configured for single-use connections, a
 Otherwise, if the connection is in use, the calling thread blocks on the connection until either a response is received or a timeout or I/O error occurs.
 
 The TCP and UDP inbound channel adapters and the TCP inbound gateway support the `error-channel` attribute.
-This provides the same basic functionality as described in <<./gateway.adoc#gateway-proxy,Enter the `GatewayProxyFactoryBean`>>.
+This provides the same basic functionality as described in xref:gateway.adoc#gateway-proxy[Enter the `GatewayProxyFactoryBean`].
 

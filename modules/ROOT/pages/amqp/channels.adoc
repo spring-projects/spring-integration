@@ -53,7 +53,7 @@ The entire message was converted (serialized) and sent to RabbitMQ.
 Now, you can set the `extract-payload` attribute (or `setExtractPayload()` when using Java configuration) to `true`.
 When this flag is `true`, the message payload is converted and the headers are mapped, in a manner similar to when you use channel adapters.
 This arrangement lets AMQP-backed channels be used with non-serializable payloads (perhaps with another message converter, such as the `Jackson2JsonMessageConverter`).
-See <<amqp-message-headers>> for more about the default mapped headers.
+See xref:amqp/message-headers.adoc[AMQP Message Headers] for more about the default mapped headers.
 You can modify the mapping by providing custom mappers that use the `outbound-header-mapper` and `inbound-header-mapper` attributes.
 You can now also specify a `default-delivery-mode`, which is used to set the delivery mode when there is no `amqp_deliveryMode` header.
 By default, Spring AMQP `MessageProperties` uses `PERSISTENT` delivery mode.

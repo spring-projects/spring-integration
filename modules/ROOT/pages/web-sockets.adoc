@@ -117,7 +117,7 @@ NOTE: Spring's WebSocket Support allows the configuration of only one broker rel
 Consequently, we do not require an `AbstractBrokerMessageHandler` reference.
 It is detected in the Application Context.
 
-For more configuration options, see <<web-sockets-namespace>>.
+For more configuration options, see xref:web-sockets.adoc#web-sockets-namespace[WebSockets Namespace Support].
 
 [[web-socket-outbound-adapter]]
 == WebSocket Outbound Channel Adapter
@@ -132,7 +132,7 @@ The `WebSocketOutboundChannelAdapter`:
 On the client side, the `WebSocketSession` `id` message header is not required, because `ClientWebSocketContainer` deals only with a single connection and its `WebSocketSession` respectively.
 
 To use the STOMP sub-protocol, you should configure this adapter with a `StompSubProtocolHandler`.
-Then you can send any STOMP message type to this adapter, using `StompHeaderAccessor.create(StompCommand...)` and a `MessageBuilder`, or just using a `HeaderEnricher` (see <<./content-enrichment.adoc#header-enricher,Header Enricher>>).
+Then you can send any STOMP message type to this adapter, using `StompHeaderAccessor.create(StompCommand...)` and a `MessageBuilder`, or just using a `HeaderEnricher` (see xref:content-enrichment.adoc#header-enricher[Header Enricher]).
 
 The rest of this chapter covers largely additional configuration options.
 
@@ -203,7 +203,7 @@ Defaults to `524288`.
 determines the behavior when a session's outbound message buffer has reached the `send-buffer-size-limit`.
 See `ConcurrentWebSocketSessionDecorator.OverflowStrategy` for possible values and more details.
 <9> Boolean value indicating whether this endpoint should start automatically.
-Defaults to `false`, assuming that this container is started from the <<web-socket-inbound-adapter, WebSocket inbound adapter>>.
+Defaults to `false`, assuming that this container is started from the xref:web-sockets.adoc#web-socket-inbound-adapter[WebSocket inbound adapter].
 <10> The lifecycle phase within which this endpoint should start and stop.
 The lower the value, the earlier this endpoint starts and the later it stops.
 The default is `Integer.MAX_VALUE`.
@@ -408,7 +408,7 @@ The purpose of the `ClientStompEncoder`, in this case, is to override the `stomp
 == Dynamic WebSocket Endpoints Registration
 
 Starting with version 5.5, the WebSocket server endpoints (channel adapters based on a `ServerWebSocketContainer`) can now be registered (and removed) at runtime - the `paths` a `ServerWebSocketContainer` is mapped is exposed via `HandlerMapping` into a `DispatcherServlet` and accessible for WebSocket clients.
-The <<./dsl.adoc#java-dsl-runtime-flows,Dynamic and Runtime Integration Flows>> support helps to register these endpoints in a transparent manner:
+The xref:dsl/java-runtime-flows.adoc[Dynamic and Runtime Integration Flows] support helps to register these endpoints in a transparent manner:
 
 ====
 [source,java]

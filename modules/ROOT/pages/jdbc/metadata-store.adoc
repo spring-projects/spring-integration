@@ -1,15 +1,15 @@
 [[jdbc-metadata-store]]
 = JDBC Metadata Store
 
-Version 5.0 introduced the JDBC `MetadataStore` (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>) implementation.
+Version 5.0 introduced the JDBC `MetadataStore` (see xref:meta-data-store.adoc[Metadata Store]) implementation.
 You can use the `JdbcMetadataStore` to maintain the metadata state across application restarts.
 This `MetadataStore` implementation can be used with adapters such as the following:
 
 
-* <<./feed.adoc#feed-inbound-channel-adapter,Feed inbound channel adapters>>
-* <<./file.adoc#file-reading,File inbound channel adapters>>
-* <<./ftp.adoc#ftp-inbound,FTP inbound channel adapters>>
-* <<./sftp.adoc#sftp-inbound,SFTP inbound channel adapters>>
+* xref:feed.adoc#feed-inbound-channel-adapter[Feed inbound channel adapters]
+* xref:file/reading.adoc[File inbound channel adapters]
+* xref:ftp/inbound.adoc[FTP inbound channel adapters]
+* xref:sftp/inbound.adoc[SFTP inbound channel adapters]
 
 To configure these adapters to use the `JdbcMetadataStore`, declare a Spring bean by using a bean name of `metadataStore`.
 The Feed inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `JdbcMetadataStore`, as the following example shows:

@@ -3,13 +3,13 @@
 
 In addition to providing the general mechanism to apply AOP advice classes, Spring Integration provides these out-of-the-box advice implementations:
 
-* `RequestHandlerRetryAdvice` (described in <<retry-advice>>)
-* `RequestHandlerCircuitBreakerAdvice` (described in <<circuit-breaker-advice>>)
+* `RequestHandlerRetryAdvice` (described in xref:handler-advice/classes.adoc#retry-advice[Retry Advice])
+* `RequestHandlerCircuitBreakerAdvice` (described in xref:handler-advice/classes.adoc#circuit-breaker-advice[Circuit Breaker Advice])
 * `ExpressionEvaluatingRequestHandlerAdvice` (described in <<expression-advice>>)
-* `RateLimiterRequestHandlerAdvice` (described in <<rate-limiter-advice>>)
-* `CacheRequestHandlerAdvice` (described in <<cache-advice>>)
-* `ReactiveRequestHandlerAdvice` (described in <<reactive-advice>>)
-* `ContextHolderRequestHandlerAdvice` (described in <<context-holder-advice>>)
+* `RateLimiterRequestHandlerAdvice` (described in xref:handler-advice/classes.adoc#rate-limiter-advice[Rate Limiter Advice])
+* `CacheRequestHandlerAdvice` (described in xref:handler-advice/classes.adoc#cache-advice[Caching Advice])
+* `ReactiveRequestHandlerAdvice` (described in xref:handler-advice/reactive.adoc[Reactive Advice])
+* `ContextHolderRequestHandlerAdvice` (described in xref:handler-advice/context-holder.adoc[Context Holder Advice])
 
 [[expression-advice]]
 

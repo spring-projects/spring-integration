@@ -47,7 +47,7 @@ However, Spring Integration supports a few simple message mapping strategies.
 For example, if the message payload is a byte array, that is mapped to an attachment.
 For simple text-based emails, you can provide a string-based message payload.
 In that case, a `MailMessage` is created with that `String` as the text content.
-If you work with a message payload type whose `toString()` method returns appropriate mail text content, consider adding Spring Integration's `ObjectToStringTransformer` prior to the outbound mail adapter (see the example in <<./transformer.adoc#transformer-namespace,Configuring a Transformer with XML>> for more detail).
+If you work with a message payload type whose `toString()` method returns appropriate mail text content, consider adding Spring Integration's `ObjectToStringTransformer` prior to the outbound mail adapter (see the example in xref:transformer.adoc#transformer-namespace[Configuring a Transformer with XML] for more detail).
 
 You can also configure the outbound `MailMessage` with certain values from `MessageHeaders`.
 If available, values are mapped to the outbound mail's properties, such as the recipients (To, Cc, and BCc), the `from`, the `reply-to`, and the `subject`.
@@ -109,7 +109,7 @@ With a simple `MimeMessage`, `getContent()` returns the mail body (`something` i
 
 Starting with version 2.2, the framework eagerly fetches IMAP messages and exposes them as an internal subclass of `MimeMessage`.
 This had the undesired side effect of changing the `getContent()` behavior.
-This inconsistency was further exacerbated by the <<mail-mapping, Mail Mapping>> enhancement introduced in version 4.3, because, when a header mapper was provided, the payload was rendered by the `IMAPMessage.getContent()` method.
+This inconsistency was further exacerbated by the xref:mail.adoc#mail-mapping[Mail Mapping] enhancement introduced in version 4.3, because, when a header mapper was provided, the payload was rendered by the `IMAPMessage.getContent()` method.
 This meant that the IMAP content differed, depending on whether a header mapper was provided.
 
 Starting with version 5.0, messages originating from an IMAP source render the content in accordance with `IMAPMessage.getContent()` behavior, regardless of whether a header mapper is provided.
@@ -118,7 +118,7 @@ This property now controls the rendering regardless of whether a header mapper i
 It now allows body-only rendering when a header mapper is provided.
 
 Starting with version 5.2, the `autoCloseFolder` option is provided on the mail receiver.
-Setting it to `false` doesn't close the folder automatically after a fetch, but instead an `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header (see <<./message.adoc#message-header-accessor,`MessageHeaderAccessor` API>> for more information) is populated into every message to producer from the channel adapter.
+Setting it to `false` doesn't close the folder automatically after a fetch, but instead an `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header (see xref:message.adoc#message-header-accessor[`MessageHeaderAccessor` API] for more information) is populated into every message to producer from the channel adapter.
 This does not work with `Pop3MailReceiver` as it relies on opening and closing the folder to get new messages.
 It is the target application's responsibility to call the `close()` on this header whenever it is necessary in the downstream flow:
 
@@ -277,7 +277,7 @@ mail.smtp.port=587
 ----
 ====
 
-NOTE: As with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`, you should provide a `<poller>` element (see <<./endpoint.adoc#endpoint-namespace,Endpoint Namespace Support>>).
+NOTE: As with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`, you should provide a `<poller>` element (see xref:endpoint.adoc#endpoint-namespace[Endpoint Namespace Support]).
 
 When you use the namespace support, you can also use a `header-enricher` message transformer.
 Doing so simplifies the application of the headers mentioned earlier to any message prior to sending to the mail outbound channel adapter.
@@ -397,7 +397,7 @@ The following example relies on `TestSearchTermStrategy` rather than the default
 ----
 ====
 
-See <<imap-seen>> for information about message flagging.
+See xref:mail.adoc#imap-seen[Marking IMAP Messages When `Recent` Is Not Supported] for information about message flagging.
 
 [[imap-peek]]
 [IMPORTANT]
@@ -459,7 +459,7 @@ You should understand that these actions (marking messages read and deleting mes
 This can cause messages to be lost.
 
 You may wish to consider using transaction synchronization instead.
-See <<mail-tx-sync>>.
+See xref:mail.adoc#mail-tx-sync[Transaction Synchronization].
 =====
 
 The `<imap-idle-channel-adapter/>` also accepts the 'error-channel' attribute.
@@ -479,7 +479,7 @@ In addition, when an email server does not support the `\Recent` flag, the IMAP 
 If not, `Flag.FLAGGED` is set to `true`.
 These flags are applied regardless of the `shouldMarkMessagesRead` setting.
 
-As discussed in <<search-term>>, the default `SearchTermStrategy` ignore messages that are so flagged.
+As discussed in xref:mail.adoc#search-term[null], the default `SearchTermStrategy` ignore messages that are so flagged.
 
 Starting with version 4.2.2, you can set the name of the user flag by using `setUserFlag` on the `MailReceiver`.
 Doing so lets multiple receivers use a different flag (as long as the mail server supports user flags).
@@ -535,7 +535,7 @@ In other words, while our adapter may peek at the email, it also lets the email 
 Transaction synchronization for inbound adapters lets you take different actions after a transaction commits or rolls back.
 You can enable transaction synchronization by adding a `<transactional/>` element to the poller for the polled `<inbound-adapter/>` or to the `<imap-idle-inbound-adapter/>`.
 Even if there is no 'real' transaction involved, you can still enable this feature by using a `PseudoTransactionManager` with the `<transactional/>` element.
-For more information, see <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>>.
+For more information, see xref:transactions.adoc#transaction-synchronization[Transaction Synchronization].
 
 Because of the different mail servers and specifically the limitations that some have, at this time we provide only a strategy for these transaction synchronizations.
 You can send the messages to some other Spring Integration components or invoke a custom bean to perform some action.

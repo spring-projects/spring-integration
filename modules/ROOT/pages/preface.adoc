@@ -3,9 +3,9 @@
 
 This chapter includes:
 
-* <<system-requirements>>
-* <<code-conventions>>
-* <<guide-conventions>>
+* xref:preface.adoc#system-requirements[Requirements]
+* xref:preface.adoc#code-conventions[Code Conventions]
+* xref:preface.adoc#guide-conventions[Conventions in This Guide]
 
 [[system-requirements]]
 == Requirements
@@ -57,7 +57,7 @@ The following example shows the `int`, `int-event`, and `int-stream` namespaces 
 ----
 ====
 
-For a detailed explanation regarding Spring Integration's namespace support, see <<./configuration.adoc#configuration-namespace,Namespace Support>>.
+For a detailed explanation regarding Spring Integration's namespace support, see xref:configuration/namespace.adoc[Namespace Support].
 
 NOTE: The namespace prefix can be freely chosen.
 You may even choose not to use any namespace prefixes at all.

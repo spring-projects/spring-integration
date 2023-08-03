@@ -74,5 +74,5 @@ public IntegrationFlow recipientListFlow() {
 
 The `.defaultOutputToParentFlow()` of the `.routeToRecipients()` definition lets you set the router's `defaultOutput` as a gateway to continue a process for the unmatched messages in the main flow.
 
-Also see <<java-dsl-class-cast>>.
+Also see xref:dsl/java-basics.adoc#java-dsl-class-cast[Lambdas And `Message<?>` Arguments].
 

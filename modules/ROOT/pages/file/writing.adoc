@@ -127,7 +127,7 @@ The file is closed after each message.
 `APPEND_NO_FLUSH`::
 This option has the same semantics as `APPEND`, but the data is not flushed and the file is not closed after each message.
 This can provide a significant performance at the risk of data loss in the event of a failure.
-See <<file-flushing>> for more information.
+See xref:file/writing.adoc#file-flushing[Flushing Files When Using `APPEND_NO_FLUSH`] for more information.
 `FAIL`::
 If the target file exists, a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/MessageHandlingException.html[`MessageHandlingException`] is thrown.
 `IGNORE`::
@@ -236,7 +236,7 @@ The following example configures an outbound gateway:
 ====
 
 As mentioned earlier, you can also specify the `mode` attribute, which defines the behavior of how to deal with situations where the destination file already exists.
-See <<file-writing-destination-exists>> for further details.
+See xref:file/writing.adoc#file-writing-destination-exists[Dealing with Existing Destination Files] for further details.
 Generally, when using the file outbound gateway, the result file is returned as the message payload on the reply channel.
 
 This also applies when specifying the `IGNORE` mode.
@@ -247,7 +247,7 @@ See https://docs.spring.io/spring-integration/api/org/springframework/integratio
 NOTE: The 'outbound-gateway' works well in cases where you want to first move a file and then send it through a processing pipeline.
 In such cases, you may connect the file namespace's `inbound-channel-adapter` element to the `outbound-gateway` and then connect that gateway's `reply-channel` to the beginning of the pipeline.
 
-If you have more elaborate requirements or need to support additional payload types as input to be converted to file content, you can extend the `FileWritingMessageHandler`, but a much better option is to rely on a <<file-transforming,`Transformer`>>.
+If you have more elaborate requirements or need to support additional payload types as input to be converted to file content, you can extend the `FileWritingMessageHandler`, but a much better option is to rely on a xref:file/transforming.adoc[`Transformer`].
 
 [[configuring-with-java-configuration]]
 == Configuring with Java Configuration

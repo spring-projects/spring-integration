@@ -5,7 +5,7 @@
 == Overview
 
 Version 5.0.1 introduced a polled channel adapter, letting you fetch individual messages on demand -- for example, with a `MessageSourcePollingTemplate` or a poller.
-See <<./polling-consumer.adoc#deferred-acks-message-source,Deferred Acknowledgment Pollable Message Source>> for more information.
+See xref:polling-consumer.adoc#deferred-acks-message-source[Deferred Acknowledgment Pollable Message Source] for more information.
 
 It does not currently support XML configuration.
 
@@ -46,7 +46,7 @@ This adapter currently does not have XML configuration support.
 [[amqp-polled-debatching]]
 == Batched Messages
 
-See <<amqp-debatching>>.
+See xref:amqp/inbound-channel-adapter.adoc#amqp-debatching[Batched Messages].
 
 For the polled adapter, there is no listener container, batched messages are always debatched (if the `BatchingStrategy` supports doing so).
 

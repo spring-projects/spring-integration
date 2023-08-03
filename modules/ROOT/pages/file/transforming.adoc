@@ -15,7 +15,7 @@ It is often better to use a sequence of transformers than to put all transformat
 In that case the `File` to `byte[]` conversion might be a logical first step.
 
 `FileToStringTransformer` extends `AbstractFilePayloadTransformer` convert a `File` object to a `String`.
-If nothing else, this can be useful for debugging (consider using it with a <<./channel.adoc#channel-wiretap,wire tap>>).
+If nothing else, this can be useful for debugging (consider using it with a xref:channel/configuration.adoc#channel-wiretap[wire tap]).
 
 To configure file-specific transformers, you can use the appropriate elements from the file namespace, as the following example shows:
 

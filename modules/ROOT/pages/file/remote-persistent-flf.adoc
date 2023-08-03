@@ -2,7 +2,7 @@
 = Remote Persistent File List Filters
 
 Inbound and streaming inbound remote file channel adapters (`FTP`, `SFTP`, and other technologies) are configured with corresponding implementations of `AbstractPersistentFileListFilter` by default, configured with an in-memory `MetadataStore`.
-To run in a cluster, these can be replaced with filters using a shared `MetadataStore` (see <<./meta-data-store.adoc#metadata-store,Metadata Store>> for more information).
+To run in a cluster, these can be replaced with filters using a shared `MetadataStore` (see xref:meta-data-store.adoc[Metadata Store] for more information).
 These filters are used to prevent fetching the same file multiple times (unless it's modified time changes).
 Starting with version 5.2, a file is added to the filter immediately before the file is fetched (and reversed if the fetch fails).
 

@@ -13,13 +13,13 @@ Version 2.2 added a number of new components.
 === `RedisStore` Inbound and Outbound Channel Adapters
 
 Spring Integration now has `RedisStore` Inbound and Outbound Channel Adapters, letting you write and read `Message` payloads to and from Redis collections.
-For more information, see <<./redis.adoc#redis-store-outbound-channel-adapter,RedisStore Outbound Channel Adapter>> and <<./redis.adoc#redis-store-inbound-channel-adapter,Redis Store Inbound Channel Adapter>>.
+For more information, see xref:redis.adoc#redis-store-outbound-channel-adapter[RedisStore Outbound Channel Adapter] and xref:redis.adoc#redis-store-inbound-channel-adapter[Redis Store Inbound Channel Adapter].
 
 [[x2.2-mongo-adapters]]
 === MongoDB Inbound and Outbound Channel Adapters
 
 Spring Integration now has MongoDB inbound and outbound channel adapters, letting you write and read `Message` payloads to and from a MongoDB document store.
-For more information, see <<./mongodb.adoc#mongodb-outbound-channel-adapter,MongoDB Outbound Channel Adapter>> and <<./mongodb.adoc#mongodb-inbound-channel-adapter,MongoDB Inbound Channel Adapter>>.
+For more information, see xref:mongodb.adoc#mongodb-outbound-channel-adapter[MongoDB Outbound Channel Adapter] and xref:mongodb.adoc#mongodb-inbound-channel-adapter[MongoDB Inbound Channel Adapter].
 
 [[x2.2-jpa]]
 === JPA Endpoints
@@ -27,12 +27,12 @@ For more information, see <<./mongodb.adoc#mongodb-outbound-channel-adapter,Mong
 Spring Integration now includes components for the Java Persistence API (JPA) for retrieving and persisting JPA entity objects.
 The JPA Adapter includes the following components:
 
-* <<./jpa.adoc#jpa-inbound-channel-adapter,Inbound channel adapter>>
-* <<./jpa.adoc#jpa-outbound-channel-adapter,Outbound channel adapter>>
-* <<./jpa.adoc#jpa-updating-outbound-gateway,Updating outbound gateway>>
-* <<./jpa.adoc#jpa-retrieving-outbound-gateway,Retrieving outbound gateway>>
+* xref:jpa/inbound-channel-adapter.adoc[Inbound channel adapter]
+* xref:jpa/outbound-channel-adapter.adoc[Outbound channel adapter]
+* xref:jpa/outbound-gateways.adoc#jpa-updating-outbound-gateway[Updating outbound gateway]
+* xref:jpa/outbound-gateways.adoc#jpa-retrieving-outbound-gateway[Retrieving outbound gateway]
 
-For more information, see <<./jpa.adoc#jpa,JPA Support>>.
+For more information, see xref:jpa.adoc[JPA Support].
 
 [[x2.2-general]]
 == General Changes
@@ -58,7 +58,7 @@ In addition, we added three standard advice classes for this purpose:
 * `MessageHandlerCircuitBreakerAdvice`
 * `ExpressionEvaluatingMessageHandlerAdvice`
 
-For more information, see <<./handler-advice.adoc#message-handler-advice-chain,Adding Behavior to Endpoints>>.
+For more information, see xref:handler-advice.adoc[Adding Behavior to Endpoints].
 
 [[x2.2-transaction-sync]]
 === Transaction Synchronization and Pseudo Transactions
@@ -68,7 +68,7 @@ This allows for synchronizing such operations as renaming files by an inbound ch
 
 In addition, you can enable these features when no "`real`" transaction is present, by means of a `PseudoTransactionManager`.
 
-For more information, see <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>>.
+For more information, see xref:transactions.adoc#transaction-synchronization[Transaction Synchronization].
 
 [[x2.2-file-adapter]]
 === File Adapter: Improved File Overwrite and Append Handling
@@ -82,7 +82,7 @@ Now you can specify the following options:
 * `FAIL`
 * `IGNORE`
 
-For more information, see <<./file.adoc#file-writing-destination-exists,Dealing with Existing Destination Files>>.
+For more information, see xref:file/writing.adoc#file-writing-destination-exists[Dealing with Existing Destination Files].
 
 [[x2.2-outbound-gateways]]
 === Reply-Timeout Added to More Outbound Gateways
@@ -117,7 +117,7 @@ When using the stored procedure components of the Spring Integration JDBC Adapte
 
 Doing so lets you specify the stored procedures to be invoked at runtime.
 For example, you can provide stored procedure names that you would like to execute through message headers.
-For more information, see <<./jdbc.adoc#stored-procedures,Stored Procedures>>.
+For more information, see xref:jdbc/stored-procedures.adoc[Stored Procedures].
 
 [[jmx-support]]
 ==== JMX Support
@@ -138,7 +138,7 @@ You can now provide only a select query by using the request message as a source
 === JDBC Support: Channel-specific Message Store Implementation
 
 We added a new message channel-specific message store implementation, providing a more scalable solution using database-specific SQL queries.
-For more information, see <<./jdbc.adoc#jdbc-message-store-channels,Backing Message Channels>>.
+For more information, see xref:jdbc/message-store.adoc#jdbc-message-store-channels[Backing Message Channels].
 
 [[x2.2-shutdown]]
 === Orderly Shutdown
@@ -156,7 +156,7 @@ Doing so can improve performance of the gateway.
 === `ObjectToJsonTransformer`
 
 By default, the `ObjectToJsonTransformer` now sets the `content-type` header to `application/json`.
-For more information, see <<./transformer.adoc#transformer,Transformer>>.
+For more information, see xref:transformer.adoc[Transformer].
 
 [[httpChanges]]
 === HTTP Support

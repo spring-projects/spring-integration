@@ -118,7 +118,7 @@ Consequently, if there is a possibility of the header being omitted and you want
 
 The delayer delegates to an instance of Spring's `TaskScheduler` abstraction.
 The default scheduler used by the delayer is the `ThreadPoolTaskScheduler` instance provided by Spring Integration on startup.
-See <<./configuration.adoc#namespace-taskscheduler,Configuring the Task Scheduler>>.
+See xref:configuration/namespace-taskscheduler.adoc[Configuring the Task Scheduler].
 If you want to delegate to a different scheduler, you can provide a reference through the delayer element's 'scheduler' attribute, as the following example shows:
 
 ====
@@ -143,7 +143,7 @@ This handler allows processing an `Exception` from the thread of the scheduled t
 By default, it uses an `org.springframework.scheduling.support.TaskUtils$LoggingErrorHandler`, and you can see a stack trace in the logs.
 You might want to consider using an `org.springframework.integration.channel.MessagePublishingErrorHandler`, which sends an `ErrorMessage` into an `error-channel`, either from the failed message's header or into the default `error-channel`.
 This error handling is performed after a transaction rolls back (if present).
-See <<delayer-release-failures>>.
+See xref:delayer.adoc#delayer-release-failures[Release Failures].
 
 [[delayer-message-store]]
 == Delayer and a Message Store
@@ -198,7 +198,7 @@ controlBusChannel.send(delayerReschedulingMessage);
 ----
 ====
 
-NOTE: For more information regarding the message store, JMX, and the control bus, see <<./system-management.adoc#system-management-chapter,System Management>>.
+NOTE: For more information regarding the message store, JMX, and the control bus, see xref:system-management.adoc[System Management].
 
 Starting with version 5.3.7, if a transaction is active when a message is stored into a `MessageStore`, the release task is scheduled in a `TransactionSynchronization.afterCommit()` callback.
 This is necessary to prevent a race condition, where the scheduled release could run before the transaction has committed, and the message is not found.

@@ -195,7 +195,7 @@ This adapter produces message with payloads of type `InputStream`, letting files
 Since the session remains open, the consuming application is responsible for closing the session when the file has been consumed.
 The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
 Standard framework components, such as the `FileSplitter` and `StreamTransformer`, automatically close the session.
-See <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>> for more information about these components.
+See xref:file/splitter.adoc[File Splitter] and xref:transformer.adoc#stream-transformer[Stream Transformer] for more information about these components.
 The following example shows how to configure an `inbound-streaming-channel-adapter`:
 
 ====
@@ -223,13 +223,13 @@ The `SmbStreamingMessageSource` adapter prevents duplicates for remote files wit
 By default, this filter is also applied with the filename pattern (or regex).
 If you need to allow duplicates, you can use `AcceptAllFileListFilter`.
 Any other use cases can be handled by `CompositeFileListFilter` (or `ChainFileListFilter`).
-The Java configuration (<<smb-streaming-java,later in the document>>) shows one technique to remove the remote file after processing to avoid duplicates.
+The Java configuration (xref:smb.adoc#smb-streaming-java[later in the document]) shows one technique to remove the remote file after processing to avoid duplicates.
 
-For more information about the `SmbPersistentAcceptOnceFileListFilter`, and how it is used, see <<./file.adoc#remote-persistent-flf,Remote Persistent File List Filters>>.
+For more information about the `SmbPersistentAcceptOnceFileListFilter`, and how it is used, see xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters].
 
 Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary.
 Set it to `1` and use a persistent filter when running in a clustered environment.
-See <<smb-max-fetch>> for more information.
+See xref:smb.adoc#smb-max-fetch[Inbound Channel Adapters: Controlling Remote File Fetching] for more information.
 
 The adapter puts the remote directory and file name in the `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` headers, respectively.
 The `FileHeaders.REMOTE_FILE_INFO` header provides additional remote file information (represented in JSON by default).
@@ -314,7 +314,7 @@ When all files are consumed, the remote fetch is attempted again, to pick up any
 IMPORTANT: When you deploy multiple instances of an application, we recommend a small `max-fetch-size`, to avoid one instance "`grabbing`" all the files and starving other instances.
 
 Another use for `max-fetch-size` is if you want to stop fetching remote files but continue to process files that have already been fetched.
-Setting the `maxFetchSize` property on the `MessageSource` (programmatically, with JMX, or with a <<./control-bus.adoc#control-bus,control bus>>) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
+Setting the `maxFetchSize` property on the `MessageSource` (programmatically, with JMX, or with a xref:groovy.adoc#groovy-control-bus[control bus]) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
 If the poller is active when the property is changed, the change takes effect on the next poll.
 
 The synchronizer can be provided with a `Comparator<SmbFile>`.
@@ -461,7 +461,7 @@ The `file_remoteDirectory` header holds the remote directory, and the `file_remo
 
 The message payload resulting from a `get` operation is a `File` object representing the retrieved file.
 If you use the `-stream` option, the payload is an `InputStream` rather than a `File`.
-For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,file splitter>> or a <<./transformer.adoc#stream-transformer,stream transformer>>.
+For text files, a common use case is to combine this operation with a xref:file/splitter.adoc[file splitter] or a xref:transformer.adoc#stream-transformer[stream transformer].
 When consuming remote files as streams, you are responsible for closing the `Session` after the stream is consumed.
 For convenience, the `Session` is provided in the `closeableResource` header, and `IntegrationMessageHeaderAccessor` offers convenience method:
 
@@ -475,7 +475,7 @@ if (closeable != null) {
 ----
 ====
 
-Framework components, such as the <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>>, automatically close the session after the data is transferred.
+Framework components, such as the xref:file/splitter.adoc[File Splitter] and xref:transformer.adoc#stream-transformer[Stream Transformer], automatically close the session after the data is transferred.
 
 The following example shows how to consume a file as a stream:
 
@@ -577,7 +577,7 @@ Doing so allows recursion for a simple pattern, as the following examples show:
 
 You can provide one of these filters by using the `filter` property on the gateway.
 
-See also <<smb-partial>>.
+See also xref:smb.adoc#smb-partial[Outbound Gateway Partial Success (`mget` and `mput`)].
 
 [[smb-put-command]]
 === Using the `put` Command
@@ -600,14 +600,14 @@ The message payload resulting from a `put` operation is a `String` that contains
 The message payload must be a `java.io.File` (or `String`) that represents a local directory.
 A collection of `File` or `String` is also supported.
 
-The same attributes as the <<smb-put-command,`put` command>> are supported.
+The same attributes as the xref:smb.adoc#smb-put-command[`put` command] are supported.
 In addition, you can filter files in the local directory with one of `mput-pattern`, `mput-regex`, `mput-filter`, or `mput-filter-expression`.
 The filter works with recursion, as long as the subdirectories themselves pass the filter.
 Subdirectories that do not pass the filter are not recursed.
 
 The message payload resulting from an `mput` operation is a `List<String>` object (that is, a `List` of remote file paths resulting from the transfer).
 
-See also <<smb-partial>>.
+See also xref:smb.adoc#smb-partial[Outbound Gateway Partial Success (`mget` and `mput`)].
 
 [[using-the-rm-command]]
 === Using the `rm` Command
@@ -809,7 +809,7 @@ Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.t
 [[smb-remote-file-info]]
 == Remote File Information
 
-The `SmbStreamingMessageSource` (<<smb-streaming-inbound>>), `SmbInboundFileSynchronizingMessageSource` (<<smb-inbound>>) and "read"-commands of the `SmbOutboundGateway` (<<smb-outbound-gateway>>) provide additional headers in the message to produce with an information about the remote file:
+The `SmbStreamingMessageSource` (xref:smb.adoc#smb-streaming-inbound[SMB Streaming Inbound Channel Adapter]), `SmbInboundFileSynchronizingMessageSource` (xref:smb.adoc#smb-inbound[SMB Inbound Channel Adapter]) and "read"-commands of the `SmbOutboundGateway` (xref:smb.adoc#smb-outbound-gateway[SMB Outbound Gateway]) provide additional headers in the message to produce with an information about the remote file:
 
 * `FileHeaders.REMOTE_HOST_PORT` - the host:port pair the remote session has been connected to during file transfer operation;
 * `FileHeaders.REMOTE_DIRECTORY` - the remote directory the operation has been performed;

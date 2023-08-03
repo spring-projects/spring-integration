@@ -1,7 +1,7 @@
 [[tcp-adapters]]
 = TCP Adapters
 
-TCP inbound and outbound channel adapters that use connection factories <<tcp-events,mentioned earlier>> are provided.
+TCP inbound and outbound channel adapters that use connection factories xref:changes-4.1-4.2.adoc#x4.2-tcp-events[mentioned earlier] are provided.
 These adapters have two relevant attributes: `connection-factory` and `channel`.
 The `connection-factory` attribute indicates which connection factory is to be used to manage connections for the adapter.
 The `channel` attribute specifies the channel on which messages arrive at an outbound adapter and on which messages are placed by an inbound adapter.
@@ -61,7 +61,7 @@ The following example shows how to define client and server TCP connection facto
 ----
 ====
 
-Also see <<ip-annotation>> and <<ip-dsl>>.
+Also see xref:ip/annotation.adoc[Annotation-Based Configuration] and xref:ip/dsl.adoc[Using the Java DSL for TCP Components].
 
 In the preceding configuration, messages arriving in the `input` channel are serialized over connections created by `client` connection factory, received at the server, and placed on the `loop` channel.
 Since `loop` is the input channel for `outboundServer`, the message is looped back over the same connection, received by `inboundClient`, and deposited in the `replies` channel.
@@ -77,7 +77,7 @@ Two additional attributes support this mechanism.
 The `retry-interval` specifies (in milliseconds) how often the framework attempts to reconnect after a connection failure.
 The `scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
 
-If you don't provide a scheduler, the framework's default <<./configuration.adoc#namespace-taskscheduler,taskScheduler>> bean is used.
+If you don't provide a scheduler, the framework's default xref:configuration/namespace-taskscheduler.adoc[taskScheduler] bean is used.
 
 For an outbound adapter, the connection is normally established when the first message is sent.
 The `client-mode="true"` on an outbound adapter causes the connection to be established when the adapter is started.

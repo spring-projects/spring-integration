@@ -7,7 +7,7 @@ Spring Integration provides factories you can use to create FTP (or FTPS) sessio
 == Default Factories
 
 IMPORTANT: Starting with version 3.0, sessions are no longer cached by default.
-See <<ftp-session-caching>>.
+See xref:ftp/session-caching.adoc[FTP Session Caching].
 
 Before configuring FTP adapters, you must configure an FTP session factory.
 You can configure the FTP Session Factory with a regular bean definition where the implementation class is `o.s.i.ftp.session.DefaultFtpSessionFactory`.

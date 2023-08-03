@@ -606,7 +606,7 @@ NOTE: For all the distributed operations the CP Subsystem must be enabled on `Ha
 
 The Hazelcast `IQueue` and `ITopic` distributed objects are, essentially, messaging primitives and can be use with Spring Integration core components without extra implementations in this Hazelcast module.
 
-The <<./channel.adoc#channel-implementations-queuechannel,`QueueChannel`>> can be supplied by any `java.util.Queue`, including the mentioned Hazelcast distributed `IQueue`:
+The xref:channel/implementations.adoc#channel-implementations-queuechannel[`QueueChannel`] can be supplied by any `java.util.Queue`, including the mentioned Hazelcast distributed `IQueue`:
 
 ====
 [source,java]
@@ -619,10 +619,10 @@ PollableChannel hazelcastQueueChannel(HazelcastInstance hazelcastInstance) {
 ====
 
 Placing this config on several nodes in Hazelcast cluster of the application, will make the `QueueChannel` as distributed and only one node will be able to poll a single `Message` from that `IQueue`.
-This works similar to <<./jms.adoc#jms-channel,`PollableJmsChannel`>>, <<./kafka.adoc#kafka-channels,`PollableKafkaChannel`>> or <<./amqp.adoc#amqp-channels,`PollableAmqpChannel`>>.
+This works similar to xref:jms.adoc#jms-channel[`PollableJmsChannel`], xref:kafka.adoc#kafka-channels[`PollableKafkaChannel`] or xref:amqp/channels.adoc[`PollableAmqpChannel`].
 
 If the producer side is not a Spring Integration application, there is no way to configure a `QueueChannel`, and therefore the plain Hazelcast `IQueue` API is used to produce the data.
-In this case, the `QueueChannel` approach is wrong on the consumer side: an <<./channel-adapter.adoc#channel-adapter-namespace-inbound,Inbound Channel Adapter>> solution must be used instead:
+In this case, the `QueueChannel` approach is wrong on the consumer side: an xref:channel-adapter.adoc#channel-adapter-namespace-inbound[Inbound Channel Adapter] solution must be used instead:
 
 ====
 [source,java]

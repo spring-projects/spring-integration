@@ -32,7 +32,7 @@ public interface TcpSSLContextSupport {
 ====
 
 Implementations of the `TcpSSLContextSupport` interface are responsible for creating an `SSLContext` object.
-The implementation provided by the framework is the `DefaultTcpSSLContextSupport`, <<ip-ssl-tls-getting-started,described earlier>>.
+The implementation provided by the framework is the `DefaultTcpSSLContextSupport`, xref:ip/ssl-tls.adoc#ip-ssl-tls-getting-started[described earlier].
 If you require different behavior, implement this interface and provide the connection factory with a reference to a bean of your class' implementation.
 
 [[the-tcpsocketfactorysupport-strategy-interface]]
@@ -170,7 +170,7 @@ This interface is invoked to create `TcpNioConnection` objects (or objects from 
 Spring Integration provides two implementations: `DefaultTcpNioSSLConnectionSupport` and `DefaultTcpNioConnectionSupport`.
 Which one is  used depends on whether SSL is in use.
 A common use case is to subclass `DefaultTcpNioSSLConnectionSupport` and override `postProcessSSLEngine`.
-See the <<ssl-client-authentication-example,SSL client authentication example>>.
+See the xref:ip/tcp-advanced-techniques.adoc#ssl-client-authentication-example[SSL client authentication example].
 As with the `DefaultTcpNetConnectionSupport`, these implementations also support push back.
 
 [[ssl-client-authentication-example]]

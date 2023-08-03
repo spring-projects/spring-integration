@@ -83,7 +83,7 @@ We gratefully look forward to your Spring Integration samples!
 [[sample-requests]]
 === Sample Requests
 
-As <<samples-how-can-i-contribute,mentioned earlier>>, the Spring Integration Samples project uses GitHub issue as bug tracking system.
+As xref:samples.adoc#samples-how-can-i-contribute[mentioned earlier], the Spring Integration Samples project uses GitHub issue as bug tracking system.
 To submit new sample requests, visit https://github.com/spring-projects/spring-integration-samples/issues.
 
 [[samples-structure]]
@@ -190,7 +190,7 @@ At that time, the assembled process and its configuration do not change regardle
 [[design]]
 ==== Design
 
-As you analyze the <<samples-loan-broker-requirements,six requirements>> listed earlier, you can see that they are all integration concerns.
+As you analyze the xref:samples.adoc#samples-loan-broker-requirements[six requirements] listed earlier, you can see that they are all integration concerns.
 For example, in the consumer pre-screening step, we need to gather additional information about the consumer and the consumer's desires and enrich the loan request with additional meta-information.
 We then have to filter such information to select the most appropriate list of banks and so on.
 Enrich, filter, and select are all integration concerns for which EIP defines a solution in the form of patterns.
@@ -516,7 +516,7 @@ public static void main(String[] args) {
 ----
 ====
 
-TIP: To run this sample as well as eight others, refer to the `README.txt` within the `samples` directory of the main distribution (as described at <<samples,the beginning of this chapter>>).
+TIP: To run this sample as well as eight others, refer to the `README.txt` within the `samples` directory of the main distribution (as described at xref:samples.adoc#samples-impl[the beginning of this chapter]).
 
 When you run `cafeDemo`, you can see that the cold drinks are initially prepared more quickly than the hot drinks.
 Because there is an aggregator, the cold drinks are effectively limited by the rate of the hot drink preparation.

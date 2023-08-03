@@ -103,7 +103,7 @@ public static final CharacterStreamReadingMessageSource stdinPipe(String charset
 
 For target streams, you can use either of two implementations: `ByteStreamWritingMessageHandler` or `CharacterStreamWritingMessageHandler`.
 Each requires a single constructor argument (`OutputStream` for byte streams or `Writer` for character streams), and each provides a second constructor that adds the optional 'bufferSize'.
-Since both of these ultimately implement the `MessageHandler` interface, you can reference them from a `channel-adapter` configuration, as described in <<./channel-adapter.adoc#channel-adapter,Channel Adapter>>.
+Since both of these ultimately implement the `MessageHandler` interface, you can reference them from a `channel-adapter` configuration, as described in xref:overview.adoc#overview-endpoints-channeladapter[Channel Adapter].
 
 ====
 [source,xml]
@@ -151,7 +151,7 @@ The following code snippet shows the different configuration options that are su
 ====
 
 Starting with version 5.0, you can set the `detect-eof` attribute, which sets the `blockToDetectEOF` property.
-See <<stream-reading>> for more information.
+See xref:stream.adoc#stream-reading[Reading from Streams] for more information.
 
 To configure the outbound channel adapter, you can use the namespace support as well.
 The following example shows the different configuration for an outbound channel adapters:

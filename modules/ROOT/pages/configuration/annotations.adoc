@@ -25,17 +25,17 @@ public class FooService {
 Exactly what it means for the method to "`handle`" the Message depends on the particular annotation.
 Annotations available in Spring Integration include:
 
-* `@Aggregator` (see <<./aggregator.adoc#aggregator,Aggregator>>)
-* `@Filter` (see <<./filter.adoc#filter,Filter>>)
-* `@Router` (see <<./router.adoc#router,Routers>>)
-* `@ServiceActivator` (see <<./service-activator.adoc#service-activator,Service Activator>>)
-* `@Splitter` (see <<./splitter.adoc#splitter,Splitter>>)
-* `@Transformer` (see <<./transformer.adoc#transformer,Transformer>>)
-* `@InboundChannelAdapter` (see <<./channel-adapter.adoc#channel-adapter,Channel Adapter>>)
-* `@BridgeFrom` (see <<./bridge.adoc#bridge-annot,Configuring a Bridge with Java Configuration>>)
-* `@BridgeTo` (see <<./bridge.adoc#bridge-annot,Configuring a Bridge with Java Configuration>>)
-* `@MessagingGateway` (see <<./gateway.adoc#gateway,Messaging Gateways>>)
-* `@IntegrationComponentScan` (see <<./overview.adoc#configuration-enable-integration,Configuration and `@EnableIntegration`>>)
+* `@Aggregator` (see xref:overview.adoc#overview-endpoints-aggregator[Aggregator])
+* `@Filter` (see xref:filter.adoc[Filter])
+* `@Router` (see xref:router.adoc[Routers])
+* `@ServiceActivator` (see xref:service-activator.adoc[Service Activator])
+* `@Splitter` (see xref:splitter.adoc[Splitter])
+* `@Transformer` (see xref:transformer.adoc[Transformer])
+* `@InboundChannelAdapter` (see xref:overview.adoc#overview-endpoints-channeladapter[Channel Adapter])
+* `@BridgeFrom` (see xref:bridge.adoc#bridge-annot[Configuring a Bridge with Java Configuration])
+* `@BridgeTo` (see xref:bridge.adoc#bridge-annot[Configuring a Bridge with Java Configuration])
+* `@MessagingGateway` (see xref:gateway.adoc[Messaging Gateways])
+* `@IntegrationComponentScan` (see xref:overview.adoc#configuration-enable-integration[Configuration and `@EnableIntegration`])
 
 NOTE: If you use XML configuration in combination with annotations, the `@MessageEndpoint` annotation is not required.
 If you want to configure a POJO reference from the `ref` attribute of a `<service-activator/>` element, you can provide only the method-level annotations.
@@ -121,16 +121,16 @@ public class ThingService {
 ====
 
 The processing of these annotations creates the same beans as the corresponding XML components -- `AbstractEndpoint` instances and `MessageHandler` instances (or `MessageSource` instances for the inbound channel adapter).
-See <<annotations_on_beans>>.
+See xref:configuration/meta-annotations.adoc#annotations_on_beans[Annotations on `@Bean` Methods].
 The bean names are generated from the following pattern: `[componentName].[methodName].[decapitalizedAnnotationClassShortName]`.
 In the preceding example the bean name is `thingService.otherThing.serviceActivator` for the `AbstractEndpoint` and the same name with an additional `.handler` (`.source`) suffix for the `MessageHandler` (`MessageSource`) bean.
 Such a name can be customized using an `@EndpointId` annotation alongside with these messaging annotations.
-The `MessageHandler` instances (`MessageSource` instances) are also eligible to be tracked by <<./message-history.adoc#message-history,the message history>>.
+The `MessageHandler` instances (`MessageSource` instances) are also eligible to be tracked by xref:message-history.adoc[the message history].
 
 Starting with version 4.0, all messaging annotations provide `SmartLifecycle` options (`autoStartup` and `phase`) to allow endpoint lifecycle control on application context initialization.
 They default to `true` and `0`, respectively.
 To change the state of an endpoint (such as `start()` or `stop()`), you can obtain a reference to the endpoint bean by using the `BeanFactory` (or autowiring) and invoke the methods.
-Alternatively, you can send a command message to the `Control Bus` (see <<./control-bus.adoc#control-bus,Control Bus>>).
+Alternatively, you can send a command message to the `Control Bus` (see xref:groovy.adoc#groovy-control-bus[Control Bus]).
 For these purposes, you should use the `beanName` mentioned earlier in the preceding paragraph.
 
 [IMPORTANT]
@@ -255,7 +255,7 @@ public class AnnotationService {
 
 Starting with version 4.3.3, the `@Poller` annotation has the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
 This attribute plays the same role as `error-channel` in the `<poller>` XML component.
-See <<./endpoint.adoc#endpoint-namespace,Endpoint Namespace Support>> for more information.
+See xref:endpoint.adoc#endpoint-namespace[Endpoint Namespace Support] for more information.
 
 The `poller()` attribute on the messaging annotations is mutually exclusive with the `reactive()` attribute.
 See next section for more information.
@@ -287,7 +287,7 @@ public void handleReactive(String payload) {
 ====
 
 The `reactive()` attribute on the messaging annotations is mutually exclusive with the `poller()` attribute.
-See <<configuration-using-poller-annotation>> and <<./reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
+See xref:configuration/annotations.adoc#configuration-using-poller-annotation[Using the `@Poller` Annotation] and xref:reactive-streams.adoc[Reactive Streams Support] for more information.
 
 [[using-the-inboundchanneladapter-annotation]]
 == Using the `@InboundChannelAdapter` Annotation
@@ -295,7 +295,7 @@ See <<configuration-using-poller-annotation>> and <<./reactive-streams.adoc#reac
 Version 4.0 introduced the `@InboundChannelAdapter` method-level annotation.
 It produces a `SourcePollingChannelAdapter` integration component based on a `MethodInvokingMessageSource` for the annotated method.
 This annotation is an analogue of the `<int:inbound-channel-adapter>` XML component and has the same restrictions: The method cannot have parameters, and the return type must not be `void`.
-It has two attributes: `value` (the required `MessageChannel` bean name) and `poller` (an optional `@Poller` annotation, as <<configuration-using-poller-annotation,described earlier>>).
+It has two attributes: `value` (the required `MessageChannel` bean name) and `poller` (an optional `@Poller` annotation, as xref:configuration/annotations.adoc#configuration-using-poller-annotation[described earlier]).
 If you need to provide some `MessageHeaders`, use a `Message<?>` return type and use a `MessageBuilder` to build the `Message<?>`.
 Using a `MessageBuilder` lets you configure the `MessageHeaders`.
 The following example shows how to use an `@InboundChannelAdapter` annotation:
@@ -323,13 +323,13 @@ The first example requires that the default poller has been declared elsewhere i
 
 Using the `@MessagingGateway` Annotation
 
-See <<./gateway.adoc#messaging-gateway-annotation,`@MessagingGateway` Annotation>>.
+See xref:gateway.adoc#messaging-gateway-annotation[`@MessagingGateway` Annotation].
 
 [[using-the-integrationcomponentscan-annotation]]
 == Using the `@IntegrationComponentScan` Annotation
 
 The standard Spring Framework `@ComponentScan` annotation does not scan interfaces for stereotype `@Component` annotations.
-To overcome this limitation and allow the configuration of `@MessagingGateway` (see <<./gateway.adoc#messaging-gateway-annotation,`@MessagingGateway` Annotation>>), we introduced the `@IntegrationComponentScan` mechanism.
+To overcome this limitation and allow the configuration of `@MessagingGateway` (see xref:gateway.adoc#messaging-gateway-annotation[`@MessagingGateway` Annotation]), we introduced the `@IntegrationComponentScan` mechanism.
 This annotation must be placed with a `@Configuration` annotation and be customized to define its scanning options,
 such as `basePackages` and `basePackageClasses`.
 In this case, all discovered interfaces annotated with `@MessagingGateway` are parsed and registered as `GatewayProxyFactoryBean` instances.

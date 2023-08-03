@@ -4,7 +4,7 @@
 [[spring-integration-intro-new]]
 For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 6.2.
 
-If you are interested in the changes and features that were introduced in earlier versions, see the <<./history.adoc#history,Change History>>.
+If you are interested in the changes and features that were introduced in earlier versions, see the xref:history.adoc[Change History].
 
 [[whats-new]]
 
@@ -22,13 +22,13 @@ In general the project has been moved to the latest dependency versions.
 ==== Debezium Inbound Channel Adapter
 
 The Debezium Engine based Change Data Capture (CDC) channel adapter, that allows capturing database change events, converting them into Messages and streaming those to the outbound channels.
-See <<./debezium.adoc#debezium, Debezium Support>>  for more information.
+See xref:debezium.adoc[Debezium Support]  for more information.
 
 [[x6.2-general]]
 === General Changes
 
 - The XML configuration for `<poller>` and `@Poller` annotation now support ISO 8601 duration format for `fixed-delay`, `fixed-rate` and `initial-delay` options.
-See <<./endpoint.adoc#endpoint-pollingconsumer, Polling Consumer>> for more information.
+See xref:endpoint.adoc#endpoint-pollingconsumer[Polling Consumer] for more information.
 
 - Java, Groovy and Kotlin DSLs have now context-specific methods in the `IntegationFlowDefinition` with a single `Consumer` argument to configure an endpoint and its handler with one builder and readable options.
 See, for example, `transformWith()`, `splitWith()` in <<./dsl.adoc#java-dsl, Java DSL Chapter>>.
@@ -38,17 +38,17 @@ See, for example, `transformWith()`, `splitWith()` in <<./dsl.adoc#java-dsl, Jav
 
 - For the server and client WebSocket containers, the send buffer overflow strategy is now configurable in `IntegrationWebSocketContainer` and in XML via `send-buffer-overflow-strategy`.
 This strategy determines the behavior when a session's outbound message buffer has reached the configured limit.
-See <<./web-sockets.adoc#websocket-client-container-attributes, WebSockets Support>> for more information.
+See xref:web-sockets.adoc#websocket-client-container-attributes[WebSockets Support] for more information.
 
 
 [[x6.2-kafka]]
 === Apache Kafka Support Changes
 
 The `KafkaMessageSource` now extracts an `ErrorHandlingDeserializer` configuration from the consumer properties and re-throws `DeserializationException` extracted from failed record headers.
-See <<./kafka.adoc#kafka-inbound-pollable, Kafka Inbound Channel Adapter>> for more information.
+See xref:kafka.adoc#kafka-inbound-pollable[Kafka Inbound Channel Adapter] for more information.
 
 [[x6.2-jdbc]]
 === JDBC Support Changes
 
 The `JdbcMessageStore`, `JdbcChannelMessageStore`, `JdbcMetadataStore`, and `DefaultLockRepository` implement `SmartLifecycle` and perform a`SELECT COUNT` query, on their respective tables, in the `start()` method to ensure that the required table (according to the provided prefix) is present in the target database.
-See <<./jdbc.adoc#jdbc-db-init, Initializing the Database>> for more information.
+See xref:jdbc/message-store.adoc#jdbc-db-init[Initializing the Database] for more information.

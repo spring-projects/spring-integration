@@ -6,12 +6,12 @@ They consume messages from a message channel and forward each consumed message t
 
 Spring Integration provides the following routers:
 
-* <<router-implementations-payloadtyperouter,Payload Type Router>>
-* <<router-implementations-headervaluerouter,Header Value Router>>
-* <<router-implementations-recipientlistrouter,Recipient List Router>>
-* <<./xml.adoc#xml-xpath-routing,XPath Router (part of the XML module)>>
-* <<router-implementations-exception-router,Error Message Exception Type Router>>
-* <<router-namespace,(Generic) Router>>
+* xref:router/implementations.adoc#router-implementations-payloadtyperouter[Payload Type Router]
+* xref:router/implementations.adoc#router-implementations-headervaluerouter[Header Value Router]
+* xref:router/implementations.adoc#router-implementations-recipientlistrouter[Recipient List Router]
+* xref:xml/xpath-routing.adoc[XPath Router (part of the XML module)]
+* xref:router/implementations.adoc#router-implementations-exception-router[Error Message Exception Type Router]
+* xref:router/namespace.adoc[(Generic) Router]
 
 Router implementations share many configuration parameters.
 However, certain differences exist between routers.

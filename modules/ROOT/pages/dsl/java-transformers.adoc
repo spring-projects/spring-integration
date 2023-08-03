@@ -27,5 +27,5 @@ Starting with version 6.2, a `transformWith(Consumer<TransformerEndpointSpec>)` 
 This style gives DSL more readability and increases developer experience while modifying code.
 This also make Groovy and Kotlin DSLs more straightforward.
 
-Also see <<java-dsl-class-cast>>.
+Also see xref:dsl/java-basics.adoc#java-dsl-class-cast[Lambdas And `Message<?>` Arguments].
 

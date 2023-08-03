@@ -1,7 +1,7 @@
 [[note-nio]]
 = About Non-blocking I/O (NIO)
 
-Using NIO (see `using-nio` in <<ip-endpoint-reference>>) avoids dedicating a thread to read from each socket.
+Using NIO (see `using-nio` in xref:ip/endpoint-reference.adoc[IP Configuration Attributes]) avoids dedicating a thread to read from each socket.
 For a small number of sockets, you are likely to find that not using NIO, together with an asynchronous hand-off (such as to a `QueueChannel`), performs as well as or better than using NIO.
 
 You should consider using NIO when handling a large number of connections.
@@ -41,7 +41,7 @@ First, the default task executor is a cached thread pool executor.
 Second, deadlock detection logic has been added such that, if thread starvation occurs, instead of deadlocking, an exception is thrown, thus releasing the deadlocked resources.
 
 IMPORTANT: Now that the default task executor is unbounded, it is possible that an out-of-memory condition might occur with high rates of incoming messages, if message processing takes extended time.
-If your application exhibits this type of behavior, you should use a pooled task executor with an appropriate pool size, but see <<io-thread-pool-task-executor-caller-runs,the next section>>.
+If your application exhibits this type of behavior, you should use a pooled task executor with an appropriate pool size, but see xref:ip/note-nio.adoc#io-thread-pool-task-executor-caller-runs[the next section].
 
 [[io-thread-pool-task-executor-caller-runs]]
 == Thread Pool Task Executor with `CALLER_RUNS` Policy

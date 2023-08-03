@@ -35,7 +35,7 @@ See the https://github.com/spring-projects/spring-integration/tree/main/spring-i
 [[spel-and-the-sftp-outbound-adapter]]
 == SpEL and the SFTP Outbound Adapter
 
-As with many other components in Spring Integration, you can use the Spring Expression Language (SpEL) when you configure an SFTP outbound channel adapter by specifying two attributes: `remote-directory-expression` and `remote-filename-generator-expression` (<<sftp-inbound,described earlier>>).
+As with many other components in Spring Integration, you can use the Spring Expression Language (SpEL) when you configure an SFTP outbound channel adapter by specifying two attributes: `remote-directory-expression` and `remote-filename-generator-expression` (xref:sftp/inbound.adoc[described earlier]).
 The expression evaluation context has the message as its root object, which lets you use expressions that can dynamically compute the file name or the existing directory path based on the data in the message (from either the 'payload' or the 'headers').
 In the preceding example, we define the `remote-filename-generator-expression` attribute with an expression value that computes the file name based on its original name while also appending a suffix: '-mysuffix'.
 

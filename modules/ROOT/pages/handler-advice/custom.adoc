@@ -1,7 +1,7 @@
 [[custom-advice]]
 = Custom Advice Classes
 
-In addition to the provided advice classes <<advice-classes,described earlier>>, you can implement your own advice classes.
+In addition to the provided advice classes xref:handler-advice/classes.adoc[described earlier], you can implement your own advice classes.
 While you can provide any implementation of `org.aopalliance.aop.Advice` (usually `org.aopalliance.intercept.MethodInterceptor`), we generally recommend that you subclass `o.s.i.handler.advice.AbstractRequestHandlerAdvice`.
 This has the benefit of avoiding the writing of low-level aspect-oriented programming code as well as providing a starting point that is specifically tailored for use in this environment.
 

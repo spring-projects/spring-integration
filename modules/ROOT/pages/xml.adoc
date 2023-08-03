@@ -3,16 +3,16 @@
 
 Spring Integration's XML support extends the core of Spring Integration with the following components:
 
-* <<xml-transformation,Marshalling Transformer>>
-* <<xml-transformation,Unmarshalling Transformer>>
-* <<xml-transformation,XSLT Transformer>>
-* <<xml-xpath-transformer,XPath Transformer>>
-* <<xml-xpath-splitting,XPath Splitter>>
-* <<xml-xpath-routing,XPath Router>>
-* <<xml-xpath-header-enricher,XPath Header Enricher>>
-* <<xml-xpath-filter,XPath Filter>>
+* xref:xml/transformation.adoc[Marshalling Transformer]
+* xref:xml/transformation.adoc[Unmarshalling Transformer]
+* xref:xml/transformation.adoc[XSLT Transformer]
+* xref:xml/xpath-transformer.adoc[XPath Transformer]
+* xref:xml/xpath-splitting.adoc[XPath Splitter]
+* xref:xml/xpath-routing.adoc[XPath Router]
+* xref:xml/xpath-header-enricher.adoc[XPath Header Enricher]
+* xref:xml/xpath-filter.adoc[XPath Filter]
 * <<xpath-spel-function,#xpath SpEL Function>>
-* <<xml-validating-filter,Validating Filter>>
+* xref:xml/validating-filter.adoc[Validating Filter]
 
 You need to include this dependency into your project:
 

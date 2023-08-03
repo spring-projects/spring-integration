@@ -94,7 +94,7 @@ public String doSomething();
 
 This message handler method is invoked based on the Message sent to the input channel to which this handler is connected.
 However, no `Message` data is mapped, thus making the `Message` act as event or trigger to invoke the handler.
-The output is mapped according to the rules <<message-mapping-rules,described earlier>>.
+The output is mapped according to the rules xref:configuration/message-mapping-rules.adoc[described earlier].
 
 The following example shows no parameters and a void return:
 

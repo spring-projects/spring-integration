@@ -102,7 +102,7 @@ In Spring Integration, pollable channels are capable of buffering Messages withi
 The advantage of buffering is that it allows for throttling the inbound messages and thereby prevents overloading a consumer.
 However, as the name suggests, this also adds some complexity, since a consumer can only receive the messages from such a channel if a poller is configured.
 On the other hand, a consumer connected to a subscribable channel is simply message-driven.
-<<./channel.adoc#channel-implementations,Message Channel Implementations>> has a detailed discussion of the variety of channel implementations available in Spring Integration.
+xref:channel/implementations.adoc[Message Channel Implementations] has a detailed discussion of the variety of channel implementations available in Spring Integration.
 
 [[overview-components-endpoint]]
 ==== Message Endpoint
@@ -197,7 +197,7 @@ A request-reply service activator endpoint connects a target object's method to 
 .Service Activator
 image::handler-endpoint.jpg[align="center", scaledwidth=100%]
 
-NOTE: As discussed earlier, in <<overview-components-channel, Message Channel>>, channels can be pollable or subscribable.
+NOTE: As discussed earlier, in xref:overview.adoc#overview-components-channel[Message Channel], channels can be pollable or subscribable.
 In the preceding diagram, this is depicted by the "`clock`" symbol and the solid arrow (poll) and the dotted arrow (subscribe).
 
 [[overview-endpoints-channeladapter]]
@@ -218,7 +218,7 @@ In the preceding diagram, this is depicted by the "`clock`" symbol and the solid
 .An outbound channel adapter endpoint connects a `MessageChannel` to a target system.
 image::target-endpoint.jpg[align="center", scaledwidth=100%]
 
-NOTE: As discussed earlier in <<overview-components-channel, Message Channel>>, channels can be pollable or subscribable.
+NOTE: As discussed earlier in xref:overview.adoc#overview-components-channel[Message Channel], channels can be pollable or subscribable.
 In the preceding diagram, this is depicted by the "`clock`" symbol and the solid arrow (poll) and the dotted arrow (subscribe).
 
 [[endpoint-bean-names]]
@@ -339,7 +339,7 @@ There is one special case where a third bean is created: For architectural reaso
 This wrapper supports request handler advice handling and emits the normal 'produced no reply' debug log messages.
 Its bean name is the handler bean name plus `.wrapper` (when there is an `@EndpointId` -- otherwise, it is the normal generated handler name).
 
-Similarly, <<./polling-consumer.adoc#pollable-message-source, Pollable Message Sources>> create two beans, a `SourcePollingChannelAdapter` (SPCA) and a `MessageSource`.
+Similarly, xref:polling-consumer.adoc#pollable-message-source[Pollable Message Sources] create two beans, a `SourcePollingChannelAdapter` (SPCA) and a `MessageSource`.
 
 Consider the following XML configuration:
 
@@ -420,14 +420,14 @@ In particular, it:
 
 The `@IntegrationComponentScan` annotation also permits classpath scanning.
 This annotation plays a similar role as the standard Spring Framework `@ComponentScan` annotation, but it is restricted to components and annotations that are specific to Spring Integration, which the standard Spring Framework component scan mechanism cannot reach.
-For an example, see <<./gateway.adoc#messaging-gateway-annotation,`@MessagingGateway` Annotation>>.
+For an example, see xref:gateway.adoc#messaging-gateway-annotation[`@MessagingGateway` Annotation].
 
 The `@EnablePublisher` annotation registers a `PublisherAnnotationBeanPostProcessor` bean and configures the `default-publisher-channel` for those `@Publisher` annotations that are provided without a `channel` attribute.
 If more than one `@EnablePublisher` annotation is found, they must all have the same value for the default channel.
-See <<./message-publishing.adoc#publisher-annotation,Annotation-driven Configuration with the `@Publisher` Annotation>> for more information.
+See xref:message-publishing.adoc#publisher-annotation[Annotation-driven Configuration with the `@Publisher` Annotation] for more information.
 
 The `@GlobalChannelInterceptor` annotation has been introduced to mark `ChannelInterceptor` beans for global channel interception.
-This annotation is an analogue of the `<int:channel-interceptor>` XML element (see <<./channel.adoc#global-channel-configuration-interceptors,Global Channel Interceptor Configuration>>).
+This annotation is an analogue of the `<int:channel-interceptor>` XML element (see xref:channel/configuration.adoc#global-channel-configuration-interceptors[Global Channel Interceptor Configuration]).
 `@GlobalChannelInterceptor` annotations can be placed at the class level (with a `@Component` stereotype annotation) or on `@Bean` methods within `@Configuration` classes.
 In either case, the bean must implement `ChannelInterceptor`.
 
@@ -435,16 +435,16 @@ Starting with version 5.1, global channel interceptors apply to dynamically regi
 Previously, interceptors were not applied when beans were created after the application context was refreshed.
 
 The `@IntegrationConverter` annotation marks `Converter`, `GenericConverter`, or `ConverterFactory` beans as candidate converters for `integrationConversionService`.
-This annotation is an analogue of the `<int:converter>` XML element (see <<./endpoint.adoc#payload-type-conversion,Payload Type Conversion>>).
+This annotation is an analogue of the `<int:converter>` XML element (see xref:endpoint.adoc#payload-type-conversion[Payload Type Conversion]).
 You can place `@IntegrationConverter` annotations at the class level (with a `@Component` stereotype annotation) or on `@Bean` methods within `@Configuration` classes.
 
-See <<./configuration.adoc#annotations,Annotation Support>> for more information about messaging annotations.
+See xref:configuration/annotations.adoc[Annotation Support] for more information about messaging annotations.
 
 [[programming-considerations]]
 === Programming Considerations
 
 You should use plain old java objects (POJOs) whenever possible and only expose the framework in your code when absolutely necessary.
-See <<pojo-invocation>> for more information.
+See xref:overview.adoc#pojo-invocation[POJO Method invocation] for more information.
 
 If you do expose the framework to your classes, there are some considerations that need to be taken into account, especially during application startup:
 
@@ -581,11 +581,11 @@ The affected modules are
 With XML configuration and Spring Integration Namespace support, the XML parsers hide how target beans are declared and wired together.
 For Java configuration, it is important to understand the Framework API for target end-user applications.
 
-The first-class citizens for EIP implementation are `Message`, `Channel`, and `Endpoint` (see <<overview-components>>, earlier in this chapter).
+The first-class citizens for EIP implementation are `Message`, `Channel`, and `Endpoint` (see xref:overview.adoc#overview-components[Main Components], earlier in this chapter).
 Their implementations (contracts) are:
 
-* `org.springframework.messaging.Message`: See <<./message.adoc#message,Message>>;
-* `org.springframework.messaging.MessageChannel`: See <<./channel.adoc#channel,Message Channels>>;
+* `org.springframework.messaging.Message`: See xref:overview.adoc#overview-components-message[Message];
+* `org.springframework.messaging.MessageChannel`: See xref:channel.adoc[Message Channels];
 * `org.springframework.integration.endpoint.AbstractEndpoint`: See <<./polling-consumer.adoc#polling-consumer,Poller>>.
 
 The first two are simple enough to understand how to implement, configure, and use.
@@ -605,7 +605,7 @@ The goal of the implementation of this interface is to handle the message consum
 All EIP components in Spring Integration are `MessageHandler` implementations (for example, `AggregatingMessageHandler`, `MessageTransformingHandler`, `AbstractMessageSplitter`, and others).
 The target protocol outbound adapters (`FileWritingMessageHandler`, `HttpRequestExecutingMessageHandler`, `AbstractMqttMessageHandler`, and others) are also `MessageHandler` implementations.
 When you develop Spring Integration applications with Java configuration, you should look into the Spring Integration module to find an appropriate `MessageHandler` implementation to use for the `@ServiceActivator` configuration.
-For example, to send an XMPP message (see <<./xmpp.adoc#xmpp,XMPP Support>>) you should configure something like the following:
+For example, to send an XMPP message (see xref:xmpp.adoc[XMPP Support]) you should configure something like the following:
 
 ====
 [source,java]
@@ -681,7 +681,7 @@ The sending thread returns immediately; the reply is sent asynchronously; uses '
 [[pojo-invocation]]
 === POJO Method invocation
 
-As discussed in <<programming-considerations>>, we recommend using a POJO programming style, as the following example shows:
+As discussed in xref:overview.adoc#programming-considerations[Programming Considerations], we recommend using a POJO programming style, as the following example shows:
 
 ====
 [source, java]

@@ -3,7 +3,7 @@
 
 Starting with version 5.1, Spring Integration provides direct support for interfaces in the `java.util.function` package.
 All messaging endpoints, (Service Activator, Transformer, Filter, etc.) can now refer to `Function` (or `Consumer`) beans.
-The <<./configuration.adoc#annotations,Messaging Annotations>> can be applied directly on these beans similar to regular `MessageHandler` definitions.
+The xref:configuration/annotations.adoc[Messaging Annotations] can be applied directly on these beans similar to regular `MessageHandler` definitions.
 For example if you have this `Function` bean definition:
 
 

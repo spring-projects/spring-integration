@@ -24,7 +24,7 @@ Such sharing allows for asynchronous two-way communication over TCP.
 By default, only payload information is transferred using TCP.
 Therefore, any message correlation must be performed by downstream components such as aggregators or other endpoints.
 Support for transferring selected headers was introduced in version 3.0.
-For more information, see <<ip-correlation>>.
+For more information, see xref:ip/correlation.adoc[TCP Message Correlation].
 
 You may give  a reference to a connection factory to a maximum of one adapter of each type.
 
@@ -86,7 +86,7 @@ The following example shows a client connection factory that uses `java.net.Sock
 
 Starting with version 5.2, the client connection factories support the property `connectTimeout`, specified in seconds, which defaults to 60.
 
-Also see <<ip-annotation>> and <<ip-dsl>>.
+Also see xref:ip/annotation.adoc[Annotation-Based Configuration] and xref:ip/dsl.adoc[Using the Java DSL for TCP Components].
 
 [[tcp-codecs]]
 == Message Demarcation (Serializers and Deserializers)
@@ -193,16 +193,16 @@ The following example shows how to do so:
 
 A server connection factory that uses `java.net.Socket` connections and uses Java serialization on the wire.
 
-For full details of the attributes available on connection factories, see <<ip-annotation,the reference>> at the end of this section.
+For full details of the attributes available on connection factories, see xref:ip/annotation.adoc[the reference] at the end of this section.
 
 By default, reverse DNS lookups are not performed on inbound packets: in environments where DNS is not configured (e.g. Docker containers), this can cause connection delays.
 To convert IP addresses to host names for use in message headers, the default behavior can be overridden by setting the `lookup-host` attribute to `true`.
 
 NOTE: You can also modify the attributes of sockets and socket factories.
-See <<ssl-tls>> for more information.
+See xref:ip/ssl-tls.adoc[SSL/TLS Support] for more information.
 As noted there, such modifications are possible if SSL is being used, or not.
 
-Also see <<ip-annotation>> and <<ip-dsl>>.
+Also see xref:ip/annotation.adoc[Annotation-Based Configuration] and xref:ip/dsl.adoc[Using the Java DSL for TCP Components].
 
 [[custom-serializers-and-deserializers]]
 == Custom Serializers and Deserializers
@@ -219,11 +219,11 @@ Starting with version 5.2, `SoftEndOfStreamException` is now a `RuntimeException
 [[caching-cf]]
 == TCP Caching Client Connection Factory
 
-As <<ip-intro,noted earlier>>, TCP sockets can be 'single-use' (one request or response) or shared.
+As xref:ip/intro.adoc[noted earlier], TCP sockets can be 'single-use' (one request or response) or shared.
 Shared sockets do not perform well with outbound gateways in high-volume environments, because the socket can only process one request or response at a time.
 
 To improve performance, you can use collaborating channel adapters instead of gateways, but that requires application-level message correlation.
-See <<ip-correlation>> for more information.
+See xref:ip/correlation.adoc[TCP Message Correlation] for more information.
 
 Spring Integration 2.2 introduced a caching client connection factory, which uses a pool of shared sockets, letting a gateway process multiple concurrent requests with a pool of shared connections.
 
@@ -271,7 +271,7 @@ IMPORTANT: These properties do not apply if any of the delegate factories is a `
 Starting with version 5.3, these default to `Long.MAX_VALUE` and `true` so the factory only attempts to fail back when the current connection fails.
 To revert to the default behavior of previous versions, set them to `0` and `false`.
 
-Also see <<testing-connections>>.
+Also see xref:ip/testing-connections.adoc[Testing Connections].
 
 [[tcp-affinity-cf]]
 == TCP Thread Affinity Connection Factory

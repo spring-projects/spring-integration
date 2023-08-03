@@ -295,7 +295,7 @@ Those are two of the most commonly configured values.
 The default `http-method` is `POST`, and the default response type is null.
 With a null response type, the payload of the reply `Message` contains the `ResponseEntity`, as long as its HTTP status is a success (non-successful status codes throw exceptions).
 If you expect a different type, such as a `String`, provide that as a fully-qualified class name (`java.lang.String` in the preceding example).
-See also the note about empty response bodies in <<http-outbound>>.
+See also the note about empty response bodies in xref:http/outbound.adoc[HTTP Outbound Components].
 
 IMPORTANT: Beginning with Spring Integration 2.1, the `request-timeout` attribute of the HTTP outbound gateway was renamed to `reply-timeout` to better reflect its intent.
 
@@ -510,6 +510,6 @@ If you wish to partially encode some part of the URL, use an `expression` within
 ====
 
 With Java DSL this option can be controlled by the `BaseHttpMessageHandlerSpec.encodingMode()` option.
-The same configuration applies for similar outbound components in the <<./webflux.adoc#webflux,WebFlux module>> and <<./ws.adoc#ws,Web Services module>>.
+The same configuration applies for similar outbound components in the xref:webflux.adoc[WebFlux module] and xref:ws.adoc[Web Services module].
 For much sophisticated scenarios it is recommended to configure an `UriTemplateHandler` on the externally provided `RestTemplate`; or in case of WebFlux - `WebClient` with it `UriBuilderFactory`.
 

@@ -38,7 +38,7 @@ The `AcceptOnceFileListFilter` ensures files are picked up only once from the di
 ====
 The `AcceptOnceFileListFilter` stores its state in memory.
 If you wish the state to survive a system restart, you can use the `FileSystemPersistentAcceptOnceFileListFilter`.
-This filter stores the accepted file names in a `MetadataStore` implementation (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>).
+This filter stores the accepted file names in a `MetadataStore` implementation (see xref:meta-data-store.adoc[Metadata Store]).
 This filter matches on the filename and modified time.
 
 Since version 4.0, this filter requires a `ConcurrentMetadataStore`.
@@ -158,11 +158,11 @@ Starting with version 5.0, the `FileReadingMessageSource` (in addition to the `p
 * `FileHeaders.FILENAME`: The `File.getName()` of the file to send.
 Can be used for subsequent rename or copy logic.
 * `FileHeaders.ORIGINAL_FILE`: The `File` object itself.
-Typically, this header is populated automatically by framework components (such as <<file-splitter,splitters>> or <<file-transforming,transformers>>) when we lose the original `File` object.
+Typically, this header is populated automatically by framework components (such as xref:file/splitter.adoc[splitters] or xref:file/transforming.adoc[transformers]) when we lose the original `File` object.
 However, for consistency and convenience with any other custom use cases, this header can be useful to get access to the original file.
 * `FileHeaders.RELATIVE_PATH`: A new header introduced to represent the part of file path relative to the root directory for the scan.
 This header can be useful when the requirement is to restore a source directory hierarchy in the other places.
-For this purpose, the `DefaultFileNameGenerator` (see "`<<file-writing-file-names>>) can be configured to use this header.
+For this purpose, the `DefaultFileNameGenerator` (see "`xref:file/writing.adoc#file-writing-file-names[Generating File Names]) can be configured to use this header.
 
 [[directory-scanning-and-polling]]
 == Directory Scanning and Polling
@@ -601,7 +601,7 @@ By default, they append `.writing` to the file name and remove it when the trans
 Another common technique is to write a second "`marker`" file to indicate that the file transfer is complete.
 In this scenario, you should not consider `somefile.txt` (for example) to be available for use until `somefile.txt.complete` is also present.
 Spring Integration version 5.0 introduced new filters to support this mechanism.
-Implementations are provided for the file system (`FileSystemMarkerFilePresentFileListFilter`), <<./ftp.adoc#ftp-incomplete,FTP>> and <<./sftp.adoc#sftp-incomplete,SFTP>>.
+Implementations are provided for the file system (`FileSystemMarkerFilePresentFileListFilter`), xref:ftp/inbound.adoc#ftp-incomplete[FTP] and xref:sftp/inbound.adoc#sftp-incomplete[SFTP].
 They are configurable such that the marker file can have any name, although it is usually related to the file being transferred.
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/filters/FileSystemMarkerFilePresentFileListFilter.html[Javadoc] for more information.
 

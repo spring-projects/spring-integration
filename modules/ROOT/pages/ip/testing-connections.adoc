@@ -2,7 +2,7 @@
 = Testing Connections
 
 In some scenarios, it can be useful to send some kind of health-check request when a connection is first opened.
-One such scenario might be when using a <<failover-cf>> so that we can fail over if the selected server allowed a connection to be opened but reports that it is not healthy.
+One such scenario might be when using a xref:ip/tcp-connection-factories.adoc#failover-cf[TCP Failover Client Connection Factory] so that we can fail over if the selected server allowed a connection to be opened but reports that it is not healthy.
 
 In order to support this feature, add a `connectionTest` to the client connection factory.
 
@@ -23,7 +23,7 @@ public void setConnectionTest(@Nullable Predicate<TcpConnectionSupport> connecti
 
 To test the connection, attach a temporary listener to the connection within the test.
 If the test fails, the connection is closed and an exception thrown.
-When used with the <<failover-cf>> this triggers trying the next server.
+When used with the xref:ip/tcp-connection-factories.adoc#failover-cf[TCP Failover Client Connection Factory] this triggers trying the next server.
 
 IMPORTANT: Only the first reply from the server will go to the test listener.
 

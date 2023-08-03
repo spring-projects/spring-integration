@@ -14,11 +14,11 @@ This means that, upon restart, you may end up with duplicate entries.
 If you need to persist metadata between application context restarts, the framework provides the following persistent `MetadataStores`:
 
 * `PropertiesPersistingMetadataStore`
-* <<./hazelcast.adoc#hazelcast-metadata-store,Hazelcast Metadata Store>>
+* xref:hazelcast.adoc#hazelcast-metadata-store[Hazelcast Metadata Store]
 * <<./jdbc.adoc#jdbc-metadata-store,JDBC Metadata Store>>
-* <<./mongodb.adoc#mongodb-metadata-store,MongoDB Metadata Store>>
-* <<./redis.adoc#redis-metadata-store,Redis Metadata Store>>
-* <<./zookeeper.adoc#zk-metadata-store,Zookeeper Metadata Store>>
+* xref:mongodb.adoc#mongodb-metadata-store[MongoDB Metadata Store]
+* xref:redis.adoc#redis-metadata-store[Redis Metadata Store]
+* xref:zookeeper.adoc#zk-metadata-store[Zookeeper Metadata Store]
 
 The `PropertiesPersistingMetadataStore` is backed by a properties file and a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/PropertiesPersister.html[`PropertiesPersister`].
 
@@ -62,7 +62,7 @@ The following configuration shows an example of how to do so:
 
 The `value` of the idempotent entry may be an expiration date, after which that entry should be removed from metadata store by some scheduled reaper.
 
-See also <<./handler-advice.adoc#idempotent-receiver,Idempotent Receiver Enterprise Integration Pattern>>.
+See also xref:handler-advice/idempotent-receiver.adoc[Idempotent Receiver Enterprise Integration Pattern].
 
 [[metadatastore-listener]]
 == `MetadataStoreListener`

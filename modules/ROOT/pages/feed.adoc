@@ -109,7 +109,7 @@ Otherwise, the next attempt to poll for a feed is determined by the trigger of t
 Polling for a feed can result in entries that have already been processed ("`I already read that news item, why are you showing it to me again?`").
 Spring Integration provides a convenient mechanism to eliminate the need to worry about duplicate entries.
 Each feed entry has a "`published date`" field.
-Every time a new `Message` is generated and sent, Spring Integration stores the value of the latest published date in an instance of the `MetadataStore` strategy (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>).
+Every time a new `Message` is generated and sent, Spring Integration stores the value of the latest published date in an instance of the `MetadataStore` strategy (see xref:meta-data-store.adoc[Metadata Store]).
 The `metadataKey` is used to persist the latest published date.
 
 [[other-options]]

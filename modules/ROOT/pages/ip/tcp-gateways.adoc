@@ -79,5 +79,5 @@ To support this on the server side, you can now register multiple `TcpSender` s 
 Gateways and Channel Adapters automatically register themselves.
 When sending unsolicited messages from the server, you must add the appropriate `IpHeaders.CONNECTION_ID` to the messages sent.
 
-Also see <<ip-annotation>> and <<ip-dsl>>.
+Also see xref:ip/annotation.adoc[Annotation-Based Configuration] and xref:ip/dsl.adoc[Using the Java DSL for TCP Components].
 

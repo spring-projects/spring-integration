@@ -1,7 +1,7 @@
 [[logging-channel-adapter]]
 = Logging Channel Adapter
 
-The `<logging-channel-adapter>` is often used in conjunction with a wire tap, as discussed in <<./channel.adoc#channel-wiretap,Wire Tap>>.
+The `<logging-channel-adapter>` is often used in conjunction with a wire tap, as discussed in xref:channel/configuration.adoc#channel-wiretap[Wire Tap].
 However, it can also be used as the ultimate consumer of any flow.
 For example, consider a flow that ends with a `<service-activator>` that returns a result, but you wish to discard that result.
 To do that, you could send the result to `NullChannel`.

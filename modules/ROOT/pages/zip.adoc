@@ -5,9 +5,9 @@ This Spring Integration module provides https://en.wikipedia.org/wiki/ZIP_(file_
 A zipping algorithm implementation is based on a https://github.com/zeroturnaround/zt-zip[ZeroTurnaround ZIP Library].
 The following components are provided:
 
-* <<zip-transformer,Zip Transformer>>
-* <<zip-transformer,UnZip Transformer>>
-* <<unzip-splitter,UnZip Result Splitter>>
+* xref:zip.adoc#zip-transformer[Zip Transformer]
+* xref:zip.adoc#zip-transformer[UnZip Transformer]
+* xref:zip.adoc#unzip-splitter[UnZip Result Splitter]
 
 You need to include this dependency into your project:
 

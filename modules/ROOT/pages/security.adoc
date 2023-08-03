@@ -67,7 +67,7 @@ AuthorizationChannelInterceptor authorizationChannelInterceptor() {
 ----
 ====
 
-See <<./channel.adoc#global-channel-configuration-interceptors,Global Channel Interceptor Configuration>> for more information.
+See xref:channel/configuration.adoc#global-channel-configuration-interceptors[Global Channel Interceptor Configuration] for more information.
 
 [[security-context-propagation]]
 == Security Context Propagation
@@ -82,7 +82,7 @@ Often, though, processing logic can be performed on another thread, on several t
 
 Standard thread-bound behavior is easy to configure if our application is built on the Spring Integration components and its message channels.
 In this case, the secured objects can be any service activator or transformer, secured with a
-`MethodSecurityInterceptor` in their `<request-handler-advice-chain>` (see <<./handler-advice.adoc#message-handler-advice-chain,Adding Behavior to Endpoints>>) or even `MessageChannel` (see <<securing-channels>>, earlier).
+`MethodSecurityInterceptor` in their `<request-handler-advice-chain>` (see xref:handler-advice.adoc[Adding Behavior to Endpoints]) or even `MessageChannel` (see xref:security.adoc#securing-channels[Securing channels], earlier).
 When using `DirectChannel` communication, the `SecurityContext` is automatically available, because the downstream flow runs on the current thread.
 However, in the cases of the `QueueChannel`, `ExecutorChannel`, and `PublishSubscribeChannel` with an `Executor`, messages are transferred from one thread to another (or several) by the nature of those channels.
 In order to support such scenarios, we have two choices:
@@ -109,7 +109,7 @@ This means that, when the thread that processes the handed-off message finishes 
 
 [NOTE]
 ====
-When working with an <<./gateway.adoc#async-gateway,asynchronous gateway>>, you should use an appropriate `AbstractDelegatingSecurityContextSupport` implementation from Spring Security https://docs.spring.io/spring-security/site/docs/current/reference/html/servlet-webclient.html#concurrency[Concurrency Support], to let security context propagation be ensured over gateway invocation.
+When working with an xref:jms.adoc#jms-async-gateway[asynchronous gateway], you should use an appropriate `AbstractDelegatingSecurityContextSupport` implementation from Spring Security https://docs.spring.io/spring-security/site/docs/current/reference/html/servlet-webclient.html#concurrency[Concurrency Support], to let security context propagation be ensured over gateway invocation.
 The following example shows how to do so:
 
 

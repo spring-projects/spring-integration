@@ -3,7 +3,7 @@
 
 Starting with version 5.0.7, the `RotatingServerAdvice` is available; when configured as a poller advice, the inbound adapters can poll multiple servers and directories.
 Configure the advice and add it to the poller's advice chain as normal.
-A `DelegatingSessionFactory` is used to select the server see <<ftp-dsf>> for more information.
+A `DelegatingSessionFactory` is used to select the server see xref:ftp/dsf.adoc[Delegating Session Factory] for more information.
 The advice configuration consists of a list of `RotationPolicy.KeyDirectory` objects.
 
 .Example
@@ -81,5 +81,5 @@ public IntegrationFlow flow() {
 }
 ----
 
-IMPORTANT: Do not configure a `TaskExecutor` on the poller when using this advice; see <<./polling-consumer.adoc#conditional-pollers,Conditional Pollers for Message Sources>> for more information.
+IMPORTANT: Do not configure a `TaskExecutor` on the poller when using this advice; see xref:changes-4.1-4.2.adoc#x4.2-conditional-pollers[Conditional Pollers for Message Sources] for more information.
 

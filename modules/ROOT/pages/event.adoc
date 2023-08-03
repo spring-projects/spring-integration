@@ -204,4 +204,4 @@ public static class ContextConfiguration {
 ====
 
 In this case a return value of the event listener method is used as a payload for a `Message` to be published to that `eventFromPublisher` channel.
-See more information about the `@Publisher` in the <<./message-publishing.adoc#publisher-annotation, Annotation-driven Configuration>> section.
+See more information about the `@Publisher` in the xref:message-publishing.adoc#publisher-annotation[Annotation-driven Configuration] section.

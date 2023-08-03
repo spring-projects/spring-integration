@@ -25,7 +25,7 @@ A `PayloadTypeRouter` sends messages to the channel defined by payload-type mapp
 ----
 ====
 
-Configuration of the `PayloadTypeRouter` is also supported by the namespace provided by Spring Integration (see `<<./configuration.adoc#configuration-namespace,Namespace Support>>`), which essentially simplifies configuration by combining the `<router/>` configuration and its corresponding implementation (defined by using a `<bean/>` element) into a single and more concise configuration element.
+Configuration of the `PayloadTypeRouter` is also supported by the namespace provided by Spring Integration (see `xref:configuration/namespace.adoc[Namespace Support]`), which essentially simplifies configuration by combining the `<router/>` configuration and its corresponding implementation (defined by using a `<bean/>` element) into a single and more concise configuration element.
 The following example shows a `PayloadTypeRouter` configuration that is equivalent to the one above but uses the namespace support:
 
 ====
@@ -226,7 +226,7 @@ The following example creates a `RecipientListRouter`:
 ----
 ====
 
-Spring Integration also provides namespace support for the `RecipientListRouter` configuration (see <<./configuration.adoc#configuration-namespace,Namespace Support>>) as the following example shows:
+Spring Integration also provides namespace support for the `RecipientListRouter` configuration (see xref:configuration/namespace.adoc[Namespace Support]) as the following example shows:
 
 ====
 [source,xml]
@@ -282,7 +282,7 @@ public IntegrationFlow routerFlow() {
 ====
 
 NOTE: The 'apply-sequence' flag here has the same effect as it does for a publish-subscribe-channel, and, as with a publish-subscribe-channel, it is disabled by default on the `recipient-list-router`.
-See <<./channel.adoc#channel-configuration-pubsubchannel,`PublishSubscribeChannel` Configuration>> for more information.
+See xref:channel/configuration.adoc#channel-configuration-pubsubchannel[`PublishSubscribeChannel` Configuration] for more information.
 
 Another convenient option when configuring a `RecipientListRouter` is to use Spring Expression Language (SpEL) support as selectors for individual recipient channels.
 Doing so is similar to using a filter at the beginning of a 'chain' to act as a "`selective consumer`".
@@ -307,7 +307,7 @@ If this attribute is not defined, the channel is always among the list of recipi
 
 Starting with version 4.1, the `RecipientListRouter` provides several operations to manipulate recipients dynamically at runtime.
 These management operations are presented by `RecipientListRouterManagement` through the `@ManagedResource` annotation.
-They are available by using <<./control-bus.adoc#control-bus,Control Bus>> as well as by using JMX, as the following example shows:
+They are available by using xref:groovy.adoc#groovy-control-bus[Control Bus] as well as by using JMX, as the following example shows:
 
 ====
 [source,xml]
@@ -339,7 +339,7 @@ Otherwise, the `MessageDeliveryException` is thrown.
 == XPath Router
 
 The XPath Router is part of the XML Module.
-See <<./xml.adoc#xml-xpath-routing,Routing XML Messages with XPath>>.
+See xref:xml/xpath-routing.adoc[Routing XML Messages with XPath].
 
 [[router-implementations-exception-router]]
 == Routing and Error Handling

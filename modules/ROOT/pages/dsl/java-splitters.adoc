@@ -20,5 +20,5 @@ public IntegrationFlow splitFlow() {
 
 The preceding example creates a splitter that splits a message containing a comma-delimited `String`.
 
-Also see <<java-dsl-class-cast>>.
+Also see xref:dsl/java-basics.adoc#java-dsl-class-cast[Lambdas And `Message<?>` Arguments].
 

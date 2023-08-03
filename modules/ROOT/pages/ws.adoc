@@ -3,12 +3,12 @@
 
 This chapter describes Spring Integration's support for web services, including:
 
-* <<webservices-outbound>>
-* <<webservices-inbound>>
-* <<webservices-namespace>>
-* <<outbound-uri>>
-* <<ws-message-headers>>
-* <<mtom-support>>
+* xref:ws.adoc#webservices-outbound[Outbound Web Service Gateways]
+* xref:ws.adoc#webservices-inbound[Inbound Web Service Gateways]
+* xref:ws.adoc#webservices-namespace[Web Service Namespace Support]
+* xref:ws.adoc#outbound-uri[Outbound URI Configuration]
+* xref:ws.adoc#ws-message-headers[WS Message Headers]
+* xref:ws.adoc#mtom-support[MTOM Support]
 
 You need to include this dependency into your project:
 
@@ -47,7 +47,7 @@ The following example shows both options for invoking a web service:
 ----
 ====
 
-NOTE: When using the namespace support (<<webservices-namespace,described later>>), you need only set a URI.
+NOTE: When using the namespace support (xref:ws.adoc#webservices-namespace[described later]), you need only set a URI.
 Internally, the parser configures a fixed URI `DestinationProvider` implementation.
 If you need dynamic resolution of the URI at runtime, however, then the `DestinationProvider` can provide such behavior as looking up the URI from a registry.
 See the Spring Web Services https://docs.spring.io/spring-ws/docs/current/api/org/springframework/ws/client/support/destination/DestinationProvider.html[`DestinationProvider`] Javadoc for more information about this strategy.
@@ -171,7 +171,7 @@ Starting with version 5.0, the `web-service-template` reference attribute lets y
 [[webservices-dsl]]
 == Web Service Java DSL Support
 
-The equivalent configuration for the gateways shown in <<webservices-namespace>> are shown in the following snippets:
+The equivalent configuration for the gateways shown in xref:ws.adoc#webservices-namespace[Web Service Namespace Support] are shown in the following snippets:
 
 ====
 [source, java]

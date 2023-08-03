@@ -68,7 +68,7 @@ The `file_remoteDirectory` header holds the remote directory, and the `file_remo
 
 The message payload resulting from a `get` operation is a `File` object representing the retrieved file.
 If you use the `-stream` option, the payload is an `InputStream` rather than a `File`.
-For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,file splitter>> or a <<./transformer.adoc#stream-transformer,stream transformer>>.
+For text files, a common use case is to combine this operation with a xref:file/splitter.adoc[file splitter] or a xref:transformer.adoc#stream-transformer[stream transformer].
 When consuming remote files as streams, you are responsible for closing the `Session` after the stream is consumed.
 For convenience, the `Session` is provided in the `closeableResource` header, and `IntegrationMessageHeaderAccessor` offers convenience method:
 
@@ -82,7 +82,7 @@ if (closeable != null) {
 ----
 ====
 
-Framework components, such as the <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>>, automatically close the session after the data is transferred.
+Framework components, such as the xref:file/splitter.adoc[File Splitter] and xref:transformer.adoc#stream-transformer[Stream Transformer], automatically close the session after the data is transferred.
 
 The following example shows how to consume a file as a stream:
 
@@ -185,7 +185,7 @@ Doing so allows recursion for a simple pattern, as the following examples show:
 You can provide one of these filters by using the `filter` property on the gateway.
 
 
-See also <<sftp-partial>>.
+See also xref:sftp/outbound-gateway.adoc#sftp-partial[Outbound Gateway Partial Success (`mget` and `mput`)].
 
 [[sftp-put-command]]
 == Using the `put` Command
@@ -212,14 +212,14 @@ When configuring the adapter using java, you can use `setChmod(0600)`.
 The message payload must be a `java.io.File` (or `String`) that represents a local directory.
 Since version 5.1, a collection of `File` or `String` is also supported.
 
-The same attributes as the <<sftp-put-command,`put` command>> are supported.
+The same attributes as the xref:sftp/outbound-gateway.adoc#sftp-put-command[`put` command] are supported.
 In addition, you can filter files in the local directory with one of `mput-pattern`, `mput-regex`, `mput-filter`, or `mput-filter-expression`.
 The filter works with recursion, as long as the subdirectories themselves pass the filter.
 Subdirectories that do not pass the filter are not recursed.
 
 The message payload resulting from an `mput` operation is a `List<String>` object (that is, a `List` of remote file paths resulting from the transfer).
 
-See also <<sftp-partial>>.
+See also xref:sftp/outbound-gateway.adoc#sftp-partial[Outbound Gateway Partial Success (`mget` and `mput`)].
 
 Version 4.3 introduced the `chmod` attribute, which lets you change the remote file permissions after upload.
 You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).

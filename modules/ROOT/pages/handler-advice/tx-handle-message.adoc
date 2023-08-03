@@ -18,9 +18,9 @@ The following example shows `<transactional>` in use:
 </bean>
 ----
 
-If you are familiar with the <<./jpa.adoc#jpa,JPA integration components>>, such a configuration is not new, but now we can start a transaction from any point in our flow -- not only from the `<poller>` or a message-driven channel adapter such as <<./jms.adoc#jms-message-driven-channel-adapter,JMS>>.
+If you are familiar with the xref:jpa.adoc[JPA integration components], such a configuration is not new, but now we can start a transaction from any point in our flow -- not only from the `<poller>` or a message-driven channel adapter such as xref:changes-2.2-3.0.adoc#x3.0-jms-mdca-te[JMS].
 
-Java configuration can be simplified by using the `TransactionInterceptorBuilder`, and the result bean name can be used in the <<./configuration.adoc#annotations,messaging annotations>> `adviceChain` attribute, as the following example shows:
+Java configuration can be simplified by using the `TransactionInterceptorBuilder`, and the result bean name can be used in the xref:configuration/annotations.adoc[messaging annotations] `adviceChain` attribute, as the following example shows:
 
 [source,java]
 ----

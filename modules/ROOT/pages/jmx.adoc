@@ -131,7 +131,7 @@ The attribute-polling channel adapter is useful when you need to periodically ch
 You can configure the poller in the same way as any other polling adapter in Spring Integration (or you can rely on the default poller).
 The `object-name` and the `attribute-name` are required.
 An MBeanServer reference is also required.
-However, by default, it automatically checks for a bean named `mbeanServer`, same as the notification-listening channel adapter <<jmx-notification-listening-channel-adapter,described earlier>>.
+However, by default, it automatically checks for a bean named `mbeanServer`, same as the notification-listening channel adapter xref:jmx.adoc#jmx-notification-listening-channel-adapter[described earlier].
 The following example shows how to configure an attribute-polling channel adapter with XML:
 
 ====
@@ -153,7 +153,7 @@ The tree-polling channel adapter queries the JMX MBean tree and sends a message 
 By default, the MBeans are mapped to primitives and simple objects, such as `Map`, `List`, and arrays.
 Doing so permits simple transformation to (for example) JSON.
 An MBeanServer reference is also required.
-However, by default, it automatically checks for a bean named `mbeanServer`, same as the notification-listening channel adapter <<jmx-notification-listening-channel-adapter,described earlier>>.
+However, by default, it automatically checks for a bean named `mbeanServer`, same as the notification-listening channel adapter xref:jmx.adoc#jmx-notification-listening-channel-adapter[described earlier].
 The following example shows how to configure a tree-polling channel adapter with XML:
 
 ====
@@ -252,7 +252,7 @@ It registers message channels and message handlers but does not register itself.
 You can expose the exporter itself (and certain other components in Spring Integration) by using the standard `<context:mbean-export/>` tag.
 The exporter has some metrics attached to it -- for instance, a count of the number of handlers and the number of queued messages.
 
-It also has a useful operation, as discussed in <<jmx-mbean-shutdown>>.
+It also has a useful operation, as discussed in xref:jmx.adoc#jmx-mbean-shutdown[Orderly Shutdown Managed Operation].
 =====
 
 Spring Integration 4.0 introduced the `@EnableIntegrationMBeanExport` annotation to allow for convenient configuration of a default `integrationMbeanExporter` bean of type `IntegrationMBeanExporter` with several useful options at the `@Configuration` class level.
@@ -402,4 +402,4 @@ public void stopActiveComponents(long howLong)
 ----
 ====
 
-Its use and operation are described in <<./shutdown.adoc#jmx-shutdown,Orderly Shutdown>>.
+Its use and operation are described in xref:shutdown.adoc[Orderly Shutdown].

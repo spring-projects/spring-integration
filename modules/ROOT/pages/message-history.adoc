@@ -113,7 +113,7 @@ The following example shows how to do so:
 
 In the preceding example, message history is maintained only for the components that end with 'Gateway', start with 'sample', or match the name, 'aName', exactly.
 
-In addition, the `MessageHistoryConfigurer` bean is now exposed as a JMX MBean by the `IntegrationMBeanExporter` (see <<./jmx.adoc#jmx-mbean-exporter,MBean Exporter>>), letting you change the patterns at runtime.
+In addition, the `MessageHistoryConfigurer` bean is now exposed as a JMX MBean by the `IntegrationMBeanExporter` (see xref:jmx.adoc#jmx-mbean-exporter[MBean Exporter]), letting you change the patterns at runtime.
 Note, however, that the bean must be stopped (turning off message history) in order to change the patterns.
 This feature might be useful to temporarily turn on history to analyze a system.
 The MBean's object name is `<domain>:name=messageHistoryConfigurer,type=MessageHistoryConfigurer`.

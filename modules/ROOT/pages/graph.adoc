@@ -91,7 +91,7 @@ A Spring Integration application with only the default components would expose a
 ----
 ====
 
-NOTE: Version 5.2 deprecated the legacy metrics in favor of Micrometer meters as discussed <<./metrics.adoc#metrics-management,Metrics Management>>.
+NOTE: Version 5.2 deprecated the legacy metrics in favor of Micrometer meters as discussed xref:metrics.adoc[Metrics Management].
 The legacy metrics were removed in Version 5.4 and will no longer appear in the graph.
 
 In the preceding example, the graph consists of three top-level elements.
@@ -141,7 +141,7 @@ The `nodes` graph element is perhaps the most interesting, because its elements 
 Node elements contain various properties that are generally self-explanatory.
 For example, expression-based components include the `expression` property that contains the primary expression string for the component.
 To enable the metrics, add an `@EnableIntegrationManagement` to a `@Configuration` class or add an `<int:management/>` element to your XML configuration.
-See  <<./metrics.adoc#metrics-management,Metrics and Management>> for complete information.
+See  xref:metrics.adoc[Metrics and Management] for complete information.
 
 The `nodeId` represents a unique incremental identifier to let you distinguish one component from another.
 It is also used in the `links` element to represent a relationship (connection) of this component to others, if any.
@@ -179,7 +179,7 @@ Within the graph, Spring Integration components are represented by using the `In
 For example, you can use the `ErrorCapableDiscardingMessageHandlerNode` for the `AggregatingMessageHandler` (because it has a `discardChannel` option) and can produce errors when consuming from a `PollableChannel` by using a `PollingConsumer`.
 Another example is `CompositeMessageHandlerNode` -- for a `MessageHandlerChain` when subscribed to a `SubscribableChannel` by using an `EventDrivenConsumer`.
 
-NOTE: The `@MessagingGateway` (see <<./gateway.adoc#gateway,Messaging Gateways>>) provides nodes for each of its method, where the `name` attribute is based on the gateway's bean name and the short method signature.
+NOTE: The `@MessagingGateway` (see xref:gateway.adoc[Messaging Gateways]) provides nodes for each of its method, where the `name` attribute is based on the gateway's bean name and the short method signature.
 Consider the following example of a gateway:
 
 ====
@@ -237,7 +237,7 @@ The preceding gateway produces nodes similar to the following:
 ====
 
 You can use this  `IntegrationNode` hierarchy for parsing the graph model on the client side as well as to understand the general Spring Integration runtime behavior.
-See also <<./overview.adoc#programming-tips,Programming Tips and Tricks>> for more information.
+See also xref:overview.adoc#programming-tips[Programming Tips and Tricks] for more information.
 
 Version 5.3 introduced an `IntegrationPattern` abstraction and all out-of-the-box components, which represent an Enterprise Integration Pattern (EIP), implement this abstraction and provide an `IntegrationPatternType` enum value.
 This information can be useful for some categorizing logic in the target application or, being exposed into the graph node, it can be used by a UI to determine how to draw the component.
@@ -245,7 +245,7 @@ This information can be useful for some categorizing logic in the target applica
 [[integration-graph-controller]]
 = Integration Graph Controller
 
-If your application is web-based (or built on top of Spring Boot with an embedded web container) and the Spring Integration HTTP or WebFlux module (see <<./http.adoc#http,HTTP Support>> and <<./webflux.adoc#webflux,WebFlux Support>>, respectively) is present on the classpath, you can use a `IntegrationGraphController` to expose the `IntegrationGraphServer` functionality as a REST service.
+If your application is web-based (or built on top of Spring Boot with an embedded web container) and the Spring Integration HTTP or WebFlux module (see xref:http.adoc[HTTP Support] and xref:webflux.adoc[WebFlux Support], respectively) is present on the classpath, you can use a `IntegrationGraphController` to expose the `IntegrationGraphServer` functionality as a REST service.
 For this purpose, the `@EnableIntegrationGraphController` and `@Configuration` class annotations and the `<int-http:graph-controller/>` XML element are available in the HTTP module.
 Together with the `@EnableWebMvc` annotation (or `<mvc:annotation-driven/>` for XML definitions), this configuration registers an `IntegrationGraphController` `@RestController` where its `@RequestMapping.path` can be configured on the `@EnableIntegrationGraphController` annotation or `<int-http:graph-controller/>` element.
 The default path is `/integration`.

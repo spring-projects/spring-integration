@@ -16,7 +16,7 @@ Spring Integration provides two approaches: XML configuration and annotation-dri
 
 The annotation-driven approach lets you annotate any method with the `@Publisher` annotation to specify a 'channel' attribute.
 Starting with version 5.1, to switch this functionality on, you must use the `@EnablePublisher` annotation on some `@Configuration` class.
-See <<./overview.adoc#configuration-enable-integration,Configuration and `@EnableIntegration`>> for more information.
+See xref:overview.adoc#configuration-enable-integration[Configuration and `@EnableIntegration`] for more information.
 The message is constructed from the return value of the method invocation and sent to the channel specified by the 'channel' attribute.
 To further manage message structure, you can also use a combination of both `@Payload` and `@Header` annotations.
 
@@ -317,7 +317,7 @@ The following example shows how to an asynchronous `publishing-interceptor`:
 ====
 
 Another way of handling this type of scenario is with a wire-tap.
-See <<./channel.adoc#channel-wiretap,Wire Tap>>.
+See xref:channel/configuration.adoc#channel-wiretap[Wire Tap].
 
 [[scheduled-producer]]
 === Producing and Publishing Messages Based on a Scheduled Trigger

@@ -6,10 +6,10 @@ Prior to invoking the FTP endpoint, call `setThreadKey()` on the factory to asso
 That key is then used to look up the actual session factory to be used.
 You can clear the key by calling `clearThreadKey()` after use.
 
-See <<./handler-advice.adoc#context-holder-advice, Context Holder Advice>> for more information how this factory can be used together with a `ContextHolderRequestHandlerAdvice`.
+See xref:handler-advice/context-holder.adoc[Context Holder Advice] for more information how this factory can be used together with a `ContextHolderRequestHandlerAdvice`.
 
-IMPORTANT: When you use session caching (see <<ftp-session-caching>>), each of the delegates should be cached.
+IMPORTANT: When you use session caching (see xref:ftp/session-caching.adoc[FTP Session Caching]), each of the delegates should be cached.
 You cannot cache the `DelegatingSessionFactory` itself.
 
-Starting with version 5.0.7, the `DelegatingSessionFactory` can be used in conjunction with a `RotatingServerAdvice` to poll multiple servers; see <<ftp-rotating-server-advice>>.
+Starting with version 5.0.7, the `DelegatingSessionFactory` can be used in conjunction with a `RotatingServerAdvice` to poll multiple servers; see xref:ftp/rotating-server-advice.adoc[Inbound Channel Adapters: Polling Multiple Servers and Directories].
 

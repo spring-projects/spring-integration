@@ -119,7 +119,7 @@ For further reference, see the following resource:
 
 * https://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html[The Database As Queue Anti-Pattern].
 
-If you are still planning to use your database as a queue, consider using PostgreSQL and its notification mechanism which is described <<postgresql-push,in a subsequent section>>.
+If you are still planning to use your database as a queue, consider using PostgreSQL and its notification mechanism which is described xref:jdbc/message-store.adoc#postgresql-push[in a subsequent section].
 ====
 
 [[concurrent-polling]]
@@ -211,7 +211,7 @@ To configure that scenario, you can extend one message store bean from the other
 
 It is common to use a `JdbcMessageStore` as a global store for a group of applications or nodes in the same application.
 To provide some protection against name clashes and to give control over the database meta-data configuration, the message store lets the tables be partitioned in two ways.
-One way is to use separate table names, by changing the prefix (as <<jdbc-message-store-generic,described earlier>>).
+One way is to use separate table names, by changing the prefix (as xref:jdbc/message-store.adoc#jdbc-message-store-generic[described earlier]).
 The other way is to specify a `region` name for partitioning data within a single table.
 An important use case for the second approach is when the `MessageStore` is managing persistent queues that back a Spring Integration Message Channel.
 The message data for a persistent channel is keyed in the store on the channel name.

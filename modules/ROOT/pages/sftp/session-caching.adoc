@@ -14,7 +14,7 @@ As its name suggests, the `sessionCacheSize` property controls how many active s
 If the `sessionCacheSize` threshold has been reached, any attempt to acquire another session blocks until either one of the cached sessions becomes available or until the wait time for a session expires (the default wait time is `Integer.MAX_VALUE`).
 The `sessionWaitTimeout` property enables configuration of the wait time.
 
-If you want your sessions to be cached, configure your default session factory (as <<sftp-session-factory,described earlier>>) and then wrap it in an instance of `CachingSessionFactory` where you may provide those additional properties.
+If you want your sessions to be cached, configure your default session factory (as xref:sftp/session-factory.adoc[described earlier]) and then wrap it in an instance of `CachingSessionFactory` where you may provide those additional properties.
 The following example shows how to do so:
 
 [source,xml]

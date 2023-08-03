@@ -45,14 +45,14 @@ It lets you configure an interface as a service, as the following example shows:
 ====
 
 With this configuration defined, the `cafeService` can now be injected into other beans, and the code that invokes the methods on that proxied instance of the `Cafe` interface has no awareness of the Spring Integration API.
-See the <<./samples.adoc#samples,"`Samples`">> Appendix for an example that uses the `gateway` element (in the Cafe demo).
+See the xref:samples.adoc#samples-impl["`Samples`"] Appendix for an example that uses the `gateway` element (in the Cafe demo).
 
 The defaults in the preceding configuration are applied to all methods on the gateway interface.
 If a reply timeout is not specified, the calling thread waits for a reply for 30 seconds.
-See <<gateway-no-response>>.
+See xref:gateway.adoc#gateway-no-response[Gateway Behavior When No response Arrives].
 
 The defaults can be overridden for individual methods.
-See <<gateway-configuration-annotations>>.
+See xref:gateway.adoc#gateway-configuration-annotations[Gateway Configuration with Annotations and XML].
 
 [[gateway-default-reply-channel]]
 == Setting the Default Reply Channel
@@ -78,7 +78,7 @@ By defining a `default-reply-channel` you can point to a channel of your choosin
 In this case, that is a `publish-subscribe-channel`.
 The gateway creates a bridge from it to the temporary, anonymous reply channel that is stored in the header.
 
-You might also want to explicitly provide a reply channel for monitoring or auditing through an interceptor (for example, <<./channel.adoc#channel-wiretap,wiretap>>).
+You might also want to explicitly provide a reply channel for monitoring or auditing through an interceptor (for example, xref:channel/configuration.adoc#channel-wiretap[wiretap]).
 To configure a channel interceptor, you need a named channel.
 
 NOTE: Starting with version 5.4, when gateway method return type is `void`, the framework populates a `replyChannel` header as a `nullChannel` bean reference if such a header is not provided explicitly.
@@ -256,7 +256,7 @@ public interface MyGateway {
 <1> Note that, in this example, the SpEL variable, `#this`, refers to the argument -- in this case, the value of `s`.
 
 The XML equivalent looks a little different, since there is no `#this` context for the method argument.
-However, expressions can refer to method arguments by using the `args` property for the `MethodArgsHolder` root object (see <<gateway-expressions>> for more information), as the following example shows:
+However, expressions can refer to method arguments by using the `args` property for the `MethodArgsHolder` root object (see xref:gateway.adoc#gateway-expressions[Expressions and "`Global`" Headers] for more information), as the following example shows:
 
 ====
 [source,xml]
@@ -315,7 +315,7 @@ IMPORTANT: Similarly to the XML version, when Spring Integration discovers these
 To perform this scan and register the `BeanDefinition` in the application context, add the `@IntegrationComponentScan` annotation to a `@Configuration` class.
 The standard `@ComponentScan` infrastructure does not deal with interfaces.
 Consequently, we introduced the custom `@IntegrationComponentScan` logic to find the `@MessagingGateway` annotation on the interfaces and register `GatewayProxyFactoryBean` instances for them.
-See also <<./configuration.adoc#annotations,Annotation Support>>.
+See also xref:configuration/annotations.adoc[Annotation Support].
 
 Along with the `@MessagingGateway` annotation you can mark a service interface with the `@Profile` annotation to avoid the bean creation, if such a profile is not active.
 
@@ -329,7 +329,7 @@ This way the bean names generating strategy for gateway proxies is realigned wit
 The default `AnnotationBeanNameGenerator` can be overridden globally via an `AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR` or as a `@IntegrationComponentScan.nameGenerator()` attribute.
 
 NOTE: If you have no XML configuration, the `@EnableIntegration` annotation is required on at least one `@Configuration` class.
-See <<./overview.adoc#configuration-enable-integration,Configuration and `@EnableIntegration`>> for more information.
+See xref:overview.adoc#configuration-enable-integration[Configuration and `@EnableIntegration`] for more information.
 
 [[gateway-calling-no-argument-methods]]
 == Invoking No-Argument Methods
@@ -374,7 +374,7 @@ public interface Cafe {
 
 NOTE: If both annotations are present (and the `payloadExpression` is provided), `@Gateway` wins.
 
-Also see <<gateway-configuration-annotations>>.
+Also see xref:gateway.adoc#gateway-configuration-annotations[Gateway Configuration with Annotations and XML].
 
 If a method has no argument and no return value but does contain a payload expression, it is treated as a send-only operation.
 
@@ -465,7 +465,7 @@ If you provide a one-way flow, nothing would be sent back to the caller.
 If you want to completely suppress exceptions, you can provide a reference to the global `nullChannel` (essentially a `/dev/null` approach).
 Finally, as mentioned above, if no `error-channel` is defined, then the exceptions propagate as usual.
 
-When you use the `@MessagingGateway` annotation (see `<<messaging-gateway-annotation>>`), you can use an `errorChannel` attribute.
+When you use the `@MessagingGateway` annotation (see `xref:gateway.adoc#messaging-gateway-annotation[`@MessagingGateway` Annotation]`), you can use an `errorChannel` attribute.
 
 Starting with version 5.0, when you use a gateway method with a `void` return type (one-way flow), the `error-channel` reference (if provided) is populated in the standard `errorChannel` header of each sent message.
 This feature allows a downstream asynchronous flow, based on the standard `ExecutorChannel` configuration (or a `QueueChannel`), to override a default global `errorChannel` exceptions sending behavior.
@@ -501,7 +501,7 @@ This can be useful in asynchronous situations when you need to propagate an `Exc
 To do so, you can either return an `Exception` (as the `reply` from some service) or throw it.
 Generally, even with an asynchronous flow, the framework takes care of propagating an exception thrown by the downstream flow back to the gateway.
 The https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/tcp-client-server-multiplex[TCP Client-Server Multiplex] sample demonstrates both techniques to return the exception to the caller.
-It emulates a socket IO error to the waiting thread by using an `aggregator` with `group-timeout` (see <<./aggregator.adoc#agg-and-group-to,Aggregator and Group Timeout>>) and a `MessagingTimeoutException` reply on the discard flow.
+It emulates a socket IO error to the waiting thread by using an `aggregator` with `group-timeout` (see xref:aggregator.adoc#agg-and-group-to[Aggregator and Group Timeout]) and a `MessagingTimeoutException` reply on the discard flow.
 
 [[gateway-timeouts]]
 == Gateway Timeouts
@@ -526,7 +526,7 @@ String lateReply(String payload, long requestTimeout, long replyTimeout);
 ====
 
 The evaluation context has a `BeanResolver` (use `@someBean` to reference other beans), and the `args` array property from the `#root` object is available.
-See <<gateway-expressions>> for more information about this root object.
+See xref:gateway.adoc#gateway-expressions[Expressions and "`Global`" Headers] for more information about this root object.
 When configuring with XML, the timeout attributes can be a long value or a SpEL expression, as the following example shows:
 
 ====
@@ -544,7 +544,7 @@ When configuring with XML, the timeout attributes can be a long value or a SpEL 
 == Asynchronous Gateway
 
 As a pattern, the messaging gateway offers a nice way to hide messaging-specific code while still exposing the full capabilities of the messaging system.
-As <<gateway-proxy,described earlier>>, the `GatewayProxyFactoryBean` provides a convenient way to expose a proxy over a service-interface giving you POJO-based access to a messaging system (based on objects in your own domain, primitives/Strings, or other objects).
+As xref:gateway.adoc#gateway-proxy[described earlier], the `GatewayProxyFactoryBean` provides a convenient way to expose a proxy over a service-interface giving you POJO-based access to a messaging system (based on objects in your own domain, primitives/Strings, or other objects).
 However, when a gateway is exposed through simple POJO methods that return values, it implies that, for each request message (generated when the method is invoked), there must be a reply message (generated when the method has returned).
 Since messaging systems are naturally asynchronous, you may not always be able to guarantee the contract where "`for each request, there will always be a reply`". Spring Integration 2.0 introduced support for an asynchronous gateway, which offers a convenient way to initiate flows when you may not know if a reply is expected or how long it takes for replies to arrive.
 
@@ -597,7 +597,7 @@ By default, the `GatewayProxyFactoryBean` uses `org.springframework.core.task.Si
 However, the `async-executor` attribute in the `<gateway/>` element's configuration lets you provide a reference to any implementation of `java.util.concurrent.Executor` available within the Spring application context.
 
 The (default) `SimpleAsyncTaskExecutor` supports both `Future` and `CompletableFuture` return types.
-See <<gw-completable-future>>.
+See xref:gateway.adoc#gw-completable-future[`CompletableFuture`].
 Even though there is a default executor, it is often useful to provide an external one so that you can identify its threads in logs (when using XML, the thread name is based on the executor's bean name), as the following example shows:
 
 ====
@@ -785,12 +785,12 @@ mono.subscribe(invoice -> handleInvoice(invoice));
 
 The calling thread continues, with `handleInvoice()` being called when the flow completes.
 
-Also see <<./kotlin-functions.adoc#kotlin-coroutines,Kotlin Coroutines>> for more information.
+Also see xref:kotlin-functions.adoc#kotlin-coroutines[Kotlin Coroutines] for more information.
 
 [[downstream-flows-returning-an-asynchronous-type]]
 === Downstream Flows Returning an Asynchronous Type
 
-As mentioned in the <<gateway-asynctaskexecutor>> section above, if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, and others), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
+As mentioned in the xref:gateway.adoc#gateway-asynctaskexecutor[`AsyncTaskExecutor`] section above, if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, and others), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
 The flow is then invoked on the caller thread and the result can be retrieved later.
 
 [[asynchronous-void-return-type]]
@@ -825,7 +825,7 @@ There `Mono<Void>` as a result of the request-reply gateway operation must be co
 [[gateway-no-response]]
 == Gateway Behavior When No response Arrives
 
-As <<gateway-proxy,explained earlier>>, the gateway provides a convenient way of interacting with a messaging system through POJO method invocations.
+As xref:gateway.adoc#gateway-proxy[explained earlier], the gateway provides a convenient way of interacting with a messaging system through POJO method invocations.
 However, a typical method invocation, which is generally expected to always return (even with an Exception), might not always map one-to-one to message exchanges (for example, a reply message might not arrive -- the equivalent to a method not returning).
 
 The rest of this section covers various scenarios and how to make the gateway behave more predictably.
@@ -874,9 +874,9 @@ Consequently, if you set the `reply-timeout` to negative value, your gateway met
 So, to make sure you analyze your flow and if there is even a remote possibility of one of these scenarios to occur, you should set the `reply-timeout` attribute to a "'safe'" value.
 It is `30` seconds by default.
 Even better, you can set the `requires-reply` attribute of the downstream component to 'true' to ensure a timely response, as produced by the throwing of an exception as soon as that downstream component returns null internally.
-However, you should also realize that there are some scenarios (see <<long-running-process-downstream,the first one>>) where `reply-timeout` does not help.
+However, you should also realize that there are some scenarios (see xref:gateway.adoc#long-running-process-downstream[the first one]) where `reply-timeout` does not help.
 That means it is also important to analyze your message flow and decide when to use a synchronous gateway rather than an asynchronous gateway.
-As <<async-gateway,described earlier>>, the latter case is a matter of defining gateway methods that return `Future` instances.
+As xref:jms.adoc#jms-async-gateway[described earlier], the latter case is a matter of defining gateway methods that return `Future` instances.
 Then you are guaranteed to receive that return value, and you have more granular control over the results of the invocation.
 Also, when dealing with a router, you should remember that setting the `resolution-required` attribute to 'true' results in an exception thrown by the router if it can not resolve a particular channel.
 Likewise, when dealing with a Filter, you can set the `throw-exception-on-rejection` attribute.
@@ -888,4 +888,4 @@ At that time, the calling thread starts waiting for the reply.
 If the flow was completely synchronous, the reply is immediately available.
 For asynchronous flows, the thread waits for up to this time.
 
-See <<./dsl.adoc#integration-flow-as-gateway,`IntegrationFlow` as Gateway>> in the Java DSL chapter for options to define gateways through `IntegrationFlow`.
+See xref:dsl/integration-flow-as-gateway.adoc[`IntegrationFlow` as Gateway] in the Java DSL chapter for options to define gateways through `IntegrationFlow`.

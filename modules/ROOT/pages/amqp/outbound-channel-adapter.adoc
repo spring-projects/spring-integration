@@ -98,22 +98,22 @@ Version 4.1 introduced the `amqp_publishConfirmNackCause` message header.
 It contains the `cause` of a 'nack' for a publisher confirmation.
 Starting with version 4.2, if the expression resolves to a `Message<?>` instance (such as `#this`), the message emitted on the `ack`/`nack` channel is based on that message, with the additional header(s) added.
 Previously, a new message was created with the correlation data as its payload, regardless of type.
-Also see <<alternative-confirms-returns>>.
+Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Optional.
 <11> The channel to which positive (`ack`) publisher confirms are sent.
 The payload is the correlation data defined by the `confirm-correlation-expression`.
 If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `true`.
-Also see <<alternative-confirms-returns>>.
+Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Optional (the default is `nullChannel`).
 <12> The channel to which negative (`nack`) publisher confirmations are sent.
 The payload is the correlation data defined by the `confirm-correlation-expression` (if there is no `ErrorMessageStrategy` configured).
 If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `false`.
 When there is an `ErrorMessageStrategy`, the message is an `ErrorMessage` with a `NackedAmqpMessageException` payload.
-Also see <<alternative-confirms-returns>>.
+Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Optional (the default is `nullChannel`).
 <13> When set, the adapter will synthesize a negative acknowledgment (nack) if a publisher confirm is not received within this time in milliseconds.
 Pending confirms are checked every 50% of this value, so the actual time a nack is sent will be between 1x and 1.5x this value.
-Also see <<alternative-confirms-returns>>.
+Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Default none (nacks will not be generated).
 <14> When set to true, the calling thread will block, waiting for a publisher confirmation.
 This requires a `RabbitTemplate` configured for confirms as well as a `confirm-correlation-expression`.
@@ -124,7 +124,7 @@ If returns are enabled and a message is returned, or any other exception occurs 
 When provided, the underlying AMQP template is configured to return undeliverable messages to the adapter.
 When there is no `ErrorMessageStrategy` configured, the message is constructed from the data received from AMQP, with the following additional headers: `amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, `amqp_returnRoutingKey`.
 When there is an `ErrorMessageStrategy`, the message is an `ErrorMessage` with a `ReturnedAmqpMessageException` payload.
-Also see <<alternative-confirms-returns>>.
+Also see xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns].
 Optional.
 <16> A reference to an `ErrorMessageStrategy` implementation used to build `ErrorMessage` instances when sending returned or negatively acknowledged messages.
 <17> A reference to an `AmqpHeaderMapper` to use when sending AMQP Messages.

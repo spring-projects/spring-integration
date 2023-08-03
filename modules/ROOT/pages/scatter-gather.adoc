@@ -17,19 +17,19 @@ The request message is sent to the `scatter` channel, and the `ScatterGatherHand
 The `Scatter-Gather` pattern suggests two scenarios: "`auction`" and "`distribution`".
 In both cases, the `aggregation` function is the same and provides all the options available for the `AggregatingMessageHandler`.
 (Actually, the `ScatterGatherHandler` requires only an `AggregatingMessageHandler` as a constructor argument.)
-See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
+See xref:overview.adoc#overview-endpoints-aggregator[Aggregator] for more information.
 
 [[auction]]
 === Auction
 
 The auction `Scatter-Gather` variant uses "`publish-subscribe`" logic for the request message, where the "`scatter`" channel is a `PublishSubscribeChannel` with `apply-sequence="true"`.
-However, this channel can be any `MessageChannel` implementation (as is the case with the `request-channel` in the `ContentEnricher` -- see <<./content-enrichment.adoc#content-enricher,Content Enricher>>).
+However, this channel can be any `MessageChannel` implementation (as is the case with the `request-channel` in the `ContentEnricher` -- see xref:content-enrichment.adoc[Content Enricher]).
 However, in this case, you should create your own custom `correlationStrategy` for the `aggregation` function.
 
 [[distribution]]
 === Distribution
 
-The distribution `Scatter-Gather` variant is based on the `RecipientListRouter` (see <<./router.adoc#router-implementations-recipientlistrouter,`RecipientListRouter`>>) with all available options for the `RecipientListRouter`.
+The distribution `Scatter-Gather` variant is based on the `RecipientListRouter` (see xref:router/implementations.adoc#router-implementations-recipientlistrouter[`RecipientListRouter`]) with all available options for the `RecipientListRouter`.
 This is the second `ScatterGatherHandler` constructor argument.
 If you want to rely on only the default `correlationStrategy` for the `recipient-list-router` and the `aggregator`, you should specify `apply-sequence="true"`.
 Otherwise, you should supply a custom `correlationStrategy` for the `aggregator`.
@@ -167,7 +167,7 @@ In other cases something like a "`compensation message`" should be considered fo
 
 Every async sub-flow should be configured with a `errorChannel` header for the proper error message sending from the `MessagePublishingErrorHandler`.
 Otherwise, an error will be sent to the global `errorChannel` with the common error handling logic.
-See <<./error-handling.adoc#error-handling,Error Handling>> for more information about async error processing.
+See xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] for more information about async error processing.
 
 Synchronous flows may use an `ExpressionEvaluatingRequestHandlerAdvice` for ignoring the exception or returning a compensation message.
 When an exception is thrown from one of the sub-flows to the `ScatterGatherHandler`, it is just re-thrown to upstream.

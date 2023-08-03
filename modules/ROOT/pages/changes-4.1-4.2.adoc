@@ -17,25 +17,25 @@ This change, together with other changes in the JMX and management infrastructur
 
 However, this has some important implications for (some) user environments.
 
-For complete details, see <<./metrics.adoc#metrics-management,Metrics and Management>> and <<./jmx.adoc#jmx-42-improvements,JMX Improvements>>.
+For complete details, see xref:metrics.adoc[Metrics and Management] and xref:jmx.adoc#jmx-42-improvements[JMX Improvements].
 
 [[x4.2-mongodb-metadata-store]]
 === MongoDB Metadata Store
 
 The `MongoDbMetadataStore` is now available.
-For more information, see <<./mongodb.adoc#mongodb-metadata-store,MongoDB Metadata Store>>.
+For more information, see xref:mongodb.adoc#mongodb-metadata-store[MongoDB Metadata Store].
 
 [[x4.2-secured-channel-annotation]]
 === SecuredChannel Annotation
 
 We introduced the `@SecuredChannel` annotation, replacing the deprecated `ChannelSecurityInterceptorFactoryBean`.
-For more information, see <<./security.adoc#security,Security in Spring Integration>>.
+For more information, see xref:security.adoc[Security in Spring Integration].
 
 [[x4.2-security-context-propagation]]
 === `SecurityContext` Propagation
 
 We introduced the `SecurityContextPropagationChannelInterceptor` for the `SecurityContext` propagation from one message flow's thread to another.
-For more information, see <<./security.adoc#security,Security in Spring Integration>>.
+For more information, see xref:security.adoc[Security in Spring Integration].
 
 
 [[x4.2-file-splitter]]
@@ -43,7 +43,7 @@ For more information, see <<./security.adoc#security,Security in Spring Integrat
 
 In 4.1.2, we added `FileSplitter`, which splits text files into lines.
 It now has full support in the `int-file:` namespace.
-See <<./file.adoc#file-splitter,File Splitter>> for more information.
+See xref:file/splitter.adoc[File Splitter] for more information.
 
 [[x4.2-zk]]
 === Zookeeper Support
@@ -55,32 +55,32 @@ The change impacts the following features:
 * `ZookeeperLockRegistry`
 * Zookeeper Leadership
 
-See <<./zookeeper.adoc#zookeeper,Zookeeper Support>> for more information.
+See xref:zookeeper.adoc[Zookeeper Support] for more information.
 
 [[x4.2-barrier]]
 === Thread Barrier
 
 A new thread `<int:barrier/>` component is available, letting a thread be suspended until some asynchronous event occurs.
-See <<./barrier.adoc#barrier,Thread Barrier>> for more information.
+See xref:barrier.adoc[Thread Barrier] for more information.
 
 [[x4.2-stomp]]
 === STOMP Support
 
 We added STOMP support to the framework as an inbound and outbound channel adapters pair.
-See <<./stomp.adoc#stomp,STOMP Support>> for more information.
+See xref:stomp.adoc[STOMP Support] for more information.
 
 [[x4.2-codec]]
 === Codec
 A new `Codec` abstraction has been introduced, to encode and decode objects to and from `byte[]`.
 We added an implementation that uses Kryo.
 We also added codec-based transformers and message converters.
-See <<./codec.adoc#codec,Codec>> for more information.
+See xref:codec.adoc[Codec] for more information.
 
 [[x4.2-prepared-statement-setter]]
 === Message PreparedStatement Setter
 
 A new `MessagePreparedStatementSetter` functional interface callback is available for the `JdbcMessageHandler` (`<int-jdbc:outbound-gateway>` and `<int-jdbc:outbound-channel-adapter>`) as an alternative to using `SqlParameterSourceFactory` to populate parameters on the `PreparedStatement` with the `requestMessage` context.
-See <<./jdbc.adoc#jdbc-outbound-channel-adapter,Outbound Channel Adapter>> for more information.
+See xref:jdbc/outbound-channel-adapter.adoc[Outbound Channel Adapter] for more information.
 
 [[x4.2-general]]
 == General Changes
@@ -95,7 +95,7 @@ As an alternative to the existing `selector` attribute, the `<wire-tap/>` elemen
 [[x4.2-file-changes]]
 === File Changes
 
-See <<./file.adoc#files,File Support>> for more information about these changes.
+See xref:file.adoc[File Support] for more information about these changes.
 
 [[appending-new-lines]]
 ==== Appending New Lines
@@ -156,7 +156,7 @@ If you use the serializers directly within your code, you may have to `flush()` 
 ==== Server Socket Exceptions
 
 `TcpConnectionServerExceptionEvent` instances are now published whenever an unexpected exception occurs on a TCP server socket (also added to 4.1.3 and 4.0.7).
-See <<./ip.adoc#tcp-events,TCP Connection Events>> for more information.
+See xref:changes-4.1-4.2.adoc#x4.2-tcp-events[TCP Connection Events] for more information.
 
 [[x4.2-tcp-server-port]]
 ==== TCP Server Port
@@ -164,7 +164,7 @@ See <<./ip.adoc#tcp-events,TCP Connection Events>> for more information.
 If you configure a TCP server socket factory to listen on a random port, you can now obtain the actual port chosen by the OS by using `getPort()`.
 `getServerSocketAddress()` is also available.
 
-See "<<./ip.adoc#tcp-connection-factories,TCP Connection Factories>>" for more information.
+See "xref:ip/tcp-connection-factories.adoc[TCP Connection Factories]" for more information.
 
 [[x4.2-tcp-gw-rto]]
 ==== TCP Gateway Remote Timeout
@@ -174,13 +174,13 @@ This allows setting the timeout based on each message.
 
 Also, the `remote-timeout` no longer defaults to the same value as `reply-timeout`, which has a completely different meaning.
 
-See <<./ip.adoc#tcp-ob-gateway-attributes,.TCP Outbound Gateway Attributes>> for more information.
+See xref:ip/endpoint-reference.adoc#tcp-ob-gateway-attributes[.TCP Outbound Gateway Attributes] for more information.
 
 [[x4.2-tcp-ssl]]
 ==== TCP SSLSession Available for Header Mapping
 
 `TcpConnection` implementations now support `getSslSession()` to let you extract information from the session to add to message headers.
-See <<./ip.adoc#ip-msg-headers,IP Message Headers>> for more information.
+See xref:ip/msg-headers.adoc[IP Message Headers] for more information.
 
 [[x4.2-tcp-events]]
 ==== TCP Events
@@ -190,7 +190,7 @@ New events are now published whenever a correlation exception occurs -- such as 
 The `TcpConnectionEventListeningMessageProducer` is deprecated.
 Use the generic event adapter instead.
 
-See <<./ip.adoc#tcp-events,TCP Connection Events>> for more information.
+See xref:changes-4.1-4.2.adoc#x4.2-tcp-events[TCP Connection Events] for more information.
 
 [[x4.2-inbound-channel-adapter-annotation]]
 === `@InboundChannelAdapter` Changes
@@ -218,7 +218,7 @@ This section describes general changes to the Spring Integration TCP functionali
 ==== Reply Listener Lazy Initialization
 
 You can now configure the reply listener in JMS outbound gateways to be initialized on-demand and stopped after an idle period, instead of being controlled by the gateway's lifecycle.
-See <<./jms.adoc#jms-outbound-gateway,Outbound Gateway>> for more information.
+See xref:jms.adoc#jms-outbound-gateway[Outbound Gateway] for more information.
 
 [[conversion-errors-in-message-driven-endpoints]]
 ==== Conversion Errors in Message-Driven Endpoints
@@ -226,7 +226,7 @@ See <<./jms.adoc#jms-outbound-gateway,Outbound Gateway>> for more information.
 The `error-channel` is now used for the conversion errors.
 In previous versions, they caused transaction rollback and message redelivery.
 
-See <<./jms.adoc#jms-message-driven-channel-adapter,Message-driven Channel Adapter>> and <<./jms.adoc#jms-inbound-gateway,Inbound Gateway>> for more information.
+See xref:changes-2.2-3.0.adoc#x3.0-jms-mdca-te[Message-driven Channel Adapter] and xref:jms.adoc#jms-inbound-gateway[Inbound Gateway] for more information.
 
 [[default-acknowledge-mode]]
 ==== Default Acknowledge Mode
@@ -236,7 +236,7 @@ We recommend using `transacted` when using this container, to avoid message loss
 This default now applies to the message-driven inbound adapter and the inbound gateway.
 It was already the default for JMS-backed channels.
 
-See <<./jms.adoc#jms-message-driven-channel-adapter,Message-driven Channel Adapter>> and <<./jms.adoc#jms-inbound-gateway,Inbound Gateway>> for more information.
+See xref:changes-2.2-3.0.adoc#x3.0-jms-mdca-te[Message-driven Channel Adapter] and xref:jms.adoc#jms-inbound-gateway[Inbound Gateway] for more information.
 
 [[shared-subscriptions]]
 ==== Shared Subscriptions
@@ -244,14 +244,14 @@ See <<./jms.adoc#jms-message-driven-channel-adapter,Message-driven Channel Adapt
 We added Namespace support for shared subscriptions (JMS 2.0) to message-driven endpoints and the `<int-jms:publish-subscribe-channel>`.
 Previously, you had to wire up listener containers as `<bean/>` declarations to use shared connections.
 
-See <<./jms.adoc#jms,JMS Support>> for more information.
+See xref:jms.adoc[JMS Support] for more information.
 
 [[x4.2-conditional-pollers]]
 === Conditional Pollers
 
 We now provide much more flexibility for dynamic polling.
 
-See <<./polling-consumer.adoc#conditional-pollers,Conditional Pollers for Message Sources>> for more information.
+See xref:changes-4.1-4.2.adoc#x4.2-conditional-pollers[Conditional Pollers for Message Sources] for more information.
 
 [[x4.2-amqp-changes]]
 === AMQP Changes
@@ -276,14 +276,14 @@ The `<int-amqp:inbound-gateway>` now exposes the `amqp-template` attribute to al
 You can also provide your own `AmqpTemplate` implementation.
 In addition, you can use `default-reply-to` if the request message does not have a `replyTo` property.
 
-See <<./amqp.adoc#amqp,AMQP Support>> for more information.
+See xref:amqp.adoc[AMQP Support] for more information.
 
 [[x4.2-xpath-splitter]]
 === XPath Splitter Improvements
 
 The `XPathMessageSplitter` (`<int-xml:xpath-splitter>`) now allows the configuration of `output-properties` for the internal `javax.xml.transform.Transformer` and supports an `Iterator` mode (defaults to `true`) for the XPath evaluation `org.w3c.dom.NodeList` result.
 
-See <<./xml.adoc#xml-xpath-splitting,Splitting XML Messages>> for more information.
+See xref:xml/xpath-splitting.adoc[Splitting XML Messages] for more information.
 
 [[x4.2-http-changes]]
 === HTTP Changes
@@ -296,7 +296,7 @@ This section describes general changes to the Spring Integration HTTP functional
 The HTTP inbound endpoints (`<int-http:inbound-channel-adapter>` and `<int-http:inbound-gateway>`) now allow the
 configuration of Cross-origin Resource Sharing (CORS).
 
-See <<./http.adoc#http-cors,Cross-origin Resource Sharing (CORS) Support>> for more information.
+See xref:http/namespace.adoc#http-cors[Cross-origin Resource Sharing (CORS) Support] for more information.
 
 [[inbound-gateway-timeout]]
 ==== Inbound Gateway Timeout
@@ -304,13 +304,13 @@ See <<./http.adoc#http-cors,Cross-origin Resource Sharing (CORS) Support>> for m
 You can configure the HTTP inbound gate way to return a status code that you specify when a request times out.
 The default is now `500 Internal Server Error` instead of `200 OK`.
 
-See <<./http.adoc#http-response-statuscode,Response Status Code>> for more information.
+See xref:http/namespace.adoc#http-response-statuscode[Response Status Code] for more information.
 
 [[form-data]]
 ==== Form Data
 
 We added documentation for proxying `multipart/form-data` requests.
-See <<./http.adoc#http,HTTP Support>> for more information.
+See xref:http.adoc[HTTP Support] for more information.
 
 [[x4.2-gw]]
 === Gateway Changes
@@ -321,13 +321,13 @@ This section describes general changes to the Spring Integration Gateway functio
 ==== Gateway Methods can Return `CompletableFuture<?>`
 
 When using Java 8, gateway methods can now return `CompletableFuture<?>`.
-See <<./gateway.adoc#gw-completable-future,`CompletableFuture`>> for more information.
+See xref:gateway.adoc#gw-completable-future[`CompletableFuture`] for more information.
 
 [[messaginggateway-annotation]]
 ==== MessagingGateway Annotation
 
 The request and reply timeout properties are now `String` instead of `Long` to allow configuration with property placeholders or SpEL.
-See <<./gateway.adoc#messaging-gateway-annotation,`@MessagingGateway` Annotation>>.
+See xref:gateway.adoc#messaging-gateway-annotation[`@MessagingGateway` Annotation].
 
 [[x4.2-aggregator-changes]]
 === Aggregator Changes
@@ -349,7 +349,7 @@ When using a `ref` or inner bean for the aggregator, you can now directly bind a
 In addition, we added a `SimpleMessageGroupProcessor` that returns the collection of messages in the group.
 When an output processor produces a collection of `Message<?>`, the aggregator releases those messages individually.
 Configuring the `SimpleMessageGroupProcessor` makes the aggregator a message barrier, where messages are held up until they all arrive and are then released individually.
-See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
+See xref:overview.adoc#overview-endpoints-aggregator[Aggregator] for more information.
 
 [[ftp-and-sftp-changes]]
 === FTP and SFTP Changes
@@ -360,7 +360,7 @@ This section describes general changes to the Spring Integration FTP and SFTP fu
 ==== Inbound Channel Adapters
 
 You can now specify a `remote-directory-expression` on the inbound channel adapters, to determine the directory at runtime.
-See <<./ftp.adoc#ftp,FTP/FTPS Adapters>> and <<./sftp.adoc#sftp,SFTP Adapters>> for more information.
+See xref:ftp.adoc[FTP/FTPS Adapters] and xref:sftp.adoc[SFTP Adapters] for more information.
 
 [[gateway-partial-results]]
 ==== Gateway Partial Results
@@ -368,14 +368,14 @@ See <<./ftp.adoc#ftp,FTP/FTPS Adapters>> and <<./sftp.adoc#sftp,SFTP Adapters>> 
 When you use FTP or SFTP outbound gateways to operate on multiple files (with `mget` and `mput`), an exception can
 occur after part of the request is completed.
 If such a condition occurs, a `PartialSuccessException` that contains the partial results is thrown.
-See <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>> and <<./sftp.adoc#sftp-outbound-gateway,SFTP Outbound Gateway>> for more information.
+See xref:ftp/outbound-gateway.adoc[FTP Outbound Gateway] and xref:sftp/outbound-gateway.adoc[SFTP Outbound Gateway] for more information.
 
 [[delegating-session-factory]]
 ==== Delegating Session Factory
 
 We added a delegating session factory, enabling the selection of a particular session factory based on some thread context value.
 
-See <<./ftp.adoc#ftp-dsf,Delegating Session Factory>> and <<./sftp.adoc#sftp-dsf,Delegating Session Factory>> for more information.
+See xref:ftp/dsf.adoc[Delegating Session Factory] and xref:sftp/dsf.adoc[Delegating Session Factory] for more information.
 
 [[default-sftp-session-factory]]
 ==== Default Sftp Session Factory
@@ -385,24 +385,24 @@ This is now configurable (default: `false`).
 
 The factory now requires a configured `knownHosts`, file unless the `allowUnknownKeys` property is `true` (default: `false`).
 
-See <<./sftp.adoc#sftp-unk-keys,`allowUnknownKeys`::Set to `true` to allow connections to hosts with unknown (or changed) keys.>> for more information.
+See xref:sftp/session-factory.adoc#sftp-unk-keys[`allowUnknownKeys`::Set to `true` to allow connections to hosts with unknown (or changed) keys.] for more information.
 
 [[message-session-callback]]
 ==== Message Session Callback
 
 We introduced the `MessageSessionCallback<F, T>` to perform any custom `Session` operations with the `requestMessage` context in the `<int-(s)ftp:outbound-gateway/>`.
 
-See <<./ftp.adoc#ftp-session-callback,Using `MessageSessionCallback`>> and <<./sftp.adoc#sftp-session-callback,MessageSessionCallback>> for more information.
+See xref:ftp/session-callback.adoc[Using `MessageSessionCallback`] and xref:sftp/session-callback.adoc[MessageSessionCallback] for more information.
 
 [[websocket-changes]]
 === Websocket Changes
 
 We added `WebSocketHandlerDecoratorFactory` support to the `ServerWebSocketContainer` to allow chained customization for the internal `WebSocketHandler`.
-See <<./web-sockets.adoc#web-sockets-namespace,WebSockets Namespace Support>> for more information.
+See xref:web-sockets.adoc#web-sockets-namespace[WebSockets Namespace Support] for more information.
 
 [[application-event-adapters-changes]]
 === Application Event Adapters changes
 
 The `ApplicationEvent` adapters can now operate with `payload` as an `event` to directly allow omitting custom `ApplicationEvent` extensions.
 For this purpose, we introduced the `publish-payload` boolean attribute has been introduced on the `<int-event:outbound-channel-adapter>`.
-See <<./event.adoc#applicationevent,Spring `ApplicationEvent` Support>> for more information.
+See xref:event.adoc[Spring `ApplicationEvent` Support] for more information.
