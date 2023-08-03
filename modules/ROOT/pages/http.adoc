@@ -837,13 +837,13 @@ For example, an HTTP Inbound Gateway forwards messages received from connected H
 The following illustration offers a visual explanation:
 
 .How timeout settings apply to an HTTP Inbound Gateway
-image::images/http-inbound-gateway.png[align="center"]
+image::http-inbound-gateway.png[align="center"]
 
 For outbound endpoints, we need to consider how timing works while interacting with the remote server.
 The following image shows this scenario:
 
 .How timeout settings apply to an HTTP Outbound Gateway
-image::images/http-outbound-gateway.png[align="center"]
+image::http-outbound-gateway.png[align="center"]
 
 //TODO These images are too small, and the text within them is much too small.
 

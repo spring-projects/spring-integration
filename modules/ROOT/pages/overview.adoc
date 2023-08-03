@@ -79,7 +79,7 @@ Likewise, if a message's content is ultimately going to be sent by an outbound m
 Developers can also store any arbitrary key-value pairs in the headers.
 
 .Message
-image::images/message.jpg["Message", align="center"]
+image::message.jpg["Message", align="center"]
 
 [[overview-components-channel]]
 ==== Message Channel
@@ -90,7 +90,7 @@ The message channel therefore decouples the messaging components and also provid
 
 .Message Channel
 
-image::images/channel.jpg["Message Channel", align="center"]
+image::channel.jpg["Message Channel", align="center"]
 
 A message channel may follow either point-to-point or publish-subscribe semantics.
 With a point-to-point channel, no more than one consumer can receive each message sent to the channel.
@@ -160,7 +160,7 @@ A message router is often used as a dynamic alternative to a statically configur
 Likewise, a message router provides a proactive alternative to the reactive message filters used by multiple subscribers, as described earlier.
 
 .Message Router
-image::images/router.jpg["Router", align="center"]
+image::router.jpg["Router", align="center"]
 
 [[overview-endpoints-splitter]]
 ==== Splitter
@@ -195,7 +195,7 @@ If no output channel has been configured, the reply is sent to the channel speci
 A request-reply service activator endpoint connects a target object's method to input and output Message Channels.
 
 .Service Activator
-image::images/handler-endpoint.jpg[align="center", scaledwidth=100%]
+image::handler-endpoint.jpg[align="center", scaledwidth=100%]
 
 NOTE: As discussed earlier, in <<overview-components-channel, Message Channel>>, channels can be pollable or subscribable.
 In the preceding diagram, this is depicted by the "`clock`" symbol and the solid arrow (poll) and the dotted arrow (subscribe).
@@ -210,13 +210,13 @@ Depending on the transport, the channel adapter may also populate or extract mes
 Spring Integration provides a number of channel adapters, which are described in upcoming chapters.
 
 .An inbound channel adapter endpoint connects a source system to a `MessageChannel`.
-image::images/source-endpoint.jpg[align="center", scaledwidth=100%]
+image::source-endpoint.jpg[align="center", scaledwidth=100%]
 
 NOTE: Message sources can be pollable (for example, POP3) or message-driven (for example, IMAP Idle).
 In the preceding diagram, this is depicted by the "`clock`" symbol and the solid arrow (poll) and the dotted arrow (message-driven).
 
 .An outbound channel adapter endpoint connects a `MessageChannel` to a target system.
-image::images/target-endpoint.jpg[align="center", scaledwidth=100%]
+image::target-endpoint.jpg[align="center", scaledwidth=100%]
 
 NOTE: As discussed earlier in <<overview-components-channel, Message Channel>>, channels can be pollable or subscribable.
 In the preceding diagram, this is depicted by the "`clock`" symbol and the solid arrow (poll) and the dotted arrow (subscribe).

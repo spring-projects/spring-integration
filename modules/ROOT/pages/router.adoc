@@ -45,79 +45,79 @@ The following table shows the configuration parameters available for a router ou
 | exception type router
 
 | apply-sequence
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | default-output-channel
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | resolution-required
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | ignore-send-failures
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | timeout
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | id
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | auto-startup
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | input-channel
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | order
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | method
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -125,7 +125,7 @@ a| image::images/tickmark.png[]
 |
 
 | ref
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -133,7 +133,7 @@ a| image::images/tickmark.png[]
 |
 
 | expression
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -142,7 +142,7 @@ a| image::images/tickmark.png[]
 
 | header-name
 |
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -151,7 +151,7 @@ a| image::images/tickmark.png[]
 | evaluate-as-string
 |
 |
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -159,7 +159,7 @@ a| image::images/tickmark.png[]
 | xpath-expression-ref
 |
 |
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -167,7 +167,7 @@ a| image::images/tickmark.png[]
 | converter
 |
 |
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -188,44 +188,44 @@ The following table shows the configuration parameters available for a router in
 | exception type router
 
 | apply-sequence
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | default-output-channel
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | resolution-required
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | ignore-send-failures
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | timeout
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
 
 | id
 |
@@ -260,7 +260,7 @@ a| image::images/tickmark.png[]
 |
 
 | method
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -268,7 +268,7 @@ a| image::images/tickmark.png[]
 |
 
 | ref
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -276,7 +276,7 @@ a| image::images/tickmark.png[]
 |
 
 | expression
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -285,7 +285,7 @@ a| image::images/tickmark.png[]
 
 | header-name
 |
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -294,7 +294,7 @@ a| image::images/tickmark.png[]
 | evaluate-as-string
 |
 |
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -302,7 +302,7 @@ a| image::images/tickmark.png[]
 | xpath-expression-ref
 |
 |
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
@@ -310,7 +310,7 @@ a| image::images/tickmark.png[]
 | converter
 |
 |
-a| image::images/tickmark.png[]
+a| image::tickmark.png[]
 |
 |
 |
