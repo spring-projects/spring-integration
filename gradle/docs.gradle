@@ -3,6 +3,35 @@ ext {
 	micrometerDocsVersion='1.0.1'
 }
 
+
+antora {
+	version = '3.2.0-alpha.2'
+	options = [clean: true, fetch: !project.gradle.startParameter.offline, stacktrace: true]
+	dependencies = [
+			'@antora/atlas-extension': '1.0.0-alpha.1',
+			'@antora/collector-extension': '1.0.0-alpha.3',
+			'@asciidoctor/tabs': '1.0.0-beta.3',
+			'@springio/antora-extensions': '1.4.2',
+			'@springio/asciidoctor-extensions': '1.0.0-alpha.8',
+	]
+}
+
+tasks.named("generateAntoraYml") {
+	asciidocAttributes = project.provider( {
+		return ['project-version' : project.version ]
+	} )
+}
+
+tasks.create(name: 'createAntoraPartials', type: Sync) {
+	from { tasks.filterMetricsDocsContent.outputs }
+	into layout.buildDirectory.dir('generated-antora-resources/modules/ROOT/partials')
+}
+
+tasks.create('generateAntoraResources') {
+	dependsOn 'createAntoraPartials'
+	dependsOn 'generateAntoraYml'
+}
+
 configurations {
 	asciidoctorExtensions
 	micrometerDocs

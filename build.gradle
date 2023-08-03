@@ -23,6 +23,8 @@ plugins {
     id 'org.jetbrains.dokka' version "1.8.20"
     id 'org.asciidoctor.jvm.pdf' version '3.3.2'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'org.antora' version '1.0.0'
+    id 'io.spring.antora.generate-antora-yml' version '0.0.1'
 }
 
 if (isCI) {

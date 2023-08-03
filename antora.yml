@@ -1,0 +1,20 @@
+name: integration
+version: true
+title: Spring Integration
+nav:
+  - modules/ROOT/nav.adoc
+ext:
+  collector:
+    run:
+      command: gradlew -q "-Dorg.gradle.jvmargs=-Xmx3g -XX:+HeapDumpOnOutOfMemoryError" :generateAntoraResources
+      local: true
+    scan:
+      dir: ./build/generated-antora-resources
+
+asciidoc:
+  attributes:
+    attribute-missing: 'warn'
+    # FIXME: the copyright is not removed
+    # FIXME: The package is not renamed
+    chomp: 'all'
+    snippets: example$docs-src/test/java/org/springframework/integration/docs
