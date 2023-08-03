@@ -1,5 +1,5 @@
 [[syslog]]
-== Syslog Support
+= Syslog Support
 
 Spring Integration 2.2 introduced the syslog transformer: `SyslogToMapTransformer`.
 
@@ -31,7 +31,7 @@ Starting with version 4.1.1, the framework now supports the extended syslog form
 In addition, when using TCP and RFC5424, both `octet counting` and `non-transparent framing` described in https://tools.ietf.org/html/rfc6587[RFC 6587] are supported.
 
 [[syslog-inbound-adapter]]
-=== Syslog Inbound Channel Adapter
+== Syslog Inbound Channel Adapter
 
 This element encompasses a `UDP` or `TCP` inbound channel adapter and a `MessageConverter` to convert the syslog message to a Spring Integration message.
 The `DefaultMessageConverter` delegates to the `SyslogToMapTransformer`, creating a message with its payload being the `Map` of syslog fields.
@@ -53,7 +53,7 @@ While the deserializer can support both `octet counting` and `non-transparent fr
 If `asMap` is `false` on the converter, you must set the `retainOriginal` constructor argument in the `RFC6587SyslogDeserializer`.
 
 [[syslog-inbound-examplers]]
-==== Example Configuration
+=== Example Configuration
 
 The following example defines a `UDP` adapter that sends messages to the `syslogIn` channel (the adapter bean name is `syslogIn.adapter`):
 

@@ -1,5 +1,5 @@
 [[zip]]
-== Zip Support
+= Zip Support
 
 This Spring Integration module provides https://en.wikipedia.org/wiki/ZIP_(file_format)[Zip] (un-)compression support.
 A zipping algorithm implementation is based on a https://github.com/zeroturnaround/zt-zip[ZeroTurnaround ZIP Library].
@@ -30,7 +30,7 @@ compile "org.springframework.integration:spring-integration-zip:{project-version
 ====
 
 [[xpath-namespace-support]]
-=== Namespace Support
+== Namespace Support
 
 All components within the Spring Integration Zip module provide namespace support.
 In order to enable namespace support, you need to import the schema for the Spring Integration Zip Module.
@@ -55,7 +55,7 @@ The following example shows a typical setup:
 ====
 
 [[zip-transformer]]
-=== (Un)Zip Transformer
+== (Un)Zip Transformer
 
 The `ZipTransformer` implements a zipping functionality for these types of input `payload`: `File`, `String`, `byte[]` and `Iterable`.
 In input data types can be mixed as part of an `Iterable`.
@@ -189,7 +189,7 @@ UnZipTransformer unzipTransformer() {
 ====
 
 [[unzip-splitter]]
-=== Unzipped Splitter
+== Unzipped Splitter
 
 The `UnZipResultSplitter` is useful in cases where zip files contain more than `1` entry.
 Essentially it has to be used as the next step in the integration flow after the mentioned above `UnZipTransformer`.

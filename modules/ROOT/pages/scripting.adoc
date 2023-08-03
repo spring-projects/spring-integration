@@ -1,5 +1,5 @@
 [[scripting]]
-=== Scripting Support
+= Scripting Support
 
 Spring Integration 2.1 added support for the https://www.jcp.org/en/jsr/detail?id=223[JSR223 Scripting for Java specification], introduced in Java version 6.
 It lets you use scripts written in any supported language (including Ruby, JRuby, Groovy and Kotlin) to provide the logic for various integration components, similar to the way the Spring Expression Language (SpEL) is used in Spring Integration.
@@ -70,7 +70,7 @@ TIP: If you plan to use Groovy as your scripting language, we recommended you us
 However, this section is relevant as well.
 
 [[scripting-config]]
-==== Script Configuration
+== Script Configuration
 
 Depending on the complexity of your integration requirements, scripts may be provided inline as CDATA in XML configuration or as a reference to a Spring resource that contains the script.
 To enable scripting support, Spring Integration defines a `ScriptExecutingMessageProcessor`, which binds the message payload to a variable named `payload` and the message headers to a `headers` variable, both accessible within the script execution context.
@@ -177,7 +177,7 @@ Scripts.processor(...).refreshCheckDelay(-1)
 IMPORTANT: Inline scripts can not be reloaded.
 
 [[scripting-script-variable-bindings]]
-===== Script Variable Bindings
+=== Script Variable Bindings
 
 Variable bindings are required to enable the script to reference variables externally provided to the script's execution context.
 By default, `payload` and `headers` are used as binding variables.
@@ -277,7 +277,7 @@ IMPORTANT: You cannot provide both the `script-variable-generator` attribute and
 They are mutually exclusive.
 
 [[graalmv-polyglot]]
-===== GraalVM Polyglot
+=== GraalVM Polyglot
 
 Starting with version 6.0, the framework provides a `PolyglotScriptExecutor` which is based the https://www.graalvm.org/22.2/reference-manual/embed-languages[GraalVM Polyglot API].
 The JSR223 engine implementation for JavaScript, removed from Java by itself, has been replaced by using this new script executor.

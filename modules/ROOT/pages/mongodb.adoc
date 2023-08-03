@@ -1,5 +1,5 @@
 [[mongodb]]
-== MongoDb Support
+= MongoDb Support
 
 Version 2.1 introduced support for https://www.mongodb.org/[MongoDB]: a "`high-performance, open source, document-oriented database`".
 
@@ -25,10 +25,10 @@ compile "org.springframework.integration:spring-integration-mongodb:{project-ver
 To download, install, and run MongoDB, see the https://www.mongodb.org/downloads[MongoDB documentation].
 
 [[mongodb-connection]]
-=== Connecting to MongoDb
+== Connecting to MongoDb
 
 [[blocking-or-reactive?]]
-==== Blocking or Reactive?
+=== Blocking or Reactive?
 
 Beginning with version 5.3, Spring Integration provides support for reactive MongoDB drivers to enable non-blocking I/O when accessing MongoDB.
 To enable reactive support, add the MongoDB reactive streams driver to your dependencies:
@@ -77,7 +77,7 @@ It provides factory classes called `MongoDatabaseFactory` and `ReactiveMongoData
 TIP: Spring Data provides the blocking MongoDB driver by default, but you may opt in for reactive usage by including the above dependency.
 
 [[using-mongodatabasefactory]]
-==== Using `MongoDatabaseFactory`
+=== Using `MongoDatabaseFactory`
 
 To connect to MongoDB you can use an implementation of the `MongoDatabaseFactory` interface.
 
@@ -107,7 +107,7 @@ If you need to configure properties such as `host`, `port`, and others, you can 
 For more information on how to configure MongoDB, see the https://docs.spring.io/spring-data/data-mongo/docs/current/reference/html/[Spring-Data-MongoDB] reference.
 
 [[using-reactivemongodatabasefactory]]
-==== Using `ReactiveMongoDatabaseFactory`
+=== Using `ReactiveMongoDatabaseFactory`
 
 To connect to MongoDB with the reactive driver, you can use an implementation of the `ReactiveMongoDatabaseFactory` interface.
 
@@ -134,7 +134,7 @@ ReactiveMongoDatabaseFactory mongoDbFactory =
 ====
 
 [[mongodb-message-store]]
-=== MongoDB Message Store
+== MongoDB Message Store
 
 As described in the _Enterprise Integration Patterns_ (EIP) book, a https://www.enterpriseintegrationpatterns.com/MessageStore.html[Message Store] lets you persist messages.
 Doing so can be useful when dealing with components that have the ability to buffer messages (`QueueChannel`, `aggregator`, `resequencer`, and others.) if reliability is a concern.
@@ -180,7 +180,7 @@ The default name for the collection stored by the `ConfigurableMongoDbMessageSto
 We recommend using this implementation to create robust and flexible solutions when messages contain complex data types.
 
 [[mongodb-priority-channel-message-store]]
-==== MongoDB Channel Message Store
+=== MongoDB Channel Message Store
 
 Version 4.0 introduced the new `MongoDbChannelMessageStore`.
 It is an optimized `MessageGroupStore` for use in `QueueChannel` instances.
@@ -217,7 +217,7 @@ To configure that scenario, you can extend one message store bean from the other
 ====
 
 [[mongodb-metadata-store]]
-==== MongoDB Metadata Store
+=== MongoDB Metadata Store
 
 Spring Integration 4.2 introduced a new MongoDB-based `MetadataStore` (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>) implementation.
 You can use the `MongoDbMetadataStore` to maintain metadata state across application restarts.
@@ -247,7 +247,7 @@ The `MongoDbMetadataStore` also implements `ConcurrentMetadataStore`, letting it
 All these operations are atomic, thanks to MongoDB guarantees.
 
 [[mongodb-inbound-channel-adapter]]
-=== MongoDB Inbound Channel Adapter
+== MongoDB Inbound Channel Adapter
 
 The MongoDB inbound channel adapter is a polling consumer that reads data from MongoDB and sends it as a `Message` payload.
 The following example shows how to configure a MongoDB inbound channel adapter:
@@ -354,7 +354,7 @@ It can be used as an alternative to described above post-processing procedure, a
 It is still recommended to use transactions to achieve execution isolation and data consistency, when several instances of the `MongoDbMessageSource` for the same collection are used in the cluster.
 
 [[mongodb-change-stream-channel-adapter]]
-=== MongoDB Change Stream Inbound Channel Adapter
+== MongoDB Change Stream Inbound Channel Adapter
 
 Starting with version 5.3, the `spring-integration-mongodb` module introduces the `MongoDbChangeStreamMessageProducer` - a reactive `MessageProducerSupport` implementation for the Spring Data `ReactiveMongoOperations.changeStream(String, ChangeStreamOptions, Class)` API.
 This component produces a `Flux` of messages with a `body` of `ChangeStreamEvent` as the payload by default and some change stream related headers (see `MongoHeaders`).
@@ -385,7 +385,7 @@ This channel adapter can be reconfigured for new options between starts, if ther
 See more information about change stream support in Spring Data MongoDb https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#change-streams[documentation].
 
 [[mongodb-outbound-channel-adapter]]
-=== MongoDB Outbound Channel Adapter
+== MongoDB Outbound Channel Adapter
 
 The MongoDB outbound channel adapter lets you write the message payload to a MongoDB document store, as the following example shows:
 
@@ -413,7 +413,7 @@ Sometimes, you may need to change this value at runtime, based on some condition
 To do that,  use `collection-name-expression`, where the provided expression is any valid SpEL expression.
 
 [[mongodb-outbound-gateway]]
-=== MongoDB Outbound Gateway
+== MongoDB Outbound Gateway
 
 Version 5.0 introduced the MongoDB outbound gateway.
 It allows you query a database by sending a message to its request channel.
@@ -567,7 +567,7 @@ private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway() {
 ====
 
 [[mongodb-reactive-channel-adapters]]
-=== MongoDB Reactive Channel Adapters
+== MongoDB Reactive Channel Adapters
 
 Starting with version 5.3, the `ReactiveMongoDbStoringMessageHandler` and `ReactiveMongoDbMessageSource` implementations are provided.
 They are based on the `ReactiveMongoOperations` from Spring Data and requires a `org.mongodb:mongodb-driver-reactivestreams` dependency.

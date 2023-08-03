@@ -1,5 +1,5 @@
 [[web-sockets]]
-== WebSockets Support
+= WebSockets Support
 
 Starting with version 4.1, Spring Integration has WebSocket support.
 It is based on the architecture, infrastructure, and API from the Spring Framework's `web-socket` module.
@@ -48,7 +48,7 @@ public interface WebSocketGateway {
 ====
 
 [[web-socket-overview]]
-=== Overview
+== Overview
 
 Since the WebSocket protocol is streaming by definition, and we can send and receive messages to and from a WebSocket at the same time, we can deal with an appropriate `WebSocketSession`, regardless of being on the client or server side.
 To encapsulate the connection management and `WebSocketSession` registry, the `IntegrationWebSocketContainer` is provided with `ClientWebSocketContainer` and `ServerWebSocketContainer` implementations.
@@ -92,7 +92,7 @@ This is useful in cases when custom encoding is required for some parts of the u
 See an `UriComponentsBuilder` API for convenience.
 
 [[web-socket-inbound-adapter]]
-=== WebSocket Inbound Channel Adapter
+== WebSocket Inbound Channel Adapter
 
 The `WebSocketInboundChannelAdapter` implements the receiving part of `WebSocketSession` interaction.
 You must supply it with a `IntegrationWebSocketContainer`, and the adapter registers itself as a `WebSocketListener` to handle incoming messages and `WebSocketSession` events.
@@ -120,7 +120,7 @@ It is detected in the Application Context.
 For more configuration options, see <<web-sockets-namespace>>.
 
 [[web-socket-outbound-adapter]]
-=== WebSocket Outbound Channel Adapter
+== WebSocket Outbound Channel Adapter
 
 The `WebSocketOutboundChannelAdapter`:
 
@@ -137,7 +137,7 @@ Then you can send any STOMP message type to this adapter, using `StompHeaderAcce
 The rest of this chapter covers largely additional configuration options.
 
 [[web-sockets-namespace]]
-=== WebSockets Namespace Support
+== WebSockets Namespace Support
 
 The Spring Integration WebSocket namespace includes several components described in the remainder of this chapter.
 To include it in your configuration, use the following namespace declaration in your application context configuration file:
@@ -163,7 +163,7 @@ To include it in your configuration, use the following namespace declaration in 
 ====
 
 [[websocket-client-container-attributes]]
-==== `<int-websocket:client-container>` Attributes
+=== `<int-websocket:client-container>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:client-container>` element:
 
@@ -213,7 +213,7 @@ See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/c
 ====
 
 [[<int-websocket:server-container>-attributes]]
-==== `<int-websocket:server-container>` Attributes
+=== `<int-websocket:server-container>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:server-container>` element:
 
@@ -299,7 +299,7 @@ The default value is `false`.
 ====
 
 [[websocket-outbound-channel-adapter-attributes]]
-==== `<int-websocket:outbound-channel-adapter>` Attributes
+=== `<int-websocket:outbound-channel-adapter>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:outbound-channel-adapter>` element:
 
@@ -347,7 +347,7 @@ See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/c
 ====
 
 [[<int-websocket:inbound-channel-adapter>-attributes]]
-==== `<int-websocket:inbound-channel-adapter>` Attributes
+=== `<int-websocket:inbound-channel-adapter>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:outbound-channel-adapter>` element:
 
@@ -396,7 +396,7 @@ Defaults to `false`.
 ====
 
 [[client-stomp-encoder]]
-=== Using `ClientStompEncoder`
+== Using `ClientStompEncoder`
 
 Starting with version 4.3.13, Spring Integration provides `ClientStompEncoder` (as an extension of the standard `StompEncoder`) for use on the client side of WebSocket channel adapters.
 For proper client side message preparation, you must inject an instance of the `ClientStompEncoder` into the `StompSubProtocolHandler`.
@@ -405,7 +405,7 @@ If the client does not send its messages in the proper `SEND` web socket frame, 
 The purpose of the `ClientStompEncoder`, in this case, is to override the `stompCommand` header and set it to the `SEND` value before encoding the message to the `byte[]`.
 
 [[websocket-dynamic-endpoints]]
-=== Dynamic WebSocket Endpoints Registration
+== Dynamic WebSocket Endpoints Registration
 
 Starting with version 5.5, the WebSocket server endpoints (channel adapters based on a `ServerWebSocketContainer`) can now be registered (and removed) at runtime - the `paths` a `ServerWebSocketContainer` is mapped is exposed via `HandlerMapping` into a `DispatcherServlet` and accessible for WebSocket clients.
 The <<./dsl.adoc#java-dsl-runtime-flows,Dynamic and Runtime Integration Flows>> support helps to register these endpoints in a transparent manner:

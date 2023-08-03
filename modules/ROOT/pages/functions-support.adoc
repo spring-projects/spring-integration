@@ -1,5 +1,5 @@
 [[functions-support]]
-=== `java.util.function` Interfaces Support
+= `java.util.function` Interfaces Support
 
 Starting with version 5.1, Spring Integration provides direct support for interfaces in the `java.util.function` package.
 All messaging endpoints, (Service Activator, Transformer, Filter, etc.) can now refer to `Function` (or `Consumer`) beans.

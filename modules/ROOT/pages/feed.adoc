@@ -1,5 +1,5 @@
 [[feed]]
-== Feed Adapter
+= Feed Adapter
 
 Spring Integration provides support for syndication through feed adapters.
 The implementation is based on the https://rometools.github.io/rome/[ROME Framework].
@@ -39,7 +39,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
 ====
 
 [[feed-inbound-channel-adapter]]
-=== Feed Inbound Channel Adapter
+== Feed Inbound Channel Adapter
 
 The only adapter you really need to provide support for retrieving feeds is an inbound channel adapter.
 It lets you subscribe to a particular URL.
@@ -104,7 +104,7 @@ If, during retrieval of the entries from the entry queue, the queue has become e
 Otherwise, the next attempt to poll for a feed is determined by the trigger of the poller (every ten seconds in the preceding configuration).
 
 [[duplicate-entries]]
-=== Duplicate Entries
+== Duplicate Entries
 
 Polling for a feed can result in entries that have already been processed ("`I already read that news item, why are you showing it to me again?`").
 Spring Integration provides a convenient mechanism to eliminate the need to worry about duplicate entries.
@@ -113,7 +113,7 @@ Every time a new `Message` is generated and sent, Spring Integration stores the 
 The `metadataKey` is used to persist the latest published date.
 
 [[other-options]]
-=== Other Options
+== Other Options
 
 Starting with version 5.0, the deprecated `com.rometools.fetcher.FeedFetcher` option has been removed and an overloaded `FeedEntryMessageSource` constructor for an `org.springframework.core.io.Resource` is provided.
 This is useful when the feed source is not an HTTP endpoint but is any other resource (such as local or remote on FTP).

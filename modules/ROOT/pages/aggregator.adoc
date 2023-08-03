@@ -1,5 +1,5 @@
 [[aggregator]]
-=== Aggregator
+= Aggregator
 
 Basically a mirror-image of the splitter, the aggregator is a type of message handler that receives multiple messages and combines them into a single message.
 In fact, an aggregator is often a downstream consumer in a pipeline that includes a splitter.
@@ -9,7 +9,7 @@ It must hold the messages to be aggregated and determine when the complete group
 In order to do so, it requires a `MessageStore`.
 
 [[aggregator-functionality]]
-==== Functionality
+== Functionality
 
 The Aggregator combines a group of related messages, by correlating and storing them, until the group is deemed to be complete.
 At that point, the aggregator creates a single message by processing the whole group and sends the aggregated message as output.
@@ -28,7 +28,7 @@ The default release strategy for the aggregator releases a group when all messag
 You can override this default strategy by providing a reference to a custom `ReleaseStrategy` implementation.
 
 [[aggregator-api]]
-==== Programming Model
+== Programming Model
 
 The Aggregation API consists of a number of classes:
 
@@ -37,7 +37,7 @@ The Aggregation API consists of a number of classes:
 * The `CorrelationStrategy` interface and its default implementation: `HeaderAttributeCorrelationStrategy`
 
 [[aggregatingmessagehandler]]
-===== `AggregatingMessageHandler`
+=== `AggregatingMessageHandler`
 
 The `AggregatingMessageHandler` (a subclass of `AbstractCorrelatingMessageHandler`) is a `MessageHandler` implementation, encapsulating the common functionality of an aggregator (and other correlating use cases), which are as follows:
 
@@ -149,7 +149,7 @@ Otherwise, with any other `MessageGroupProcessor` implementation that returns a 
 Such logic is dictated by the canonical purpose of an aggregator - collect request messages by some key and produce a single grouped message.
 
 [[releasestrategy]]
-===== `ReleaseStrategy`
+=== `ReleaseStrategy`
 
 The `ReleaseStrategy` interface is defined as follows:
 
@@ -236,7 +236,7 @@ This operation can be expensive.
 If you are aggregating large groups, you don't need to release partial groups, and you don't need to detect/reject duplicate sequences, consider using the `SimpleSequenceSizeReleaseStrategy` instead - it is much more efficient for these use cases, and is the default since _version 5.0_ when partial group release is not specified.
 
 [[aggregating-large-groups]]
-===== Aggregating Large Groups
+=== Aggregating Large Groups
 
 The 4.3 release changed the default `Collection` for messages in a `SimpleMessageGroup` to `HashSet` (it was previously a `BlockingQueue`).
 This was expensive when removing individual messages from large groups (an O(n) linear scan was required).
@@ -270,7 +270,7 @@ In this case it is recommended to choose another `ReleaseStrategy`, or use compe
 See <<./filter.adoc#filter,Filter>> for more information.
 
 [[correlation-strategy]]
-===== Correlation Strategy
+=== Correlation Strategy
 
 The `CorrelationStrategy` interface is defined as follows:
 
@@ -297,7 +297,7 @@ By default, the correlation strategy is a `HeaderAttributeCorrelationStrategy` t
 If you have a custom header name you would like to use for correlation, you can configure it on an instance of `HeaderAttributeCorrelationStrategy` and provide that as a reference for the aggregator's correlation strategy.
 
 [[lock-registry]]
-===== Lock Registry
+=== Lock Registry
 
 Changes to groups are thread safe.
 So, when you send messages for the same correlation ID concurrently, only one of them will be processed in the aggregator, making it effectively as a *single-threaded per message group*.
@@ -306,7 +306,7 @@ A `DefaultLockRegistry` is used by default (in-memory).
 For synchronizing updates across servers where a shared `MessageGroupStore` is being used, you must configure a shared lock registry.
 
 [[aggregator-deadlocks]]
-===== Avoiding Deadlocks
+=== Avoiding Deadlocks
 
 As discussed above, when message groups are mutated (messages added or released) a lock is held.
 
@@ -347,12 +347,12 @@ Of course, the first solution above does not apply in this case.
 
 
 [[aggregator-java-dsl]]
-==== Configuring an Aggregator in Java DSL
+== Configuring an Aggregator in Java DSL
 
 See <<./dsl.adoc#java-dsl-aggregators,Aggregators and Resequencers>> for how to configure an aggregator in Java DSL.
 
 [[aggregator-xml]]
-===== Configuring an Aggregator with XML
+=== Configuring an Aggregator with XML
 
 Spring Integration supports the configuration of an aggregator with XML through the `<aggregator/>` element.
 The following example shows an example of an aggregator:
@@ -633,7 +633,7 @@ NOTE: Wherever it makes sense to do so, the release strategy method, the correla
 (Actually, all of them or any two of them can be combined.)
 
 [[aggregator-spel]]
-====== Aggregators and Spring Expression Language (SpEL)
+==== Aggregators and Spring Expression Language (SpEL)
 
 Since Spring Integration 2.0, you can handle the various strategies (correlation, release, and aggregation) with https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[SpEL], which we recommend if the logic behind such a release strategy is relatively simple.
 Suppose you have a legacy component that was designed to receive an array of objects.
@@ -699,7 +699,7 @@ release-strategy-expression="!messages.?[payload==5].empty"
 In the preceding example, the root object of the SpEL evaluation context is the `MessageGroup` itself, and you are stating that, as soon as there is a message with payload of `5` in this group, the group should be released.
 
 [[agg-and-group-to]]
-====== Aggregator and Group Timeout
+==== Aggregator and Group Timeout
 
 Starting with version 4.0, two new mutually exclusive attributes have been introduced: `group-timeout` and `group-timeout-expression`.
 See <<aggregator-xml>>.
@@ -742,7 +742,7 @@ group-timeout-expression="size() ge 2 ? new java.util.Date(timestamp + 200) : nu
 ====
 
 [[aggregator-annotations]]
-===== Configuring an Aggregator with Annotations
+=== Configuring an Aggregator with Annotations
 
 The following example shows an aggregator configured with annotations:
 
@@ -806,7 +806,7 @@ See <<aggregator-api>> and <<./configuration.adoc#annotations_on_beans,Annotatio
 NOTE: Starting with version 4.2, the `AggregatorFactoryBean` is available to simplify Java configuration for the `AggregatingMessageHandler`.
 
 [[reaper]]
-==== Managing State in an Aggregator: `MessageGroupStore`
+== Managing State in an Aggregator: `MessageGroupStore`
 
 Aggregator (and some other patterns in Spring Integration) is a stateful pattern that requires decisions to be made based on a group of messages that have arrived over a period of time, all with the same correlation key.
 The design of the interfaces in the stateful patterns (such as `ReleaseStrategy`) is driven by the principle that the components (whether defined by the framework or by a user) should be able to remain stateless.
@@ -921,7 +921,7 @@ For more information about the `MessageStore` interface and its implementations,
 =====
 
 [[flux-aggregator]]
-==== Flux Aggregator
+== Flux Aggregator
 
 In version 5.2, the `FluxAggregatorMessageHandler` component has been introduced.
 It is based on the Project Reactor `Flux.groupBy()` and `Flux.window()` operators.
@@ -984,7 +984,7 @@ Flux<Message<?>> window =
 ====
 
 [[agg-message-group-condition]]
-==== Condition on the Message Group
+== Condition on the Message Group
 
 Starting with version 5.5, an `AbstractCorrelatingMessageHandler` (including its Java & XML DSLs) exposes a `groupConditionSupplier` option of the `BiFunction<Message<?>, String, String>` implementation.
 This function is used on each message added to the group and a result condition sentence is stored into the group for future consideration.

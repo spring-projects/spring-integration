@@ -1,8 +1,8 @@
 [[kafka]]
-== Apache Kafka Support
+= Apache Kafka Support
 
 [[overview]]
-=== Overview
+== Overview
 
 Spring Integration for Apache Kafka is based on the https://projects.spring.io/spring-kafka/[Spring for Apache Kafka project].
 
@@ -36,7 +36,7 @@ It provides the following components:
 * <<kafka-channels>>
 
 [[kafka-outbound]]
-=== Outbound Channel Adapter
+== Outbound Channel Adapter
 
 The Outbound channel adapter is used to publish messages from a Spring Integration channel to Apache Kafka topics.
 The channel is defined in the application context and then wired into the application that sends messages to Apache Kafka.
@@ -95,7 +95,7 @@ This has been changed for consistency because you may get unexpected behavior (S
 IMPORTANT: That timeout is 120 seconds by default so you may wish to reduce it to get more timely failures.
 
 [[kakfa-outbound-adapter-coniguration]]
-==== Configuration
+=== Configuration
 
 The following example shows how to configure the outbound channel adapter for Apache Kafka:
 
@@ -202,7 +202,7 @@ public ProducerFactory<String, String> producerFactory() {
 ====
 
 [[kafka-inbound]]
-=== Message-driven Channel Adapter
+== Message-driven Channel Adapter
 
 The `KafkaMessageDrivenChannelAdapter` (`<int-kafka:message-driven-channel-adapter>`) uses a `spring-kafka` `KafkaMessageListenerContainer` or `ConcurrentListenerContainer`.
 
@@ -230,7 +230,7 @@ IMPORTANT: This form of retry is blocking and could cause a rebalance if the agg
 Instead, consider adding a `DefaultErrorHandler` to the listener container, configured with a `KafkaErrorSendingMessageRecoverer`.
 
 [[kafka-inbound-adapter-configuration]]
-==== Configuration
+=== Configuration
 
 The following example shows how to configure a message-driven channel adapter:
 
@@ -348,12 +348,12 @@ The container is registered in the application context with a name of `topic2Ada
 If the adapter does not have an `id` property, the container's bean name is the container's fully qualified class name plus `#n`, where `n` is incremented for each container.
 
 [[kafka-inbound-pollable]]
-=== Inbound Channel Adapter
+== Inbound Channel Adapter
 
 The `KafkaMessageSource` provides a pollable channel adapter implementation.
 
 [[kafka-message-source-configuration]]
-==== Configuration
+=== Configuration
 
 ====
 [source, java, role="primary"]
@@ -443,7 +443,7 @@ With a `SourcePollingChannelAdapter` this exception is wrapped into an `ErrorMes
 See https://docs.spring.io/spring-kafka/reference/html/#error-handling-deserializer[`ErrorHandlingDeserializer`] documentation for more information.
 
 [[kafka-outbound-gateway]]
-=== Outbound Gateway
+== Outbound Gateway
 
 The outbound gateway is for request/reply operations.
 It differs from most Spring Integration gateways in that the sending thread does not block in the gateway, and the reply is processed on the reply listener container thread.
@@ -457,7 +457,7 @@ This has been changed for consistency because you may get unexpected behavior (S
 IMPORTANT: That timeout is 120 seconds by default, so you may wish to reduce it to get more timely failures.
 
 [[kafka-outbound-gateway-configuration]]
-==== Configuration
+=== Configuration
 
 The following example shows how to configure a gateway:
 
@@ -539,12 +539,12 @@ public IntegrationFlow outboundGateFlow() {
 ====
 
 [[kafka-inbound-gateway]]
-=== Inbound Gateway
+== Inbound Gateway
 
 The inbound gateway is for request/reply operations.
 
 [[kafka-inbound-gateway-configurartion]]
-==== Configuration
+=== Configuration
 
 The following example shows how to configure an inbound gateway:
 
@@ -635,14 +635,14 @@ You can also use the container factory that is used for `@KafkaListener` annotat
 See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] and <<kafka-inbound>> for examples.
 
 [[kafka-channels]]
-=== Channels Backed by Apache Kafka Topics
+== Channels Backed by Apache Kafka Topics
 
 Spring Integration has `MessageChannel` implementations backed by an Apache Kafka topic for persistence.
 
 Each channel requires a `KafkaTemplate` for the sending side and either a listener container factory (for subscribable channels) or a `KafkaMessageSource` for a pollable channel.
 
 [[java-dsl-configuration]]
-==== Java DSL Configuration
+=== Java DSL Configuration
 
 ====
 [source, java, role="primary"]
@@ -750,7 +750,7 @@ PollableKafkaChannel pollable(KafkaTemplate<String, String> template,
 ====
 
 [[message-conversion]]
-=== Message Conversion
+== Message Conversion
 
 A `StringJsonMessageConverter` is provided.
 See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] for more information.
@@ -798,7 +798,7 @@ public KafkaMessageDrivenChannelAdapter<String, String>
 ====
 
 [[kafka-tombstones]]
-=== Null Payloads and Log Compaction 'Tombstone' Records
+== Null Payloads and Log Compaction 'Tombstone' Records
 
 Spring Messaging `Message<?>` objects cannot have `null` payloads.
 When you use the endpoints for Apache Kafka, `null` payloads (also known as tombstone records) are represented by a payload of type `KafkaNull`.
@@ -821,7 +821,7 @@ public void in(@Header(KafkaHeaders.RECEIVED_KEY) String key,
 ====
 
 [[streams-integration]]
-=== Calling a Spring Integration flow from a `KStream`
+== Calling a Spring Integration flow from a `KStream`
 
 You can use a `MessagingTransformer` to invoke an integration flow from a `KStream`:
 
@@ -864,7 +864,7 @@ public IntegrationFlow flow() {
 When an integration flow starts with an interface, the proxy that is created has the name of the flow bean, appended with ".gateway" so this bean name can be used a a `@Qualifier` if needed.
 
 [[read-process-write]]
-=== Performance Considerations for read/process/write Scenarios
+== Performance Considerations for read/process/write Scenarios
 
 Many applications consume from a topic, perform some processing and write to another topic.
 In most, cases, if the `write` fails, the application would want to throw an exception so the incoming request can be retried and/or sent to a dead letter topic.

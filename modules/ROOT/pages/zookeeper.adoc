@@ -1,5 +1,5 @@
 [[zookeeper]]
-== Zookeeper Support
+= Zookeeper Support
 
 Version 4.2 added https://zookeeper.apache.org/[Zookeeper] support to the framework in version 4.2, which consists of:
 
@@ -28,7 +28,7 @@ compile "org.springframework.integration:spring-integration-zookeeper:{project-v
 ====
 
 [[zk-metadata-store]]
-=== Zookeeper Metadata Store
+== Zookeeper Metadata Store
 
 You ca use the `ZookeeperMetadataStore` where any `MetadataStore` is needed, such as for persistent file list filters.
 See <<./meta-data-store.adoc#metadata-store,Metadata Store>> for more information.
@@ -60,7 +60,7 @@ public MetadataStore zkStore(CuratorFramework client) {
 ====
 
 [[zk-lock-registry]]
-=== Zookeeper Lock Registry
+== Zookeeper Lock Registry
 
 The `ZookeeperLockRegistry` can be used where any `LockRegistry` is needed, such as when using an aggregator in a clustered environment with a shared `MessageStore`.
 
@@ -88,7 +88,7 @@ String with version 5.5.6, the `ZookeeperLockRegistry` is support automatically 
 See its JavaDocs for more information.
 
 [[zk-leadership]]
-=== Zookeeper Leadership Event Handling
+== Zookeeper Leadership Event Handling
 
 The following example uses XML to configure an application for leader election in Zookeeper:
 

@@ -1,5 +1,5 @@
 [[mqtt]]
-== MQTT Support
+= MQTT Support
 
 Spring Integration provides inbound and outbound channel adapters to support the Message Queueing Telemetry Transport (MQTT) protocol.
 
@@ -33,7 +33,7 @@ Refer to the Paho documentation for more information about configuration options
 NOTE: We recommend configuring an `MqttConnectOptions` object and injecting it into the factory, instead of setting the (deprecated) options on the factory itself.
 
 [[mqtt-inbound]]
-=== Inbound (Message-driven) Channel Adapter
+== Inbound (Message-driven) Channel Adapter
 
 The inbound channel adapter is implemented by the `MqttPahoMessageDrivenChannelAdapter`.
 For convenience, you can configure it by using the namespace.
@@ -137,7 +137,7 @@ Starting with version 5.0, the `topic`, `qos`, and `retained` properties are map
 ====
 
 [[adding-and-removing-topics-at-runtime]]
-==== Adding and Removing Topics at Runtime
+=== Adding and Removing Topics at Runtime
 
 Starting with version 4.1, you can programmatically change the topics to which the adapter is subscribed.
 Spring Integration provides the  `addTopic()` and `removeTopic()` methods.
@@ -151,7 +151,7 @@ A new application context reverts to the configured settings.
 Changing the topics while the adapter is stopped (or disconnected from the broker) takes effect the next time a connection is established.
 
 [[mqtt-ack-mode]]
-==== Manual Acks
+=== Manual Acks
 
 Starting with version 5.3, you can set the `manualAcks` property to true.
 Often used to asynchronously acknowledge delivery.
@@ -171,7 +171,7 @@ Starting with version `5.2.11`, when the message converter throws an exception o
 Re-throws this conversion error otherwise into an MQTT client callback.
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
@@ -222,7 +222,7 @@ public class MqttJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application provides an example of configuring the inbound adapter with the Java DSL:
 
@@ -252,7 +252,7 @@ public class MqttJavaApplication {
 ====
 
 [[mqtt-outbound]]
-=== Outbound Channel Adapter
+== Outbound Channel Adapter
 
 The outbound channel adapter is implemented by the `MqttPahoMessageHandler`, which is wrapped in a `ConsumerEndpoint`.
 For convenience, you can configure it by using the namespace.
@@ -319,7 +319,7 @@ Instead, the server URIs can be provided in the `serverURIs` property of the `De
 This enables, for example, connection to a highly available (HA) cluster.
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application show an example of how to configure the outbound adapter with Java configuration:
 
@@ -377,7 +377,7 @@ public class MqttJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application provides an example of configuring the outbound adapter with the Java DSL:
 
@@ -403,7 +403,7 @@ public class MqttJavaApplication {
 ====
 
 [[mqtt-events]]
-=== Events
+== Events
 
 Certain application events are published by the adapters.
 
@@ -427,7 +427,7 @@ MqttConnectOptions options = source.getConnectionInfo();
 ====
 
 [[mqtt-v5]]
-=== MQTT v5 Support
+== MQTT v5 Support
 
 Starting with version 5.5.5, the `spring-integration-mqtt` module provides channel adapter implementations for the MQTT v5 protocol.
 The `org.eclipse.paho:org.eclipse.paho.mqttv5.client` is an `optional` dependency, so has to be included explicitly in the target project.
@@ -509,7 +509,7 @@ IMPORTANT: It is recommended to have the `MqttConnectionOptions#setAutomaticReco
 Otherwise, only the manual restart of `Mqttv5PahoMessageDrivenChannelAdapter` can handle reconnects, e.g. via `MqttConnectionFailedEvent` handling on disconnection.
 
 [[mqtt-shared-client]]
-=== Shared MQTT Client Support
+== Shared MQTT Client Support
 
 If a single MQTT ClientID is required for several integrations, multiple MQTT client instances cannot be used because MQTT brokers may have a limitation on a number of connections per ClientID (typically, a single connection is allowed).
 For having a single client reused for different channel adapters, a `org.springframework.integration.mqtt.core.ClientManager` component may be used and passed to any channel adapter needed.

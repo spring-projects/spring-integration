@@ -1,5 +1,5 @@
 [[zeromq]]
-== ZeroMQ Support
+= ZeroMQ Support
 
 Spring Integration provides components to support https://zeromq.org/[ZeroMQ] communication in the application.
 The implementation is based on the well-supported Java API of the https://github.com/zeromq/jeromq[JeroMQ] library.
@@ -26,7 +26,7 @@ compile "org.springframework.integration:spring-integration-zeromq:{project-vers
 ====
 
 [[zeromq-proxy]]
-=== ZeroMQ Proxy
+== ZeroMQ Proxy
 
 The `ZeroMqProxy` is a Spring-friendly wrapper for the built-in `ZMQ.proxy()` https://zguide.zeromq.org/page:chapter2#toc15[function].
 It encapsulates socket lifecycles and thread management.
@@ -68,7 +68,7 @@ ZeroMqProxy zeroMqProxy() {
 All the client nodes should connect to the host of this proxy via `tcp://` and use the respective port of their interest.
 
 [[zeromq-message-channel]]
-=== ZeroMQ Message Channel
+== ZeroMQ Message Channel
 
 The `ZeroMqChannel` is a `SubscribableChannel` which uses a pair of ZeroMQ sockets to connect publishers and subscribers for messaging interaction.
 It can work in a PUB/SUB mode (defaults to PUSH/PULL); it can also be used as a local inter-thread channel (uses `PAIR` sockets) - the `connectUrl` is not provided in this case.
@@ -104,7 +104,7 @@ ZeroMqChannel zeroMqPubSubChannel(ZContext context) {
 ====
 
 [[zeromq-inbound-channel-adapter]]
-=== ZeroMQ Inbound Channel Adapter
+== ZeroMQ Inbound Channel Adapter
 
 The `ZeroMqMessageProducer` is a `MessageProducerSupport` implementation with reactive semantics.
 It constantly reads the data from a ZeroMQ socket in a non-blocking manner and publishes the messages to an infinite `Flux` which is subscribed to by a `FluxMessageChannel` or explicitly in the `start()` method, if the output channel is not reactive.
@@ -142,7 +142,7 @@ ZeroMqMessageProducer zeroMqMessageProducer(ZContext context, MessageChannel out
 ====
 
 [[zeromq-outbound-channel-adapter]]
-=== ZeroMQ Outbound Channel Adapter
+== ZeroMQ Outbound Channel Adapter
 
 The `ZeroMqMessageHandler` is a `ReactiveMessageHandler` implementation to produce publish messages into a ZeroMQ socket.
 Only `SocketType.PAIR`, `SocketType.PUSH` and `SocketType.PUB` are supported.
@@ -172,7 +172,7 @@ ZeroMqMessageHandler zeroMqMessageHandler(ZContext context) {
 ====
 
 [[zeromq-dsl]]
-=== ZeroMQ Java DSL Support
+== ZeroMQ Java DSL Support
 
 The `spring-integration-zeromq` provide a convenient Java DSL fluent API via `ZeroMq` factory and `IntegrationComponentSpec` implementations for the components mentioned above.
 

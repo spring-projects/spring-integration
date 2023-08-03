@@ -1,5 +1,5 @@
 [[security]]
-== Security in Spring Integration
+= Security in Spring Integration
 
 Security is one of the important functions in any modern enterprise (or cloud) application.
 Moreover, it is critical for distributed systems, such as those built on Enterprise Integration Patterns.
@@ -32,7 +32,7 @@ compile "org.springframework.integration:spring-integration-security:{project-ve
 ====
 
 [[securing-channels]]
-=== Securing channels
+== Securing channels
 
 To secure message channels in the integration flow, an `AuthorizationChannelInterceptor` has to be added to those channels, or it can be configured as a global channel interceptor with respective pattern:
 
@@ -70,7 +70,7 @@ AuthorizationChannelInterceptor authorizationChannelInterceptor() {
 See <<./channel.adoc#global-channel-configuration-interceptors,Global Channel Interceptor Configuration>> for more information.
 
 [[security-context-propagation]]
-=== Security Context Propagation
+== Security Context Propagation
 
 To be sure that our interaction with the application is secure, according to its security system rules, we should supply some security context with an authentication (principal) object.
 The Spring Security project provides a flexible, canonical mechanism to authenticate our application clients over HTTP, WebSocket, or SOAP protocols (as can be done for any other integration protocol with a simple Spring Security extension).

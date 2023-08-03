@@ -1,20 +1,20 @@
 [[migration-5.0-5.1]]
-=== Changes between 5.0 and 5.1
+= Changes between 5.0 and 5.1
 
 [[x5.1-new-components]]
-==== New Components
+== New Components
 
 The following components are new in 5.1:
 
 * <<x5.1-AmqpDedicatedChannelAdvice>>
 
 [[x5.1-AmqpDedicatedChannelAdvice]]
-===== `AmqpDedicatedChannelAdvice`
+=== `AmqpDedicatedChannelAdvice`
 
 See <<./amqp.adoc#amqp-strict-ordering,Strict Message Ordering>>.
 
 [[x5.1-Functions]]
-===== Improved Function Support
+=== Improved Function Support
 
 The `java.util.function` interfaces now have improved integration support in the Framework components.
 Also Kotlin lambdas now can be used for handler and source methods.
@@ -22,14 +22,14 @@ Also Kotlin lambdas now can be used for handler and source methods.
 See <<./functions-support.adoc#functions-support,`java.util.function` Interfaces Support>>.
 
 [[x5.1-LongRunningTest]]
-===== `@LongRunningTest`
+=== `@LongRunningTest`
 
 A JUnit 5 `@LongRunningTest` conditional annotation is provided to check the environment or system properties for the `RUN_LONG_INTEGRATION_TESTS` entry with the value of `true` to determine if test should be run or skipped.
 
 See <<./testing.adoc#test-junit-rules,JUnit Rules and Conditions>>.
 
 [[x5.1-general]]
-==== General Changes
+== General Changes
 
 The following changes have been made in version 5.1:
 
@@ -45,7 +45,7 @@ The following changes have been made in version 5.1:
 * <<x51.-poller-annotation>>
 
 [[x5.1-java-dsl]]
-===== Java DSL
+=== Java DSL
 
 The `IntegrationFlowContext` is now an interface and `IntegrationFlowRegistration` is an inner interface of `IntegrationFlowContext`.
 
@@ -57,7 +57,7 @@ A generated bean name for any `NamedComponent` within an integration flow is now
 The `GenericHandler.handle()` now excepts a `MessageHeaders` type for the second argument.
 
 [[x5.1-dispatcher-exceptions]]
-===== Dispatcher Exceptions
+=== Dispatcher Exceptions
 
 Exceptions caught and re-thrown by `AbstractDispatcher` are now more consistent:
 
@@ -72,13 +72,13 @@ Previously:
 * Checked exceptions were wrapped in a `MessageDeliveryException` with the `failedMessage` property set.
 
 [[x5.1-global-channel-interceptors]]
-===== Global Channel Interceptors
+=== Global Channel Interceptors
 
 Global channel interceptors now apply to dynamically registered channels, such as through the `IntegrationFlowContext` when using the Java DSL or beans that are initialized using `beanFactory.initializeBean()`.
 Previously, when beans were created after the application context was refreshed, interceptors were not applied.
 
 [[x5.1-channel-interceptors]]
-===== Channel Interceptors
+=== Channel Interceptors
 
 `ChannelInterceptor.postReceive()` is no longer called when no message is received; it is no longer necessary to check for a `null` `Message<?>`.
 Previously, the method was called.
@@ -86,14 +86,14 @@ If you have an interceptor that relies on the previous behavior, implement `afte
 Furthermore, the `PolledAmqpChannel` and `PolledJmsChannel` previously did not invoke `afterReceiveCompleted()` with `null`; they now do.
 
 [[x5.1-object-to-json-transformer]]
-===== `ObjectToJsonTransformer`
+=== `ObjectToJsonTransformer`
 
 A new `ResultType.BYTES` mode is introduced for the `ObjectToJsonTransformer`.
 
 See <<./transformer.adoc#json-transformers,JSON Transformers>> for more information.
 
 [[x5.1-integration-flows-generated-bean-names]]
-===== Integration Flows: Generated Bean Names
+=== Integration Flows: Generated Bean Names
 
 Starting with version 5.0.5, generated bean names for the components in an `IntegrationFlow` include the flow bean name, followed by a dot, as a prefix.
 For example, if a flow bean were named `flowBean`, a generated bean might be named `flowBean.generatedBean`.
@@ -101,7 +101,7 @@ For example, if a flow bean were named `flowBean`, a generated bean might be nam
 See <<./dsl.adoc#java-dsl-flows,Working With Message Flows>> for more information.
 
 [[x5.1-aggregator]]
-===== Aggregator Changes
+=== Aggregator Changes
 
 If the `groupTimeout` is evaluated to a negative value, an aggregator now expires the group immediately.
 Only `null` is considered as a signal to do nothing for the current message.
@@ -112,7 +112,7 @@ Also an `AbstractAggregatingMessageGroupProcessor` returns now an `AbstractInteg
 See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 
 [[x5.1-publisher]]
-===== @Publisher annotation changes
+=== @Publisher annotation changes
 
 Starting with version 5.1, you must explicitly turn on the `@Publisher` AOP functionality by using `@EnablePublisher` or by using the `<int:enable-publisher>` child element on `<int:annotation-config>`.
 Also the `proxy-target-class` and `order` attributes have been added for tuning the `ProxyFactory` configuration.
@@ -120,7 +120,7 @@ Also the `proxy-target-class` and `order` attributes have been added for tuning 
 See <<./message-publishing.adoc#publisher-annotation,Annotation-driven Configuration with the `@Publisher` Annotation>> for more information.
 
 [[x5.1-files]]
-==== Files Changes
+== Files Changes
 
 If you are using `FileExistsMode.APPEND` or `FileExistsMode.APPEND_NO_FLUSH` you can provide a `newFileCallback` that will be called when creating a new file.
 This callback receives the newly created file and the message that triggered the callback.
@@ -132,7 +132,7 @@ So, if an Inbound Channel Adapter for the `FileReadingMessageSource` has `autoSt
 See <<./file.adoc#files,File Support>> for more information.
 
 [[x5.1-amqp]]
-==== AMQP Changes
+== AMQP Changes
 
 We have made `ID` and `Timestamp` header mapping changes in the `DefaultAmqpHeaderMapper`.
 See the note near the bottom of <<./amqp.adoc#amqp-message-headers,AMQP Message Headers>> for more information.
@@ -145,7 +145,7 @@ This enables the error flow to ack/nack the original message.
 See <<./amqp.adoc#amqp-conversion-inbound,Inbound Message Conversion>> for more information.
 
 [[x5.1-jdbc]]
-==== JDBC Changes
+== JDBC Changes
 
 A confusing `max-rows-per-poll` property on the JDBC Inbound Channel Adapter and JDBC Outbound Gateway has been deprecated in favor of the newly introduced `max-rows` property.
 
@@ -157,7 +157,7 @@ If you have large message groups in such a store, you may wish to alter the inde
 See <<./jdbc.adoc#jdbc,JDBC Support>> for more information.
 
 [[x5.1-ftp-sftp]]
-==== FTP and SFTP Changes
+== FTP and SFTP Changes
 
 A `RotatingServerAdvice` is now available to poll multiple servers and directories with the inbound channel adapters.
 See <<./ftp.adoc#ftp-rotating-server-advice,Inbound Channel Adapters: Polling Multiple Servers and Directories>> and <<./sftp.adoc#sftp-rotating-server-advice,Inbound Channel Adapters: Polling Multiple Servers and Directories>> for more information.
@@ -177,7 +177,7 @@ The outbound gateway MPUT command now supports a message payload with a collecti
 See <<./sftp.adoc#sftp-outbound-gateway,SFTP Outbound Gateway>> and <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>> for more information.
 
 [[x51.-tcp]]
-==== TCP Support
+== TCP Support
 
 When using SSL, host verification is now enabled, by default, to prevent man-in-the-middle attacks with a trusted certificate.
 See <<./ip.adoc#tcp-ssl-host-verification,Host Verification>> for more information.
@@ -185,13 +185,13 @@ See <<./ip.adoc#tcp-ssl-host-verification,Host Verification>> for more informati
 In addition the key and trust store types can now be configured on the `DefaultTcpSSLContextSupport`.
 
 [[x5.1-twitter]]
-==== Twitter Support
+== Twitter Support
 
 Since the Spring Social project has moved to https://spring.io/blog/2018/07/03/spring-social-end-of-life-announcement[end of life status], Twitter support in Spring Integration has been moved to the Extensions project.
 See https://github.com/spring-projects/spring-integration-extensions/tree/main/spring-integration-social-twitter[Spring Integration Social Twitter] for more information.
 
 [[x51.-jms]]
-==== JMS Support
+== JMS Support
 
 The `JmsSendingMessageHandler` now provides `deliveryModeExpression` and `timeToLiveExpression` options to determine respective QoS options for JMS message to send at runtime.
 The `DefaultJmsHeaderMapper` now allows to map inbound `JMSDeliveryMode` and `JMSExpiration` properties via setting to `true` respective `setMapInboundDeliveryMode()` and `setMapInboundExpiration()` options.
@@ -201,14 +201,14 @@ You can configure the endpoints to revert to the previous behavior.
 See <<./jms.adoc#jms,JMS Support>> for more information.
 
 [[x51.-http]]
-==== HTTP/WebFlux Support
+== HTTP/WebFlux Support
 
 The `statusCodeExpression` (and `Function`) is now supplied with the `RequestEntity<?>` as a root object for evaluation context, so request headers, method, URI and body are available for target status code calculation.
 
 See <<./http.adoc#http,HTTP Support>> and <<./webflux.adoc#webflux,WebFlux Support>> for more information.
 
 [[x51.-jmx]]
-==== JMX Changes
+== JMX Changes
 
 Object name key values are now quoted if they contain any characters other than those allowed in a Java identifier (or period `.`).
 For example `org.springframework.integration:type=MessageChannel,` `name="input:foo.myGroup.errors"`.
@@ -216,25 +216,25 @@ This has the side effect that previously "allowed" names, with such characters, 
 For example `org.springframework.integration:type=MessageChannel,` `name="input#foo.myGroup.errors"`.
 
 [[x51.-micrometer]]
-==== Micrometer Support Changes
+== Micrometer Support Changes
 
 It is now simpler to customize the standard Micrometer meters created by the framework.
 See <<./metrics.adoc#micrometer-integration,Micrometer Integration>> for more information.
 
 [[x51.-integration-graph]]
-==== Integration Graph Customization
+== Integration Graph Customization
 
 It is now possible to add additional properties to the `IntegrationNode` s via `Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback` on the `IntegrationGraphServer`.
 See <<./graph.adoc#integration-graph,Integration Graph>> for more information.
 
 [[x51.-global-properties]]
-==== Integration Global Properties
+== Integration Global Properties
 
 The Integration global properties (including defaults) can now be printed in the logs, when a `DEBUG` logic level is turned on for the `org.springframework.integration` category.
 See <<./configuration.adoc#global-properties,Global Properties>> for more information.
 
 [[x51.-poller-annotation]]
-==== The `receiveTimeout` for `@Poller`
+== The `receiveTimeout` for `@Poller`
 
 The `@Poller` annotation now provides a `receiveTimeout` option for convenience.
 See <<./configuration.adoc#configuration-using-poller-annotation,Using the `@Poller` Annotation>> for more information.

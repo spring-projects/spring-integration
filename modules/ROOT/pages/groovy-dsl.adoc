@@ -1,5 +1,5 @@
 [[groovy-dsl]]
-== Groovy DSL
+= Groovy DSL
 
 The Groovy DSL is a wrapper and extension to <<./dsl.adoc#java-dsl,Java DSL>>.
 The main goal we pursue here is to make Spring Integration development on Groovy as smooth and straightforward as is it possible with interoperability with existing Java DSL and some Groovy extensions or language-specific structures.

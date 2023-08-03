@@ -1,5 +1,5 @@
 [[message-history]]
-=== Message History
+= Message History
 
 The key benefit of a messaging architecture is loose coupling such that participating components do not maintain any awareness about one another.
 This fact alone makes an application extremely flexible, letting you change components without affecting the rest of the flow, change messaging routes, change message consuming styles (polling versus event driven), and so on.
@@ -10,7 +10,7 @@ Message history is one of those patterns that helps by giving you an option to m
 Spring integration provides a simple way to configure your message flows to maintain the message history by adding a header to the message and updating that header every time a message passes through a tracked component.
 
 [[message-history-config]]
-==== Message History Configuration
+== Message History Configuration
 
 To enable message history, you need only define the `message-history` element (or `@EnableMessageHistory`) in your configuration, as shown in the following example:
 

@@ -1,5 +1,5 @@
 [[stream]]
-== Stream Support
+= Stream Support
 
 In many cases, application data is obtained from a stream.
 It is not recommended sending a reference to a stream as a message payload to a consumer.
@@ -25,7 +25,7 @@ compile "org.springframework.integration:spring-integration-stream:{project-vers
 ====
 
 [[stream-reading]]
-=== Reading from Streams
+== Reading from Streams
 
 Spring Integration provides two adapters for streams.
 Both `ByteStreamReadingMessageSource` and `CharacterStreamReadingMessageSource` implement `MessageSource`.
@@ -99,7 +99,7 @@ public static final CharacterStreamReadingMessageSource stdinPipe(String charset
 ====
 
 [[stream-writing]]
-=== Writing to Streams
+== Writing to Streams
 
 For target streams, you can use either of two implementations: `ByteStreamWritingMessageHandler` or `CharacterStreamWritingMessageHandler`.
 Each requires a single constructor argument (`OutputStream` for byte streams or `Writer` for character streams), and each provides a second constructor that adds the optional 'bufferSize'.
@@ -120,7 +120,7 @@ Since both of these ultimately implement the `MessageHandler` interface, you can
 ====
 
 [[stream-namespace]]
-=== Stream Namespace Support
+== Stream Namespace Support
 
 Spring Integration defines a namespace to reduce the configuration needed for stream-related channel adapters.
 The following schema locations are needed to use it:

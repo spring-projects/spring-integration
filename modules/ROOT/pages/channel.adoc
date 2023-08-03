@@ -1,10 +1,10 @@
 [[channel]]
-=== Message Channels
+= Message Channels
 
 While the `Message` plays the crucial role of encapsulating data, it is the `MessageChannel` that decouples message producers from message consumers.
 
 [[channel-interfaces]]
-==== The MessageChannel Interface
+== The MessageChannel Interface
 
 Spring Integration's top-level `MessageChannel` interface is defined as follows:
 
@@ -24,7 +24,7 @@ When sending a message, the return value is `true` if the message is sent succes
 If the send call times out or is interrupted, it returns `false`.
 
 [[channel-interfaces-pollablechannel]]
-===== `PollableChannel`
+=== `PollableChannel`
 
 Since message channels may or may not buffer messages (as discussed in the <<./overview.adoc#overview,Spring Integration Overview>>), two sub-interfaces define the buffering (pollable) and non-buffering (subscribable) channel behavior.
 The following listing shows the definition of the `PollableChannel` interface:
@@ -45,7 +45,7 @@ public interface PollableChannel extends MessageChannel {
 As with the send methods, when receiving a message, the return value is null in the case of a timeout or interrupt.
 
 [[channel-interfaces-subscribablechannel]]
-===== `SubscribableChannel`
+=== `SubscribableChannel`
 
 The `SubscribableChannel` base interface is implemented by channels that send messages directly to their subscribed `MessageHandler` instances.
 Therefore, they do not provide receive methods for polling.
@@ -66,13 +66,13 @@ public interface SubscribableChannel extends MessageChannel {
 ====
 
 [[channel-implementations]]
-==== Message Channel Implementations
+== Message Channel Implementations
 
 Spring Integration provides different message channel implementations.
 The following sections briefly describe each one.
 
 [[channel-implementations-publishsubscribechannel]]
-===== `PublishSubscribeChannel`
+=== `PublishSubscribeChannel`
 
 The `PublishSubscribeChannel` implementation broadcasts any `Message` sent to it to all of its subscribed handlers.
 This is most often used for sending event messages, whose primary role is notification (as opposed to document messages, which are generally intended to be processed by a single handler).
@@ -88,7 +88,7 @@ This behavior can be modified by setting the `minSubscribers` property, which de
 NOTE: If you use a `TaskExecutor`, only the presence of the correct number of subscribers is used for this determination, because the actual handling of the message is performed asynchronously.
 
 [[channel-implementations-queuechannel]]
-===== `QueueChannel`
+=== `QueueChannel`
 
 The `QueueChannel` implementation wraps a queue.
 Unlike the `PublishSubscribeChannel`, the `QueueChannel` has point-to-point semantics.
@@ -110,14 +110,14 @@ In either case, it is possible to force an immediate return regardless of the qu
 Note, however, that calls to the versions of `send()` and `receive()` with no `timeout` parameter block indefinitely.
 
 [[channel-implementations-prioritychannel]]
-===== `PriorityChannel`
+=== `PriorityChannel`
 
 Whereas the `QueueChannel` enforces first-in-first-out (FIFO) ordering, the `PriorityChannel` is an alternative implementation that allows for messages to be ordered within the channel based upon a priority.
 By default, the priority is determined by the `priority` header within each message.
 However, for custom priority determination logic, a comparator of type `Comparator<Message<?>>` can be provided to the `PriorityChannel` constructor.
 
 [[channel-implementations-rendezvouschannel]]
-===== `RendezvousChannel`
+=== `RendezvousChannel`
 
 The `RendezvousChannel` enables a "`direct-handoff`" scenario, wherein a sender blocks until another party invokes the channel's `receive()` method.
 The other party blocks until the sender sends the message.
@@ -136,7 +136,7 @@ After sending that `Message`, the sender can immediately call `receive` (optiona
 This is very similar to the implementation used internally by many of Spring Integration's request-reply components.
 
 [[channel-implementations-directchannel]]
-===== `DirectChannel`
+=== `DirectChannel`
 
 The `DirectChannel` has point-to-point semantics but otherwise is more similar to the `PublishSubscribeChannel` than any of the queue-based channel implementations described earlier.
 It implements the `SubscribableChannel` interface instead of the `PollableChannel` interface, so it dispatches messages directly to a subscriber.
@@ -192,7 +192,7 @@ When using the namespace support, this means that more than one endpoint shares 
 Starting with version 5.2, when `failover` is true, a failure of the current handler together with the failed message is logged under `debug` or `info` if configured respectively.
 
 [[executor-channel]]
-===== `ExecutorChannel`
+=== `ExecutorChannel`
 
 The `ExecutorChannel` is a point-to-point channel that supports the same dispatcher configuration as `DirectChannel` (load-balancing strategy and the `failover` boolean property).
 The key difference between these two dispatching channel types is that the `ExecutorChannel` delegates to an instance of `TaskExecutor` to perform the dispatch.
@@ -204,7 +204,7 @@ For example, when using a `TaskExecutor` with a rejection policy that throttles 
 Since that situation would only occur in a non-predictable way, you should not rely upon it for transactions.
 
 [[partitioned-channel]]
-===== `PartitionedChannel`
+=== `PartitionedChannel`
 
 Starting with version 6.1, a `PartitionedChannel` implementation is provided.
 This is an extension of `AbstractExecutorChannel` and represents point-to-point dispatching logic where the actual consumption is processed on a specific thread, determined by the partition key evaluated from a message sent to this channel.
@@ -228,7 +228,7 @@ The channel will have `3` partitions - dedicated threads; will use the `partitio
 See `PartitionedChannel` class Javadocs for more information.
 
 [[flux-message-channel]]
-===== `FluxMessageChannel`
+=== `FluxMessageChannel`
 
 The `FluxMessageChannel` is an `org.reactivestreams.Publisher` implementation for `"sinking"` sent messages into an internal `reactor.core.publisher.Flux` for on demand consumption by reactive subscribers downstream.
 This channel implementation is neither a `SubscribableChannel`, nor a `PollableChannel`, so only `org.reactivestreams.Subscriber` instances can be used to consume from this channel honoring back-pressure nature of reactive streams.
@@ -238,7 +238,7 @@ To achieve fully reactive behavior for the whole integration flow, such a channe
 See <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for more information about interaction with Reactive Streams.
 
 [[channel-implementations-threadlocalchannel]]
-===== Scoped Channel
+=== Scoped Channel
 
 Spring Integration 1.0 provided a `ThreadLocalChannel` implementation, but that has been removed as of 2.0.
 Now the more general way to handle the same requirement is to add a `scope` attribute to a channel.
@@ -271,7 +271,7 @@ If that terminal channel is thread-scoped, the original sending thread can colle
 Now, since any channel can be scoped, you can define your own scopes in addition to thread-Local.
 
 [[channel-interceptors]]
-==== Channel Interceptors
+== Channel Interceptors
 
 One of the advantages of a messaging architecture is the ability to provide common behavior and capture meaningful information about the messages passing through the system in a non-invasive way.
 Since the `Message` instances are sent to and received from `MessageChannel` instances, those channels provide an opportunity for intercepting the send and receive operations.
@@ -345,7 +345,7 @@ If you have an interceptor that relies on the previous behavior, implement `afte
 NOTE: Starting with version 5.2, the `ChannelInterceptorAware` is deprecated in favor of `InterceptableChannel` from the Spring Messaging module, which it extends now for backward compatibility.
 
 [[channel-template]]
-==== `MessagingTemplate`
+== `MessagingTemplate`
 
 When the endpoints and their various configuration options are introduced, Spring Integration provides a foundation for messaging components that enables non-invasive invocation of your application code from the messaging system.
 However, it is sometimes necessary to invoke the messaging system from your application code.
@@ -382,7 +382,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ...
 NOTE: A less invasive approach that lets you invoke simple interfaces with payload or header values instead of `Message` instances is described in <<./gateway.adoc#gateway-proxy,Enter the `GatewayProxyFactoryBean`>>.
 
 [[channel-configuration]]
-==== Configuring Message Channels
+== Configuring Message Channels
 
 To create a message channel instance, you can use the `<channel/>` element for xml or `DirectChannel` instance for Java configuration, as follows:
 
@@ -426,7 +426,7 @@ You can alternatively provide a variety of `<queue/>` sub-elements to create any
 The following sections shows examples of each channel type.
 
 [[channel-configuration-directchannel]]
-===== `DirectChannel` Configuration
+=== `DirectChannel` Configuration
 
 As mentioned earlier, `DirectChannel` is the default type.
 The following listing shows who to define one:
@@ -480,7 +480,7 @@ public MessageChannel failFastChannel() {
 ====
 
 [[channel-datatype-channel]]
-===== Datatype Channel Configuration
+=== Datatype Channel Configuration
 
 Sometimes, a consumer can process only a particular type of payload, forcing you to ensure the payload type of the input messages.
 The first thing that comes to mind may be to use a message filter.
@@ -617,7 +617,7 @@ If the latter, the converter must be careful to copy all the headers from the in
 Alternatively, you can declare a `<bean/>` of type `MessageConverter` with an ID of `datatypeChannelMessageConverter`, and that converter is used by all channels with a `datatype`.
 
 [[channel-configuration-queuechannel]]
-===== `QueueChannel` Configuration
+=== `QueueChannel` Configuration
 
 To create a `QueueChannel`, use the `<queue/>` sub-element.
 You may specify the channel's capacity as follows:
@@ -644,7 +644,7 @@ NOTE: If you do not provide a value for the 'capacity' attribute on this `<queue
 To avoid issues such as running out of memory, we highly recommend that you set an explicit value for a bounded queue.
 
 [[persistent-queuechannel-configuration]]
-====== Persistent `QueueChannel` Configuration
+==== Persistent `QueueChannel` Configuration
 
 Since a `QueueChannel` provides the capability to buffer messages but does so in-memory only by default, it also introduces a possibility that messages could be lost in the event of a system failure.
 To mitigate this risk, a `QueueChannel` may be backed by a persistent implementation of the `MessageGroupStore` strategy interface.
@@ -754,7 +754,7 @@ public PollableChannel distributedQueue() {
 ====
 
 [[channel-configuration-pubsubchannel]]
-===== `PublishSubscribeChannel` Configuration
+=== `PublishSubscribeChannel` Configuration
 
 To create a `PublishSubscribeChannel`, use the <publish-subscribe-channel/> element.
 When using this element, you can also specify the `task-executor` used for publishing messages (if none is specified, it publishes in the sender's thread), as follows:
@@ -814,7 +814,7 @@ Starting with version 5.4.3, the `PublishSubscribeChannel` can also be configure
 A `MessageDispatchingException` with a `Dispatcher has no subscribers` message is thrown when there are no subscribers and this option is set to `true`.
 
 [[channel-configuration-executorchannel]]
-===== `ExecutorChannel`
+=== `ExecutorChannel`
 
 To create an `ExecutorChannel`, add the `<dispatcher>` sub-element with a `task-executor` attribute.
 The attribute's value can reference any `TaskExecutor` within the context.
@@ -857,7 +857,7 @@ Consequently, the channel has a round-robin load-balancing strategy with failove
 =====
 
 [[channel-configuration-prioritychannel]]
-===== `PriorityChannel` Configuration
+=== `PriorityChannel` Configuration
 
 To create a `PriorityChannel`, use the `<priority-queue/>` sub-element, as the following example shows:
 
@@ -913,7 +913,7 @@ See <<channel-configuration-queuechannel>> and <<./message-store.adoc#message-st
 You can find sample configuration in <<./jdbc.adoc#jdbc-message-store-channels,Backing Message Channels>>.
 
 [[channel-configuration-rendezvouschannel]]
-===== `RendezvousChannel` Configuration
+=== `RendezvousChannel` Configuration
 
 A `RendezvousChannel` is created when the queue sub-element is a `<rendezvous-queue>`.
 It does not provide any additional configuration options to those described earlier, and its queue does not accept any capacity value, since it is a zero-capacity direct handoff queue.
@@ -938,7 +938,7 @@ public PollableChannel rendezvousChannel() {
 ====
 
 [[channel-configuration-threadlocalchannel]]
-===== Scoped Channel Configuration
+=== Scoped Channel Configuration
 
 Any channel can be configured with a `scope` attribute, as the following example shows:
 
@@ -952,7 +952,7 @@ Any channel can be configured with a `scope` attribute, as the following example
 // TODO What scope values are available? Can I create my own?
 
 [[channel-configuration-interceptors]]
-===== Channel Interceptor Configuration
+=== Channel Interceptor Configuration
 
 Message channels may also have interceptors, as described in <<channel-interceptors>>.
 The `<interceptors/>` sub-element can be added to a `<channel/>` (or the more specific element types).
@@ -972,7 +972,7 @@ You can provide the `ref` attribute to reference any Spring-managed object that 
 In general, we recommend defining the interceptor implementations in a separate location, since they usually provide common behavior that can be reused across multiple channels.
 
 [[global-channel-configuration-interceptors]]
-===== Global Channel Interceptor Configuration
+=== Global Channel Interceptor Configuration
 
 Channel interceptors provide a clean and concise way of applying cross-cutting behavior per individual channel.
 If the same behavior should be applied on multiple channels, configuring the same set of interceptors for each channel would not be the most efficient way.
@@ -1029,7 +1029,7 @@ NOTE: Note that both the `order` and `pattern` attributes are optional.
 The default value for `order` will be 0 and for `pattern`, the default is '*' (to match all channels).
 
 [[channel-wiretap]]
-===== Wire Tap
+=== Wire Tap
 
 As mentioned earlier, Spring Integration provides a simple wire tap interceptor.
 You can configure a wire tap on any channel within an `<interceptors/>` element.
@@ -1122,14 +1122,14 @@ public IntegrationFlow loggingFlow() {
 ====
 
 [[conditional-wiretap]]
-===== Conditional Wire Taps
+=== Conditional Wire Taps
 
 Wire taps can be made conditional by using the `selector` or `selector-expression` attributes.
 The `selector` references a `MessageSelector` bean, which can determine at runtime whether the message should go to the tap channel.
 Similarly, the `selector-expression` is a boolean SpEL expression that performs the same purpose: If the expression evaluates to `true`, the message is sent to the tap channel.
 
 [[channel-global-wiretap]]
-===== Global Wire Tap Configuration
+=== Global Wire Tap Configuration
 
 It is possible to configure a global wire tap as a special case of the <<global-channel-configuration-interceptors>>.
 To do so, configure a top level `wire-tap` element.
@@ -1158,7 +1158,7 @@ To do so, set the `pattern` attribute to the target channel name.
 For example, you can use this technique to configure a test case to verify messages on a channel.
 
 [[channel-special-channels]]
-==== Special Channels
+== Special Channels
 
 Two special channels are defined within the application context by default: `errorChannel` and `nullChannel`.
 The 'nullChannel' (an instance of `NullChannel`) acts like `/dev/null`, logging any message sent to it at the `DEBUG` level and returning immediately.

@@ -1,5 +1,5 @@
 [[history]]
-== Change History
+= Change History
 
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 include::./changes-6.0-6.1.adoc[]

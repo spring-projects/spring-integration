@@ -1,5 +1,5 @@
 [[camel]]
-== Apache Camel Support
+= Apache Camel Support
 
 Spring Integration provides an API and configuration to communicate with https://camel.apache.org[Apache Camel] endpoints declared in the same application context.
 
@@ -44,7 +44,7 @@ For a similar developer experience, Spring Integration now provides a channel ad
 There is no inbound channel adapter because subscribing to a `MessageChannel` for consuming Apache Camel messages is enough from the Spring Integration API and abstractions perspective.
 
 [[camel-channel-adapter]]
-=== Outbound Channel Adapter for Apache Camel
+== Outbound Channel Adapter for Apache Camel
 
 The `CamelMessageHandler` is an `AbstractReplyProducingMessageHandler` implementation and can work in both one-way (default) and request-reply modes.
 It uses an `org.apache.camel.ProducerTemplate` to send (or send and receive) into an `org.apache.camel.Endpoint`.

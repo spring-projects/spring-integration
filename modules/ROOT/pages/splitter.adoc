@@ -1,11 +1,11 @@
 [[splitter]]
-=== Splitter
+= Splitter
 
 The splitter is a component whose role is to partition a message into several parts and send the resulting messages to be processed independently.
 Very often, they are upstream producers in a pipeline that includes an aggregator.
 
 [[programming-model]]
-==== Programming Model
+== Programming Model
 
 The API for performing splitting consists of one base class, `AbstractMessageSplitter`.
 It is a `MessageHandler` implementation that encapsulates features common to splitters, such as filling in the appropriate message headers (`CORRELATION_ID`, `SEQUENCE_SIZE`, and `SEQUENCE_NUMBER`) on the messages that are produced.
@@ -45,7 +45,7 @@ In the latter case, the splitter receives the payload of the incoming message.
 We recommend this approach, because it decouples the code from the Spring Integration API and is typically easier to test.
 
 [[iterators]]
-===== Iterators
+=== Iterators
 
 Starting with version 4.1, the `AbstractMessageSplitter` supports the `Iterator` type for the `value` to split.
 Note, in the case of an `Iterator` (or `Iterable`), we don't have access to the number of underlying items and the `SEQUENCE_SIZE` header is set to `0`.
@@ -60,7 +60,7 @@ An `Iterator` object is useful to avoid the need for building an entire collecti
 For example, when underlying items are populated from some external system (e.g. DataBase or FTP `MGET`) using iterations or streams.
 
 [[split-stream-and-flux]]
-===== Stream and Flux
+=== Stream and Flux
 
 Starting with version 5.0, the `AbstractMessageSplitter` supports the Java `Stream` and Reactive Streams `Publisher` types for the `value` to split.
 In this case, the target `Iterator` is built on their iteration functionality.
@@ -72,7 +72,7 @@ In this case there is just no item to iterate for sending to the `outputChannel`
 The `null` splitting result remains as an end of flow indicator.
 
 [[configuring-a-splitter-with-java-groovy-and-kotlin-dsls]]
-==== Configuring a Splitter with Java, Groovy and Kotlin DSLs
+== Configuring a Splitter with Java, Groovy and Kotlin DSLs
 
 An example of simple splitter based on a `Message` and its iterable payload with DSL configuration:
 
@@ -116,7 +116,7 @@ See more information about the DSLs in the respective chapters:
 * <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
 
 [[configuring-a-splitter-with-xml]]
-==== Configuring a Splitter with XML
+== Configuring a Splitter with XML
 
 A splitter can be configured through XML as follows:
 
@@ -172,7 +172,7 @@ However, this optimization applies only if you do not provide any splitter-speci
 If you inadvertently reference the same message handler from multiple beans, you get a configuration exception.
 
 [[configuring-a-splitter-with-annotations]]
-==== Configuring a Splitter with Annotations
+== Configuring a Splitter with Annotations
 
 The `@Splitter` annotation is applicable to methods that expect either the `Message` type or the message payload type, and the return values of the method should be a `Collection` of any type.
 If the returned values are not actual `Message` objects, each item is wrapped in a `Message` as the payload of the `Message`.

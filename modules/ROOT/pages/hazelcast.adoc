@@ -1,5 +1,5 @@
 [[hazelcast]]
-== Hazelcast Support
+= Hazelcast Support
 
 Spring Integration provides channel adapters and other utility components to interact with an in-memory data grid https://hazelcast.com[Hazelcast].
 
@@ -34,7 +34,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/hazelcast
 ====
 
 [[hazelcast-inbound]]
-=== Hazelcast Event-driven Inbound Channel Adapter
+== Hazelcast Event-driven Inbound Channel Adapter
 
 Hazelcast provides distributed data structures such as:
 
@@ -56,7 +56,7 @@ The Hazelcast Event-Driven Inbound Channel Adapter listens to related cache even
 It supports both XML and JavaConfig driven configurations.
 
 [[xml-configuration-:]]
-==== XML Configuration :
+=== XML Configuration :
 
 ====
 [source,xml]
@@ -197,7 +197,7 @@ Some configuration samples:
 ====
 
 [[java-configuration-sample:]]
-==== Java Configuration Sample:
+=== Java Configuration Sample:
 
 The following sample shows a `DistributedMap` configuration.
 The same configuration can be used for other distributed data structures(`IMap`, `MultiMap`, `ReplicatedMap`, `IList`, `ISet`, `IQueue` and `ITopic`):
@@ -233,7 +233,7 @@ public HazelcastEventDrivenMessageProducer hazelcastEventDrivenMessageProducer()
 ====
 
 [[hazelcast-continuous-query]]
-=== Hazelcast Continuous Query Inbound Channel Adapter
+== Hazelcast Continuous Query Inbound Channel Adapter
 
 Hazelcast Continuous Query enables listening to modifications performed on specific map entries.
 The Hazelcast Continuous Query Inbound Channel Adapter is an event-driven channel adapter which listens to the related distributed map events in the light of the defined predicate.
@@ -313,7 +313,7 @@ If it is `ALL`, all Hazelcast CQ inbound channel adapters listening to the same 
 If it is `SINGLE`, they will receive unique event messages.
 
 [[hazelcast-cluster-monitor]]
-=== Hazelcast Cluster Monitor Inbound Channel Adapter
+== Hazelcast Cluster Monitor Inbound Channel Adapter
 
 A Hazelcast Cluster Monitor supports listening to modifications performed on the cluster.
 The Hazelcast Cluster Monitor Inbound Channel Adapter is an event-driven channel adapter and listens to related Membership, Distributed Object, Migration, Lifecycle and Client events:
@@ -370,7 +370,7 @@ It is an optional attribute with `MEMBERSHIP` being the default value.
 Supported values are `MEMBERSHIP`, `DISTRIBUTED_OBJECT`, `MIGRATION`, `LIFECYCLE`, `CLIENT`.
 
 [[hazelcast-distributed-sql]]
-=== Hazelcast Distributed SQL Inbound Channel Adapter
+== Hazelcast Distributed SQL Inbound Channel Adapter
 
 Hazelcast allows running distributed queries on the distributed map.
 The Hazelcast Distributed SQL Inbound Channel Adapter is a polling inbound channel adapter.
@@ -446,7 +446,7 @@ Supported values are `ENTRY, `KEY`, `LOCAL_KEY` and `VALUE`;
 It is a mandatory attribute.
 
 [[hazelcast-outbound-channel-adapter]]
-=== Hazelcast Outbound Channel Adapter
+== Hazelcast Outbound Channel Adapter
 
 The Hazelcast Outbound Channel Adapter listens to its defined channel and writes incoming messages to related distributed cache.
 It expects one of `cache`, `cache-expression` or `HazelcastHeaders.CACHE_NAME` for distributed object definition.
@@ -509,7 +509,7 @@ By setting distributed object name in the header, messages can be written to dif
 If `cache` or `cache-expression` attributes are not defined, a `HazelcastHeaders.CACHE_NAME` header has to be set in a request `Message`.
 
 [[hazelcast-leader-election]]
-=== Hazelcast Leader Election
+== Hazelcast Leader Election
 
 If leader election is needed (e.g. for highly available message consumer where only one node should receive messages) a Hazelcast-based `LeaderInitiator` can be used:
 
@@ -531,7 +531,7 @@ public LeaderInitiator initiator() {
 When a node is elected leader it will send an `OnGrantedEvent` to all application listeners.
 
 [[hazelcast-message-store]]
-=== Hazelcast Message Store
+== Hazelcast Message Store
 
 For distributed messaging state management, for example for a persistent `QueueChannel` or tracking `Aggregator` message groups, the `HazelcastMessageStore` implementation is provided:
 
@@ -554,7 +554,7 @@ By default, the `SPRING_INTEGRATION_MESSAGE_STORE` `IMap` is used to store messa
 Any custom `IMap` can be provided to the `HazelcastMessageStore`.
 
 [[hazelcast-metadata-store]]
-=== Hazelcast Metadata Store
+== Hazelcast Metadata Store
 
 An implementation of a `ListenableMetadataStore` is available using a backing Hazelcast `IMap`.
 The default map is created with a name `SPRING_INTEGRATION_METADATA_STORE` which can be customized.
@@ -578,7 +578,7 @@ The `HazelcastMetadataStore` implements `ListenableMetadataStore` which allows y
 
 
 [[hazelcast-lock-registry]]
-=== Hazelcast Lock Registry
+== Hazelcast Lock Registry
 
 An implementation of a `LockRegistry` is available using a backing Hazelcast distributed `ILock` support:
 
@@ -602,7 +602,7 @@ When used with a shared `MessageGroupStore` (e.g. `Aggregator` store management)
 NOTE: For all the distributed operations the CP Subsystem must be enabled on `HazelcastInstance`.
 
 [[hazelcast-message-channels]]
-=== Message Channels with Hazelcast
+== Message Channels with Hazelcast
 
 The Hazelcast `IQueue` and `ITopic` distributed objects are, essentially, messaging primitives and can be use with Spring Integration core components without extra implementations in this Hazelcast module.
 

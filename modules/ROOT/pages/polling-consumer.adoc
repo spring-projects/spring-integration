@@ -1,10 +1,10 @@
 [[polling-consumer]]
-=== Poller
+= Poller
 
 This section describes how polling works in Spring Integration.
 
 [[polling-consumer]]
-==== Polling Consumer
+== Polling Consumer
 
 When Message Endpoints (Channel Adapters) are connected to channels and instantiated, they produce one of the following instances:
 
@@ -24,7 +24,7 @@ You can find a description of the pattern on the https://www.enterpriseintegrati
 For more information polling consumer configuration, see <<./endpoint.adoc#endpoint,Message Endpoints>>.
 
 [[pollable-message-source]]
-==== Pollable Message Source
+== Pollable Message Source
 
 Spring Integration offers a second variation of the polling consumer pattern.
 When inbound channel adapters are used, these adapters are often wrapped by a `SourcePollingChannelAdapter`.
@@ -57,7 +57,7 @@ This chapter is meant to only give a high-level overview of polling consumers an
 For more information regarding messaging endpoints in general and polling consumers in particular, see <<./endpoint.adoc#endpoint,Message Endpoints>>.
 
 [[deferred-acks-message-source]]
-==== Deferred Acknowledgment Pollable Message Source
+== Deferred Acknowledgment Pollable Message Source
 
 Starting with version 5.0.1, certain modules provide `MessageSource` implementations that support deferring acknowledgment until the downstream flow completes (or hands off the message to another thread).
 This is currently limited to the `AmqpMessageSource` and the `KafkaMessageSource`.
@@ -137,12 +137,12 @@ Not all implementations support this (for example, Apache Kafka does not, becaus
 
 
 [[conditional-pollers]]
-==== Conditional Pollers for Message Sources
+== Conditional Pollers for Message Sources
 
 This section covers how to use conditional pollers.
 
 [[background]]
-===== Background
+=== Background
 
 `Advice` objects, in an `advice-chain` on a poller, advise the whole polling task (both message retrieval and processing).
 These "`around advice`" methods do not have access to any context for the poll -- only the poll itself.
@@ -150,7 +150,7 @@ This is fine for requirements such as making a task transactional or skipping a 
 What if we wish to take some action depending on the result of the `receive` part of the poll or if we want to adjust the poller depending on conditions? For those instances, Spring Integration offers "`Smart`" Polling.
 
 [[smart-polling]]
-===== "`Smart`" Polling
+=== "`Smart`" Polling
 
 Version 5.3 introduced the `ReceiveMessageAdvice` interface.
 Any `Advice` objects in the `advice-chain` that implement this interface are applied only to the `receive()` operation - `MessageSource.receive()` and `PollableChannel.receive(timeout)`.
@@ -187,7 +187,7 @@ If you wish to change the order, you must wire up the proxy yourself.
 =====
 
 [[simpleactiveidlereceivemessageadvice]]
-===== `SimpleActiveIdleReceiveMessageAdvice`
+=== `SimpleActiveIdleReceiveMessageAdvice`
 
 This advice is a simple implementation of `ReceiveMessageAdvice`.
 When used in conjunction with a `DynamicPeriodicTrigger`, it adjusts the polling frequency, depending on whether the previous poll resulted in a message or not.
@@ -200,7 +200,7 @@ It does not work if the poller has a `task-executor`.
 To use this advice where you wish to use async operations after the result of a poll, do the async handoff later, perhaps by using an `ExecutorChannel`.
 
 [[compoundtriggeradvice]]
-===== `CompoundTriggerAdvice`
+=== `CompoundTriggerAdvice`
 
 This advice allows the selection of one of two triggers based on whether a poll returns a message or not.
 Consider a poller that uses a `CronTrigger`.
@@ -251,7 +251,7 @@ It does not work if the poller has a `task-executor`.
 To use this advice where you wish to use async operations after the result of a poll, do the async handoff later, perhaps by using an `ExecutorChannel`.
 
 [[messagesource-only-advices]]
-===== MessageSource-only Advices
+=== MessageSource-only Advices
 
 Some advices might be applied only for the `MessageSource.receive()` and they don't make sense for `PollableChannel`.
 For this purpose a `MessageSourceMutator` interface (an extension of the `ReceiveMessageAdvice`) is still present.

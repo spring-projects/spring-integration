@@ -1,5 +1,5 @@
 [[cassandra]]
-== Apache Cassandra Support
+= Apache Cassandra Support
 
 Spring Integration provides channel adapters (starting with version 6.0) for performing database operations against an Apache Cassandra cluster.
 It is fully based on the https://spring.io/projects/spring-data-cassandra[Spring Data for Apache Cassandra] project.
@@ -24,7 +24,7 @@ compile "org.springframework.integration:spring-integration-cassandra:{project-v
 ====
 
 [[cassandra-outbound]]
-=== Cassandra Outbound Components
+== Cassandra Outbound Components
 
 The `CassandraMessageHandler` is an `AbstractReplyProducingMessageHandler` implementation and can work in both one-way (default) and request-reply modes (a `producesReply` option).
 It is asynchronous by default (`setAsync(false)` to reset) and performs reactive `INSERT`, `UPDATE`, `DELETE` or `STATEMENT` operations against the provided `ReactiveCassandraOperations`.

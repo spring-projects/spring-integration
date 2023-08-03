@@ -1,5 +1,5 @@
 [[kotlin-functions-support]]
-=== Kotlin Support
+= Kotlin Support
 
 The Framework also has been improved to support Kotlin lambdas for functions, so now you can use a combination of the Kotlin language and Spring Integration flow definitions:
 
@@ -28,7 +28,7 @@ fun kotlinSupplier(): () -> String {
 ====
 
 [[kotlin-coroutines]]
-==== Kotlin Coroutines
+== Kotlin Coroutines
 
 Starting with version 6.0, Spring Integration provides support for https://kotlinlang.org/docs/coroutines-guide.html[Kotlin Coroutines].
 Now `suspend` functions and `kotlinx.coroutines.Deferred` & `kotlinx.coroutines.flow.Flow` return types can be used for service methods:

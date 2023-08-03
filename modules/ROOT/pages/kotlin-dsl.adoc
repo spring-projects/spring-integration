@@ -1,5 +1,5 @@
 [[kotlin-dsl]]
-== Kotlin DSL
+= Kotlin DSL
 
 The Kotlin DSL is a wrapper and extension to <<./dsl.adoc#java-dsl,Java DSL>> and aimed to make Spring Integration development on Kotlin as smooth and straightforward as possible with interoperability with the existing Java API and Kotlin language-specific structures.
 

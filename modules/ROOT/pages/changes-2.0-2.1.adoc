@@ -1,15 +1,15 @@
 [[migration-2.0-2.1]]
-=== Changes between 2.0 and 2.1
+= Changes between 2.0 and 2.1
 
 See the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-2.0-to-2.1-Migration-Guide[Migration Guide] for important changes that might affect your applications.
 
 [[x2.1-new-components]]
-==== New Components
+== New Components
 
 Version 2.1 added a number of new components.
 
 [[x2.1-new-scripting-support]]
-===== JSR-223 Scripting Support
+=== JSR-223 Scripting Support
 
 In Spring Integration 2.0, we added support for https://groovy.codehaus.org/[Groovy].
 With Spring Integration 2.1, we expanded support for additional languages substantially by implementing support for https://www.jcp.org/en/jsr/detail?id=223[JSR-223] ("`Scripting for the Java™ Platform`").
@@ -23,7 +23,7 @@ Now you have the ability to use any scripting language that supports JSR-223 inc
 For further details, see <<./scripting.adoc#scripting,Scripting Support>>.
 
 [[x2.1-new-amqp-support]]
-===== AMQP Support
+=== AMQP Support
 
 Spring Integration 2.1 added several channel adapters for receiving and sending messages by using the https://www.amqp.org/[Advanced Message Queuing Protocol] (AMQP).
 Furthermore, Spring Integration also provides a point-to-point message channel and a publish-subscribe message channel, both of which are backed by AMQP Exchanges and Queues.
@@ -31,21 +31,21 @@ Furthermore, Spring Integration also provides a point-to-point message channel a
 For further details, see <<./amqp.adoc#amqp,AMQP Support>>.
 
 [[x2.1-new-mongodb-support]]
-===== MongoDB Support
+=== MongoDB Support
 
 As of version 2.1, Spring Integration provides support for https://www.mongodb.org/[MongoDB] by providing a MongoDB-based `MessageStore`.
 
 For further details, see <<./mongodb.adoc#mongodb,MongoDb Support>>.
 
 [[x2.1-new-redis-support]]
-===== Redis Support
+=== Redis Support
 
 As of version 2.1, Spring Integration supports https://redis.io/[Redis], an advanced key-value store, by providing a Redis-based `MessageStore` as well as publish-subscribe messaging adapters.
 
 For further details, see <<./redis.adoc#redis,Redis Support>>.
 
 [[x2.1-new-resource-support]]
-===== Support for Spring's Resource abstraction
+=== Support for Spring's Resource abstraction
 
 In version 2.1, we introduced a new resource inbound channel adapter that builds upon Spring's resource abstraction to support greater flexibility across a variety of actual types of underlying resources, such as a file, a URL, or a classpath resource.
 Therefore, it is similar to but more generic than the file inbound channel adapter.
@@ -53,7 +53,7 @@ Therefore, it is similar to but more generic than the file inbound channel adapt
 For further details, see <<./resource.adoc#resource-inbound-channel-adapter,Resource Inbound Channel Adapter>>.
 
 [[x2.1-new-stored-proc-support]]
-===== Stored Procedure Components
+=== Stored Procedure Components
 
 With Spring Integration 2.1, the `JDBC` Module also provides stored procedure support by adding several new components, including inbound and outbound channel adapters and an outbound gateway.
 The stored procedure support leverages  Spring's https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`SimpleJdbcCall`] class and consequently supports stored procedures for:
@@ -76,7 +76,7 @@ The stored procedure components also support SQL functions for the following dat
 For further details, see <<./jdbc.adoc#stored-procedures,Stored Procedures>>.
 
 [[x2.1-new-xpath-filter-support]]
-===== XPath and XML Validating Filter
+=== XPath and XML Validating Filter
 
 Spring Integration 2.1 provides a new XPath-based message filter.
 It is part of the `XML` module.
@@ -86,7 +86,7 @@ We also added documentation for the XML validating filter.
 For more details, see <<./xml.adoc#xml-xpath-filter,Using the XPath Filter>> and <<./xml.adoc#xml-validating-filter,XML Validating Filter>>.
 
 [[x2.1-new-payload-enricher-support]]
-===== Payload Enricher
+=== Payload Enricher
 
 Since Spring Integration 2.1, we added the payload enricher.
 A payload enricher defines an endpoint that typically passes a https://docs.spring.io/spring-integration/api/org/springframework/integration/Message.html[`Message`] to the exposed request channel and then expects a reply message.
@@ -95,7 +95,7 @@ The reply message then becomes the root object for evaluation of expressions to 
 For further details, see <<./content-enrichment.adoc#payload-enricher,Payload Enricher>>.
 
 [[x2.1-new-ftp-outbound-gateway]]
-===== FTP and SFTP Outbound Gateways
+=== FTP and SFTP Outbound Gateways
 
 Spring Integration 2.1 provides two new outbound gateways to interact with remote File Transfer Protocol (FTP) or Secure File Transfer Protocol (SFT) servers.
 These two gateways let you directly execute a limited set of remote commands.
@@ -105,7 +105,7 @@ For instance, you can use these outbound gateways to list, retrieve, and delete 
 For further details, see <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>> and <<./sftp.adoc#sftp-outbound-gateway,SFTP Outbound Gateway>>.
 
 [[x2.1-new-ftp-session-caching]]
-===== FTP Session Caching
+=== FTP Session Caching
 
 As of version 2.1, we have exposed more flexibility with regards to session management for remote file adapters (for example, FTP, SFTP, and others).
 
@@ -115,12 +115,12 @@ As an alternative, we added the `sessionCacheSize` and `sessionWaitTimeout` attr
 For further details, see <<./ftp.adoc#ftp-session-caching,FTP Session Caching>> and <<./sftp.adoc#sftp-session-caching,SFTP Session Caching>>.
 
 [[x2.1-framework-refactorings]]
-==== Framework Refactoring
+== Framework Refactoring
 
 We refactored the Spring Integration framework in a number of ways, all described in this section.
 
 [[x2.1-router-standardization]]
-===== Standardizing Router Configuration
+=== Standardizing Router Configuration
 
 We standardized router parameters across all router implementations with Spring Integration 2.1 to provide a more consistent user experience.
 
@@ -137,7 +137,7 @@ IMPORTANT: With the standardization of router parameters and the consolidation o
 For further details, see `<<./router.adoc#router,Routers>>`.
 
 [[x2.1-schema-updated]]
-===== XML Schemas updated to 2.1
+=== XML Schemas updated to 2.1
 
 Spring Integration 2.1 ships with an updated XML Schema (version 2.1).
 It provides many improvements, such as the Router standardizations <<x2.1-router-standardization,discussed earlier>>.
@@ -186,13 +186,13 @@ The old 1.0 and 2.0 schemas are still there.
 However, if an application context still references one of those deprecated schemas, the validator fails on initialization.
 
 [[x2.1-source-control-infrastructure]]
-==== Source Control Management and Build Infrastructure
+== Source Control Management and Build Infrastructure
 
 Version 2.1 introduced a number of changes to source control management and build infrastructure.
 This section covers those changes.
 
 [[x2.1-move-to-github]]
-===== Source Code Now Hosted on Github
+=== Source Code Now Hosted on Github
 
 Since version 2.0, the Spring Integration project uses https://git-scm.com/[Git] for version control.
 To increase community visibility even further, the project was moved from SpringSource hosted Git repositories to https://www.github.com/[Github].
@@ -204,13 +204,13 @@ In fact, core committers now follow the same process as contributors.
 For more details, see https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.adoc[Contributing].
 
 [[x2.1-sonar]]
-===== Improved Source Code Visibility with Sonar
+=== Improved Source Code Visibility with Sonar
 
 In an effort to provide better source code visibility and consequently to monitor the quality of Spring Integration's source code, we set up an instance of https://www.sonarqube.org/[Sonar].
 We gather metrics nightly and make them available at https://sonar.spring.io/dashboard?id=org.springframework.integration%3Aspring-integration%3Amain[sonar.spring.io].
 
 [[x2.1-new-samples]]
-==== New Samples
+== New Samples
 
 For the 2.1 release of Spring Integration, we also expanded the Spring Integration Samples project and added many new samples, such as samples that cover AMQP support, a sample that showcases the new payload enricher, a sample illustrating techniques for testing Spring Integration flow fragments, and a sample for executing stored procedures against Oracle databases.
 For details, visit https://github.com/spring-projects/spring-integration-samples[spring-integration-samples].

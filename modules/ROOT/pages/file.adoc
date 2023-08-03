@@ -1,5 +1,5 @@
 [[files]]
-== File Support
+= File Support
 
 Spring Integration's file support extends the Spring Integration core with a dedicated vocabulary to deal with reading, writing, and transforming files.
 
@@ -29,7 +29,7 @@ It also discusses the support for dealing with files through file-specific imple
 Finally, it explains the file-specific namespace.
 
 [[file-reading]]
-=== Reading Files
+== Reading Files
 
 A `FileReadingMessageSource` can be used to consume files from the filesystem.
 This is an implementation of `MessageSource` that creates messages from a file system directory.
@@ -181,7 +181,7 @@ Starting with version 5.1, the `FileReadingMessageSource` doesn't check a direct
 Previously, there was no simple way to prevent an operation system permissions error when referencing the directory, for example from tests, or when permissions are applied later.
 
 [[message-headers]]
-==== Message Headers
+=== Message Headers
 
 Starting with version 5.0, the `FileReadingMessageSource` (in addition to the `payload` as a polled `File`) populates the following headers to the outbound `Message`:
 
@@ -195,7 +195,7 @@ This header can be useful when the requirement is to restore a source directory 
 For this purpose, the `DefaultFileNameGenerator` (see "`<<file-writing-file-names>>) can be configured to use this header.
 
 [[directory-scanning-and-polling]]
-==== Directory Scanning and Polling
+=== Directory Scanning and Polling
 
 The `FileReadingMessageSource` does not produce messages for files from the directory immediately.
 It uses an internal queue for 'eligible files' returned by the `scanner`.
@@ -220,7 +220,7 @@ See https://docs.spring.io/spring-integration/api/org/springframework/integratio
 NOTE: Starting with version 5.5, the `FileInboundChannelAdapterSpec` of the Java DSL has a convenient `recursive(boolean)` option to use a `RecursiveDirectoryScanner` in the target `FileReadingMessageSource` instead of the default one.
 
 [[file-namespace-support]]
-==== Namespace Support
+=== Namespace Support
 
 The configuration for file reading can be simplified by using the file-specific namespace.
 To do so, use the following template:
@@ -340,7 +340,7 @@ NOTE: By default, the `DefaultDirectoryScanner` uses an `IgnoreHiddenFileListFil
 To prevent their use, you can configure your own filter (such as `AcceptAllFileListFilter`) or even set it to `null`.
 
 [[watch-service-directory-scanner]]
-==== `WatchServiceDirectoryScanner`
+=== `WatchServiceDirectoryScanner`
 
 The `FileReadingMessageSource.WatchServiceDirectoryScanner` relies on file-system events when new files are added to the directory.
 During initialization, the directory is registered to generate events.
@@ -399,7 +399,7 @@ Starting with version 6.1, the `FileReadingMessageSource` exposes two new `Watch
 * `watchDirPredicate` - a `Predicate<Path>` to test if a directory in the scanned tree should be walked and registered with the `WatchService` and the configured watch event kinds.
 
 [[limiting-memory-consumption]]
-==== Limiting Memory Consumption
+=== Limiting Memory Consumption
 
 You can use a `HeadDirectoryScanner` to limit the number of files retained in memory.
 This can be useful when scanning large directories.
@@ -418,7 +418,7 @@ Generally, instead of using an `AcceptOnceFileListFilter` in this case, you shou
 =====
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java configuration:
 
@@ -459,7 +459,7 @@ public class FileReadingJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
 
@@ -491,7 +491,7 @@ public class FileReadingJavaApplication {
 ====
 
 [[file-tailing]]
-==== 'tail'ing Files
+=== 'tail'ing Files
 
 Another popular use case is to get 'lines' from the end (or tail) of a file, capturing new lines when they are added.
 Two implementations are provided.
@@ -620,7 +620,7 @@ The following example creates an Apache `commons-io` `Tailer` adapter that exami
 IMPORTANT: Specifying the `delay`, `end` or `reopen` attributes forces the use of the Apache `commons-io` adapter and makes the `native-options` attribute unavailable.
 
 [[file-incomplete]]
-==== Dealing With Incomplete Data
+=== Dealing With Incomplete Data
 
 A common problem in file-transfer scenarios is how to determine that the transfer is complete so that you do not start reading an incomplete file.
 A common technique to solve this problem is to write the file with a temporary name and then atomically rename it to the final name.
@@ -636,7 +636,7 @@ They are configurable such that the marker file can have any name, although it i
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/filters/FileSystemMarkerFilePresentFileListFilter.html[Javadoc] for more information.
 
 [[file-writing]]
-=== Writing files
+== Writing files
 
 To write messages to the file system, you can use a https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html[`FileWritingMessageHandler`].
 This class can deal with the following payload types:
@@ -657,7 +657,7 @@ This callback receives a newly created file and the message which triggered it.
 This callback could be used to write a CSV header defined in the message header, for an example.
 
 [[file-writing-file-names]]
-==== Generating File Names
+=== Generating File Names
 
 In its simplest form, the `FileWritingMessageHandler` requires only a destination directory for writing the files.
 The name of the file to be written is determined by the handler's https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html[`FileNameGenerator`].
@@ -690,7 +690,7 @@ However, in the past we did not create (`mkdirs()`) directories for the child pa
 This approach is useful for cases when we need to restore the file system tree to match the source directory -- for example, when unzipping the archive and saving all the files in the target directory in the original order.
 
 [[file-writing-output-directory]]
-==== Specifying the Output Directory
+=== Specifying the Output Directory
 
 Both, the file outbound channel adapter and the file outbound gateway provide two mutually exclusive configuration attributes for specifying the output directory:
 
@@ -700,13 +700,13 @@ Both, the file outbound channel adapter and the file outbound gateway provide tw
 NOTE: Spring Integration 2.2 introduced the `directory-expression` attribute.
 
 [[using-the-directory-attribute]]
-===== Using the `directory` Attribute
+==== Using the `directory` Attribute
 
 When you use the `directory` attribute, the output directory is set to a fixed value, which is set when the `FileWritingMessageHandler` is initialized.
 If you do not specify this attribute, you must use the `directory-expression` attribute.
 
 [[using-the-directory-expression-attribute]]
-===== Using the `directory-expression` Attribute
+==== Using the `directory-expression` Attribute
 
 If you want to have full SpEL support, you can use the `directory-expression` attribute.
 This attribute accepts a SpEL expression that is evaluated for each message being processed.
@@ -718,7 +718,7 @@ Furthermore, the resulting `String` or `File` must point to a directory.
 If you do not specify the `directory-expression` attribute, then you must set the `directory` attribute.
 
 [[using-the-auto-create-directory-attribute]]
-===== Using the `auto-create-directory` Attribute
+==== Using the `auto-create-directory` Attribute
 
 By default, if the destination directory does not exist, the respective destination directory and any non-existing parent directories are  automatically created.
 To prevent that behavior, you can set the `auto-create-directory` attribute to `false`.
@@ -734,7 +734,7 @@ Furthermore, if `auto-create-directory` is `true` and the directory was deleted 
 ====
 
 [[file-writing-destination-exists]]
-==== Dealing with Existing Destination Files
+=== Dealing with Existing Destination Files
 
 When you write files and the destination file already exists, the default behavior is to overwrite that target file.
 You can change this behavior by setting the `mode` attribute on the relevant file outbound components.
@@ -773,7 +773,7 @@ If the target file exists, the message payload is silently ignored.
 NOTE: When using a temporary file suffix (the default is `.writing`), the `IGNORE` option applies if either the final file name or the temporary file name exists.
 
 [[file-flushing]]
-==== Flushing Files When Using `APPEND_NO_FLUSH`
+=== Flushing Files When Using `APPEND_NO_FLUSH`
 
 The `APPEND_NO_FLUSH` mode was added in version 4.3.
 Using it can improve performance because the file is not closed after each message.
@@ -798,7 +798,7 @@ The file is flushed only if it is idle for the interval.
 Starting with version 4.3.7, an additional property (`flushWhenIdle`) can be set to `false`, meaning that the interval starts with the first write to a previously flushed (or new) file.
 
 [[file-timestamps]]
-==== File Timestamps
+=== File Timestamps
 
 By default, the destination file's `lastModified` timestamp is the time when the file was created (except that an in-place rename retains the current timestamp).
 Starting with version 4.3, you can now configure `preserve-timestamp` (or `setPreserveTimestamp(true)` when using Java configuration).
@@ -806,13 +806,13 @@ For `File` payloads, this transfers the timestamp from the inbound file to the o
 For other payloads, if the `FileHeaders.SET_MODIFIED` header (`file_setModified`) is present, it is used to set the destination file's `lastModified` timestamp, as long as the header is a `Number`.
 
 [[file-permissions]]
-==== File Permissions
+=== File Permissions
 
 Starting with version 5.0, when writing files to a file system that supports Posix permissions, you can specify those permissions on the outbound channel adapter or gateway.
 The property is an integer and is usually supplied in the familiar octal format -- for example, `0640`, meaning that the owner has read/write permissions, the group has read-only permission, and others have no access.
 
 [[file-outbound-channel-adapter]]
-==== File Outbound Channel Adapter
+=== File Outbound Channel Adapter
 
 The following example configures a file outbound channel adapter:
 
@@ -854,7 +854,7 @@ The following example shows how to use the `append-new-line` option:
 ====
 
 [[file-writing-output-gateway]]
-==== Outbound Gateway
+=== Outbound Gateway
 
 In cases where you want to continue processing messages based on the written file, you can use the `outbound-gateway` instead.
 It plays a role similar to that of the `outbound-channel-adapter`.
@@ -887,7 +887,7 @@ In such cases, you may connect the file namespace's `inbound-channel-adapter` el
 If you have more elaborate requirements or need to support additional payload types as input to be converted to file content, you can extend the `FileWritingMessageHandler`, but a much better option is to rely on a <<file-transforming,`Transformer`>>.
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
@@ -928,7 +928,7 @@ public class FileWritingJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
@@ -962,7 +962,7 @@ public class FileWritingJavaApplication {
 ====
 
 [[file-transforming]]
-=== File Transformers
+== File Transformers
 
 To transform data read from the file system to objects and the other way around, you need to do some work.
 Unlike `FileReadingMessageSource` and to a lesser extent `FileWritingMessageHandler`, you probably need your own mechanism to get the job done.
@@ -997,7 +997,7 @@ The `delete-files` option signals to the transformer that it should delete the i
 This is in no way a replacement for using an `AcceptOnceFileListFilter` when the `FileReadingMessageSource` is being used in a multi-threaded environment (such as when you use Spring Integration in general).
 
 [[file-splitter]]
-=== File Splitter
+== File Splitter
 
 The `FileSplitter` was added in version 4.1.2, and its namespace support was added in version 4.2.
 The `FileSplitter` splits text files into individual lines, based on `BufferedReader.readLine()`.
@@ -1157,7 +1157,7 @@ If you need more complex logic about header extraction from the file content (no
 Note that the lines that have been moved to the headers might be filtered downstream from the normal content process.
 
 [[idempotent-file-splitter]]
-==== Idempotent Downstream Processing a Split File
+=== Idempotent Downstream Processing a Split File
 
 When `apply-sequence` is true, the splitter adds the line number in the `SEQUENCE_NUMBER` header (when `markers` is true, the markers are counted as lines).
 The line number can be used with an <<./handler-advice.adoc#idempotent-receiver,Idempotent Receiver>> to avoid reprocessing lines after a restart.
@@ -1201,7 +1201,7 @@ public IntegrationFlow flow() {
 ====
 
 [[file-aggregator]]
-=== File Aggregator
+== File Aggregator
 
 Starting with version 5.5, a `FileAggregator` is introduced to cover other side of `FileSplitter` use-case when START/END markers are enabled.
 For convenience the `FileAggregator` implements all three sequence details strategies:
@@ -1280,7 +1280,7 @@ If default behavior of the `FileAggregator` does not satisfy the target logic, i
 See `FileAggregator` JavaDocs for more information.
 
 [[remote-persistent-flf]]
-=== Remote Persistent File List Filters
+== Remote Persistent File List Filters
 
 Inbound and streaming inbound remote file channel adapters (`FTP`, `SFTP`, and other technologies) are configured with corresponding implementations of `AbstractPersistentFileListFilter` by default, configured with an in-memory `MetadataStore`.
 To run in a cluster, these can be replaced with filters using a shared `MetadataStore` (see <<./meta-data-store.adoc#metadata-store,Metadata Store>> for more information).

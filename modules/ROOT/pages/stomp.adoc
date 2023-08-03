@@ -1,5 +1,5 @@
 [[stomp]]
-== STOMP Support
+= STOMP Support
 
 Spring Integration version 4.2 introduced STOMP (Simple Text Orientated Messaging Protocol) client support.
 It is based on the architecture, infrastructure, and API from the Spring Framework's messaging module, stomp package.
@@ -28,7 +28,7 @@ compile "org.springframework.integration:spring-integration-stomp:{project-versi
 For server side components you need to add a `org.springframework:spring-websocket` and/or `io.projectreactor.netty:reactor-netty` dependencies.
 
 [[stomp-overview]]
-=== Overview
+== Overview
 
 To configure STOMP, you should start with the STOMP client object.
 The Spring Framework provides the following implementations:
@@ -47,7 +47,7 @@ This allows the use of _inbound_ or _outbound_ channel adapters (or both) for th
 See `StompSessionManager` (and its implementations) JavaDocs for more information.
 
 [[stomp-inbound-adapter]]
-=== STOMP Inbound Channel Adapter
+== STOMP Inbound Channel Adapter
 
 The `StompInboundChannelAdapter` is a one-stop `MessageProducer` component that subscribes your Spring Integration application to the provided STOMP destinations and receives messages from them (converted from the STOMP frames by using the provided `MessageConverter` on the connected `StompSession`).
 You can change the destinations (and therefore STOMP subscriptions) at runtime by using appropriate `@ManagedOperation` annotations on the `StompInboundChannelAdapter`.
@@ -55,14 +55,14 @@ You can change the destinations (and therefore STOMP subscriptions) at runtime b
 For more configuration options, see <<stomp-namespace>> and the `StompInboundChannelAdapter` https://docs.spring.io/spring-integration/api/org/springframework/integration/stomp/inbound/StompInboundChannelAdapter.html[Javadoc].
 
 [[stomp-outbound-adapter]]
-=== STOMP Outbound Channel Adapter
+== STOMP Outbound Channel Adapter
 
 The `StompMessageHandler` is the `MessageHandler` for the `<int-stomp:outbound-channel-adapter>` and is used to send the outgoing `Message<?>` instances to the STOMP `destination` (pre-configured or determined at runtime with a SpEL expression) through the `StompSession` (which is provided by the shared `StompSessionManager`).
 
 For more configuration options see <<stomp-namespace>> and the `StompMessageHandler` https://docs.spring.io/spring-integration/api/org/springframework/integration/stomp/outbound/StompMessageHandler.html[Javadoc].
 
 [[stomp-headers]]
-=== STOMP Headers Mapping
+== STOMP Headers Mapping
 
 The STOMP protocol provides headers as part of its frame.
 The entire structure of the STOMP frame has the following format:
@@ -93,7 +93,7 @@ In addition, all `MessageHeaders` instances with that prefix are mapped to the `
 For more information, see the https://docs.spring.io/spring-integration/api/[Javadoc] for those classes and the `mapped-headers` attribute description in the <<stomp-namespace>>.
 
 [[stomp-events]]
-=== STOMP Integration Events
+== STOMP Integration Events
 
 Many STOMP operations are asynchronous, including error handling.
 For example, STOMP has a `RECEIPT` server frame that it returns when a client frame has requested one by adding the `RECEIPT` header.
@@ -113,7 +113,7 @@ You can enable automatic `RECEIPT` header generation on the `StompSession` throu
 See <<stomp-java-config>> for more information how to configure Spring Integration to accept those `ApplicationEvent` instances.
 
 [[stomp-java-config]]
-=== STOMP Adapters Java Configuration
+== STOMP Adapters Java Configuration
 
 The following example shows a comprehensive Java configuration for STOMP adapters:
 
@@ -181,7 +181,7 @@ public class StompConfiguration {
 ====
 
 [[stomp-namespace]]
-=== STOMP Namespace Support
+== STOMP Namespace Support
 
 The Spring Integration STOMP namespace implements the inbound and outbound channel adapter components.
 To include it in your configuration, provide the following namespace declaration in your application context configuration file:
@@ -205,7 +205,7 @@ To include it in your configuration, provide the following namespace declaration
 ----
 
 [[stomp-outbound-channel-adapter]]
-==== Understanding the `<int-stomp:outbound-channel-adapter>` Element
+=== Understanding the `<int-stomp:outbound-channel-adapter>` Element
 
 The following listing shows the available attributes for the STOMP outbound channel adapter:
 
@@ -257,7 +257,7 @@ See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/c
 ====
 
 [[understanding-the-<int-stomp:inbound-channel-adapter>-element]]
-==== Understanding the `<int-stomp:inbound-channel-adapter>` Element
+=== Understanding the `<int-stomp:inbound-channel-adapter>` Element
 
 The following listing shows the available attributes for the STOMP inbound channel adapter:
 

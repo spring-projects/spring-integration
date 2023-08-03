@@ -1,5 +1,5 @@
 [[service-activator]]
-=== Service Activator
+= Service Activator
 
 The service activator is the endpoint type for connecting any Spring-managed object to an input channel so that it may play the role of a service.
 If the service produces output, it may also be connected to an output channel.
@@ -12,7 +12,7 @@ Its internal logic is based on a `MessageHandler` which can be any possible impl
 Therefore, any outbound gateway and outbound channel adapter mentioned in this reference manual should be treated as a specific extension of this service activator endpoint; they all, in the end, call some object's method.
 
 [[service-activator-namespace]]
-==== Configuring Service Activator
+== Configuring Service Activator
 
 With Java & Annotation configuration, it is sufficient to mark the respective service method with the `@ServiceActivator` annotation - and the framework calls it when messages are consumed from an input channel:
 
@@ -183,7 +183,7 @@ In this case, each `ref` must be to a separate bean instance (or a `prototype`-s
 If you inadvertently reference the same message handler from multiple beans, you get a configuration exception.
 
 [[service-activators-and-the-spring-expression-language-spel]]
-===== Service Activators and the Spring Expression Language (SpEL)
+=== Service Activators and the Spring Expression Language (SpEL)
 
 Since Spring Integration 2.0, service activators can also benefit from https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[SpEL].
 
@@ -217,7 +217,7 @@ SpEL lets us handle it relatively easily.
 See <<./dsl.adoc#java-dsl-handle,Service Activators and the `.handle()` method>> in the Java DSL chapter for more information about configuring service activator.
 
 [[async-service-activator]]
-==== Asynchronous Service Activator
+== Asynchronous Service Activator
 
 The service activator is invoked by the calling thread.
 This is an upstream thread if the input channel is a `SubscribableChannel` or a poller thread for a `PollableChannel`.
@@ -236,7 +236,7 @@ If the handler result is not a reactive type or `CompletableFuture<?>`, then reg
 See also <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for more information.
 
 [[service-activator-return-type]]
-==== Service Activator and Method Return Type
+== Service Activator and Method Return Type
 
 The service method can return any type which becomes reply message payload.
 In this case a new `Message<?>` object is created and all the headers from a request message are copied.

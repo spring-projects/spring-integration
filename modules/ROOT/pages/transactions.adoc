@@ -1,5 +1,5 @@
 [[transactions]]
-== Transaction Support
+= Transaction Support
 
 This chapter covers Spring Integration's support for transactions.
 It covers the following topics:
@@ -10,7 +10,7 @@ It covers the following topics:
 * <<pseudo-transactions>>
 
 [[understanding-transaction]]
-=== Understanding Transactions in Message flows
+== Understanding Transactions in Message flows
 
 Spring Integration exposes several hooks to address the transactional needs of your message flows.
 To better understand these hooks and how you can benefit from them, we must first revisit the six mechanisms that you can use to initiate message flows and see how you can address the transactional needs of these flows within each of these mechanisms.
@@ -65,7 +65,7 @@ As a result, we need a way to let these trigger-based processes know of our inte
 In other words, we need to expose some transaction configuration, but only enough to delegate to the transaction support already provided by Spring (as we do in other scenarios).
 
 [[transaction-poller]]
-==== Poller Transaction Support
+=== Poller Transaction Support
 
 Spring Integration provides transactional support for pollers.
 Pollers are a special type of component because, within a poller task, we can call `receive()` against a resource that is itself transactional, thus including the `receive()` call in the boundaries of the transaction, which lets it be rolled back in case of a task failure.
@@ -128,7 +128,7 @@ The preceding example shows a basic XML-based configuration of Spring Transactio
 If you need to address only the transactional concerns of the poller, you can still use the `<transactional>` element as a convenience.
 
 [[transaction-boundaries]]
-=== Transaction Boundaries
+== Transaction Boundaries
 
 Another important factor is the boundaries of Transactions within a Message flow.
 When a transaction is started, the transaction context is bound to the current thread.
@@ -140,7 +140,7 @@ The middle ground is to use transactional channels at any point where a thread b
 For example, you can use a Queue-backed Channel that delegates to a transactional MessageStore strategy, or you could use a JMS-backed channel.
 
 [[transaction-synchronization]]
-=== Transaction Synchronization
+== Transaction Synchronization
 
 In some environments, it helps to synchronize operations with a transaction that encompasses the entire flow.
 For example, consider a `<file:inbound-channel-adapter/>` at the start of a flow that performs a number of database updates.
@@ -234,7 +234,7 @@ In addition to the `after-commit` and `after-rollback` expressions, `before-comm
 In that case, if the evaluation (or downstream processing) throws an exception, the transaction is rolled back instead of being committed.
 
 [[pseudo-transactions]]
-=== Pseudo Transactions
+== Pseudo Transactions
 
 After reading the <<transaction-synchronization>> section, you might think it would be useful to take these 'success' or 'failure' actions when a flow completes, even if there is no "`real`" transactional resources (such as JDBC) downstream of the poller.
 For example, consider a "`<file:inbound-channel-adapter/>`" followed by an "`<ftp:outbout-channel-adapter/>`".
@@ -257,7 +257,7 @@ The following example shows how to do so:
 ====
 
 [[reactive-transactions]]
-=== Reactive Transactions
+== Reactive Transactions
 
 Starting with version 5.3, a `ReactiveTransactionManager` can also be used together with a `TransactionInterceptor` advice for endpoints returning a reactive type.
 This includes `MessageSource` and `ReactiveMessageHandler` implementations (e.g. `ReactiveMongoDbMessageSource`) which produce a message with a `Flux` or `Mono` payload.

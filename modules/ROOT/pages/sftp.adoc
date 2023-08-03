@@ -1,5 +1,5 @@
 [[sftp]]
-== SFTP Adapters
+= SFTP Adapters
 
 Spring Integration provides support for file transfer operations over SFTP.
 
@@ -47,7 +47,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 ====
 
 [[sftp-session-factory]]
-=== SFTP Session Factory
+== SFTP Session Factory
 
 IMPORTANT: As of version 3.0, sessions are no longer cached by default.
 See <<sftp-session-caching>>.
@@ -96,7 +96,7 @@ Now all you need to do is inject this SFTP session factory into your adapters.
 NOTE: A more practical way to provide values for the SFTP session factory is to use Spring's https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-placeholderconfigurer[property placeholder support].
 
 [[sftp-session-factory-properties]]
-==== Configuration Properties
+=== Configuration Properties
 
 The following list describes all the properties that are exposed by the https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[`DefaultSftpSessionFactory`].
 
@@ -144,7 +144,7 @@ If `false`, a pre-populated `knownHosts` file is required.
 `userInteraction`::A custom `org.apache.sshd.client.auth.keyboard.UserInteraction` to be used during authentication.
 
 [[sftp-dsf]]
-=== Delegating Session Factory
+== Delegating Session Factory
 
 Version 4.2 introduced the `DelegatingSessionFactory`, which allows the selection of the actual session factory at runtime.
 Prior to invoking the SFTP endpoint, you can call `setThreadKey()` on the factory to associate a key with the current thread.
@@ -180,7 +180,7 @@ You cannot cache the `DelegatingSessionFactory` itself.
 Starting with version 5.0.7, the `DelegatingSessionFactory` can be used in conjunction with a `RotatingServerAdvice` to poll multiple servers; see <<sftp-rotating-server-advice>>.
 
 [[sftp-session-caching]]
-=== SFTP Session Caching
+== SFTP Session Caching
 
 IMPORTANT: Starting with Spring Integration version 3.0, sessions are no longer cached by default.
 The `cache-sessions` attribute is no longer supported on endpoints.
@@ -224,7 +224,7 @@ Starting with version 5.1, the `CachingSessionFactory` has a new property `testS
 When true, the session will be tested by performing a `REALPATH` command for an empty path to ensure it is still active; if not, it will be removed from the cache; a new session is created if no active sessions are in the cache.
 
 [[sftp-rft]]
-=== Using `RemoteFileTemplate`
+== Using `RemoteFileTemplate`
 
 Spring Integration version 3.0 provides a new abstraction over the `SftpSession` object.
 The template provides methods to send, retrieve (as an `InputStream`), remove, and rename files.
@@ -242,7 +242,7 @@ For example, `AbstractRemoteFileOutboundGateway` uses it with the `mput` command
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html#invoke-org.springframework.integration.file.remote.OperationsCallback-[Javadoc] for more information.
 
 [[sftp-inbound]]
-=== SFTP Inbound Channel Adapter
+== SFTP Inbound Channel Adapter
 
 The SFTP inbound channel adapter is a special listener that connects to the server and listens for the remote directory events (such as a new file being created), at which point it initiates a file transfer.
 The following example shows how to configure an SFTP inbound channel adapter:
@@ -341,7 +341,7 @@ Therefore, you must configure a poller (either a global default or a local eleme
 Once the file has been transferred to a local directory, a message with `java.io.File` as its payload type is generated and sent to the channel identified by the `channel` attribute.
 
 [[more-on-file-filtering-and-large-files]]
-==== More on File Filtering and Large Files
+=== More on File Filtering and Large Files
 
 Sometimes, a file that just appeared in the monitored (remote) directory is not complete.
 Typically, such a file is written with some temporary extension (such as `.writing` on a file named `something.txt.writing`) and then renamed after the writing process completes.
@@ -367,7 +367,7 @@ The following example shows how to do so:
 ====
 
 [[recovering-from-failures]]
-==== Recovering from Failures
+=== Recovering from Failures
 
 You should understand the architecture of the adapter.
 A file synchronizer fetches the files, and a `FileReadingMessageSource` emits a message for each synchronized file.
@@ -423,7 +423,7 @@ The reprocessing sample shown earlier is based on the built-in functionality of 
 See <<./file.adoc#watch-service-directory-scanner,`WatchServiceDirectoryScanner`>> for more information.
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
 
@@ -490,7 +490,7 @@ public class SftpJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
@@ -526,7 +526,7 @@ public class SftpJavaApplication {
 ====
 
 [[sftp-incomplete]]
-==== Dealing With Incomplete Data
+=== Dealing With Incomplete Data
 
 See <<./file.adoc#file-incomplete,Dealing With Incomplete Data>>.
 
@@ -534,7 +534,7 @@ The `SftpSystemMarkerFilePresentFileListFilter` is provided to filter remote fil
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/filters/SftpSystemMarkerFilePresentFileListFilter.html[Javadoc] for configuration information.
 
 [[sftp-streaming]]
-=== SFTP Streaming Inbound Channel Adapter
+== SFTP Streaming Inbound Channel Adapter
 
 Version 4.3 introduced the streaming inbound channel adapter.
 This adapter produces message with payloads of type `InputStream`, letting you fetch files without writing to the local file system.
@@ -585,7 +585,7 @@ The `fileInfoJson` property is not available when you use XML configuration, but
 See also <<sftp-remote-file-info>>.
 
 [[sftp-streaming-java-config]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
 
@@ -644,7 +644,7 @@ public class SftpJavaApplication {
 Notice that, in this example, the message handler downstream of the transformer has an `advice` that removes the remote file after processing.
 
 [[sftp-rotating-server-advice]]
-=== Inbound Channel Adapters: Polling Multiple Servers and Directories
+== Inbound Channel Adapters: Polling Multiple Servers and Directories
 
 Starting with version 5.0.7, the `RotatingServerAdvice` is available; when configured as a poller advice, the inbound adapters can poll multiple servers and directories.
 Configure the advice and add it to the poller's advice chain as normal.
@@ -729,7 +729,7 @@ public IntegrationFlow flow() {
 IMPORTANT: Do not configure a `TaskExecutor` on the poller when using this advice; see <<./polling-consumer.adoc#conditional-pollers,Conditional Pollers for Message Sources>> for more information.
 
 [[sftp-max-fetch]]
-=== Inbound Channel Adapters: Controlling Remote File Fetching
+== Inbound Channel Adapters: Controlling Remote File Fetching
 
 You should consider two properties when configuring inbound channel adapters.
 `max-messages-per-poll`, as with all pollers, can be used to limit the number of messages emitted on each poll (if more than the configured value are ready).
@@ -756,7 +756,7 @@ Starting with version 5.1, the synchronizer can be provided with a `Comparator<?
 This is useful when restricting the number of files fetched with `maxFetchSize`.
 
 [[sftp-outbound]]
-=== SFTP Outbound Channel Adapter
+== SFTP Outbound Channel Adapter
 
 The SFTP outbound channel adapter is a special `MessageHandler` that connects to the remote directory and initiates a file transfer for every file it receives as the payload of an incoming `Message`.
 It also supports several representations of the file so that you are not limited to the `File` object.
@@ -790,7 +790,7 @@ The following example shows how to configure an SFTP outbound channel adapter:
 See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
 
 [[spel-and-the-sftp-outbound-adapter]]
-==== SpEL and the SFTP Outbound Adapter
+=== SpEL and the SFTP Outbound Adapter
 
 As with many other components in Spring Integration, you can use the Spring Expression Language (SpEL) when you configure an SFTP outbound channel adapter by specifying two attributes: `remote-directory-expression` and `remote-filename-generator-expression` (<<sftp-inbound,described earlier>>).
 The expression evaluation context has the message as its root object, which lets you use expressions that can dynamically compute the file name or the existing directory path based on the data in the message (from either the 'payload' or the 'headers').
@@ -815,7 +815,7 @@ You can use the conventional Unix octal format (for example, `600` allows read-w
 When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 
 [[avoiding-partially-written-files]]
-==== Avoiding Partially Written Files
+=== Avoiding Partially Written Files
 
 One of the common problems when dealing with file transfers is the possibility of processing a partial file.
 A file might appear in the file system before its transfer is actually complete.
@@ -830,7 +830,7 @@ For situations like this, you can disable this feature by setting `use-temporary
 When this attribute is `false`, the file is written with its final name, and the consuming application needs some other mechanism to detect that the file is completely uploaded before accessing it.
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java:
 
@@ -890,7 +890,7 @@ public class SftpJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
 
@@ -920,7 +920,7 @@ public class SftpJavaApplication {
 ====
 
 [[sftp-outbound-gateway]]
-=== SFTP Outbound Gateway
+== SFTP Outbound Gateway
 
 The SFTP outbound gateway provides a limited set of commands that let you interact with a remote SFTP server:
 
@@ -934,7 +934,7 @@ The SFTP outbound gateway provides a limited set of commands that let you intera
 * `mput` (send multiple files)
 
 [[using-the-ls-command]]
-==== Using the `ls` Command
+=== Using the `ls` Command
 
 `ls` lists remote files and supports the following options:
 
@@ -960,7 +960,7 @@ In this case, we recommend that you not use the `-1` option, because you would n
 If remote path to list starts with a `/` symbol, it is treated by SFTP as an absolute path; without - as a relative path in the current user home.
 
 [[using-nlst-command]]
-==== Using `nlst` Command
+=== Using `nlst` Command
 
 Version 5 introduced support for the `nlst` command.
 
@@ -976,7 +976,7 @@ The SFTP protocol does not provide the ability to list names.
 This command is the equivalent of the `ls` command with the `-1` option and is added here for convenience.
 
 [[using-the-get-command]]
-==== Using the `get` Command
+=== Using the `get` Command
 
 `get` retrieves a remote file and supports the following options:
 
@@ -1034,7 +1034,7 @@ You can either do that in your custom code or route a copy of the message to a `
 ====
 
 [[using-the-mget-command]]
-==== Using the `mget` Command
+=== Using the `mget` Command
 
 `mget` retrieves multiple remote files based on a pattern and supports the following options:
 
@@ -1109,7 +1109,7 @@ You can provide one of these filters by using the `filter` property on the gatew
 See also <<sftp-partial>>.
 
 [[sftp-put-command]]
-==== Using the `put` Command
+=== Using the `put` Command
 
 `put` sends a file to the remote server.
 The payload of the message can be a `java.io.File`, a `byte[]`, or a `String`.
@@ -1124,7 +1124,7 @@ You can use the conventional Unix octal format (for example, `600` allows read-w
 When configuring the adapter using java, you can use `setChmod(0600)`.
 
 [[using-the-mput-command]]
-==== Using the `mput` Command
+=== Using the `mput` Command
 
 `mput` sends multiple files to the server and supports the following option:
 
@@ -1147,7 +1147,7 @@ You can use the conventional Unix octal format (for example, `600` allows read-w
 When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 
 [[using-the-rm-command]]
-==== Using the `rm` Command
+=== Using the `rm` Command
 
 The `rm` command has no options.
 
@@ -1156,7 +1156,7 @@ Otherwise, the message payload is `Boolean.FALSE`.
 The `file_remoteDirectory` header holds the remote directory, and the `file_remoteFile` header holds the file name.
 
 [[using-the-mv-command]]
-==== Using the `mv` Command
+=== Using the `mv` Command
 
 The `mv` command has no options.
 
@@ -1173,7 +1173,7 @@ If the "`from`" file is not a full file path, the result of `remoteDirectoryExpr
 The same applies for the "`to`" file, for example, if the task is just to rename a remote file in some directory.
 
 [[additional-command-information]]
-==== Additional Command Information
+=== Additional Command Information
 
 The `get` and `mget` commands support the `local-filename-generator-expression` attribute.
 It defines a SpEL expression to generate the names of local files during the transfer.
@@ -1217,7 +1217,7 @@ For backwards compatibility, the default mode for `PUT` and `MPUT` operations is
 For `GET` and `MGET` operations, the default is `FAIL`.
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with Java:
 
@@ -1244,7 +1244,7 @@ public class SftpJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with the Java DSL:
 
@@ -1294,7 +1294,7 @@ public class SftpJavaApplication {
 ====
 
 [[sftp-partial]]
-==== Outbound Gateway Partial Success (`mget` and `mput`)
+=== Outbound Gateway Partial Success (`mget` and `mput`)
 
 When performing operations on multiple files (by using `mget` and `mput`) an exception can occur some time after one or more files have been transferred.
 In this case (starting with version 4.2), a `PartialSuccessException` is thrown.
@@ -1325,7 +1325,7 @@ If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by 
 Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.txt` and `file3.txt` and `partialResults` of `file2.txt`.
 
 [[sftp-session-callback]]
-=== MessageSessionCallback
+== MessageSessionCallback
 
 Starting with Spring Integration version 4.2, you can use a `MessageSessionCallback<F, T>` implementation with the `<int-sftp:outbound-gateway/>` (`SftpOutboundGateway`) to perform any operation on the `Session<SftpClient.DirEntry>` with the `requestMessage` context.
 You can use it for any non-standard or low-level SFTP operation (or several), such as allowing access from an integration flow definition, or functional interface (lambda) implementation injection.
@@ -1351,7 +1351,7 @@ NOTE: The `session-callback` is mutually exclusive with the `command` and `expre
 When configuring with Java, the `SftpOutboundGateway` class offers different constructors.
 
 [[sftp-server-events]]
-=== Apache Mina SFTP Server Events
+== Apache Mina SFTP Server Events
 
 The `ApacheMinaSftpEventListener`, added in version 5.2, listens for certain Apache Mina SFTP server events and publishes them as `ApplicationEvent` s which can be received by any `ApplicationListener` bean, `@EventListener` bean method, or <<./event.adoc#appevent-inbound, Event Inbound Channel Adapter>>.
 
@@ -1397,7 +1397,7 @@ public ApplicationEventListeningMessageProducer eventsAdapter() {
 ====
 
 [[sftp-remote-file-info]]
-=== Remote File Information
+== Remote File Information
 
 Starting with version 5.2, the `SftpStreamingMessageSource` (<<sftp-streaming>>), `SftpInboundFileSynchronizingMessageSource` (<<sftp-inbound>>) and "read"-commands of the `SftpOutboundGateway` (<<sftp-outbound-gateway>>) provide additional headers in the message to produce with an information about the remote file:
 

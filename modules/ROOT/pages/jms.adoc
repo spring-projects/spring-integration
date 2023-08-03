@@ -1,5 +1,5 @@
 [[jms]]
-== JMS Support
+= JMS Support
 
 Spring Integration provides channel adapters for receiving and sending JMS messages.
 
@@ -48,7 +48,7 @@ Starting with version 6.0, the outbound gateway creates a `TemporaryTopic` inste
 Some JMS vendors handle these destinations differently.
 
 [[jms-inbound-channel-adapter]]
-=== Inbound Channel Adapter
+== Inbound Channel Adapter
 
 The inbound channel adapter requires a reference to either a single `JmsTemplate` instance or both a `ConnectionFactory` and a `Destination` (you can provide a 'destinationName' in place of the 'destination' reference).
 The following example defines an inbound channel adapter with a `Destination` reference:
@@ -127,7 +127,7 @@ Jms.inboundAdapter(connectionFactory)
 ====
 
 [[jms-ib-transactions]]
-==== Transactions
+=== Transactions
 
 Starting with version 4.0, the inbound channel adapter supports the `session-transacted` attribute.
 In earlier versions, you had to inject a `JmsTemplate` with `sessionTransacted` set to `true`.
@@ -140,7 +140,7 @@ If you want the entire flow to be transactional (for example, if there is a down
 Alternatively, consider using a `jms-message-driven-channel-adapter` with `acknowledge` set to `transacted` (the default).
 
 [[jms-message-driven-channel-adapter]]
-=== Message-driven Channel Adapter
+== Message-driven Channel Adapter
 
 The `message-driven-channel-adapter` requires a reference to either an instance of a Spring `MessageListener` container (any subclass of `AbstractMessageListenerContainer`) or both `ConnectionFactory` and `Destination` (a 'destinationName' can be provided in place of the 'destination' reference).
 The following example defines a message-driven channel adapter with a `Destination` reference:
@@ -254,7 +254,7 @@ Previously, the connection and consumers remained open.
 To revert to the previous behavior, set the `shutdownContainerOnStop` on the `JmsMessageDrivenEndpoint` to `false`.
 
 [[jms-md-conversion-errors]]
-==== Inbound Conversion Errors
+=== Inbound Conversion Errors
 
 Starting with version 4.2, the 'error-channel' is used for the conversion errors, too.
 Previously, if a JMS `<message-driven-channel-adapter/>` or `<inbound-gateway/>` could not deliver a message due to a conversion error, an exception would be thrown back to the container.
@@ -266,7 +266,7 @@ If the error flow does not throw an exception, the transaction is committed and 
 If no 'error-channel' is defined, the exception is thrown back to the container, as before.
 
 [[jms-outbound-channel-adapter]]
-=== Outbound Channel Adapter
+== Outbound Channel Adapter
 
 The `JmsSendingMessageHandler` implements the `MessageHandler` interface and is capable of converting Spring Integration `Messages` to JMS messages and then sending to a JMS destination.
 It requires either a `jmsTemplate` reference or both `jmsConnectionFactory` and `destination` references (`destinationName` may be provided in place of `destination`).
@@ -361,7 +361,7 @@ The new `setMapInboundDeliveryMode(true)` and `setMapInboundExpiration(true)` op
 ====
 
 [[jms-ob-transactions]]
-==== Transactions
+=== Transactions
 
 Starting with version 4.0, the outbound channel adapter supports the `session-transacted` attribute.
 In earlier versions, you had to inject a `JmsTemplate` with `sessionTransacted` set to `true`.
@@ -370,7 +370,7 @@ If a transaction exists (perhaps from an upstream `message-driven-channel-adapte
 Otherwise, a new transaction is started.
 
 [[jms-inbound-gateway]]
-=== Inbound Gateway
+== Inbound Gateway
 
 Spring Integration's message-driven JMS inbound-gateway delegates to a `MessageListener` container, supports dynamically adjusting concurrent consumers, and can also handle replies.
 The inbound gateway requires references to a `ConnectionFactory` and a request `Destination` (or 'requestDestinationName').
@@ -452,7 +452,7 @@ public IntegrationFlow jmsInboundGatewayFlow(ConnectionFactory connectionFactory
 ====
 
 [[jms-outbound-gateway]]
-=== Outbound Gateway
+== Outbound Gateway
 
 The outbound gateway creates JMS messages from Spring Integration messages and sends them to a `request-destination`.
 It then handles the JMS reply message either by using a selector to receive from the `reply-destination` that you configure or, if no `reply-destination` is provided, by creating JMS `TemporaryQueue` (or `TemporaryTopic` if `replyPubSubDomain= true`) instances.
@@ -485,7 +485,7 @@ That means that the 'extract-request-payload' property value applies to the Spri
 The 'extract-reply-payload' property value applies to the JMS message received as a reply and is then converted into a Spring Integration message to be subsequently sent to the 'reply-channel', as shown in the preceding configuration example.
 
 [[jms-outbound-gateway-reply-listener]]
-==== Using a `<reply-listener/>`
+=== Using a `<reply-listener/>`
 
 Spring Integration 2.2 introduced an alternative technique for handling replies.
 If you add a `<reply-listener/>` child element to the gateway instead of creating a consumer for each reply, a `MessageListener` container is used to receive the replies and hand them over to the requesting thread.
@@ -525,7 +525,7 @@ However, you can add attributes such as `concurrent-consumers`, `max-concurrent-
 See the schema for a complete list of supported attributes, together with the https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS documentation] for their meanings.
 
 [[idle-reply-listeners]]
-==== Idle Reply Listeners
+=== Idle Reply Listeners
 
 Starting with version 4.2, you can start the reply listener as needed (and stop it after an idle time) instead of running for the duration of the gateway's lifecycle.
 This can be useful if you have many gateways in the application context where they are mostly idle.
@@ -536,7 +536,7 @@ By enabling the idle timeout, each consumer exists only while the corresponding 
 See `idle-reply-listener-timeout` in <<jms-og-attributes>>.
 
 [[gateway-reply-correlation]]
-==== Gateway Reply Correlation
+=== Gateway Reply Correlation
 
 This section describes the mechanisms used for reply correlation (ensuring the originating gateway receives replies to only its requests), depending on how the gateway is configured.
 See <<jms-og-attributes>> for complete description of the attributes discussed here.
@@ -641,7 +641,7 @@ User-supplied correlation IDs are not permitted with a reply listener.
 The gateway does not initialize with this configuration.
 
 [[jms-async-gateway]]
-==== Async Gateway
+=== Async Gateway
 
 Starting with version 4.3, you can now specify `async="true"` (or `setAsync(true)` in Java) when configuring the outbound gateway.
 
@@ -656,7 +656,7 @@ It also requires a `correlationKey` (usually `JMSCorrelationID`) to be specified
 If either of these conditions are not met, `async` is ignored.
 
 [[jms-og-attributes]]
-==== Attribute Reference
+=== Attribute Reference
 
 The following listing shows all the available attributes for an `outbound-gateway`:
 
@@ -773,7 +773,7 @@ This can be more efficient in many cases.
 ====
 
 [[jms-header-mapping]]
-=== Mapping Message Headers to and from JMS Message
+== Mapping Message Headers to and from JMS Message
 
 JMS messages can contain meta-information such as JMS API headers and simple properties.
 You can map those to and from Spring Integration message headers by using `JmsHeaderMapper`.
@@ -815,7 +815,7 @@ public DefaultJmsHeaderMapper jmsHeaderMapper() {
 These JMS properties are mapped to the `JmsHeaders.DELIVERY_MODE` and `JmsHeaders.EXPIRATION` Spring Message headers respectively.
 
 [[jms-conversion-and-marshalling]]
-=== Message Conversion, Marshalling, and Unmarshalling
+== Message Conversion, Marshalling, and Unmarshalling
 
 If you need to convert the message, all JMS adapters and gateways let you provide a `MessageConverter` by setting the `message-converter` attribute.
 To do so, provide the bean name of an instance of `MessageConverter` that is available within the same ApplicationContext.
@@ -846,7 +846,7 @@ This means that the 'extract-request-payload' and 'extract-reply-payload' proper
 The `HeaderMappingMessageConverter` itself delegates to a target `MessageConverter` while also mapping the Spring Integration `MessageHeaders` to JMS message properties and back again.
 
 [[jms-channel]]
-=== JMS-backed Message Channels
+== JMS-backed Message Channels
 
 The channel adapters and gateways featured earlier are all intended for applications that integrate with other external systems.
 The inbound options assume that some other system is sending JMS messages to the JMS destination, and the outbound options assume that some other system is receiving from the destination.
@@ -921,7 +921,7 @@ For the `<publish-subscribe-channel />`, set the `durable` attribute to `true` f
 Use `subscription` to name the subscription.
 
 [[jms-selectors]]
-=== Using JMS Message Selectors
+== Using JMS Message Selectors
 
 With JMS message selectors, you can filter https://javadoc.io/doc/jakarta.jms/jakarta.jms-api/latest/jakarta/jms/Message.html[JMS Messages] based on JMS headers as well as JMS properties.
 For example, if you want to listen to messages whose custom JMS header property, `myHeaderProperty`, equals `something`, you can specify the following expression:
@@ -945,7 +945,7 @@ You can specify the JMS message `selector` attribute by using XML namespace conf
 IMPORTANT: You cannot reference message body values by using JMS Message selectors.
 
 [[jms-samples]]
-=== JMS Samples
+== JMS Samples
 
 To experiment with these JMS adapters, check out the JMS samples available in the Spring Integration Samples Git repository at https://github.com/SpringSource/spring-integration-samples/tree/main/basic/jms[https://github.com/spring-projects/spring-integration-samples/tree/master/basic/jms].
 

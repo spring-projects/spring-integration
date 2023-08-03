@@ -1,5 +1,5 @@
 [[groovy]]
-=== Groovy Support
+= Groovy Support
 
 In Spring Integration 2.0, we added Groovy support, letting you use the Groovy scripting language to provide the logic for various integration components -- similar to the way the Spring Expression Language (SpEL) is supported for routing, transformation, and other integration concerns.
 For more information about Groovy, see the Groovy documentation, which you can find on the https://groovy-lang.org/[project website].
@@ -26,7 +26,7 @@ compile "org.springframework.integration:spring-integration-groovy:{project-vers
 In addition, starting with version 6.0, a <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>> for integration flow configurations is provided.
 
 [[groovy-config]]
-==== Groovy Configuration
+== Groovy Configuration
 
 With Spring Integration 2.1, the configuration namespace for the Groovy support is an extension of Spring Integration's scripting support and shares the core configuration and behavior described in detail in the <<./scripting.adoc#scripting,Scripting Support>> section.
 Even though Groovy scripts are well-supported by generic scripting support, the Groovy support provides the `Groovy` configuration namespace, which is backed by the Spring Framework's `org.springframework.scripting.groovy.GroovyScriptFactory` and related components, offering extended capabilities for using Groovy.
@@ -53,7 +53,7 @@ The only difference is the use of the Groovy namespace, as indicated by the `int
 Also note that the `lang` attribute on the `<script>` tag is not valid in this namespace.
 
 [[groovy-object-customization]]
-==== Groovy Object Customization
+== Groovy Object Customization
 
 If you need to customize the Groovy object itself (beyond setting variables) you can reference a bean that implements `GroovyObjectCustomizer` by using the `customizer` attribute.
 For example, this might be useful if you want to implement a domain-specific language (DSL) by modifying the `MetaClass` and registering functions to be available within the script.
@@ -94,7 +94,7 @@ The following example shows how to use a variable (`entityManager`):
 For more information regarding the `<variable>` element, the `variables` attribute, and the `script-variable-generator` attribute, see  <<./scripting.adoc#scripting-script-variable-bindings,Script Variable Bindings>>.
 
 [[groovy-script-compiler-customization]]
-==== Groovy Script Compiler Customization
+== Groovy Script Compiler Customization
 
 The `@CompileStatic` hint is the most popular Groovy compiler customization option.
 It can be used on the class or method level.
@@ -149,7 +149,7 @@ If you still need `CompileStatic`, you should manually add a `new ASTTransformat
 NOTE: The Groovy compiler customization does not have any effect on the `refresh-check-delay` option, and reloadable scripts can be statically compiled, too.
 
 [[groovy-control-bus]]
-==== Control Bus
+== Control Bus
 
 As described in (https://www.enterpriseintegrationpatterns.com/ControlBus.html[Enterprise Integration Patterns]), the idea behind the control bus is that you can use the same messaging system for monitoring and managing the components within the framework as is used for "`application-level`" messaging.
 In Spring Integration, we build upon the adapters described earlier so that you can send Messages as a means of invoking exposed operations.

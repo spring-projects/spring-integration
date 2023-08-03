@@ -1,5 +1,5 @@
 [[router]]
-=== Routers
+= Routers
 
 This section covers how routers work.
 It includes the following topics:
@@ -12,7 +12,7 @@ It includes the following topics:
 * <<dynamic-routers>>
 
 [[router-overview]]
-==== Overview
+== Overview
 
 Routers are a crucial element in many messaging architectures.
 They consume messages from a message channel and forward each consumed message to one or more different message channels depending on a set of conditions.
@@ -331,12 +331,12 @@ If you do desire to drop messages silently, you can set `default-output-channel=
 =====
 
 [[router-common-parameters]]
-==== Common Router Parameters
+== Common Router Parameters
 
 This section describes the parameters common to all router parameters (the parameters with all their boxes ticked in the two tables shown earlier in this chapter).
 
 [[router-common-parameters-all]]
-===== Inside and Outside a Chain
+=== Inside and Outside a Chain
 
 The following parameters are valid for all routers inside and outside of chains.
 
@@ -382,7 +382,7 @@ This attribute defaults to `false`.
 The `timeout` attribute specifies the maximum amount of time in milliseconds to wait when sending messages to the target Message Channels.
 
 [[router-common-parameters-top]]
-===== Top-Level (Outside a Chain)
+=== Top-Level (Outside a Chain)
 
 The following parameters are valid only across all top-level routers that are outside of chains.
 
@@ -403,14 +403,14 @@ This is particularly relevant when that channel uses a failover dispatching stra
 It has no effect when this endpoint itself is a polling consumer for a channel with a queue.
 
 [[router-implementations]]
-==== Router Implementations
+== Router Implementations
 
 Since content-based routing often requires some domain-specific logic, most use cases require Spring Integration's options for delegating to POJOs by using either the XML namespace support or annotations.
 Both of these are discussed later.
 However, we first present a couple of implementations that fulfill common requirements.
 
 [[router-implementations-payloadtyperouter]]
-===== `PayloadTypeRouter`
+=== `PayloadTypeRouter`
 
 A `PayloadTypeRouter` sends messages to the channel defined by payload-type mappings, as the following example shows:
 
@@ -499,7 +499,7 @@ public IntegrationFlow routerFlow2() {
 ====
 
 [[router-implementations-headervaluerouter]]
-===== `HeaderValueRouter`
+=== `HeaderValueRouter`
 
 A `HeaderValueRouter` sends Messages to the channel based on the individual header value mappings.
 When a `HeaderValueRouter` is created, it is initialized with the name of the header to be evaluated.
@@ -609,7 +609,7 @@ If you really want to drop messages, you must also have `default-output-channel`
 =====
 
 [[router-implementations-recipientlistrouter]]
-===== `RecipientListRouter`
+=== `RecipientListRouter`
 
 A `RecipientListRouter` sends each received message to a statically defined list of message channels.
 The following example creates a `RecipientListRouter`:
@@ -707,7 +707,7 @@ The evaluation result of the expression must be a `boolean`.
 If this attribute is not defined, the channel is always among the list of recipients.
 
 [[recipient-list-router-management]]
-===== `RecipientListRouterManagement`
+=== `RecipientListRouterManagement`
 
 Starting with version 4.1, the `RecipientListRouter` provides several operations to manipulate recipients dynamically at runtime.
 These management operations are presented by `RecipientListRouterManagement` through the `@ManagedResource` annotation.
@@ -740,13 +740,13 @@ If `defaultOutputChannel` is configured, the message is sent there.
 Otherwise, the `MessageDeliveryException` is thrown.
 
 [[router-implementations-xpath-router]]
-===== XPath Router
+=== XPath Router
 
 The XPath Router is part of the XML Module.
 See <<./xml.adoc#xml-xpath-routing,Routing XML Messages with XPath>>.
 
 [[router-implementations-exception-router]]
-===== Routing and Error Handling
+=== Routing and Error Handling
 
 Spring Integration also provides a special type-based router called `ErrorMessageExceptionTypeRouter` for routing error messages (defined as messages whose `payload` is a `Throwable` instance).
 `ErrorMessageExceptionTypeRouter` is similar to the `PayloadTypeRouter`.
@@ -817,13 +817,13 @@ someFlow() {
 ====
 
 [[router-namespace]]
-==== Configuring a Generic Router
+== Configuring a Generic Router
 
 Spring Integration provides a generic router.
 You can use it for general-purpose routing (as opposed to the other routers provided by Spring Integration, each of which has some form of specialization).
 
 [[configuring-a-content-based-router-with-xml]]
-===== Configuring a Content-based Router with XML
+=== Configuring a Content-based Router with XML
 
 The `router` element provides a way to connect a router to an input channel and also accepts the optional `default-output-channel` attribute.
 The `ref` attribute references the bean name of a custom router implementation (which must extend `AbstractMessageRouter`).
@@ -937,7 +937,7 @@ public IntegrationFlow routerFlow() {
 ====
 
 [[router-spel]]
-==== Routers and the Spring Expression Language (SpEL)
+== Routers and the Spring Expression Language (SpEL)
 
 Sometimes, the routing logic may be simple, and writing a separate class for it and configuring it as a bean may seem like overkill.
 As of Spring Integration 2.0, we offer an alternative that lets you use SpEL to implement simple computations that previously required a custom POJO router.
@@ -1021,7 +1021,7 @@ For further information, see:
 * https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions-collection-selection[Collection Selection]
 
 [[router-annotation]]
-==== Configuring a Router with Annotations
+== Configuring a Router with Annotations
 
 When using `@Router` to annotate a method, the method may return either a `MessageChannel` or a `String` type.
 In the latter case, the endpoint resolves the channel name as it does for the default output channel.
@@ -1062,7 +1062,7 @@ NOTE: For routing of XML-based Messages, including XPath support, see <<./xml.ad
 See also <<./dsl.adoc#java-dsl-routers,Message Routers>> in the Java DSL chapter for more information about router configuration.
 
 [[dynamic-routers]]
-==== Dynamic Routers
+== Dynamic Routers
 
 Spring Integration provides quite a few different router configurations for common content-based routing use cases as well as the option of implementing custom routers as POJOs.
 For example, `PayloadTypeRouter` provides a simple way to configure a router that computes channels based on the payload type of the incoming message while `HeaderValueRouter` provides the same convenience in configuring a router that computes channels by evaluating the value of a particular message Header.
@@ -1174,7 +1174,7 @@ For example, if the key is set to the channel name of the router's input channel
 You may therefore wish to disable this feature (set the `channelKeyFallback` property to `false`), and change the mappings instead if needed.
 
 [[dynamic-routers-control-bus]]
-===== Manage Router Mappings using the Control Bus
+=== Manage Router Mappings using the Control Bus
 
 One way to manage the router mappings is through the https://www.enterpriseintegrationpatterns.com/ControlBus.html[control bus] pattern, which exposes a control channel to which you can send control messages to manage and monitor Spring Integration components, including routers.
 
@@ -1209,14 +1209,14 @@ For programmatic changes to the map, we recommend that you use the `setChannelMa
 `replaceChannelMappings` ignores keys or values that are not `String` objects.
 
 [[dynamic-routers-jmx]]
-===== Manage Router Mappings by Using JMX
+=== Manage Router Mappings by Using JMX
 
 You can also use Spring's JMX support to expose a router instance and then use your favorite JMX client (for example, JConsole) to manage those operations (methods) for changing the router's configuration.
 
 NOTE: For more information about Spring Integration's JMX support, see <<./jmx.adoc#jmx,JMX Support>>.
 
 [[routing-slip]]
-==== Routing Slip
+== Routing Slip
 
 Starting with version 4.1, Spring Integration provides an implementation of the https://www.enterpriseintegrationpatterns.com/RoutingTable.html[routing slip] enterprise integration pattern.
 It is implemented as a `routingSlip` message header, which is used to determine the next channel in `AbstractMessageProducingHandler` instances, when an `outputChannel` is not specified for the endpoint.
@@ -1306,7 +1306,7 @@ The `routingSlipIndex` remains unchanged.
 * When the `routingSlipIndex` exceeds the size of the routing slip `path` list, the algorithm moves to the default behavior for the standard `replyChannel` header.
 
 [[process-manager]]
-==== Process Manager Enterprise Integration Pattern
+== Process Manager Enterprise Integration Pattern
 
 Enterprise integration patterns include the https://www.enterpriseintegrationpatterns.com/ProcessManager.html[process manager] pattern.
 You can now easily implement this pattern by using custom process manager logic encapsulated in a `RoutingSlipRouteStrategy` within the routing slip.

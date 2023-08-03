@@ -1,5 +1,5 @@
 [[channel-adapter]]
-=== Channel Adapter
+= Channel Adapter
 
 A channel adapter is a message endpoint that enables connecting a single sender or receiver to a message channel.
 Spring Integration provides a number of adapters to support various transports, such as JMS, file, HTTP, web services, mail, and more.
@@ -9,7 +9,7 @@ There are both inbound and outbound adapters, and each may be configured with XM
 These provide an easy way to extend Spring Integration, as long as you have a method that can be invoked as either a source or a destination.
 
 [[channel-adapter-namespace-inbound]]
-==== Configuring An Inbound Channel Adapter
+== Configuring An Inbound Channel Adapter
 
 An `inbound-channel-adapter` element (a `SourcePollingChannelAdapter` in Java configuration) can invoke any method on a Spring-managed object and send a non-null return value to a `MessageChannel` after converting the method's output to a `Message`.
 When the adapter's subscription is activated, a poller tries to receive messages from the source.
@@ -132,7 +132,7 @@ Also see <<./endpoint.adoc#global-default-poller,Global Default Poller>> for mor
 =====
 
 [[channel-adapter-namespace-outbound]]
-==== Configuring An Outbound Channel Adapter
+== Configuring An Outbound Channel Adapter
 
 An `outbound-channel-adapter` element (a `@ServiceActivator` for Java configuration) can also connect a `MessageChannel` to any POJO consumer method that should be invoked with the payload of messages sent to that channel.
 The following example shows how to define an outbound channel adapter:
@@ -223,7 +223,7 @@ The created channel's name matches the `id` attribute of the `<inbound-channel-a
 Therefore, if `channel` is not provided, `id` is required.
 
 [[channel-adapter-expressions-and-scripts]]
-==== Channel Adapter Expressions and Scripts
+== Channel Adapter Expressions and Scripts
 
 Like many other Spring Integration components, the `<inbound-channel-adapter>` and `<outbound-channel-adapter>` also provide support for SpEL expression evaluation.
 To use SpEL, provide the expression string in the 'expression' attribute instead of providing the 'ref' and 'method' attributes that are used for method-invocation on a bean.

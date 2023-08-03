@@ -1,5 +1,5 @@
 [[applicationevent]]
-== Spring `ApplicationEvent` Support
+= Spring `ApplicationEvent` Support
 
 Spring Integration provides support for inbound and outbound `ApplicationEvents`, as defined by the underlying Spring Framework.
 For more information about Spring's support for events and listeners, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#context-functionality-events[Spring Reference Manual].
@@ -24,7 +24,7 @@ compile "org.springframework.integration:spring-integration-event:{project-versi
 ====
 
 [[appevent-inbound]]
-=== Receiving Spring Application Events
+== Receiving Spring Application Events
 
 To receive events and send them to a channel, you can define an instance of Spring Integration's `ApplicationEventListeningMessageProducer`.
 This class is an implementation of Spring's `ApplicationListener` interface.
@@ -100,7 +100,7 @@ public IntegrationFlow eventFlow(ApplicationEventListeningMessageProducer events
 ====
 
 [[appevent-outbound]]
-=== Sending Spring Application Events
+== Sending Spring Application Events
 
 To send Spring `ApplicationEvents`, create an instance of the `ApplicationEventPublishingMessageHandler` and register it within an endpoint.
 This implementation of the `MessageHandler` interface also implements Spring's `ApplicationEventPublisherAware` interface and consequently acts as a bridge between Spring Integration messages and `ApplicationEvents`.

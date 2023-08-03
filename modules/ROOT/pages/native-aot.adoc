@@ -1,5 +1,5 @@
 [[native-images-support]]
-=== Native Images Support
+= Native Images Support
 
 Starting with version 6.0, GraalVM compilation of Spring Integration applications to native images is supported by https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#aot[Spring AOT] native hints.
 For most common use cases, such as endpoint definitions with `@Bean` methods, Java DSL configuration with lambdas and `@MessagingGateway` interface scanning (importing), the framework provides respective reflection, proxy and serialization hints.

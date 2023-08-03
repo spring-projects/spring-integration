@@ -1,5 +1,5 @@
 [[endpoint]]
-=== Message Endpoints
+= Message Endpoints
 
 The first part of this chapter covers some background theory and reveals quite a bit about the underlying API that drives Spring Integration's various messaging components.
 This information can be helpful if you want to really understand what goes on behind the scenes.
@@ -23,7 +23,7 @@ When polling is required, the endpoint acts as a container for the consumer inst
 The benefit is similar to that of using a container for hosting message-driven beans, but, since these consumers are Spring-managed objects running within an `ApplicationContext`, it more closely resembles Spring's own `MessageListener` containers.
 
 [[endpoint-handler]]
-==== Message Handler
+== Message Handler
 
 Spring Integration's `MessageHandler` interface is implemented by many of the components within the framework.
 In other words, this is not part of the public API, and you would not typically implement `MessageHandler` directly.
@@ -46,7 +46,7 @@ Those components each perform very different functionality with the messages the
 Spring Integration provides two endpoint implementations that host these callback-based handlers and let them be connected to message channels.
 
 [[endpoint-eventdrivenconsumer]]
-==== Event-driven Consumer
+== Event-driven Consumer
 
 Because it is the simpler of the two, we cover the event-driven consumer endpoint first.
 You may recall that the `SubscribableChannel` interface provides a `subscribe()` method and that the method accepts a `MessageHandler` parameter (as shown in <<./channel.adoc#channel-interfaces-subscribablechannel,`SubscribableChannel`>>).
@@ -71,7 +71,7 @@ EventDrivenConsumer consumer = new EventDrivenConsumer(channel, exampleHandler);
 ====
 
 [[endpoint-pollingconsumer]]
-==== Polling Consumer
+== Polling Consumer
 
 Spring Integration also provides a `PollingConsumer`, and it can be instantiated in the same way except that the channel must implement `PollableChannel`, as the following example shows:
 
@@ -187,7 +187,7 @@ When using the namespace configuration, you do not strictly need to know all the
 However, it still might be worth knowing that several of these components share a common base class, the `AbstractReplyProducingMessageHandler`, and that it provides a `setOutputChannel(..)` method.
 
 [[endpoint-namespace]]
-==== Endpoint Namespace Support
+== Endpoint Namespace Support
 
 Throughout this reference manual, you can find specific configuration examples for endpoint elements, such as router, transformer, service-activator, and so on.
 Most of these support an `input-channel` attribute and many support an `output-channel` attribute.
@@ -270,7 +270,7 @@ See <<aop-advice-chains>> for further information.
 Optional.
 
 [[examples]]
-===== Examples
+=== Examples
 
 A simple interval-based poller with a 1-second interval can be configured as follows:
 
@@ -322,7 +322,7 @@ NOTE: The `ref` attribute is allowed only on the inner poller definitions.
 Defining this attribute on a top-level poller results in a configuration exception being thrown during initialization of the application context.
 
 [[global-default-poller]]
-====== Global Default Poller
+==== Global Default Poller
 
 To simplify the configuration even further, you can define a global default poller.
 A single top-level poller component in XML DSL may have the `default` attribute set to `true`.
@@ -403,7 +403,7 @@ fun convertFlow() =
 ====
 
 [[transaction-support]]
-====== Transaction Support
+==== Transaction Support
 
 Spring Integration also provides transaction support for the pollers so that each receive-and-forward operation can be performed as an atomic unit of work.
 To configure transactions for a poller, add the `<transactional/>` sub-element.
@@ -423,7 +423,7 @@ The following example shows the available attributes:
 For more information, see <<./transactions.adoc#transaction-poller,Poller Transaction Support>>.
 
 [[aop-advice-chains]]
-===== AOP Advice chains
+=== AOP Advice chains
 
 Since Spring transaction support depends on the proxy mechanism with `TransactionInterceptor` (AOP Advice) handling transactional behavior of the message flow initiated by the poller, you must sometimes provide extra advices to handle other cross cutting behavior associated with the poller.
 For that, the `poller` defines an `advice-chain` element that lets you add more advices in a class that implements the `MethodInterceptor` interface.
@@ -453,7 +453,7 @@ Instead, declare a `<tx:advice/>` bean and add it to the `<advice-chain/>`.
 See <<./transactions.adoc#transaction-poller,Poller Transaction Support>> for complete configuration details.
 
 [[taskexecutor-support]]
-====== TaskExecutor Support
+==== TaskExecutor Support
 
 The polling threads may be executed by any instance of Spring's `TaskExecutor` abstraction.
 This enables concurrency for an endpoint or group of endpoints.
@@ -503,7 +503,7 @@ The following example shows how a polling consumer can receive messages nearly i
 Using this approach does not carry much overhead, since, internally, it is nothing more then a timed-wait thread, which does not require nearly as much CPU resource usage as (for example) a thrashing, infinite while loop.
 
 [[polling-consumer-change-polling-rate]]
-==== Changing Polling Rate at Runtime
+== Changing Polling Rate at Runtime
 
 When configuring a poller with a `fixed-delay` or a `fixed-rate` attribute, the default implementation uses a `PeriodicTrigger` instance.
 The `PeriodicTrigger` is part of the core Spring Framework.
@@ -528,7 +528,7 @@ NOTE: It is important to note, though, that because the Trigger method is `nextE
 It is not possible to force a trigger to fire before its currently configured next execution time.
 
 [[payload-type-conversion]]
-==== Payload Type Conversion
+== Payload Type Conversion
 
 Throughout this reference manual, you can also see specific configuration and implementation examples of various endpoints that accept a message or any arbitrary `Object` as an input parameter.
 In the case of an `Object`, such a parameter is mapped to a message payload or part of the payload or header (when using the Spring Expression Language).
@@ -626,7 +626,7 @@ In this case, the converters provided by the `conversionService` are available f
 =====
 
 [[content-type-conversion]]
-==== Content Type Conversion
+== Content Type Conversion
 
 Starting with version 5.0, by default, the method invocation mechanism is based on the `org.springframework.messaging.handler.invocation.InvocableHandlerMethod` infrastructure.
 Its `HandlerMethodArgumentResolver` implementations (such as `PayloadArgumentResolver` and `MessageMethodArgumentResolver`) can use the `MessageConverter` abstraction to convert an incoming `payload` to the target method argument type.
@@ -663,7 +663,7 @@ NOTE: The `MessageConverter`-based (including `contentType` header) conversion i
 In this case, only the regular class-to-class conversion mentioned above in the <<payload-type-conversion>> is available.
 
 [[async-polling]]
-==== Asynchronous Polling
+== Asynchronous Polling
 
 If you want the polling to be asynchronous, a poller can optionally specify a `task-executor` attribute that points to an existing instance of any `TaskExecutor` bean (Spring 3.0 provides a convenient namespace configuration through the `task` namespace).
 However, there are certain things you must understand when configuring a poller with a `TaskExecutor`.
@@ -703,7 +703,7 @@ In other words, there are certain details you must understand when configuring `
 See https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling["`Task Execution and Scheduling`"] in the Spring reference manual for more detail on the subject.
 
 [[endpoint-inner]]
-==== Endpoint Inner Beans
+== Endpoint Inner Beans
 
 Many endpoints are composite beans.
 This includes all consumers and all polled inbound channel adapters.
@@ -732,7 +732,7 @@ If you wish to access this bean in some other manner, declare it at the top leve
 See the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-inner-beans[Spring Documentation] for more information.
 
 [[endpoint-roles]]
-=== Endpoint Roles
+= Endpoint Roles
 
 Starting with version 4.2, endpoints can be assigned to roles.
 Roles let endpoints be started and stopped as a group.
@@ -847,7 +847,7 @@ public Map<String, Boolean> getEndpointsRunningStatus(String role) <4>
 The component name is usually the bean name.
 
 [[leadership-event-handling]]
-=== Leadership Event Handling
+= Leadership Event Handling
 
 Groups of endpoints can be started and stopped based on leadership being granted or revoked, respectively.
 This is useful in clustered scenarios where shared resources must be consumed by only a single instance.

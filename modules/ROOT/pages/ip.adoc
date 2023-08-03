@@ -1,5 +1,5 @@
 [[ip]]
-== TCP and UDP Support
+= TCP and UDP Support
 
 Spring Integration provides channel adapters for receiving and sending messages over internet protocols.
 Both UDP (User Datagram Protocol) and TCP (Transmission Control Protocol) adapters are provided.
@@ -27,7 +27,7 @@ compile "org.springframework.integration:spring-integration-ip:{project-version}
 ====
 
 [[ip-intro]]
-=== Introduction
+== Introduction
 
 Two flavors each of UDP inbound and outbound channel adapters are provided:
 
@@ -56,12 +56,12 @@ The TCP and UDP inbound channel adapters and the TCP inbound gateway support the
 This provides the same basic functionality as described in <<./gateway.adoc#gateway-proxy,Enter the `GatewayProxyFactoryBean`>>.
 
 [[udp-adapters]]
-=== UDP Adapters
+== UDP Adapters
 
 This section describes how to configure and use the UDP adapters.
 
 [[outbound-udp-adapters-xml-configuration]]
-==== Outbound UDP Adapters (XML Configuration)
+=== Outbound UDP Adapters (XML Configuration)
 
 The following example configures a UDP outbound channel adapter:
 
@@ -137,7 +137,7 @@ TIP: When multicast is true, an additional attribute (`min-acks-for-success`) sp
 Starting with version 4.3, you can set the `ackPort` to `0`, in which case the operating system chooses the port.
 
 [[outbound-udp-adapters-java-configuration]]
-==== Outbound UDP Adapters (Java Configuration)
+=== Outbound UDP Adapters (Java Configuration)
 
 The following example shows how to configure an outbound UDP adapter with Java:
 
@@ -155,7 +155,7 @@ public UnicastSendingMessageHandler handler() {
 (or `MulticastSendingChannelAdapter` for multicast).
 
 [[outbound-udp-adapters-java-dsl-configuration]]
-==== Outbound UDP Adapters (Java DSL Configuration)
+=== Outbound UDP Adapters (Java DSL Configuration)
 
 The following example shows how to configure an outbound UDP adapter with the Java DSL:
 
@@ -172,7 +172,7 @@ public IntegrationFlow udpOutFlow() {
 ====
 
 [[inbound-udp-adapters-xml-configuration]]
-==== Inbound UDP Adapters (XML Configuration)
+=== Inbound UDP Adapters (XML Configuration)
 
 The following example shows how to configure a basic unicast inbound udp channel adapter.
 
@@ -211,7 +211,7 @@ Starting with version 5.3.3, you can add a `SocketCustomizer` bean to modify the
 It is called for the receiving socket and any sockets created for sending acks.
 
 [[inbound-udp-adapters-java-configuration]]
-==== Inbound UDP Adapters (Java Configuration)
+=== Inbound UDP Adapters (Java Configuration)
 
 The following example shows how to configure an inbound UDP adapter with Java:
 
@@ -228,7 +228,7 @@ public UnicastReceivingChannelAdapter udpIn() {
 The following example shows how to configure an inbound UDP adapter with the Java DSL:
 
 [[inbound-udp-adapters-java-dsl-configuration]]
-==== Inbound UDP Adapters (Java DSL Configuration)
+=== Inbound UDP Adapters (Java DSL Configuration)
 
 [source, java]
 ----
@@ -241,14 +241,14 @@ public IntegrationFlow udpIn() {
 ----
 
 [[server-listening-events]]
-==== Server Listening Events
+=== Server Listening Events
 
 Starting with version 5.0.2, a `UdpServerListeningEvent` is emitted when an inbound adapter is started and has begun listening.
 This is useful when the adapter is configured to listen on port `0`, meaning that the operating system chooses the port.
 It can also be used instead of polling `isListening()`, if you need to wait before starting some other process that will connect to the socket.
 
 [[advanced-outbound-configuration]]
-==== Advanced Outbound Configuration
+=== Advanced Outbound Configuration
 
 The `<int-ip:udp-outbound-channel-adapter>` (`UnicastSendingMessageHandler`) has `destination-expression` and `socket-expression` options.
 
@@ -301,10 +301,10 @@ public IntegrationFlow udpEchoUpcaseServer() {
 ====
 
 [[tcp-connection-factories]]
-=== TCP Connection Factories
+== TCP Connection Factories
 
 [[overview]]
-==== Overview
+=== Overview
 
 For TCP, the configuration of the underlying connection is provided by using a connection factory.
 Two types of connection factory are provided: a client connection factory and a server connection factory.
@@ -391,7 +391,7 @@ Starting with version 5.2, the client connection factories support the property 
 Also see <<ip-annotation>> and <<ip-dsl>>.
 
 [[tcp-codecs]]
-==== Message Demarcation (Serializers and Deserializers)
+=== Message Demarcation (Serializers and Deserializers)
 
 TCP is a streaming protocol.
 This means that some structure has to be provided to data transported over TCP so that the receiver can demarcate the data into discrete messages.
@@ -507,7 +507,7 @@ As noted there, such modifications are possible if SSL is being used, or not.
 Also see <<ip-annotation>> and <<ip-dsl>>.
 
 [[custom-serializers-and-deserializers]]
-==== Custom Serializers and Deserializers
+=== Custom Serializers and Deserializers
 
 If your data is not in a format supported by one of the standard deserializers, you can implement your own; you can also implement a custom serializer.
 
@@ -519,7 +519,7 @@ If the stream is closed while decoding a message, some other exception should be
 Starting with version 5.2, `SoftEndOfStreamException` is now a `RuntimeException` instead of extending `IOException`.
 
 [[caching-cf]]
-==== TCP Caching Client Connection Factory
+=== TCP Caching Client Connection Factory
 
 As <<ip-intro,noted earlier>>, TCP sockets can be 'single-use' (one request or response) or shared.
 Shared sockets do not perform well with outbound gateways in high-volume environments, because the socket can only process one request or response at a time.
@@ -530,7 +530,7 @@ See <<ip-correlation>> for more information.
 Spring Integration 2.2 introduced a caching client connection factory, which uses a pool of shared sockets, letting a gateway process multiple concurrent requests with a pool of shared connections.
 
 [[failover-cf]]
-==== TCP Failover Client Connection Factory
+=== TCP Failover Client Connection Factory
 
 You can configure a TCP connection factory that supports failover to one or more other servers.
 When sending a message, the factory iterates over all its configured factories until either the message can be sent or no connection can be found.
@@ -576,7 +576,7 @@ To revert to the default behavior of previous versions, set them to `0` and `fal
 Also see <<testing-connections>>.
 
 [[tcp-affinity-cf]]
-==== TCP Thread Affinity Connection Factory
+=== TCP Thread Affinity Connection Factory
 
 Spring Integration version 5.0 introduced this connection factory.
 It binds a connection to the calling thread, and the same connection is reused each time that thread sends a message.
@@ -613,7 +613,7 @@ public TcpOutboundGateway outGate() {
 ====
 
 [[testing-connections]]
-=== Testing Connections
+== Testing Connections
 
 In some scenarios, it can be useful to send some kind of health-check request when a connection is first opened.
 One such scenario might be when using a <<failover-cf>> so that we can fail over if the selected server allowed a connection to be opened but reports that it is not healthy.
@@ -671,7 +671,7 @@ clientFactory.setConnectionTest(conn -> {
 ====
 
 [[ip-interceptors]]
-=== TCP Connection Interceptors
+== TCP Connection Interceptors
 
 You can configure connection factories with a reference to a `TcpConnectionInterceptorFactoryChain`.
 You can use interceptors to add behavior to connections, such as negotiation, security, and other options.
@@ -730,7 +730,7 @@ The following example shows how to configure a connection interceptor factory ch
 ====
 
 [[tcp-events]]
-=== TCP Connection Events
+== TCP Connection Events
 
 Beginning with version 3.0, changes to `TcpConnection` instances are reported by `TcpConnectionEvent` instances.
 `TcpConnectionEvent` is a subclass of `ApplicationEvent` and can thus be received by any `ApplicationListener` defined in the `ApplicationContext`, or an `@EventListener` method. 
@@ -773,7 +773,7 @@ The source of the event is the connection factory, which you can use to determin
 To use a single `ApplicationListener` (or `@EventListener` method) to receive all of these events (including `TcpConnectionEvent` s), configure the listener to receive `IpIntegrationEvent` s.
 
 [[tcp-adapters]]
-=== TCP Adapters
+== TCP Adapters
 
 TCP inbound and outbound channel adapters that use connection factories <<tcp-events,mentioned earlier>> are provided.
 These adapters have two relevant attributes: `connection-factory` and `channel`.
@@ -864,7 +864,7 @@ For both inbound and outbound, if the adapter is started, you can force the adap
 Then you can examine the current state with `@adapter_id.isClientModeConnected()`.
 
 [[tcp-gateways]]
-=== TCP Gateways
+== TCP Gateways
 
 The inbound TCP gateway `TcpInboundGateway` and outbound TCP gateway `TcpOutboundGateway` use a server and client connection factory, respectively.
 Each connection can process a single request or response at a time.
@@ -947,7 +947,7 @@ When sending unsolicited messages from the server, you must add the appropriate 
 Also see <<ip-annotation>> and <<ip-dsl>>.
 
 [[ip-correlation]]
-=== TCP Message Correlation
+== TCP Message Correlation
 
 One goal of the IP endpoints is to provide communication with systems other than Spring Integration applications.
 For this reason, only message payloads are sent and received by default.
@@ -958,7 +958,7 @@ No message correlation is provided by the framework (except when using the gatew
 In most cases, this requires specific application-level correlation of messages, even when message payloads contain some natural correlation data (such as an order number).
 
 [[ip-gateways]]
-==== Gateways
+=== Gateways
 
 Gateways automatically correlate messages.
 However, you should use an outbound gateway for relatively low-volume applications.
@@ -973,7 +973,7 @@ However, to do so, you need to provide collaboration logic.
 Another solution, introduced in Spring Integration 2.2, is to use a `CachingClientConnectionFactory`, which allows the use of a pool of shared connections.
 
 [[ip-collaborating-adapters]]
-==== Collaborating Outbound and Inbound Channel Adapters
+=== Collaborating Outbound and Inbound Channel Adapters
 
 To achieve high-volume throughput (avoiding the pitfalls of using gateways, as <<ip-gateways,mentioned earlier>>) you can configure a pair of collaborating outbound and inbound channel adapters.
 You can also use collaborating adapters (server-side or client-side) for totally asynchronous communication (rather than with request-reply semantics).
@@ -1012,7 +1012,7 @@ This allows an application to support both request/reply and arbitrary server ->
 See <<tcp-gateways>> for more information.
 
 [[ip-headers]]
-==== Transferring Headers
+=== Transferring Headers
 
 TCP is a streaming protocol.
 `Serializers` and `Deserializers` demarcate messages within the stream.
@@ -1085,7 +1085,7 @@ A message sent with the preceding configuration, with a payload of 'something' w
 ====
 
 [[note-nio]]
-=== About Non-blocking I/O (NIO)
+== About Non-blocking I/O (NIO)
 
 Using NIO (see `using-nio` in <<ip-endpoint-reference>>) avoids dedicating a thread to read from each socket.
 For a small number of sockets, you are likely to find that not using NIO, together with an asynchronous hand-off (such as to a `QueueChannel`), performs as well as or better than using NIO.
@@ -1111,7 +1111,7 @@ This should, generally, have little impact unless you have a very high rate of n
 If you wish to revert to the previous behavior of giving reads priority, set the `multiAccept` property on the `TcpNioServerConnectionFactory` to `false`.
 
 [[pool-size]]
-==== Pool Size
+=== Pool Size
 
 The pool size attribute is no longer used.
 Previously, it specified the size of the default thread pool when a task-executor was not specified.
@@ -1130,7 +1130,7 @@ IMPORTANT: Now that the default task executor is unbounded, it is possible that 
 If your application exhibits this type of behavior, you should use a pooled task executor with an appropriate pool size, but see <<io-thread-pool-task-executor-caller-runs,the next section>>.
 
 [[io-thread-pool-task-executor-caller-runs]]
-==== Thread Pool Task Executor with `CALLER_RUNS` Policy
+=== Thread Pool Task Executor with `CALLER_RUNS` Policy
 
 You should keep in mind some important considerations when you use a fixed thread pool with the `CallerRunsPolicy` (`CALLER_RUNS` when using the `<task/>` namespace) and the queue capacity is small.
 
@@ -1232,7 +1232,7 @@ private CompositeExecutor compositeExecutor() {
 ====
 
 [[ssl-tls]]
-=== SSL/TLS Support
+== SSL/TLS Support
 
 Secure Sockets Layer/Transport Layer Security is supported.
 When using NIO, the JDK 5+ `SSLEngine` feature is used to handle handshaking after the connection is established.
@@ -1241,7 +1241,7 @@ A number of strategy interfaces are provided to allow significant customization.
 The default implementations of these interfaces provide for the simplest way to get started with secure communications.
 
 [[ip-ssl-tls-getting-started]]
-==== Getting Started
+=== Getting Started
 
 Regardless of whether you use NIO, you need to configure the `ssl-context-support` attribute on the connection factory.
 This attribute references a <bean/> definition that describes the location and passwords for the required key stores.
@@ -1293,7 +1293,7 @@ This timeout (the default is 30 seconds) is used during SSL handshake when waiti
 If the timeout is exceeded, the process is stopped and the socket is closed.
 
 [[tcp-ssl-host-verification]]
-==== Host Verification
+=== Host Verification
 
 Starting with version 5.0.8, you can configure whether to enable host verification.
 Starting with version 5.1, it is enabled by default; the mechanism to disable it depends on whether you are using NIO.
@@ -1332,12 +1332,12 @@ connectionFactory.setTcpSocketSupport(new DefaultTcpSocketSupport(false));
 Again, the constructor argument disables host verification.
 
 [[tcp-advanced-techniques]]
-=== Advanced Techniques
+== Advanced Techniques
 
 This section covers advanced techniques that you may find to be helpful in certain situations.
 
 [[strategy-interfaces]]
-==== Strategy Interfaces
+=== Strategy Interfaces
 
 In many cases, the configuration described earlier is all that is needed to enable secure communication over TCP/IP.
 However, Spring Integration provides a number of strategy interfaces to allow customization and modification of socket factories and sockets:
@@ -1349,7 +1349,7 @@ However, Spring Integration provides a number of strategy interfaces to allow cu
 * `TcpNioConnectionSupport`
 
 [[the-tcpsslcontextsupport-strategy-interface]]
-===== The `TcpSSLContextSupport` Strategy Interface
+==== The `TcpSSLContextSupport` Strategy Interface
 
 The following listing shows the `TcpSSLContextSupport` strategy interface:
 
@@ -1369,7 +1369,7 @@ The implementation provided by the framework is the `DefaultTcpSSLContextSupport
 If you require different behavior, implement this interface and provide the connection factory with a reference to a bean of your class' implementation.
 
 [[the-tcpsocketfactorysupport-strategy-interface]]
-===== The `TcpSocketFactorySupport` Strategy Interface
+==== The `TcpSocketFactorySupport` Strategy Interface
 
 The following listing shows the definition of the `TcpSocketFactorySupport` strategy interface:
 
@@ -1398,7 +1398,7 @@ NOTE: This interface applies only if `using-nio` is `false`.
 NIO does not use socket factories.
 
 [[the-tcpsocketsupport-strategy-interface]]
-===== The `TcpSocketSupport` Strategy Interface
+==== The `TcpSocketSupport` Strategy Interface
 
 The following listing shows the definition of the `TcpSocketSupport` strategy interface:
 
@@ -1423,7 +1423,7 @@ The sole implementation provided by the framework is the `DefaultTcpSocketSuppor
 To supply your own implementation of `TcpSocketFactorySupport` or `TcpSocketSupport`, provide the connection factory with references to beans of your custom type by setting the `socket-factory-support` and `socket-support` attributes, respectively.
 
 [[the-tcpnetconnectionsupport-strategy-interface]]
-===== The `TcpNetConnectionSupport` Strategy Interface
+==== The `TcpNetConnectionSupport` Strategy Interface
 
 The following listing shows the definition of the `TcpNetConnectionSupport` strategy interface:
 
@@ -1481,7 +1481,7 @@ public class CompositeDeserializer implements Deserializer<byte[]> {
 ====
 
 [[the-tcpnioconnectionsupport-strategy-interface]]
-===== The `TcpNioConnectionSupport` Strategy Interface
+==== The `TcpNioConnectionSupport` Strategy Interface
 
 The following listing shows the definition of the `TcpNioConnectionSupport` strategy interface:
 
@@ -1507,7 +1507,7 @@ See the <<ssl-client-authentication-example,SSL client authentication example>>.
 As with the `DefaultTcpNetConnectionSupport`, these implementations also support push back.
 
 [[ssl-client-authentication-example]]
-==== Example: Enabling SSL Client Authentication
+=== Example: Enabling SSL Client Authentication
 
 To enable client certificate authentication when you use SSL, the technique depends on whether you use NIO.
 When you do not NIO , provide a custom `TcpSocketSupport` implementation to post-process the server socket:
@@ -1558,7 +1558,7 @@ public TcpNioServerConnectionFactory server() {
 
 
 [[ip-endpoint-reference]]
-=== IP Configuration Attributes
+== IP Configuration Attributes
 
 The following table describes attributes that you can set to configure IP connections:
 
@@ -2110,7 +2110,7 @@ Only applies if the reply-channel might block (such as a bounded QueueChannel th
 
 .IP Message Headers
 [[ip-msg-headers]]
-=== IP Message Headers
+== IP Message Headers
 
 This module uses the following `MessageHeader` instances:
 
@@ -2182,7 +2182,7 @@ Set the `charset` property to change the default.
 When customizing the mapper properties or subclassing, declare the mapper as a bean and provide an instance to the connection factory by using the `mapper` property.
 
 [[ip-annotation]]
-=== Annotation-Based Configuration
+== Annotation-Based Configuration
 
 The following example from the samples repository shows some of the configuration options available when you use  annotations instead of XML:
 
@@ -2279,7 +2279,7 @@ In this scenario, the `@ServiceActivator` configures the endpoint, according to 
 ====
 
 [[ip-dsl]]
-=== Using the Java DSL for TCP Components
+== Using the Java DSL for TCP Components
 
 DSL support for TCP components includes specs for adapters and gateways, the `Tcp` class with factory methods to create connection factory beans, and the `TcpCodecs` class with factory methods to create serializers and deserializers.
 Refer to their javadocs for more information.

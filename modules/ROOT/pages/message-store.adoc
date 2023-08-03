@@ -1,5 +1,5 @@
 [[message-store]]
-=== Message Store
+= Message Store
 
 The https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_] (EIP) book identifies several patterns that have the ability to buffer messages.
 For example, an aggregator buffers messages until they can be released, and a `QueueChannel` buffers messages until consumers explicitly receive those messages from that channel.
@@ -98,7 +98,7 @@ For this reason, you should either not perform such manipulation or set the `cop
 =====
 
 [[message-group-factory]]
-==== Using `MessageGroupFactory`
+== Using `MessageGroupFactory`
 
 Starting with version 4.3, some `MessageGroupStore` implementations can be injected with a custom `MessageGroupFactory` strategy to create and customize the `MessageGroup` instances used by the `MessageGroupStore`.
 This defaults to a `SimpleMessageGroupFactory`, which produces `SimpleMessageGroup` instances based on the `GroupType.HASH_SET` (`LinkedHashSet`) internal collection.
@@ -108,7 +108,7 @@ See the next section for more information.
 Starting with version 5.0.1, the `LIST` option is also available for when the order and uniqueness of messages in the group does not matter.
 
 [[lazy-load-message-group]]
-==== Persistent `MessageGroupStore` and Lazy-load
+== Persistent `MessageGroupStore` and Lazy-load
 
 Starting with version 4.3, all persistent `MessageGroupStore` instances retrieve `MessageGroup` instances and their `messages` from the store in the lazy-load manner.
 In most cases, it is useful for the correlation `MessageHandler` instances (see <<./aggregator.adoc#aggregator,Aggregator>> and <<./resequencer.adoc#resequencer,Resequencer>>), when it would add overhead to load entire the `MessageGroup` from the store on each correlation operation.
@@ -150,7 +150,7 @@ A returned `Stream<Message<?>>` must be closed in the end of processing, e.g. vi
 Whenever a `PersistentMessageGroup` is used, its `streamMessages()` delegates to the `MessageGroupStore.streamMessagesForGroup()`.
 
 [[message-group-condition]]
-==== Message Group Condition
+== Message Group Condition
 
 Starting with version 5.5, the `MessageGroup` abstraction provides a `condition` string option.
 The value of this option can be anything that could be parsed later on for any reason to make a decision for the group.

@@ -1,5 +1,5 @@
 [[filter]]
-=== Filter
+= Filter
 
 Message filters are used to decide whether a `Message` should be passed along or dropped based on some criteria, such as a message header value or message content itself.
 Therefore, a message filter is similar to a router, except that, for each message received from the filter's input channel, that same message may or may not be sent to the filter's output channel.
@@ -32,7 +32,7 @@ MessageFilter filter = new MessageFilter(someSelector);
 ====
 
 [[filter-dsl]]
-==== Configuring a Filter with Java, Groovy and Kotlin DSLs
+== Configuring a Filter with Java, Groovy and Kotlin DSLs
 
 The `IntegrationFlowBuilder` provided by the Java DSL (which is also used as a base for the Groovy and Kotlin DSLs) provides a number of overloaded methods for the `filter()` operator.
 The `MessageSelector` abstraction mentioned above can be used as a Lambda in a `filter()` definition:
@@ -75,7 +75,7 @@ See more information about DSLs in the respective chapters:
 * <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
 
 [[filter-xml]]
-==== Configuring a Filter with XML
+== Configuring a Filter with XML
 
 In combination with the namespace and SpEL, you can configure powerful filters with very little Java code.
 
@@ -219,7 +219,7 @@ For example, an expression can return strings that are to be treated as message 
 However, the underlying functionality of evaluating the expression against the message as the root object and resolving bean names if prefixed with '@' is consistent across all of the core EIP components within Spring Integration.
 
 [[filter-annotations]]
-==== Configuring a Filter with Annotations
+== Configuring a Filter with Annotations
 
 The following example shows how to configure a filter by using annotations:
 

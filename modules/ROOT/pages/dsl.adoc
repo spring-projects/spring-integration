@@ -1,5 +1,5 @@
 [[java-dsl]]
-== Java DSL
+= Java DSL
 
 The Spring Integration Java configuration and DSL provides a set of convenient builders and a fluent API that lets you configure Spring Integration message flows from Spring `@Configuration` classes.
 
@@ -58,7 +58,7 @@ You need not replace all of your existing XML configuration to use Java configur
 
 
 [[java-dsl-basics]]
-=== DSL Basics
+== DSL Basics
 
 The `org.springframework.integration.dsl` package contains the `IntegrationFlowBuilder` API mentioned earlier and a number of `IntegrationComponentSpec` implementations, which are also builders and provide the fluent API to configure concrete endpoints.
 The `IntegrationFlowBuilder` infrastructure provides common https://www.enterpriseintegrationpatterns.com/[enterprise integration patterns] (EIP) for message-based applications, such as channels, endpoints, pollers, and channel interceptors.
@@ -157,7 +157,7 @@ However `BeanFactory.initializeBean()` is called for this object if it has an ex
 ====
 
 [[java-dsl-channels]]
-=== Message Channels
+== Message Channels
 
 In addition to the `IntegrationFlowBuilder` with EIP methods, the Java DSL provides a fluent API to configure `MessageChannel` instances.
 For this purpose the `MessageChannels` builder factory is provided.
@@ -248,7 +248,7 @@ Could not register object [queueChannel] under bean name 'queueChannel':
 To make it work, you need to declare `@Bean` for that channel and use its bean method from different `IntegrationFlow` instances.
 
 [[java-dsl-pollers]]
-=== Pollers
+== Pollers
 
 Spring Integration also provides a fluent API that lets you configure `PollerMetadata` for `AbstractPollingEndpoint` implementations.
 You can use the `Pollers` builder factory to configure common bean definitions or those created from `IntegrationFlowBuilder` EIP methods, as the following example shows:
@@ -268,7 +268,7 @@ IMPORTANT: If you use the DSL to construct a `PollerSpec` as a `@Bean`, do not c
 The `PollerSpec` is a `FactoryBean` that generates the `PollerMetadata` object from the specification and initializes all of its properties.
 
 [[java-dsl-reactive]]
-=== The `reactive()` Endpoint
+== The `reactive()` Endpoint
 
 Starting with version 5.5, the `ConsumerEndpointSpec` provides a `reactive()` configuration property with an optional customizer `Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>>`.
 This option configures the target endpoint as a `ReactiveStreamsConsumer` instance, independently of the input channel type, which is converted to a `Flux` via `IntegrationReactiveUtils.messageChannelToFlux()`.
@@ -295,7 +295,7 @@ public IntegrationFlow reactiveEndpointFlow() {
 See <<./reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
 
 [[java-dsl-endpoints]]
-=== DSL and Endpoint Configuration
+== DSL and Endpoint Configuration
 
 All `IntegrationFlowBuilder` EIP methods have a variant that applies the lambda parameter to provide options for `AbstractEndpoint` instances: `SmartLifecycle`, `PollerMetadata`, `request-handler-advice-chain`, and others.
 Each of them has generic arguments, so it lets you configure an endpoint and even its `MessageHandler` in the context, as the following example shows:
@@ -343,7 +343,7 @@ public IntegrationFlow clientTcpFlow() {
 They are not merged, only the `testAdvice()` bean is used in this case.
 
 [[java-dsl-transformers]]
-=== Transformers
+== Transformers
 
 The DSL API provides a convenient, fluent `Transformers` factory to be used as inline target object definition within the `.transform()` EIP method.
 The following example shows how to use it:
@@ -374,7 +374,7 @@ This also make Groovy and Kotlin DSLs more straightforward.
 Also see <<java-dsl-class-cast>>.
 
 [[java-dsl-inbound-adapters]]
-=== Inbound Channel Adapters
+== Inbound Channel Adapters
 
 Typically, message flows start from an inbound channel adapter (such as `<int-jdbc:inbound-channel-adapter>`).
 The adapter is configured with `<poller>`, and it asks a `MessageSource<?>` to periodically produce messages.
@@ -407,7 +407,7 @@ For those cases that have no requirements to build `Message` objects directly, y
 The result of the `Supplier.get()` is automatically wrapped in a `Message` (if it is not already a `Message`).
 
 [[java-dsl-routers]]
-=== Message Routers
+== Message Routers
 
 Spring Integration natively provides specialized router types, including:
 
@@ -485,7 +485,7 @@ The `.defaultOutputToParentFlow()` of the `.routeToRecipients()` definition lets
 Also see <<java-dsl-class-cast>>.
 
 [[java-dsl-splitters]]
-=== Splitters
+== Splitters
 
 To create a splitter, use the `split()` EIP method.
 By default, if the payload is an `Iterable`, an `Iterator`, an `Array`, a `Stream`, or a reactive `Publisher`, the `split()` method outputs each item as an individual message.
@@ -509,7 +509,7 @@ The preceding example creates a splitter that splits a message containing a comm
 Also see <<java-dsl-class-cast>>.
 
 [[java-dsl-aggregators]]
-=== Aggregators and Resequencers
+== Aggregators and Resequencers
 
 An `Aggregator` is conceptually the opposite of a `Splitter`.
 It aggregates a sequence of individual messages into a single message and is necessarily more complex.
@@ -552,7 +552,7 @@ The preceding example correlates messages that have `myCorrelationKey` headers a
 Similar lambda configurations are provided for the `resequence()` EIP method.
 
 [[java-dsl-handle]]
-=== Service Activators and the `.handle()` method
+== Service Activators and the `.handle()` method
 
 The `.handle()` EIP method's goal is to invoke any `MessageHandler` implementation or any method on some POJO.
 Another option is to define an "`activity`" by using lambda expressions.
@@ -615,7 +615,7 @@ public IntegrationFlow integerFlow() {
 Also see <<java-dsl-class-cast>>.
 
 [[java-dsl-gateway]]
-=== Operator gateway()
+== Operator gateway()
 
 The `gateway()` operator in an `IntegrationFlow` definition is a special service activator implementation, to call some other endpoint or integration flow via its input channel and wait for reply.
 Technically it plays the same role as a nested `<gateway>` component in a `<chain>` definition (see <<./chain.adoc#chain-gateway,Calling a Chain from within a Chain>>) and allows a flow  to be cleaner and more straightforward.
@@ -653,7 +653,7 @@ IMPORTANT: If the downstream flow does not always return a reply, you should set
 In that case, the flow will end at that point and the thread released for further work.
 
 [[java-dsl-log]]
-=== Operator log()
+== Operator log()
 
 For convenience, to log the message journey through the Spring Integration flow (`<logging-channel-adapter>`), a `log()` operator is presented.
 Internally, it is represented by the `WireTap` `ChannelInterceptor` with a `LoggingHandler` as its subscriber.
@@ -676,7 +676,7 @@ In other words the behavior of the flow remains the same even if the `log()` ope
 So, if a reply is not expected to be produced in the end of the flow, the `nullChannel()` is recommended to be used after the last `log()`.
 
 [[java-dsl-intercept]]
-=== Operator intercept()
+== Operator intercept()
 
 Starting with version 5.3, the `intercept()` operator allows to register one or more `ChannelInterceptor` instances at the current `MessageChannel` in the flow.
 This is an alternative to creating an explicit `MessageChannel` via the `MessageChannels` API.
@@ -692,7 +692,7 @@ The following example uses a `MessageSelectingInterceptor` to reject certain mes
 ====
 
 [[java-dsl-wiretap]]
-=== `MessageChannelSpec.wireTap()`
+== `MessageChannelSpec.wireTap()`
 
 Spring Integration includes a `.wireTap()` fluent API `MessageChannelSpec` builders.
 The following example shows how to use the `wireTap` method to log input:
@@ -749,7 +749,7 @@ In the preceding example (and any time no channel has been declared), an implici
 
 
 [[java-dsl-flows]]
-=== Working With Message Flows
+== Working With Message Flows
 
 `IntegrationFlowBuilder` provides a top-level API to produce integration components wired to message flows.
 When your integration may be accomplished with a single flow (which is often the case), this is convenient.
@@ -794,7 +794,7 @@ These generated bean names are prepended with the flow ID for purposes such as p
 See <<java-dsl-runtime-flows>> for more information.
 
 [[java-dsl-function-expression]]
-=== `FunctionExpression`
+== `FunctionExpression`
 
 We introduced the `FunctionExpression` class (an implementation of SpEL's `Expression` interface) to let us use lambdas and `generics`.
 The `Function<T, R>` option is provided for the DSL components, along with an `expression` option, when there is the implicit `Strategy` variant from Core Spring Integration.
@@ -812,7 +812,7 @@ The following example shows how to use a function expression:
 The `FunctionExpression` also supports runtime type conversion, as is done in `SpelExpression`.
 
 [[java-dsl-subflows]]
-=== Sub-flows support
+== Sub-flows support
 
 Some of `if...else` and `publish-subscribe` components provide the ability to specify their logic or mapping by using sub-flows.
 The simplest sample is `.publishSubscribeChannel()`, as the following example shows:
@@ -957,7 +957,7 @@ With an inline subflow, the input channel is not yet available.
 ====
 
 [[java-dsl-protocol-adapters]]
-=== Using Protocol Adapters
+== Using Protocol Adapters
 
 All the examples shown so far illustrate how the DSL supports a messaging architecture by using the Spring Integration programming model.
 However, we have yet to do any real integration.
@@ -1052,7 +1052,7 @@ public AbstractMappingMessageRouter xpathRouter(MessageChannel wrongMessagesChan
 ====
 
 [[java-dsl-flow-adapter]]
-=== `IntegrationFlowAdapter`
+== `IntegrationFlowAdapter`
 
 The `IntegrationFlow` interface can be implemented directly and specified as a component for scanning, as the following example shows:
 
@@ -1135,7 +1135,7 @@ public class MyFlowAdapter extends IntegrationFlowAdapter {
 ====
 
 [[java-dsl-runtime-flows]]
-=== Dynamic and Runtime Integration Flows
+== Dynamic and Runtime Integration Flows
 
 `IntegrationFlow` and all its dependent components can be registered at runtime.
 Before version 5.0, we used the `BeanFactory.registerSingleton()` hook.
@@ -1264,7 +1264,7 @@ In this case, the message handler for the first flow can be referenced with bean
 NOTE: An `id` attribute is required when you usE `useFlowIdAsPrefix()`.
 
 [[integration-flow-as-gateway]]
-=== `IntegrationFlow` as a Gateway
+== `IntegrationFlow` as a Gateway
 
 The `IntegrationFlow` can start from the service interface that provides a `GatewayProxyFactoryBean` component, as the following example shows:
 
@@ -1326,7 +1326,7 @@ private Function<String, String> errorRecovererFlowGateway;
 ====
 
 [[java-dsl-extensions]]
-=== DSL Extensions
+== DSL Extensions
 
 Starting with version 5.3, an `IntegrationFlowExtension` has been introduced to allow extension of the existing Java DSL with custom or composed EIP-operators.
 All that is needed is an extension of this class that provides methods which can be used in the `IntegrationFlow` bean definitions.
@@ -1386,7 +1386,7 @@ public IntegrationFlow customFlowDefinition() {
 ====
 
 [[integration-flows-composition]]
-=== Integration Flows Composition
+== Integration Flows Composition
 
 With the `MessageChannel` abstraction as a first class citizen in Spring Integration, the composition of integration flows was always assumed.
 The input channel of any endpoint in the flow can be used to send messages from any other endpoint and not only from the one which has this channel as an output.

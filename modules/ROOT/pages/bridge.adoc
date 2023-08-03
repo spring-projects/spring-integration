@@ -1,5 +1,5 @@
 [[bridge]]
-=== Messaging Bridge
+= Messaging Bridge
 
 A messaging bridge is a relatively trivial endpoint that connects two message channels or channel adapters.
 For example, you may want to connect a `PollableChannel` to a `SubscribableChannel` so that the subscribing endpoints do not have to worry about any polling configuration.
@@ -15,7 +15,7 @@ In that case, the channels can be provided as the 'input-channel' and 'output-ch
 If data format translation is not required, the messaging bridge may indeed be sufficient.
 
 [[bridge-namespace]]
-==== Configuring a Bridge with XML
+== Configuring a Bridge with XML
 
 You can use the `<bridge>` element is used to create a messaging bridge between two message channels or channel adapters.
 To do so, provide the `input-channel` and `output-channel` attributes, as the following example shows:
@@ -60,7 +60,7 @@ NOTE: If no 'output-channel' is defined on a bridge, the reply channel provided 
 If neither an output nor a reply channel is available, an exception is thrown.
 
 [[bridge-annot]]
-==== Configuring a Bridge with Java Configuration
+== Configuring a Bridge with Java Configuration
 
 The following example shows how to configure a bridge in Java by using the `@BridgeFrom` annotation:
 
@@ -111,7 +111,7 @@ public BridgeHandler bridge() {
 ----
 
 [[bridge-dsl]]
-==== Configuring a Bridge with the Java DSL
+== Configuring a Bridge with the Java DSL
 
 You can use the Java Domain Specific Language (DSL) to configure a bridge, as the following example shows:
 

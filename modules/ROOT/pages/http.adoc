@@ -1,5 +1,5 @@
 [[http]]
-== HTTP Support
+= HTTP Support
 
 Spring Integration's HTTP support allows for the running of HTTP requests and the processing of inbound HTTP requests.
 The HTTP support consists of the following gateway implementations: `HttpInboundEndpoint` and `HttpRequestExecutingMessageHandler`.
@@ -27,7 +27,7 @@ compile "org.springframework.integration:spring-integration-http:{project-versio
 The `jakarta.servlet:jakarta.servlet-api` dependency must be provided on the target Servlet container.
 
 [[http-inbound]]
-=== Http Inbound Components
+== Http Inbound Components
 
 To receive messages over HTTP, you need to use an HTTP inbound channel adapter or an HTTP inbound gateway.
 To support the HTTP inbound adapters, they need to be deployed within a servlet container such as https://tomcat.apache.org/[Apache Tomcat] or https://www.eclipse.org/jetty/[Jetty].
@@ -142,19 +142,19 @@ The reply message is available in the model map.
 By default, the key for that map entry is 'reply', but you can override this default by setting the 'replyKey' property on the endpoint's configuration.
 
 [[http-validation]]
-==== Payload Validation
+=== Payload Validation
 
 Starting with version 5.2, the HTTP inbound endpoints can be supplied with a `Validator` to check a payload before sending into the channel.
 This payload is already a result of conversion and extraction after `payloadExpression` to narrow a validation scope in regards to the valuable data.
 The validation failure handling is fully the same what we have in Spring MVC https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-exceptionhandlers[Error Handling].
 
 [[http-outbound]]
-=== HTTP Outbound Components
+== HTTP Outbound Components
 
 This section describes Spring Integration's HTTP outbound components.
 
 [[using-httprequestexecutingmessagehandler]]
-==== Using `HttpRequestExecutingMessageHandler`
+=== Using `HttpRequestExecutingMessageHandler`
 
 To configure the `HttpRequestExecutingMessageHandler`, write a bean definition similar to the following:
 
@@ -192,7 +192,7 @@ Use of the Apache Commons HTTP Client is also supported through `CommonsClientHt
 NOTE: For the outbound gateway, the reply message produced by the gateway contains all the message headers that are present in the request message.
 
 [[using-cookies]]
-==== Using Cookies
+=== Using Cookies
 
 Basic cookie support is provided by the `transfer-cookies` attribute on the outbound gateway.
 When set to `true` (the default is `false`), a `Set-Cookie` header received from the server in a response is converted to `Cookie` in the reply message.
@@ -228,7 +228,7 @@ Starting with version 5.5, the `HttpRequestExecutingMessageHandler` exposes an `
 If a body is not present in the `ResponseEntity`, this flag is ignored and the whole `ResponseEntity` is returned.
 
 [[http-namespace]]
-=== HTTP Namespace Support
+== HTTP Namespace Support
 
 Spring Integration provides an `http` namespace and the corresponding schema definition.
 To include it in your configuration, provide the following namespace declaration in your application context configuration file:
@@ -254,7 +254,7 @@ To include it in your configuration, provide the following namespace declaration
 ====
 
 [[inbound]]
-==== Inbound
+=== Inbound
 
 The XML namespace provides two components for handling HTTP inbound requests: `inbound-channel-adapter` and `inbound-gateway`.
 In order to process requests without returning a dedicated response, use the `inbound-channel-adapter`.
@@ -281,7 +281,7 @@ The following example shows how to configure one:
 ====
 
 [[http-request-mapping]]
-==== Request Mapping Support
+=== Request Mapping Support
 
 NOTE: Spring Integration 3.0 improved the REST support by introducing the https://docs.spring.io/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html[`IntegrationRequestMappingHandlerMapping`].
 The implementation relies on the enhanced REST support provided by Spring Framework 3.1 or higher.
@@ -358,7 +358,7 @@ IMPORTANT: The `IntegrationRequestMappingHandlerMapping` extends the Spring MVC 
 For this reason, configuring the same path for both Spring Integration and Spring MVC request mappings (e.g. `POST` in one and `GET` in the other) is not supported; the MVC mapping will not be found..
 
 [[http-cors]]
-==== Cross-origin Resource Sharing (CORS) Support
+=== Cross-origin Resource Sharing (CORS) Support
 
 Starting with version 4.2, you can configure the `<http:inbound-channel-adapter>` and `<http:inbound-gateway>` with a `<cross-origin>` element.
 It represents the same options as Spring MVC's `@CrossOrigin` for `@Controller` annotations and allows the configuration of cross-origin resource sharing (CORS) for Spring Integration HTTP endpoints:
@@ -388,7 +388,7 @@ The default value is 1800 seconds (30 minutes).
 The CORS Java Configuration is represented by the `org.springframework.integration.http.inbound.CrossOrigin` class, instances of which can be injected into the `HttpRequestHandlingEndpointSupport` beans.
 
 [[http-response-statuscode]]
-==== Response Status Code
+=== Response Status Code
 
 Starting with version 4.1, you can configure the `<http:inbound-channel-adapter>` with a `status-code-expression` to override the default `200 OK` status.
 The expression must return an object that can be converted to an `org.springframework.http.HttpStatus` enum value.
@@ -445,7 +445,7 @@ Previously, any exceptions were simply thrown, causing an HTTP 500 server error 
 See `ResponseStatusException` for more information.
 The `ErrorMessage` sent to this error channel contains the original exception as the payload for analysis.
 [[uri-template-variables-and-expressions]]
-==== URI Template Variables and Expressions
+=== URI Template Variables and Expressions
 
 By using the `path` attribute in conjunction with the `payload-expression` attribute and the `header` element, you have a high degree of flexibility for mapping inbound request data.
 
@@ -498,7 +498,7 @@ The following example configures a transformer that uses an `expression` attribu
 ====
 
 [[outbound]]
-==== Outbound
+=== Outbound
 
 To configure the outbound gateway, you can use the namespace support.
 The following code snippet shows the available configuration options for an outbound HTTP gateway:
@@ -594,7 +594,7 @@ For this reason, we recommend that, if you wish to generate the URL entirely at 
 =====
 
 [[mapping-uri-variables]]
-==== Mapping URI Variables
+=== Mapping URI Variables
 
 If your URL contains URI variables, you can map them by using the `uri-variable` element.
 This element is available for the HTTP outbound gateway and the HTTP outbound channel adapter.
@@ -719,7 +719,7 @@ List<NameValuePair> nameValuePairs =
 ====
 
 [[http-uri-encoding]]
-==== Controlling URI Encoding
+=== Controlling URI Encoding
 
 By default, the URL string is encoded (see https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[`UriComponentsBuilder`]) to the URI object before sending the request.
 In some scenarios with a non-standard URI (such as the RabbitMQ REST API), it is undesirable to perform the encoding.
@@ -743,7 +743,7 @@ The same configuration applies for similar outbound components in the <<./webflu
 For much sophisticated scenarios it is recommended to configure an `UriTemplateHandler` on the externally provided `RestTemplate`; or in case of WebFlux - `WebClient` with it `UriBuilderFactory`.
 
 [[http-java-config]]
-=== Configuring HTTP Endpoints with Java
+== Configuring HTTP Endpoints with Java
 
 The following example shows how to configure an inbound gateway with Java:
 
@@ -825,7 +825,7 @@ public IntegrationFlow outbound() {
 ====
 
 [[http-timeout]]
-=== Timeout Handling
+== Timeout Handling
 
 In the context of HTTP components, there are two timing areas that have to be considered:
 
@@ -909,7 +909,7 @@ This means, that depending on the implementation, the Message Channel's _send_ m
 Furthermore, the _sendTimeout_ property is only used, when the actual MessageChannel implementation has a blocking send (such as 'full' bounded QueueChannel).
 
 [[http-inbound-gateway]]
-==== HTTP Inbound Gateway
+=== HTTP Inbound Gateway
 
 For the HTTP inbound gateway, the XML Schema defines the `request-timeout` attribute, which is used to set the `requestTimeout` property on the `HttpRequestHandlingMessagingGateway` class (on the extended `MessagingGatewaySupport` class).
 You can also use the `reply-timeout` attribute to map to the `replyTimeout` property on the same class.
@@ -921,14 +921,14 @@ The `replyTimeout` property, on the other hand, is used to set the `receiveTimeo
 TIP: To simulate connection timeouts, you can connect to a non-routable IP address, such as 10.255.255.10.
 
 [[http-proxy]]
-=== HTTP Proxy configuration
+== HTTP Proxy configuration
 
 If you are behind a proxy and need to configure proxy settings for HTTP outbound adapters or gateways, you can apply one of two approaches.
 In most cases, you can rely on the standard Java system properties that control the proxy settings.
 Otherwise, you can explicitly configure a Spring bean for the HTTP client request factory instance.
 
 [[standard-java-proxy-configuration]]
-==== Standard Java Proxy configuration
+=== Standard Java Proxy configuration
 
 You can set three system properties to configure the proxy settings that are used by the HTTP protocol handler:
 
@@ -947,7 +947,7 @@ For HTTPS, the following properties are available:
 For more information, see https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
 
 [[spring-s-simpleclienthttprequestfactory]]
-==== Spring's `SimpleClientHttpRequestFactory`
+=== Spring's `SimpleClientHttpRequestFactory`
 
 If you need more explicit control over the proxy configuration, you can use Spring's `SimpleClientHttpRequestFactory` and configure its 'proxy' property, as the following example shows:
 
@@ -974,7 +974,7 @@ If you need more explicit control over the proxy configuration, you can use Spri
 ====
 
 [[http-header-mapping]]
-=== HTTP Header Mappings
+== HTTP Header Mappings
 
 Spring Integration provides support for HTTP header mapping for both HTTP Request and HTTP Responses.
 
@@ -1030,18 +1030,18 @@ The following example configures a header mapper for an HTTP gateway:
 If you need to do something other than what the `DefaultHttpHeaderMapper` supports, you can implement the `HeaderMapper` strategy interface directly and provide a reference to your implementation.
 
 [[int-graph-controller]]
-=== Integration Graph Controller
+== Integration Graph Controller
 
 Starting with version 4.3, the HTTP module provides an `@EnableIntegrationGraphController` configuration class annotation and an `<int-http:graph-controller/>` XML element to expose the `IntegrationGraphServer` as a REST service.
 See <<./graph.adoc#integration-graph,Integration Graph>> for more information.
 
 [[http-samples]]
-=== HTTP Samples
+== HTTP Samples
 
 This section wraps up our coverage of Spring Integration's HTTP support with a few examples.
 
 [[multipart-rest-inbound]]
-==== Multipart HTTP Request -- RestTemplate (Client) and Http Inbound Gateway (Server)
+=== Multipart HTTP Request -- RestTemplate (Client) and Http Inbound Gateway (Server)
 
 This example shows how simple it is to send a multipart HTTP request with Spring's `RestTemplate` and receive it with a Spring Integration HTTP inbound adapter.
 We create a `MultiValueMap` and populate it with multipart data.

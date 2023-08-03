@@ -1,5 +1,5 @@
 [[barrier]]
-=== Thread Barrier
+= Thread Barrier
 
 Sometimes, we need to suspend a message flow thread until some other asynchronous event occurs.
 For example, consider an HTTP request that publishes a message to RabbitMQ.

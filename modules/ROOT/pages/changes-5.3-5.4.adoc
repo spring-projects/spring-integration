@@ -1,11 +1,11 @@
 [[migration-5.3-5.4]]
-=== Changes between 5.3 and 5.4
+= Changes between 5.3 and 5.4
 
 [[x5.4-new-components]]
-=== New Components
+= New Components
 
 [[x5.4-sik]]
-==== Channel Adapters for Apache Kafka
+== Channel Adapters for Apache Kafka
 The standalone https://projects.spring.io/spring-integration-kafka/[Spring Integration for Apache Kafka] project has been merged as a `spring-integration-kafka` module to this project.
 
 The `KafkaProducerMessageHandler` `sendTimeoutExpression` default has changed.
@@ -15,31 +15,31 @@ You can now access the `Future<?>` for underlying `send()` operations.
 See <<./kafka.adoc#kafka,Spring for Apache Kafka Support>> for more information.
 
 [[x5.4-r2dbc]]
-==== R2DBC Channel Adapters
+== R2DBC Channel Adapters
 
 The Channel Adapters for R2DBC database interaction have been introduced.
 See <<./r2dbc.adoc#r2dbc,R2DBC Support>> for more information.
 
 [[x5.4-redis-stream]]
-==== Redis Stream Support
+== Redis Stream Support
 
 The Channel Adapters for Redis Stream support have been introduced.
 See <<./redis.adoc#redis-stream-outbound,Redis Stream Outbound Channel Adapter>> for more information.
 
 [[x5.4-renewable-lock]]
-==== Renewable Lock Registry
+== Renewable Lock Registry
 
 A Renewable lock registry has been introduced to allow renew lease of a distributed lock.
 See <<./jdbc.adoc#jdbc-lock-registry,JDBC implementation>> for more information.
 
 [[x5.4-zeromq]]
-==== ZeroMQ Support
+== ZeroMQ Support
 
 `ZeroMqChannel`, `ZeroMqMessageHandler` and `ZeroMqMessageProducer` have been introduced.
 See <<./zeromq.adoc#zeromq,ZeroMQ Support>> for more information.
 
 [[x5.4-general]]
-=== General Changes
+= General Changes
 
 The one-way messaging gateway (the `void` method return type) now sets a `nullChannel` explicitly into the `replyChannel` header to ignore any possible downstream replies.
 See <<./gateway.adoc#gateway-default-reply-channel,Setting the Default Reply Channel>> for more information.
@@ -56,7 +56,7 @@ The legacy metrics that were replaced by Micrometer meters have been removed.
 The <<./barrier.adoc#barrier,Thread Barrier>> has now two separate timeout options: `requestTimeout` and `triggerTimeout`.
 
 [[x5.4-tcp]]
-=== TCP/UDP Changes
+= TCP/UDP Changes
 
 Connection factories now support multiple sending components (`TcpSender`); they remain limited to one receiving component (`TcpListener`).
 This allows, for example, an inbound gateway and outbound channel adapter to share the same factory, supporting both request/reply and arbitrary messaging from the server to the client.
@@ -67,7 +67,7 @@ The UDP channel adapters can now be configured with a `SocketCustomizer` which a
 See <<./ip.adoc#udp-adapters,UDP Adapters>> for more information.
 
 [[x5.4-amqp]]
-=== AMQP Changes
+= AMQP Changes
 
 The outbound endpoints now have a new mechanism for handling publisher confirms and returns.
 See <<./amqp.adoc#alternative-confirms-returns,Alternative Mechanism for Publisher Confirms and Returns>> for more information.
@@ -76,7 +76,7 @@ A new `BatchMode.EXTRACT_PAYLOAD_WITH_HEADERS` is supported by the `AmqpInboundC
 See <<./amqp.adoc#amqp-inbound-channel-adapter,Inbound Channel Adapter>> for more information.
 
 [[x5.4-mail]]
-=== Mail Changes
+= Mail Changes
 
 The `AbstractMailReceiver` can now produce the `MimeMessage` as-is without eager fetching its content.
 See <<./mail.adoc#mail-inbound, Mail-receiving Channel Adapter>> for more information.

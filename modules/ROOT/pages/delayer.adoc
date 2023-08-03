@@ -1,5 +1,5 @@
 [[delayer]]
-=== Delayer
+= Delayer
 
 A delayer is a simple endpoint that lets a message flow be delayed by a certain interval.
 When a message is delayed, the original sender does not block.
@@ -9,7 +9,7 @@ On the contrary, in the typical case, a thread pool is used for the actual execu
 This section contains several examples of configuring a delayer.
 
 [[delayer-namespace]]
-==== Configuring a Delayer
+== Configuring a Delayer
 
 The `<delayer>` element is used to delay the message flow between two message channels.
 As with the other endpoints, you can provide the 'input-channel' and 'output-channel' attributes, but the delayer also has 'default-delay' and 'expression' attributes (and the 'expression' element) that determine the number of milliseconds by which each message should be delayed.
@@ -146,7 +146,7 @@ This error handling is performed after a transaction rolls back (if present).
 See <<delayer-release-failures>>.
 
 [[delayer-message-store]]
-==== Delayer and a Message Store
+== Delayer and a Message Store
 
 The `DelayHandler` persists delayed messages into the message group in the provided `MessageStore`.
 (The 'groupId' is based on the required 'id' attribute of the `<delayer>` element.
@@ -205,7 +205,7 @@ This is necessary to prevent a race condition, where the scheduled release could
 In this case, the message will be released after the delay, or after the transaction commits, whichever is later.
 
 [[delayer-release-failures]]
-==== Release Failures
+== Release Failures
 
 Starting with version 5.0.8, there are two new properties on the delayer:
 

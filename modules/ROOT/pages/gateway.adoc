@@ -1,12 +1,12 @@
 [[gateway]]
-=== Messaging Gateways
+= Messaging Gateways
 
 A gateway hides the messaging API provided by Spring Integration.
 It lets your application's business logic be unaware of the Spring Integration API.
 By using a generic Gateway, your code interacts with only a simple interface.
 
 [[gateway-proxy]]
-==== Enter the `GatewayProxyFactoryBean`
+== Enter the `GatewayProxyFactoryBean`
 
 As mentioned earlier, it would be great to have no dependency on the Spring Integration API -- including the gateway class.
 For that reason, Spring Integration provides the `GatewayProxyFactoryBean`, which generates a proxy for any interface and internally invokes the gateway methods shown below.
@@ -28,7 +28,7 @@ public interface Cafe {
 ====
 
 [[gateway-namespace]]
-==== Gateway XML Namespace Support
+== Gateway XML Namespace Support
 
 Namespace support is also provided.
 It lets you configure an interface as a service, as the following example shows:
@@ -55,7 +55,7 @@ The defaults can be overridden for individual methods.
 See <<gateway-configuration-annotations>>.
 
 [[gateway-default-reply-channel]]
-==== Setting the Default Reply Channel
+== Setting the Default Reply Channel
 
 Typically, you need not specify the `default-reply-channel`, since a Gateway auto-creates a temporary, anonymous reply channel, where it listens for the reply.
 However, some cases may prompt you to define a `default-reply-channel` (or `reply-channel` with adapter gateways, such as HTTP, JMS, and others).
@@ -85,7 +85,7 @@ NOTE: Starting with version 5.4, when gateway method return type is `void`, the 
 This allows any possible reply from the downstream flow to be discarded, meeting the one-way gateway contract.
 
 [[gateway-configuration-annotations]]
-==== Gateway Configuration with Annotations and XML
+== Gateway Configuration with Annotations and XML
 
 Consider the following example, which expands on the previous `Cafe` interface example by adding a `@Gateway` annotation:
 
@@ -159,7 +159,7 @@ IMPORTANT: If you specify, for example, the `requestChannel` in `<int:method/>` 
 NOTE: If a no-argument gateway is specified in XML, and the interface method has both a `@Payload` and `@Gateway` annotation (with a `payloadExpression` or a `payload-expression` in an `<int:method/>` element), the `@Payload` value is ignored.
 
 [[gateway-expressions]]
-===== Expressions and "`Global`" Headers
+=== Expressions and "`Global`" Headers
 
 The `<header/>` element supports `expression` as an alternative to `value`.
 The SpEL expression is evaluated to determine the value of the header.
@@ -179,7 +179,7 @@ However, default headers do NOT override any `@Header` annotations in the servic
 The gateway now also supports a `default-payload-expression`, which is applied for all methods (unless overridden).
 
 [[gateway-mapping]]
-==== Mapping Method Arguments to a Message
+== Mapping Method Arguments to a Message
 
 Using the configuration techniques in the previous section allows control of how method arguments are mapped to message elements (payload and headers).
 When no explicit configuration is used, certain conventions are used to perform the mapping.
@@ -208,7 +208,7 @@ When providing a custom mapper, the `default-payload-expression` attribute and `
 Similarly, the `payload-expression` attribute and `<header/>` elements are not allowed on any `<method/>` elements.
 
 [[mapping-method-arguments]]
-===== Mapping Method Arguments
+=== Mapping Method Arguments
 
 The following examples show how method arguments can be mapped to the message and shows some examples of invalid configuration:
 
@@ -273,7 +273,7 @@ However, expressions can refer to method arguments by using the `args` property 
 ====
 
 [[messaging-gateway-annotation]]
-==== `@MessagingGateway` Annotation
+== `@MessagingGateway` Annotation
 
 Starting with version 4.0, gateway service interfaces can be marked with a `@MessagingGateway` annotation instead of requiring the definition of a `<gateway />` xml element for configuration.
 The following pair of examples compares the two approaches for configuring the same gateway:
@@ -332,7 +332,7 @@ NOTE: If you have no XML configuration, the `@EnableIntegration` annotation is r
 See <<./overview.adoc#configuration-enable-integration,Configuration and `@EnableIntegration`>> for more information.
 
 [[gateway-calling-no-argument-methods]]
-==== Invoking No-Argument Methods
+== Invoking No-Argument Methods
 
 When invoking methods on a Gateway interface that do not have any arguments, the default behavior is to receive a `Message` from a `PollableChannel`.
 
@@ -379,14 +379,14 @@ Also see <<gateway-configuration-annotations>>.
 If a method has no argument and no return value but does contain a payload expression, it is treated as a send-only operation.
 
 [[gateway-calling-default-methods]]
-==== Invoking `default` Methods
+== Invoking `default` Methods
 
 An interface for gateway proxy may have `default` methods as well and starting with version 5.3, the framework injects a `DefaultMethodInvokingMethodInterceptor` into a proxy for calling `default` methods using a `java.lang.invoke.MethodHandle` approach instead of proxying.
 The interfaces from JDK, such as `java.util.function.Function`, still can be used for gateway proxy, but their `default` methods cannot be called because of internal Java security reasons for a `MethodHandles.Lookup` instantiation against JDK classes.
 These methods also can be proxied (losing their implementation logic and, at the same time, restoring previous gateway proxy behavior) using an explicit `@Gateway` annotation on the method, or `proxyDefaultMethods` on the `@MessagingGateway` annotation or `<gateway>` XML component.
 
 [[gateway-error-handling]]
-==== Error Handling
+== Error Handling
 
 The gateway invocation can result in errors.
 By default, any error that occurs downstream is re-thrown "`as is`" upon the gateway's method invocation.
@@ -504,7 +504,7 @@ The https://github.com/spring-projects/spring-integration-samples/tree/main/inte
 It emulates a socket IO error to the waiting thread by using an `aggregator` with `group-timeout` (see <<./aggregator.adoc#agg-and-group-to,Aggregator and Group Timeout>>) and a `MessagingTimeoutException` reply on the discard flow.
 
 [[gateway-timeouts]]
-==== Gateway Timeouts
+== Gateway Timeouts
 
 Gateways have two timeout properties: `requestTimeout` and `replyTimeout`.
 The request timeout applies only if the channel can block (for example, a bounded `QueueChannel` that is full).
@@ -541,7 +541,7 @@ When configuring with XML, the timeout attributes can be a long value or a SpEL 
 ====
 
 [[async-gateway]]
-==== Asynchronous Gateway
+== Asynchronous Gateway
 
 As a pattern, the messaging gateway offers a nice way to hide messaging-specific code while still exposing the full capabilities of the messaging system.
 As <<gateway-proxy,described earlier>>, the `GatewayProxyFactoryBean` provides a convenient way to expose a proxy over a service-interface giving you POJO-based access to a messaging system (based on objects in your own domain, primitives/Strings, or other objects).
@@ -591,7 +591,7 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);
 For a more detailed example, see the https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/async-gateway[async-gateway] sample in the Spring Integration samples.
 
 [[gateway-asynctaskexecutor]]
-===== `AsyncTaskExecutor`
+=== `AsyncTaskExecutor`
 
 By default, the `GatewayProxyFactoryBean` uses `org.springframework.core.task.SimpleAsyncTaskExecutor` when submitting internal `AsyncInvocationTask` instances for any gateway method whose return type is a `Future`.
 However, the `async-executor` attribute in the `<gateway/>` element's configuration lets you provide a reference to any implementation of `java.util.concurrent.Executor` available within the Spring application context.
@@ -641,7 +641,7 @@ public interface NoExecGateway {
 IMPORTANT: If the return type is a specific concrete `Future` implementation or some other sub-interface that is not supported by the configured executor, the flow runs on the caller's thread and the flow must return the required type in the reply message payload.
 
 [[gw-completable-future]]
-===== `CompletableFuture`
+=== `CompletableFuture`
 
 Starting with version 4.2, gateway methods can now return `CompletableFuture<?>`.
 There are two modes of operation when returning this type:
@@ -656,7 +656,7 @@ NOTE: The `org.springframework.util.concurrent.ListenableFuture` has been deprec
 It is recommended now to migrate to the `CompletableFuture` which provides similar processing functionality.
 
 [[usage-scenarios]]
-====== Usage Scenarios
+==== Usage Scenarios
 
 In the following scenario, the caller thread returns immediately with a `CompletableFuture<Invoice>`, which is completed when the downstream flow replies to the gateway (with an `Invoice` object).
 
@@ -723,7 +723,7 @@ String out = result.get(10, TimeUnit.SECONDS);
 ====
 
 [[reactor-mono]]
-===== Reactor `Mono`
+=== Reactor `Mono`
 
 Starting with version 5.0, the `GatewayProxyFactoryBean` allows the use of https://projectreactor.io/[Project Reactor] with gateway interface methods, using a https://github.com/reactor/reactor-core[`Mono<T>`] return type.
 The internal `AsyncInvocationTask` is wrapped in a `Mono.fromCallable()`.
@@ -788,13 +788,13 @@ The calling thread continues, with `handleInvoice()` being called when the flow 
 Also see <<./kotlin-functions.adoc#kotlin-coroutines,Kotlin Coroutines>> for more information.
 
 [[downstream-flows-returning-an-asynchronous-type]]
-===== Downstream Flows Returning an Asynchronous Type
+=== Downstream Flows Returning an Asynchronous Type
 
 As mentioned in the <<gateway-asynctaskexecutor>> section above, if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, and others), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
 The flow is then invoked on the caller thread and the result can be retrieved later.
 
 [[asynchronous-void-return-type]]
-===== Asynchronous `void` Return Type
+=== Asynchronous `void` Return Type
 
 The messaging gateway method can be declared like this:
 
@@ -823,7 +823,7 @@ The `Mono` use-case is already out of the framework threading control, so settin
 There `Mono<Void>` as a result of the request-reply gateway operation must be configured as a `Mono<?>` return type of the gateway method.
 
 [[gateway-no-response]]
-==== Gateway Behavior When No response Arrives
+== Gateway Behavior When No response Arrives
 
 As <<gateway-proxy,explained earlier>>, the gateway provides a convenient way of interacting with a messaging system through POJO method invocations.
 However, a typical method invocation, which is generally expected to always return (even with an Exception), might not always map one-to-one to message exchanges (for example, a reply message might not arrive -- the equivalent to a method not returning).
@@ -835,7 +835,7 @@ We examine the `reply-timeout` attribute to see how it can and cannot influence 
 We examine a single-threaded scenario (all components downstream are connected through a direct channel) and multi-threaded scenarios (for example, somewhere downstream you may have a pollable or executor channel that breaks the single-thread boundary).
 
 [[long-running-process-downstream]]
-===== Long-running Process Downstream
+=== Long-running Process Downstream
 
 Sync Gateway, single-threaded::
 If a component downstream is still running (perhaps because of an infinite loop or a slow service), setting a `reply-timeout` has no effect, and the gateway method call does not return until the downstream service exits (by returning or throwing an exception).
@@ -845,7 +845,7 @@ However, if the timeout has been reached before the actual reply was produced, i
 You should understand that the reply message (if produced) is sent to a reply channel after the gateway method invocation might have returned, so you must be aware of that and design your flow with it in mind.
 
 [[downstream-component-returns-null-]]
-===== Downstream Component Returns 'null'
+=== Downstream Component Returns 'null'
 
 Sync Gateway -- single-threaded::
 If a component downstream returns 'null' and the `reply-timeout` has been configured to negative value, the gateway method call hangs indefinitely, unless the `requires-reply` attribute has been set on the downstream component (for example, a service activator) that might return 'null'.
@@ -854,7 +854,7 @@ Sync Gateway -- multi-threaded::
 The behavior is the same as the previous case.
 
 [[downstream-component-return-signature-is-void-while-gateway-method-signature-is-non-void]]
-===== Downstream Component Return Signature is 'void' While Gateway Method Signature Is Non-void
+=== Downstream Component Return Signature is 'void' While Gateway Method Signature Is Non-void
 
 Sync Gateway -- single-threaded::
 If a component downstream returns 'void' and the `reply-timeout` has been configured to negative value, the gateway method call hangs indefinitely.
@@ -862,7 +862,7 @@ Sync Gateway -- multi-threaded::
 The behavior is the same as the previous case.
 
 [[downstream-component-results-in-runtime-exception]]
-===== Downstream Component Results in Runtime Exception
+=== Downstream Component Results in Runtime Exception
 
 Sync Gateway -- single-threaded::
 If a component downstream throws a runtime exception, the exception is propagated through an error message back to the gateway and re-thrown.

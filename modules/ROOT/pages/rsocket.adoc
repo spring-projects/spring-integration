@@ -1,5 +1,5 @@
 [[rsocket]]
-== RSocket Support
+= RSocket Support
 
 The RSocket Spring Integration module (`spring-integration-rsocket`) allows for executions of https://rsocket.io/[RSocket application protocol].
 
@@ -118,7 +118,7 @@ Both `ClientRSocketConnector` and `ServerRSocketConnector` are responsible for m
 See the next section for more information.
 
 [[rsocket-inbound]]
-=== RSocket Inbound Gateway
+== RSocket Inbound Gateway
 
 The `RSocketInboundGateway` is responsible for receiving RSocket requests and producing responses (if any).
 It requires an array of `path` mapping which could be as patterns similar to MVC request mapping or `@MessageMapping` semantics.
@@ -146,7 +146,7 @@ However the target decoding logic depends on the `Decoder` selected, e.g. a `Str
 See <<rsocket-java-config>> for samples how to configure an `RSocketInboundGateway` endpoint and deal with payloads downstream.
 
 [[rsocket-outbound]]
-=== RSocket Outbound Gateway
+== RSocket Outbound Gateway
 
 The `RSocketOutboundGateway` is an `AbstractReplyProducingMessageHandler` to perform requests into RSocket and produce replies based on the RSocket replies (if any).
 A low level RSocket protocol interaction is delegated into an `RSocketRequester` resolved from the provided `ClientRSocketConnector` or from the `RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER` header in the request message on the server side.
@@ -194,7 +194,7 @@ However, the `outputChannel` still has to be configured (even if it just a `Null
 See <<rsocket-java-config>> for samples how to configure an `RSocketOutboundGateway` endpoint a deal with payloads downstream.
 
 [[rsocket-namespace]]
-=== RSocket Namespace Support
+== RSocket Namespace Support
 
 Spring Integration provides an `rsocket` namespace and the corresponding schema definition.
 To include it in your configuration, add the following namespace declaration in your application context configuration file:
@@ -220,7 +220,7 @@ To include it in your configuration, add the following namespace declaration in 
 ====
 
 [[inbound]]
-==== Inbound
+=== Inbound
 
 To configure Spring Integration RSocket inbound channel adapters with XML, you need to use an appropriate `inbound-gateway` components from the `int-rsocket` namespace.
 The following example shows how to configure it:
@@ -241,7 +241,7 @@ The following example shows how to configure it:
 A `ClientRSocketConnector` and `ServerRSocketConnector` should be configured as generic `<bean>` definitions.
 
 [[outbound]]
-==== Outbound
+=== Outbound
 
 ====
 [source, xml]
@@ -261,7 +261,7 @@ A `ClientRSocketConnector` and `ServerRSocketConnector` should be configured as 
 See `spring-integration-rsocket.xsd` for description for all those XML attributes.
 
 [[rsocket-java-config]]
-=== Configuring RSocket Endpoints with Java
+== Configuring RSocket Endpoints with Java
 
 The following example shows how to configure an RSocket inbound endpoint with Java:
 

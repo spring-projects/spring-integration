@@ -1,5 +1,5 @@
 [[integration-graph]]
-=== Integration Graph
+= Integration Graph
 
 Starting with version 4.3, Spring Integration provides access to an application's runtime object model, which can, optionally, include component metrics.
 It is exposed as a graph, which may be used to visualize the current state of the integration application.
@@ -168,7 +168,7 @@ server.setAdditionalPropertiesCallback(namedComponent -> {
 ====
 
 [[graph-runtime-model]]
-==== Graph Runtime Model
+== Graph Runtime Model
 
 Spring Integration components have various levels of complexity.
 For example, any polled `MessageSource` also has a `SourcePollingChannelAdapter` and a `MessageChannel` to which to periodically send messages from the source data.
@@ -243,7 +243,7 @@ Version 5.3 introduced an `IntegrationPattern` abstraction and all out-of-the-bo
 This information can be useful for some categorizing logic in the target application or, being exposed into the graph node, it can be used by a UI to determine how to draw the component.
 
 [[integration-graph-controller]]
-=== Integration Graph Controller
+= Integration Graph Controller
 
 If your application is web-based (or built on top of Spring Boot with an embedded web container) and the Spring Integration HTTP or WebFlux module (see <<./http.adoc#http,HTTP Support>> and <<./webflux.adoc#webflux,WebFlux Support>>, respectively) is present on the classpath, you can use a `IntegrationGraphController` to expose the `IntegrationGraphServer` functionality as a REST service.
 For this purpose, the `@EnableIntegrationGraphController` and `@Configuration` class annotations and the `<int-http:graph-controller/>` XML element are available in the HTTP module.

@@ -1,5 +1,5 @@
 [[message-handler-advice-chain]]
-=== Adding Behavior to Endpoints
+= Adding Behavior to Endpoints
 
 Prior to Spring Integration 2.2, you could add behavior to an entire Integration flow by adding an AOP Advice to a poller's `<advice-chain/>` element.
 However, suppose you want to retry, say, just a REST Web Service call, and not any downstream endpoints.
@@ -47,7 +47,7 @@ For chains that produce a reply, every child element can be advised.
 =====
 
 [[advice-classes]]
-==== Provided Advice Classes
+== Provided Advice Classes
 
 In addition to providing the general mechanism to apply AOP advice classes, Spring Integration provides these out-of-the-box advice implementations:
 
@@ -62,7 +62,7 @@ In addition to providing the general mechanism to apply AOP advice classes, Spri
 [[expression-advice]]
 
 [[retry-advice]]
-===== Retry Advice
+=== Retry Advice
 
 The retry advice (`o.s.i.handler.advice.RequestHandlerRetryAdvice`) leverages the rich retry mechanisms provided by the https://github.com/spring-projects/spring-retry[Spring Retry] project.
 The core component of `spring-retry` is the `RetryTemplate`, which allows configuration of sophisticated retry scenarios, including `RetryPolicy` and `BackoffPolicy` strategies (with a number of implementations) as well as a `RecoveryCallback` strategy to determine the action to take when retries are exhausted.
@@ -84,7 +84,7 @@ Using a back off policy that causes threads to pause between attempts may cause 
 In high-volume environments, back off policies should be used with caution.
 
 [[retry-config]]
-====== Configuring the Retry Advice
+==== Configuring the Retry Advice
 
 The examples in this section use the following `<service-activator>` that always throws an exception:
 
@@ -335,7 +335,7 @@ Then you can inject this policy into the `RetryTemplate`.
 IMPORTANT: `traverseCauses` is required in this case because user exceptions may be wrapped in a `MessagingException`.
 
 [[circuit-breaker-advice]]
-===== Circuit Breaker Advice
+=== Circuit Breaker Advice
 
 The general idea of the circuit breaker pattern is that, if a service is not currently available, do not waste time (and resources) trying to use it.
 The `o.s.i.handler.advice.RequestHandlerCircuitBreakerAdvice` implements this pattern.
@@ -398,7 +398,7 @@ The fifth request was attempted because the request was 15 seconds after the las
 The sixth attempt fails immediately because the breaker immediately went to open.
 
 [[expression-advice]]
-===== Expression Evaluating Advice
+=== Expression Evaluating Advice
 
 The final supplied advice class is the `o.s.i.handler.advice.ExpressionEvaluatingRequestHandlerAdvice`.
 This advice is more general than the other two advices.
@@ -473,7 +473,7 @@ public class EerhaApplication {
 ====
 
 [[rate-limiter-advice]]
-===== Rate Limiter Advice
+=== Rate Limiter Advice
 
 The Rate Limiter advice (`RateLimiterRequestHandlerAdvice`) allows to ensure that an endpoint does not get overloaded with requests.
 When the rate limit is breached the request will go in a blocked state.
@@ -504,7 +504,7 @@ public String handleRequest(String payload) {
 ====
 
 [[cache-advice]]
-===== Caching Advice
+=== Caching Advice
 
 Starting with version 5.2, the `CacheRequestHandlerAdvice` has been introduced.
 It is based on the caching abstraction in https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#cache[Spring Framework] and aligned with the concepts and functionality provided by the `@Caching` annotation family.
@@ -555,7 +555,7 @@ public Message<?> service(Message<?> message) {
 ====
 
 [[reactive-advice]]
-==== Reactive Advice
+== Reactive Advice
 
 Starting with version 5.3, a `ReactiveRequestHandlerAdvice` can be used for request message handlers producing a `Mono` replies.
 A `BiFunction<Message<?>, Mono<?>, Publisher<?>>` has to be provided for this advice and it is called from the `Mono.transform()` operator on a reply produced by the intercepted `handleRequestMessage()` method implementation.
@@ -575,7 +575,7 @@ The `mono` argument is the result of this message handler's `handleRequestMessag
 A nested `Mono.transform()` can also be called from this function to apply, for example, a https://spring.io/projects/spring-cloud-circuitbreaker[Reactive Circuit Breaker].
 
 [[context-holder-advice]]
-==== Context Holder Advice
+== Context Holder Advice
 
 Starting with version 6.1, the `ContextHolderRequestHandlerAdvice` has been introduced.
 This advice takes some value from the request message as and stores it in the context holder.
@@ -613,7 +613,7 @@ When the result is produced from the `FtpOutboundGateway`, a `ThreadLocal` value
 See <<./ftp.adoc#ftp-dsf,Delegating Session Factory>> for more information.
 
 [[custom-advice]]
-==== Custom Advice Classes
+== Custom Advice Classes
 
 In addition to the provided advice classes <<advice-classes,described earlier>>, you can implement your own advice classes.
 While you can provide any implementation of `org.aopalliance.aop.Advice` (usually `org.aopalliance.intercept.MethodInterceptor`), we generally recommend that you subclass `o.s.i.handler.advice.AbstractRequestHandlerAdvice`.
@@ -680,12 +680,12 @@ For more information, see the https://docs.spring.io/spring-framework/docs/curre
 =====
 
 [[other-advice]]
-==== Other Advice Chain Elements
+== Other Advice Chain Elements
 
 While the abstract class mentioned above is a convenience, you can add any `Advice`, including a transaction advice, to the chain.
 
 [[handle-message-advice]]
-==== Handling Message Advice
+== Handling Message Advice
 
 As discussed in <<message-handler-advice-chain, the introduction to this section>>, advice objects in a request handler advice chain are applied to just the current endpoint, not the downstream flow (if any).
 For `MessageHandler` objects that produce a reply (such as those that extend `AbstractReplyProducingMessageHandler`), the advice is applied to an internal method: `handleRequestMessage()` (called from `MessageHandler.handleMessage()`).
@@ -728,7 +728,7 @@ Starting with version 5.3, the `HandleMessageAdviceAdapter` is provided to apply
 For example, a `RetryOperationsInterceptor` could be applied to the whole sub-flow starting from some endpoint; this is not possible, by default, because the consumer endpoint applies advices only to the `AbstractReplyProducingMessageHandler.RequestHandler.handleRequestMessage()`.
 
 [[tx-handle-message-advice]]
-==== Transaction Support
+== Transaction Support
 
 Starting with version 5.0, a new `TransactionHandleMessageAdvice` has been introduced to make the whole downstream flow transactional, thanks to the `HandleMessageAdvice` implementation.
 When a regular `TransactionInterceptor` is used in the `<request-handler-advice-chain>` element (for example, through configuring `<tx:advice>`), a started transaction is applied only for an internal `AbstractReplyProducingMessageHandler.handleRequestMessage()` and is not propagated to the downstream flow.
@@ -805,7 +805,7 @@ public IntegrationFlow updatingGatewayFlow() {
 ====
 
 [[advising-filters]]
-==== Advising Filters
+== Advising Filters
 
 There is an additional consideration when advising `Filter` advices.
 By default, any discard actions (when the filter returns `false`) are performed within the scope of the advice chain.
@@ -816,7 +816,7 @@ Also, if `throwExceptionOnRejection` is set to `true` (the exception is thrown w
 Setting `discard-within-advice` to `false` modifies this behavior and the discard (or exception) occurs after the advice chain is called.
 
 [[advising-with-annotations]]
-==== Advising Endpoints Using Annotations
+== Advising Endpoints Using Annotations
 
 When configuring certain endpoints by using annotations (`@Filter`, `@ServiceActivator`, `@Splitter`, and `@Transformer`), you can supply a bean name for the advice chain in the `adviceChain` attribute.
 In addition, the `@Filter` annotation also has the `discardWithinAdvice` attribute, which can be used to configure the discard behavior, as discussed in <<advising-filters>>.
@@ -836,7 +836,7 @@ public class MyAdvisedFilter {
 ----
 
 [[advice-order]]
-==== Ordering Advices within Advice Chain
+== Ordering Advices within Advice Chain
 
 Advice classes are "`around`" advices and are applied in a nested fashion.
 The first advice is the outermost, while the last advice is the innermost (that is, closest to the handler being advised).
@@ -848,7 +848,7 @@ Consequently, each retry is performed in a new transaction.
 On the other hand, if you want all the attempts and any recovery operations (in the retry `RecoveryCallback`) to be scoped within the transaction, you could put the transaction advice first.
 
 [[advised-handler-properties]]
-==== Advised Handler Properties
+== Advised Handler Properties
 
 Sometimes, it is useful to access handler properties from within the advice.
 For example, most handlers implement `NamedComponent` to let you access the component name.
@@ -887,7 +887,7 @@ String componentName = handler.getComponentName();
 ====
 
 [[idempotent-receiver]]
-==== Idempotent Receiver Enterprise Integration Pattern
+== Idempotent Receiver Enterprise Integration Pattern
 
 Starting with version 4.1, Spring Integration provides an implementation of the https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html[Idempotent Receiver] Enterprise Integration Pattern.
 It is a functional pattern and the whole idempotency logic should be implemented in the application.

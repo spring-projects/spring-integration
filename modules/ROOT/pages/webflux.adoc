@@ -1,5 +1,5 @@
 [[webflux]]
-== WebFlux Support
+= WebFlux Support
 
 The WebFlux Spring Integration module (`spring-integration-webflux`) allows for the execution of HTTP requests and the processing of inbound HTTP requests in a reactive manner.
 
@@ -29,7 +29,7 @@ The support is fully based on the Spring https://docs.spring.io/spring/docs/curr
 See <<./http.adoc#http,HTTP Support>> for more information, since many options are shared between reactive and regular HTTP components.
 
 [[webflux-namespace]]
-=== WebFlux Namespace Support
+== WebFlux Namespace Support
 
 Spring Integration provides a `webflux` namespace and the corresponding schema definition.
 To include it in your configuration, add the following namespace declaration in your application context configuration file:
@@ -55,7 +55,7 @@ To include it in your configuration, add the following namespace declaration in 
 ====
 
 [[webflux-inbound]]
-=== WebFlux Inbound Components
+== WebFlux Inbound Components
 
 Starting with version 5.0, the `WebFluxInboundEndpoint` implementation of `WebHandler` is provided.
 This component is similar to the MVC-based `HttpRequestHandlingEndpointSupport`, with which it shares some common options through the newly extracted `BaseHttpInboundEndpoint`.
@@ -203,7 +203,7 @@ See <<./http.adoc#http-request-mapping,Request Mapping Support>> and <<./http.ad
 When the request body is empty or `payloadExpression` returns `null`, the request params (`MultiValueMap<String, String>`) is used for a `payload` of the target message to process.
 
 [[webflux-validation]]
-==== Payload Validation
+=== Payload Validation
 
 Starting with version 5.2, the `WebFluxInboundEndpoint` can be configured with a `Validator`.
 Unlike the MVC validation in the <<./http.adoc#http-validation,HTTP Support>>, it is used to validate elements in the `Publisher` to which a request has been converted by the `HttpMessageReader`, before performing a fallback and `payloadExpression` functions.
@@ -214,7 +214,7 @@ An invalid payload is rejected with an `IntegrationWebExchangeBindException` (a 
 See more in Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#validation[Reference Manual] about validation.
 
 [[webflux-outbound]]
-=== WebFlux Outbound Components
+== WebFlux Outbound Components
 
 The `WebFluxRequestExecutingMessageHandler` (starting with version 5.0) implementation is similar to `HttpRequestExecutingMessageHandler`.
 It uses a `WebClient` from the Spring Framework WebFlux module.
@@ -315,13 +315,13 @@ If a body is not present in the `ResponseEntity`, this flag is ignored and the w
 See <<./http.adoc#http-outbound,HTTP Outbound Components>> for more possible configuration options.
 
 [[webflux-header-mapping]]
-=== WebFlux Header Mappings
+== WebFlux Header Mappings
 
 Since WebFlux components are fully based on the HTTP protocol, there is no difference in the HTTP headers mapping.
 See <<./http.adoc#http-header-mapping,HTTP Header Mappings>> for more possible options and components to use for mapping headers.
 
 [[webflux-request-attributes]]
-=== WebFlux Request Attributes
+== WebFlux Request Attributes
 
 Starting with version 6.0, the `WebFluxRequestExecutingMessageHandler` can be configured to evaluate request attributes via `setAttributeVariablesExpression()`.
 This SpEL expression must be evaluated in `Map`.

@@ -1,11 +1,11 @@
 [[metrics-management]]
-=== Metrics and Management
+= Metrics and Management
 
 This section describes how to capture metrics for Spring Integration.
 In recent versions, we have relied more on Micrometer (see https://micrometer.io), and we plan to use Micrometer even more in future releases.
 
 [[disabling-logging-in-high-volume-environments]]
-==== Disabling Logging in High Volume Environments
+== Disabling Logging in High Volume Environments
 
 You can control debug logging in the main message flow.
 In very high volume applications, calls to `isDebugEnabled()` can be quite expensive with some logging subsystems.
@@ -41,10 +41,10 @@ The default is `true`.
 IMPORTANT: `defaultLoggingEnabled` is applied only if you have not explicitly configured the corresponding setting in a bean definition.
 
 [[micrometer-integration]]
-==== Micrometer Integration
+== Micrometer Integration
 
 [[overview]]
-===== Overview
+=== Overview
 
 Starting with version 5.0.3, the presence of a https://micrometer.io/[Micrometer] `MeterRegistry` in the application context triggers support for Micrometer metrics.
 
@@ -118,7 +118,7 @@ and
 * `description`: `The remaining capacity of the queue channel`
 
 [[disabling-meters]]
-===== Disabling Meters
+=== Disabling Meters
 
 By default, all meters are registered when first used.
 Now, with Micrometer, you can add `MeterFilter` s to the `MeterRegistry` to prevent some or all from being registered.
@@ -149,7 +149,7 @@ registry.config().meterFilter(MeterFilter.deny(id ->
 ====
 
 [[micrometer-observation]]
-==== Micrometer Observation
+== Micrometer Observation
 
 Starting with version 6.0, Spring Integration utilizes a Micrometer Observation abstraction which can handle metrics as well as https://micrometer.io/docs/tracing[tracing] via appropriate `ObservationHandler` configuration.
 
@@ -185,7 +185,7 @@ include::./generated/spans.adoc[leveloffset=+2]
 include::./generated/conventions.adoc[leveloffset=+2]
 
 [[observation-propagation]]
-==== Observation Propagation
+== Observation Propagation
 
 To supply a connected chain of spans in one trace, independently of the nature of the messaging flow, Spring Integration provides an `ObservationPropagationChannelInterceptor` implementation.
 This can be configured on `MessageChannnel` beans individually or as a `@GlobalChannelInterceptor` with respective `MessageChannnel` bean names pattern matching.
@@ -193,6 +193,6 @@ The goal of this interceptor is to propagate an `Observation` from the producer 
 A `DirectChannel`, though, is ignored since its consumer is executed directly on the producer thread.
 
 [[spring-integration-jmx-support]]
-==== Spring Integration JMX Support
+== Spring Integration JMX Support
 
 Also see <<./jmx.adoc#jmx,JMX Support>>.

@@ -1,5 +1,5 @@
 [[spel]]
-== Spring Expression Language (SpEL)
+= Spring Expression Language (SpEL)
 
 You can configure many Spring Integration components by using expressions written in the https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions[Spring Expression Language].
 
@@ -14,7 +14,7 @@ A `MapAccessor` enables accessing values in a `Map` by using a key and a `Reflec
 This is how you can access the `Message` headers and payload properties.
 
 [[spel-customization]]
-=== SpEL Evaluation Context Customization
+== SpEL Evaluation Context Customization
 
 Starting with Spring Integration 3.0, you can add additional `PropertyAccessor` instances to the SpEL evaluation contexts used by the framework.
 The framework provides the (read-only) `JsonPropertyAccessor`, which you can use to access fields from a `JsonNode` or JSON in a `String`.
@@ -81,7 +81,7 @@ In the following example, SpEL expressions always use the bean factory's class l
 ====
 
 [[spel-functions]]
-=== SpEL Functions
+== SpEL Functions
 
 Spring Integration provides namespace support to let you create SpEL custom functions.
 You can specify `<spel-function/>` components to provide https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions-ref-functions[custom SpEL functions] to the `EvaluationContext` used throughout the framework.
@@ -128,7 +128,7 @@ NOTE: SpEL functions declared in a parent context are also made available in any
 Each context has its own instance of the `integrationEvaluationContext` factory bean, because each needs a different `BeanResolver`, but the function declarations are inherited and can be overridden by declaring a SpEL function with the same name.
 
 [[built-in-spel-functions]]
-==== Built-in SpEL Functions
+=== Built-in SpEL Functions
 
 Spring Integration provides the folloiwng  standard functions, which are registered with the application context automatically on start up:
 
@@ -163,7 +163,7 @@ For more information regarding JSON see 'JSON Transformers' in <<./transformer.a
 For more information regarding XML and XPath, see <<./xml.adoc#xml,XML Support - Dealing with XML Payloads>>.
 
 [[spel-property-accessors]]
-=== Property Accessors
+== Property Accessors
 
 Spring Integration provides namespace support to let you create SpEL custom https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/expression/PropertyAccessor.html[`PropertyAccessor`] implementations.
 You can use the `<spel-property-accessors/>` component to provide a list of custom `PropertyAccessor` instances to the `EvaluationContext` used throughout the framework.

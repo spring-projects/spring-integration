@@ -1,5 +1,5 @@
 [[ws]]
-== Web Services Support
+= Web Services Support
 
 This chapter describes Spring Integration's support for web services, including:
 
@@ -30,7 +30,7 @@ compile "org.springframework.integration:spring-integration-ws:{project-version}
 ====
 
 [[webservices-outbound]]
-=== Outbound Web Service Gateways
+== Outbound Web Service Gateways
 
 To invoke a web service when you send a message to a channel, you have two options, both of which build upon the https://projects.spring.io/spring-ws/[Spring Web Services] project: `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway`.
 The former accepts either a `String` or `javax.xml.transform.Source` as the message payload.
@@ -57,7 +57,7 @@ Starting with version 5.0, you can supply the `SimpleWebServiceOutboundGateway` 
 For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering https://docs.spring.io/spring-ws/docs/current/reference/#client[client access] and the chapter covering https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#oxm[Object/XML mapping].
 
 [[webservices-inbound]]
-=== Inbound Web Service Gateways
+== Inbound Web Service Gateways
 
 To send a message to a channel upon receiving a web service invocation, you again have two options: `SimpleWebServiceInboundGateway` and `MarshallingWebServiceInboundGateway`.
 The former extracts a `javax.xml.transform.Source` from the `WebServiceMessage` and sets it as the message payload.
@@ -95,7 +95,7 @@ You must specify the beans for these classes in the application context and refe
 See the https://docs.spring.io/spring-ws/docs/current/reference/#server-endpoint-mapping[endpoint mappings] for more information.
 
 [[webservices-namespace]]
-=== Web Service Namespace Support
+== Web Service Namespace Support
 
 To configure an outbound web service gateway, use the `outbound-gateway` element from the `ws` namespace, as the following example shows:
 
@@ -169,7 +169,7 @@ Doing so might be useful, for example, when a custom transformer works against t
 Starting with version 5.0, the `web-service-template` reference attribute lets you inject a `WebServiceTemplate` with any possible custom properties.
 
 [[webservices-dsl]]
-=== Web Service Java DSL Support
+== Web Service Java DSL Support
 
 The equivalent configuration for the gateways shown in <<webservices-namespace>> are shown in the following snippets:
 
@@ -276,7 +276,7 @@ Examples:
 ====
 
 [[outbound-uri]]
-=== Outbound URI Configuration
+== Outbound URI Configuration
 
 For all URI schemes supported by Spring Web Services (see https://docs.spring.io/spring-ws/docs/current/reference/#client-transports[URIs and Transports]) `<uri-variable/>` substitution is provided.
 The following example shows how to define it:
@@ -301,7 +301,7 @@ The following example shows how to define it:
 If you supply a `DestinationProvider`, variable substitution is not supported and a configuration error occurs if you provide variables.
 
 [[controlling-uri-encoding]]
-==== Controlling URI Encoding
+=== Controlling URI Encoding
 
 By default, the URL string is encoded (see https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[`UriComponentsBuilder`]) to the URI object before sending the request.
 In some scenarios with a non-standard URI, it is undesirable to perform the encoding.
@@ -323,7 +323,7 @@ If you wish to partially encode some of the URL, you can do so by using an `expr
 NOTE: If you set `DestinationProvider`, `encoding-mode` is ignored.
 
 [[ws-message-headers]]
-=== WS Message Headers
+== WS Message Headers
 
 The Spring Integration web service gateways automatically map the SOAP action header.
 By default, it is copied to and from Spring Integration `MessageHeaders` by using the https://docs.spring.io/spring-integration/api/org/springframework/integration/ws/DefaultSoapHeaderMapper.html[`DefaultSoapHeaderMapper`].
@@ -431,7 +431,7 @@ The result of the preceding examples is the following SOAP envelope:
 ====
 
 [[mtom-support]]
-=== MTOM Support
+== MTOM Support
 
 The marshalling inbound and outbound web service gateways support attachments directly through built-in functionality of the marshaller (for example, `Jaxb2Marshaller` provides the `mtomEnabled` option).
 Starting with version 5.0, the simple web service gateways can directly operate with inbound and outbound `MimeMessage` instances, which have an API to manipulate attachments.

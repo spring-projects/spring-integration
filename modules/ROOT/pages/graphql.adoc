@@ -1,5 +1,5 @@
 [[graphql]]
-== GraphQL Support
+= GraphQL Support
 
 Spring Integration provides channel adapters for interaction with https://graphql.org/[GraphQL] protocol.
 The implementation is based on the https://spring.io/projects/spring-graphql[Spring for GraphQL].
@@ -24,7 +24,7 @@ compile "org.springframework.integration:spring-integration-graphql:{project-ver
 ====
 
 [[graphql-outbound-gateway]]
-=== GraphQL Outbound Gateway
+== GraphQL Outbound Gateway
 
 The `GraphQlMessageHandler` is an `AbstractReplyProducingMessageHandler` extension representing an outbound gateway contract to perform GraphQL `query`, `mutation` or `subscription` operation and produce their result.
 It requires a `org.springframework.graphql.ExecutionGraphQlService` for execution of an `operation`, which can be configured statically or via SpEL expression against a request message.

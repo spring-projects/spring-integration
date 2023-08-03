@@ -1,11 +1,11 @@
 [[reactive-streams]]
-== Reactive Streams Support
+= Reactive Streams Support
 
 Spring Integration provides support for https://www.reactive-streams.org/[Reactive Streams] interaction in some places of the framework and from different aspects.
 We will discuss most of them here with appropriate links to the target chapters for details whenever necessary.
 
 [[preface]]
-=== Preface
+== Preface
 
 To recap, Spring Integration extends the Spring programming model to support the well-known Enterprise Integration Patterns.
 Spring Integration enables lightweight messaging within Spring-based applications and supports integration with external systems via declarative adapters.
@@ -31,7 +31,7 @@ In the sections below we will describe what components and approaches are provid
 NOTE: All the Reactive Streams interaction in Spring Integration implemented with https://projectreactor.io/[Project Reactor] types, such as `Mono` and `Flux`.
 
 [[messaging-gateway]]
-=== Messaging Gateway
+== Messaging Gateway
 
 The simplest point of interaction with Reactive Streams is a `@MessagingGateway` where we just make a return type of the gateway method as a `Mono<?>` - and the whole integration flow behind a gateway method call is going to be performed when a subscription happens on the returned `Mono` instance.
 See <<./gateway.adoc#reactor-mono,Reactor `Mono`>> for more information.
@@ -43,7 +43,7 @@ For this purpose a handler method must return a reactive type as well.
 See the next section for more information.
 
 [[reactive-reply-payload]]
-=== Reactive Reply Payload
+== Reactive Reply Payload
 
 When a reply producing `MessageHandler` returns a reactive type payload for a reply message, it is processed in an asynchronous manner with a regular `MessageChannel` implementation provided for the `outputChannel` (the `async` must be set to `true`) and flattened with on demand subscription when the output channel is a `ReactiveStreamsSubscribableChannel` implementation, e.g. `FluxMessageChannel`.
 With a standard imperative `MessageChannel` use-case, and if a reply payload is a *multi-value* publisher (see `ReactiveAdapter.isMultiValue()` for more information), it is wrapped into a `Mono.just()`.
@@ -55,7 +55,7 @@ See <<./service-activator.adoc#async-service-activator,Asynchronous Service Acti
 Also see <<./kotlin-functions.adoc#kotlin-coroutines,Kotlin Coroutines>> for more information.
 
 [[fluxmessagechannel-and-reactivestreamsconsumer]]
-=== `FluxMessageChannel` and `ReactiveStreamsConsumer`
+== `FluxMessageChannel` and `ReactiveStreamsConsumer`
 
 The `FluxMessageChannel` is a combined implementation of `MessageChannel` and `Publisher<Message<?>>`.
 A `Flux`, as a hot source, is created internally for sinking incoming messages from the `send()` implementation.
@@ -77,7 +77,7 @@ The optional `Function<? super Flux<Message<?>>, ? extends Publisher<Message<?>>
 This functionality is represented as a `@Reactive` sub-annotation for all the messaging annotation (`@ServiceActivator`, `@Splitter` etc.) via their `reactive()` attribute.
 
 [[source-polling-channel-adapter]]
-=== Source Polling Channel Adapter
+== Source Polling Channel Adapter
 
 Usually, the `SourcePollingChannelAdapter` relies on the task which is initiated by the `TaskScheduler`.
 A polling trigger is built from the provided options and used for periodic scheduling a task to poll a target source of data or events.
@@ -90,7 +90,7 @@ This way, any `MessageSource` implementation can be turned into a reactive hot s
 See <<./polling-consumer.adoc#polling-consumer,Polling Consumer>> for more information.
 
 [[event-driven-channel-adapter]]
-=== Event-Driven Channel Adapter
+== Event-Driven Channel Adapter
 
 `MessageProducerSupport` is the base class for event-driven channel adapters and, typically, its `sendMessage(Message<?>)` is used as a listener callback in the producing driver API.
 This callback can also be easily plugged into the `doOnNext()` Reactor operator when a message producer implementation builds a `Flux` of messages instead of listener-based functionality.
@@ -103,7 +103,7 @@ Calling `stop()` on such a channel adapter completes the producing from the sour
 The channel adapter can be restarted with automatic subscription to a newly created source `Publisher`.
 
 [[message-source-to-reactive-streams]]
-=== Message Source to Reactive Streams
+== Message Source to Reactive Streams
 
 Starting with version 5.3, a `ReactiveMessageSourceProducer` is provided.
 It is a combination of a provided `MessageSource` and event-driven production into the configured `outputChannel`.
@@ -115,7 +115,7 @@ If the `MessageSource` produces messages with a `IntegrationMessageHeaderAccesso
 This `ReactiveMessageSourceProducer` could be used for any use-case when a polling channel adapter's features should be turned into a reactive, on demand solution for any existing `MessageSource<?>` implementation.
 
 [[splitter-and-aggregator]]
-=== Splitter and Aggregator
+== Splitter and Aggregator
 
 When an `AbstractMessageSplitter` gets a `Publisher` for its logic, the process goes naturally over the items in the `Publisher` to map them into messages for sending to the `outputChannel`.
 If this channel is a `ReactiveStreamsSubscribableChannel`, the `Flux` wrapper for the `Publisher` is subscribed on demand from that channel and this splitter behavior looks more like a `flatMap` Reactor operator, when we map an incoming event into multi-value output `Publisher`.
@@ -131,7 +131,7 @@ This `MessageHandler` has its power, when the whole integration flow is built wi
 See <<./splitter.adoc#split-stream-and-flux,Stream and Flux Splitting>> and <<./aggregator.adoc#flux-aggregator,Flux Aggregator>> for more information.
 
 [[java-dsl]]
-=== Java DSL
+== Java DSL
 
 An `IntegrationFlow` in Java DSL can start from any `Publisher` instance (see `IntegrationFlow.from(Publisher<Message<T>>)`).
 Also, with an `IntegrationFlowBuilder.toReactivePublisher()` operator, the `IntegrationFlow` can be turned into a reactive hot source.
@@ -152,7 +152,7 @@ A result of the function is wrapped into a `Mono<Message<?>>` for flat-mapping i
 See <<./dsl.adoc#java-dsl,Java DSL Chapter>> for more information.
 
 [[reactive-message-handler]]
-=== `ReactiveMessageHandler`
+== `ReactiveMessageHandler`
 
 Starting with version 5.3, the `ReactiveMessageHandler` is supported natively in the framework.
 This type of message handler is designed for reactive clients which return a reactive type for on-demand subscription for low-level operation execution and doesn't provide any reply data to continue a reactive stream composition.
@@ -187,7 +187,7 @@ In most cases they are used for protocol-specific channel adapter implementation
 See the next section following links to the target technologies with respective reactive channel adapters.
 
 [[reactive-channel-adapters]]
-=== Reactive Channel Adapters
+== Reactive Channel Adapters
 
 When the target protocol for integration provides a Reactive Streams solution, it becomes straightforward to implement channel adapters in Spring Integration.
 
@@ -366,7 +366,7 @@ More reactive channel adapters are coming, for example for Apache Kafka in <<./k
 For many other non-reactive channel adapters thread pools are recommended to avoid blocking during reactive stream processing.
 
 [[context-propagation]]
-=== Reactive to Imperative Context Propagation
+== Reactive to Imperative Context Propagation
 
 When the https://github.com/micrometer-metrics/context-propagation[Context Propagation] library is on the classpath, the Project Reactor can take `ThreadLocal` values (e.g. https://micrometer.io/docs/observation[Micrometer Observation] or `SecurityContextHolder`) and store them into a `Subscriber` context.
 The opposite operation is also possible, when we need to populate a logging MDC for tracing or let services we call from the reactive stream to restore an observation from the scope.

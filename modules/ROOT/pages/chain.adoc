@@ -1,5 +1,5 @@
 [[chain]]
-=== Message Handler Chain
+= Message Handler Chain
 
 The `MessageHandlerChain` is an implementation of `MessageHandler` that can be configured as a single message endpoint while actually delegating to a chain of other handlers, such as filters, transformers, splitters, and so on.
 When several handlers need to be connected in a fixed, linear progression, this can lead to a much simpler configuration.
@@ -33,7 +33,7 @@ The next section focuses on namespace support for the chain element.
 Most Spring Integration endpoints, such as service activators and transformers, are suitable for use within a `MessageHandlerChain`.
 
 [[chain-namespace]]
-==== Configuring a Chain
+== Configuring a Chain
 
 The `<chain>` element provides an `input-channel` attribute.
 If the last element in the chain is capable of producing reply messages (optional), it also supports an `output-channel` attribute.
@@ -89,7 +89,7 @@ If you try to use disallowed attributes and elements, the XML namespace parser t
 =====
 
 [[using-the-id-attribute]]
-==== Using the 'id' Attribute
+== Using the 'id' Attribute
 
 Beginning with Spring Integration 3.0, if a chain element is given an `id` attribute, the bean name for the element is a combination of the chain's `id` and the `id` of the element itself.
 Elements without `id` attributes are not registered as beans, but each one is given a `componentName` that includes the chain `id`.
@@ -132,7 +132,7 @@ You can access them from the `BeanFactory` by using the appropriate bean name, a
 TIP: It is useful to provide an explicit `id` attribute on `<chain>` elements to simplify the identification of sub-components in logs and to provide access to them from the `BeanFactory` etc.
 
 [[chain-gateway]]
-==== Calling a Chain from within a Chain
+== Calling a Chain from within a Chain
 
 Sometimes, you need to make a nested call to another chain from within a chain and then come back and continue execution within the original chain.
 To accomplish this, you can use a messaging gateway by including a <gateway> element, as the following example shows:

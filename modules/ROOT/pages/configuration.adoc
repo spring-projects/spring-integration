@@ -1,5 +1,5 @@
 [[configuration]]
-== Configuration
+= Configuration
 
 Spring Integration offers a number of configuration options.
 Which option you choose depends upon your particular needs and at what level you prefer to work.
@@ -10,7 +10,7 @@ The XML elements defined by the XSD schema match the names of the annotations, a
 You can also use the API directly, but we expect most developers to choose one of the higher-level options or a combination of the namespace-based and annotation-driven configuration.
 
 [[configuration-namespace]]
-=== Namespace Support
+== Namespace Support
 
 You can configure Spring Integration components with XML elements that map directly to the terminology and concepts of enterprise integration.
 In many cases, the element names match those of the https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_] book.
@@ -96,7 +96,7 @@ This reference manual provides specific examples of the various elements in thei
 Here, the main thing to recognize is the consistency of the naming for each namespace URI and schema location.
 
 [[namespace-taskscheduler]]
-=== Configuring the Task Scheduler
+== Configuring the Task Scheduler
 
 In Spring Integration, the `ApplicationContext` plays the central role of a message bus, and you need to consider only a couple of configuration options.
 First, you may want to control the central `TaskScheduler` instance.
@@ -149,7 +149,7 @@ IMPORTANT: When a custom `TaskScheduler` is configured in the application contex
 See also <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
 [[global-properties]]
-=== Global Properties
+== Global Properties
 
 Certain global framework properties can be overridden by providing a properties file on the classpath.
 
@@ -224,7 +224,7 @@ spring.integration.messagingTemplate.throwExceptionOnLateReply=true
 ====
 
 [[annotations]]
-=== Annotation Support
+== Annotation Support
 
 In addition to the XML namespace support for configuring message endpoints, you can also use annotations.
 First, Spring Integration provides the class-level `@MessageEndpoint` as a stereotype annotation, meaning that it is itself annotated with Spring's `@Component` annotation and is therefore automatically recognized as a bean definition by Spring's component scanning.
@@ -393,7 +393,7 @@ public String transform(String input) {
 ====
 
 [[configuration-using-poller-annotation]]
-==== Using the `@Poller` Annotation
+=== Using the `@Poller` Annotation
 
 Before Spring Integration 4.0, messaging annotations required that the `inputChannel` be a reference to a `SubscribableChannel`.
 For `PollableChannel` instances, an `<int:bridge/>` element was needed to configure an `<int:poller/>` and make the composite endpoint be a `PollingConsumer`.
@@ -486,7 +486,7 @@ The `poller()` attribute on the messaging annotations is mutually exclusive with
 See next section for more information.
 
 [[configuration-using-reactive-annotation]]
-==== Using `@Reactive` Annotation
+=== Using `@Reactive` Annotation
 
 The `ReactiveStreamsConsumer` has been around since version 5.0, but it was applied only when an input channel for the endpoint is a `FluxMessageChannel` (or any `org.reactivestreams.Publisher` implementation).
 Starting with version 5.3, its instance is also created by the framework when the target message handler is a `ReactiveMessageHandler` independently of the input channel type.
@@ -515,7 +515,7 @@ The `reactive()` attribute on the messaging annotations is mutually exclusive wi
 See <<configuration-using-poller-annotation>> and <<./reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
 
 [[using-the-inboundchanneladapter-annotation]]
-==== Using the `@InboundChannelAdapter` Annotation
+=== Using the `@InboundChannelAdapter` Annotation
 
 Version 4.0 introduced the `@InboundChannelAdapter` method-level annotation.
 It produces a `SourcePollingChannelAdapter` integration component based on a `MethodInvokingMessageSource` for the annotated method.
@@ -551,7 +551,7 @@ Using the `@MessagingGateway` Annotation
 See <<./gateway.adoc#messaging-gateway-annotation,`@MessagingGateway` Annotation>>.
 
 [[using-the-integrationcomponentscan-annotation]]
-==== Using the `@IntegrationComponentScan` Annotation
+=== Using the `@IntegrationComponentScan` Annotation
 
 The standard Spring Framework `@ComponentScan` annotation does not scan interfaces for stereotype `@Component` annotations.
 To overcome this limitation and allow the configuration of `@MessagingGateway` (see <<./gateway.adoc#messaging-gateway-annotation,`@MessagingGateway` Annotation>>), we introduced the `@IntegrationComponentScan` mechanism.
@@ -561,7 +561,7 @@ In this case, all discovered interfaces annotated with `@MessagingGateway` are p
 All other class-based components are parsed by the standard `@ComponentScan`.
 
 [[meta-annotations]]
-=== Messaging Meta-Annotations
+== Messaging Meta-Annotations
 
 Starting with version 4.0, all messaging annotations can be configured as meta-annotations and all user-defined messaging annotations can define the same attributes to override their default values.
 In addition, meta-annotations can be configured hierarchically, as the following example shows:
@@ -599,7 +599,7 @@ Configuring meta-annotations hierarchically lets users set defaults for various 
 If the framework finds a method with a user annotation that has a framework meta-annotation, it is treated as if the method were annotated directly with the framework annotation.
 
 [[annotations_on_beans]]
-==== Annotations on `@Bean` Methods
+=== Annotations on `@Bean` Methods
 
 Starting with version 4.0, you can configure messaging annotations on `@Bean` method definitions in `@Configuration` classes, to produce message endpoints based on the beans, not the methods.
 It is useful when `@Bean` definitions are "`out-of-the-box`" `MessageHandler` instances (`AggregatingMessageHandler`, `DefaultMessageSplitter`, and others), `Transformer` instances (`JsonToObjectTransformer`, `ClaimCheckOutTransformer`, and others), and `MessageSource` instances (`FileReadingMessageSource`, `RedisStoreMessageSource`, and others).
@@ -708,7 +708,7 @@ Together with the existing Spring container logic, the messaging endpoint bean (
 =====
 
 [[creating-a-bridge-with-annotations]]
-==== Creating a Bridge with Annotations
+=== Creating a Bridge with Annotations
 
 Starting with version 4.0, Java configuration provides the `@BridgeFrom` and `@BridgeTo` `@Bean` method annotations to mark `MessageChannel` beans in `@Configuration` classes.
 These really exists for completeness, providing a convenient mechanism to declare a `BridgeHandler` and its message endpoint configuration:
@@ -742,18 +742,18 @@ public MessageChannel bridgeToInput() {
 You can use these annotations as meta-annotations as well.
 
 [[advising-annotated-endpoints]]
-==== Advising Annotated Endpoints
+=== Advising Annotated Endpoints
 
 See <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>>.
 
 [[message-mapping-rules]]
-=== Message Mapping Rules and Conventions
+== Message Mapping Rules and Conventions
 
 Spring Integration implements a flexible facility to map messages to methods and their arguments without providing extra configuration, by relying on some default rules and defining certain conventions.
 The examples in the following sections articulate the rules.
 
 [[sample-scenarios]]
-==== Sample Scenarios
+=== Sample Scenarios
 
 The following example shows a single un-annotated parameter (object or primitive) that is not a `Map` or a `Properties` object with a non-void return type:
 
@@ -856,7 +856,7 @@ public void soSomething();
 This example is the same as the previous example, but it produces no output.
 
 [[annotation-based-mapping]]
-==== Annotation-based Mapping
+=== Annotation-based Mapping
 
 Annotation-based mapping is the safest and least ambiguous approach to map messages to methods.
 The following example shows how to explicitly map a method to a header:
@@ -908,7 +908,7 @@ In this example the first argument is mapped to all the message headers, while t
 The payload is not being mapped to any argument.
 
 [[complex-scenarios]]
-==== Complex Scenarios
+=== Complex Scenarios
 
 The following example uses multiple parameters:
 

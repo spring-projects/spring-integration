@@ -1,5 +1,5 @@
 [[logging-channel-adapter]]
-=== Logging Channel Adapter
+= Logging Channel Adapter
 
 The `<logging-channel-adapter>` is often used in conjunction with a wire tap, as discussed in <<./channel.adoc#channel-wiretap,Wire Tap>>.
 However, it can also be used as the ultimate consumer of any flow.
@@ -39,7 +39,7 @@ This enables setting the log name (in the logging subsystem) for individual adap
 By default, all adapters log under the following name: `org.springframework.integration.handler.LoggingHandler`.
 
 [[using-java-configuration]]
-==== Using Java Configuration
+== Using Java Configuration
 
 The following Spring Boot application shows an example of configuring the `LoggingHandler` by using Java configuration:
 
@@ -79,7 +79,7 @@ public class LoggingJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of configuring the logging channel adapter by using the Java DSL:
 

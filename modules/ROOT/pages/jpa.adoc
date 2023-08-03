@@ -1,5 +1,5 @@
 [[jpa]]
-== JPA Support
+= JPA Support
 
 Spring Integration's JPA (Java Persistence API) module provides components for performing various database operations using JPA.
 
@@ -46,7 +46,7 @@ Recognizing these semantic differences, Spring Integration provides two separate
 * Updating outbound gateway
 
 [[functionality]]
-=== Functionality
+== Functionality
 
 All JPA components perform their respective JPA operations by using one of the following:
 
@@ -58,12 +58,12 @@ All JPA components perform their respective JPA operations by using one of the f
 The following sections describe each of these components in more detail.
 
 [[jpa-supported-persistence-providers]]
-=== Supported Persistence Providers
+== Supported Persistence Providers
 
 The Spring Integration JPA support has been tested against Hibernate persistence provider.
 
 [[jpa-java-implementation]]
-=== Java Implementation
+== Java Implementation
 
 Each of the provided components uses the `o.s.i.jpa.core.JpaExecutor` class, which, in turn, uses an implementation of the `o.s.i.jpa.core.JpaOperations` interface.
 `JpaOperations` operates like a typical Data Access Object (DAO) and provides methods such as find, persist, executeUpdate, and so on.
@@ -100,14 +100,14 @@ public MessageHandler retrievingJpaGateway() {
 ----
 
 [[jpa-namespace-support]]
-=== Namespace Support
+== Namespace Support
 
 When using XML namespace support, the underlying parser classes instantiate the relevant Java classes for you.
 Thus, you typically need not deal with the inner workings of the JPA adapter.
 This section documents the XML namespace support provided by Spring Integration and shows you how to use the XML Namespace support to configure the JPA components.
 
 [[jpa-namespace-support-common-attributes]]
-==== Common XML Namespace Configuration Attributes
+=== Common XML Namespace Configuration Attributes
 
 Certain configuration parameters are shared by all JPA components:
 
@@ -171,7 +171,7 @@ Refers to a named query.
 A named query can be defined in either Native SQL or JPAQL, but the underlying JPA persistence provider handles that distinction internally.
 
 [[jpa-parameters]]
-==== Providing JPA Query Parameters
+=== Providing JPA Query Parameters
 
 To provide parameters, you can use the `parameter` XML element.
 It has a mechanism that lets you provide parameters for queries that are based on either the Java Persistence Query Language (JPQL) or native SQL queries.
@@ -209,7 +209,7 @@ The following example shows how to set an expression-based parameter:
 ====
 
 [[jpa-transactions]]
-==== Transaction Handling
+=== Transaction Handling
 
 All JPA operations (such as `INSERT`, `UPDATE`, and `DELETE`) require a transaction to be active whenever they are performed.
 For inbound channel adapters, you need do nothing special.
@@ -262,7 +262,7 @@ If, however, you use an `ExecutorChannel`, you must have the `transactional` ele
 NOTE: Unlike the `transactional` element of the poller, which is defined in Spring Integration's namespace, the `transactional` element for the outbound gateway or adapter is defined in the JPA namespace.
 
 [[jpa-inbound-channel-adapter]]
-=== Inbound Channel Adapter
+== Inbound Channel Adapter
 
 An inbound channel adapter is used to execute a select query over the database using JPA QL and return the result.
 The message payload is either a single entity or a `List` of entities.
@@ -310,7 +310,7 @@ The value defaults to `false`.
 ====
 
 [[jpaInboundChannelAdapterParameters]]
-==== Configuration Parameter Reference
+=== Configuration Parameter Reference
 
 The following listing shows all the values that can be set for an `inbound-channel-adapter`:
 
@@ -381,7 +381,7 @@ Optional.
 ====
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
 
@@ -426,7 +426,7 @@ public class JpaJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
@@ -463,14 +463,14 @@ public class JpaJavaApplication {
 ====
 
 [[jpa-outbound-channel-adapter]]
-=== Outbound Channel Adapter
+== Outbound Channel Adapter
 
 The JPA outbound channel adapter lets you accept messages over a request channel.
 The payload can either be used as the entity to be persisted or used with the headers in the parameter expressions for a JPQL query.
 The following sections cover the possible ways of performing these operations.
 
 [[jpa-outbound-channel-adapter-entity-class]]
-==== Using an Entity Class
+=== Using an Entity Class
 
 The following XML configures the outbound channel adapter to persist an entity to the database:
 
@@ -501,7 +501,7 @@ Null values returned by the iterator are ignored.
 NOTE: Starting with version 5.5.4, the `JpaOutboundGateway`, with a `JpaExecutor` configured with  `PersistMode.DELETE`, can accept an `Iterable` payload to perform a batch removal persistent operation for the provided entities.
 
 [[jpa-using-jpaql]]
-==== Using JPA Query Language (JPA QL)
+=== Using JPA Query Language (JPA QL)
 
 The <<jpa-outbound-channel-adapter-entity-class,previous section>> showed how to perform a `PERSIST` action by using an entity.
 This section shows how to use an outbound channel adapter with JPA QL.
@@ -558,7 +558,7 @@ Outbound channel adapters do not return any result.
 If you want to select some values, consider using the outbound gateway instead.
 
 [[jpa-using-native-queries]]
-==== Using Native Queries
+=== Using Native Queries
 
 This section describes how to use native queries to perform operations with the JPA outbound channel adapter.
 Using native queries is similar to using JPA QL, except that the queries are native database queries.
@@ -592,7 +592,7 @@ The following example configures an outbound-channel-adapter with a native query
 Note that the other attributes (such as `channel` and `entity-manager`) and the `parameter` element have the same semantics as they do for JPA QL.
 
 [[using-named-queries]]
-==== Using Named Queries
+=== Using Named Queries
 
 Using named queries is similar to using <<jpa-using-jpaql,JPA QL>> or a <<jpa-using-native-queries,native query>>, except that we specify a named query instead of a query.
 First, we cover how to define a JPA named query.
@@ -650,7 +650,7 @@ Now that we have shown how to define named queries by using annotations or by us
 ====
 
 [[jpaOutboundChannelAdapterParameters]]
-==== Configuration Parameter Reference
+=== Configuration Parameter Reference
 
 The following listing shows all the attributes that you can set on an outbound channel adapter:
 
@@ -742,7 +742,7 @@ Optional.
 ====
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java:
 
@@ -793,7 +793,7 @@ public class JpaJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
 
@@ -827,7 +827,7 @@ public class JpaJavaApplication {
 ====
 
 [[jpa-outbound-gateways]]
-=== Outbound Gateways
+== Outbound Gateways
 
 The JPA inbound channel adapter lets you poll a database to retrieve one or more JPA entities.
 The retrieved data is consequently used to start a Spring Integration flow that uses the retrieved data as message payload.
@@ -869,7 +869,7 @@ Common for all JPA outbound gateways and similar to the `outbound-channel-adapte
 For configuration examples see <<outboundGatewaySamples>>.
 
 [[jpa-outbound-gateway-common-parameters]]
-==== Common Configuration Parameters
+=== Common Configuration Parameters
 
 JPA Outbound Gateways always have access to the Spring Integration `Message` as input.
 Consequently, the following parameters is available:
@@ -892,7 +892,7 @@ Therefore, it is highly beneficial to have access to the entire `Message`, inclu
 Optional.
 
 [[jpa-updating-outbound-gateway]]
-==== Updating Outbound Gateway
+=== Updating Outbound Gateway
 
 The following listing shows all the attributes that you can set on an updating-outbound-gateway and describes the key attributes:
 
@@ -940,7 +940,7 @@ The remaining attributes are described earlier in this chapter.
 See <<jpaInboundChannelAdapterParameters>> and <<jpaOutboundChannelAdapterParameters>>.
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how configure the outbound adapter with Java:
 
@@ -984,7 +984,7 @@ public class JpaJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter using the Java DSL:
 
@@ -1016,7 +1016,7 @@ public class JpaJavaApplication {
 
 
 [[jpa-retrieving-outbound-gateway]]
-==== Retrieving Outbound Gateway
+=== Retrieving Outbound Gateway
 
 The following example demonstrates how to configure a retrieving outbound gateway:
 
@@ -1184,12 +1184,12 @@ It requires extra configuration in applications where empty list handling is a p
 See <<./splitter.adoc#split-stream-and-flux,Splitter Discard Channel>> for possible empty list handling options.
 
 [[outboundGatewaySamples]]
-==== JPA Outbound Gateway Samples
+=== JPA Outbound Gateway Samples
 
 This section contains various examples of using the updating outbound gateway and the retrieving outbound gateway:
 
 [[update-by-using-an-entity-class]]
-===== Update by Using an Entity Class
+==== Update by Using an Entity Class
 
 In the following example, an updating outbound gateway is persisted by using the `org.springframework.integration.jpa.test.entity.Student` entity class as a JPA defining parameter:
 
@@ -1211,7 +1211,7 @@ In this example, where we use an entity class, the reply is the entity object th
 ====
 
 [[update-using-jpql]]
-===== Update using JPQL
+==== Update using JPQL
 
 The following example updates an entity by using the Java Persistence Query Language (JPQL),
 which mandates using an updating outbound gateway:
@@ -1236,7 +1236,7 @@ When you send a message with a `String` payload that also contains a header call
 When using an updating gateway, the return value is always an integer value, which denotes the number of records affected by execution of the JPA QL.
 
 [[retrieving-an-entity-using-jpql]]
-===== Retrieving an Entity using JPQL
+==== Retrieving an Entity using JPQL
 
 The following example uses a retrieving outbound gateway and JPQL to retrieve (select) one or more entities from the database:
 
@@ -1254,7 +1254,7 @@ The following example uses a retrieving outbound gateway and JPQL to retrieve (s
 ====
 
 [[retrieving-an-entity-by-using-id-expression]]
-===== Retrieving an Entity by Using `id-expression`
+==== Retrieving an Entity by Using `id-expression`
 
 The following example uses a retrieving outbound gateway with `id-expression` to retrieve (find) one and only one entity from the database:
 The `primaryKey` is the result of `id-expression` evaluation.
@@ -1272,7 +1272,7 @@ The `entityClass` is a class of Message `payload`.
 ====
 
 [[update-using-a-named-query]]
-===== Update using a Named Query
+==== Update using a Named Query
 
 Using a named query is basically the same as using a JPQL query directly.
 The difference is that the `named-query` attribute is used instead, as the following example shows:

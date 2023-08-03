@@ -1,5 +1,5 @@
 [[smb]]
-== SMB Support
+= SMB Support
 
 Spring Integration provides support for file transfer operations with SMB.
 
@@ -25,7 +25,7 @@ compile "org.springframework.integration:spring-integration-smb:{project-version
 ====
 
 [[overview]]
-=== Overview
+== Overview
 
 The https://github.com/codelibs/jcifs[Java CIFS] Client Library has been chosen as a Java implementation for the CIFS/SMB networking protocol.
 Its `SmbFile` abstraction is simply wrapped to the Spring Integration "Remote File" foundations like `SmbSession`, `SmbRemoteFileTemplate`, etc.
@@ -49,7 +49,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/smb
 ====
 
 [[smb-session-factory]]
-=== SMB Session Factory
+== SMB Session Factory
 
 Before configuring the SMB adapter, you must configure an SMB session factory.
 You can configure the SMB session factory with a regular bean definition, as the following examples show:
@@ -94,7 +94,7 @@ public SmbSessionFactory smbSessionFactory() {
 ----
 
 [[smb-inbound]]
-=== SMB Inbound Channel Adapter
+== SMB Inbound Channel Adapter
 
 To download SMB files locally the `SmbInboundFileSynchronizingMessageSource` is provided.
 It is simple extension of the `AbstractInboundFileSynchronizingMessageSource` which  requires `SmbInboundFileSynchronizer` injection.
@@ -139,7 +139,7 @@ public MessageSource<File> smbMessageSource() {
 For XML configuration the `<int-smb:inbound-channel-adapter>` component is provided.
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
@@ -189,7 +189,7 @@ public class SmbJavaApplication {
 ====
 
 [[smb-streaming-inbound]]
-=== SMB Streaming Inbound Channel Adapter
+== SMB Streaming Inbound Channel Adapter
 
 This adapter produces message with payloads of type `InputStream`, letting files be fetched without writing to the local file system.
 Since the session remains open, the consuming application is responsible for closing the session when the file has been consumed.
@@ -236,7 +236,7 @@ The `FileHeaders.REMOTE_FILE_INFO` header provides additional remote file inform
 If you set the `fileInfoJson` property on the `SmbStreamingMessageSource` to `false`, the header contains an `SmbFileInfo` object.
 
 [[smb-streaming-java]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
@@ -295,7 +295,7 @@ public class SmbJavaApplication {
 Notice that, in this example, the message handler downstream of the transformer has an `advice` that removes the remote file after processing.
 
 [[smb-max-fetch]]
-=== Inbound Channel Adapters: Controlling Remote File Fetching
+== Inbound Channel Adapters: Controlling Remote File Fetching
 
 There are two properties that you should consider when you configure inbound channel adapters.
 `max-messages-per-poll`, as with all pollers, can be used to limit the number of messages emitted on each poll (if more than the configured value are ready).
@@ -321,7 +321,7 @@ The synchronizer can be provided with a `Comparator<SmbFile>`.
 This is useful when restricting the number of files fetched with `maxFetchSize`.
 
 [[smb-outbound]]
-=== SMB Outbound Channel Adapter
+== SMB Outbound Channel Adapter
 
 For writing files to an SMB share, and for XML `<int-smb:outbound-channel-adapter>` component we use the `SmbMessageHandler`.
 In case of Java configuration a `SmbMessageHandler` should be supplied with the `SmbSessionFactory` (or `SmbRemoteFileTemplate`).
@@ -342,7 +342,7 @@ public MessageHandler smbMessageHandler(SmbSessionFactory smbSessionFactory) {
 ----
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter using the Java DSL:
 
@@ -398,7 +398,7 @@ public class SmbJavaApplication {
 ====
 
 [[smb-outbound-gateway]]
-=== SMB Outbound Gateway
+== SMB Outbound Gateway
 
 The SMB outbound gateway provides a limited set of commands to interact with a remote SMB server.
 The supported commands are:
@@ -413,7 +413,7 @@ The supported commands are:
 * `mput` (send multiple files)
 
 [[using-the-ls-command]]
-==== Using the `ls` Command
+=== Using the `ls` Command
 
 `ls` lists remote files and supports the following options:
 
@@ -437,7 +437,7 @@ If you use the `-dirs` option, each recursive directory is also returned as an e
 In this case, we recommend that you not use the `-1` option, because you would not be able to distinguish files from directories, which you can do when you use `FileInfo` objects.
 
 [[using-nlst-command]]
-==== Using `nlst` Command
+=== Using `nlst` Command
 
 `nlst` lists remote file names and supports only one option:
 
@@ -448,7 +448,7 @@ The message payload resulting from an `nlst` operation is a list of file names.
 The `file_remoteDirectory` header holds the remote directory on which the `nlst` command acted.
 
 [[using-the-get-command]]
-==== Using the `get` Command
+=== Using the `get` Command
 
 `get` retrieves a remote file and supports the following options:
 
@@ -506,7 +506,7 @@ You can either do that in your custom code or route a copy of the message to a `
 ====
 
 [[using-the-mget-command]]
-==== Using the `mget` Command
+=== Using the `mget` Command
 
 `mget` retrieves multiple remote files based on a pattern and supports the following options:
 
@@ -580,7 +580,7 @@ You can provide one of these filters by using the `filter` property on the gatew
 See also <<smb-partial>>.
 
 [[smb-put-command]]
-==== Using the `put` Command
+=== Using the `put` Command
 
 `put` sends a file to the remote server.
 The payload of the message can be a `java.io.File`, a `byte[]`, or a `String`.
@@ -591,7 +591,7 @@ See the https://github.com/spring-projects/spring-integration/tree/main/spring-i
 The message payload resulting from a `put` operation is a `String` that contains the full path of the file on the server after transfer.
 
 [[using-the-mput-command]]
-==== Using the `mput` Command
+=== Using the `mput` Command
 
 `mput` sends multiple files to the server and supports the following option:
 
@@ -610,7 +610,7 @@ The message payload resulting from an `mput` operation is a `List<String>` objec
 See also <<smb-partial>>.
 
 [[using-the-rm-command]]
-==== Using the `rm` Command
+=== Using the `rm` Command
 
 The `rm` command has no options.
 
@@ -619,7 +619,7 @@ Otherwise, the message payload is `Boolean.FALSE`.
 The `file_remoteDirectory` header holds the remote directory, and the `file_remoteFile` header holds the file name.
 
 [[using-the-mv-command]]
-==== Using the `mv` Command
+=== Using the `mv` Command
 
 The `mv` command has no options.
 
@@ -636,7 +636,7 @@ If the "`from`" file is not a full file path, the result of `remoteDirectoryExpr
 The same applies for the "`to`" file, for example, if the task is just to rename a remote file in some directory.
 
 [[additional-command-information]]
-==== Additional Command Information
+=== Additional Command Information
 
 The `get` and `mget` commands support the `local-filename-generator-expression` attribute.
 It defines a SpEL expression to generate the names of local files during the transfer.
@@ -680,7 +680,7 @@ For backwards compatibility, the default mode for `PUT` and `MPUT` operations is
 For `GET` and `MGET` operations, the default is `FAIL`.
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with Java configuration:
 
@@ -724,7 +724,7 @@ public class SmbJavaApplication {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with the Java DSL:
 
@@ -776,7 +776,7 @@ public class SmbJavaApplication {
 ====
 
 [[smb-partial]]
-==== Outbound Gateway Partial Success (`mget` and `mput`)
+=== Outbound Gateway Partial Success (`mget` and `mput`)
 
 When performing operations on multiple files (by using `mget` and `mput`) an exception can occur some time after one or more files have been transferred.
 In this case a `PartialSuccessException` is thrown.
@@ -807,7 +807,7 @@ If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by 
 Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.txt` and `file3.txt` and `partialResults` of `file2.txt`.
 
 [[smb-remote-file-info]]
-=== Remote File Information
+== Remote File Information
 
 The `SmbStreamingMessageSource` (<<smb-streaming-inbound>>), `SmbInboundFileSynchronizingMessageSource` (<<smb-inbound>>) and "read"-commands of the `SmbOutboundGateway` (<<smb-outbound-gateway>>) provide additional headers in the message to produce with an information about the remote file:
 

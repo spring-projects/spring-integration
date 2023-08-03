@@ -1,5 +1,5 @@
 [[samples]]
-== Spring Integration Samples
+= Spring Integration Samples
 
 As of Spring Integration 2.0, the Spring Integration distribution no longer includes the samples.
 Instead, we have switched to a much simpler collaborative model that should promote better community participation and, ideally, more contributions.
@@ -13,7 +13,7 @@ You can also submit a sample to us as a Pull Request.
 If we believe your sample adds value, we would be more then glad to add it to the 'samples' repository, properly crediting you as the author.
 
 [[samples-get]]
-=== Where to Get Samples
+== Where to Get Samples
 
 The Spring Integration Samples project is hosted on https://github.com/spring-projects/spring-integration-samples/[GitHub].
 In order to check out or clone the samples, you must have a Git client installed on your system.
@@ -44,13 +44,13 @@ $ git pull
 ====
 
 [[submitting-samples-or-sample-requests]]
-=== Submitting Samples or Sample Requests
+== Submitting Samples or Sample Requests
 
 You can submit both new samples and requests for samples.
 We greatly appreciate any effort toward improving the samples, including the sharing of good ideas.
 
 [[samples-how-can-i-contribute]]
-==== How Can I Contribute My Own Samples?
+=== How Can I Contribute My Own Samples?
 
 GitHub is for social coding: if you want to submit your own code examples to the Spring Integration Samples project, we encourage contributions through https://help.github.com/en/articles/creating-a-pull-request/[pull requests] from https://help.github.com/en/articles/fork-a-repo[forks] of this repository.
 If you want to contribute code this way, please reference, if possible, a https://github.com/spring-projects/spring-integration-samples/issues[GutHub issue] that provides some details regarding your sample.
@@ -70,7 +70,7 @@ The Project Lead is Artem Bilan.
 =====
 
 [[code-contribution-process]]
-==== Code Contribution Process
+=== Code Contribution Process
 
 For the actual code contribution process, read the Contributor Guidelines for Spring Integration.
 They apply for the samples project as well.
@@ -81,13 +81,13 @@ As a matter of fact, the core committers follow the exact same rules.
 We gratefully look forward to your Spring Integration samples!
 
 [[sample-requests]]
-==== Sample Requests
+=== Sample Requests
 
 As <<samples-how-can-i-contribute,mentioned earlier>>, the Spring Integration Samples project uses GitHub issue as bug tracking system.
 To submit new sample requests, visit https://github.com/spring-projects/spring-integration-samples/issues.
 
 [[samples-structure]]
-=== Samples Structure
+== Samples Structure
 
 Starting with Spring Integration 2.0, the structure of the samples has changed.
 With plans for more samples, we realized that not all samples have the same goals.
@@ -130,7 +130,7 @@ That includes samples.
 If you cannot find what you are looking for, let us know!
 
 [[samples-impl]]
-=== Samples
+== Samples
 
 Currently, Spring Integration comes with quite a few samples, and you can only expect more.
 To help you better navigate through them, each sample comes with its own `readme.txt` file which covers several details about the sample (for example, what EIP patterns it addresses, what problem it is trying to solve, how to run the sample, and other details).
@@ -138,7 +138,7 @@ However, certain samples require a more detailed and sometimes graphical explana
 In this section, you can find details on samples that we believe require special attention.
 
 [[samples-loan-broker]]
-==== Loan Broker
+=== Loan Broker
 
 This section covers the loan broker sample application that is included in the Spring Integration samples.
 This sample is inspired by one of the samples featured in Gregor Hohpe and Bobby Woolf's book, https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_].
@@ -188,7 +188,7 @@ Only then can we start thinking about wiring such processes to the real services
 At that time, the assembled process and its configuration do not change regardless of the number of banks with which a particular loan broker deals or the type of communication media (or protocols) used (JMS, WS, TCP, and so on) to communicate with these banks.
 
 [[design]]
-===== Design
+==== Design
 
 As you analyze the <<samples-loan-broker-requirements,six requirements>> listed earlier, you can see that they are all integration concerns.
 For example, in the consumer pre-screening step, we need to gather additional information about the consumer and the consumer's desires and enrich the loan request with additional meta-information.
@@ -237,7 +237,7 @@ It would also be nice if, when several processes need to be completed to provide
 In our use case, we need to determine the credit score and, based on the credit score and some rule, select a list of message channels (bank channels) to which to send quote request.
 
 [[composed-message-processor]]
-===== Composed Message Processor
+==== Composed Message Processor
 
 The composed message processor pattern describes rules around building endpoints that maintain control over message flow, which consists of multiple message processors.
 In Spring Integration, the composed message processor pattern is implemented by the `<chain>` element.
@@ -312,7 +312,7 @@ Integration concerns exist in all types of application (whether server-based or 
 Our goal is to make is so that integrating applications does not require changes in design, testing, and deployment strategy.
 
 [[samples-cafe]]
-==== The Cafe Sample
+=== The Cafe Sample
 
 This section covers the cafe sample application that is included in the Spring Integration samples.
 This sample is inspired by another sample featured in Gregor Hohpe's https://www.enterpriseintegrationpatterns.com/ramblings.html[Ramblings].
@@ -551,7 +551,7 @@ If you provide a much shorter poller interval (such as 100 milliseconds), you ca
 NOTE: In addition to experimenting with the poller's concurrency settings, you can also add the 'transactional' child element and then refer to any `PlatformTransactionManager` instance within the context.
 
 [[samples-xml-messaging]]
-==== The XML Messaging Sample
+=== The XML Messaging Sample
 
 The XML messaging sample in `basic/xml` shows how to use some of the provided components that deal with XML payloads.
 The sample uses the idea of processing an order for books represented as XML.

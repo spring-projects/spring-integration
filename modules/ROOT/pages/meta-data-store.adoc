@@ -1,5 +1,5 @@
 [[metadata-store]]
-=== Metadata Store
+= Metadata Store
 
 Many external systems, services, or resources are not transactional (Twitter, RSS, file systems, and so on), and there is not any ability to mark the data as read.
 Also, sometimes, you may need to implement the Enterprise Integration Pattern https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html[idempotent receiver] in some integration solutions.
@@ -38,7 +38,7 @@ Starting with version 4.0, `SimpleMetadataStore`, `PropertiesPersistingMetadataS
 These provide for atomic updates and can be used across multiple component or application instances.
 
 [[idempotent-receiver-pattern]]
-==== Idempotent Receiver and Metadata Store
+== Idempotent Receiver and Metadata Store
 
 The metadata store is useful for implementing the EIP https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html[idempotent receiver] pattern when there is need to filter an incoming message if it has already been processed and you can discard it or perform some other logic on discarding.
 The following configuration shows an example of how to do so:
@@ -65,7 +65,7 @@ The `value` of the idempotent entry may be an expiration date, after which that 
 See also <<./handler-advice.adoc#idempotent-receiver,Idempotent Receiver Enterprise Integration Pattern>>.
 
 [[metadatastore-listener]]
-==== `MetadataStoreListener`
+== `MetadataStoreListener`
 
 Some metadata stores (currently only zookeeper) support registering a listener to receive events when items change, as the following example shows:
 

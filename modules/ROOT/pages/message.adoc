@@ -1,11 +1,11 @@
 [[message]]
-=== Message
+= Message
 
 The Spring Integration `Message` is a generic container for data.
 Any object can be provided as the payload, and each `Message` instance includes headers containing user-extensible properties as key-value pairs.
 
 [[message-interface]]
-==== The `Message` Interface
+== The `Message` Interface
 
 The following listing shows the definition of the `Message` interface:
 
@@ -28,7 +28,7 @@ As an application evolves to support new types or when the types themselves are 
 On the other hand, when some component in the messaging system does require access to information about the `Message`, such metadata can typically be stored to and retrieved from the metadata in the message headers.
 
 [[message-headers]]
-==== Message Headers
+== Message Headers
 
 Just as Spring Integration lets any `Object` be used as the payload of a `Message`, it also supports any `Object` types as header values.
 In fact, the `MessageHeaders` class implements the `java.util.Map_ interface`, as the following class definition shows:
@@ -108,7 +108,7 @@ Constants for these headers can be found in those modules where such headers exi
 `AmqpHeaders`, `JmsHeaders`, and so on.
 
 [[message-header-accessor]]
-===== `MessageHeaderAccessor` API
+=== `MessageHeaderAccessor` API
 
 Starting with Spring Framework 4.0 and Spring Integration 4.0, the core messaging abstraction has been moved to the `spring-messaging` module, and the `MessageHeaderAccessor` API has been introduced to provide additional abstraction over messaging implementations.
 All (core) Spring Integration-specific message headers constants are now declared in the `IntegrationMessageHeaderAccessor` class.
@@ -211,7 +211,7 @@ Map<List<Object>, Integer>
 |===
 
 [[message-id-generation]]
-===== Message ID Generation
+=== Message ID Generation
 
 When a message transitions through an application, each time it is mutated (for example,
 by a transformer) a new message ID is assigned.
@@ -233,7 +233,7 @@ In addition to the default strategy, two additional `IdGenerators` are provided.
 You can use `o.s.i.support.IdGenerators.SimpleIncrementingIdGenerator` when a UUID is not really needed and a simple incrementing value is sufficient.
 
 [[read-only-headers]]
-===== Read-only Headers
+=== Read-only Headers
 
 The `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read-only headers and cannot be overridden.
 
@@ -247,7 +247,7 @@ When you try to build a new message using `MessageBuilder`, this kind of header 
 Starting with version 5.0, <<./gateway.adoc#gateway,Messaging Gateway>>, <<./content-enrichment.adoc#header-enricher,Header Enricher>>, <<./content-enrichment.adoc#payload-enricher,Content Enricher>> and <<./transformer.adoc#header-filter,Header Filter>> do not let you configure the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` header names when `DefaultMessageBuilderFactory` is used, and they throw `BeanInitializationException`.
 
 [[header-propagation]]
-===== Header Propagation
+=== Header Propagation
 
 When messages are processed (and modified) by message-producing endpoints (such as a <<./service-activator.adoc#service-activator,service activator>>), in general, inbound headers are propagated to the outbound message.
 One exception to this is a <<./transformer.adoc#transformer,transformer>>, when a complete message is returned to the framework.
@@ -271,7 +271,7 @@ It is also available for XML configuration of the `<service-activator>` componen
 IMPORTANT: Header propagation suppression does not apply to those endpoints that do not modify the message, such as <<./bridge.adoc#bridge,bridges>> and <<./router.adoc#router,routers>>.
 
 [[message-implementations]]
-==== Message Implementations
+== Message Implementations
 
 The base implementation of the `Message` interface is `GenericMessage<T>`, and it provides two constructors, shown in the following listing:
 
@@ -303,7 +303,7 @@ Note that this implementation takes advantage of the fact that the `GenericMessa
 Therefore, as shown in both examples, no casting is necessary when retrieving the `Message` payload `Object`.
 
 [[message-builder]]
-==== The `MessageBuilder` Helper Class
+== The `MessageBuilder` Helper Class
 
 You may notice that the `Message` interface defines retrieval methods for its payload and headers but provides no setters.
 The reason for this is that a `Message` cannot be modified after its initial creation.

@@ -1,5 +1,5 @@
 [[claim-check]]
-=== Claim Check
+= Claim Check
 
 In earlier sections, we covered several content enricher components that can help you deal with situations where a message is missing a piece of data.
 We also discussed content filtering, which lets you remove data items from a message.
@@ -20,7 +20,7 @@ Spring Integration provides two types of claim check transformers:
 Convenient namespace-based mechanisms are available to configure them.
 
 [[claim-check-in]]
-==== Incoming Claim Check Transformer
+== Incoming Claim Check Transformer
 
 An incoming claim check transformer transforms an incoming message by storing it in the message store identified by its `message-store` attribute.
 The following example defines an incoming claim check transformer:
@@ -89,7 +89,7 @@ Optional.
 ====
 
 [[claim-check-out]]
-==== Outgoing Claim Check Transformer
+== Outgoing Claim Check Transformer
 
 An outgoing claim check transformer lets you transform a message with a claim check payload into a message with the original content as its payload.
 
@@ -159,7 +159,7 @@ Optional.
 ====
 
 [[claim-once]]
-==== Claim Once
+== Claim Once
 
 Sometimes, a particular message must be claimed only once.
 As an analogy, consider process of handling airplane luggage.
@@ -185,7 +185,7 @@ The following example show how to use the `remove-message` attribute:
 ====
 
 [[a-word-on-message-store]]
-==== A Word on Message Store
+== A Word on Message Store
 
 Although we rarely care about the details of the claim checks (as long as they work), you should know that the current implementation of the actual claim check (the pointer) in Spring Integration uses a UUID to ensure uniqueness.
 

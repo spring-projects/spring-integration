@@ -1,5 +1,5 @@
 [[control-bus]]
-=== Control Bus
+= Control Bus
 
 As described in the https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_] (EIP) book, the idea behind the control bus is that the same messaging system can be used for monitoring and managing the components within the framework as is used for "`application-level`" messaging.
 In Spring Integration, we build upon the adapters described above so that you can send messages as a means of invoking exposed operations.

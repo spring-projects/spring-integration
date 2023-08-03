@@ -1,5 +1,5 @@
 [[mail]]
-== Mail Support
+= Mail Support
 
 This section describes how to work with mail messages in Spring Integration.
 
@@ -26,7 +26,7 @@ compile "org.springframework.integration:spring-integration-mail:{project-versio
 The `jakarta.mail:jakarta.mail-api` must be included via vendor-specific implementation.
 
 [[mail-outbound]]
-=== Mail-sending Channel Adapter
+== Mail-sending Channel Adapter
 
 Spring Integration provides support for outbound email with the `MailSendingMessageHandler`.
 It delegates to a configured instance of Spring's `JavaMailSender`, as the following example shows:
@@ -69,7 +69,7 @@ NOTE: `MailHeaders` also lets you override corresponding `MailMessage` values.
 For example, if `MailMessage.to` is set to 'thing1@things.com' and the `MailHeaders.TO` message header is provided, it takes precedence and overrides the corresponding value in `MailMessage`.
 
 [[mail-inbound]]
-=== Mail-receiving Channel Adapter
+== Mail-receiving Channel Adapter
 
 Spring Integration also provides support for inbound email with the `MailReceivingMessageSource`.
 It delegates to a configured instance of Spring Integration's own `MailReceiver` interface.
@@ -148,7 +148,7 @@ This is necessary to block the idle listener loop for message processing downstr
 If an async hand-off is required, an `ExecutorChannel` can be used as the output channel of this channel adapter.
 
 [[mail-mapping]]
-=== Inbound Mail Message Mapping
+== Inbound Mail Message Mapping
 
 By default, the payload of messages produced by the inbound adapters is the raw `MimeMessage`.
 You can use that object to interrogate the headers and content.
@@ -226,7 +226,7 @@ This way, the content of the `MimeMessage` is loaded on demand when referenced, 
 All the mentioned above transformations are still valid.
 
 [[mail-namespace]]
-=== Mail Namespace Support
+== Mail Namespace Support
 
 Spring Integration provides a namespace for mail-related configuration.
 To use it, configure the following schema locations:
@@ -410,7 +410,7 @@ If not specified, the previous behavior is retained (peek is `true`).
 =====
 
 [[imap-idle-and-lost-connections]]
-==== IMAP `idle` and Lost Connections
+=== IMAP `idle` and Lost Connections
 
 When using an IMAP `idle` channel adapter, connections to the server may be lost (for example, through network failure) and, since the JavaMail documentation explicitly states that the actual IMAP API is experimental, it is important to understand the differences in the API and how to deal with them when configuring IMAP `idle` adapters.
 Currently, Spring Integration mail adapters were tested with JavaMail 1.4.1 and JavaMail 1.4.3.
@@ -471,7 +471,7 @@ This allows applications to detect and act on those exceptions.
 You can obtain the events by using an `<int-event:inbound-channel-adapter>` or any `ApplicationListener` configured to receive an `ImapIdleExceptionEvent` or one of its super classes.
 
 [[imap-seen]]
-=== Marking IMAP Messages When `\Recent` Is Not Supported
+== Marking IMAP Messages When `\Recent` Is Not Supported
 
 If `shouldMarkMessagesAsRead` is true, the IMAP adapters set the `\Seen` flag.
 
@@ -486,7 +486,7 @@ Doing so lets multiple receivers use a different flag (as long as the mail serve
 The `user-flag` attribute is available when configuring the adapter with the namespace.
 
 [[mail-filtering]]
-=== Email Message Filtering
+== Email Message Filtering
 
 Very often, you may encounter a requirement to filter incoming messages (for example, you want to read only emails that have 'Spring Integration' in the `Subject` line).
 You can accomplish this by connecting an inbound mail adapter with an expression-based `Filter`.
@@ -530,7 +530,7 @@ That is, it has arrived since the last time this folder was opened.
 In other words, while our adapter may peek at the email, it also lets the email server know that such email was touched and should therefore be marked as `RECENT` by the email server.
 
 [[mail-tx-sync]]
-=== Transaction Synchronization
+== Transaction Synchronization
 
 Transaction synchronization for inbound adapters lets you take different actions after a transaction commits or rolls back.
 You can enable transaction synchronization by adding a `<transactional/>` element to the poller for the polled `<inbound-adapter/>` or to the `<imap-idle-inbound-adapter/>`.
@@ -599,7 +599,7 @@ public class Mover {
 IMPORTANT: For the message to be still available for manipulation after the transaction, _should-delete-messages_ must be set to 'false'.
 
 [[mail-java-dsl-configuration]]
-=== Configuring channel adapters with the Java DSL
+== Configuring channel adapters with the Java DSL
 
 To configure mail component in Java DSL, the framework provides a `o.s.i.mail.dsl.Mail` factory, which can be used like this:
 

@@ -1,5 +1,5 @@
 [[transformer]]
-=== Transformer
+= Transformer
 
 Message transformers play a very important role in enabling the loose-coupling of message producers and message consumers.
 Rather than requiring every message-producing component to know what type is expected by the next consumer, you can add transformers between those components.
@@ -15,7 +15,7 @@ Nevertheless, the framework does provide some convenient transformers for dealin
 For more information on those transformers, see <<./xml.adoc#xml,XML Support - Dealing with XML Payloads>>.
 
 [[configuring-a-transformer-with-java-and-other-dsls]]
-==== Configuring a Transformer with Java and other DSLs
+== Configuring a Transformer with Java and other DSLs
 
 For simple Java & Annotation configuration, the Spring bean POJO method must be marked with a `@Transformer` annotation and the framework calls it when messages are consumed from an input channel:
 
@@ -81,7 +81,7 @@ See more information about the DSLs in the respective chapters:
 * <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
 
 [[transformer-namespace]]
-==== Configuring a Transformer with XML
+== Configuring a Transformer with XML
 
 The `<transformer>` element is used to create a message-transforming endpoint.
 In addition to `input-channel` and `output-channel` attributes, it requires a `ref` attribute.
@@ -127,7 +127,7 @@ However, if you do need this type of behavior (where a component might return `n
 Its `requires-reply` value is `false` by default, but that can be set to `true` in order to have exceptions thrown for `null` return values, as with the transformer.
 
 [[transformers-and-spring-expression-language-spel]]
-==== Transformers and Spring Expression Language (SpEL)
+== Transformers and Spring Expression Language (SpEL)
 
 Like routers, aggregators, and other components, as of Spring Integration 2.0, transformers can also benefit from https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[SpEL support] whenever transformation logic is relatively simple.
 The following example shows how to use a SpEL expression:
@@ -145,12 +145,12 @@ The preceding example transforms the payload without writing a custom transforme
 Our payload (assumed to be a `String`) is upper-cased, concatenated with the current timestamp, and has some formatting applied.
 
 [[common-transformers]]
-==== Common Transformers
+== Common Transformers
 
 Spring Integration provides a few transformer implementations.
 
 [[object-to-string-transformer]]
-===== Object-to-String Transformer
+=== Object-to-String Transformer
 
 Because it is fairly common to use the `toString()` representation of an `Object`, Spring Integration provides an `ObjectToStringTransformer` (see also the `Transformers` factory) where the output is a `Message` with a String `payload`.
 That `String` is the result of invoking the `toString()` operation on the inbound Message's payload.
@@ -272,7 +272,7 @@ IMPORTANT: When deserializing data from untrusted sources, you should consider a
 By default, all classes are deserialized.
 
 [[object-to-map-and-map-to-object-transformers]]
-===== `Object`-to-`Map` and `Map`-to-`Object` Transformers
+=== `Object`-to-`Map` and `Map`-to-`Object` Transformers
 
 Spring Integration also provides `Object`-to-`Map` and `Map`-to-`Object` transformers, which use the JSON to serialize and de-serialize the object graphs.
 The object hierarchy is introspected to the most primitive types (`String`, `int`, and so on).
@@ -467,7 +467,7 @@ Starting with version 5.0, you can supply the `ObjectToMapTransformer` with a cu
 See <<json-transformers>> for more information about `JsonObjectMapper` implementations.
 
 [[stream-transformer]]
-===== Stream Transformer
+=== Stream Transformer
 
 The `StreamTransformer` transforms `InputStream` payloads to a `byte[]`( or a `String` if a `charset` is provided).
 
@@ -516,7 +516,7 @@ public StreamTransformer streamToString() {
 ====
 
 [[json-transformers]]
-===== JSON Transformers
+=== JSON Transformers
 
 Spring Integration provides Object-to-JSON and JSON-to-Object transformers.
 The following pair of examples show how to declare them in XML:
@@ -635,7 +635,7 @@ If this expression returns `null` or `ResolvableType` building throws a `ClassNo
 This logic is present as an expression because `JsonHeaders` may not have real class values, but rather some type ids which have to be mapped to target classes according some external registry.
 
 [[Avro-transformers]]
-===== Apache Avro Transformers
+=== Apache Avro Transformers
 
 Version 5.2 added simple transformers to transform to/from Apache Avro.
 
@@ -651,7 +651,7 @@ The `SimpleToAvroTransformer` also has a `setTypeExpression` method.
 This allows decoupling of the producer and consumer where the sender can set the header to some token representing the type and the consumer then maps that token to a type.
 
 [[Protobuf-transformers]]
-===== Protocol Buffers Transformers
+=== Protocol Buffers Transformers
 
 Version 6.1 adds support for transforming from and to https://protobuf.dev/[Protocol Buffers] data content.
 
@@ -709,7 +709,7 @@ Message message2 =  fromTransformer.transform(message1);
 ====
 
 [[transformer-annotation]]
-==== Configuring a Transformer with Annotations
+== Configuring a Transformer with Annotations
 
 You can add the `@Transformer` annotation to methods that expect either the `Message` type or the message payload type.
 The return value is handled in the exact same way as described earlier <<transformer-namespace,in the section describing the `<transformer>` element>>.
@@ -741,7 +741,7 @@ Order generateOrder(String productId, @Header("customerName") String customer) {
 See also <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>>.
 
 [[header-filter]]
-==== Header Filter
+== Header Filter
 
 Sometimes, your transformation use case might be as simple as removing a few headers.
 For such a use case, Spring Integration provides a header filter that lets you specify certain header names that should be removed from the output message (for example, removing headers for security reasons or a value that was needed only temporarily).
@@ -777,6 +777,6 @@ So, in the preceding example, the headers named 'lastName' and 'state' are not p
 
 
 [[codec-based-transformers]]
-==== Codec-Based Transformers
+== Codec-Based Transformers
 
 See <<./codec.adoc#codec,Codec>>.

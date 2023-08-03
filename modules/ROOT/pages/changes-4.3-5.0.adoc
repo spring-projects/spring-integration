@@ -1,16 +1,16 @@
 [[migration-4.3-5.0]]
-=== Changes between 4.3 and 5.0
+= Changes between 4.3 and 5.0
 
 See the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-4.3-to-5.0-Migration-Guide[Migration Guide] for important changes that might affect your applications.
 You can find migration guides for all versions back to 2.1 on the https://github.com/spring-projects/spring-integration/wiki[wiki].
 
 [[x5.0-new-components]]
-==== New Components
+== New Components
 
 Version 5.0 added a number of new components.
 
 [[java-dsl]]
-===== Java DSL
+=== Java DSL
 
 The separate https://github.com/spring-projects/spring-integration-java-dsl[Spring Integration Java DSL] project has now been merged into the core Spring Integration project.
 The `IntegrationComponentSpec` implementations for channel adapters and gateways are distributed to their specific modules.
@@ -18,7 +18,7 @@ See <<./dsl.adoc#java-dsl,Java DSL>> for more information about Java DSL support
 See also the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-4.3-to-5.0-Migration-Guide#java-dsl[4.3 to 5.0 Migration Guide] for the required steps to move to Spring Integration 5.0.
 
 [[testing-support]]
-===== Testing Support
+=== Testing Support
 
 We created a new Spring Integration Test Framework to help with testing Spring Integration applications.
 Now, with the `@SpringIntegrationTest` annotation on test classes and the `MockIntegration` factory, you can make your JUnit tests for integration flows somewhat easier.
@@ -26,35 +26,35 @@ Now, with the `@SpringIntegrationTest` annotation on test classes and the `MockI
 See <<./testing.adoc#testing,Testing support>> for more information.
 
 [[mongodb-outbound-gateway]]
-===== MongoDB Outbound Gateway
+=== MongoDB Outbound Gateway
 
 The new `MongoDbOutboundGateway` lets you make queries to the database on demand by sending a message to its request channel.
 
 See <<./mongodb.adoc#mongodb-outbound-gateway,MongoDB Outbound Gateway>> for more information.
 
 [[webflux-gateways-and-channel-adapters]]
-===== WebFlux Gateways and Channel Adapters
+=== WebFlux Gateways and Channel Adapters
 
 We introduced the new WebFlux support module for Spring WebFlux Framework gateways and channel adapters.
 
 See <<./webflux.adoc#webflux,WebFlux Support>> for more information.
 
 [[content-type-conversion]]
-===== Content Type Conversion
+=== Content Type Conversion
 
 Now that we use the new `InvocableHandlerMethod`-based infrastructure for service method invocations, we can perform `contentType` conversion from the payload to a target method argument.
 
 See <<./endpoint.adoc#content-type-conversion,Content Type Conversion>> for more information.
 
 [[errormessagepublisher-and-errormessagestrategy]]
-===== `ErrorMessagePublisher` and `ErrorMessageStrategy`
+=== `ErrorMessagePublisher` and `ErrorMessageStrategy`
 
 We added `ErrorMessagePublisher` and the `ErrorMessageStrategy` for creating `ErrorMessage` instances.
 
 See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
 [[jdbc-metadata-store]]
-===== JDBC Metadata Store
+=== JDBC Metadata Store
 
 We added a JDBC implementation of the `MetadataStore` implementation.
 This is useful when you need to ensure transactional boundaries for metadata.
@@ -62,13 +62,13 @@ This is useful when you need to ensure transactional boundaries for metadata.
 See <<./jdbc.adoc#jdbc-metadata-store,JDBC Metadata Store>> for more information.
 
 [[x5.0-general]]
-==== General Changes
+== General Changes
 
 Spring Integration is now fully based on Spring Framework `5.0` and Project Reactor `3.1`.
 Previous Project Reactor versions are no longer supported.
 
 [[core-changes]]
-===== Core Changes
+=== Core Changes
 
 The `@Poller` annotation now has the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
 See <<./configuration.adoc#annotations,Annotation Support>> for more information.
@@ -103,7 +103,7 @@ When a candidate failed to acquire the lock, the `LockRegistryLeaderInitiator` n
 See `<<./endpoint.adoc#leadership-event-handling,Leadership Event Handling>>` for more information.
 
 [[gateway-changes]]
-===== Gateway Changes
+=== Gateway Changes
 
 When the gateway method has a `void` return type and an error channel is provided, the gateway now correctly sets the `errorChannel` header.
 Previously, the header was not populated.
@@ -115,14 +115,14 @@ You can now specify the request and reply timeouts with SpEL expressions.
 See <<./gateway.adoc#gateway,Messaging Gateways>> for more information.
 
 [[aggregator-performance-changes]]
-===== Aggregator Performance Changes
+=== Aggregator Performance Changes
 
 By default, aggregators now use a `SimpleSequenceSizeReleaseStrategy`, which is more efficient, especially with large groups.
 Empty groups are now scheduled for removal after `empty-group-min-timeout`.
 See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 
 [[splitter-changes]]
-===== Splitter Changes
+=== Splitter Changes
 
 The splitter component can now handle and split Java `Stream` and Reactive Streams `Publisher` objects.
 If the output channel is a `ReactiveStreamsSubscribableChannel`, the `AbstractMessageSplitter` builds a `Flux` for subsequent iteration instead of a regular `Iterator`, independent of the object being split.
@@ -130,7 +130,7 @@ In addition, `AbstractMessageSplitter` provides `protected obtainSizeIfPossible(
 See <<./splitter.adoc#splitter,Splitter>> for more information.
 
 [[jms-changes]]
-===== JMS Changes
+=== JMS Changes
 
 Previously, Spring Integration JMS XML configuration used a default bean name of `connectionFactory` for the JMS connection factory, letting the property be omitted from component definitions.
 We renamed it to `jmsConnectionFactory`, which is the bean name used by Spring Boot to auto-configure the JMS connection factory bean.
@@ -139,19 +139,19 @@ If your application relies on the previous behavior, you can rename your `connec
 See <<./jms.adoc#jms,JMS Support>> for more information.
 
 [[mail-changes]]
-===== Mail Changes
+=== Mail Changes
 
 Some inconsistencies with rendering IMAP mail content have been resolved.
 See <<./mail.adoc#imap-format-important,the note in the "`Mail-receiving Channel Adapter`" section>> for more information.
 
 [[feed-changes]]
-===== Feed Changes
+=== Feed Changes
 
 Instead of the `com.rometools.fetcher.FeedFetcher`, which is deprecated in ROME, we introduced a new `Resource` property for the `FeedEntryMessageSource`.
 See <<./feed.adoc#feed,Feed Adapter>> for more information.
 
 [[file-changes]]
-===== File Changes
+=== File Changes
 
 We introduced the new `FileHeaders.RELATIVE_PATH` message header to represent relative path in `FileReadingMessageSource`.
 
@@ -171,7 +171,7 @@ The `FileSplitter` now provides a `firstLineAsHeader` option to carry the first 
 See <<./file.adoc#files,File Support>> for more information.
 
 [[ftp-and-sftp-changes]]
-===== FTP and SFTP Changes
+=== FTP and SFTP Changes
 
 The inbound channel adapters now have a property called `max-fetch-size`, which is used to limit the number of files fetched during a poll when no files are currently in the local directory.
 By default, they also are configured with a `FileSystemPersistentAcceptOnceFileListFilter` in the `local-filter`.
@@ -206,25 +206,25 @@ The `FtpOutboundGateway` and `SftpOutboundGateway` now support an option to remo
 See <<./ftp.adoc#ftp,FTP/FTPS Adapters>> and <<./sftp.adoc#sftp,SFTP Adapters>> for more information.
 
 [[integration-properties]]
-===== Integration Properties
+=== Integration Properties
 
 Version 4.3.2 added a new `spring.integration.readOnly.headers` global property to let you customize the list of headers that should not be copied to a newly created `Message` by the `MessageBuilder`.
 See <<./configuration.adoc#global-properties,Global Properties>> for more information.
 
 [[stream-changes]]
-===== Stream Changes
+=== Stream Changes
 
 We added a new option on the `CharacterStreamReadingMessageSource` to let it be used to "`pipe`" stdin and publish an application event when the pipe is closed.
 See <<./stream.adoc#stream-reading,Reading from Streams>> for more information.
 
 [[barrier-changes]]
-===== Barrier Changes
+=== Barrier Changes
 
 The `BarrierMessageHandler` now supports a discard channel to which late-arriving trigger messages are sent.
 See <<./barrier.adoc#barrier,Thread Barrier>> for more information.
 
 [[amqp-changes]]
-===== AMQP Changes
+=== AMQP Changes
 
 The AMQP outbound endpoints now support setting a delay expression when you use the RabbitMQ Delayed Message Exchange plugin.
 
@@ -238,7 +238,7 @@ To override the headers set by the converter, set the `headersMappedLast` proper
 See <<./amqp.adoc#amqp,AMQP Support>> for more information.
 
 [[http-changes]]
-===== HTTP Changes
+=== HTTP Changes
 
 By default, the `DefaultHttpHeaderMapper.userDefinedHeaderPrefix` property is now an empty string instead of `X-`.
 See <<./http.adoc#http-header-mapping,HTTP Header Mappings>> for more information.
@@ -248,7 +248,7 @@ By default, `uriVariablesExpression` now uses a `SimpleEvaluationContext` (since
 See <<./http.adoc#mapping-uri-variables,Mapping URI Variables>> for more information.
 
 [[mqtt-changes]]
-===== MQTT Changes
+=== MQTT Changes
 
 Inbound messages are now mapped with the `RECEIVED_TOPIC`, `RECEIVED_QOS`, and `RECEIVED_RETAINED` headers to avoid inadvertent propagation to outbound messages when an application relays messages.
 
@@ -257,14 +257,14 @@ The defaults remain the same.
 See <<./mqtt.adoc#mqtt,MQTT Support>> for more information.
 
 [[stomp-changes]]
-===== STOMP Changes
+=== STOMP Changes
 
 We changed the STOMP module to use `ReactorNettyTcpStompClient`, based on the Project Reactor `3.1` and `reactor-netty` extension.
 We renamed `Reactor2TcpStompSessionManager` to `ReactorNettyTcpStompSessionManager`, according to the `ReactorNettyTcpStompClient` foundation.
 See <<./stomp.adoc#stomp,STOMP Support>> for more information.
 
 [[web-services-changes]]
-===== Web Services Changes
+=== Web Services Changes
 
 You can now supply `WebServiceOutboundGateway` instances with an externally configured `WebServiceTemplate` instances.
 
@@ -275,7 +275,7 @@ Simple WebService inbound and outbound gateways can now deal with the complete `
 See <<./ws.adoc#ws,Web Services Support>> for more information.
 
 [[redis-changes]]
-===== Redis Changes
+=== Redis Changes
 
 The `RedisStoreWritingMessageHandler` is supplied now with additional `String`-based setters for SpEL expressions (for convenience with Java configuration).
 You can now configure the `zsetIncrementExpression` on the `RedisStoreWritingMessageHandler` as well.
@@ -287,7 +287,7 @@ In addition, the received messages now contain a `RedisHeaders.MESSAGE_SOURCE` h
 See <<./redis.adoc#redis,Redis Support>> for more information.
 
 [[tcp-changes]]
-===== TCP Changes
+=== TCP Changes
 
 We added a new `ThreadAffinityClientConnectionFactory` to bind TCP connections to threads.
 
@@ -298,7 +298,7 @@ We added a `ByteArrayElasticRawDeserializer` without `maxMessageSize` to control
 See <<./ip.adoc#ip,TCP and UDP Support>> for more information.
 
 [[jdbc-changes]]
-===== JDBC Changes
+=== JDBC Changes
 
 The `JdbcMessageChannelStore` now provides a setter for `ChannelMessageStorePreparedStatementSetter`, letting you customize message insertion in the store.
 
@@ -308,7 +308,7 @@ See <<./jdbc.adoc#jdbc,JDBC Support>> for more information.
 
 
 [[metrics-changes]]
-===== Metrics Changes
+=== Metrics Changes
 
 https://micrometer.io/[Micrometer] application monitoring is now supported (since version 5.0.2).
 See <<./metrics.adoc#micrometer-integration,Micrometer Integration>> for more information.
@@ -319,7 +319,7 @@ If you use Micrometer, we recommend a minimum of version 5.0.4.
 
 
 [[endpointid-annotations]]
-===== `@EndpointId` Annotations
+=== `@EndpointId` Annotations
 
 Introduced in version 5.0.4, this annotation provides control over bean naming when you use Java configuration.
 See <<./overview.adoc#endpoint-bean-names,Endpoint Bean Names>> for more information.

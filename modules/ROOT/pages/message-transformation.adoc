@@ -1,5 +1,5 @@
 [[messaging-transformation-chapter]]
-== Message Transformation
+= Message Transformation
 
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 include::./transformer.adoc[]

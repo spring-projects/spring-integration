@@ -1,5 +1,5 @@
 [[messaging-routing-chapter]]
-== Message Routing
+= Message Routing
 
 This chapter covers the details of using Spring Integration to route messages.
 

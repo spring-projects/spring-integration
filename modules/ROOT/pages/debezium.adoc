@@ -1,5 +1,5 @@
 [[debezium]]
-== Debezium Support
+= Debezium Support
 
 https://debezium.io/documentation/reference/development/engine.html[Debezium Engine], Change Data Capture (CDC) inbound channel adapter.
 The `DebeziumMessageProducer` allows capturing database change events, converting them into messages and streaming later to the outbound channels.
@@ -50,7 +50,7 @@ Replace the `debezium-version` with the version compatible with the `spring-inte
 ====
 
 [[debezium-inbound]]
-=== Inbound Debezium Channel Adapter
+== Inbound Debezium Channel Adapter
 
 The Debezium adapter expects a pre-configured `DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>>` instance.
 
@@ -83,7 +83,7 @@ By default, all headers are mapped.
 The following code snippets demonstrate various configuration for this channel adapter:
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
@@ -167,7 +167,7 @@ public void handler(List<ChangeEvent<Object, Object>> payload) {
 ====
 
 [[debezium-java-dsl]]
-=== Debezium Java DSL Support
+== Debezium Java DSL Support
 
 The `spring-integration-debezium` provides a convenient Java DSL fluent API via the `Debezium` factory and the `DebeziumMessageProducerSpec` implementations.
 

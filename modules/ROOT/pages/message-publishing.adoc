@@ -1,5 +1,5 @@
 [[message-publishing]]
-== Message Publishing
+= Message Publishing
 
 The (Aspect-oriented Programming) AOP message publishing feature lets you construct and send a message as a by-product of a method invocation.
 For example, imagine you have a component and, every time the state of this component changes, you want to be notified by a message.
@@ -7,12 +7,12 @@ The easiest way to send such notifications is to send a message to a dedicated c
 The AOP message publishing feature handles these responsibilities with a configuration-driven approach.
 
 [[message-publishing-config]]
-=== Message Publishing Configuration
+== Message Publishing Configuration
 
 Spring Integration provides two approaches: XML configuration and annotation-driven (Java) configuration.
 
 [[publisher-annotation]]
-==== Annotation-driven Configuration with the `@Publisher` Annotation
+=== Annotation-driven Configuration with the `@Publisher` Annotation
 
 The annotation-driven approach lets you annotate any method with the `@Publisher` annotation to specify a 'channel' attribute.
 Starting with version 5.1, to switch this functionality on, you must use the `@EnablePublisher` annotation on some `@Configuration` class.
@@ -201,7 +201,7 @@ static class BankingOperationsImpl implements BankingOperations {
 ====
 
 [[aop-based-interceptor]]
-==== XML-based Approach with the `<publishing-interceptor>` element
+=== XML-based Approach with the `<publishing-interceptor>` element
 
 The XML-based approach lets you configure the same AOP-based message publishing functionality as a namespace-based configuration of a `MessagePublishingInterceptor`.
 It certainly has some benefits over the annotation-driven approach, since it lets you use AOP pointcut expressions, thus possibly intercepting multiple methods at once or intercepting and publishing methods to which you do not have the source code.
@@ -264,7 +264,7 @@ The preceding example maps the return value of every method that matches the poi
 If you do not specify the `defaultChannel` (as the preceding example does not do), the messages are sent to the global `nullChannel` (the equivalent of `/dev/null`).
 
 [[asynchronous-publishing]]
-===== Asynchronous Publishing
+==== Asynchronous Publishing
 
 Publishing occurs in the same thread as your component's execution.
 So, by default, it is synchronous.
@@ -320,7 +320,7 @@ Another way of handling this type of scenario is with a wire-tap.
 See <<./channel.adoc#channel-wiretap,Wire Tap>>.
 
 [[scheduled-producer]]
-==== Producing and Publishing Messages Based on a Scheduled Trigger
+=== Producing and Publishing Messages Based on a Scheduled Trigger
 
 In the preceding sections, we looked at the message-publishing feature, which constructs and publishes messages as by-products of method invocations.
 However, in those cases, you are still responsible for invoking the method.

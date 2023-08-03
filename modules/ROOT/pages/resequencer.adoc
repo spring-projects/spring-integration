@@ -1,11 +1,11 @@
 [[resequencer]]
-=== Resequencer
+= Resequencer
 
 The resequencer is related to the aggregator but serves a different purpose.
 While the aggregator combines messages, the resequencer passes messages through without changing them.
 
 [[resequencer-functionality]]
-==== Functionality
+== Functionality
 
 The resequencer works in a similar way to the aggregator, in the sense that it uses the `CORRELATION_ID` to store messages in groups.
 The difference is that the Resequencer does not process the messages in any way.
@@ -18,7 +18,7 @@ IMPORTANT: The resequencer is intended to resequence relatively short sequences 
 If you have a large number of disjoint sequences with many gaps, you may experience performance issues.
 
 [[configuring-a-resequencer]]
-==== Configuring a Resequencer
+== Configuring a Resequencer
 
 See <<./dsl.adoc#java-dsl-aggregators,Aggregators and Resequencers>> for configuring a resequencer in Java DSL.
 

@@ -1,5 +1,5 @@
 [[jdbc]]
-== JDBC Support
+= JDBC Support
 
 Spring Integration provides channel adapters for receiving and sending messages by using database queries.
 Through those adapters, Spring Integration supports not only plain JDBC SQL queries but also stored procedure and stored function calls.
@@ -35,7 +35,7 @@ By default, the following JDBC components are available:
 The Spring Integration JDBC Module also provides a <<jdbc-message-store,JDBC Message Store>>.
 
 [[jdbc-inbound-channel-adapter]]
-=== Inbound Channel Adapter
+== Inbound Channel Adapter
 
 The main function of an inbound channel adapter is to execute a SQL `SELECT` query and turn the result set into a message.
 The message payload is the whole result set (expressed as a `List`), and the types of the items in the list depend on the row-mapping strategy.
@@ -134,7 +134,7 @@ Otherwise, the parameter source caches the result of the evaluation.
 Also note that, because caching is disabled, if the same parameter name appears in the select query multiple times, it is re-evaluated for each occurrence.
 
 [[jdbc-polling-transactions]]
-==== Polling and Transactions
+=== Polling and Transactions
 
 The inbound adapter accepts a regular Spring Integration poller as a child element.
 Consequently, the frequency of the polling can be controlled (among other uses).
@@ -162,7 +162,7 @@ A common use case is for the downstream channels to be direct channels (the defa
 That way, if any of them fail, the transaction rolls back and the input data is reverted to its original state.
 
 [[jdbc-max-rows-versus-max-messages-per-poll]]
-==== `max-rows` Versus `max-messages-per-poll`
+=== `max-rows` Versus `max-messages-per-poll`
 
 The JDBC inbound channel adapter defines an attribute called `max-rows`.
 When you specify the adapter's poller, you can also define a property called `max-messages-per-poll`.
@@ -184,7 +184,7 @@ NOTE: It is recommended to use result set limiting via vendor-specific query opt
 See the particular vendor documentation for more information.
 
 [[jdbc-outbound-channel-adapter]]
-=== Outbound Channel Adapter
+== Outbound Channel Adapter
 
 The outbound channel adapter is the inverse of the inbound: its role is to handle a message and use it to execute a SQL query.
 By default, the message payload and headers are available as input parameters to the query, as the following example shows:
@@ -212,7 +212,7 @@ You can also inject a `SqlParameterSourceFactory` to control the binding of each
 If the input channel is a direct channel, the outbound adapter runs its query in the same thread and, therefore, the same transaction (if there is one) as the sender of the message.
 
 [[passing-parameters-by-using-spel-expressions]]
-==== Passing Parameters by Using SpEL Expressions
+=== Passing Parameters by Using SpEL Expressions
 
 A common requirement for most JDBC channel adapters is to pass parameters as part of SQL queries or stored procedures or functions.
 As mentioned earlier, these parameters are by default bean property expressions, not SpEL expressions.
@@ -243,7 +243,7 @@ The following example uses a `ExpressionEvaluatingSqlParameterSourceFactory` to 
 For further information, see <<sp-defining-parameter-sources>>.
 
 [[using-the-preparedstatement-callback]]
-==== Using the `PreparedStatement` Callback
+=== Using the `PreparedStatement` Callback
 
 Sometimes, the flexibility and loose-coupling of `SqlParameterSourceFactory` does not do what we need for the target `PreparedStatement` or we need to do some low-level JDBC work.
 The Spring JDBC module provides APIs to configure the execution environment (such as `ConnectionCallback` or `PreparedStatementCreator`) and manipulate parameter values (such as `SqlParameterSource`).
@@ -284,7 +284,7 @@ From the XML configuration perspective, the `prepared-statement-setter` attribut
 It lets you specify a `MessagePreparedStatementSetter` bean reference.
 
 [[batch-update]]
-==== Batch Update
+=== Batch Update
 
 Starting with version 5.1, the `JdbcMessageHandler` performs a `JdbcOperations.batchUpdate()` if the payload of the request message is an `Iterable` instance.
 Each element of the `Iterable` is wrapped to a `Message` with the headers from the request message if such an element is not a `Message` already.
@@ -293,7 +293,7 @@ When a `MessagePreparedStatementSetter` configuration is applied, a `BatchPrepar
 The batch update is not supported when `keysGenerated` mode is selected.
 
 [[jdbc-outbound-gateway]]
-=== Outbound Gateway
+== Outbound Gateway
 
 The outbound gateway is like a combination of the outbound and inbound adapters: Its role is to handle a message and use it to execute a SQL query and then respond with the result by sending it to a reply channel.
 By default, the message payload and headers are available as input parameters to the query, as the following example shows:
@@ -375,7 +375,7 @@ See <<./splitter.adoc#split-stream-and-flux,Splitter Discard Channel>> for possi
 See <<jdbc-outbound-channel-adapter>> for more information about `MessagePreparedStatementSetter`.
 
 [[jdbc-message-store]]
-=== JDBC Message Store
+== JDBC Message Store
 
 Spring Integration provides two JDBC specific message store implementations.
 The `JdbcMessageStore` is suitable for use with aggregators and the claim check pattern.
@@ -390,7 +390,7 @@ Furthermore, the index for `PriorityChannel` is commented out because it is not 
 NOTE: When using the `OracleChannelMessageStoreQueryProvider`, the priority channel index **must** be added because it is included in a hint in the query.
 
 [[jdbc-db-init]]
-==== Initializing the Database
+=== Initializing the Database
 
 Before starting to use JDBC message store components, you should provision a target database with the appropriate objects.
 
@@ -406,7 +406,7 @@ If the required table does not exist, the application context fails to start.
 The check can be disabled via `setCheckDatabaseOnStart(false)`.
 
 [[jdbc-message-store-generic]]
-==== The Generic JDBC Message Store
+=== The Generic JDBC Message Store
 
 The JDBC module provides an implementation of the Spring Integration `MessageStore` (important in the claim check pattern) and `MessageGroupStore` (important in stateful patterns such as an aggregator) backed by a database.
 Both interfaces are implemented by the `JdbcMessageStore`, and there is support for configuring store instances in XML, as the following example shows:
@@ -434,13 +434,13 @@ In the preceding example, we have specified a `LobHandler` for dealing with mess
 The table name prefix defaults to `INT_`.
 
 [[jdbc-message-store-channels]]
-==== Backing Message Channels
+=== Backing Message Channels
 
 If you intend to back message channels with JDBC, we recommend using the `JdbcChannelMessageStore` implementation.
 It works only in conjunction with Message Channels.
 
 [[supported-databases]]
-===== Supported Databases
+==== Supported Databases
 
 The `JdbcChannelMessageStore` uses database-specific SQL queries to retrieve messages from the database.
 Therefore, you must set the `ChannelMessageStoreQueryProvider` property on the `JdbcChannelMessageStore`.
@@ -462,7 +462,7 @@ If your database is not listed, you can extend the `AbstractChannelMessageStoreQ
 Version 4.0 added the `MESSAGE_SEQUENCE` column to the table to ensure first-in-first-out (FIFO) queueing even when messages are stored in the same millisecond.
 
 [[custom-message-insertion]]
-===== Custom Message Insertion
+==== Custom Message Insertion
 
 Since version 5.0, by overloading the `ChannelMessageStorePreparedStatementSetter` class, you can provide a custom implementation for message insertion in the `JdbcChannelMessageStore`.
 You can use it to set different columns or change the table structure or serialization strategy.
@@ -499,7 +499,7 @@ If you are still planning to use your database as a queue, consider using Postgr
 ====
 
 [[concurrent-polling]]
-===== Concurrent Polling
+==== Concurrent Polling
 
 When polling a message channel, you have the option to configure the associated `Poller` with a `TaskExecutor` reference.
 
@@ -549,7 +549,7 @@ The following example shows how to do so:
 ====
 
 [[priority-channel]]
-===== Priority Channel
+==== Priority Channel
 
 Starting with version 4.0, `JdbcChannelMessageStore` implements `PriorityCapableChannelMessageStore` and provides the `priorityEnabled` option, letting it be used as a `message-store` reference for `priority-queue` instances.
 For this purpose, the `INT_CHANNEL_MESSAGE` table has a `MESSAGE_PRIORITY` column to store the value of `PRIORITY` message headers.
@@ -583,7 +583,7 @@ To configure that scenario, you can extend one message store bean from the other
 ====
 
 [[partitioning-a-message-store]]
-==== Partitioning a Message Store
+=== Partitioning a Message Store
 
 It is common to use a `JdbcMessageStore` as a global store for a group of applications or nodes in the same application.
 To provide some protection against name clashes and to give control over the database meta-data configuration, the message store lets the tables be partitioned in two ways.
@@ -596,7 +596,7 @@ To avoid this danger, you can use the message store `region` to keep data separa
 
 
 [[postgresql-push]]
-==== PostgreSQL: Receiving Push Notifications
+=== PostgreSQL: Receiving Push Notifications
 
 PostgreSQL offers a listen and notification framework for receiving push notifications upon database table manipulations.
 Spring Integration leverages this mechanism (starting with version 6.0) to allow for receiving push notifications when new messages are added to a `JdbcChannelMessageStore`.
@@ -659,7 +659,7 @@ For this need of an exclusive connection, it is also recommended that a JVM only
 
 
 [[stored-procedures]]
-=== Stored Procedures
+== Stored Procedures
 
 In certain situations, plain JDBC support is not sufficient.
 Maybe you deal with legacy relational database schemas or you have complex data processing needs, but, ultimately, you have to use https://en.wikipedia.org/wiki/Stored_procedure[stored procedures] or stored functions.
@@ -670,7 +670,7 @@ Since Spring Integration 2.1, we provide three components to execute stored proc
 * Stored Procedures Outbound Gateway
 
 [[sp-supported-databases]]
-==== Supported Databases
+=== Supported Databases
 
 In order to enable calls to stored procedures and stored functions, the stored procedure components use the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`org.springframework.jdbc.core.simple.SimpleJdbcCall`] class.
 Consequently, the following databases are fully supported for executing stored procedures:
@@ -700,12 +700,12 @@ Nevertheless, it is very important to thoroughly test those usage scenarios.
 =====
 
 [[sp-configuration]]
-==== Configuration
+=== Configuration
 
 The stored procedure components provide full XML Namespace support, and configuring the components is similar as for the general purpose JDBC components discussed earlier.
 
 [[sp-common-config-params]]
-==== Common Configuration Attributes
+=== Common Configuration Attributes
 
 All stored procedure components share certain configuration parameters:
 
@@ -769,7 +769,7 @@ The property is set on the underlying `StoredProcExecutor`.
 Optional.
 
 [[sp-common-config-subelements]]
-==== Common Configuration Sub-Elements
+=== Common Configuration Sub-Elements
 
 The stored procedure components share a common set of child elements that you can use to define and pass parameters to stored procedures or stored functions.
 The following elements are available:
@@ -864,7 +864,7 @@ Optional.
 Optional.
 
 [[sp-defining-parameter-sources]]
-==== Defining Parameter Sources
+=== Defining Parameter Sources
 
 Parameter sources govern the techniques of retrieving and mapping the Spring Integration message properties to the relevant stored procedure input parameters.
 
@@ -900,7 +900,7 @@ If you do provide `ProcedureParameter` values explicitly, by default, an `Expres
 If you need even more control over how parameters are retrieved, consider passing in a custom implementation of `SqlParameterSourceFactory` by using the `sql-parameter-source-factory` attribute.
 
 [[stored-procedure-inbound-channel-adapter]]
-==== Stored Procedure Inbound Channel Adapter
+=== Stored Procedure Inbound Channel Adapter
 
 The following listing calls out the attributes that matter for a stored procedure inbound channel adapter:
 
@@ -942,7 +942,7 @@ Optional.
 ====
 
 [[stored-procedure-outbound-channel-adapter]]
-==== Stored Procedure Outbound Channel Adapter
+=== Stored Procedure Outbound Channel Adapter
 
 The following listing calls out the attributes that matter for a stored procedure outbound channel adapter:
 
@@ -974,7 +974,7 @@ Optional.
 ====
 
 [[stored-procedure-outbound-gateway]]
-==== Stored Procedure Outbound Gateway
+=== Stored Procedure Outbound Gateway
 
 The following listing calls out the attributes that matter for a stored procedure outbound channel adapter:
 
@@ -1024,7 +1024,7 @@ Optional.
 ====
 
 [[sp-examples]]
-==== Examples
+=== Examples
 
 This section contains two examples that call https://db.apache.org/derby/[Apache Derby] stored procedures.
 The first procedure calls a stored procedure that returns a `ResultSet`.
@@ -1124,7 +1124,7 @@ In Spring Integration, you can now call this Stored Procedure by using, for exam
 ====
 
 [[jdbc-lock-registry]]
-=== JDBC Lock Registry
+== JDBC Lock Registry
 
 Version 4.3 introduced the `JdbcLockRegistry`.
 Certain components (for example, aggregator and resequencer) use a lock obtained from a `LockRegistry` instance to ensure that only one thread manipulates a group at a time.
@@ -1187,7 +1187,7 @@ lockRepository.setInsertQuery(lockRepository.getInsertQuery() + " ON CONFLICT DO
 ====
 
 [[jdbc-metadata-store]]
-=== JDBC Metadata Store
+== JDBC Metadata Store
 
 Version 5.0 introduced the JDBC `MetadataStore` (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>) implementation.
 You can use the `JdbcMetadataStore` to maintain the metadata state across application restarts.

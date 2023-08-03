@@ -1,5 +1,5 @@
 [[amqp]]
-== AMQP (RabbitMQ) Support
+= AMQP (RabbitMQ) Support
 
 Spring Integration provides channel adapters for receiving and sending messages by using the Advanced Message Queuing Protocol (AMQP).
 
@@ -44,7 +44,7 @@ You should familiarize yourself with the https://docs.spring.io/spring-amqp/refe
 It provides much more in-depth information about Spring's integration with AMQP in general and RabbitMQ in particular.
 
 [[amqp-inbound-channel-adapter]]
-=== Inbound Channel Adapter
+== Inbound Channel Adapter
 
 The following listing shows the possible configuration options for an AMQP Inbound Channel Adapter:
 
@@ -289,7 +289,7 @@ IMPORTANT: When using exclusive or single-active consumers in the listener conta
 This will prevent a race condition where, after stopping the container, another consumer could start consuming messages before this instance has fully stopped.
 
 [[amqp-debatching]]
-==== Batched Messages
+=== Batched Messages
 
 See https://docs.spring.io/spring-amqp/docs/current/reference/html/#template-batching[the Spring AMQP Documentation] for more information about batched messages.
 
@@ -303,10 +303,10 @@ The default `BatchingStrategy` is the `SimpleBatchingStrategy`, but this can be 
 NOTE: The `org.springframework.amqp.rabbit.retry.MessageBatchRecoverer` must be used with batches when recovery is required for retry operations.
 
 [[polled-inbound-channel-adapter]]
-=== Polled Inbound Channel Adapter
+== Polled Inbound Channel Adapter
 
 [[overview]]
-==== Overview
+=== Overview
 
 Version 5.0.1 introduced a polled channel adapter, letting you fetch individual messages on demand -- for example, with a `MessageSourcePollingTemplate` or a poller.
 See <<./polling-consumer.adoc#deferred-acks-message-source,Deferred Acknowledgment Pollable Message Source>> for more information.
@@ -348,14 +348,14 @@ This adapter currently does not have XML configuration support.
 ====
 
 [[amqp-polled-debatching]]
-==== Batched Messages
+=== Batched Messages
 
 See <<amqp-debatching>>.
 
 For the polled adapter, there is no listener container, batched messages are always debatched (if the `BatchingStrategy` supports doing so).
 
 [[amqp-inbound-gateway]]
-=== Inbound Gateway
+== Inbound Gateway
 
 The inbound gateway supports all the attributes on the inbound channel adapter (except that 'channel' is replaced by 'request-channel'), plus some additional attributes.
 The following listing shows the available attributes:
@@ -465,12 +465,12 @@ Starting with version 5.5, the `AmqpInboundChannelAdapter` can be configured wit
 See `setMessageRecoverer()` JavaDocs for more information.
 
 [[amqp-gateway-debatching]]
-==== Batched Messages
+=== Batched Messages
 
 See <<amqp-debatching>>.
 
 [[amqp-inbound-ack]]
-=== Inbound Endpoint Acknowledge Mode
+== Inbound Endpoint Acknowledge Mode
 
 By default, the inbound endpoints use the `AUTO` acknowledge mode, which means the container automatically acknowledges the message when the downstream integration flow completes (or a message is handed off to another thread by using a `QueueChannel` or `ExecutorChannel`).
 Setting the mode to `NONE` configures the consumer such that acknowledgments are not used at all (the broker automatically acknowledges the message as soon as it is sent).
@@ -508,7 +508,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 ====
 
 [[amqp-outbound-endpoints]]
-=== Outbound Endpoints
+== Outbound Endpoints
 
 The following outbound endpoints have many similar configuration options.
 Starting with version 5.2, the `confirm-timeout` has been added.
@@ -517,7 +517,7 @@ If a channel is closed before the confirm is received, the Spring AMQP framework
 "Missing" acks should never occur but, if you set this property, the endpoint will periodically check for them and synthesize a nack if the time elapses without a confirm being received.
 
 [[amqp-outbound-channel-adapter]]
-=== Outbound Channel Adapter
+== Outbound Channel Adapter
 
 The following example shows the available properties for an AMQP outbound channel adapter:
 
@@ -670,7 +670,7 @@ When using multiple outbound endpoints with returns, a separate `RabbitTemplate`
 =====
 
 [[amqp-outbound-gateway]]
-=== Outbound Gateway
+== Outbound Gateway
 
 The following listing shows the possible properties for an AMQP Outbound Gateway:
 
@@ -832,7 +832,7 @@ Note that the only difference between the outbound adapter and outbound gateway 
 `expectReply` property.
 
 [[amqp-async-outbound-gateway]]
-=== Asynchronous Outbound Gateway
+== Asynchronous Outbound Gateway
 
 The gateway discussed in the previous section is synchronous, in that the sending thread is suspended until a
 reply is received (or a timeout occurs).
@@ -1011,7 +1011,7 @@ Otherwise, unexpected side effects may be encountered.
 ====
 
 [[alternative-confirms-returns]]
-=== Alternative Mechanism for Publisher Confirms and Returns
+== Alternative Mechanism for Publisher Confirms and Returns
 
 When the connection factory is configured for publisher confirms and returns, the sections above discuss the configuration of message channels to receive the confirms and returns asynchronously.
 Starting with version 5.4, there is an additional mechanism which is generally easier to use.
@@ -1044,7 +1044,7 @@ To improve performance, you may wish to send multiple messages and wait for the 
 The returned message is the raw message after conversion; you can sub-class a `CorrelationData` with whatever additional data you need.
 
 [[amqp-conversion-inbound]]
-=== Inbound Message Conversion
+== Inbound Message Conversion
 
 Inbound messages, arriving at the channel adapter or gateway, are converted to the `spring-messaging` `Message<?>` payload using a message converter.
 By default, a `SimpleMessageConverter` is used, which handles java serialization and text.
@@ -1058,7 +1058,7 @@ If the container is configured with `AcknowledgeMode.MANUAL`, the payload is a `
 This enables the error flow to call `basicAck` or `basicNack` (or `basicReject`) for the message, to control its disposition.
 
 [[content-type-conversion-outbound]]
-=== Outbound Message Conversion
+== Outbound Message Conversion
 
 Spring AMQP 1.4 introduced the `ContentTypeDelegatingMessageConverter`, where the actual converter is selected based
 on the incoming content type message property.
@@ -1117,7 +1117,7 @@ See its JavaDocs for more information.
 ====
 
 [[amqp-user-id]]
-=== Outbound User ID
+== Outbound User ID
 
 Spring AMQP version 1.6 introduced a mechanism to allow the specification of a default user ID for outbound messages.
 It has always been possible to set the `AmqpHeaders.USER_ID` header, which now takes precedence over the default.
@@ -1130,7 +1130,7 @@ Similarly, to set the user ID property on replies, inject an appropriately confi
 See the https://docs.spring.io/spring-amqp/reference/html/_reference.html#template-user-id[Spring AMQP documentation] for more information.
 
 [[amqp-delay]]
-=== Delayed Message Exchange
+== Delayed Message Exchange
 
 Spring AMQP supports the https://docs.spring.io/spring-amqp/reference/html/#delayed-message-exchange[RabbitMQ Delayed Message Exchange Plugin].
 For inbound messages, the `x-delay` header is mapped to the `AmqpHeaders.RECEIVED_DELAY` header.
@@ -1139,7 +1139,7 @@ You can also specify the `delay` and `delayExpression` properties on outbound en
 These properties take precedence over the `AmqpHeaders.DELAY` header.
 
 [[amqp-channels]]
-=== AMQP-backed Message Channels
+== AMQP-backed Message Channels
 
 There are two message channel implementations available.
 One is point-to-point, and the other is publish-subscribe.
@@ -1208,7 +1208,7 @@ Blocking is a little more expensive than using a `basicGet()` to retrieve a mess
 To restore the previous behavior, set the poller's `receiveTimeout` to 0.
 
 [[configuring-with-java-configuration]]
-==== Configuring with Java Configuration
+=== Configuring with Java Configuration
 
 The following example shows how to configure the channels with Java configuration:
 
@@ -1245,7 +1245,7 @@ public AmqpChannelFactoryBean pubSub(ConnectionFactory connectionFactory) {
 ====
 
 [[configuring-with-the-java-dsl]]
-==== Configuring with the Java DSL
+=== Configuring with the Java DSL
 
 The following example shows how to configure the channels with the Java DSL:
 
@@ -1285,10 +1285,10 @@ public IntegrationFlow pubSubInFlow(ConnectionFactory connectionFactory) {
 ====
 
 [[amqp-message-headers]]
-=== AMQP Message Headers
+== AMQP Message Headers
 
 [[overview]]
-==== Overview
+=== Overview
 
 The Spring Integration AMQP Adapters automatically map all AMQP properties and headers.
 (This is a change from 4.3 - previously, only standard headers were mapped).
@@ -1369,7 +1369,7 @@ Inbound properties will be mapped to the `amqp_*` headers as before.
 It is useful to populate the `messageId` property when message consumers are using stateful retry.
 
 [[amqp-content-type]]
-==== The `contentType` Header
+=== The `contentType` Header
 
 Unlike other headers, the `AmqpHeaders.CONTENT_TYPE` is not prefixed with `amqp_`; this allows transparent passing of the contentType header across different technologies.
 For example an inbound HTTP message sent to a RabbitMQ queue.
@@ -1382,12 +1382,12 @@ Inbound mapping ignored the headers map value.
 `contentType` is no longer mapped to an entry in the headers map.
 
 [[amqp-strict-ordering]]
-=== Strict Message Ordering
+== Strict Message Ordering
 
 This section describes message ordering for inbound and outbound messages.
 
 [[inbound]]
-==== Inbound
+=== Inbound
 
 If you require strict ordering of inbound messages, you must configure the inbound listener container's `prefetchCount` property to `1`.
 This is because, if a message fails and is redelivered, it arrives after existing prefetched messages.
@@ -1395,7 +1395,7 @@ Since Spring AMQP version 2.0, the `prefetchCount` defaults to `250` for improve
 Strict ordering requirements come at the cost of decreased performance.
 
 [[outbound]]
-==== Outbound
+=== Outbound
 
 Consider the following integration flow:
 
@@ -1445,7 +1445,7 @@ If the optional timeout is provided, when the flow completes, the advice calls t
 IMPORTANT: There must be no thread hands-off in the downstream flow (`QueueChannel`, `ExecutorChannel`, and others).
 
 [[amqp-samples]]
-=== AMQP Samples
+== AMQP Samples
 
 To experiment with the AMQP adapters, check out the samples available in the Spring Integration samples git repository at https://github.com/spring-projects/spring-integration-samples[https://github.com/SpringSource/spring-integration-samples]
 
@@ -1465,14 +1465,14 @@ The following image illustrates the basic set of Spring Integration components u
 image::spring-integration-amqp-sample-graph.png[align="center"]
 
 [[rmq-streams]]
-=== RabbitMQ Stream Queue Support
+== RabbitMQ Stream Queue Support
 
 Version 6.0 introduced support for RabbitMQ Stream Queues.
 
 The DSL factory class for these endpoints is `RabbitStream`.
 
 [[rmq-stream-inbound-channel-adapter]]
-==== RabbitMQ Stream Inbound Channel Adapter
+=== RabbitMQ Stream Inbound Channel Adapter
 
 ====
 [source, java]
@@ -1494,7 +1494,7 @@ IntegrationFlow superStream(Environment env) {
 ====
 
 [[rmq-stream-outbound-channel-adapter]]
-==== RabbitMQ Stream Outbound Channel Adapter
+=== RabbitMQ Stream Outbound Channel Adapter
 
 ====
 [source, java]
