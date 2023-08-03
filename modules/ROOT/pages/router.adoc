@@ -822,6 +822,7 @@ someFlow() {
 Spring Integration provides a generic router.
 You can use it for general-purpose routing (as opposed to the other routers provided by Spring Integration, each of which has some form of specialization).
 
+[[configuring-a-content-based-router-with-xml]]
 ===== Configuring a Content-based Router with XML
 
 The `router` element provides a way to connect a router to an input channel and also accepts the optional `default-output-channel` attribute.

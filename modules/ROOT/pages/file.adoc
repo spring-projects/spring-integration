@@ -180,6 +180,7 @@ NOTE: Since `CompositeFileListFilter` matches the files against all delegates, t
 Starting with version 5.1, the `FileReadingMessageSource` doesn't check a directory for existence and doesn't create it until its `start()` is called (typically via wrapping `SourcePollingChannelAdapter`).
 Previously, there was no simple way to prevent an operation system permissions error when referencing the directory, for example from tests, or when permissions are applied later.
 
+[[message-headers]]
 ==== Message Headers
 
 Starting with version 5.0, the `FileReadingMessageSource` (in addition to the `payload` as a polled `File`) populates the following headers to the outbound `Message`:
@@ -193,6 +194,7 @@ However, for consistency and convenience with any other custom use cases, this h
 This header can be useful when the requirement is to restore a source directory hierarchy in the other places.
 For this purpose, the `DefaultFileNameGenerator` (see "`<<file-writing-file-names>>) can be configured to use this header.
 
+[[directory-scanning-and-polling]]
 ==== Directory Scanning and Polling
 
 The `FileReadingMessageSource` does not produce messages for files from the directory immediately.
@@ -396,6 +398,7 @@ Starting with version 6.1, the `FileReadingMessageSource` exposes two new `Watch
 * `watchMaxDepth` - an argument for the `Files.walkFileTree(Path root, Set attributes, int maxDepth, FileVisitor visitor)` API;
 * `watchDirPredicate` - a `Predicate<Path>` to test if a directory in the scanned tree should be walked and registered with the `WatchService` and the configured watch event kinds.
 
+[[limiting-memory-consumption]]
 ==== Limiting Memory Consumption
 
 You can use a `HeadDirectoryScanner` to limit the number of files retained in memory.
@@ -414,6 +417,7 @@ Even if files that were previously filtered by the `HeadDirectoryScanner.HeadFil
 Generally, instead of using an `AcceptOnceFileListFilter` in this case, you should remove the processed files so that the previously filtered files are available on a future poll.
 =====
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java configuration:
@@ -454,6 +458,7 @@ public class FileReadingJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
@@ -694,11 +699,13 @@ Both, the file outbound channel adapter and the file outbound gateway provide tw
 
 NOTE: Spring Integration 2.2 introduced the `directory-expression` attribute.
 
+[[using-the-directory-attribute]]
 ===== Using the `directory` Attribute
 
 When you use the `directory` attribute, the output directory is set to a fixed value, which is set when the `FileWritingMessageHandler` is initialized.
 If you do not specify this attribute, you must use the `directory-expression` attribute.
 
+[[using-the-directory-expression-attribute]]
 ===== Using the `directory-expression` Attribute
 
 If you want to have full SpEL support, you can use the `directory-expression` attribute.
@@ -710,6 +717,7 @@ The SpEL expression must resolve to either a `String`, `java.io.File` or `org.sp
 Furthermore, the resulting `String` or `File` must point to a directory.
 If you do not specify the `directory-expression` attribute, then you must set the `directory` attribute.
 
+[[using-the-auto-create-directory-attribute]]
 ===== Using the `auto-create-directory` Attribute
 
 By default, if the destination directory does not exist, the respective destination directory and any non-existing parent directories are  automatically created.
@@ -878,6 +886,7 @@ In such cases, you may connect the file namespace's `inbound-channel-adapter` el
 
 If you have more elaborate requirements or need to support additional payload types as input to be converted to file content, you can extend the `FileWritingMessageHandler`, but a much better option is to rely on a <<file-transforming,`Transformer`>>.
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
@@ -918,6 +927,7 @@ public class FileWritingJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:

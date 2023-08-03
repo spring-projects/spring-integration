@@ -240,6 +240,7 @@ This method immediately closes idle sessions and causes in-use sessions to be cl
 
 The `DefaultSftpSessionFactory` (in conjunction with a `CachingSessionFactory`) now supports multiplexing channels over a single SSH connection (SFTP Only).
 
+[[ftp-sftp-and-ftps-inbound-adapters]]
 ====== FTP, SFTP and FTPS Inbound Adapters
 
 Previously, there was no way to override the default filter used to process files retrieved from a remote server.
@@ -252,6 +253,7 @@ If you want the behavior of the `AcceptOnceFileListFilter` to be maintained acro
 
 Inbound channel adapters now support the `preserve-timestamp` attribute, which sets the local file modified timestamp to the timestamp from the server (default: `false`).
 
+[[ftp-sftp-and-ftps-gateways]]
 ====== FTP, SFTP, and FTPS Gateways
 
 The gateways now support the `mv` command, enabling the renaming of remote files.
@@ -265,6 +267,7 @@ By default, the same name as the remote file is used.
 
 The `local-directory-expression` attribute is now supported, enabling the naming of local directories during retrieval (based on the remote directory).
 
+[[remote-file-template]]
 ====== Remote File Template
 
 A new higher-level abstraction (`RemoteFileTemplate`) is provided over the `Session` implementations used by the FTP and SFTP modules.

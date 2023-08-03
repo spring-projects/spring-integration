@@ -340,6 +340,7 @@ SFTP inbound channel adapter is a polling consumer.
 Therefore, you must configure a poller (either a global default or a local element).
 Once the file has been transferred to a local directory, a message with `java.io.File` as its payload type is generated and sent to the channel identified by the `channel` attribute.
 
+[[more-on-file-filtering-and-large-files]]
 ==== More on File Filtering and Large Files
 
 Sometimes, a file that just appeared in the monitored (remote) directory is not complete.
@@ -365,6 +366,7 @@ The following example shows how to do so:
 ----
 ====
 
+[[recovering-from-failures]]
 ==== Recovering from Failures
 
 You should understand the architecture of the adapter.
@@ -420,6 +422,7 @@ It is also configured for all the `WatchEventType` instances to react for any mo
 The reprocessing sample shown earlier is based on the built-in functionality of the `FileReadingMessageSource.WatchServiceDirectoryScanner`, which uses `ResettableFileListFilter.remove()` when the file is deleted (`StandardWatchEventKinds.ENTRY_DELETE`) from the local directory.
 See <<./file.adoc#watch-service-directory-scanner,`WatchServiceDirectoryScanner`>> for more information.
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
@@ -486,6 +489,7 @@ public class SftpJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
@@ -785,6 +789,7 @@ The following example shows how to configure an SFTP outbound channel adapter:
 
 See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
 
+[[spel-and-the-sftp-outbound-adapter]]
 ==== SpEL and the SFTP Outbound Adapter
 
 As with many other components in Spring Integration, you can use the Spring Expression Language (SpEL) when you configure an SFTP outbound channel adapter by specifying two attributes: `remote-directory-expression` and `remote-filename-generator-expression` (<<sftp-inbound,described earlier>>).
@@ -809,6 +814,7 @@ Version 4.3 introduced the `chmod` attribute, which you can use to change the re
 You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
 When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 
+[[avoiding-partially-written-files]]
 ==== Avoiding Partially Written Files
 
 One of the common problems when dealing with file transfers is the possibility of processing a partial file.
@@ -823,6 +829,7 @@ However, there may be situations where you do not want to use this technique (fo
 For situations like this, you can disable this feature by setting `use-temporary-file-name` to `false` (the default is `true`).
 When this attribute is `false`, the file is written with its final name, and the consuming application needs some other mechanism to detect that the file is completely uploaded before accessing it.
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java:
@@ -882,6 +889,7 @@ public class SftpJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
@@ -925,6 +933,7 @@ The SFTP outbound gateway provides a limited set of commands that let you intera
 * `put` (send a file)
 * `mput` (send multiple files)
 
+[[using-the-ls-command]]
 ==== Using the `ls` Command
 
 `ls` lists remote files and supports the following options:
@@ -950,6 +959,7 @@ In this case, we recommend that you not use the `-1` option, because you would n
 
 If remote path to list starts with a `/` symbol, it is treated by SFTP as an absolute path; without - as a relative path in the current user home.
 
+[[using-nlst-command]]
 ==== Using `nlst` Command
 
 Version 5 introduced support for the `nlst` command.
@@ -965,6 +975,7 @@ The `file_remoteDirectory` header holds the remote directory on which the `nlst`
 The SFTP protocol does not provide the ability to list names.
 This command is the equivalent of the `ls` command with the `-1` option and is added here for convenience.
 
+[[using-the-get-command]]
 ==== Using the `get` Command
 
 `get` retrieves a remote file and supports the following options:
@@ -1022,6 +1033,7 @@ You can either do that in your custom code or route a copy of the message to a `
 ----
 ====
 
+[[using-the-mget-command]]
 ==== Using the `mget` Command
 
 `mget` retrieves multiple remote files based on a pattern and supports the following options:
@@ -1111,6 +1123,7 @@ Version 4.3 introduced the `chmod` attribute, which changes the remote file perm
 You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
 When configuring the adapter using java, you can use `setChmod(0600)`.
 
+[[using-the-mput-command]]
 ==== Using the `mput` Command
 
 `mput` sends multiple files to the server and supports the following option:
@@ -1133,6 +1146,7 @@ Version 4.3 introduced the `chmod` attribute, which lets you change the remote f
 You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
 When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 
+[[using-the-rm-command]]
 ==== Using the `rm` Command
 
 The `rm` command has no options.
@@ -1141,6 +1155,7 @@ If the remove operation was successful, the resulting message payload is `Boolea
 Otherwise, the message payload is `Boolean.FALSE`.
 The `file_remoteDirectory` header holds the remote directory, and the `file_remoteFile` header holds the file name.
 
+[[using-the-mv-command]]
 ==== Using the `mv` Command
 
 The `mv` command has no options.
@@ -1157,6 +1172,7 @@ Starting with version 5.5.6, the `remoteDirectoryExpression` can be used in the 
 If the "`from`" file is not a full file path, the result of `remoteDirectoryExpression` is used as the remote directory.
 The same applies for the "`to`" file, for example, if the task is just to rename a remote file in some directory.
 
+[[additional-command-information]]
 ==== Additional Command Information
 
 The `get` and `mget` commands support the `local-filename-generator-expression` attribute.
@@ -1200,6 +1216,7 @@ The supported modes are `REPLACE`, `APPEND`, `FAIL`, and `IGNORE`.
 For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE`.
 For `GET` and `MGET` operations, the default is `FAIL`.
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with Java:
@@ -1226,6 +1243,7 @@ public class SftpJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with the Java DSL:

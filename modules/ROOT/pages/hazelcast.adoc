@@ -55,6 +55,7 @@ It also provides event listeners in order to listen to modifications made to the
 The Hazelcast Event-Driven Inbound Channel Adapter listens to related cache events and sends event messages to the defined channel.
 It supports both XML and JavaConfig driven configurations.
 
+[[xml-configuration-:]]
 ==== XML Configuration :
 
 ====
@@ -195,6 +196,7 @@ Some configuration samples:
 ----
 ====
 
+[[java-configuration-sample:]]
 ==== Java Configuration Sample:
 
 The following sample shows a `DistributedMap` configuration.

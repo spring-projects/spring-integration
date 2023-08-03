@@ -300,6 +300,7 @@ The following example shows how to define it:
 
 If you supply a `DestinationProvider`, variable substitution is not supported and a configuration error occurs if you provide variables.
 
+[[controlling-uri-encoding]]
 ==== Controlling URI Encoding
 
 By default, the URL string is encoded (see https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[`UriComponentsBuilder`]) to the URI object before sending the request.

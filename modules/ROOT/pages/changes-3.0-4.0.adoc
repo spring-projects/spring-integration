@@ -148,6 +148,7 @@ For more information, see <<./configuration.adoc#annotations,Annotation Support>
 
 This section describes general changes from version 3.0 to version 4.0.
 
+[[requires-spring-framework-4-0]]
 ===== Requires Spring Framework 4.0
 
 We moved the core messaging abstractions (`Message`, `MessageChannel`, and others) to the Spring Framework `spring-messaging` module.

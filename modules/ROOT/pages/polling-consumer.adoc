@@ -3,6 +3,7 @@
 
 This section describes how polling works in Spring Integration.
 
+[[polling-consumer]]
 ==== Polling Consumer
 
 When Message Endpoints (Channel Adapters) are connected to channels and instantiated, they produce one of the following instances:
@@ -140,6 +141,7 @@ Not all implementations support this (for example, Apache Kafka does not, becaus
 
 This section covers how to use conditional pollers.
 
+[[background]]
 ===== Background
 
 `Advice` objects, in an `advice-chain` on a poller, advise the whole polling task (both message retrieval and processing).
@@ -184,6 +186,7 @@ Also, if a source is already a `Proxy`, the `ReceiveMessageAdvice` is invoked af
 If you wish to change the order, you must wire up the proxy yourself.
 =====
 
+[[simpleactiveidlereceivemessageadvice]]
 ===== `SimpleActiveIdleReceiveMessageAdvice`
 
 This advice is a simple implementation of `ReceiveMessageAdvice`.
@@ -196,6 +199,7 @@ This works only if the advice is called on the poller thread.
 It does not work if the poller has a `task-executor`.
 To use this advice where you wish to use async operations after the result of a poll, do the async handoff later, perhaps by using an `ExecutorChannel`.
 
+[[compoundtriggeradvice]]
 ===== `CompoundTriggerAdvice`
 
 This advice allows the selection of one of two triggers based on whether a poll returns a message or not.
@@ -246,6 +250,7 @@ This works only if the advice is called on the poller thread.
 It does not work if the poller has a `task-executor`.
 To use this advice where you wish to use async operations after the result of a poll, do the async handoff later, perhaps by using an `ExecutorChannel`.
 
+[[messagesource-only-advices]]
 ===== MessageSource-only Advices
 
 Some advices might be applied only for the `MessageSource.receive()` and they don't make sense for `PollableChannel`.

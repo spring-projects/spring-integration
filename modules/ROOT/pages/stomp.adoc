@@ -256,6 +256,7 @@ Values can be negative.
 See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/SmartLifecycle.html[`SmartLifeCycle`].
 ====
 
+[[understanding-the-<int-stomp:inbound-channel-adapter>-element]]
 ==== Understanding the `<int-stomp:inbound-channel-adapter>` Element
 
 The following listing shows the available attributes for the STOMP inbound channel adapter:

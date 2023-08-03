@@ -4,6 +4,7 @@
 See the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-4.0-to-4.1-Migration-Guide[Migration Guide] for important changes that might affect your applications.
 You can find migration guides for all versions back to 2.1 on the https://github.com/spring-projects/spring-integration/wiki[wiki].
 
+[[new-components]]
 ==== New Components
 
 Version 4.1 added a number of new components.

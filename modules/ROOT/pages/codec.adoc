@@ -11,6 +11,7 @@ We provide one implementation that uses https://github.com/EsotericSoftware/kryo
 * `DecodingTransformer`
 * `CodecMessageConverter`
 
+[[encodingpayloadtransformer]]
 ==== `EncodingPayloadTransformer`
 
 This transformer encodes the payload to a `byte[]` by using the codec.
@@ -18,6 +19,7 @@ It does not affect message headers.
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/EncodingPayloadTransformer.html[Javadoc] for more information.
 
+[[decodingtransformer]]
 ==== `DecodingTransformer`
 
 This transformer decodes a `byte[]` by using the codec.
@@ -26,6 +28,7 @@ If the resulting object is a `Message<?>`, inbound headers are not retained.
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/DecodingTransformer.html[Javadoc] for more information.
 
+[[codecmessageconverter]]
 ==== `CodecMessageConverter`
 
 Certain endpoints (such as TCP and Redis) have no concept of message headers.
@@ -33,6 +36,7 @@ They support the use of a `MessageConverter`, and the `CodecMessageConverter` ca
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/codec/CodecMessageConverter.html[Javadoc] for more information.
 
+[[kryo]]
 ==== Kryo
 
 Currently, this is the only implementation of `Codec`, and it provides two kinds of `Codec`:
@@ -49,6 +53,7 @@ The framework provides several custom serializers:
 The first can be used with the `PojoCodec` by initializing it with the `FileKryoRegistrar`.
 The second and third are used with the `MessageCodec`, which is initialized with the `MessageKryoRegistrar`.
 
+[[customizing-kryo]]
 ===== Customizing Kryo
 
 By default, Kryo delegates unknown Java types to its `FieldSerializer`.
@@ -87,11 +92,13 @@ Spring Integration currently defaults to using 40, 41, and 42 (for the file and 
 We recommend you start at 60, to allow for expansion in the framework.
 You can override these framework defaults by configuring the registrars mentioned earlier.
 
+[[using-a-custom-kryo-serializer]]
 ====== Using a Custom Kryo Serializer
 
 If you need custom serialization, see the https://github.com/EsotericSoftware/kryo[Kryo] documentation, because you need to use the native API to do the customization.
 For an example, see the https://github.com/spring-projects/spring-integration/blob/main/spring-integration-core/src/main/java/org/springframework/integration/codec/kryo/MessageCodec.java[`MessageCodec`] implementation.
 
+[[implementing-kryoserializable]]
 ====== Implementing KryoSerializable
 
 If you have `write` access to the domain object source code, you can implement `KryoSerializable` as described https://github.com/EsotericSoftware/kryo#kryoserializable[here].
@@ -124,6 +131,7 @@ public class Address implements KryoSerializable {
 
 You can also use this technique to wrap a serialization library other than Kryo.
 
+[[using-the-defaultserializer-annotation]]
 ====== Using the `@DefaultSerializer` Annotation
 
 Kryo also provides a `@DefaultSerializer` annotation, as described https://github.com/EsotericSoftware/kryo#default-serializers[here].

@@ -269,6 +269,7 @@ Optional.
 See <<aop-advice-chains>> for further information.
 Optional.
 
+[[examples]]
 ===== Examples
 
 A simple interval-based poller with a 1-second interval can be configured as follows:

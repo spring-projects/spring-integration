@@ -158,6 +158,7 @@ This element is not available inside a `Chain` element.
 Optional.
 ====
 
+[[claim-once]]
 ==== Claim Once
 
 Sometimes, a particular message must be claimed only once.
@@ -183,6 +184,7 @@ The following example show how to use the `remove-message` attribute:
 ----
 ====
 
+[[a-word-on-message-store]]
 ==== A Word on Message Store
 
 Although we rarely care about the details of the claim checks (as long as they work), you should know that the current implementation of the actual claim check (the pointer) in Spring Integration uses a UUID to ensure uniqueness.

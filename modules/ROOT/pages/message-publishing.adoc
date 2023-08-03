@@ -263,6 +263,7 @@ For simple mapping rules you can rely on the `publisher` defaults, as the follow
 The preceding example maps the return value of every method that matches the pointcut expression to a payload and is sent to a `default-channel`.
 If you do not specify the `defaultChannel` (as the preceding example does not do), the messages are sent to the global `nullChannel` (the equivalent of `/dev/null`).
 
+[[asynchronous-publishing]]
 ===== Asynchronous Publishing
 
 Publishing occurs in the same thread as your component's execution.

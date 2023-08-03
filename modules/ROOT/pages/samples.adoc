@@ -43,6 +43,7 @@ $ git pull
 ----
 ====
 
+[[submitting-samples-or-sample-requests]]
 === Submitting Samples or Sample Requests
 
 You can submit both new samples and requests for samples.
@@ -68,6 +69,7 @@ From the *Project* drop down, select *Spring Integration*.
 The Project Lead is Artem Bilan.
 =====
 
+[[code-contribution-process]]
 ==== Code Contribution Process
 
 For the actual code contribution process, read the Contributor Guidelines for Spring Integration.
@@ -78,6 +80,7 @@ This process ensures that every commit gets peer-reviewed.
 As a matter of fact, the core committers follow the exact same rules.
 We gratefully look forward to your Spring Integration samples!
 
+[[sample-requests]]
 ==== Sample Requests
 
 As <<samples-how-can-i-contribute,mentioned earlier>>, the Spring Integration Samples project uses GitHub issue as bug tracking system.
@@ -184,6 +187,7 @@ Our goal here is to assemble, orchestrate, and test the integration aspects of t
 Only then can we start thinking about wiring such processes to the real services.
 At that time, the assembled process and its configuration do not change regardless of the number of banks with which a particular loan broker deals or the type of communication media (or protocols) used (JMS, WS, TCP, and so on) to communicate with these banks.
 
+[[design]]
 ===== Design
 
 As you analyze the <<samples-loan-broker-requirements,six requirements>> listed earlier, you can see that they are all integration concerns.
@@ -232,6 +236,7 @@ So it would be nice if the message would be enriched with such information befor
 It would also be nice if, when several processes need to be completed to provide such meta-information, those processes could be grouped in a single unit.
 In our use case, we need to determine the credit score and, based on the credit score and some rule, select a list of message channels (bank channels) to which to send quote request.
 
+[[composed-message-processor]]
 ===== Composed Message Processor
 
 The composed message processor pattern describes rules around building endpoints that maintain control over message flow, which consists of multiple message processors.

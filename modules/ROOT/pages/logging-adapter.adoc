@@ -38,6 +38,7 @@ Used to identify log messages created by this adapter.
 This enables setting the log name (in the logging subsystem) for individual adapters.
 By default, all adapters log under the following name: `org.springframework.integration.handler.LoggingHandler`.
 
+[[using-java-configuration]]
 ==== Using Java Configuration
 
 The following Spring Boot application shows an example of configuring the `LoggingHandler` by using Java configuration:
@@ -77,6 +78,7 @@ public class LoggingJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of configuring the logging channel adapter by using the Java DSL:

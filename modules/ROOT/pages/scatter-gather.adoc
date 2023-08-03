@@ -19,12 +19,14 @@ In both cases, the `aggregation` function is the same and provides all the optio
 (Actually, the `ScatterGatherHandler` requires only an `AggregatingMessageHandler` as a constructor argument.)
 See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 
+[[auction]]
 ===== Auction
 
 The auction `Scatter-Gather` variant uses "`publish-subscribe`" logic for the request message, where the "`scatter`" channel is a `PublishSubscribeChannel` with `apply-sequence="true"`.
 However, this channel can be any `MessageChannel` implementation (as is the case with the `request-channel` in the `ContentEnricher` -- see <<./content-enrichment.adoc#content-enricher,Content Enricher>>).
 However, in this case, you should create your own custom `correlationStrategy` for the `aggregation` function.
 
+[[distribution]]
 ===== Distribution
 
 The distribution `Scatter-Gather` variant is based on the `RecipientListRouter` (see <<./router.adoc#router-implementations-recipientlistrouter,`RecipientListRouter`>>) with all available options for the `RecipientListRouter`.

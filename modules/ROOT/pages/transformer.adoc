@@ -14,6 +14,7 @@ NOTE: For the sake of maximizing flexibility, Spring does not require XML-based 
 Nevertheless, the framework does provide some convenient transformers for dealing with XML-based payloads if that is indeed the right choice for your application.
 For more information on those transformers, see <<./xml.adoc#xml,XML Support - Dealing with XML Payloads>>.
 
+[[configuring-a-transformer-with-java-and-other-dsls]]
 ==== Configuring a Transformer with Java and other DSLs
 
 For simple Java & Annotation configuration, the Spring bean POJO method must be marked with a `@Transformer` annotation and the framework calls it when messages are consumed from an input channel:
@@ -125,6 +126,7 @@ In other words, a message transformer should not be used as a message filter, be
 However, if you do need this type of behavior (where a component might return `null` and that should not be considered an error), you could use a service activator.
 Its `requires-reply` value is `false` by default, but that can be set to `true` in order to have exceptions thrown for `null` return values, as with the transformer.
 
+[[transformers-and-spring-expression-language-spel]]
 ==== Transformers and Spring Expression Language (SpEL)
 
 Like routers, aggregators, and other components, as of Spring Integration 2.0, transformers can also benefit from https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[SpEL support] whenever transformation logic is relatively simple.
@@ -142,10 +144,12 @@ The following example shows how to use a SpEL expression:
 The preceding example transforms the payload without writing a custom transformer.
 Our payload (assumed to be a `String`) is upper-cased, concatenated with the current timestamp, and has some formatting applied.
 
+[[common-transformers]]
 ==== Common Transformers
 
 Spring Integration provides a few transformer implementations.
 
+[[object-to-string-transformer]]
 ===== Object-to-String Transformer
 
 Because it is fairly common to use the `toString()` representation of an `Object`, Spring Integration provides an `ObjectToStringTransformer` (see also the `Transformers` factory) where the output is a `Message` with a String `payload`.
@@ -267,6 +271,7 @@ public IntegrationFlow someFlow() {
 IMPORTANT: When deserializing data from untrusted sources, you should consider adding a `allow-list` of package and class patterns.
 By default, all classes are deserialized.
 
+[[object-to-map-and-map-to-object-transformers]]
 ===== `Object`-to-`Map` and `Map`-to-`Object` Transformers
 
 Spring Integration also provides `Object`-to-`Map` and `Map`-to-`Object` transformers, which use the JSON to serialize and de-serialize the object graphs.
@@ -771,6 +776,7 @@ That attribute accepts the names of the headers (delimited by commas if there ar
 So, in the preceding example, the headers named 'lastName' and 'state' are not present on the outbound message.
 
 
+[[codec-based-transformers]]
 ==== Codec-Based Transformers
 
 See <<./codec.adoc#codec,Codec>>.

@@ -52,6 +52,7 @@ As the preceding examples show, the configuration looks identical to the general
 The only difference is the use of the Groovy namespace, as indicated by the `int-groovy` namespace prefix.
 Also note that the `lang` attribute on the `<script>` tag is not valid in this namespace.
 
+[[groovy-object-customization]]
 ==== Groovy Object Customization
 
 If you need to customize the Groovy object itself (beyond setting variables) you can reference a bean that implements `GroovyObjectCustomizer` by using the `customizer` attribute.
@@ -92,6 +93,7 @@ The following example shows how to use a variable (`entityManager`):
 
 For more information regarding the `<variable>` element, the `variables` attribute, and the `script-variable-generator` attribute, see  <<./scripting.adoc#scripting-script-variable-bindings,Script Variable Bindings>>.
 
+[[groovy-script-compiler-customization]]
 ==== Groovy Script Compiler Customization
 
 The `@CompileStatic` hint is the most popular Groovy compiler customization option.

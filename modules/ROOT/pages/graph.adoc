@@ -167,6 +167,7 @@ server.setAdditionalPropertiesCallback(namedComponent -> {
 ----
 ====
 
+[[graph-runtime-model]]
 ==== Graph Runtime Model
 
 Spring Integration components have various levels of complexity.
@@ -241,6 +242,7 @@ See also <<./overview.adoc#programming-tips,Programming Tips and Tricks>> for mo
 Version 5.3 introduced an `IntegrationPattern` abstraction and all out-of-the-box components, which represent an Enterprise Integration Pattern (EIP), implement this abstraction and provide an `IntegrationPatternType` enum value.
 This information can be useful for some categorizing logic in the target application or, being exposed into the graph node, it can be used by a UI to determine how to draw the component.
 
+[[integration-graph-controller]]
 === Integration Graph Controller
 
 If your application is web-based (or built on top of Spring Boot with an embedded web container) and the Spring Integration HTTP or WebFlux module (see <<./http.adoc#http,HTTP Support>> and <<./webflux.adoc#webflux,WebFlux Support>>, respectively) is present on the classpath, you can use a `IntegrationGraphController` to expose the `IntegrationGraphServer` functionality as a REST service.

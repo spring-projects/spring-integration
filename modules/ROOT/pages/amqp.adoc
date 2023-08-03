@@ -302,8 +302,10 @@ The default `BatchingStrategy` is the `SimpleBatchingStrategy`, but this can be 
 
 NOTE: The `org.springframework.amqp.rabbit.retry.MessageBatchRecoverer` must be used with batches when recovery is required for retry operations.
 
+[[polled-inbound-channel-adapter]]
 === Polled Inbound Channel Adapter
 
+[[overview]]
 ==== Overview
 
 Version 5.0.1 introduced a polled channel adapter, letting you fetch individual messages on demand -- for example, with a `MessageSourcePollingTemplate` or a poller.
@@ -1205,6 +1207,7 @@ Previously, unlike other `PollableChannel` implementations, the thread returned 
 Blocking is a little more expensive than using a `basicGet()` to retrieve a message (with no timeout), because a consumer has to be created to receive each message.
 To restore the previous behavior, set the poller's `receiveTimeout` to 0.
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following example shows how to configure the channels with Java configuration:
@@ -1241,6 +1244,7 @@ public AmqpChannelFactoryBean pubSub(ConnectionFactory connectionFactory) {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following example shows how to configure the channels with the Java DSL:
@@ -1283,6 +1287,7 @@ public IntegrationFlow pubSubInFlow(ConnectionFactory connectionFactory) {
 [[amqp-message-headers]]
 === AMQP Message Headers
 
+[[overview]]
 ==== Overview
 
 The Spring Integration AMQP Adapters automatically map all AMQP properties and headers.
@@ -1381,6 +1386,7 @@ Inbound mapping ignored the headers map value.
 
 This section describes message ordering for inbound and outbound messages.
 
+[[inbound]]
 ==== Inbound
 
 If you require strict ordering of inbound messages, you must configure the inbound listener container's `prefetchCount` property to `1`.
@@ -1388,6 +1394,7 @@ This is because, if a message fails and is redelivered, it arrives after existin
 Since Spring AMQP version 2.0, the `prefetchCount` defaults to `250` for improved performance.
 Strict ordering requirements come at the cost of decreased performance.
 
+[[outbound]]
 ==== Outbound
 
 Consider the following integration flow:
@@ -1437,6 +1444,7 @@ If the optional timeout is provided, when the flow completes, the advice calls t
 
 IMPORTANT: There must be no thread hands-off in the downstream flow (`QueueChannel`, `ExecutorChannel`, and others).
 
+[[amqp-samples]]
 === AMQP Samples
 
 To experiment with the AMQP adapters, check out the samples available in the Spring Integration samples git repository at https://github.com/spring-projects/spring-integration-samples[https://github.com/SpringSource/spring-integration-samples]

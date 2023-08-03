@@ -103,6 +103,7 @@ Each entry is stored in the local entry queue and is released based on the value
 If, during retrieval of the entries from the entry queue, the queue has become empty, the adapter attempts to update the feed, thereby populating the queue with more entries (`SyndEntry` instances), if any are available.
 Otherwise, the next attempt to poll for a feed is determined by the trigger of the poller (every ten seconds in the preceding configuration).
 
+[[duplicate-entries]]
 === Duplicate Entries
 
 Polling for a feed can result in entries that have already been processed ("`I already read that news item, why are you showing it to me again?`").
@@ -111,6 +112,7 @@ Each feed entry has a "`published date`" field.
 Every time a new `Message` is generated and sent, Spring Integration stores the value of the latest published date in an instance of the `MetadataStore` strategy (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>).
 The `metadataKey` is used to persist the latest published date.
 
+[[other-options]]
 === Other Options
 
 Starting with version 5.0, the deprecated `com.rometools.fetcher.FeedFetcher` option has been removed and an overloaded `FeedEntryMessageSource` constructor for an `org.springframework.core.io.Resource` is provided.

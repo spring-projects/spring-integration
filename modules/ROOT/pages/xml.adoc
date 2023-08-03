@@ -115,6 +115,7 @@ It is not valid to specify both this element and the `map` attribute or set the 
 Optional.
 ====
 
+[[providing-namespaces-optional-to-xpath-expressions]]
 ===== Providing Namespaces (Optional) to XPath Expressions
 
 For the XPath Expression Element, you can provide namespace information as configuration parameters.
@@ -167,6 +168,7 @@ The following example shows several different ways to use XPath expressions, inc
 ----
 ====
 
+[[using-xpath-expressions-with-default-namespaces]]
 ===== Using XPath Expressions with Default Namespaces
 
 When working with default namespaces, you may run into situations that behave differently than you might expect.
@@ -400,6 +402,7 @@ Namespace support for all XML transformers is provided in the Spring Integration
 The namespace support for transformers creates an instance of either `EventDrivenConsumer` or `PollingConsumer`, according to the type of the provided input channel.
 The namespace support is designed to reduce the amount of XML configuration by allowing the creation of an endpoint and transformer that use one element.
 
+[[using-an-unmarshallingtransformer]]
 ===== Using an `UnmarshallingTransformer`
 
 The namespace support for the `UnmarshallingTransformer` is shown below.
@@ -421,6 +424,7 @@ The following example shows how to do so:
 ----
 ====
 
+[[using-a-marshallingtransformer]]
 ===== Using a `MarshallingTransformer`
 
 The namespace support for the marshalling transformer requires an `input-channel`, an `output-channel`, and a reference to a `marshaller`.
@@ -452,6 +456,7 @@ The `result-type` and `result-factory` attributes  are mutually exclusive.
 
 NOTE: Internally, the `StringResult` and `DomResult` result types are represented by the `ResultFactory` implementations: https://docs.spring.io/spring-integration/api/org/springframework/integration/xml/result/StringResultFactory.html[`StringResultFactory`] and  https://docs.spring.io/spring-integration/api/org/springframework/integration/xml/result/DomResultFactory.html[`DomResultFactory`] respectively.
 
+[[using-an-xsltpayloadtransformer]]
 ===== Using an `XsltPayloadTransformer`
 
 Namespace support for the `XsltPayloadTransformer` lets you  either pass in a `Resource` (in order to create the https://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html[`Templates`] instance) or  pass in a pre-created `Templates` instance as a reference.
@@ -567,6 +572,7 @@ Consequently, the referenced `ResultToDocumentTransformer` is used.
 
 Therefore, if you transform a payload of type `String`, the resulting payload is of type https://docs.oracle.com/javase/6/docs/api/org/w3c/dom/Document.html[`Document`].
 
+[[xsltpayloadtransformer-and-<xsl:output-method=-text-/>]]
 ===== `XsltPayloadTransformer` and `<xsl:output method="text"/>`
 
 `<xsl:output method="text"/>` tells the XSLT template to produce only text content from the input source.
@@ -581,6 +587,7 @@ This behavior is available only you set the if the `result-type` attribute or th
 When it comes to message transformation, XPath is a great way to transform messages that have XML payloads.
 You can do so by defining XPath transformers with the  `<xpath-transformer/>` element.
 
+[[simple-xpath-transformation]]
 ==== Simple XPath Transformation
 
 Consider following transformer configuration:
@@ -624,6 +631,7 @@ You can configure the desired type by using the `evaluation-type` attribute of t
 ----
 ====
 
+[[node-mappers]]
 ==== Node Mappers
 
 If you need to provide custom mapping for the node extracted by the XPath expression, you can provide a reference to the implementation of the `org.springframework.xml.xpath.NodeMapper` (an interface used by `XPathOperations` implementations for mapping `Node` objects on a per-node basis).
@@ -650,6 +658,7 @@ class TestNodeMapper implements NodeMapper {
 ----
 ====
 
+[[xml-payload-converter]]
 ==== XML Payload Converter
 
 You can also use an implementation of the `org.springframework.integration.xml.XmlPayloadConverter` to provide more granular transformation.

@@ -211,6 +211,7 @@ You can also inject a `SqlParameterSourceFactory` to control the binding of each
 
 If the input channel is a direct channel, the outbound adapter runs its query in the same thread and, therefore, the same transaction (if there is one) as the sender of the message.
 
+[[passing-parameters-by-using-spel-expressions]]
 ==== Passing Parameters by Using SpEL Expressions
 
 A common requirement for most JDBC channel adapters is to pass parameters as part of SQL queries or stored procedures or functions.
@@ -241,6 +242,7 @@ The following example uses a `ExpressionEvaluatingSqlParameterSourceFactory` to 
 
 For further information, see <<sp-defining-parameter-sources>>.
 
+[[using-the-preparedstatement-callback]]
 ==== Using the `PreparedStatement` Callback
 
 Sometimes, the flexibility and loose-coupling of `SqlParameterSourceFactory` does not do what we need for the target `PreparedStatement` or we need to do some low-level JDBC work.
@@ -281,6 +283,7 @@ public MessageHandler jdbcMessageHandler(DataSource dataSource) {
 From the XML configuration perspective, the `prepared-statement-setter` attribute is available on the `<int-jdbc:outbound-channel-adapter>` component.
 It lets you specify a `MessagePreparedStatementSetter` bean reference.
 
+[[batch-update]]
 ==== Batch Update
 
 Starting with version 5.1, the `JdbcMessageHandler` performs a `JdbcOperations.batchUpdate()` if the payload of the request message is an `Iterable` instance.
@@ -436,6 +439,7 @@ The table name prefix defaults to `INT_`.
 If you intend to back message channels with JDBC, we recommend using the `JdbcChannelMessageStore` implementation.
 It works only in conjunction with Message Channels.
 
+[[supported-databases]]
 ===== Supported Databases
 
 The `JdbcChannelMessageStore` uses database-specific SQL queries to retrieve messages from the database.
@@ -457,6 +461,7 @@ If your database is not listed, you can extend the `AbstractChannelMessageStoreQ
 
 Version 4.0 added the `MESSAGE_SEQUENCE` column to the table to ensure first-in-first-out (FIFO) queueing even when messages are stored in the same millisecond.
 
+[[custom-message-insertion]]
 ===== Custom Message Insertion
 
 Since version 5.0, by overloading the `ChannelMessageStorePreparedStatementSetter` class, you can provide a custom implementation for message insertion in the `JdbcChannelMessageStore`.
@@ -493,6 +498,7 @@ For further reference, see the following resource:
 If you are still planning to use your database as a queue, consider using PostgreSQL and its notification mechanism which is described <<postgresql-push,in a subsequent section>>.
 ====
 
+[[concurrent-polling]]
 ===== Concurrent Polling
 
 When polling a message channel, you have the option to configure the associated `Poller` with a `TaskExecutor` reference.
@@ -542,6 +548,7 @@ The following example shows how to do so:
 ----
 ====
 
+[[priority-channel]]
 ===== Priority Channel
 
 Starting with version 4.0, `JdbcChannelMessageStore` implements `PriorityCapableChannelMessageStore` and provides the `priorityEnabled` option, letting it be used as a `message-store` reference for `priority-queue` instances.
@@ -575,6 +582,7 @@ To configure that scenario, you can extend one message store bean from the other
 ----
 ====
 
+[[partitioning-a-message-store]]
 ==== Partitioning a Message Store
 
 It is common to use a `JdbcMessageStore` as a global store for a group of applications or nodes in the same application.

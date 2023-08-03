@@ -153,6 +153,7 @@ The validation failure handling is fully the same what we have in Spring MVC htt
 
 This section describes Spring Integration's HTTP outbound components.
 
+[[using-httprequestexecutingmessagehandler]]
 ==== Using `HttpRequestExecutingMessageHandler`
 
 To configure the `HttpRequestExecutingMessageHandler`, write a bean definition similar to the following:
@@ -190,6 +191,7 @@ Use of the Apache Commons HTTP Client is also supported through `CommonsClientHt
 
 NOTE: For the outbound gateway, the reply message produced by the gateway contains all the message headers that are present in the request message.
 
+[[using-cookies]]
 ==== Using Cookies
 
 Basic cookie support is provided by the `transfer-cookies` attribute on the outbound gateway.
@@ -251,6 +253,7 @@ To include it in your configuration, provide the following namespace declaration
 ----
 ====
 
+[[inbound]]
 ==== Inbound
 
 The XML namespace provides two components for handling HTTP inbound requests: `inbound-channel-adapter` and `inbound-gateway`.
@@ -441,6 +444,7 @@ A decision about throwing an appropriate exception should be done in the error f
 Previously, any exceptions were simply thrown, causing an HTTP 500 server error response status, but in some cases the problem can be caused by incorrect request params, so a `ResponseStatusException` with a 4xx client error status should be thrown instead.
 See `ResponseStatusException` for more information.
 The `ErrorMessage` sent to this error channel contains the original exception as the payload for analysis.
+[[uri-template-variables-and-expressions]]
 ==== URI Template Variables and Expressions
 
 By using the `path` attribute in conjunction with the `payload-expression` attribute and the `header` element, you have a high degree of flexibility for mapping inbound request data.
@@ -493,6 +497,7 @@ The following example configures a transformer that uses an `expression` attribu
 ----
 ====
 
+[[outbound]]
 ==== Outbound
 
 To configure the outbound gateway, you can use the namespace support.
@@ -903,6 +908,7 @@ The value of the _sendTimeout_ property defaults to `30` seconds and will be app
 This means, that depending on the implementation, the Message Channel's _send_ method may block indefinitely.
 Furthermore, the _sendTimeout_ property is only used, when the actual MessageChannel implementation has a blocking send (such as 'full' bounded QueueChannel).
 
+[[http-inbound-gateway]]
 ==== HTTP Inbound Gateway
 
 For the HTTP inbound gateway, the XML Schema defines the `request-timeout` attribute, which is used to set the `requestTimeout` property on the `HttpRequestHandlingMessagingGateway` class (on the extended `MessagingGatewaySupport` class).
@@ -921,6 +927,7 @@ If you are behind a proxy and need to configure proxy settings for HTTP outbound
 In most cases, you can rely on the standard Java system properties that control the proxy settings.
 Otherwise, you can explicitly configure a Spring bean for the HTTP client request factory instance.
 
+[[standard-java-proxy-configuration]]
 ==== Standard Java Proxy configuration
 
 You can set three system properties to configure the proxy settings that are used by the HTTP protocol handler:
@@ -939,6 +946,7 @@ For HTTPS, the following properties are available:
 
 For more information, see https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
 
+[[spring-s-simpleclienthttprequestfactory]]
 ==== Spring's `SimpleClientHttpRequestFactory`
 
 If you need more explicit control over the proxy configuration, you can use Spring's `SimpleClientHttpRequestFactory` and configure its 'proxy' property, as the following example shows:

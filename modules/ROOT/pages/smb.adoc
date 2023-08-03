@@ -24,6 +24,7 @@ compile "org.springframework.integration:spring-integration-smb:{project-version
 ----
 ====
 
+[[overview]]
 === Overview
 
 The https://github.com/codelibs/jcifs[Java CIFS] Client Library has been chosen as a Java implementation for the CIFS/SMB networking protocol.
@@ -137,6 +138,7 @@ public MessageSource<File> smbMessageSource() {
 
 For XML configuration the `<int-smb:inbound-channel-adapter>` component is provided.
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
@@ -339,6 +341,7 @@ public MessageHandler smbMessageHandler(SmbSessionFactory smbSessionFactory) {
 }
 ----
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter using the Java DSL:
@@ -409,6 +412,7 @@ The supported commands are:
 * `put` (send file)
 * `mput` (send multiple files)
 
+[[using-the-ls-command]]
 ==== Using the `ls` Command
 
 `ls` lists remote files and supports the following options:
@@ -432,6 +436,7 @@ When using the recursive option (`-R`), the `fileName` includes any subdirectory
 If you use the `-dirs` option, each recursive directory is also returned as an element in the list.
 In this case, we recommend that you not use the `-1` option, because you would not be able to distinguish files from directories, which you can do when you use `FileInfo` objects.
 
+[[using-nlst-command]]
 ==== Using `nlst` Command
 
 `nlst` lists remote file names and supports only one option:
@@ -442,6 +447,7 @@ The message payload resulting from an `nlst` operation is a list of file names.
 
 The `file_remoteDirectory` header holds the remote directory on which the `nlst` command acted.
 
+[[using-the-get-command]]
 ==== Using the `get` Command
 
 `get` retrieves a remote file and supports the following options:
@@ -499,6 +505,7 @@ You can either do that in your custom code or route a copy of the message to a `
 ----
 ====
 
+[[using-the-mget-command]]
 ==== Using the `mget` Command
 
 `mget` retrieves multiple remote files based on a pattern and supports the following options:
@@ -583,6 +590,7 @@ See the https://github.com/spring-projects/spring-integration/tree/main/spring-i
 
 The message payload resulting from a `put` operation is a `String` that contains the full path of the file on the server after transfer.
 
+[[using-the-mput-command]]
 ==== Using the `mput` Command
 
 `mput` sends multiple files to the server and supports the following option:
@@ -601,6 +609,7 @@ The message payload resulting from an `mput` operation is a `List<String>` objec
 
 See also <<smb-partial>>.
 
+[[using-the-rm-command]]
 ==== Using the `rm` Command
 
 The `rm` command has no options.
@@ -609,6 +618,7 @@ If the remove operation was successful, the resulting message payload is `Boolea
 Otherwise, the message payload is `Boolean.FALSE`.
 The `file_remoteDirectory` header holds the remote directory, and the `file_remoteFile` header holds the file name.
 
+[[using-the-mv-command]]
 ==== Using the `mv` Command
 
 The `mv` command has no options.
@@ -625,6 +635,7 @@ The `remoteDirectoryExpression` can be used in the `mv` command for convenience.
 If the "`from`" file is not a full file path, the result of `remoteDirectoryExpression` is used as the remote directory.
 The same applies for the "`to`" file, for example, if the task is just to rename a remote file in some directory.
 
+[[additional-command-information]]
 ==== Additional Command Information
 
 The `get` and `mget` commands support the `local-filename-generator-expression` attribute.
@@ -668,6 +679,7 @@ The supported modes are `REPLACE`, `APPEND`, `FAIL`, and `IGNORE`.
 For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE`.
 For `GET` and `MGET` operations, the default is `FAIL`.
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with Java configuration:
@@ -711,6 +723,7 @@ public class SmbJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with the Java DSL:

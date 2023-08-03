@@ -182,6 +182,7 @@ IMPORTANT: If the `ref` attribute references a bean that extends `AbstractMessag
 In this case, each `ref` must be to a separate bean instance (or a `prototype`-scoped bean) or use the inner `<bean/>` configuration type.
 If you inadvertently reference the same message handler from multiple beans, you get a configuration exception.
 
+[[service-activators-and-the-spring-expression-language-spel]]
 ===== Service Activators and the Spring Expression Language (SpEL)
 
 Since Spring Integration 2.0, service activators can also benefit from https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[SpEL].

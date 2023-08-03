@@ -643,6 +643,7 @@ public PollableChannel queueChannel() {
 NOTE: If you do not provide a value for the 'capacity' attribute on this `<queue/>` sub-element, the resulting queue is unbounded.
 To avoid issues such as running out of memory, we highly recommend that you set an explicit value for a bounded queue.
 
+[[persistent-queuechannel-configuration]]
 ====== Persistent `QueueChannel` Configuration
 
 Since a `QueueChannel` provides the capability to buffer messages but does so in-memory only by default, it also introduces a possibility that messages could be lost in the event of a system failure.

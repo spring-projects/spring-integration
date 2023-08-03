@@ -97,33 +97,40 @@ As an alternative to the existing `selector` attribute, the `<wire-tap/>` elemen
 
 See <<./file.adoc#files,File Support>> for more information about these changes.
 
+[[appending-new-lines]]
 ====== Appending New Lines
 
 The `<int-file:outbound-channel-adapter>` and `<int-file:outbound-gateway>` now support an `append-new-line` attribute.
 If set to `true`, a new line is appended to the file after a message is written.
 The default attribute value is `false`.
 
+[[ignoring-hidden-files]]
 ====== Ignoring Hidden Files
 
 We added the `ignore-hidden` attribute for the `<int-file:inbound-channel-adapter>` to let you set whether to pick up hidden files from the source directory.
 It defaults to `true`.
 
+[[writing-inputstream-payloads]]
 ====== Writing `InputStream` Payloads
 
 The `FileWritingMessageHandler` now also accepts `InputStream` as a valid message payload type.
 
+[[headdirectoryscanner]]
 ====== `HeadDirectoryScanner`
 
 You can now use the `HeadDirectoryScanner` with other `FileListFilter` implementations.
 
+[[last-modified-filter]]
 ====== Last Modified Filter
 
 We added the `LastModifiedFileListFilter`.
 
+[[watch-service-directory-scanner]]
 ====== Watch Service Directory Scanner
 
 We added the `WatchServiceDirectoryScanner`.
 
+[[persistent-file-list-filter-changes]]
 ====== Persistent File List Filter Changes
 
 The `AbstractPersistentFileListFilter` has a new property (`flushOnUpdate`) which, when set to `true`, calls `flush()` on the metadata store if it implements `Flushable` (for example, `PropertiesPersistingMetadataStore`).
@@ -133,6 +140,7 @@ The `AbstractPersistentFileListFilter` has a new property (`flushOnUpdate`) whic
 
 We moved the `ScatterGatherHandler` class from the `org.springframework.integration.handler` to the `org.springframework.integration.scattergather`.
 
+[[tcp-changes]]
 ===== TCP Changes
 
 This section describes general changes to the Spring Integration TCP functionality.
@@ -206,11 +214,13 @@ The dependency was removed for those users who do not need it.
 
 This section describes general changes to the Spring Integration TCP functionality.
 
+[[reply-listener-lazy-initialization]]
 ====== Reply Listener Lazy Initialization
 
 You can now configure the reply listener in JMS outbound gateways to be initialized on-demand and stopped after an idle period, instead of being controlled by the gateway's lifecycle.
 See <<./jms.adoc#jms-outbound-gateway,Outbound Gateway>> for more information.
 
+[[conversion-errors-in-message-driven-endpoints]]
 ====== Conversion Errors in Message-Driven Endpoints
 
 The `error-channel` is now used for the conversion errors.
@@ -218,6 +228,7 @@ In previous versions, they caused transaction rollback and message redelivery.
 
 See <<./jms.adoc#jms-message-driven-channel-adapter,Message-driven Channel Adapter>> and <<./jms.adoc#jms-inbound-gateway,Inbound Gateway>> for more information.
 
+[[default-acknowledge-mode]]
 ====== Default Acknowledge Mode
 
 When using an implicitly defined `DefaultMessageListenerContainer`, the default `acknowledge` is now `transacted`.
@@ -227,6 +238,7 @@ It was already the default for JMS-backed channels.
 
 See <<./jms.adoc#jms-message-driven-channel-adapter,Message-driven Channel Adapter>> and <<./jms.adoc#jms-inbound-gateway,Inbound Gateway>> for more information.
 
+[[shared-subscriptions]]
 ====== Shared Subscriptions
 
 We added Namespace support for shared subscriptions (JMS 2.0) to message-driven endpoints and the `<int-jms:publish-subscribe-channel>`.
@@ -246,15 +258,18 @@ See <<./polling-consumer.adoc#conditional-pollers,Conditional Pollers for Messag
 
 This section describes general changes to the Spring Integration AMQP functionality.
 
+[[publisher-confirmations]]
 ====== Publisher Confirmations
 
 The `<int-amqp:outbound-gateway>` now supports `confirm-correlation-expression`, `confirm-ack-channel`, and `confirm-nack-channel` attributes (which have a purpose similar to that of `<int-amqp:outbound-channel-adapter>`).
 
+[[correlation-data]]
 ====== Correlation Data
 
 For both the outbound channel adapter and the inbound gateway, if the correlation data is a `Message<?>`, it becomes the basis of the message on the ack or nack channel, with the additional header(s) added.
 Previously, any correlation data (including `Message<?>`) was returned as the payload of the ack or nack message.
 
+[[inbound-gateway-properties]]
 ====== Inbound Gateway Properties
 
 The `<int-amqp:inbound-gateway>` now exposes the `amqp-template` attribute to allow more control over an external bean for the reply `RabbitTemplate`.
@@ -275,6 +290,7 @@ See <<./xml.adoc#xml-xpath-splitting,Splitting XML Messages>> for more informati
 
 This section describes general changes to the Spring Integration HTTP functionality.
 
+[[cors]]
 ====== CORS
 
 The HTTP inbound endpoints (`<int-http:inbound-channel-adapter>` and `<int-http:inbound-gateway>`) now allow the
@@ -282,6 +298,7 @@ configuration of Cross-origin Resource Sharing (CORS).
 
 See <<./http.adoc#http-cors,Cross-origin Resource Sharing (CORS) Support>> for more information.
 
+[[inbound-gateway-timeout]]
 ====== Inbound Gateway Timeout
 
 You can configure the HTTP inbound gate way to return a status code that you specify when a request times out.
@@ -289,6 +306,7 @@ The default is now `500 Internal Server Error` instead of `200 OK`.
 
 See <<./http.adoc#http-response-statuscode,Response Status Code>> for more information.
 
+[[form-data]]
 ====== Form Data
 
 We added documentation for proxying `multipart/form-data` requests.
@@ -299,11 +317,13 @@ See <<./http.adoc#http,HTTP Support>> for more information.
 
 This section describes general changes to the Spring Integration Gateway functionality.
 
+[[gateway-methods-can-return-completablefuture<?>]]
 ====== Gateway Methods can Return `CompletableFuture<?>`
 
 When using Java 8, gateway methods can now return `CompletableFuture<?>`.
 See <<./gateway.adoc#gw-completable-future,`CompletableFuture`>> for more information.
 
+[[messaginggateway-annotation]]
 ====== MessagingGateway Annotation
 
 The request and reply timeout properties are now `String` instead of `Long` to allow configuration with property placeholders or SpEL.
@@ -314,6 +334,7 @@ See <<./gateway.adoc#messaging-gateway-annotation,`@MessagingGateway` Annotation
 
 This section describes general changes to the Spring Integration aggregator functionality.
 
+[[aggregator-performance]]
 ====== Aggregator Performance
 
 This release includes some performance improvements for aggregating components (aggregator, resequencer, and others), by more efficiently removing messages from groups when they are released.
@@ -321,6 +342,7 @@ New methods (`removeMessagesFromGroup`) have been added to the message store.
 Set the `removeBatchSize` property (default: `100`) to adjust the number of messages deleted in each operation.
 Currently, the JDBC, Redis, and MongoDB message stores support this property.
 
+[[output-message-group-processor]]
 ====== Output Message Group Processor
 
 When using a `ref` or inner bean for the aggregator, you can now directly bind a `MessageGroupProcessor`.
@@ -329,15 +351,18 @@ When an output processor produces a collection of `Message<?>`, the aggregator r
 Configuring the `SimpleMessageGroupProcessor` makes the aggregator a message barrier, where messages are held up until they all arrive and are then released individually.
 See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 
+[[ftp-and-sftp-changes]]
 ===== FTP and SFTP Changes
 
 This section describes general changes to the Spring Integration FTP and SFTP functionality.
 
+[[inbound-channel-adapters]]
 ====== Inbound Channel Adapters
 
 You can now specify a `remote-directory-expression` on the inbound channel adapters, to determine the directory at runtime.
 See <<./ftp.adoc#ftp,FTP/FTPS Adapters>> and <<./sftp.adoc#sftp,SFTP Adapters>> for more information.
 
+[[gateway-partial-results]]
 ====== Gateway Partial Results
 
 When you use FTP or SFTP outbound gateways to operate on multiple files (with `mget` and `mput`), an exception can
@@ -345,12 +370,14 @@ occur after part of the request is completed.
 If such a condition occurs, a `PartialSuccessException` that contains the partial results is thrown.
 See <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>> and <<./sftp.adoc#sftp-outbound-gateway,SFTP Outbound Gateway>> for more information.
 
+[[delegating-session-factory]]
 ====== Delegating Session Factory
 
 We added a delegating session factory, enabling the selection of a particular session factory based on some thread context value.
 
 See <<./ftp.adoc#ftp-dsf,Delegating Session Factory>> and <<./sftp.adoc#sftp-dsf,Delegating Session Factory>> for more information.
 
+[[default-sftp-session-factory]]
 ====== Default Sftp Session Factory
 
 Previously, the `DefaultSftpSessionFactory` unconditionally allowed connections to unknown hosts.
@@ -360,17 +387,20 @@ The factory now requires a configured `knownHosts`, file unless the `allowUnknow
 
 See <<./sftp.adoc#sftp-unk-keys,`allowUnknownKeys`::Set to `true` to allow connections to hosts with unknown (or changed) keys.>> for more information.
 
+[[message-session-callback]]
 ====== Message Session Callback
 
 We introduced the `MessageSessionCallback<F, T>` to perform any custom `Session` operations with the `requestMessage` context in the `<int-(s)ftp:outbound-gateway/>`.
 
 See <<./ftp.adoc#ftp-session-callback,Using `MessageSessionCallback`>> and <<./sftp.adoc#sftp-session-callback,MessageSessionCallback>> for more information.
 
+[[websocket-changes]]
 ===== Websocket Changes
 
 We added `WebSocketHandlerDecoratorFactory` support to the `ServerWebSocketContainer` to allow chained customization for the internal `WebSocketHandler`.
 See <<./web-sockets.adoc#web-sockets-namespace,WebSockets Namespace Support>> for more information.
 
+[[application-event-adapters-changes]]
 ===== Application Event Adapters changes
 
 The `ApplicationEvent` adapters can now operate with `payload` as an `event` to directly allow omitting custom `ApplicationEvent` extensions.

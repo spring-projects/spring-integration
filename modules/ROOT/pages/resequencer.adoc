@@ -17,6 +17,7 @@ With respect to that, you can opt to release all messages at once (after the who
 IMPORTANT: The resequencer is intended to resequence relatively short sequences of messages with small gaps.
 If you have a large number of disjoint sequences with many gaps, you may experience performance issues.
 
+[[configuring-a-resequencer]]
 ==== Configuring a Resequencer
 
 See <<./dsl.adoc#java-dsl-aggregators,Aggregators and Resequencers>> for configuring a resequencer in Java DSL.

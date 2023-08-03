@@ -4,6 +4,7 @@
 The splitter is a component whose role is to partition a message into several parts and send the resulting messages to be processed independently.
 Very often, they are upstream producers in a pipeline that includes an aggregator.
 
+[[programming-model]]
 ==== Programming Model
 
 The API for performing splitting consists of one base class, `AbstractMessageSplitter`.
@@ -43,6 +44,7 @@ The input argument might either be a `Message` or a simple POJO.
 In the latter case, the splitter receives the payload of the incoming message.
 We recommend this approach, because it decouples the code from the Spring Integration API and is typically easier to test.
 
+[[iterators]]
 ===== Iterators
 
 Starting with version 4.1, the `AbstractMessageSplitter` supports the `Iterator` type for the `value` to split.
@@ -69,6 +71,7 @@ Starting with version 5.2, the splitter supports a `discardChannel` option for s
 In this case there is just no item to iterate for sending to the `outputChannel`.
 The `null` splitting result remains as an end of flow indicator.
 
+[[configuring-a-splitter-with-java-groovy-and-kotlin-dsls]]
 ==== Configuring a Splitter with Java, Groovy and Kotlin DSLs
 
 An example of simple splitter based on a `Message` and its iterable payload with DSL configuration:
@@ -112,6 +115,7 @@ See more information about the DSLs in the respective chapters:
 * <<./kotlin-dsl.adoc#kotlin-dsl,Kotlin DSL>>
 * <<./groovy-dsl.adoc#groovy-dsl,Groovy DSL>>
 
+[[configuring-a-splitter-with-xml]]
 ==== Configuring a Splitter with XML
 
 A splitter can be configured through XML as follows:
@@ -167,6 +171,7 @@ In this case, each `ref` must be a separate bean instance (or a `prototype`-scop
 However, this optimization applies only if you do not provide any splitter-specific attributes in the splitter XML definition.
 If you inadvertently reference the same message handler from multiple beans, you get a configuration exception.
 
+[[configuring-a-splitter-with-annotations]]
 ==== Configuring a Splitter with Annotations
 
 The `@Splitter` annotation is applicable to methods that expect either the `Message` type or the message payload type, and the return values of the method should be a `Collection` of any type.

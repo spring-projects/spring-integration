@@ -49,6 +49,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 
 Spring Integration provides factories you can use to create FTP (or FTPS) sessions.
 
+[[default-factories]]
 ==== Default Factories
 
 IMPORTANT: Starting with version 3.0, sessions are no longer cached by default.
@@ -111,6 +112,7 @@ The protocol (FTP or FTPS) that an adapter uses depends on the type of session f
 
 NOTE: A more practical way to provide values for FTP or FTPS session factories is to use Spring's property placeholder support (See https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-placeholderconfigurer).
 
+[[advanced-configuration]]
 === Advanced Configuration
 
 `DefaultFtpSessionFactory` provides an abstraction over the underlying client API, which (since Spring Integration 2.0) is https://commons.apache.org/net/[Apache Commons Net].
@@ -153,6 +155,7 @@ public class AdvancedFtpSessionFactory extends DefaultFtpSessionFactory {
 ----
 ====
 
+[[ftps-and-shared-sslsession]]
 ==== FTPS and Shared SSLSession
 
 When using FTP over SSL or TLS, some servers require the same `SSLSession` to be used on the control and data connections.
@@ -343,6 +346,7 @@ You should also understand that the FTP inbound channel adapter is a polling con
 Therefore, you must configure a poller (by using either a global default or a local sub-element).
 Once a file has been transferred, a message with a `java.io.File` as its payload is generated and sent to the channel identified by the `channel` attribute.
 
+[[more-on-file-filtering-and-incomplete-files]]
 ==== More on File Filtering and Incomplete Files
 
 Sometimes the file that just appeared in the monitored (remote) directory is not complete.
@@ -367,6 +371,7 @@ The following example uses a custom filter implementation:
 ----
 ====
 
+[[poller-configuration-notes-for-the-inbound-ftp-adapter]]
 ==== Poller Configuration Notes for the Inbound FTP Adapter
 
 The job of the inbound FTP adapter consists of two tasks:
@@ -393,6 +398,7 @@ Only then is the poll operation considered complete, and the poller waits for th
 You can alternatively set the 'max-messages-per-poll' value to a positive value that indicates the upward limit of messages to be created from files with each poll.
 For example, a value of `10` means that, on each poll, it tries to process no more than ten files.
 
+[[recovering-from-failures]]
 ==== Recovering from Failures
 
 It is important to understand the architecture of the adapter.
@@ -453,6 +459,7 @@ The reprocessing sample shown earlier is based on the built-in functionality of 
 See <<./file.adoc#watch-service-directory-scanner,`WatchServiceDirectoryScanner`>> for more information.
 
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application show an example of how to configure the inbound adapter with Java configuration:
@@ -518,6 +525,7 @@ public class FtpJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
@@ -851,6 +859,7 @@ You can use the conventional Unix octal format (for example, `600` allows read-w
 When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 Only applies if your FTP server supports the `SITE CHMOD` subcommand.
 
+[[avoiding-partially-written-files]]
 ==== Avoiding Partially Written Files
 
 One of the common problems that arises when dealing with file transfers is the possibility of processing a partial file.
@@ -865,6 +874,7 @@ However, there may be situations where you do not want to use this technique (fo
 For situations like this, you can disable this feature by setting `use-temporary-file-name` to `false` (the default is `true`).
 When this attribute is `false`, the file is written with its final name and the consuming application needs some other mechanism to detect that the file is completely uploaded before accessing it.
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java configuration:
@@ -923,6 +933,7 @@ public class FtpJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter using the Java DSL:
@@ -1023,6 +1034,7 @@ or `LS`, `NLST`, `PUT` and `MPUT` commands, `null` is treated as the client work
 All other commands must be supplied with the `expression` to evaluate the remote path against the request message.
 You can set the working directory with the `FTPClient.changeWorkingDirectory()` function when you extend the `DefaultFtpSessionFactory` and implement the `postProcessClientAfterConnect()` callback.
 
+[[using-the-nlst-command]]
 ==== Using the `nlst` Command
 
 Version 5 introduced support for the `nlst` command.
@@ -1040,6 +1052,7 @@ This command is useful when the server does not support `LIST` (due to security 
 The result of the `nlst` operation is the names without other detail.
 Therefore, the framework cannot determine if an entity is a directory, to perform filtering or recursive listing, for example.
 
+[[using-the-get-command]]
 ==== Using the `get` Command
 
 `get` retrieves a remote file.
@@ -1100,6 +1113,7 @@ You can do so either in your custom code or by routing a copy of the message to 
 ----
 ====
 
+[[using-the-mget-command]]
 ==== Using the `mget` Command
 
 `mget` retrieves multiple remote files based on a pattern and supports the following options:
@@ -1188,6 +1202,7 @@ You can use the conventional Unix octal format (for example, `600` allows read-w
 When configuring the adapter using java, you can use `setChmod(0600)`.
 Only applies if your FTP server supports the `SITE CHMOD` subcommand.
 
+[[using-the-mput-command]]
 ==== Using the `mput` Command
 
 The `mput` sends multiple files to the server and supports only one option:
@@ -1212,6 +1227,7 @@ You can use the conventional Unix octal format (for example, `600` allows read-w
 When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 Only applies if your FTP server supports the `SITE CHMOD` subcommand.
 
+[[using-the-rm-command]]
 ==== Using the `rm` Command
 
 The `rm` command removes files.
@@ -1221,6 +1237,7 @@ The `rm` command has no options.
 The message payload resulting from an `rm` operation is `Boolean.TRUE` if the remove was successful or `Boolean.FALSE` otherwise.
 The `file_remoteDirectory` header provides the remote directory, and the `file_remoteFile` header provides the file name.
 
+[[using-the-mv-command]]
 ==== Using the `mv` Command
 
 The `mv` command moves files.
@@ -1239,6 +1256,7 @@ Starting with version 5.5.6, the `remoteDirectoryExpression` can be used in the 
 If the "`from`" file is not a full file path, the result of `remoteDirectoryExpression` is used as the remote directory.
 The same applies for the "`to`" file, for example, if the task is just to rename a remote file in some directory.
 
+[[additional-information-about-ftp-outbound-gateway-commands]]
 ==== Additional Information about FTP Outbound Gateway Commands
 
 The `get` and `mget` commands support the `local-filename-generator-expression` attribute.
@@ -1285,6 +1303,7 @@ It lets you change the client working directory at runtime.
 The expression is evaluated against the request message.
 The previous working directory is restored after each gateway operation.
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with Java configuration:
@@ -1325,6 +1344,7 @@ public class FtpJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with the Java DSL:

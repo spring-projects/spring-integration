@@ -60,6 +60,7 @@ This provides the same basic functionality as described in <<./gateway.adoc#gate
 
 This section describes how to configure and use the UDP adapters.
 
+[[outbound-udp-adapters-xml-configuration]]
 ==== Outbound UDP Adapters (XML Configuration)
 
 The following example configures a UDP outbound channel adapter:
@@ -135,6 +136,7 @@ TIP: When multicast is true, an additional attribute (`min-acks-for-success`) sp
 
 Starting with version 4.3, you can set the `ackPort` to `0`, in which case the operating system chooses the port.
 
+[[outbound-udp-adapters-java-configuration]]
 ==== Outbound UDP Adapters (Java Configuration)
 
 The following example shows how to configure an outbound UDP adapter with Java:
@@ -152,6 +154,7 @@ public UnicastSendingMessageHandler handler() {
 
 (or `MulticastSendingChannelAdapter` for multicast).
 
+[[outbound-udp-adapters-java-dsl-configuration]]
 ==== Outbound UDP Adapters (Java DSL Configuration)
 
 The following example shows how to configure an outbound UDP adapter with the Java DSL:
@@ -168,6 +171,7 @@ public IntegrationFlow udpOutFlow() {
 ----
 ====
 
+[[inbound-udp-adapters-xml-configuration]]
 ==== Inbound UDP Adapters (XML Configuration)
 
 The following example shows how to configure a basic unicast inbound udp channel adapter.
@@ -206,6 +210,7 @@ To convert IP addresses to host names for use in message headers, the default be
 Starting with version 5.3.3, you can add a `SocketCustomizer` bean to modify the `DatagramSocket` after it is created.
 It is called for the receiving socket and any sockets created for sending acks.
 
+[[inbound-udp-adapters-java-configuration]]
 ==== Inbound UDP Adapters (Java Configuration)
 
 The following example shows how to configure an inbound UDP adapter with Java:
@@ -222,6 +227,7 @@ public UnicastReceivingChannelAdapter udpIn() {
 
 The following example shows how to configure an inbound UDP adapter with the Java DSL:
 
+[[inbound-udp-adapters-java-dsl-configuration]]
 ==== Inbound UDP Adapters (Java DSL Configuration)
 
 [source, java]
@@ -234,12 +240,14 @@ public IntegrationFlow udpIn() {
 }
 ----
 
+[[server-listening-events]]
 ==== Server Listening Events
 
 Starting with version 5.0.2, a `UdpServerListeningEvent` is emitted when an inbound adapter is started and has begun listening.
 This is useful when the adapter is configured to listen on port `0`, meaning that the operating system chooses the port.
 It can also be used instead of polling `isListening()`, if you need to wait before starting some other process that will connect to the socket.
 
+[[advanced-outbound-configuration]]
 ==== Advanced Outbound Configuration
 
 The `<int-ip:udp-outbound-channel-adapter>` (`UnicastSendingMessageHandler`) has `destination-expression` and `socket-expression` options.
@@ -295,6 +303,7 @@ public IntegrationFlow udpEchoUpcaseServer() {
 [[tcp-connection-factories]]
 === TCP Connection Factories
 
+[[overview]]
 ==== Overview
 
 For TCP, the configuration of the underlying connection is provided by using a connection factory.
@@ -497,6 +506,7 @@ As noted there, such modifications are possible if SSL is being used, or not.
 
 Also see <<ip-annotation>> and <<ip-dsl>>.
 
+[[custom-serializers-and-deserializers]]
 ==== Custom Serializers and Deserializers
 
 If your data is not in a format supported by one of the standard deserializers, you can implement your own; you can also implement a custom serializer.
@@ -1100,6 +1110,7 @@ IMPORTANT: Starting with version 5.1.4, priority is given to accepting new conne
 This should, generally, have little impact unless you have a very high rate of new incoming connections.
 If you wish to revert to the previous behavior of giving reads priority, set the `multiAccept` property on the `TcpNioServerConnectionFactory` to `false`.
 
+[[pool-size]]
 ==== Pool Size
 
 The pool size attribute is no longer used.
@@ -1325,6 +1336,7 @@ Again, the constructor argument disables host verification.
 
 This section covers advanced techniques that you may find to be helpful in certain situations.
 
+[[strategy-interfaces]]
 ==== Strategy Interfaces
 
 In many cases, the configuration described earlier is all that is needed to enable secure communication over TCP/IP.
@@ -1336,6 +1348,7 @@ However, Spring Integration provides a number of strategy interfaces to allow cu
 * `TcpNetConnectionSupport`
 * `TcpNioConnectionSupport`
 
+[[the-tcpsslcontextsupport-strategy-interface]]
 ===== The `TcpSSLContextSupport` Strategy Interface
 
 The following listing shows the `TcpSSLContextSupport` strategy interface:
@@ -1355,6 +1368,7 @@ Implementations of the `TcpSSLContextSupport` interface are responsible for crea
 The implementation provided by the framework is the `DefaultTcpSSLContextSupport`, <<ip-ssl-tls-getting-started,described earlier>>.
 If you require different behavior, implement this interface and provide the connection factory with a reference to a bean of your class' implementation.
 
+[[the-tcpsocketfactorysupport-strategy-interface]]
 ===== The `TcpSocketFactorySupport` Strategy Interface
 
 The following listing shows the definition of the `TcpSocketFactorySupport` strategy interface:
@@ -1383,6 +1397,7 @@ It uses the `SSLContext` created by that bean to create the socket factories.
 NOTE: This interface applies only if `using-nio` is `false`.
 NIO does not use socket factories.
 
+[[the-tcpsocketsupport-strategy-interface]]
 ===== The `TcpSocketSupport` Strategy Interface
 
 The following listing shows the definition of the `TcpSocketSupport` strategy interface:
@@ -1407,6 +1422,7 @@ The sole implementation provided by the framework is the `DefaultTcpSocketSuppor
 
 To supply your own implementation of `TcpSocketFactorySupport` or `TcpSocketSupport`, provide the connection factory with references to beans of your custom type by setting the `socket-factory-support` and `socket-support` attributes, respectively.
 
+[[the-tcpnetconnectionsupport-strategy-interface]]
 ===== The `TcpNetConnectionSupport` Strategy Interface
 
 The following listing shows the definition of the `TcpNetConnectionSupport` strategy interface:
@@ -1464,6 +1480,7 @@ public class CompositeDeserializer implements Deserializer<byte[]> {
 ----
 ====
 
+[[the-tcpnioconnectionsupport-strategy-interface]]
 ===== The `TcpNioConnectionSupport` Strategy Interface
 
 The following listing shows the definition of the `TcpNioConnectionSupport` strategy interface:

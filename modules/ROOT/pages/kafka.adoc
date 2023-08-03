@@ -1,6 +1,7 @@
 [[kafka]]
 == Apache Kafka Support
 
+[[overview]]
 === Overview
 
 Spring Integration for Apache Kafka is based on the https://projects.spring.io/spring-kafka/[Spring for Apache Kafka project].
@@ -640,6 +641,7 @@ Spring Integration has `MessageChannel` implementations backed by an Apache Kafk
 
 Each channel requires a `KafkaTemplate` for the sending side and either a listener container factory (for subscribable channels) or a `KafkaMessageSource` for a pollable channel.
 
+[[java-dsl-configuration]]
 ==== Java DSL Configuration
 
 ====

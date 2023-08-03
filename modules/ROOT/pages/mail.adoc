@@ -409,6 +409,7 @@ Now, if you explicitly set this property to `false`, the message ise marked as `
 If not specified, the previous behavior is retained (peek is `true`).
 =====
 
+[[imap-idle-and-lost-connections]]
 ==== IMAP `idle` and Lost Connections
 
 When using an IMAP `idle` channel adapter, connections to the server may be lost (for example, through network failure) and, since the JavaMail documentation explicitly states that the actual IMAP API is experimental, it is important to understand the differences in the API and how to deal with them when configuring IMAP `idle` adapters.

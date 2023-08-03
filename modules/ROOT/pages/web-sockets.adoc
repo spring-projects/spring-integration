@@ -212,6 +212,7 @@ See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/c
 <11> A `Map` of `HttpHeaders` to be used with the Handshake request.
 ====
 
+[[<int-websocket:server-container>-attributes]]
 ==== `<int-websocket:server-container>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:server-container>` element:
@@ -345,6 +346,7 @@ Values can be negative.
 See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/SmartLifecycle.html[`SmartLifeCycle`].
 ====
 
+[[<int-websocket:inbound-channel-adapter>-attributes]]
 ==== `<int-websocket:inbound-channel-adapter>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:outbound-channel-adapter>` element:

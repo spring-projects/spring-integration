@@ -524,6 +524,7 @@ The listener is very lightweight, and we anticipate that, in most cases, you nee
 However, you can add attributes such as `concurrent-consumers`, `max-concurrent-consumers`, and others.
 See the schema for a complete list of supported attributes, together with the https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS documentation] for their meanings.
 
+[[idle-reply-listeners]]
 ==== Idle Reply Listeners
 
 Starting with version 4.2, you can start the reply listener as needed (and stop it after an idle time) instead of running for the duration of the gateway's lifecycle.
@@ -534,6 +535,7 @@ By enabling the idle timeout, each consumer exists only while the corresponding 
 
 See `idle-reply-listener-timeout` in <<jms-og-attributes>>.
 
+[[gateway-reply-correlation]]
 ==== Gateway Reply Correlation
 
 This section describes the mechanisms used for reply correlation (ensuring the originating gateway receives replies to only its requests), depending on how the gateway is configured.

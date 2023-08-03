@@ -88,6 +88,7 @@ These XML namespace parser constraints were added with Spring Integration 2.2.
 If you try to use disallowed attributes and elements, the XML namespace parser throws a `BeanDefinitionParsingException`.
 =====
 
+[[using-the-id-attribute]]
 ==== Using the 'id' Attribute
 
 Beginning with Spring Integration 3.0, if a chain element is given an `id` attribute, the bean name for the element is a combination of the chain's `id` and the `id` of the element itself.

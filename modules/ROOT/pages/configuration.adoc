@@ -514,6 +514,7 @@ public void handleReactive(String payload) {
 The `reactive()` attribute on the messaging annotations is mutually exclusive with the `poller()` attribute.
 See <<configuration-using-poller-annotation>> and <<./reactive-streams.adoc#reactive-streams, Reactive Streams Support>> for more information.
 
+[[using-the-inboundchanneladapter-annotation]]
 ==== Using the `@InboundChannelAdapter` Annotation
 
 Version 4.0 introduced the `@InboundChannelAdapter` method-level annotation.
@@ -549,6 +550,7 @@ Using the `@MessagingGateway` Annotation
 
 See <<./gateway.adoc#messaging-gateway-annotation,`@MessagingGateway` Annotation>>.
 
+[[using-the-integrationcomponentscan-annotation]]
 ==== Using the `@IntegrationComponentScan` Annotation
 
 The standard Spring Framework `@ComponentScan` annotation does not scan interfaces for stereotype `@Component` annotations.
@@ -705,6 +707,7 @@ public MessageHandler skipped() {
 Together with the existing Spring container logic, the messaging endpoint bean (based on the `@ServiceActivator` annotation), is also not registered.
 =====
 
+[[creating-a-bridge-with-annotations]]
 ==== Creating a Bridge with Annotations
 
 Starting with version 4.0, Java configuration provides the `@BridgeFrom` and `@BridgeTo` `@Bean` method annotations to mark `MessageChannel` beans in `@Configuration` classes.
@@ -738,6 +741,7 @@ public MessageChannel bridgeToInput() {
 
 You can use these annotations as meta-annotations as well.
 
+[[advising-annotated-endpoints]]
 ==== Advising Annotated Endpoints
 
 See <<./handler-advice.adoc#advising-with-annotations,Advising Endpoints Using Annotations>>.
@@ -851,6 +855,7 @@ public void soSomething();
 
 This example is the same as the previous example, but it produces no output.
 
+[[annotation-based-mapping]]
 ==== Annotation-based Mapping
 
 Annotation-based mapping is the safest and least ambiguous approach to map messages to methods.

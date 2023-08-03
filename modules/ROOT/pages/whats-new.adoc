@@ -8,6 +8,7 @@ If you are interested in the changes and features that were introduced in earlie
 
 [[whats-new]]
 
+[[what-s-new-in-spring-integration-6-2?]]
 == What's New in Spring Integration 6.2?
 
 If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 6.2 development process.

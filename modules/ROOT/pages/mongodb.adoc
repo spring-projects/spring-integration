@@ -27,6 +27,7 @@ To download, install, and run MongoDB, see the https://www.mongodb.org/downloads
 [[mongodb-connection]]
 === Connecting to MongoDb
 
+[[blocking-or-reactive?]]
 ==== Blocking or Reactive?
 
 Beginning with version 5.3, Spring Integration provides support for reactive MongoDB drivers to enable non-blocking I/O when accessing MongoDB.
@@ -75,6 +76,7 @@ It provides factory classes called `MongoDatabaseFactory` and `ReactiveMongoData
 
 TIP: Spring Data provides the blocking MongoDB driver by default, but you may opt in for reactive usage by including the above dependency.
 
+[[using-mongodatabasefactory]]
 ==== Using `MongoDatabaseFactory`
 
 To connect to MongoDB you can use an implementation of the `MongoDatabaseFactory` interface.
@@ -104,6 +106,7 @@ MongoDatabaseFactory mongoDbFactory =
 If you need to configure properties such as `host`, `port`, and others, you can pass those by using one of the constructors provided by the underlying `MongoClients` class.
 For more information on how to configure MongoDB, see the https://docs.spring.io/spring-data/data-mongo/docs/current/reference/html/[Spring-Data-MongoDB] reference.
 
+[[using-reactivemongodatabasefactory]]
 ==== Using `ReactiveMongoDatabaseFactory`
 
 To connect to MongoDB with the reactive driver, you can use an implementation of the `ReactiveMongoDatabaseFactory` interface.

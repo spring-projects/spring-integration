@@ -45,6 +45,7 @@ The rest of this chapter describes the testing tools and utilities provided by S
 
 The `spring-integration-test-support` module provides utilities and helpers for unit testing.
 
+[[testutils]]
 ==== TestUtils
 
 The `TestUtils` class is mostly used for properties assertions in JUnit tests, as the following example shows:
@@ -69,6 +70,7 @@ The `createTestApplicationContext()` factory method produces a `TestApplicationC
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/test/util/TestUtils.html[Javadoc] of other `TestUtils` methods for more information about this class.
 
+[[using-onlyoncetrigger]]
 ==== Using `OnlyOnceTrigger`
 
 https://docs.spring.io/spring-integration/api/org/springframework/integration/test/util/OnlyOnceTrigger.html[`OnlyOnceTrigger`] is useful for polling endpoints when you need to produce only one test message and verify the behavior without impacting other period messages.
@@ -113,6 +115,7 @@ public void testWithEntityClass() throws Exception {
 ----
 ====
 
+[[support-components]]
 ==== Support Components
 
 The `org.springframework.integration.test.support` package contains various abstract classes that you should implement in target tests
@@ -132,6 +135,7 @@ The `LongRunningIntegrationTest` JUnit 4 test rule is present to indicate if tes
 Otherwise, it is skipped.
 For the same reason since version 5.1, a `@LongRunningTest` conditional annotation is provided for JUnit 5 tests.
 
+[[hamcrest-and-mockito-matchers]]
 ==== Hamcrest and Mockito Matchers
 
 The `org.springframework.integration.test.matcher` package contains several `Matcher` implementations to assert `Message` and its properties in unit tests.
@@ -178,6 +182,7 @@ assertThat(channel.send(message), is(false));
 ----
 ====
 
+[[assertj-conditions-and-predicates]]
 ==== AssertJ conditions and predicates
 
 Starting with version 5.2, the `MessagePredicate` is introduced to be used in the AssertJ `matches()` assertion.
@@ -255,6 +260,7 @@ The `org.springframework.integration.test.mock` package offers tools and utiliti
 The mocking functionality is fully based on and compatible with the well known Mockito Framework.
 (The current Mockito transitive dependency is on version 2.5.x or higher.)
 
+[[mockintegration]]
 ==== MockIntegration
 
 The `MockIntegration` factory provides an API to build mocks for Spring Integration beans that are parts of the integration flow (`MessageSource`, `MessageProducer`, `MessageHandler`, and `MessageChannel`).

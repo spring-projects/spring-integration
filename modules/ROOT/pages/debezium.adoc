@@ -82,6 +82,7 @@ By default, all headers are mapped.
 
 The following code snippets demonstrate various configuration for this channel adapter:
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:

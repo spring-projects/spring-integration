@@ -110,6 +110,7 @@ This enables several features to be used within a Spring Integration application
 [[x2.2-jdbc-11]]
 ===== JDBC Support - Stored Procedures Components
 
+[[spel-support]]
 ====== SpEL Support
 
 When using the stored procedure components of the Spring Integration JDBC Adapter, you can now provide stored procedure names or stored function names by using the Spring Expression Language (SpEL).
@@ -118,6 +119,7 @@ Doing so lets you specify the stored procedures to be invoked at runtime.
 For example, you can provide stored procedure names that you would like to execute through message headers.
 For more information, see <<./jdbc.adoc#stored-procedures,Stored Procedures>>.
 
+[[jmx-support]]
 ====== JMX Support
 
 The stored procedure components now provide basic JMX support, exposing some of their properties as MBeans:

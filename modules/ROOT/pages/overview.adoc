@@ -541,6 +541,7 @@ You can add a property for `${spring.boot.version}` or use an explicit version.
 
 This section documents some ways to get the most from Spring Integration.
 
+[[xml-schemas]]
 ==== XML Schemas
 
 When using XML configuration, to avoid getting false schema validation errors, you should use a "`Spring-aware`" IDE, such as the Spring Tool Suite (STS), Eclipse with the Spring IDE plugins, or IntelliJ IDEA.
@@ -574,6 +575,7 @@ The affected modules are
 * `ws`
 * `xml`
 
+[[finding-class-names-for-java-and-dsl-configuration]]
 ==== Finding Class Names for Java and DSL Configuration
 
 With XML configuration and Spring Integration Namespace support, the XML parsers hide how target beans are declared and wired together.

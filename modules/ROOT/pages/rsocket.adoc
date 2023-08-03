@@ -219,6 +219,7 @@ To include it in your configuration, add the following namespace declaration in 
 ----
 ====
 
+[[inbound]]
 ==== Inbound
 
 To configure Spring Integration RSocket inbound channel adapters with XML, you need to use an appropriate `inbound-gateway` components from the `int-rsocket` namespace.
@@ -239,6 +240,7 @@ The following example shows how to configure it:
 
 A `ClientRSocketConnector` and `ServerRSocketConnector` should be configured as generic `<bean>` definitions.
 
+[[outbound]]
 ==== Outbound
 
 ====

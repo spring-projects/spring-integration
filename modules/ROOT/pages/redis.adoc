@@ -36,6 +36,7 @@ Spring Integration uses support provided by another Spring project, https://gith
 Those abstractions simplify integration with several Redis client Java APIs.
 Currently, Spring Data Redis supports https://github.com/xetorthio/jedis[Jedis] and https://lettuce.io/[Lettuce].
 
+[[using-redisconnectionfactory]]
 ==== Using `RedisConnectionFactory`
 
 To connect to Redis, you can use one of the implementations of the `RedisConnectionFactory` interface.
@@ -80,6 +81,7 @@ The following example shows how to create a `LettuceConnectionFactory` in Spring
 The implementations of `RedisConnectionFactory` provide a set of properties, such as port and host, that you can set if needed.
 Once you have an instance of `RedisConnectionFactory`, you can create an instance of `RedisTemplate` and inject it with the `RedisConnectionFactory`.
 
+[[using-redistemplate]]
 ==== Using `RedisTemplate`
 
 As with other template classes in Spring (such as `JdbcTemplate` and `JmsTemplate`) `RedisTemplate` is a helper class that simplifies Redis data access code.

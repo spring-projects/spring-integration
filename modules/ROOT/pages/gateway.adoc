@@ -207,6 +207,7 @@ The mapper maps a `MethodArgsHolder`, which is a simple class that wraps the `ja
 When providing a custom mapper, the `default-payload-expression` attribute and `<default-header/>` elements are not allowed on the gateway.
 Similarly, the `payload-expression` attribute and `<header/>` elements are not allowed on any `<method/>` elements.
 
+[[mapping-method-arguments]]
 ===== Mapping Method Arguments
 
 The following examples show how method arguments can be mapped to the message and shows some examples of invalid configuration:
@@ -654,6 +655,7 @@ In this scenario, the downstream flow is expected to return a `CompletableFuture
 NOTE: The `org.springframework.util.concurrent.ListenableFuture` has been deprecated starting with Spring Framework `6.0`.
 It is recommended now to migrate to the `CompletableFuture` which provides similar processing functionality.
 
+[[usage-scenarios]]
 ====== Usage Scenarios
 
 In the following scenario, the caller thread returns immediately with a `CompletableFuture<Invoice>`, which is completed when the downstream flow replies to the gateway (with an `Invoice` object).
@@ -785,11 +787,13 @@ The calling thread continues, with `handleInvoice()` being called when the flow 
 
 Also see <<./kotlin-functions.adoc#kotlin-coroutines,Kotlin Coroutines>> for more information.
 
+[[downstream-flows-returning-an-asynchronous-type]]
 ===== Downstream Flows Returning an Asynchronous Type
 
 As mentioned in the <<gateway-asynctaskexecutor>> section above, if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, and others), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
 The flow is then invoked on the caller thread and the result can be retrieved later.
 
+[[asynchronous-void-return-type]]
 ===== Asynchronous `void` Return Type
 
 The messaging gateway method can be declared like this:
@@ -840,6 +844,7 @@ If a component downstream is still running (perhaps because of an infinite loop 
 However, if the timeout has been reached before the actual reply was produced, it could result in a 'null' return from the gateway method.
 You should understand that the reply message (if produced) is sent to a reply channel after the gateway method invocation might have returned, so you must be aware of that and design your flow with it in mind.
 
+[[downstream-component-returns-null-]]
 ===== Downstream Component Returns 'null'
 
 Sync Gateway -- single-threaded::
@@ -848,6 +853,7 @@ In this case, an exception would be thrown and propagated to the gateway.
 Sync Gateway -- multi-threaded::
 The behavior is the same as the previous case.
 
+[[downstream-component-return-signature-is-void-while-gateway-method-signature-is-non-void]]
 ===== Downstream Component Return Signature is 'void' While Gateway Method Signature Is Non-void
 
 Sync Gateway -- single-threaded::
@@ -855,6 +861,7 @@ If a component downstream returns 'void' and the `reply-timeout` has been config
 Sync Gateway -- multi-threaded::
 The behavior is the same as the previous case.
 
+[[downstream-component-results-in-runtime-exception]]
 ===== Downstream Component Results in Runtime Exception
 
 Sync Gateway -- single-threaded::

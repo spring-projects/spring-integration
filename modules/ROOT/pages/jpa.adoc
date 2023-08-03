@@ -45,6 +45,7 @@ Recognizing these semantic differences, Spring Integration provides two separate
 * Retrieving outbound gateway
 * Updating outbound gateway
 
+[[functionality]]
 === Functionality
 
 All JPA components perform their respective JPA operations by using one of the following:
@@ -379,6 +380,7 @@ Optional.
 Optional.
 ====
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
@@ -423,6 +425,7 @@ public class JpaJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
@@ -588,6 +591,7 @@ The following example configures an outbound-channel-adapter with a native query
 
 Note that the other attributes (such as `channel` and `entity-manager`) and the `parameter` element have the same semantics as they do for JPA QL.
 
+[[using-named-queries]]
 ==== Using Named Queries
 
 Using named queries is similar to using <<jpa-using-jpaql,JPA QL>> or a <<jpa-using-native-queries,native query>>, except that we specify a named query instead of a query.
@@ -737,6 +741,7 @@ The value or expression is evaluated to compute the value of the parameter.
 Optional.
 ====
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java:
@@ -787,6 +792,7 @@ public class JpaJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
@@ -933,6 +939,7 @@ Optional.
 The remaining attributes are described earlier in this chapter.
 See <<jpaInboundChannelAdapterParameters>> and <<jpaOutboundChannelAdapterParameters>>.
 
+[[configuring-with-java-configuration]]
 ==== Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how configure the outbound adapter with Java:
@@ -976,6 +983,7 @@ public class JpaJavaApplication {
 ----
 ====
 
+[[configuring-with-the-java-dsl]]
 ==== Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter using the Java DSL:
@@ -1180,6 +1188,7 @@ See <<./splitter.adoc#split-stream-and-flux,Splitter Discard Channel>> for possi
 
 This section contains various examples of using the updating outbound gateway and the retrieving outbound gateway:
 
+[[update-by-using-an-entity-class]]
 ===== Update by Using an Entity Class
 
 In the following example, an updating outbound gateway is persisted by using the `org.springframework.integration.jpa.test.entity.Student` entity class as a JPA defining parameter:
@@ -1201,6 +1210,7 @@ If, however, you are not interested in the reply received and want only to perfo
 In this example, where we use an entity class, the reply is the entity object that was created or merged as a result of the JPA operation.
 ====
 
+[[update-using-jpql]]
 ===== Update using JPQL
 
 The following example updates an entity by using the Java Persistence Query Language (JPQL),
@@ -1225,6 +1235,7 @@ Since we used updating outbound gateway, only `update` and `delete` JPQL queries
 When you send a message with a `String` payload that also contains a header called `rollNumber` with a `long` value, the last name of the student with the specified roll number is updated to the value in the message payload.
 When using an updating gateway, the return value is always an integer value, which denotes the number of records affected by execution of the JPA QL.
 
+[[retrieving-an-entity-using-jpql]]
 ===== Retrieving an Entity using JPQL
 
 The following example uses a retrieving outbound gateway and JPQL to retrieve (select) one or more entities from the database:
@@ -1242,6 +1253,7 @@ The following example uses a retrieving outbound gateway and JPQL to retrieve (s
 ----
 ====
 
+[[retrieving-an-entity-by-using-id-expression]]
 ===== Retrieving an Entity by Using `id-expression`
 
 The following example uses a retrieving outbound gateway with `id-expression` to retrieve (find) one and only one entity from the database:
@@ -1259,6 +1271,7 @@ The `entityClass` is a class of Message `payload`.
 ----
 ====
 
+[[update-using-a-named-query]]
 ===== Update using a Named Query
 
 Using a named query is basically the same as using a JPQL query directly.

@@ -36,6 +36,7 @@ The Aggregation API consists of a number of classes:
 * The `ReleaseStrategy` interface and its default implementation: `SimpleSequenceSizeReleaseStrategy`
 * The `CorrelationStrategy` interface and its default implementation: `HeaderAttributeCorrelationStrategy`
 
+[[aggregatingmessagehandler]]
 ===== `AggregatingMessageHandler`
 
 The `AggregatingMessageHandler` (a subclass of `AbstractCorrelatingMessageHandler`) is a `MessageHandler` implementation, encapsulating the common functionality of an aggregator (and other correlating use cases), which are as follows:
@@ -147,6 +148,7 @@ Starting with version 6.0, the splitting behaviour, described above, works only 
 Otherwise, with any other `MessageGroupProcessor` implementation that returns a `Collection<Message>`, only a single reply message is emitted with the whole collection of messages as its payload.
 Such logic is dictated by the canonical purpose of an aggregator - collect request messages by some key and produce a single grouped message.
 
+[[releasestrategy]]
 ===== `ReleaseStrategy`
 
 The `ReleaseStrategy` interface is defined as follows:
@@ -233,6 +235,7 @@ This operation can be expensive.
 
 If you are aggregating large groups, you don't need to release partial groups, and you don't need to detect/reject duplicate sequences, consider using the `SimpleSequenceSizeReleaseStrategy` instead - it is much more efficient for these use cases, and is the default since _version 5.0_ when partial group release is not specified.
 
+[[aggregating-large-groups]]
 ===== Aggregating Large Groups
 
 The 4.3 release changed the default `Collection` for messages in a `SimpleMessageGroup` to `HashSet` (it was previously a `BlockingQueue`).
@@ -266,6 +269,7 @@ NOTE: If the filter endpoint is involved in the flow upstream of an aggregator, 
 In this case it is recommended to choose another `ReleaseStrategy`, or use compensation messages sent from a discard sub-flow carrying some information in their content to be skipped in a custom complete group function.
 See <<./filter.adoc#filter,Filter>> for more information.
 
+[[correlation-strategy]]
 ===== Correlation Strategy
 
 The `CorrelationStrategy` interface is defined as follows:
@@ -292,6 +296,7 @@ This implementation returns the value of one of the message headers (whose name 
 By default, the correlation strategy is a `HeaderAttributeCorrelationStrategy` that returns the value of the `CORRELATION_ID` header attribute.
 If you have a custom header name you would like to use for correlation, you can configure it on an instance of `HeaderAttributeCorrelationStrategy` and provide that as a reference for the aggregator's correlation strategy.
 
+[[lock-registry]]
 ===== Lock Registry
 
 Changes to groups are thread safe.
