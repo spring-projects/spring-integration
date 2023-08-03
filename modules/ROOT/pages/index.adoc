@@ -1,6 +1,5 @@
 :toc!:
 
-include::./index-header.adoc[]
 
 ifdef::backend-html5[]
 *{revnumber}*

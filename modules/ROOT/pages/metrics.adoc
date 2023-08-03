@@ -178,11 +178,12 @@ For example an `AbstractMessageHandler` expects a `MessageReceiverObservationCon
 
 The following are supported metrics, spans and conventions for Observation API:
 
-include::./generated/metrics.adoc[leveloffset=+2]
+include::partial$metrics.adoc[]
 
-include::./generated/spans.adoc[leveloffset=+2]
+include::partial$spans.adoc[]
 
-include::./generated/conventions.adoc[leveloffset=+2]
+include::partial$conventions.adoc[]
+
 
 [[observation-propagation]]
 == Observation Propagation

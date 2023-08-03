@@ -2,10 +2,6 @@
 = Message Transformation
 
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
-include::./transformer.adoc[]
 
-include::./content-enrichment.adoc[]
 
-include::./claim-check.adoc[]
 
-include::./codec.adoc[]
