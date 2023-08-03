@@ -1,5 +1,6 @@
 [[channel-special-channels]]
 = Special Channels
+:page-section-summary-toc: 1
 
 Two special channels are defined within the application context by default: `errorChannel` and `nullChannel`.
 The 'nullChannel' (an instance of `NullChannel`) acts like `/dev/null`, logging any message sent to it at the `DEBUG` level and returning immediately.

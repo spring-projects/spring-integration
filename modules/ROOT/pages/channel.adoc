@@ -1,5 +1,6 @@
 [[channel]]
 = Message Channels
+:page-section-summary-toc: 1
 
 While the `Message` plays the crucial role of encapsulating data, it is the `MessageChannel` that decouples message producers from message consumers.
 

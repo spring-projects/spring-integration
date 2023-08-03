@@ -1,5 +1,6 @@
 [[java-dsl-intercept]]
 = Operator intercept()
+:page-section-summary-toc: 1
 
 Starting with version 5.3, the `intercept()` operator allows to register one or more `ChannelInterceptor` instances at the current `MessageChannel` in the flow.
 This is an alternative to creating an explicit `MessageChannel` via the `MessageChannels` API.

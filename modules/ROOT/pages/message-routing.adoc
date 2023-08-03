@@ -1,5 +1,6 @@
 [[messaging-routing-chapter]]
 = Message Routing
+:page-section-summary-toc: 1
 
 This chapter covers the details of using Spring Integration to route messages.
 

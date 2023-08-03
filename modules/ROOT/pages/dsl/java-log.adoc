@@ -1,5 +1,6 @@
 [[java-dsl-log]]
 = Operator log()
+:page-section-summary-toc: 1
 
 For convenience, to log the message journey through the Spring Integration flow (`<logging-channel-adapter>`), a `log()` operator is presented.
 Internally, it is represented by the `WireTap` `ChannelInterceptor` with a `LoggingHandler` as its subscriber.

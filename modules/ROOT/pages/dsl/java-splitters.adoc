@@ -1,5 +1,6 @@
 [[java-dsl-splitters]]
 = Splitters
+:page-section-summary-toc: 1
 
 To create a splitter, use the `split()` EIP method.
 By default, if the payload is an `Iterable`, an `Iterator`, an `Array`, a `Stream`, or a reactive `Publisher`, the `split()` method outputs each item as an individual message.

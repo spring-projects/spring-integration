@@ -1,5 +1,6 @@
 [[ftp-session-callback]]
 = Using `MessageSessionCallback`
+:page-section-summary-toc: 1
 
 Starting with Spring Integration 4.2, you can use a `MessageSessionCallback<F, T>` implementation with the `<int-ftp:outbound-gateway/>` (`FtpOutboundGateway` in Java) to perform any operations on the `Session<FTPFile>` with the `requestMessage` context.
 It can be used for any non-standard or low-level FTP operations and allows access from an integration flow definition and functional interface (Lambda) implementation injection, as the following example shows:

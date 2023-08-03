@@ -1,5 +1,6 @@
 [[spring-integration-reference]]
 = Spring Integration Reference Guide
+:page-section-summary-toc: 1
 Mark Fisher; Marius Bogoevici; Iwein Fuld; Jonas Partner; Oleg Zhurakousky; Gary Russell; Dave Syer; Josh Long; David Turanski; Gunnar Hillert; Artem Bilan; Amol Nayak; Jay Bryant; Christian Tzolov
 
 (C) 2009 - 2023 VMware, Inc.

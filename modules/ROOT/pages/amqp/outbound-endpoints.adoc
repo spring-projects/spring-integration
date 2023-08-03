@@ -1,5 +1,6 @@
 [[amqp-outbound-endpoints]]
 = Outbound Endpoints
+:page-section-summary-toc: 1
 
 The following outbound endpoints have many similar configuration options.
 Starting with version 5.2, the `confirm-timeout` has been added.

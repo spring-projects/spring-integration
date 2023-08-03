@@ -1,5 +1,6 @@
 [[sftp-rft]]
 = Using `RemoteFileTemplate`
+:page-section-summary-toc: 1
 
 Spring Integration version 3.0 provides a new abstraction over the `SftpSession` object.
 The template provides methods to send, retrieve (as an `InputStream`), remove, and rename files.

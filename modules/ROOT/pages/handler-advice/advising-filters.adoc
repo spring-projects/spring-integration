@@ -1,5 +1,6 @@
 [[advising-filters]]
 = Advising Filters
+:page-section-summary-toc: 1
 
 There is an additional consideration when advising `Filter` advices.
 By default, any discard actions (when the filter returns `false`) are performed within the scope of the advice chain.

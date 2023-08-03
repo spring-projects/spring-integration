@@ -1,5 +1,6 @@
 [[functionality]]
 = Functionality
+:page-section-summary-toc: 1
 
 All JPA components perform their respective JPA operations by using one of the following:
 

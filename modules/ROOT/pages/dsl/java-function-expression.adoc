@@ -1,5 +1,6 @@
 [[java-dsl-function-expression]]
 = `FunctionExpression`
+:page-section-summary-toc: 1
 
 We introduced the `FunctionExpression` class (an implementation of SpEL's `Expression` interface) to let us use lambdas and `generics`.
 The `Function<T, R>` option is provided for the DSL components, along with an `expression` option, when there is the implicit `Strategy` variant from Core Spring Integration.

@@ -1,5 +1,6 @@
 [[amqp-samples]]
 = AMQP Samples
+:page-section-summary-toc: 1
 
 To experiment with the AMQP adapters, check out the samples available in the Spring Integration samples git repository at https://github.com/spring-projects/spring-integration-samples[https://github.com/SpringSource/spring-integration-samples]
 

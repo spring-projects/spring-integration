@@ -1,5 +1,6 @@
 [[messaging-transformation-chapter]]
 = Message Transformation
+:page-section-summary-toc: 1
 
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 

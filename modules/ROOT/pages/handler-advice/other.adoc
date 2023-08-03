@@ -1,5 +1,6 @@
 [[other-advice]]
 = Other Advice Chain Elements
+:page-section-summary-toc: 1
 
 While the abstract class mentioned above is a convenience, you can add any `Advice`, including a transaction advice, to the chain.
 

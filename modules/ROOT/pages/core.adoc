@@ -1,5 +1,6 @@
 [[spring-integration-core-messaging]]
 = Core Messaging
+:page-section-summary-toc: 1
 
 [[spring-integration-core-msg]]
 This section covers all aspects of the core messaging API in Spring Integration.

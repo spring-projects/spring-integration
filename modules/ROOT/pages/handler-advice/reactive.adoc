@@ -1,5 +1,6 @@
 [[reactive-advice]]
 = Reactive Advice
+:page-section-summary-toc: 1
 
 Starting with version 5.3, a `ReactiveRequestHandlerAdvice` can be used for request message handlers producing a `Mono` replies.
 A `BiFunction<Message<?>, Mono<?>, Publisher<?>>` has to be provided for this advice and it is called from the `Mono.transform()` operator on a reply produced by the intercepted `handleRequestMessage()` method implementation.

@@ -1,5 +1,6 @@
 [[ftp-dsf]]
 = Delegating Session Factory
+:page-section-summary-toc: 1
 
 Version 4.2 introduced the `DelegatingSessionFactory`, which allows the selection of the actual session factory at runtime.
 Prior to invoking the FTP endpoint, call `setThreadKey()` on the factory to associate a key with the current thread.

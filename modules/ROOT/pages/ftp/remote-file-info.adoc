@@ -1,5 +1,6 @@
 [[ftp-remote-file-info]]
 = Remote File Information
+:page-section-summary-toc: 1
 
 Starting with version 5.2, the `FtpStreamingMessageSource` (xref:ftp/streaming.adoc[FTP Streaming Inbound Channel Adapter]), `FtpInboundFileSynchronizingMessageSource` (xref:ftp/inbound.adoc[FTP Inbound Channel Adapter]) and "read"-commands of the `FtpOutboundGateway` (xref:ftp/outbound-gateway.adoc[FTP Outbound Gateway]) provide additional headers in the message to produce with an information about the remote file:
 

@@ -1,5 +1,6 @@
 [[jpa-supported-persistence-providers]]
 = Supported Persistence Providers
+:page-section-summary-toc: 1
 
 The Spring Integration JPA support has been tested against Hibernate persistence provider.
 

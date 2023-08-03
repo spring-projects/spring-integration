@@ -1,5 +1,6 @@
 [[sftp-remote-file-info]]
 = Remote File Information
+:page-section-summary-toc: 1
 
 Starting with version 5.2, the `SftpStreamingMessageSource` (xref:sftp/streaming.adoc[SFTP Streaming Inbound Channel Adapter]), `SftpInboundFileSynchronizingMessageSource` (xref:sftp/inbound.adoc[SFTP Inbound Channel Adapter]) and "read"-commands of the `SftpOutboundGateway` (xref:sftp/outbound-gateway.adoc[SFTP Outbound Gateway]) provide additional headers in the message to produce with an information about the remote file:
 

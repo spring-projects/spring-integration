@@ -1,5 +1,6 @@
 [[configuration]]
 = Configuration
+:page-section-summary-toc: 1
 
 Spring Integration offers a number of configuration options.
 Which option you choose depends upon your particular needs and at what level you prefer to work.

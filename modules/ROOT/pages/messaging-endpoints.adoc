@@ -1,5 +1,6 @@
 [[messaging-endpoints-chapter]]
 = Messaging Endpoints
+:page-section-summary-toc: 1
 
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://asciidoctor.org/docs/user-manual/#include-partitioning
 

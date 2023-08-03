@@ -1,5 +1,6 @@
 [[amqp-conversion-inbound]]
 = Inbound Message Conversion
+:page-section-summary-toc: 1
 
 Inbound messages, arriving at the channel adapter or gateway, are converted to the `spring-messaging` `Message<?>` payload using a message converter.
 By default, a `SimpleMessageConverter` is used, which handles java serialization and text.

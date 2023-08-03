@@ -1,5 +1,6 @@
 [[amqp-user-id]]
 = Outbound User ID
+:page-section-summary-toc: 1
 
 Spring AMQP version 1.6 introduced a mechanism to allow the specification of a default user ID for outbound messages.
 It has always been possible to set the `AmqpHeaders.USER_ID` header, which now takes precedence over the default.
