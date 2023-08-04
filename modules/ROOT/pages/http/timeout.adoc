@@ -52,7 +52,6 @@ See the https://hc.apache.org/httpcomponents-client-ga/[Apache documentation] fo
 
 The following example configures an HTTP outbound gateway by using a `SimpleClientHttpRequestFactory` that is configured with connect and read timeouts of 5 seconds, respectively:
 
-====
 [source,xml]
 ----
 <int-http:outbound-gateway url="https://samples.openweathermap.org/data/2.5/weather?q={city}"
@@ -70,7 +69,6 @@ The following example configures an HTTP outbound gateway by using a `SimpleClie
     <property name="readTimeout"    value="5000"/>
 </bean>
 ----
-====
 
 _HTTP Outbound Gateway_
 

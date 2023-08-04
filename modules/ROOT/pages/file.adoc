@@ -5,9 +5,11 @@ Spring Integration's file support extends the Spring Integration core with a ded
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,12 +17,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-file:{project-version}"
 ----
-====
+======
 
 It provides a namespace that enables elements defining channel adapters dedicated to files and support for transformers that can read file contents into strings or byte arrays.
 

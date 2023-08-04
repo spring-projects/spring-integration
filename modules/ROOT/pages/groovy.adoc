@@ -6,9 +6,11 @@ For more information about Groovy, see the Groovy documentation, which you can f
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,12 +18,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-groovy:{project-version}"
 ----
-====
+======
 
 In addition, starting with version 6.0, a xref:groovy-dsl.adoc[Groovy DSL] for integration flow configurations is provided.
 
@@ -33,7 +37,6 @@ Even though Groovy scripts are well-supported by generic scripting support, the 
 The following listing shows two sample configurations:
 
 .Filter
-====
 [source,xml]
 ----
 <int:filter input-channel="referencedScriptInput">
@@ -46,7 +49,6 @@ The following listing shows two sample configurations:
    ]]></int-groovy:script>
 </int:filter>
 ----
-====
 
 As the preceding examples show, the configuration looks identical to the general scripting support configuration.
 The only difference is the use of the Groovy namespace, as indicated by the `int-groovy` namespace prefix.
@@ -59,7 +61,6 @@ If you need to customize the Groovy object itself (beyond setting variables) you
 For example, this might be useful if you want to implement a domain-specific language (DSL) by modifying the `MetaClass` and registering functions to be available within the script.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <int:service-activator input-channel="groovyChannel">
@@ -68,7 +69,6 @@ The following example shows how to do so:
 
 <beans:bean id="groovyCustomizer" class="org.something.MyGroovyObjectCustomizer"/>
 ----
-====
 
 Setting a custom `GroovyObjectCustomizer` is not mutually exclusive with `<variable>` elements or the `script-variable-generator` attribute.
 It can also be provided when defining an inline script.
@@ -77,7 +77,6 @@ Spring Integration 3.0 introduced the `variables` attribute, which works in conj
 Also, groovy scripts have the ability to resolve a variable to a bean in the `BeanFactory`, if a binding variable was not provided with the name.
 The following example shows how to use a variable (`entityManager`):
 
-====
 [source,xml]
 ----
 <int-groovy:script>
@@ -87,7 +86,6 @@ The following example shows how to use a variable (`entityManager`):
     ]]>
 </int-groovy:script>
 ----
-====
 
 `entityManager` must be an appropriate bean in the application context.
 
@@ -102,16 +100,13 @@ For more information, see the Groovy https://groovy-lang.org/metaprogramming.htm
 To utilize this feature for short scripts (in integration scenarios), we are forced to change simple scripts to more Java-like code.
 Consider the following `<filter>` script:
 
-====
 [source,groovy]
 ----
 headers.type == 'good'
 ----
-====
 
 The preceding script becomes the following method in Spring Integration:
 
-====
 [source,groovy]
 ----
 @groovy.transform.CompileStatic
@@ -121,7 +116,6 @@ String filter(Map headers) {
 
 filter(headers)
 ----
-====
 
 With that, the `filter()` method is transformed and compiled to static Java code, bypassing the Groovy
 dynamic phases of invocation, such as `getProperty()` factories and `CallSite` proxies.
@@ -130,12 +124,10 @@ Starting with version 4.3, you can configure the Spring Integration Groovy compo
 With that in place, you can omit the method declaration with `@CompileStatic` in our script code and still get compiled plain Java code.
 In this case, the preceding script can be short but still needs to be a little more verbose than interpreted script, as the following example shows:
 
-====
 [source,groovy]
 ----
 binding.variables.headers.type == 'good'
 ----
-====
 
 You must access the `headers` and `payload` (or any other) variables through the `groovy.lang.Script` `binding` property because, with `@CompileStatic`, we do not have the  dynamic `GroovyObject.getProperty()` capability.
 
@@ -156,12 +148,10 @@ In Spring Integration, we build upon the adapters described earlier so that you 
 One option for those operations is Groovy scripts.
 The following example configures a Groovy script for the control bus:
 
-====
 [source,xml]
 ----
 <int-groovy:control-bus input-channel="operationChannel"/>
 ----
-====
 
 The control bus has an input channel that can be accessed to invoke operations on the beans in the application context.
 

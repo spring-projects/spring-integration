@@ -3,7 +3,6 @@
 
 The Framework also has been improved to support Kotlin lambdas for functions, so now you can use a combination of the Kotlin language and Spring Integration flow definitions:
 
-====
 [source, kotlin]
 ----
 @Bean
@@ -25,7 +24,6 @@ fun kotlinSupplier(): () -> String {
     return { "baz" }
 }
 ----
-====
 
 [[kotlin-coroutines]]
 == Kotlin Coroutines
@@ -33,7 +31,6 @@ fun kotlinSupplier(): () -> String {
 Starting with version 6.0, Spring Integration provides support for https://kotlinlang.org/docs/coroutines-guide.html[Kotlin Coroutines].
 Now `suspend` functions and `kotlinx.coroutines.Deferred` & `kotlinx.coroutines.flow.Flow` return types can be used for service methods:
 
-====
 [source, kotlin]
 ----
 @ServiceActivator(inputChannel = "suspendServiceChannel", outputChannel = "resultChannel")
@@ -47,7 +44,6 @@ fun flowServiceFunction(payload: String) =
         }
     }
 ----
-====
 
 The framework treats them as Reactive Streams interactions and uses `ReactiveAdapterRegistry` to convert to respective `Mono` and `Flux` reactor types.
 Such a function reply is processed then in the reply channel, if it is a `ReactiveStreamsSubscribableChannel`, or as a result of `CompletableFuture` in the respective callback.
@@ -59,7 +55,6 @@ The `@MessagingGateway` interface methods also can be marked with a `suspend` mo
 The framework utilizes a `Mono` internally to perform request-reply using the downstream flow.
 Such a `Mono` result is processed by the `MonoKt.awaitSingleOrNull()` API internally to fulfil a `kotlin.coroutines.Continuation` argument fo the called `suspend` function of the gateway:
 
-====
 [source, kotlin]
 ----
 @MessagingGateway(defaultRequestChannel = "suspendRequestChannel")
@@ -69,11 +64,9 @@ interface SuspendFunGateway {
 
 }
 ----
-====
 
 This method has to be called as a coroutine according to Kotlin language requirements:
 
-====
 [source, kotlin]
 ----
 @Autowired
@@ -85,4 +78,3 @@ fun someServiceMethod() {
     }
 }
 ----
-====

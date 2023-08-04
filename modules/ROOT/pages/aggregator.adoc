@@ -52,7 +52,6 @@ The responsibility for deciding whether the message group can be released is del
 
 The following listing shows a brief highlight of the base `AbstractAggregatingMessageGroupProcessor` (the responsibility for implementing the `aggregatePayloads` method is left to the developer):
 
-====
 [source,java]
 ----
 public abstract class AbstractAggregatingMessageGroupProcessor
@@ -66,7 +65,6 @@ public abstract class AbstractAggregatingMessageGroupProcessor
 
 }
 ----
-====
 
 See `DefaultAggregatingMessageGroupProcessor`, `ExpressionEvaluatingMessageGroupProcessor` and `MethodInvokingMessageGroupProcessor` as out-of-the-box implementations of the `AbstractAggregatingMessageGroupProcessor`.
 
@@ -81,7 +79,6 @@ The `Function<MessageGroup, Map<String, Object>>` strategy is available as the `
 
 The `CorrelationStrategy` is owned by the `AbstractCorrelatingMessageHandler` and  has a default value based on the `IntegrationMessageHeaderAccessor.CORRELATION_ID` message header, as the following example shows:
 
-====
 [source,java]
 ----
 public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
@@ -93,7 +90,6 @@ public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, Messag
     ...
 }
 ----
-====
 
 As for the actual processing of the message group, the default implementation is the `DefaultAggregatingMessageGroupProcessor`.
 It creates a single `Message` whose payload is a `List` of the payloads received for a given group.
@@ -153,7 +149,6 @@ Such logic is dictated by the canonical purpose of an aggregator - collect reque
 
 The `ReleaseStrategy` interface is defined as follows:
 
-====
 [source,java]
 ----
 public interface ReleaseStrategy {
@@ -162,7 +157,6 @@ public interface ReleaseStrategy {
 
 }
 ----
-====
 
 In general, any POJO can implement the completion decision logic if it provides a method that accepts a single `java.util.List` as an argument (parameterized lists are supported as well) and returns a boolean value.
 This method is invoked after the arrival of each new message, to decide whether the group is complete or not, as follows:
@@ -173,7 +167,6 @@ This method is invoked after the arrival of each new message, to decide whether 
 
 The following example shows how to use the `@ReleaseStrategy` annotation for a `List` of type `Message`:
 
-====
 [source,java]
 ----
 public class MyReleaseStrategy {
@@ -182,11 +175,9 @@ public class MyReleaseStrategy {
     public boolean canMessagesBeReleased(List<Message<?>>) {...}
 }
 ----
-====
 
 The following example shows how to use the `@ReleaseStrategy` annotation for a `List` of type `String`:
 
-====
 [source,java]
 ----
 public class MyReleaseStrategy {
@@ -195,7 +186,6 @@ public class MyReleaseStrategy {
     public boolean canMessagesBeReleased(List<String>) {...}
 }
 ----
-====
 
 Based on the signatures in the preceding two examples, the POJO-based release strategy is passed a `Collection` of not-yet-released messages (if you need access to the whole `Message`) or a `Collection` of payload objects (if the type parameter is anything other than `Message`).
 This satisfies the majority of use cases.
@@ -247,7 +237,6 @@ You can also provide your own factory implementation to create some other `Colle
 
 The following example shows how to configure an aggregator with the previous implementation and a `SimpleSequenceSizeReleaseStrategy`:
 
-====
 [source, xml]
 ----
 <int:aggregator input-channel="aggregate"
@@ -263,7 +252,6 @@ The following example shows how to configure an aggregator with the previous imp
 
 <bean id="releaser" class="SimpleSequenceSizeReleaseStrategy" />
 ----
-====
 
 NOTE: If the filter endpoint is involved in the flow upstream of an aggregator, the sequence size release strategy (fixed or based on the `sequenceSize` header) is not going to serve its purpose because some messages from a sequence may be discarded by the filter.
 In this case it is recommended to choose another `ReleaseStrategy`, or use compensation messages sent from a discard sub-flow carrying some information in their content to be skipped in a custom complete group function.
@@ -274,7 +262,6 @@ See xref:filter.adoc[Filter] for more information.
 
 The `CorrelationStrategy` interface is defined as follows:
 
-====
 [source,java]
 ----
 public interface CorrelationStrategy {
@@ -283,7 +270,6 @@ public interface CorrelationStrategy {
 
 }
 ----
-====
 
 The method returns an `Object` that represents the correlation key used for associating the message with a message group.
 The key must satisfy the criteria used for a key in a `Map` with respect to the implementation of `equals()` and `hashCode()`.
@@ -312,17 +298,14 @@ As discussed above, when message groups are mutated (messages added or released)
 
 Consider the following flow:
 
-====
 [source]
 ----
 ...->aggregator1-> ... ->aggregator2-> ...
 ----
-====
 
 If there are multiple threads, **and the aggregators share a common lock registry**, it is possible to get a deadlock.
 This will cause hung threads and `jstack <pid>` might present a result such as:
 
-====
 [source]
 ----
 Found one Java-level deadlock:
@@ -334,7 +317,6 @@ Found one Java-level deadlock:
   waiting for ownable synchronizer 0x000000076c1ccc00, (a java.util.concurrent.locks.ReentrantLock$NonfairSync),
   which is held by "t2"
 ----
-====
 
 There are several ways to avoid this problem:
 
@@ -357,7 +339,6 @@ See xref:dsl/java-aggregators.adoc[Aggregators and Resequencers] for how to conf
 Spring Integration supports the configuration of an aggregator with XML through the `<aggregator/>` element.
 The following example shows an example of an aggregator:
 
-====
 [source,xml]
 ----
 <channel id="inputChannel"/>
@@ -521,7 +502,6 @@ It allows the configuration of any `Advice` for the `forceComplete` operation.
 It is initiated from a `group-timeout(-expression)` or by a `MessageGroupStoreReaper` and is not applied to the normal `add`, `release`, and `discard` operations.
 Only this sub-element or `<expire-transactional/>` is allowed.
 A transaction `Advice` can also be configured here by using the Spring `tx` namespace.
-====
 
 [[aggregator-expiring-groups]]
 [IMPORTANT]
@@ -563,21 +543,18 @@ With the aggregator, groups expired using this technique will either be discarde
 We generally recommend using a `ref` attribute if a custom aggregator handler implementation may be referenced in other `<aggregator>` definitions.
 However, if a custom aggregator implementation is only being used by a single definition of the `<aggregator>`, you can use an inner bean definition (starting with version 1.0.3) to configure the aggregation POJO within the `<aggregator>` element, as the following example shows:
 
-====
 [source,xml]
 ----
 <aggregator input-channel="input" method="sum" output-channel="output">
     <beans:bean class="org.foo.PojoAggregator"/>
 </aggregator>
 ----
-====
 
 NOTE: Using both a `ref` attribute and an inner bean definition in the same `<aggregator>` configuration is not allowed, as it creates an ambiguous condition.
 In such cases, an Exception is thrown.
 
 The following example shows an implementation of the aggregator bean:
 
-====
 [source,java]
 ----
 public class PojoAggregator {
@@ -591,11 +568,9 @@ public class PojoAggregator {
   }
 }
 ----
-====
 
 An implementation of the completion strategy bean for the preceding example might be as follows:
 
-====
 [source,java]
 ----
 public class PojoReleaseStrategy {
@@ -609,13 +584,11 @@ public class PojoReleaseStrategy {
   }
 }
 ----
-====
 
 NOTE: Wherever it makes sense to do so, the release strategy method and the aggregator method can be combined into a single bean.
 
 An implementation of the correlation strategy bean for the example above might be as follows:
 
-====
 [source,java]
 ----
 public class PojoCorrelationStrategy {
@@ -625,7 +598,6 @@ public class PojoCorrelationStrategy {
   }
 }
 ----
-====
 
 The aggregator in the preceding example would group numbers by some criterion (in this case, the remainder after dividing by ten) and hold the group until the sum of the numbers provided by the payloads exceeds a certain value.
 
@@ -643,7 +615,6 @@ First, we need to extract individual messages from the list.
 Second, we need to extract the payload of each message and assemble the array of objects.
 The following example solves both problems:
 
-====
 [source,java]
 ----
 public String[] processRelease(List<Message<String>> messages){
@@ -654,19 +625,16 @@ public String[] processRelease(List<Message<String>> messages){
     return stringList.toArray(new String[]{});
 }
 ----
-====
 
 However, with SpEL, such a requirement could actually be handled relatively easily with a one-line expression, thus sparing you from writing a custom class and configuring it as a bean.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <int:aggregator input-channel="aggChannel"
     output-channel="replyChannel"
     expression="#this.![payload].toArray()"/>
 ----
-====
 
 In the preceding configuration, we use a https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[collection projection] expression to assemble a new collection from the payloads of all the messages in the list and then transform it to an array, thus achieving the same result as the earlier Java code.
 
@@ -674,12 +642,10 @@ You can apply the same expression-based approach when dealing with custom releas
 
 Instead of defining a bean for a custom `CorrelationStrategy` in the `correlation-strategy` attribute, you can implement your simple correlation logic as a SpEL expression and configure it in the `correlation-strategy-expression` attribute, as the following example shows:
 
-====
 [source,xml]
 ----
 correlation-strategy-expression="payload.person.id"
 ----
-====
 
 In the preceding example, we assume that the payload has a `person` attribute with an `id`, which is going to be used to correlate messages.
 
@@ -689,12 +655,10 @@ The `List` of messages can be referenced by using the `message` property of the 
 
 NOTE: In releases prior to version 5.0, the root object was the collection of `Message<?>`, as the previous example shows:
 
-====
 [source,xml]
 ----
 release-strategy-expression="!messages.?[payload==5].empty"
 ----
-====
 
 In the preceding example, the root object of the SpEL evaluation context is the `MessageGroup` itself, and you are stating that, as soon as there is a message with payload of `5` in this group, the group should be released.
 
@@ -706,7 +670,6 @@ See xref:aggregator.adoc#aggregator-xml[Configuring an Aggregator with XML].
 In some cases, you may need to emit the aggregator result (or discard the group) after a timeout if the `ReleaseStrategy` does not release when the current message arrives.
 For this purpose, the `groupTimeout` option lets scheduling the `MessageGroup` be forced to complete, as the following example shows:
 
-====
 [source,xml]
 ----
 <aggregator input-channel="input" output-channel="output"
@@ -714,7 +677,6 @@ For this purpose, the `groupTimeout` option lets scheduling the `MessageGroup` b
         group-timeout-expression="size() ge 2 ? 10000 : -1"
         release-strategy-expression="messages[0].headers.sequenceNumber == messages[0].headers.sequenceSize"/>
 ----
-====
 
 With this example, the normal release is possible if the aggregator receives the last message in sequence as defined by the `release-strategy-expression`.
 If that specific message does not arrive, the `groupTimeout` forces the group to complete after ten seconds, as long as the group contains at least two Messages.
@@ -734,19 +696,16 @@ Also, the reaper can be used to remove empty groups (empty groups are retained i
 Starting with version 5.5, the `groupTimeoutExpression` can be evaluated to a `java.util.Date` instance.
 This can be useful in cases like determining a scheduled task moment based on the group creation time (`MessageGroup.getTimestamp()`) instead of a current message arrival as it is calculated when `groupTimeoutExpression` is evaluated to `long`:
 
-====
 [source,xml]
 ----
 group-timeout-expression="size() ge 2 ? new java.util.Date(timestamp + 200) : null"
 ----
-====
 
 [[aggregator-annotations]]
 === Configuring an Aggregator with Annotations
 
 The following example shows an aggregator configured with annotations:
 
-====
 [source,java]
 ----
 public class Waiter {
@@ -775,7 +734,6 @@ It must be specified if this class is used as an aggregator.
 If not present on any method, the aggregator uses the `SimpleSequenceSizeReleaseStrategy`.
 <3> An annotation indicating that this method should be used as the correlation strategy of an aggregator.
 If no correlation strategy is indicated, the aggregator uses the `HeaderAttributeCorrelationStrategy` based on `CORRELATION_ID`.
-====
 
 All of the configuration options provided by the XML element are also available for the `@Aggregator` annotation.
 
@@ -784,7 +742,6 @@ The aggregator can be either referenced explicitly from XML or, if the `@Message
 Annotation configuration (`@Aggregator` and others) for the Aggregator component covers only simple use cases, where most default options are sufficient.
 If you need more control over those options when using annotation configuration, consider using a `@Bean` definition for the `AggregatingMessageHandler` and mark its `@Bean` method with `@ServiceActivator`, as the following example shows:
 
-====
 [source,java]
 ----
 @ServiceActivator(inputChannel = "aggregatorChannel")
@@ -799,7 +756,6 @@ public MessageHandler aggregator(MessageGroupStore jdbcMessageGroupStore) {
      return aggregator;
 }
 ----
-====
 
 See xref:aggregator.adoc#aggregator-api[Programming Model] and xref:configuration/meta-annotations.adoc#annotations_on_beans[Annotations on `@Bean` Methods] for more information.
 
@@ -813,7 +769,6 @@ The design of the interfaces in the stateful patterns (such as `ReleaseStrategy`
 All state is carried by the `MessageGroup` and its management is delegated to the `MessageGroupStore`.
 The `MessageGroupStore` interface is defined as follows:
 
-====
 [source,java]
 ----
 public interface MessageGroupStore {
@@ -841,7 +796,6 @@ public interface MessageGroupStore {
     int expireMessageGroups(long timeout);
 }
 ----
-====
 
 For more information, see the https://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html[Javadoc].
 
@@ -849,7 +803,6 @@ The `MessageGroupStore` accumulates state information in `MessageGroups` while w
 So, to prevent stale messages from lingering, and for volatile stores to provide a hook for cleaning up when the application shuts down, the `MessageGroupStore` lets you register callbacks to apply to its `MessageGroups` when they expire.
 The interface is very straightforward, as the following listing shows:
 
-====
 [source,java]
 ----
 public interface MessageGroupCallback {
@@ -858,7 +811,6 @@ public interface MessageGroupCallback {
 
 }
 ----
-====
 
 The callback has direct access to the store and the message group so that it can manage the persistent state (for example, by entirely removing the group from the store).
 
@@ -877,7 +829,6 @@ Thus, it is the user of the store that defines what is meant by message group "`
 
 As a convenience for users, Spring Integration provides a wrapper for the message expiry in the form of a `MessageGroupStoreReaper`, as the following example shows:
 
-====
 [source,xml]
 ----
 <bean id="reaper" class="org...MessageGroupStoreReaper">
@@ -889,7 +840,6 @@ As a convenience for users, Spring Integration provides a wrapper for the messag
     <task:scheduled ref="reaper" method="run" fixed-rate="10000"/>
 </task:scheduled-tasks>
 ----
-====
 
 The reaper is a `Runnable`.
 In the preceding example, the message group store's expire method is called every ten seconds.
@@ -937,7 +887,6 @@ This `Flux` in the output message payload must be subscribed and processed downs
 Such a logic can be customized (or superseded) by the `setCombineFunction(Function<Flux<Message<?>>, Mono<Message<?>>>)` configuration option of the `FluxAggregatorMessageHandler`.
 For example, if we would like to have a `List` of payloads in the final message, we can configure a `Flux.collectList()` like this:
 
-====
 [source,java]
 ----
 fluxAggregatorMessageHandler.setCombineFunction(
@@ -947,7 +896,6 @@ fluxAggregatorMessageHandler.setCombineFunction(
                                 .collectList()
                                 .map(GenericMessage::new));
 ----
-====
 
 There are several options in the `FluxAggregatorMessageHandler` to select an appropriate window strategy:
 
@@ -963,7 +911,6 @@ Since this component is a `MessageHandler` implementation it can simply be used 
 With Java DSL it can be used from the `.handle()` EIP-method.
 The sample below demonstrates how we can register an `IntegrationFlow` at runtime and how a `FluxAggregatorMessageHandler` can be correlated with a splitter upstream:
 
-====
 [source,java]
 ----
 IntegrationFlow fluxFlow =
@@ -981,7 +928,6 @@ Flux<Message<?>> window =
         registration.getMessagingTemplate()
                 .convertSendAndReceive(new Integer[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, Flux.class);
 ----
-====
 
 [[agg-message-group-condition]]
 == Condition on the Message Group

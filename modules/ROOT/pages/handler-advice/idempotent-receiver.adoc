@@ -32,7 +32,6 @@ See xref:file/splitter.adoc#idempotent-file-splitter[Idempotent Downstream Proce
 For convenience, the `MetadataStoreSelector` options are configurable directly on the `<idempotent-receiver>` component.
 The following listing shows all the possible attributes:
 
-====
 [source,xml]
 ----
 <idempotent-receiver
@@ -90,13 +89,11 @@ By default, the 'MetadataStoreSelector' uses the 'timestamp' message header as t
 <11> Whether to throw an exception if the `IdempotentReceiverInterceptor` rejects the message.
 Defaults to `false`.
 It is applied regardless of whether or not a `discard-channel` is provided.
-====
 
 For Java configuration, Spring Integration provides the method-level `@IdempotentReceiver` annotation.
 It is used to mark a `method` that has a messaging annotation (`@ServiceActivator`, `@Router, and others) to specify which `IdempotentReceiverInterceptor` objects are applied to this endpoint.
 The following example shows how to use the `@IdempotentReceiver` annotation:
 
-====
 [source,java]
 ----
 @Bean
@@ -112,11 +109,9 @@ public MessageHandler myService() {
     ....
 }
 ----
-====
 
 When you use the Java DSL, you can add the interceptor to the endpoint's advice chain, as the following example shows:
 
-====
 [source, java]
 ----
 @Bean
@@ -127,7 +122,6 @@ public IntegrationFlow flow() {
     ...
 }
 ----
-====
 
 NOTE: The `IdempotentReceiverInterceptor` is designed only for the `MessageHandler.handleMessage(Message<?>)` method.
 Starting with version 4.3.1, it implements `HandleMessageAdvice`, with the `AbstractHandleMessageAdvice` as a base class, for better dissociation.

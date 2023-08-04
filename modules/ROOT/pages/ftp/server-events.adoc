@@ -19,7 +19,6 @@ Events other than session open/close have another property `FtpRequest` which ha
 
 To configure the server with the listener (which must be a Spring bean), add it to the server factory:
 
-====
 [source, java]
 ----
 FtpServerFactory serverFactory = new FtpServerFactory();
@@ -31,11 +30,9 @@ serverFactory.setFtplets(new HashMap<>(Collections.singletonMap("springFtplet", 
 server = serverFactory.createServer();
 server.start();
 ----
-====
 
 To consume these events using a Spring Integration event adapter:
 
-====
 [source, java]
 ----
 @Bean
@@ -47,5 +44,4 @@ public ApplicationEventListeningMessageProducer eventsAdapter() {
     return producer;
 }
 ----
-====
 

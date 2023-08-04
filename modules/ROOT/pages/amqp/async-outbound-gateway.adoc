@@ -10,9 +10,11 @@ The thread is released and is available for other tasks in the framework.
 
 The following listing shows the possible configuration options for an AMQP asynchronous outbound gateway:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source,java,role="primary"]
-.Java DSL
 ----
 @Configuration
 public class AmqpAsyncApplication {
@@ -33,8 +35,10 @@ public class AmqpAsyncApplication {
 
 }
 ----
+
+Java::
++
 [source,java,role="secondary"]
-.Java
 ----
 @Configuration
 public class AmqpAsyncConfig {
@@ -68,8 +72,10 @@ public class AmqpAsyncConfig {
 
 }
 ----
+
+XML::
++
 [source,xml,role="secondary"]
-.XML
 ----
 <int-amqp:outbound-async-gateway id="asyncOutboundGateway"    <1>
                            request-channel="myRequestChannel" <2>
@@ -91,6 +97,7 @@ public class AmqpAsyncConfig {
                            lazy-connect="true" />             <18>
 
 ----
+======
 
 <1> The unique ID for this adapter.
 Optional.
@@ -166,7 +173,6 @@ Optional.
 Doing so allows "`fail fast`" detection of bad configuration, by logging an error message if the broker is down.
 When `true` (the default), the connection is established (if it does not already exist because some other component established
 it) when the first message is sent.
-====
 
 See also xref:service-activator.adoc#async-service-activator[Asynchronous Service Activator] for more information.
 

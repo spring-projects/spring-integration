@@ -5,9 +5,11 @@ Spring Integration provides channel adapters for receiving and sending messages 
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,12 +17,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-r2dbc:{project-version}"
 ----
-====
+======
 
 [[r2dbc-inbound-channel-adapter]]
 == R2DBC Inbound Channel Adapter
@@ -35,7 +39,6 @@ The `UPDATE` operation can be supplied with a `BiFunction<DatabaseClient.Generic
 
 A typical configuration for this channel adapter might look like this:
 
-====
 [source, java]
 ----
 @Bean
@@ -50,11 +53,9 @@ public R2dbcMessageSource r2dbcMessageSourceSelectMany() {
     return r2dbcMessageSource;
 }
 ----
-====
 
 With Java DSL a configuration for this channel adapter is like this:
 
-====
 [source, java]
 ----
 @Bean
@@ -76,7 +77,6 @@ IntegrationFlow r2dbcDslFlow(R2dbcEntityTemplate r2dbcEntityTemplate) {
         .get();
 }
 ----
-====
 
 [[r2dbc-outbound-channel-adapter]]
 == R2DBC Outbound Channel Adapter
@@ -89,7 +89,6 @@ The `valuesExpression` is used in the `INSERT` and `UPDATE` and must be evaluate
 
 A typical configuration for this channel adapter might look like this:
 
-====
 [source, java]
 ----
 @Bean
@@ -103,11 +102,9 @@ public R2dbcMessageHandler r2dbcMessageHandler(R2dbcEntityTemplate r2dbcEntityTe
     return messageHandler;
 }
 ----
-====
 
 With Java DSL a configuration for this channel adapter is like this:
 
-====
 [source, java]
 ----
 .handleReactive(R2dbc.outboundChannelAdapter(r2dbcEntityTemplate)
@@ -116,4 +113,3 @@ With Java DSL a configuration for this channel adapter is like this:
         .criteria((message) -> Criteria.where("id").is(message.getHeaders().get("personId")))
         .values("{age:36}"))
 ----
-====

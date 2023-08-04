@@ -5,9 +5,11 @@ Spring Integration 2.2 introduced the syslog transformer: `SyslogToMapTransforme
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,12 +17,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-syslog:{project-version}"
 ----
-====
+======
 
 This transformer, together with a `UDP` or `TCP` inbound adapter, could be used to receive and analyze syslog records from other hosts.
 The transformer creates a message payload that contains a map of the elements from the syslog message.
@@ -57,35 +61,29 @@ If `asMap` is `false` on the converter, you must set the `retainOriginal` constr
 
 The following example defines a `UDP` adapter that sends messages to the `syslogIn` channel (the adapter bean name is `syslogIn.adapter`):
 
-====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="syslogIn" port="1514" />
 ----
-====
 
 The adapter listens on port `1514`.
 
 The following example defines a `UDP` adapter that sends messages to the `fromSyslog` channel (the adapter bean name is `syslogIn`):
 
-====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="syslogIn"
 	channel="fromSyslog" port="1514" />
 ----
-====
 
 The adapter listens on port `1514`.
 
 The following example defines a `TCP` adapter that sends messages to channel `syslogIn` (the adapter bean name is `syslogIn.adapter`):
 
-====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="bar" protocol="tcp" port="1514" />
 ----
-====
 
 The adapter listens on port `1514`.
 
@@ -95,7 +93,6 @@ It defaults to `udp`.
 
 The following example shows a `UDP` adapter that sends messages to channel `fromSyslog`:
 
-====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="udpSyslog"
@@ -108,7 +105,6 @@ The following example shows a `UDP` adapter that sends messages to channel `from
 		<int-syslog:udp-attributes port="1514" lookup-host="false" />
 </int-syslog:inbound-channel-adapter>
 ----
-====
 
 The preceding example also shows two `SmartLifecycle` attributes: `auto-startup` and `phase`.
 It has a reference to a custom `org.springframework.integration.syslog.MessageConverter` with an ID of `converter` and an `error-channel`.
@@ -119,7 +115,6 @@ NOTE: When you use the `udp-attributes` element, you must provide the `port` att
 
 The following example shows a `TCP` adapter that sends messages to channel `fromSyslog`:
 
-====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="TcpSyslog"
@@ -129,7 +124,6 @@ The following example shows a `TCP` adapter that sends messages to channel `from
 
 <int-ip:tcp-connection-factory id="cf" type="server" port="1514" />
 ----
-====
 
 It also shows how to reference an externally defined connection factory, which can be used for advanced configuration (socket keep-alive and other uses).
 For more information, see xref:ip/tcp-connection-factories.adoc[TCP Connection Factories].
@@ -138,7 +132,6 @@ NOTE: The externally configured `connection-factory` must be of type `server`, a
 
 The following example shows a `TCP` adapter that sends messages to channel `fromSyslog`:
 
-====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="rfc5424Tcp"
@@ -157,6 +150,5 @@ The following example shows a `TCP` adapter that sends messages to channel `from
 
 <bean id="rfc6587" class="org.springframework.integration.syslog.inbound.RFC6587SyslogDeserializer" />
 ----
-====
 
 The preceding example is configured to use the `RFC 5424` converter and is configured with a reference to an externally defined connection factory with the `RFC 6587` deserializer (required for RFC 5424).

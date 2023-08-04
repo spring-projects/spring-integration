@@ -3,9 +3,11 @@
 
 The following example shows the available properties for an AMQP outbound channel adapter:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source,java,role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate,
@@ -16,8 +18,10 @@ public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate,
             .get();
 }
 ----
+
+Java::
++
 [source,java,role="secondary"]
-.Java
 ----
 @Bean
 @ServiceActivator(inputChannel = "amqpOutboundChannel")
@@ -32,8 +36,10 @@ public MessageChannel amqpOutboundChannel() {
     return new DirectChannel();
 }
 ----
+
+XML::
++
 [source,xml,role="secondary"]
-.XML
 ----
 <int-amqp:outbound-channel-adapter id="outboundAmqp"             <1>
                                channel="outboundChannel"         <2>
@@ -56,6 +62,7 @@ public MessageChannel amqpOutboundChannel() {
                                lazy-connect="true"               <19>
                                multi-send="false"/>              <20>
 ----
+======
 
 <1> The unique ID for this adapter.
 Optional.
@@ -142,7 +149,6 @@ When `true` (the default), the connection is established (if it does not already
 Requires a `RabbitTemplate`.
 When `wait-for-confirms` is true, `RabbitTemplate.waitForConfirmsOrDie()` is invoked after the messages have been sent.
 With a transactional template, the sends will be performed in either a new transaction or one that has already been started (if present).
-====
 
 [IMPORTANT]
 .return-channel

@@ -4,7 +4,6 @@
 Spring Integration provides an `http` namespace and the corresponding schema definition.
 To include it in your configuration, provide the following namespace declaration in your application context configuration file:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -22,7 +21,6 @@ To include it in your configuration, provide the following namespace declaration
     ...
 </beans>
 ----
-====
 
 [[inbound]]
 == Inbound
@@ -31,25 +29,21 @@ The XML namespace provides two components for handling HTTP inbound requests: `i
 In order to process requests without returning a dedicated response, use the `inbound-channel-adapter`.
 The following example shows how to configure one:
 
-====
 [source,xml]
 ----
 <int-http:inbound-channel-adapter id="httpChannelAdapter" channel="requests"
     supported-methods="PUT, DELETE"/>
 ----
-====
 
 To process requests that do expect a response, use an `inbound-gateway`.
 The following example shows how to configure one:
 
-====
 [source,xml]
 ----
 <int-http:inbound-gateway id="inboundGateway"
     request-channel="requests"
     reply-channel="responses"/>
 ----
-====
 
 [[http-request-mapping]]
 == Request Mapping Support
@@ -68,7 +62,6 @@ You can add this optional element to `<http:inbound-channel-adapter>` and `<http
 It works in conjunction with the `path` and `supported-methods` attributes.
 The following example shows how to configure it on an inbound gateway:
 
-====
 [source,xml]
 ----
 <inbound-gateway id="inboundController"
@@ -84,7 +77,6 @@ The following example shows how to configure it on an inbound gateway:
      produces="!text/plain"/>
 </inbound-gateway>
 ----
-====
 
 Based on the preceding configuration, the namespace parser creates an instance of the `IntegrationRequestMappingHandlerMapping` (if none exists) and an `HttpRequestHandlingController` bean and associates with it an instance of https://docs.spring.io/spring-integration/api/org/springframework/integration/http/inbound/RequestMapping.html[`RequestMapping`].
 This `RequestMapping` instance is, in turn, converted to the Spring MVC https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfo.html[`RequestMappingInfo`].
@@ -104,7 +96,6 @@ Alternatively, you can also declare only one HTTP inbound endpoint and apply rou
 This lets you get the `Message` into the flow as early as possibly.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <int-http:inbound-gateway request-channel="httpMethodRouter"
@@ -121,7 +112,6 @@ The following example shows how to do so:
 
 <int:service-activator input-channel="in2" ref="service" method="delete"/>
 ----
-====
 
 For more information regarding handler mappings, see https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html[the Spring Framework Web Servlet documentation] or https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[the Spring Framework Web Reactive documentation].
 
@@ -170,7 +160,6 @@ By default, `status-code-expression` is null, meaning that the normal '200 OK' r
 Using the `RequestEntity<?>` as root object, the status code can be conditional e.g. on the request method, some header, URI content or even request body.
 The following example shows how to set the status code to `ACCEPTED`:
 
-====
 [source,xml]
 ----
 <http:inbound-channel-adapter id="inboundController"
@@ -179,7 +168,6 @@ The following example shows how to set the status code to `ACCEPTED`:
    <request-mapping headers="BAR"/>
 </http:inbound-channel-adapter>
 ----
-====
 
 The `<http:inbound-gateway>` resolves the 'status code' from the `http_statusCode` header of the reply `Message`.
 Starting with version 4.2, the default response status code when no reply is received within the `reply-timeout` is `500 Internal Server Error`.
@@ -189,7 +177,6 @@ There are two ways to modify this behavior:
 This has the same semantics as the `status-code-expression` on the inbound adapter.
 * Add an `error-channel` and return an appropriate message with an HTTP status code header, as the following example shows:
 +
-====
 [source, xml]
 ----
 <int:chain input-channel="errors">
@@ -199,7 +186,6 @@ This has the same semantics as the `status-code-expression` on the inbound adapt
     <int:transformer expression="payload.failedMessage" />
 </int:chain>
 ----
-====
 
 The payload of the `ErrorMessage` is a `MessageTimeoutException`.
 It must be transformed to something that can be converted by the gateway, such as a `String`.
@@ -222,16 +208,13 @@ By using the `path` attribute in conjunction with the `payload-expression` attri
 
 In the following example configuration, an inbound channel adapter is configured to accept requests using the following URI:
 
-====
 [source]
 ----
 /first-name/{firstName}/last-name/{lastName}
 ----
-====
 
 When you use the `payload-expression` attribute, the `+{firstName}+` URI template variable maps to be the `Message` payload, while the `+{lastName}+` URI template variable maps to the `lname` message header, as defined in the following example:
 
-====
 [source,xml]
 ----
 <int-http:inbound-channel-adapter id="inboundAdapterWithExpressions"
@@ -241,7 +224,6 @@ When you use the `payload-expression` attribute, the `+{firstName}+` URI templat
     <int-http:header name="lname" expression="#pathVariables.lastName"/>
 </int-http:inbound-channel-adapter>
 ----
-====
 
 For more information about URI template variables, see https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-ann-requestmapping-uri-templates[uri template patterns] in the Spring Reference Manual.
 
@@ -258,7 +240,6 @@ Note that `#matrixVariables` requires Spring MVC 3.2 or higher.
 Note that all these values (and others) can be accessed within expressions in the downstream message flow through the `ThreadLocal` `org.springframework.web.context.request.RequestAttributes` variable, if that message flow is single-threaded and lives within the request thread.
 The following example configures a transformer that uses an `expression` attribute:
 
-====
 [source,xml]
 ----
 <int-:transformer
@@ -266,7 +247,6 @@ The following example configures a transformer that uses an `expression` attribu
                   requestAttributes.request.queryString"/>
 
 ----
-====
 
 [[outbound]]
 == Outbound
@@ -274,7 +254,6 @@ The following example configures a transformer that uses an `expression` attribu
 To configure the outbound gateway, you can use the namespace support.
 The following code snippet shows the available configuration options for an outbound HTTP gateway:
 
-====
 [source,xml]
 ----
 <int-http:outbound-gateway id="example"
@@ -288,7 +267,6 @@ The following code snippet shows the available configuration options for an outb
     reply-timeout="1234"
     reply-channel="replies"/>
 ----
-====
 
 Most importantly, notice that the 'http-method' and 'expected-response-type' attributes are provided.
 Those are two of the most commonly configured values.
@@ -315,7 +293,6 @@ Note that this attribute is mutually exclusive with `http-method`.
 You can also use the `expected-response-type-expression` attribute instead of `expected-response-type` and provide any valid SpEL expression that determines the type of the response.
 The following configuration example uses `expected-response-type-expression`:
 
-====
 [source,xml]
 ----
 <int-http:outbound-gateway id="example"
@@ -329,14 +306,12 @@ The following configuration example uses `expected-response-type-expression`:
     reply-timeout="1234"
     reply-channel="replies"/>
 ----
-====
 
 If your outbound adapter is to be used in a unidirectional way, you can use an `outbound-channel-adapter` instead.
 This means that a successful response executes without sending any messages to a reply channel.
 In the case of any non-successful response status code, it throws an exception.
 The configuration looks very similar to the gateway, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-http:outbound-channel-adapter id="example"
@@ -350,7 +325,6 @@ The configuration looks very similar to the gateway, as the following example sh
     order="3"
     auto-startup="false"/>
 ----
-====
 
 [NOTE]
 =====
@@ -371,7 +345,6 @@ If your URL contains URI variables, you can map them by using the `uri-variable`
 This element is available for the HTTP outbound gateway and the HTTP outbound channel adapter.
 The following example maps the `zipCode` URI variable to an expression:
 
-====
 [source,xml]
 ----
 <int-http:outbound-gateway id="trafficGateway"
@@ -382,7 +355,6 @@ The following example maps the `zipCode` URI variable to an expression:
     <int-http:uri-variable name="zipCode" expression="payload.getZip()"/>
 </int-http:outbound-gateway>
 ----
-====
 
 The `uri-variable` element defines two attributes: `name` and `expression`.
 The `name` attribute identifies the name of the URI variable, while the `expression` attribute is used to set the actual value.
@@ -394,7 +366,6 @@ It provides a mechanism whereby you can use different variable expressions, base
 This attribute is mutually exclusive with the `<uri-variable/>` element.
 The following example shows how to use the `uri-variables-expression` attribute:
 
-====
 [source,xml]
 ----
 <int-http:outbound-gateway
@@ -404,11 +375,9 @@ The following example shows how to use the `uri-variables-expression` attribute:
      uri-variables-expression="@uriVariablesBean.populate(payload)"
      expected-response-type="java.lang.String"/>
 ----
-====
 
 `uriVariablesBean` might be defined as follows:
 
-====
 [source,java]
 ----
 public class UriVariablesBean {
@@ -427,26 +396,22 @@ public class UriVariablesBean {
 
 }
 ----
-====
 
 NOTE: The `uri-variables-expression` must evaluate to a `Map`.
 The values of the `Map` must be instances of `String` or `Expression`.
 This `Map` is provided to an `ExpressionEvalMap` for further resolution of URI variable placeholders by using those expressions in the context of the outbound `Message`.
 
 IMPORTANT
-====
 The `uriVariablesExpression` property provides a very powerful mechanism for evaluating URI variables.
 We anticipate that people mostly use simple expressions, such as the preceding example.
 However, you can also configure something such as `"@uriVariablesBean.populate(#root)"` with an expression in the returned map being `variables.put("thing1", EXPRESSION_PARSER.parseExpression(message.getHeaders().get("thing2", String.class)));`, where the expression is dynamically provided in the message header named `thing2`.
 Since the header may come from an untrusted source, the HTTP outbound endpoints use `SimpleEvaluationContext` when evaluating these expressions.
 The `SimpleEvaluationContext` uses only a subset of SpEL features.
 If you trust your message sources and wish to use the restricted SpEL constructs, set the `trustedSpel` property of the outbound endpoint to `true`.
-====
 
 You can achieve scenarios that need to supply a dynamic set of URI variables on a per-message basis by using a custom `url-expression` and some utilities for building and encoding URL parameters.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 url-expression="T(org.springframework.web.util.UriComponentsBuilder)
@@ -455,13 +420,11 @@ url-expression="T(org.springframework.web.util.UriComponentsBuilder)
                            .build()
                            .toUri()"
 ----
-====
 
 The `queryParams()` method expects a `MultiValueMap<String, String>` as an argument, so you can build a real set of URL query parameters in advance, before performing the request.
 
 The whole `queryString` can also be presented as a `uri-variable`, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-http:outbound-gateway id="proxyGateway" request-channel="testChannel"
@@ -469,13 +432,11 @@ The whole `queryString` can also be presented as a `uri-variable`, as the follow
     <int-http:uri-variable name="queryString" expression="'a=A&amp;b=B'"/>
 </int-http:outbound-gateway>
 ----
-====
 
 In this case, you must manually provide the URL encoding.
 For example, you can use the `org.apache.http.client.utils.URLEncodedUtils#format()` for this purpose.
 As mentioned earlier, a manually built `MultiValueMap<String, String>` can be converted to the `List<NameValuePair>` `format()` method argument by using the following Java Streams snippet:
 
-====
 [source,java]
 ----
 List<NameValuePair> nameValuePairs =
@@ -487,7 +448,6 @@ List<NameValuePair> nameValuePairs =
                     .map(v -> new BasicNameValuePair(e.getKey(), v)))
             .collect(Collectors.toList());
 ----
-====
 
 [[http-uri-encoding]]
 == Controlling URI Encoding
@@ -498,7 +458,6 @@ The `<http:outbound-gateway/>` and `<http:outbound-channel-adapter/>` provide an
 To disable encoding the URL, set this attribute to `NONE` (by default, it is `TEMPLATE_AND_VALUES`).
 If you wish to partially encode some part of the URL, use an `expression` within a `<uri-variable/>`, as the following example shows:
 
-====
 [source,xml]
 ----
 <http:outbound-gateway url="https://somehost/%2f/fooApps?bar={param}" encoding-mode="NONE">
@@ -507,7 +466,6 @@ If you wish to partially encode some part of the URL, use an `expression` within
                                              .encodeWithinQuery('Hello World!')"/>
 </http:outbound-gateway>
 ----
-====
 
 With Java DSL this option can be controlled by the `BaseHttpMessageHandlerSpec.encodingMode()` option.
 The same configuration applies for similar outbound components in the xref:webflux.adoc[WebFlux module] and xref:ws.adoc[Web Services module].

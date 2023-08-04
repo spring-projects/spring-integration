@@ -13,7 +13,6 @@ This operator has several overloads for different goals:
 All of these have a variant with the second `Consumer<GatewayEndpointSpec>` argument to configure the target `GatewayMessageHandler` and respective `AbstractEndpoint`.
 Also, the `IntegrationFlow`-based methods allows calling existing `IntegrationFlow` bean or declare the flow as a sub-flow via an in-place lambda for an `IntegrationFlow` functional interface or have it extracted in a `private` method cleaner code style:
 
-====
 [source,java]
 ----
 @Bean
@@ -31,7 +30,6 @@ private static IntegrationFlow subFlow() {
                         g -> g.outputProcessor(MessageGroup::getOne))
 }
 ----
-====
 
 IMPORTANT: If the downstream flow does not always return a reply, you should set the `requestTimeout` to 0 to prevent hanging the calling thread indefinitely.
 In that case, the flow will end at that point and the thread released for further work.

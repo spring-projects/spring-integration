@@ -18,7 +18,6 @@ NOTE: Because of this disassociation, the advice chain order is not honored.
 
 Consider the following configuration:
 
-====
 [source,xml]
 ----
 <some-reply-producing-endpoint ... >
@@ -28,7 +27,6 @@ Consider the following configuration:
     </int:request-handler-advice-chain>
 </some-reply-producing-endpoint>
 ----
-====
 
 In the preceding example, the `<tx:advice>` is applied to the `AbstractReplyProducingMessageHandler.handleRequestMessage()`.
 However, `myHandleMessageAdvice` is applied for to `MessageHandler.handleMessage()`.

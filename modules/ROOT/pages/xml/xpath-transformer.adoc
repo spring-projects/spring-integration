@@ -9,23 +9,19 @@ You can do so by defining XPath transformers with the  `<xpath-transformer/>` el
 
 Consider following transformer configuration:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-transformer input-channel="inputChannel" output-channel="outputChannel"
       xpath-expression="/person/@name" />
 ----
-====
 
 Also consider the following `Message`:
 
-====
 [source,java]
 ----
 Message<?> message =
   MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();
 ----
-====
 
 After sending this message to the 'inputChannel', the XPath transformer configured earlier transforms this XML Message to a simple `Message` with a payload of 'John Doe', all based on the simple XPath Expression specified in the `xpath-expression` attribute.
 
@@ -36,7 +32,6 @@ The following constants are defined by the `XPathConstants` class: `BOOLEAN`, `D
 
 You can configure the desired type by using the `evaluation-type` attribute of the `<xpath-transformer/>` element, as the following example shows (twice):
 
-====
 [source,xml]
 ----
 <int-xml:xpath-transformer input-channel="numberInput" xpath-expression="/person/@age"
@@ -46,7 +41,6 @@ You can configure the desired type by using the `evaluation-type` attribute of t
                            xpath-expression="/person/@married = 'true'"
                            evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
 ----
-====
 
 [[node-mappers]]
 == Node Mappers
@@ -54,17 +48,14 @@ You can configure the desired type by using the `evaluation-type` attribute of t
 If you need to provide custom mapping for the node extracted by the XPath expression, you can provide a reference to the implementation of the `org.springframework.xml.xpath.NodeMapper` (an interface used by `XPathOperations` implementations for mapping `Node` objects on a per-node basis).
 To provide a reference to a `NodeMapper`, you can use the `node-mapper` attribute, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age"
                            node-mapper="testNodeMapper" output-channel="output"/>
 ----
-====
 
 The following example shows a `NodeMapper` implementation that works with the preceding example:
 
-====
 [source,java]
 ----
 class TestNodeMapper implements NodeMapper {
@@ -73,7 +64,6 @@ class TestNodeMapper implements NodeMapper {
   }
 }
 ----
-====
 
 [[xml-payload-converter]]
 == XML Payload Converter
@@ -81,18 +71,15 @@ class TestNodeMapper implements NodeMapper {
 You can also use an implementation of the `org.springframework.integration.xml.XmlPayloadConverter` to provide more granular transformation.
 The following example shows how to define one:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-transformer input-channel="customConverterInput"
                            output-channel="output" xpath-expression="/test/@type"
                            converter="testXmlPayloadConverter" />
 ----
-====
 
 The following example shows an `XmlPayloadConverter` implementation that works with the preceding example:
 
-====
 [source,java]
 ----
 class TestXmlPayloadConverter implements XmlPayloadConverter {
@@ -115,7 +102,6 @@ class TestXmlPayloadConverter implements XmlPayloadConverter {
   }
 }
 ----
-====
 
 If you do not provide this reference, the `DefaultXmlPayloadConverter` is used.
 It should suffice in most cases, because it can convert from `Node`, `Document`, `Source`, `File`, `String`, `InputStream`, and `byte[]` payloads.

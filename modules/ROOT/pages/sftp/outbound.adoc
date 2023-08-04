@@ -13,7 +13,6 @@ Similar to the FTP outbound adapter, the SFTP outbound channel adapter supports 
 
 The following example shows how to configure an SFTP outbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
@@ -28,7 +27,6 @@ The following example shows how to configure an SFTP outbound channel adapter:
     chmod="600"
     mode="REPLACE"/>
 ----
-====
 
 See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
 
@@ -77,7 +75,6 @@ When this attribute is `false`, the file is written with its final name, and the
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -130,14 +127,12 @@ public class SftpJavaApplication {
     }
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -160,5 +155,4 @@ public class SftpJavaApplication {
 
 }
 ----
-====
 

@@ -34,7 +34,6 @@ For more information, see the relevant https://docs.spring.io/spring/docs/curren
 +
 The following example shows how to explicitly include an entity manager factory:
 +
-====
 [source,xml]
 ----
 <bean id="entityManager"
@@ -42,7 +41,6 @@ The following example shows how to explicitly include an entity manager factory:
     <property name="entityManagerFactory" ref="entityManagerFactoryBean" />
 </bean>
 ----
-====
 
 `jpa-operations`::
 A reference to a bean that implements the `JpaOperations` interface.
@@ -79,33 +77,27 @@ You can also provide parameters for named queries.
 Expression-based Parameters::
 The following example shows how to set an expression-based parameter:
 +
-====
 [source,xml]
 ----
 <int-jpa:parameter expression="payload.name" name="firstName"/>
 ----
-====
 
 Value-based Parameters::
 The following example shows how to set an value-based parameter:
 +
-====
 [source,xml]
 ----
 <int-jpa:parameter name="name" type="java.lang.String" value="myName"/>
 ----
-====
 
 Positional Parameters::
 The following example shows how to set an expression-based parameter:
 +
-====
 [source,xml]
 ----
 <int-jpa:parameter expression="payload.name"/>
 <int-jpa:parameter type="java.lang.Integer" value="21"/>
 ----
-====
 
 [[jpa-transactions]]
 == Transaction Handling
@@ -115,7 +107,6 @@ For inbound channel adapters, you need do nothing special.
 It works similarly to the way we configure transaction managers with pollers that are used with other inbound channel adapters.
 The following XML example configures a transaction manager that uses a poller with an inbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-jpa:inbound-channel-adapter
@@ -131,13 +122,11 @@ The following XML example configures a transaction manager that uses a poller wi
     </int:poller>
 </int-jpa:inbound-channel-adapter>
 ----
-====
 
 However, you may need to specifically start a transaction when using an outbound channel adapter or gateway.
 If a `DirectChannel` is an input channel for the outbound adapter or gateway and if the transaction is active in the current thread of execution, the JPA operation is performed in the same transaction context.
 You can also configure this JPA operation to run as a new transaction, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jpa:outbound-gateway
@@ -152,7 +141,6 @@ You can also configure this JPA operation to run as a new transaction, as the fo
         transaction-manager="transactionManager"/>
 </int-jpa:outbound-gateway>
 ----
-====
 
 In the preceding example, the transactional element of the outbound gateway or adapter specifies the transaction attributes.
 It is optional to define this child element if you have `DirectChannel` as an input channel to the adapter and you want the adapter to execute the operations in the same transaction context as the caller.

@@ -6,9 +6,11 @@ Through those adapters, Spring Integration supports not only plain JDBC SQL quer
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,12 +18,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-jdbc:{project-version}"
 ----
-====
+======
 
 By default, the following JDBC components are available:
 

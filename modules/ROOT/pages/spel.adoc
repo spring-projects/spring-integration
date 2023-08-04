@@ -26,7 +26,6 @@ Functions and property accessors are available in any SpEL expression used throu
 
 The following configuration shows how to directly configure the `IntegrationEvaluationContextFactoryBean` with custom property accessors and functions:
 
-====
 [source,xml]
 ----
 <bean id="integrationEvaluationContext"
@@ -45,7 +44,6 @@ The following configuration shows how to directly configure the `IntegrationEval
 	</property>
 </bean>
 ----
-====
 
 For convenience, Spring Integration provides namespace support for both property accessors and functions, as described in the following sections.
 The framework automatically configures the factory bean on your behalf.
@@ -66,7 +64,6 @@ The factory bean has another property (`typeLocator`), which lets you customize 
 You might need to do so running in some environments that use a non-standard `ClassLoader`.
 In the following example, SpEL expressions always use the bean factory's class loader:
 
-====
 [source,xml]
 ----
 <bean id="integrationEvaluationContext"
@@ -78,7 +75,6 @@ In the following example, SpEL expressions always use the bean factory's class l
 	</property>
 </bean>
 ----
-====
 
 [[spel-functions]]
 == SpEL Functions
@@ -90,7 +86,6 @@ Instead of configuring the factory bean shown earlier, you can add one or more o
 For example, suppose you have a useful static method to evaluate XPath.
 The following example shows how you can create a custom function to use that method:
 
-====
 [source,xml]
 ----
 <int:spel-function id="xpath"
@@ -99,7 +94,6 @@ The following example shows how you can create a custom function to use that met
 <int:transformer input-channel="in" output-channel="out"
 		 expression="#xpath('//things/@mythings', payload)" />
 ----
-====
 
 Given the preceding example:
 
@@ -114,7 +108,6 @@ Given the preceding example:
 To provide a SpEL Function by using Java configuration, you can declare a `SpelFunctionFactoryBean` bean for each function.
 The following example shows how to create a custom function:
 
-====
 [source,java]
 ----
 @Bean
@@ -122,7 +115,6 @@ public SpelFunctionFactoryBean xpath() {
     return new SpelFunctionFactoryBean(XPathUtils.class, "evaluate");
 }
 ----
-====
 
 NOTE: SpEL functions declared in a parent context are also made available in any child contexts.
 Each context has its own instance of the `integrationEvaluationContext` factory bean, because each needs a different `BeanResolver`, but the function declarations are inherited and can be overridden by declaring a SpEL function with the same name.
@@ -136,7 +128,6 @@ Spring Integration provides the folloiwng  standard functions, which are registe
 This function invokes `JsonPathUtils.evaluate(...)`, which delegates to the https://github.com/json-path/JsonPath[Jayway JsonPath library].
 The following listing shows some usage examples:
 +
-====
 [source,xml]
 ----
 <transformer expression="#jsonPath(payload, '$.store.book[0].author')"/>
@@ -150,7 +141,6 @@ The following listing shows some usage examples:
 	<mapping channel="output2" value="fiction"/>
 </router>
 ----
-====
 +
 `#jsonPath` also supports a third (optional) parameter: an array of https://github.com/json-path/JsonPath#filter-predicates[`com.jayway.jsonpath.Filter`], which can be provided by a reference to a bean or bean method (for example).
 +
@@ -170,7 +160,6 @@ You can use the `<spel-property-accessors/>` component to provide a list of cust
 Instead of configuring the factory bean shown earlier, you can add one or more of these components, and the framework automatically adds the accessors to the default `integrationEvaluationContext` factory bean.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <int:spel-property-accessors>
@@ -178,14 +167,12 @@ The following example shows how to do so:
 	<ref bean="fooPropertyAccessor"/>
 </int:spel-property-accessors>
 ----
-====
 
 In the preceding example, two custom `PropertyAccessor` instances are injected into the `EvaluationContext` (in the order in which they are declared).
 
 To provide `PropertyAccessor` instances by using Java Configuration, you should declare a `SpelPropertyAccessorRegistrar` bean with a name of `spelPropertyAccessorRegistrar` (dictated by the `IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME` constant).
 The following example shows how to configure two custom `PropertyAccessor` instances with Java:
 
-====
 [source,java]
 ----
 @Bean
@@ -194,7 +181,6 @@ public SpelPropertyAccessorRegistrar spelPropertyAccessorRegistrar() {
                     .add(fooPropertyAccessor());
 }
 ----
-====
 
 [NOTE]
 ====

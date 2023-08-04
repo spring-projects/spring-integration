@@ -68,7 +68,6 @@ Optional.
 
 The following listing shows all the attributes that you can set on an updating-outbound-gateway and describes the key attributes:
 
-====
 [source,xml]
 ----
 <int-jpa:updating-outbound-gateway request-channel=""  <1>
@@ -106,7 +105,6 @@ Optional.
 Only applies when the reply channel itself might block the send operation (for example, a bounded `QueueChannel` that is currently full).
 The value is specified in milliseconds.
 Optional.
-====
 
 The remaining attributes are described earlier in this chapter.
 See xref:jpa/inbound-channel-adapter.adoc#jpaInboundChannelAdapterParameters[Configuration Parameter Reference] and xref:jpa/outbound-channel-adapter.adoc#jpaOutboundChannelAdapterParameters[Configuration Parameter Reference].
@@ -116,7 +114,6 @@ See xref:jpa/inbound-channel-adapter.adoc#jpaInboundChannelAdapterParameters[Con
 
 The following Spring Boot application shows an example of how configure the outbound adapter with Java:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -153,7 +150,6 @@ public class JpaJavaApplication {
 
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
@@ -192,9 +188,11 @@ public class JpaJavaApplication {
 
 The following example demonstrates how to configure a retrieving outbound gateway:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @SpringBootApplication
 @EntityScan(basePackageClasses = StudentDomain.class)
@@ -221,8 +219,10 @@ public class JpaJavaApplication {
 
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun retrievingGatewayFlow() =
@@ -234,8 +234,10 @@ fun retrievingGatewayFlow() =
         channel { queue("retrieveResults") }
     }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @SpringBootApplication
 @EntityScan(basePackageClasses = StudentDomain.class)
@@ -271,8 +273,10 @@ public class JpaJavaApplication {
 
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-jpa:retrieving-outbound-gateway request-channel=""
     auto-startup="true"
@@ -304,6 +308,7 @@ public class JpaJavaApplication {
     <int-jpa:parameter name="" expression=""/>
 </int-jpa:retrieving-outbound-gateway>
 ----
+======
 
 <1> (Since Spring Integration 4.0) The SpEL expression that determines the `primaryKey` value for `EntityManager.find(Class entityClass, Object primaryKey)` method against the `requestMessage` as the root object of evaluation context.
 The `entityClass` argument is determined from the `entity-class` attribute, if present.
@@ -331,7 +336,6 @@ Optional.
 This attribute is mutually exclusive to `first-result`.
 Version 3.0 introduced this attribute.
 Optional.
-====
 
 [IMPORTANT]
 ====
@@ -365,7 +369,6 @@ This section contains various examples of using the updating outbound gateway an
 
 In the following example, an updating outbound gateway is persisted by using the `org.springframework.integration.jpa.test.entity.Student` entity class as a JPA defining parameter:
 
-====
 [source,xml]
 ----
 <int-jpa:updating-outbound-gateway request-channel="entityRequestChannel"  <1>
@@ -380,7 +383,6 @@ It is similar to the `channel` attribute of the `outbound-channel-adapter`.
 This is the channel over which the reply from the JPA operation is received.
 If, however, you are not interested in the reply received and want only to perform the operation, using a JPA `outbound-channel-adapter` is the appropriate choice.
 In this example, where we use an entity class, the reply is the entity object that was created or merged as a result of the JPA operation.
-====
 
 [[update-using-jpql]]
 === Update using JPQL
@@ -388,7 +390,6 @@ In this example, where we use an entity class, the reply is the entity object th
 The following example updates an entity by using the Java Persistence Query Language (JPQL),
 which mandates using an updating outbound gateway:
 
-====
 [source,xml]
 ----
 <int-jpa:updating-outbound-gateway request-channel="jpaqlRequestChannel"
@@ -402,7 +403,6 @@ which mandates using an updating outbound gateway:
 
 <1> The JPQL query that the gateway executes.
 Since we used updating outbound gateway, only `update` and `delete` JPQL queries would be sensible choices.
-====
 
 When you send a message with a `String` payload that also contains a header called `rollNumber` with a `long` value, the last name of the student with the specified roll number is updated to the value in the message payload.
 When using an updating gateway, the return value is always an integer value, which denotes the number of records affected by execution of the JPA QL.
@@ -412,7 +412,6 @@ When using an updating gateway, the return value is always an integer value, whi
 
 The following example uses a retrieving outbound gateway and JPQL to retrieve (select) one or more entities from the database:
 
-====
 [source,xml]
 ----
 <int-jpa:retrieving-outbound-gateway request-channel="retrievingGatewayReqChannel"
@@ -423,7 +422,6 @@ The following example uses a retrieving outbound gateway and JPQL to retrieve (s
     <int-jpa:parameter name="lastName" expression="headers['lastName']"/>
 </int-jpa:outbound-gateway>
 ----
-====
 
 [[retrieving-an-entity-by-using-id-expression]]
 === Retrieving an Entity by Using `id-expression`
@@ -432,7 +430,6 @@ The following example uses a retrieving outbound gateway with `id-expression` to
 The `primaryKey` is the result of `id-expression` evaluation.
 The `entityClass` is a class of Message `payload`.
 
-====
 [source,xml]
 ----
 <int-jpa:retrieving-outbound-gateway
@@ -441,7 +438,6 @@ The `entityClass` is a class of Message `payload`.
     id-expression="payload.id"
     entity-manager="em"/>
 ----
-====
 
 [[update-using-a-named-query]]
 === Update using a Named Query
@@ -449,7 +445,6 @@ The `entityClass` is a class of Message `payload`.
 Using a named query is basically the same as using a JPQL query directly.
 The difference is that the `named-query` attribute is used instead, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jpa:updating-outbound-gateway request-channel="namedQueryRequestChannel"
@@ -460,6 +455,5 @@ The difference is that the `named-query` attribute is used instead, as the follo
     <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
 </int-jpa:outbound-gateway>
 ----
-====
 
 NOTE: You can find a complete sample application that uses Spring Integration's JPA adapter https://github.com/spring-projects/spring-integration-samples/tree/main/basic/jpa[here].

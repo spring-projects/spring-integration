@@ -12,9 +12,11 @@ This chapter describes Spring Integration's support for web services, including:
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -22,12 +24,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-ws:{project-version}"
 ----
-====
+======
 
 [[webservices-outbound]]
 == Outbound Web Service Gateways
@@ -38,14 +42,12 @@ The latter supports any implementation of the `Marshaller` and `Unmarshaller` in
 Both require a Spring Web Services `DestinationProvider`, to determine the URI of the web service to be called.
 The following example shows both options for invoking a web service:
 
-====
 [source,java]
 ----
  simpleGateway = new SimpleWebServiceOutboundGateway(destinationProvider);
 
  marshallingGateway = new MarshallingWebServiceOutboundGateway(destinationProvider, marshaller);
 ----
-====
 
 NOTE: When using the namespace support (xref:ws.adoc#webservices-namespace[described later]), you need only set a URI.
 Internally, the parser configures a fixed URI `DestinationProvider` implementation.
@@ -65,7 +67,6 @@ The latter supports implementation of the `Marshaller` and `Unmarshaller` interf
 If the incoming web service message is a SOAP message, the SOAP action header is added to the headers of the `Message` that is forwarded onto the request channel.
 The following example shows both options:
 
-====
 [source,java]
 ----
  simpleGateway = new SimpleWebServiceInboundGateway();
@@ -75,7 +76,6 @@ The following example shows both options:
  marshallingGateway = new MarshallingWebServiceInboundGateway(marshaller);
  //set request and optionally reply channel
 ----
-====
 
 Both gateways implement the Spring Web Services `MessageEndpoint` interface, so they can be configured with a `MessageDispatcherServlet` as per standard Spring Web Services configuration.
 
@@ -99,14 +99,12 @@ See the https://docs.spring.io/spring-ws/docs/current/reference/#server-endpoint
 
 To configure an outbound web service gateway, use the `outbound-gateway` element from the `ws` namespace, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-ws:outbound-gateway id="simpleGateway"
                      request-channel="inputChannel"
                      uri="https://example.org"/>
 ----
-====
 
 NOTE: This example does not provide a 'reply-channel'.
 If the web service returns a non-empty response, the `Message` containing that response is sent to the reply channel defined in the request message's `REPLY_CHANNEL` header.
@@ -120,18 +118,15 @@ Doing so works only for `String` objects, because using a `Source` or a `Documen
 
 To set up an inbound Web Service Gateway, use the `inbound-gateway` element, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-ws:inbound-gateway id="simpleGateway"
                     request-channel="inputChannel"/>
 ----
-====
 
 To use Spring OXM marshallers or unmarshallers, you must provide bean references.
 The following example shows how to provide a bean reference for an outbound marshalling gateway:
 
-====
 [source,xml]
 ----
 <int-ws:outbound-gateway id="marshallingGateway"
@@ -140,11 +135,9 @@ The following example shows how to provide a bean reference for an outbound mars
                      marshaller="someMarshaller"
                      unmarshaller="someUnmarshaller"/>
 ----
-====
 
 The following example shows how to provide a bean reference for an inbound marshalling gateway:
 
-====
 [source,xml]
 ----
 <int-ws:inbound-gateway id="marshallingGateway"
@@ -152,7 +145,6 @@ The following example shows how to provide a bean reference for an inbound marsh
                     marshaller="someMarshaller"
                     unmarshaller="someUnmarshaller"/>
 ----
-====
 
 NOTE: Most `Marshaller` implementations also implement the `Unmarshaller` interface.
 When using such a `Marshaller`, only the `marshaller` attribute is necessary.
@@ -173,7 +165,6 @@ Starting with version 5.0, the `web-service-template` reference attribute lets y
 
 The equivalent configuration for the gateways shown in xref:ws.adoc#webservices-namespace[Web Service Namespace Support] are shown in the following snippets:
 
-====
 [source, java]
 ----
 @Bean
@@ -184,9 +175,7 @@ IntegrationFlow inbound() {
         .get();
 }
 ----
-====
 
-====
 [source, java]
 ----
 @Bean
@@ -198,9 +187,7 @@ IntegrationFlow outboundMarshalled() {
         ...
 }
 ----
-====
 
-====
 [source, java]
 ----
 @Bean
@@ -213,20 +200,16 @@ IntegrationFlow inboundMarshalled() {
         .get();
 }
 ----
-====
 
 Other properties can be set on the endpoint specs in a fluent manner (with the properties depending on whether an external `WebServiceTemplate` has been provided for outbound gateways).
 Examples:
 
-====
 [source, java]
 ----
 .from(Ws.simpleInboundGateway()
                 .extractPayload(false))
 ----
-====
 
-====
 [source, java]
 ----
 .handle(Ws.simpleOutboundGateway(template)
@@ -240,9 +223,7 @@ Examples:
             .extractPayload(false))
 )
 ----
-====
 
-====
 [source, java]
 ----
 .handle(Ws.marshallingOutboundGateway()
@@ -259,9 +240,7 @@ Examples:
             .requestCallback(requestCallback)
             .uriVariableExpressions(uriVariableExpressions))
 ----
-====
 
-====
 [source, java]
 ----
 .handle(Ws.marshallingOutboundGateway(template)
@@ -273,7 +252,6 @@ Examples:
             .uriVariableExpressions(uriVariableExpressions))
 )
 ----
-====
 
 [[outbound-uri]]
 == Outbound URI Configuration
@@ -309,7 +287,6 @@ The `<ws:outbound-gateway/>` element provides an `encoding-mode` attribute.
 To disable encoding the URL, set this attribute to `NONE` (by default, it is `TEMPLATE_AND_VALUES`).
 If you wish to partially encode some of the URL, you can do so by using an `expression` within a `<uri-variable/>`, as the following example shows:
 
-====
 [source,xml]
 ----
 <ws:outbound-gateway url="https://somehost/%2f/fooApps?bar={param}" encoding-mode="NONE">
@@ -318,7 +295,6 @@ If you wish to partially encode some of the URL, you can do so by using an `expr
                                              .encodeWithinQuery('Hello World!')"/>
 </ws:outbound-gateway>
 ----
-====
 
 NOTE: If you set `DestinationProvider`, `encoding-mode` is ignored.
 
@@ -354,7 +330,6 @@ A `!myBangHeader` is then mapped.
 Inbound SOAP headers (request headers for the inbound gateway and reply headers for the outbound gateway) are mapped as `SoapHeaderElement` objects.
 You can explore the contents by accessing the `Source`:
 
-====
 [source, xml]
 ----
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
@@ -372,13 +347,11 @@ You can explore the contents by accessing the `Source`:
     </soapenv:Body>
 </soapenv:Envelope>
 ----
-====
 
 If `mapped-request-headers` is `auth, ca*`, the `auth`, `cat`, and `can` headers are mapped, but `qux` is not mapped.
 
 The following example shows how to get a value named `user` from a header named `auth`:
 
-====
 [source, java]
 ----
 ...
@@ -389,12 +362,10 @@ assertEquals("username", nodeList.item(0).getNodeName());
 assertEquals("user", nodeList.item(0).getFirstChild().getNodeValue());
 ...
 ----
-====
 
 Starting with version 5.0, the `DefaultSoapHeaderMapper` supports user-defined headers of type `javax.xml.transform.Source` and populates them as child nodes of the `<soapenv:Header>`.
 The following example shows how to do so:
 
-====
 [source, java]
 ----
 Map<String, Object> headers = new HashMap<>();
@@ -409,11 +380,9 @@ headers.put("auth", new StringSource(authXml));
 DefaultSoapHeaderMapper mapper = new DefaultSoapHeaderMapper();
 mapper.setRequestHeaderNames("auth");
 ----
-====
 
 The result of the preceding examples is the following SOAP envelope:
 
-====
 [source, xml]
 ----
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
@@ -428,7 +397,6 @@ The result of the preceding examples is the following SOAP envelope:
     </soapenv:Body>
 </soapenv:Envelope>
 ----
-====
 
 [[mtom-support]]
 == MTOM Support
@@ -438,7 +406,6 @@ Starting with version 5.0, the simple web service gateways can directly operate 
 When you need to send web service message with attachments (either a reply from a server or a client request) you should use the `WebServiceMessageFactory` directly and send a `WebServiceMessage` with attachments as a `payload` to the request or reply channel of the gateway.
 The following example shows how to do so:
 
-====
 [source, java]
 ----
 WebServiceMessageFactory messageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance());
@@ -454,4 +421,3 @@ webServiceMessage.addAttachment("myAttachment", new ByteArrayResource("my_data".
 
 this.webServiceChannel.send(new GenericMessage<>(webServiceMessage));
 ----
-====

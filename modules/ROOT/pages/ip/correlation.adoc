@@ -96,7 +96,6 @@ You can also use standard Java serialization of the `Map`, by using the `Default
 
 The following example shows the configuration of a connection factory that transfers the `correlationId`, `sequenceNumber`, and `sequenceSize` headers by using JSON:
 
-====
 [source,xml]
 ----
 <int-ip:tcp-connection-factory id="client"
@@ -124,15 +123,12 @@ The following example shows the configuration of a connection factory that trans
 
 <bean id="jsonSerializer" class="o.sf.integration.ip.tcp.serializer.MapJsonSerializer" />
 ----
-====
 
 A message sent with the preceding configuration, with a payload of 'something' would appear on the wire as follows:
 
-====
 [source,xml]
 ----
 
 {"headers":{"correlationId":"things","sequenceSize":5,"sequenceNumber":1},"payload":"something"}
 ----
-====
 

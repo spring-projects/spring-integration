@@ -62,7 +62,6 @@ Kryo also registers default serializers for each primitive type, along with `Str
 A more efficient approach is to implement a custom serializer that is aware of the object's structure and can directly serialize selected primitive fields.
 The following example shows such a serializer:
 
-====
 [source,java]
 ----
 public class AddressSerializer extends Serializer<Address> {
@@ -80,7 +79,6 @@ public class AddressSerializer extends Serializer<Address> {
     }
 }
 ----
-====
 
 The `Serializer` interface exposes `Kryo`, `Input`, and `Output`, which provide complete control over which fields are included and other internal settings, as described in the https://github.com/EsotericSoftware/kryo[Kryo documentation].
 
@@ -106,7 +104,6 @@ In this case, the class provides the serialization methods itself and no further
 However, benchmarks have shown this is not quite as efficient as registering a custom serializer explicitly.
 The following example shows a custom Kryo serializer:
 
-====
 [source,java]
 ----
 public class Address implements KryoSerializable {
@@ -127,7 +124,6 @@ public class Address implements KryoSerializable {
     }
 }
 ----
-====
 
 You can also use this technique to wrap a serialization library other than Kryo.
 
@@ -136,7 +132,6 @@ You can also use this technique to wrap a serialization library other than Kryo.
 
 Kryo also provides a `@DefaultSerializer` annotation, as described https://github.com/EsotericSoftware/kryo#default-serializers[here].
 
-====
 [source,java]
 ----
 @DefaultSerializer(SomeClassSerializer.class)
@@ -144,7 +139,6 @@ public class SomeClass {
        // ...
 }
 ----
-====
 
 If you have `write` access to the domain object, this may be a simpler way to specify a custom serializer.
 Note that this does not register the class with an ID, which may make the technique unhelpful for certain situations.

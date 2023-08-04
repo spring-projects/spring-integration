@@ -14,20 +14,24 @@ Spring integration provides a simple way to configure your message flows to main
 
 To enable message history, you need only define the `message-history` element (or `@EnableMessageHistory`) in your configuration, as shown in the following example:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Configuration
 @EnableIntegration
 @EnableMessageHistory
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:message-history/>
 ----
-====
+======
 
 Now every named component (that has an 'id' defined) is tracked.
 The framework sets the 'history' header in your message.
@@ -35,9 +39,11 @@ Its value a `List<Properties>`.
 
 Consider the following configuration example:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @MessagingGateway(defaultRequestChannel = "bridgeInChannel")
 public interface SampleGateway {
@@ -52,8 +58,10 @@ HeaderEnricher sampleEnricher() {
     return enricher;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:gateway id="sampleGateway"
     service-interface="org.springframework.integration.history.sample.SampleGateway"
@@ -63,22 +71,19 @@ HeaderEnricher sampleEnricher() {
     <int:header name="baz" value="baz"/>
 </int:header-enricher>
 ----
-====
+======
 
 The preceding configuration produces a simple message history structure, with output similar to the following:
 
-====
 [source]
 ----
 [{name=sampleGateway, type=gateway, timestamp=1283281668091},
  {name=sampleEnricher, type=header-enricher, timestamp=1283281668094}]
 ----
-====
 
 To get access to message history, you need only access the `MessageHistory` header.
 The following example shows how to do so:
 
-====
 [source,java]
 ----
 Iterator<Properties> historyIterator =
@@ -90,26 +95,29 @@ assertTrue(historyIterator.hasNext());
 Properties chainHistory = historyIterator.next();
 assertEquals("sampleChain", chainHistory.get("name"));
 ----
-====
 
 You might not want to track all the components.
 To limit the history to certain components based on their names, you can provide the `tracked-components` attribute and specify a comma-delimited list of component names and patterns that match the components you want to track.
 The following example shows how to do so:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Configuration
 @EnableIntegration
 @EnableMessageHistory("*Gateway", "sample*", "aName")
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:message-history tracked-components="*Gateway, sample*, aName"/>
 ----
-====
+======
 
 In the preceding example, message history is maintained only for the components that end with 'Gateway', start with 'sample', or match the name, 'aName', exactly.
 

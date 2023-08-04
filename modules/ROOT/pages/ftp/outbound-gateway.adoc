@@ -84,7 +84,6 @@ When consuming remote files as streams, you are responsible for closing the `Ses
 For convenience, the `Session` is provided in the `closeableResource` header, which you can access with a convenience method on `IntegrationMessageHeaderAccessor`
 The following example shows how to use the convenience method:
 
-====
 [source, java]
 ----
 Closeable closeable = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
@@ -92,13 +91,11 @@ if (closeable != null) {
     closeable.close();
 }
 ----
-====
 
 Framework components such as the xref:file/splitter.adoc[file splitter] and the xref:transformer.adoc#stream-transformer[stream transformer] automatically close the session after the data is transferred.
 
 The following example shows how to consume a file as a stream:
 
-====
 [source, xml]
 ----
 <int-ftp:outbound-gateway session-factory="ftpSessionFactory"
@@ -111,18 +108,15 @@ The following example shows how to consume a file as a stream:
 
 <int-file:splitter input-channel="stream" output-channel="lines" />
 ----
-====
 
 NOTE: If you consume the input stream in a custom component, you must close the `Session`.
 You can do so either in your custom code or by routing a copy of the message to a `service-activator` and using SpEL, as the following example shows:
 
-====
 [source, xml]
 ----
 <int:service-activator input-channel="closeSession"
     expression="headers['closeableResource'].close()" />
 ----
-====
 
 [[using-the-mget-command]]
 == Using the `mget` Command
@@ -176,7 +170,6 @@ For this reason, the property is `false` by default; this may change in a future
 Starting with version 5.0, the `FtpSimplePatternFileListFilter` and `FtpRegexPatternFileListFilter` can be configured to always pass directories by setting the `alwaysAcceptDirectories` property to `true`.
 Doing so allows recursion for a simple pattern, as the following examples show:
 
-====
 [source, xml]
 ----
 <bean id="starDotTxtFilter"
@@ -191,7 +184,6 @@ Doing so allows recursion for a simple pattern, as the following examples show:
     <property name="alwaysAcceptDirectories" value="true" />
 </bean>
 ----
-====
 
 Once you have defined filters such as those in the preceding example, you can use one by setting the `filter` property on the gateway.
 
@@ -286,7 +278,6 @@ For the `mget` command, the expression might evaluate to '*', meaning to retriev
 
 The following example shows a gateway configured for an `ls` command:
 
-====
 [source,xml]
 ----
 <int-ftp:outbound-gateway id="gateway1"
@@ -297,7 +288,6 @@ The following example shows a gateway configured for an `ls` command:
     expression="payload"
     reply-channel="toSplitter"/>
 ----
-====
 
 The payload of the message sent to the `toSplitter` channel is a list of `String` objects that each contain the name of a file.
 If the `command-options` attribute was omitted, it holds `FileInfo` objects.
@@ -319,7 +309,6 @@ The previous working directory is restored after each gateway operation.
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -353,14 +342,12 @@ public class FtpJavaApplication {
 
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -402,7 +389,6 @@ public class FtpJavaApplication {
 
 }
 ----
-====
 
 [[ftp-partial]]
 == Outbound Gateway Partial Success (`mget` and `mput`)
@@ -420,7 +406,6 @@ In the case of a recursive `mput`, the `PartialSuccessException` may have nested
 
 Consider the following directory structure:
 
-====
 [source]
 ----
 root/
@@ -430,7 +415,6 @@ root/
    | - file3.txt
 |- zoo.txt
 ----
-====
 
 If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by the gateway has `derivedInput` of `file1.txt`, `subdir`, and `zoo.txt` and `partialResults` of `file1.txt`.
 Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.txt` and `file3.txt` and `partialResults` of `file2.txt`.

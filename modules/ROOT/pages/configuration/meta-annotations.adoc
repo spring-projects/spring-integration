@@ -4,7 +4,6 @@
 Starting with version 4.0, all messaging annotations can be configured as meta-annotations and all user-defined messaging annotations can define the same attributes to override their default values.
 In addition, meta-annotations can be configured hierarchically, as the following example shows:
 
-====
 [source,java]
 ----
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
@@ -31,7 +30,6 @@ public Object service(Object payload) {
    ...
 }
 ----
-====
 
 Configuring meta-annotations hierarchically lets users set defaults for various attributes and enables isolation of framework Java dependencies to user annotations, avoiding their use in user classes.
 If the framework finds a method with a user annotation that has a framework meta-annotation, it is treated as if the method were annotated directly with the framework annotation.
@@ -43,7 +41,6 @@ Starting with version 4.0, you can configure messaging annotations on `@Bean` me
 It is useful when `@Bean` definitions are "`out-of-the-box`" `MessageHandler` instances (`AggregatingMessageHandler`, `DefaultMessageSplitter`, and others), `Transformer` instances (`JsonToObjectTransformer`, `ClaimCheckOutTransformer`, and others), and `MessageSource` instances (`FileReadingMessageSource`, `RedisStoreMessageSource`, and others).
 The following example shows how to use messaging annotations with `@Bean` annotations:
 
-====
 [source,java]
 ----
 @Configuration
@@ -79,12 +76,10 @@ public class MyFlowConfiguration {
 
 }
 ----
-====
 
 Version 5.0 introduced support for a `@Bean` annotated with `@InboundChannelAdapter` that returns `java.util.function.Supplier`, which can produce either a POJO or a `Message`.
 The following example shows how to use that combination:
 
-====
 [source,java]
 ----
 @Configuration
@@ -104,7 +99,6 @@ public class MyFlowConfiguration {
     }
 }
 ----
-====
 
 The meta-annotation rules work on `@Bean` methods as well (the `@MyServiceActivator` annotation xref:configuration/meta-annotations.adoc[described earlier] can be applied to a `@Bean` definition).
 
@@ -131,7 +125,6 @@ Channels are automatically declared if not present in the application context ye
 With Java configuration, you can use any `@Conditional` (for example, `@Profile`) definition on the `@Bean` method level to skip the bean registration for some conditional reason.
 The following example shows how to do so:
 
-====
 [source,java]
 ----
 @Bean
@@ -141,7 +134,6 @@ public MessageHandler skipped() {
     return System.out::println;
 }
 ----
-====
 Together with the existing Spring container logic, the messaging endpoint bean (based on the `@ServiceActivator` annotation), is also not registered.
 =====
 
@@ -151,7 +143,6 @@ Together with the existing Spring container logic, the messaging endpoint bean (
 Starting with version 4.0, Java configuration provides the `@BridgeFrom` and `@BridgeTo` `@Bean` method annotations to mark `MessageChannel` beans in `@Configuration` classes.
 These really exists for completeness, providing a convenient mechanism to declare a `BridgeHandler` and its message endpoint configuration:
 
-====
 [source,java]
 ----
 @Bean
@@ -175,7 +166,6 @@ public MessageChannel bridgeToInput() {
     return new DirectChannel();
 }
 ----
-====
 
 You can use these annotations as meta-annotations as well.
 

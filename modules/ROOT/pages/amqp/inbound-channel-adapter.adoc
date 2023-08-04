@@ -3,9 +3,11 @@
 
 The following listing shows the possible configuration options for an AMQP Inbound Channel Adapter:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow amqpInbound(ConnectionFactory connectionFactory) {
@@ -14,8 +16,10 @@ public IntegrationFlow amqpInbound(ConnectionFactory connectionFactory) {
             .get();
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 public MessageChannel amqpInputChannel() {
@@ -53,8 +57,10 @@ public MessageHandler handler() {
     };
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-amqp:inbound-channel-adapter
                                   id="inboundAmqp"                <1>
@@ -178,7 +184,7 @@ When set to `MESSAGES` (default), the payload is a `List<Message<?>>` where each
 When set to `EXTRACT_PAYLOADS`, the payload is a `List<?>` where the elements are converted from the AMQP `Message` body.
 `EXTRACT_PAYLOADS_WITH_HEADERS` is similar to `EXTRACT_PAYLOADS` but, in addition, the headers from each message are mapped from the `MessageProperties` into a `List<Map<String, Object>` at the corresponding index; the header name is `AmqpInboundChannelAdapter.CONSOLIDATED_HEADERS`.
 ----
-====
+======
 
 [NOTE]
 .container
@@ -210,7 +216,6 @@ See `setMessageRecoverer()` JavaDocs for more information.
 
 The `@Publisher` annotation also can be used in combination with a `@RabbitListener`:
 
-====
 [source, java]
 ----
 @Configuration
@@ -233,7 +238,6 @@ public static class ContextConfiguration {
 
 }
 ----
-====
 
 By default, the `@Publisher` AOP interceptor deals with a return value from a method call.
 However, the return value from a `@RabbitListener` method is treated as an AMQP reply message.

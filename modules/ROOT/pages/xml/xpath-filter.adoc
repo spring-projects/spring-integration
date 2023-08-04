@@ -26,7 +26,6 @@ When providing a 'match-type' value of 'regex', the value provided with the `mat
 
 The following example shows all the available attributes for the `xpath-filter` element:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-filter discard-channel=""                      <1>
@@ -65,5 +64,4 @@ If you do not include this element, you must set the `xpath-expression-ref` attr
 Also, you can include only one `xpath-expression` element.
 <10> A poller to use with the XPath filter.
 Optional.
-====
 

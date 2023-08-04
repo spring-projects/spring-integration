@@ -11,9 +11,11 @@ The following components are provided:
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -22,12 +24,13 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-zip:{project-version}"
 ----
-====
+======
 
 [[xpath-namespace-support]]
 == Namespace Support
@@ -36,7 +39,6 @@ All components within the Spring Integration Zip module provide namespace suppor
 In order to enable namespace support, you need to import the schema for the Spring Integration Zip Module.
 The following example shows a typical setup:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -52,7 +54,6 @@ The following example shows a typical setup:
     https://www.springframework.org/schema/integration/zip/spring-integration-zip.xsd">
 </beans>
 ----
-====
 
 [[zip-transformer]]
 == (Un)Zip Transformer
@@ -71,9 +72,11 @@ Default is `Deflater#DEFAULT_COMPRESSION`.
 
 For example to zip a simple `test.txt` file into a `test.txt.zip`, only this configuration is enough:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow zipFlow() {
@@ -83,8 +86,10 @@ public IntegrationFlow zipFlow() {
              .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun zipFlow() =
@@ -92,8 +97,10 @@ fun zipFlow() =
         transform(ZipTransformer())
     }
 ----
+
+Groovy DSL::
++
 [source, groovy, role="secondary"]
-.Groovy DSL
 ----
 @Bean
 zipFlow() {
@@ -103,8 +110,10 @@ zipFlow() {
             }
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Transfomer(inputChannel = "zipChannel")
 @Bean
@@ -112,12 +121,14 @@ ZipTransformer zipTransformer() {
     return new ZipTransformer();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-zip:zip-transformer input-channel="zipChannel"/>
 ----
-====
+======
 
 See `ZipTransformer` Javadocs for more information.
 
@@ -140,9 +151,11 @@ By default, this property is set to the System temporary directory containing a 
 
 For example to zip a simple `test.zip` file into a map of its entries, only this configuration is enough:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow unzipFlow() {
@@ -152,8 +165,10 @@ public IntegrationFlow unzipFlow() {
              .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun unzipFlow() =
@@ -161,8 +176,10 @@ fun unzipFlow() =
         transform(UnZipTransformer())
     }
 ----
+
+Groovy DSL::
++
 [source, groovy, role="secondary"]
-.Groovy DSL
 ----
 @Bean
 unzipFlow() {
@@ -172,8 +189,10 @@ unzipFlow() {
             }
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Transfomer(inputChannel = "unzipChannel")
 @Bean
@@ -181,12 +200,14 @@ UnZipTransformer unzipTransformer() {
     return new UnZipTransformer();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-zip:unzip-transformer input-channel="unzipChannel"/>
 ----
-====
+======
 
 [[unzip-splitter]]
 == Unzipped Splitter
@@ -197,9 +218,11 @@ It supports only a `Map` as an input data and emits every entry into an `outputC
 
 The following example demonstrates a simple configuration for splitting unzipped result:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow unzipSplitFlow(Executor executor) {
@@ -211,8 +234,10 @@ public IntegrationFlow unzipSplitFlow(Executor executor) {
              .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun unzipFlow(executor: Executor) =
@@ -222,8 +247,10 @@ fun unzipFlow(executor: Executor) =
         channel { executor("entriesChannel", executor) }
     }
 ----
+
+Groovy DSL::
++
 [source, groovy, role="secondary"]
-.Groovy DSL
 ----
 @Bean
 unzipFlow(Executor executor) {
@@ -239,8 +266,10 @@ unzipFlow(Executor executor) {
             }
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Transfomer(inputChannel = "unzipChannel", outputChannel = "splitChannel")
 @Bean
@@ -259,8 +288,10 @@ ExecutorChannel entriesChannel(Executor executor) {
     return new ExecutorChannel(executor);
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:chain input-channel="unzipChannel" output-channel="entriesChannel">
     <int-zip:unzip-transformer/>
@@ -273,4 +304,4 @@ ExecutorChannel entriesChannel(Executor executor) {
     <int:dispatcher task-executor="executor"/>
 </int:channel>
 ----
-====
+======

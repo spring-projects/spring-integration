@@ -35,7 +35,6 @@ See xref:ws.adoc#mtom-support[MTOM Support] for more information.
 
 The following example shows how to define an unmarshalling transformer:
 
-====
 [source,xml]
 ----
 <bean id="unmarshallingTransformer" class="o.s.i.xml.transformer.UnmarshallingTransformer">
@@ -46,7 +45,6 @@ The following example shows how to define an unmarshalling transformer:
     </constructor-arg>
 </bean>
 ----
-====
 
 [[xml-marshalling-transformer]]
 === Using `MarshallingTransformer`
@@ -145,7 +143,6 @@ The namespace support for the `UnmarshallingTransformer` is shown below.
 Since the namespace create an endpoint instance rather than a transformer, you can nest a poller within the element to control the polling of the input channel.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <int-xml:unmarshalling-transformer id="defaultUnmarshaller"
@@ -158,7 +155,6 @@ The following example shows how to do so:
     <int:poller fixed-rate="2000"/>
 <int-xml:unmarshalling-transformer/>
 ----
-====
 
 [[using-a-marshallingtransformer]]
 === Using a `MarshallingTransformer`
@@ -168,7 +164,6 @@ You can use the optional `result-type` attribute to control the type of result c
 Valid values are `StringResult` or `DomResult` (the default).
 The following example configures a marshalling transformer:
 
-====
 [source,xml]
 ----
 <int-xml:marshalling-transformer
@@ -185,7 +180,6 @@ The following example configures a marshalling transformer:
 
 <bean id="resultTransformer" class="o.s.i.xml.transformer.ResultToStringTransformer"/>
 ----
-====
 
 Where the provided result types do not suffice, you can provide a reference to a custom implementation of `ResultFactory` as an alternative to setting the `result-type` attribute by using the `result-factory` attribute.
 The `result-type` and `result-factory` attributes  are mutually exclusive.
@@ -203,7 +197,6 @@ IMPORTANT: If you specify the `result-factory` or the `result-type` attribute, t
 
 The following example configures two XSLT transformers:
 
-====
 [source,xml]
 ----
 <int-xml:xslt-transformer id="xsltTransformerWithResource"
@@ -215,13 +208,11 @@ The following example configures two XSLT transformers:
     xsl-templates="templates"
     result-transformer="resultTransformer"/>
 ----
-====
 
 You may need to have access to `Message` data, such as the `Message` headers, in order to assist with transformation.
 For example, you may need to get access to certain `Message` headers and pass them on as parameters to a transformer (for example, `transformer.setParameter(..)`).
 Spring Integration provides two convenient ways to accomplish this, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-xml:xslt-transformer id="paramHeadersCombo"
@@ -233,7 +224,6 @@ Spring Integration provides two convenient ways to accomplish this, as the follo
     <int-xml:xslt-param name="firstName" expression="headers.fname"/>
 </int-xml:xslt-transformer>
 ----
-====
 
 If message header names match one-to-one to parameter names, you can use the `xslt-param-headers` attribute.
 In it, you can use wildcards for simple pattern matching.
@@ -255,24 +245,20 @@ We cover using result transformers in xref:xml/transformation.adoc#xml-using-res
 The examples in this section use XML namespace configuration to illustrates several special use cases.
 First, we define the `ResultTransformer`, as the following example shows:
 
-====
 [source,xml]
 ----
 <beans:bean id="resultToDoc" class="o.s.i.xml.transformer.ResultToDocumentTransformer"/>
 ----
-====
 
 This `ResultTransformer` accepts either a `StringResult` or a `DOMResult` as input and converts the input into a `Document`.
 
 Now we can declare the transformer, as follows:
 
-====
 [source,xml]
 ----
 <int-xml:xslt-transformer input-channel="in" output-channel="fahrenheitChannel"
     xsl-resource="classpath:noop.xslt" result-transformer="resultToDoc"/>
 ----
-====
 
 If the incoming message's payload is of type `Source`, then, as a first step, the `Result` is determined by using the `ResultFactory`.
 As we did not specify a `ResultFactory`, the default `DomResultFactory` is used, meaning that the transformation yields a `DomResult`.
@@ -294,14 +280,12 @@ The `result-type` is internally represented by the `StringResultFactory`.
 Thus, you could have also added a reference to a `StringResultFactory`, by using the `result-factory` attribute, which would have been the same.
 The following example shows that transformer declaration:
 
-====
 [source,xml]
 ----
 <int-xml:xslt-transformer input-channel="in" output-channel="fahrenheitChannel"
 		xsl-resource="classpath:noop.xslt" result-transformer="resultToDoc"
 		result-type="StringResult"/>
 ----
-====
 
 Because we use a `ResultFactory`, the `alwaysUseResultFactory` property of the `XsltPayloadTransformer` class is implicitly set to `true`.
 Consequently, the referenced `ResultToDocumentTransformer` is used.

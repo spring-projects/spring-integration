@@ -6,7 +6,6 @@ In many cases, the element names match those of the https://www.enterpriseintegr
 
 To enable Spring Integration's core namespace support within your Spring configuration files, add the following namespace reference and schema mapping in your top-level 'beans' element:
 
-====
 // We lose coloring here, but we want to bold the lines we're talking about...
 [subs="+quotes"]
 ----
@@ -18,7 +17,6 @@ To enable Spring Integration's core namespace support within your Spring configu
            *http://www.springframework.org/schema/integration*
            *https://www.springframework.org/schema/integration/spring-integration.xsd*">
 ----
-====
 
 (We have emphasized the lines that are particular to Spring Integration.)
 
@@ -27,7 +25,6 @@ We use `int` (short for Integration) for clarity, but you might prefer another a
 On the other hand, if you use an XML editor or IDE support, the availability of auto-completion may convince you to keep the longer name for clarity.
 Alternatively, you can create configuration files that use the Spring Integration schema as the primary namespace, as the following example shows:
 
-====
 // We lose coloring here, but we want to bold the lines we're talking about...
 [subs=+quotes]
 ----
@@ -39,7 +36,6 @@ Alternatively, you can create configuration files that use the Spring Integratio
            *http://www.springframework.org/schema/integration*
            *https://www.springframework.org/schema/integration/spring-integration.xsd*">
 ----
-====
 
 (We have emphasized the lines that are particular to Spring Integration.)
 
@@ -53,7 +49,6 @@ In fact, each adapter type (JMS, file, and so on) that provides namespace suppor
 In order to use these elements, add the necessary namespaces with an `xmlns` entry and the corresponding `schemaLocation` mapping.
 For example, the following root element shows several of these namespace declarations:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -79,7 +74,6 @@ For example, the following root element shows several of these namespace declara
  ...
 </beans>
 ----
-====
 
 This reference manual provides specific examples of the various elements in their corresponding chapters.
 Here, the main thing to recognize is the consistency of the naming for each namespace URI and schema location.

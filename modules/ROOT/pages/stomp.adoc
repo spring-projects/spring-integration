@@ -8,9 +8,11 @@ For more information, see the https://docs.spring.io/spring/docs/current/spring-
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -18,12 +20,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-stomp:{project-version}"
 ----
-====
+======
 
 For server side components you need to add a `org.springframework:spring-websocket` and/or `io.projectreactor.netty:reactor-netty` dependencies.
 
@@ -67,7 +71,6 @@ For more configuration options see xref:stomp.adoc#stomp-namespace[STOMP Namespa
 The STOMP protocol provides headers as part of its frame.
 The entire structure of the STOMP frame has the following format:
 
-====
 [source]
 ----
 ....
@@ -78,7 +81,6 @@ header2:value2
 Body^@
 ....
 ----
-====
 
 Spring Framework provides `StompHeaders` to represent these headers.
 See the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/simp/stomp/StompHeaders.html[Javadoc] for more details.
@@ -117,7 +119,6 @@ See xref:stomp.adoc#stomp-java-config[STOMP Adapters Java Configuration] for mor
 
 The following example shows a comprehensive Java configuration for STOMP adapters:
 
-====
 [source,java]
 ----
 @Configuration
@@ -178,7 +179,6 @@ public class StompConfiguration {
 
 }
 ----
-====
 
 [[stomp-namespace]]
 == STOMP Namespace Support
@@ -209,7 +209,6 @@ To include it in your configuration, provide the following namespace declaration
 
 The following listing shows the available attributes for the STOMP outbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-stomp:outbound-channel-adapter
@@ -254,14 +253,12 @@ The lower the value, the earlier this endpoint starts and the later it stops.
 The default is `Integer.MIN_VALUE`.
 Values can be negative.
 See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/SmartLifecycle.html[`SmartLifeCycle`].
-====
 
 [[understanding-the-<int-stomp:inbound-channel-adapter>-element]]
 === Understanding the `<int-stomp:inbound-channel-adapter>` Element
 
 The following listing shows the available attributes for the STOMP inbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-stomp:inbound-channel-adapter
@@ -299,4 +296,3 @@ For example, a `QueueChannel` can block until space is available if its maximum 
 It defaults to `String.class`.
 <10> See the same option on the <<stomp-outbound-channel-adapter,`<int-stomp:outbound-channel-adapter>`>>.
 <11> See the same option on the <<stomp-outbound-channel-adapter,`<int-stomp:outbound-channel-adapter>`>>.
-====

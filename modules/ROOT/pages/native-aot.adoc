@@ -10,7 +10,6 @@ IMPORTANT: XML configuration is not supported for native images.
 As stated before, service interfaces with the `@MessagingGateway` annotation, when they are scanned by the `@IntegrationComponentScan` or used in an `@Import` annotation, are processed by the framework and the respective proxy hint is exposed into the AOT contribution.
 When gateways are declared using the `IntegrationFlow.from(Class<?> serviceInterface)` API, the proxy configured for such interfaces have to be exposed manually:
 
-====
 [source,java]
 ----
 @Configuration
@@ -43,7 +42,6 @@ public class IntegrationConfiguration {
 
 }
 ----
-====
 
 NOTE: The `IntegrationFlow` content is not processed during the AOT processing phase.
 Therefore, some hints, such as the one mentioned above for a gateway proxy, must be provided by the target application.

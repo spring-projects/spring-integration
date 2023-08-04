@@ -13,14 +13,12 @@ In previous versions, the files were filtered before any were fetched, meaning t
 
 In order to facilitate this new behavior, two new methods have been added to `FileListFilter`.
 
-====
 [source, java]
 ----
 boolean accept(F file);
 
 boolean supportsSingleFileFiltering();
 ----
-====
 
 If a filter returns `true` in `supportsSingleFileFiltering`, it **must** implement `accept()`.
 

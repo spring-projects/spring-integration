@@ -5,9 +5,11 @@ Spring Integration provides an API and configuration to communicate with https:/
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,12 +17,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-camel:{project-version}"
 ----
-====
+======
 
 Spring Integration and Apache Camel implement Enterprise Integration Patterns and provide a convenient way to compose them, but the projects use a different approach for their API and abstractions implementation.
 Spring Integration fully relies on a dependency injection container from Spring Core.
@@ -62,7 +66,6 @@ The `exchangeProperties` can be customized via a SpEL expression, which must eva
 
 If a `ProducerTemplate` is not provided, it is created via a `CamelContext` bean resolved from the application context.
 
-====
 [source, java]
 ----
 @Bean
@@ -79,11 +82,9 @@ CamelMessageHandler camelService(ProducerTemplate producerTemplate) {
     return camelMessageHandler;
 }
 ----
-====
 
 For Java DSL flow definitions this channel adapter can be configured with a few variants provided by the `Camel` factory:
 
-====
 [source, java]
 ----
 @Bean
@@ -98,4 +99,3 @@ private void camelRoute(RouteBuilder routeBuilder) {
     routeBuilder.from("direct:inbound").transform(routeBuilder.simple("${body.toUpperCase()}"));
 }
 ----
-====

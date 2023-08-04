@@ -48,7 +48,6 @@ XPath splitter namespace support lets you create a message endpoint with an inpu
 Starting with version 4.2, the `XPathMessageSplitter` exposes the `outputProperties` (such as `OutputKeys.OMIT_XML_DECLARATION`) property for an `javax.xml.transform.Transformer` instance when a request `payload` is not of type `org.w3c.dom.Node`.
 The following example defines a property and uses it with the `output-properties` property:
 
-====
 [source,xml]
 ----
 <util:properties id="outputProperties">
@@ -60,7 +59,6 @@ The following example defines a property and uses it with the `output-properties
     <xpath-expression expression="/orders/order"/>
 </xpath-splitter>
 ----
-====
 
 Starting with `version 4.2`, the `XPathMessageSplitter` exposes an `iterator` option as a `boolean` flag (defaults to `true`).
 This allows the "`streaming`" of split nodes in the downstream flow.

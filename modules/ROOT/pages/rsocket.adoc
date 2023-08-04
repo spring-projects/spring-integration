@@ -5,9 +5,11 @@ The RSocket Spring Integration module (`spring-integration-rsocket`) allows for 
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,12 +18,13 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-rsocket:{project-version}"
 ----
-====
+======
 
 This module is available starting with version 5.2 and is based on the Spring Messaging foundation with its RSocket component implementations, such as `RSocketRequester`, `RSocketMessageHandler` and `RSocketStrategies`.
 See https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html#rsocket[Spring Framework RSocket Support] for more information about the RSocket protocol, terminology and components.
@@ -41,7 +44,6 @@ The `RSocketConnectedEvent` can be used to distinguish different routes via `Des
 
 A typical server configuration might look like this:
 
-====
 [source, java]
 ----
 @Bean
@@ -69,7 +71,6 @@ public void onApplicationEvent(RSocketConnectedEvent event) {
 	...
 }
 ----
-====
 
 All the options, including `RSocketStrategies` bean and `@EventListener` for `RSocketConnectedEvent`, are optional.
 See `ServerRSocketConnector` JavaDocs for more information.
@@ -85,7 +86,6 @@ The `setupRoute` (with optional templates variables) and `setupData` with metada
 
 A typical client configuration might look like this:
 
-====
 [source, java]
 ----
 @Bean
@@ -107,7 +107,6 @@ public ClientRSocketConnector clientRSocketConnector() {
     return clientRSocketConnector;
 }
 ----
-====
 
 Most of these options (including `RSocketStrategies` bean) are optional.
 Note how we connect to the locally started RSocket server on the arbitrary port.
@@ -176,7 +175,6 @@ Such a `Mono` is subscribed before producing into the `outputChannel` for regula
 A `Flux` response for the `requestStream` or `requestChannel` interaction model is also wrapped into a reply `Mono`.
 It can be flattened downstream by the `FluxMessageChannel` with a passthrough service activator:
 
-====
 [source, java]
 ----
 @ServiceActivator(inputChannel = "rsocketReplyChannel", outputChannel ="fluxMessageChannel")
@@ -184,7 +182,6 @@ public Flux<?> flattenRSocketResponse(Flux<?> payload) {
     return payload;
 }
 ----
-====
 
 Or subscribed explicitly in the target application logic.
 
@@ -199,7 +196,6 @@ See xref:rsocket.adoc#rsocket-java-config[Configuring RSocket Endpoints with Jav
 Spring Integration provides an `rsocket` namespace and the corresponding schema definition.
 To include it in your configuration, add the following namespace declaration in your application context configuration file:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -217,7 +213,6 @@ To include it in your configuration, add the following namespace declaration in 
     ...
 </beans>
 ----
-====
 
 [[inbound]]
 === Inbound
@@ -225,7 +220,6 @@ To include it in your configuration, add the following namespace declaration in 
 To configure Spring Integration RSocket inbound channel adapters with XML, you need to use an appropriate `inbound-gateway` components from the `int-rsocket` namespace.
 The following example shows how to configure it:
 
-====
 [source, xml]
 ----
 <int-rsocket:inbound-gateway id="inboundGateway"
@@ -236,14 +230,12 @@ The following example shows how to configure it:
                              rsocket-strategies="rsocketStrategies"
                              request-element-type="byte[]"/>
 ----
-====
 
 A `ClientRSocketConnector` and `ServerRSocketConnector` should be configured as generic `<bean>` definitions.
 
 [[outbound]]
 === Outbound
 
-====
 [source, xml]
 ----
 <int-rsocket:outbound-gateway id="outboundGateway"
@@ -256,7 +248,6 @@ A `ClientRSocketConnector` and `ServerRSocketConnector` should be configured as 
                               expected-response-type="java.util.Date"
                               metadata-expression="{'metadata': new org.springframework.util.MimeType('*')}"/>
 ----
-====
 
 See `spring-integration-rsocket.xsd` for description for all those XML attributes.
 
@@ -265,7 +256,6 @@ See `spring-integration-rsocket.xsd` for description for all those XML attribute
 
 The following example shows how to configure an RSocket inbound endpoint with Java:
 
-====
 [source, java]
 ----
 @Bean
@@ -280,14 +270,12 @@ public Mono<String> echoTransformation(Flux<String> payload) {
     return payload.next().map(String::toUpperCase);
 }
 ----
-====
 
 A `ClientRSocketConnector` or `ServerRSocketConnector` is assumed in this configuration with meaning for auto-detection of such an endpoint on the "`echo`" path.
 Pay attention to the `@Transformer` signature with its fully reactive processing of the RSocket requests and producing reactive replies.
 
 The following example shows how to configure a RSocket inbound gateway with the Java DSL:
 
-====
 [source, java]
 ----
 @Bean
@@ -299,13 +287,11 @@ public IntegrationFlow rsocketUpperCaseFlow() {
         .get();
 }
 ----
-====
 
 A `ClientRSocketConnector` or `ServerRSocketConnector` is assumed in this configuration with meaning for auto-detection of such an endpoint on the "`/uppercase`" path and expected interaction model as "`request channel`".
 
 The following example shows how to configure a RSocket outbound gateway with Java:
 
-====
 [source, java]
 ----
 @Bean
@@ -321,7 +307,6 @@ public RSocketOutboundGateway rsocketOutboundGateway() {
     return rsocketOutboundGateway;
 }
 ----
-====
 
 The `setClientRSocketConnector()` is required only for the client side.
 On the server side, the `RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER` header with an `RSocketRequester` value must be supplied in the request message.
@@ -329,7 +314,6 @@ On the server side, the `RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTE
 
 The following example shows how to configure a RSocket outbound gateway with the Java DSL:
 
-====
 [source, java]
 ----
 @Bean
@@ -343,6 +327,5 @@ public IntegrationFlow rsocketUpperCaseRequestFlow(ClientRSocketConnector client
         .get();
 }
 ----
-====
 
 See xref:dsl/integration-flow-as-gateway.adoc[`IntegrationFlow` as a Gateway] for more information how to use a mentioned `Function` interface in the beginning of the flow above.

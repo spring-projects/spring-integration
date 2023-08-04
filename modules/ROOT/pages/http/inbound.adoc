@@ -5,7 +5,6 @@ To receive messages over HTTP, you need to use an HTTP inbound channel adapter o
 To support the HTTP inbound adapters, they need to be deployed within a servlet container such as https://tomcat.apache.org/[Apache Tomcat] or https://www.eclipse.org/jetty/[Jetty].
 The easiest way to do this is to use Spring's https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html[`HttpRequestHandlerServlet`], by providing the following servlet definition in the `web.xml` file:
 
-====
 [source,xml]
 ----
 <servlet>
@@ -13,7 +12,6 @@ The easiest way to do this is to use Spring's https://docs.spring.io/spring/docs
     <servlet-class>o.s.web.context.support.HttpRequestHandlerServlet</servlet-class>
 </servlet>
 ----
-====
 
 Notice that the servlet name matches the bean name.
 For more information on using the `HttpRequestHandlerServlet`, see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/remoting.html[Remoting and web services using Spring], which is part of the Spring Framework Reference documentation.
@@ -28,7 +26,6 @@ It contains the https://github.com/spring-projects/spring-integration-samples/tr
 
 The following example bean defines an HTTP inbound endpoint:
 
-====
 [source,xml]
 ----
 <bean id="httpInbound"
@@ -37,7 +34,6 @@ The following example bean defines an HTTP inbound endpoint:
   <property name="replyChannel" ref="httpReplyChannel" />
 </bean>
 ----
-====
 
 The `HttpRequestHandlingMessagingGateway` accepts a list of `HttpMessageConverter` instances or else relies on a default list.
 The converters allow customization of the mapping from `HttpServletRequest` to `Message`.

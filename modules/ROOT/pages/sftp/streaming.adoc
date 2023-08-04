@@ -9,7 +9,6 @@ Standard framework components, such as the `FileSplitter` and `StreamTransformer
 See xref:file/splitter.adoc[File Splitter] and xref:transformer.adoc#stream-transformer[Stream Transformer] for more information about these components.
 The following example shows how to configure an SFTP streaming inbound channel adapter:
 
-====
 [source, xml]
 ----
 <int-sftp:inbound-streaming-channel-adapter id="ftpInbound"
@@ -26,7 +25,6 @@ The following example shows how to configure an SFTP streaming inbound channel a
         <int:poller fixed-rate="1000" />
 </int-sftp:inbound-streaming-channel-adapter>
 ----
-====
 
 You can use only one of `filename-pattern`, `filename-regex`, `filter`, or `filter-expression`.
 
@@ -54,7 +52,6 @@ See also xref:sftp/remote-file-info.adoc[Remote File Information].
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -104,7 +101,6 @@ public class SftpJavaApplication {
 
 }
 ----
-====
 
 Notice that, in this example, the message handler downstream of the transformer has an `advice` that removes the remote file after processing.
 

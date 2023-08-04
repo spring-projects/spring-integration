@@ -14,9 +14,11 @@ The only remaining Spring Integration feature is a `SecurityContextPropagationCh
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -24,21 +26,25 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-security:{project-version}"
 ----
-====
+======
 
 [[securing-channels]]
 == Securing channels
 
 To secure message channels in the integration flow, an `AuthorizationChannelInterceptor` has to be added to those channels, or it can be configured as a global channel interceptor with respective pattern:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 @GlobalChannelInterceptor(patterns = "secured*")
@@ -46,8 +52,10 @@ AuthorizationChannelInterceptor authorizationChannelInterceptor() {
     return new AuthorizationChannelInterceptor(AuthorityAuthorizationManager.hasAnyRole("ADMIN", "PRESIDENT"));
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <channel-interceptor pattern="securedChannel*">
     <beans:bean class="org.springframework.security.messaging.access.intercept.AuthorizationChannelInterceptor">
@@ -65,7 +73,7 @@ AuthorizationChannelInterceptor authorizationChannelInterceptor() {
     </beans:bean>
 </channel-interceptor>
 ----
-====
+======
 
 See xref:channel/configuration.adoc#global-channel-configuration-interceptors[Global Channel Interceptor Configuration] for more information.
 

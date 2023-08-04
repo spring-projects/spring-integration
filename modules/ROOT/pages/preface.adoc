@@ -34,7 +34,6 @@ Each Spring Integration adapter type (also called a module) provides its own nam
 
 The following example shows the `int`, `int-event`, and `int-stream` namespaces in use:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -55,7 +54,6 @@ The following example shows the `int`, `int-event`, and `int-stream` namespaces 
 …
 </beans>
 ----
-====
 
 For a detailed explanation regarding Spring Integration's namespace support, see xref:configuration/namespace.adoc[Namespace Support].
 

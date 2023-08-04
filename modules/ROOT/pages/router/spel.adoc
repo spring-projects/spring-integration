@@ -8,7 +8,6 @@ NOTE: For more information about the Spring Expression Language, see the https:/
 
 Generally, a SpEL expression is evaluated and its result is mapped to a channel, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:router input-channel="inChannel" expression="payload.paymentType">
@@ -17,11 +16,9 @@ Generally, a SpEL expression is evaluated and its result is mapped to a channel,
     <int:mapping value="DEBIT" channel="authorizePaymentChannel"/>
 </int:router>
 ----
-====
 
 The following example shows the equivalent router configured in Java:
 
-====
 [source, java]
 ----
 @Router(inputChannel = "routingChannel")
@@ -34,11 +31,9 @@ public ExpressionEvaluatingRouter router() {
     return router;
 }
 ----
-====
 
 The following example shows the equivalent router configured in the Java DSL:
 
-====
 [source, java]
 ----
 @Bean
@@ -51,16 +46,13 @@ public IntegrationFlow routerFlow() {
         .get();
 }
 ----
-====
 
 To simplify things even more, the SpEL expression may evaluate to a channel name, as the following expression shows:
 
-====
 [source,xml]
 ----
 <int:router input-channel="inChannel" expression="payload + 'Channel'"/>
 ----
-====
 
 In the preceding configuration, the result channel is computed by the SpEL expression, which concatenates the value of the `payload` with the literal `String`, 'Channel'.
 
@@ -68,12 +60,10 @@ Another virtue of SpEL for configuring routers is that an expression can return 
 Whenever the expression returns multiple channel values, the message is forwarded to each channel.
 The following example shows such an expression:
 
-====
 [source,xml]
 ----
 <int:router input-channel="inChannel" expression="headers.channels"/>
 ----
-====
 
 In the above configuration, if the message includes a header with a name of 'channels' and the value of that header is a `List` of channel names, the message is sent to each channel in the list.
 You may also find collection projection and collection selection expressions useful when you need to select multiple channels.

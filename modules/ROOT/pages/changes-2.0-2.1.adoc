@@ -148,7 +148,6 @@ Generally, the best option is to use version-less namespaces, as these automatic
 
 The following example declares a version-less Spring Integration namespace:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -162,11 +161,9 @@ The following example declares a version-less Spring Integration namespace:
 ...
 </beans>
 ----
-====
 
 The following example declares a Spring Integration namespace with an explicit version:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -180,7 +177,6 @@ The following example declares a Spring Integration namespace with an explicit v
 ...
 </beans>
 ----
-====
 
 The old 1.0 and 2.0 schemas are still there.
 However, if an application context still references one of those deprecated schemas, the validator fails on initialization.

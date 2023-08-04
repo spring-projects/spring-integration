@@ -88,8 +88,8 @@ A message channel represents the "`pipe`" of a pipes-and-filters architecture.
 Producers send messages to a channel, and consumers receive messages from a channel.
 The message channel therefore decouples the messaging components and also provides a convenient point for interception and monitoring of messages.
 
-.Message Channel
 
+.Message Channel
 image::channel.jpg["Message Channel", align="center"]
 
 A message channel may follow either point-to-point or publish-subscribe semantics.
@@ -229,12 +229,10 @@ The consumer has a reference to the message handler and invokes it as messages a
 
 Consider the following XML example:
 
-====
 [source, xml]
 ----
 <int:service-activator id = "someService" ... />
 ----
-====
 
 Given the preceding example, the bean names are as follows:
 
@@ -244,7 +242,6 @@ Given the preceding example, the bean names are as follows:
 When using Enterprise Integration Pattern (EIP) annotations, the names depend on several factors.
 Consider the following example of an annotated POJO:
 
-====
 [source, java]
 ----
 @Component
@@ -257,7 +254,6 @@ public class SomeComponent {
 
 }
 ----
-====
 
 Given the preceding example, the bean names are as follows:
 
@@ -266,7 +262,6 @@ Given the preceding example, the bean names are as follows:
 
 Starting with version 5.0.4, you can modify these names by using the `@EndpointId` annotation, as the following example shows:
 
-====
 [source, java]
 ----
 @Component
@@ -280,7 +275,6 @@ public class SomeComponent {
 
 }
 ----
-====
 
 Given the preceding example, the bean names are as follows:
 
@@ -290,7 +284,6 @@ Given the preceding example, the bean names are as follows:
 The `@EndpointId` creates names as created by the `id` attribute with XML configuration.
 Consider the following example of an annotated bean:
 
-====
 [source, java]
 ----
 @Configuration
@@ -304,7 +297,6 @@ public class SomeConfiguration {
 
 }
 ----
-====
 
 Given the preceding example, the bean names are as follows:
 
@@ -313,7 +305,6 @@ Given the preceding example, the bean names are as follows:
 
 Starting with version 5.0.4, you can modify these names by using the `@EndpointId` annotation, as the following example shows:
 
-====
 [source, java]
 ----
 @Configuration
@@ -331,7 +322,6 @@ public class SomeConfiguration {
 
 <1> Handler: `someService.handler` (the bean name)
 <2> Consumer: `someService` (the endpoint ID)
-====
 
 The `@EndpointId` annotation creates names as created by the `id` attribute with XML configuration, as long as you use the convention of appending `.handler` to the `@Bean` name.
 
@@ -343,12 +333,10 @@ Similarly, xref:polling-consumer.adoc#pollable-message-source[Pollable Message S
 
 Consider the following XML configuration:
 
-====
 [source, xml]
 ----
 <int:inbound-channel-adapter id = "someAdapter" ... />
 ----
-====
 
 Given the preceding XML configuration, the bean names are as follows:
 
@@ -357,7 +345,6 @@ Given the preceding XML configuration, the bean names are as follows:
 
 Consider the following Java configuration of a POJO to define an `@EndpointId`:
 
-====
 [source, java]
 ----
 @EndpointId("someAdapter")
@@ -366,7 +353,6 @@ public String pojoSource() {
     ...
 }
 ----
-====
 
 Given the preceding Java configuration example, the bean names are as follows:
 
@@ -375,7 +361,6 @@ Given the preceding Java configuration example, the bean names are as follows:
 
 Consider the following Java configuration of a bean to define an `@EndpointID`:
 
-====
 [source, java]
 ----
 @Bean("someAdapter.source")
@@ -387,7 +372,6 @@ public MessageSource<?> source() {
     };
 }
 ----
-====
 
 Given the preceding example, the bean names are as follows:
 
@@ -607,7 +591,6 @@ The target protocol outbound adapters (`FileWritingMessageHandler`, `HttpRequest
 When you develop Spring Integration applications with Java configuration, you should look into the Spring Integration module to find an appropriate `MessageHandler` implementation to use for the `@ServiceActivator` configuration.
 For example, to send an XMPP message (see xref:xmpp.adoc[XMPP Support]) you should configure something like the following:
 
-====
 [source,java]
 ----
 @Bean
@@ -622,7 +605,6 @@ public MessageHandler sendChatMessageHandler(XMPPConnection xmppConnection) {
     return handler;
 }
 ----
-====
 
 The `MessageHandler` implementations represent the outbound and processing part of the message flow.
 
@@ -644,7 +626,6 @@ The Framework produces a bean for it, based on the `@InboundChannelAdapter` conf
 Message source components are more important for the target application development, and they all implement the `MessageSource` interface (for example, `MongoDbMessageSource` and `AbstractTwitterMessageSource`).
 With that in mind, our config for reading data from an RDBMS table with JDBC could resemble the following:
 
-====
 [source,java]
 ----
 @Bean
@@ -653,7 +634,6 @@ public MessageSource<?> storedProc(DataSource dataSource) {
     return new JdbcPollingChannelAdapter(dataSource, "SELECT * FROM foo where status = 0");
 }
 ----
-====
 
 You can find all the required inbound and outbound classes for the target protocols in the particular Spring Integration module (in most cases, in the respective package).
 For example, the `spring-integration-websocket` adapters are:
@@ -664,7 +644,6 @@ For example, the `spring-integration-websocket` adapters are:
 If you are familiar with Spring Integration XML configuration, starting with version 4.3, we provide information in the
 XSD element definitions about which target classes are used to declare beans for the adapter or gateway, as the following example shows:
 
-====
 [source,xml]
 ----
 <xsd:element name="outbound-async-gateway">
@@ -676,25 +655,21 @@ The sending thread returns immediately; the reply is sent asynchronously; uses '
        </xsd:documentation>
 	</xsd:annotation>
 ----
-====
 
 [[pojo-invocation]]
 === POJO Method invocation
 
 As discussed in xref:overview.adoc#programming-considerations[Programming Considerations], we recommend using a POJO programming style, as the following example shows:
 
-====
 [source, java]
 ----
 @ServiceActivator
 public String myService(String payload) { ... }
 ----
-====
 
 In this case, the framework extracts a `String` payload, invokes your method, and wraps the result in a message to send to the next component in the flow (the original headers are copied to the new message).
 In fact, if you use XML configuration, you do not even need the `@ServiceActivator` annotation, as the following paired examples show:
 
-====
 [source, xml]
 ----
 <int:service-activator ... ref="myPojo" method="myService" />
@@ -704,29 +679,24 @@ In fact, if you use XML configuration, you do not even need the `@ServiceActivat
 ----
 public String myService(String payload) { ... }
 ----
-====
 
 You can omit the `method` attribute as long as there is no ambiguity in the public methods on the class.
 
 You can also obtain header information in your POJO methods, as the following example shows:
 
-====
 [source, java]
 ----
 @ServiceActivator
 public String myService(@Payload String payload, @Header("foo") String fooHeader) { ... }
 ----
-====
 
 You can also dereference properties on the message, as the following example shows:
 
-====
 [source, java]
 ----
 @ServiceActivator
 public String myService(@Payload("payload.foo") String foo, @Header("bar.baz") String barbaz) { ... }
 ----
-====
 
 Because various POJO method invocations are available, versions prior to 5.0 used SpEL (Spring Expression Language) to invoke the POJO methods.
 SpEL (even interpreted) is usually "`fast enough`" for these operations, when compared to the actual work usually done in the methods.
@@ -742,13 +712,11 @@ For this reason, we automatically fall back to using SpEL in those cases.
 
 If you wish, you can also set up your POJO method such that it always uses SpEL, with the `UseSpelInvoker` annotation, as the following example shows:
 
-====
 [source, java]
 ----
 @UseSpelInvoker(compilerMode = "IMMEDIATE")
 public void bar(String bar) { ... }
 ----
-====
 
 If the `compilerMode` property is omitted, the `spring.expression.compiler.mode` system property determines the compiler mode.
 See https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions-spel-compilation[SpEL compilation] for more information about compiled SpEL.

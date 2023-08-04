@@ -6,9 +6,11 @@ The implementation is based on the https://rometools.github.io/rome/[ROME Framew
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -17,26 +19,25 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-feed:{project-version}"
 ----
-====
+======
 
 Web syndication is a way to publish material such as news stories, press releases, blog posts, and other items typically available on a website but also made available in a feed format such as RSS or ATOM.
 
 Spring integration provides support for web syndication through its 'feed' adapter and provides convenient namespace-based configuration for it.
 To configure the 'feed' namespace, include the following elements within the headers of your XML configuration file:
 
-====
 [source,xml]
 ----
 xmlns:int-feed="http://www.springframework.org/schema/integration/feed"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
 	https://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd"
 ----
-====
 
 [[feed-inbound-channel-adapter]]
 == Feed Inbound Channel Adapter
@@ -45,9 +46,11 @@ The only adapter you really need to provide support for retrieving feeds is an i
 It lets you subscribe to a particular URL.
 The following example shows a possible configuration:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Configuration
 @EnableIntegration
@@ -68,8 +71,10 @@ public class ContextConfiguration {
 
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 @InboundChannelAdapter(inputChannel = "fromFeed")
@@ -77,8 +82,10 @@ public FeedEntryMessageSource feedEntrySource() {
     return new FeedEntryMessageSource("https://feeds.bbci.co.uk/news/rss.xml", "metadataKey");
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-feed:inbound-channel-adapter id="feedAdapter"
         channel="feedChannel"
@@ -86,7 +93,7 @@ public FeedEntryMessageSource feedEntrySource() {
     <int:poller fixed-rate="10000" max-messages-per-poll="100" />
 </int-feed:inbound-channel-adapter>
 ----
-====
+======
 
 In the preceding configuration, we are subscribing to a URL identified by the `url` attribute.
 

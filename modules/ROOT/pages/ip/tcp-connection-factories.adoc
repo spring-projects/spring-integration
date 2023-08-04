@@ -32,18 +32,15 @@ Spring Integration provides connection factories that use `java.net.Socket` and 
 
 The following example shows a simple server connection factory that uses `java.net.Socket` connections:
 
-====
 [source,xml]
 ----
 <int-ip:tcp-connection-factory id="server"
     type="server"
     port="1234"/>
 ----
-====
 
 The following example shows a simple server connection factory that uses `java.nio.channel.SocketChannel` connections:
 
-====
 [source,xml]
 ----
 <int-ip:tcp-connection-factory id="server"
@@ -51,13 +48,11 @@ The following example shows a simple server connection factory that uses `java.n
     port="1234"
     using-nio="true"/>
 ----
-====
 
 NOTE: Starting with Spring Integration version 4.2, if the server is configured to listen on a random port (by setting the port to `0`), you can get the actual port chosen by the OS by using `getPort()`.
 Also, `getServerSocketAddress()` lets you get the complete `SocketAddress`.
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/ip/tcp/connection/TcpServerConnectionFactory.html[Javadoc for the `TcpServerConnectionFactory` interface] for more information.
 
-====
 [source,xml]
 ----
 <int-ip:tcp-connection-factory id="client"
@@ -67,11 +62,9 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
     single-use="true"
     so-timeout="10000"/>
 ----
-====
 
 The following example shows a client connection factory that uses `java.net.Socket` connections and creates a new connection for each message:
 
-====
 [source,xml]
 ----
 <int-ip:tcp-connection-factory id="client"
@@ -82,7 +75,6 @@ The following example shows a client connection factory that uses `java.net.Sock
     so-timeout="10000"
     using-nio=true/>
 ----
-====
 
 Starting with version 5.2, the client connection factories support the property `connectTimeout`, specified in seconds, which defaults to 60.
 
@@ -175,7 +167,6 @@ The final standard serializer is `org.springframework.core.serializer.DefaultSer
 If you do not wish to use the default serializer and deserializer (`ByteArrayCrLfSerializer`), you must set the `serializer` and `deserializer` attributes on the connection factory.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <bean id="javaSerializer"
@@ -189,7 +180,6 @@ The following example shows how to do so:
     deserializer="javaDeserializer"
     serializer="javaSerializer"/>
 ----
-====
 
 A server connection factory that uses `java.net.Socket` connections and uses Java serialization on the wire.
 
@@ -236,7 +226,6 @@ Initially, the first factory in the configured list is used.
 If a connection subsequently fails, the next factory becomes the current factory.
 The following example shows how to configure a failover client connection factory:
 
-====
 [source,xml]
 ----
 <bean id="failCF" class="o.s.i.ip.tcp.connection.FailoverClientConnectionFactory">
@@ -248,7 +237,6 @@ The following example shows how to configure a failover client connection factor
     </constructor-arg>
 </bean>
 ----
-====
 
 NOTE: When using the failover connection factory, the `singleUse` property must be consistent between the factory itself and the list of factories it is configured to use.
 
@@ -283,7 +271,6 @@ The connections themselves are provided by another client factory implementation
 
 The following example shows how to configure a TCP thread affinity connection factory:
 
-====
 [source, java]
 ----
 @Bean
@@ -308,5 +295,4 @@ public TcpOutboundGateway outGate() {
     return outGate;
 }
 ----
-====
 

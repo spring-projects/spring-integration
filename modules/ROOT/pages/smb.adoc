@@ -7,9 +7,11 @@ The https://en.wikipedia.org/wiki/Server_Message_Block[Server Message Block] (SM
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -17,12 +19,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-smb:{project-version}"
 ----
-====
+======
 
 [[overview]]
 == Overview
@@ -38,7 +42,6 @@ It also provides convenient namespace-based configuration options for defining t
 
 To use the SMB namespace, add the following to the header of your XML file:
 
-====
 [source,xml]
 ----
 xmlns:int-smb="http://www.springframework.org/schema/integration/smb"
@@ -46,7 +49,6 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/smb
     https://www.springframework.org/schema/integration/smb/spring-integration-smb.xsd"
 
 ----
-====
 
 [[smb-session-factory]]
 == SMB Session Factory
@@ -143,7 +145,6 @@ For XML configuration the `<int-smb:inbound-channel-adapter>` component is provi
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -186,7 +187,6 @@ public class SmbJavaApplication {
     }
 }
 ----
-====
 
 [[smb-streaming-inbound]]
 == SMB Streaming Inbound Channel Adapter
@@ -198,7 +198,6 @@ Standard framework components, such as the `FileSplitter` and `StreamTransformer
 See xref:file/splitter.adoc[File Splitter] and xref:transformer.adoc#stream-transformer[Stream Transformer] for more information about these components.
 The following example shows how to configure an `inbound-streaming-channel-adapter`:
 
-====
 [source, xml]
 ----
 <int-smb:inbound-streaming-channel-adapter id="smbInbound"
@@ -215,7 +214,6 @@ The following example shows how to configure an `inbound-streaming-channel-adapt
         <int:poller fixed-rate="1000" />
 </int-smb:inbound-streaming-channel-adapter>
 ----
-====
 
 Only one of `filename-pattern`, `filename-regex`, `filter`, or `filter-expression` is allowed.
 
@@ -240,7 +238,6 @@ If you set the `fileInfoJson` property on the `SmbStreamingMessageSource` to `fa
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -290,7 +287,6 @@ public class SmbJavaApplication {
 
 }
 ----
-====
 
 Notice that, in this example, the message handler downstream of the transformer has an `advice` that removes the remote file after processing.
 
@@ -346,7 +342,6 @@ public MessageHandler smbMessageHandler(SmbSessionFactory smbSessionFactory) {
 
 The following Spring Boot application shows an example of how to configure the outbound adapter using the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -395,7 +390,6 @@ public class SmbJavaApplication {
 
 }
 ----
-====
 
 [[smb-outbound-gateway]]
 == SMB Outbound Gateway
@@ -465,7 +459,6 @@ For text files, a common use case is to combine this operation with a xref:file/
 When consuming remote files as streams, you are responsible for closing the `Session` after the stream is consumed.
 For convenience, the `Session` is provided in the `closeableResource` header, and `IntegrationMessageHeaderAccessor` offers convenience method:
 
-====
 [source, java]
 ----
 Closeable closeable = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
@@ -473,13 +466,11 @@ if (closeable != null) {
     closeable.close();
 }
 ----
-====
 
 Framework components, such as the xref:file/splitter.adoc[File Splitter] and xref:transformer.adoc#stream-transformer[Stream Transformer], automatically close the session after the data is transferred.
 
 The following example shows how to consume a file as a stream:
 
-====
 [source, xml]
 ----
 <int-smb:outbound-gateway session-factory="smbSessionFactory"
@@ -492,18 +483,15 @@ The following example shows how to consume a file as a stream:
 
 <int-file:splitter input-channel="stream" output-channel="lines" />
 ----
-====
 
 NOTE: If you consume the input stream in a custom component, you must close the `Session`.
 You can either do that in your custom code or route a copy of the message to a `service-activator` and use SpEL, as the following example shows:
 
-====
 [source, xml]
 ----
 <int:service-activator input-channel="closeSession"
     expression="headers['closeableResource'].close()" />
 ----
-====
 
 [[using-the-mget-command]]
 === Using the `mget` Command
@@ -558,7 +546,6 @@ For this reason, the property is `false` by default; this may change in a future
 You can configure the `SmbSimplePatternFileListFilter` and `SmbRegexPatternFileListFilter` to always pass directories by setting the `alwaysAcceptDirectorties` to `true`.
 Doing so allows recursion for a simple pattern, as the following examples show:
 
-====
 [source, xml]
 ----
 <bean id="starDotTxtFilter"
@@ -573,7 +560,6 @@ Doing so allows recursion for a simple pattern, as the following examples show:
     <property name="alwaysAcceptDirectories" value="true" />
 </bean>
 ----
-====
 
 You can provide one of these filters by using the `filter` property on the gateway.
 
@@ -656,7 +642,6 @@ For the `mget` command, the expression might evaluate to `*`, meaning to retriev
 
 The following example shows a gateway configured for an `ls` command:
 
-====
 [source,xml]
 ----
 <int-smb:outbound-gateway id="gateway1"
@@ -667,7 +652,6 @@ The following example shows a gateway configured for an `ls` command:
         expression="payload"
         reply-channel="toSplitter"/>
 ----
-====
 
 The payload of the message sent to the `toSplitter` channel is a list of `String` objects, each of which contains the name of a file.
 If you omitted `command-options="-1"`, the payload would be a list of `FileInfo` objects.
@@ -684,7 +668,6 @@ For `GET` and `MGET` operations, the default is `FAIL`.
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -721,14 +704,12 @@ public class SmbJavaApplication {
 
 }
 ----
-====
 
 [[outbound-gateway-java-dsl]]
 === Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -773,7 +754,6 @@ public class SmbJavaApplication {
 
 }
 ----
-====
 
 [[smb-partial]]
 === Outbound Gateway Partial Success (`mget` and `mput`)
@@ -791,7 +771,6 @@ In the case of a recursive `mput`, the `PartialSuccessException` may have nested
 
 Consider the following directory structure:
 
-====
 [source]
 ----
 root/
@@ -801,7 +780,6 @@ root/
    | - file3.txt
 |- zoo.txt
 ----
-====
 
 If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by the gateway has `derivedInput` of `file1.txt`, `subdir`, and `zoo.txt` and `partialResults` of `file1.txt`.
 Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.txt` and `file3.txt` and `partialResults` of `file2.txt`.

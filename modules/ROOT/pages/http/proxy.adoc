@@ -29,7 +29,6 @@ For more information, see https://docs.oracle.com/javase/8/docs/technotes/guides
 
 If you need more explicit control over the proxy configuration, you can use Spring's `SimpleClientHttpRequestFactory` and configure its 'proxy' property, as the following example shows:
 
-====
 [source,xml]
 ----
 <bean id="requestFactory"
@@ -49,5 +48,4 @@ If you need more explicit control over the proxy configuration, you can use Spri
     </property>
 </bean>
 ----
-====
 

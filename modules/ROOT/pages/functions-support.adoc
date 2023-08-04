@@ -7,7 +7,6 @@ The xref:configuration/annotations.adoc[Messaging Annotations] can be applied di
 For example if you have this `Function` bean definition:
 
 
-====
 [source, java]
 ----
 @Configuration
@@ -20,20 +19,16 @@ public class FunctionConfiguration {
 
 }
 ----
-====
 
 You can use it as a simple reference in an XML configuration file:
 
-====
 [source, xml]
 ----
 <service-activator input-channel="processorViaFunctionChannel" ref="functionAsService"/>
 ----
-====
 
 When we configure our flow with Messaging Annotations, the code is straightforward:
 
-====
 [source, java]
 ----
 @Bean
@@ -42,13 +37,11 @@ public Function<String, String> functionAsService() {
     return String::toUpperCase;
 }
 ----
-====
 
 When the function returns an array, `Collection` (essentially, any `Iterable`), `Stream` or Reactor `Flux`, `@Splitter` can be used on such a bean to perform iteration over the result content.
 
 The `java.util.function.Consumer` interface can be used for an `<int:outbound-channel-adapter>` or, together with the `@ServiceActivator` annotation, to perform the final step of a flow:
 
-====
 [source, java]
 ----
 @Bean
@@ -65,14 +58,12 @@ public Consumer<Message<?>> messageConsumerAsService() {
     };
 }
 ----
-====
 
 Also, pay attention to the comment in the code snippet above: if you would like to deal with the whole message in your `Function`/`Consumer` you cannot use a lambda definition.
 Because of Java type erasure we cannot determine the target type for the `apply()/accept()` method call.
 
 The `java.util.function.Supplier` interface can simply be used together with the `@InboundChannelAdapter` annotation, or as a `ref` in an `<int:inbound-channel-adapter>`:
 
-====
 [source, java]
 ----
 @Bean
@@ -81,12 +72,10 @@ public Supplier<String> pojoSupplier() {
     return () -> "foo";
 }
 ----
-====
 
 With the Java DSL we just need to use a reference to the function bean in the endpoint definitions.
 Meanwhile, an implementation of the `Supplier` interface can be used as regular `MessageSource` definition:
 
-====
 [source, java]
 ----
 @Bean
@@ -107,6 +96,5 @@ public IntegrationFlow supplierFlow() {
                 .get();
 }
 ----
-====
 
 This function support is useful when used together with the https://cloud.spring.io/spring-cloud-function/[Spring Cloud Function] framework, where we have a function catalog and can refer to its member functions from an integration flow definition.

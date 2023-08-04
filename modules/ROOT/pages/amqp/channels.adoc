@@ -10,32 +10,26 @@ Explore the XML schema to view the available attributes.
 
 A point-to-point channel might look like the following example:
 
-====
 [source,xml]
 ----
 <int-amqp:channel id="p2pChannel"/>
 ----
-====
 
 Under the covers, the preceding example causes a `Queue` named `si.p2pChannel` to be declared, and this channel sends to that `Queue` (technically, by sending to the no-name direct exchange with a routing key that matches the name of this `Queue`).
 This channel also registers a consumer on that `Queue`.
 If you want the channel to be "`pollable`" instead of message-driven, provide the `message-driven` flag with a value of `false`, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-amqp:channel id="p2pPollableChannel"  message-driven="false"/>
 ----
-====
 
 A publish-subscribe channel might look like the following:
 
-====
 [source,xml]
 ----
 <int-amqp:publish-subscribe-channel id="pubSubChannel"/>
 ----
-====
 
 Under the covers, the preceding example causes a fanout exchange named `si.fanout.pubSubChannel` to be declared, and this channel sends to that fanout exchange.
 This channel also declares a server-named exclusive, auto-delete, non-durable `Queue` and binds that to the fanout exchange while registering a consumer on that `Queue` to receive messages.
@@ -72,7 +66,6 @@ To restore the previous behavior, set the poller's `receiveTimeout` to 0.
 
 The following example shows how to configure the channels with Java configuration:
 
-====
 [source, java]
 ----
 @Bean
@@ -102,14 +95,12 @@ public AmqpChannelFactoryBean pubSub(ConnectionFactory connectionFactory) {
     return factoryBean;
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following example shows how to configure the channels with the Java DSL:
 
-====
 [source, java]
 ----
 @Bean
@@ -142,5 +133,4 @@ public IntegrationFlow pubSubInFlow(ConnectionFactory connectionFactory) {
             .get();
 }
 ----
-====
 

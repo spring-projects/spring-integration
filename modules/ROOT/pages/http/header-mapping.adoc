@@ -11,7 +11,6 @@ Basically, it assumes you are in complete control at that point.
 However, if you do want to include all the standard HTTP headers, you can use the shortcut patterns: `HTTP_REQUEST_HEADERS` and `HTTP_RESPONSE_HEADERS`.
 The following listing shows two examples (the first of which uses a wildcard):
 
-====
 [source,xml]
 ----
 <int-http:outbound-gateway id="httpGateway"
@@ -25,7 +24,6 @@ The following listing shows two examples (the first of which uses a wildcard):
     mapped-request-headers="thing1, thing2, HTTP_REQUEST_HEADERS"
     channel="someChannel"/>
 ----
-====
 
 The adapters and gateways use the `DefaultHttpHeaderMapper`, which now provides two static factory methods for inbound and outbound adapters so that the proper direction can be applied (mapping HTTP requests and responses either in or out, as appropriate).
 
@@ -37,7 +35,6 @@ According to https://tools.ietf.org/html/rfc6648[RFC-6648], the use of such pref
 You can still customize this option by setting the `DefaultHttpHeaderMapper.setUserDefinedHeaderPrefix()` property.
 The following example configures a header mapper for an HTTP gateway:
 
-====
 [source,xml]
 ----
 <int-http:outbound-gateway id="httpGateway"
@@ -50,7 +47,6 @@ The following example configures a header mapper for an HTTP gateway:
     <property name="outboundHeaderNames" value="a*b, d"/>
 </bean>
 ----
-====
 
 If you need to do something other than what the `DefaultHttpHeaderMapper` supports, you can implement the `HeaderMapper` strategy interface directly and provide a reference to your implementation.
 

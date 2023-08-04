@@ -8,7 +8,6 @@ In this case, do not configure a `confirm-correlation-expression` or the confirm
 Instead, add a `CorrelationData` instance in the `AmqpHeaders.PUBLISH_CONFIRM_CORRELATION` header; you can then wait for the result(s) later, by checking the state of the future in the `CorrelationData` instances for which you have sent messages.
 The `returnedMessage` field will always be populated (if a message is returned) before the future is completed.
 
-====
 [source, java]
 ----
 CorrelationData corr = new CorrelationData("someId"); // <--- Unique "id" is required for returns
@@ -26,7 +25,6 @@ try {
 }
 catch { ... }
 ----
-====
 
 To improve performance, you may wish to send multiple messages and wait for the confirmations later, rather than one-at-a-time.
 The returned message is the raw message after conversion; you can sub-class a `CorrelationData` with whatever additional data you need.

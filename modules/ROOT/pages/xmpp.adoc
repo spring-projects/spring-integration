@@ -17,9 +17,11 @@ Spring integration provides support for XMPP by providing XMPP adapters, which s
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -28,24 +30,23 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-xmpp:{project-version}"
 ----
-====
+======
 
 As with other adapters, the XMPP adapters come with support for a convenient namespace-based configuration.
 To configure the XMPP namespace, include the following elements in the headers of your XML configuration file:
 
-====
 [source,xml]
 ----
 xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
 	https://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"
 ----
-====
 
 [[xmpp-connection]]
 == XMPP Connection
@@ -55,7 +56,6 @@ All XMPP adapters connected to a particular account can share this connection ob
 Typically, this requires (at a minimum) `user`, `password`, and `host`.
 To create a basic XMPP connection, you can use the convenience of the namespace, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-xmpp:xmpp-connection
@@ -67,7 +67,6 @@ To create a basic XMPP connection, you can use the convenience of the namespace,
     resource="theNameOfTheResource"
     subscription-mode="accept_all"/>
 ----
-====
 
 NOTE: For added convenience, you can rely on the default naming convention and omit the `id` attribute.
 The default name (`xmppConnection`) is used for this connection bean.
@@ -98,7 +97,6 @@ Those messages are then forwarded to your Spring Integration client.
 The `inbound-channel-adapter` element provides Configuration support for the XMPP inbound message channel adapter.
 The following example shows how to configure it:
 
-====
 [source,xml]
 ----
 <int-xmpp:inbound-channel-adapter id="xmppInboundAdapter"
@@ -108,7 +106,6 @@ The following example shows how to configure it:
 	stanza-filter="stanzaFilter"
 	auto-startup="true"/>
 ----
-====
 
 Along with the usual attributes (for a message channel adapter), this adapter also requires a reference to an XMPP Connection.
 
@@ -125,33 +122,27 @@ The incoming `org.jivesoftware.smack.packet.Message` represents a root object fo
 This option is useful when you use xref:xmpp.adoc#xmpp-extensions[XMPP extensions].
 For example, for the GCM protocol we can extract the body by using the following expression:
 
-====
 [source,xml]
 ----
 payload-expression="getExtension('google:mobile:data').json"
 ----
-====
 
 The following example extracts the body for the XHTML protocol:
 
-====
 [source,xml]
 ----
 payload-expression="getExtension(T(org.jivesoftware.smackx.xhtmlim.packet.XHTMLExtension).NAMESPACE).bodies[0]"
 ----
-====
 
 To simplify access to the extension in the XMPP Message, the `extension` variable is added into the `EvaluationContext`.
 Note that it is added when only one extension is present in the message.
 The preceding examples that show the `namespace` manipulations can be simplified to the following example:
 
-====
 [source,xml]
 ----
 payload-expression="#extension.json"
 payload-expression="#extension.bodies[0]"
 ----
-====
 
 [[xmpp-message-outbound-channel-adapter]]
 === Outbound Message Channel Adapter
@@ -159,37 +150,31 @@ payload-expression="#extension.bodies[0]"
 You can also send chat messages to other users on XMPP by using the outbound message channel adapter.
 The `outbound-channel-adapter` element provides configuration support for the XMPP outbound message channel adapter.
 
-====
 [source,xml]
 ----
 <int-xmpp:outbound-channel-adapter id="outboundEventAdapter"
 						channel="outboundEventChannel"
 						xmpp-connection="testConnection"/>
 ----
-====
 
 The adapter expects its input to be (at a minimum) a payload of type `java.lang.String` and a header value for `XmppHeaders.CHAT_TO` that specifies to which user the message should be sent.
 To create a message, you can use Java code similar to the following:
 
-====
 [source,java]
 ----
 Message<String> xmppOutboundMsg = MessageBuilder.withPayload("Hello, XMPP!" )
 						.setHeader(XmppHeaders.CHAT_TO, "userhandle")
 						.build();
 ----
-====
 
 You can also set the header by using the XMPP header-enricher support, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-xmpp:header-enricher input-channel="input" output-channel="output">
 	<int-xmpp:chat-to value="test1@example.org"/>
 </int-xmpp:header-enricher>
 ----
-====
 
 Starting with version 4.3, the packet extension support has been added to the `ChatMessageSendingMessageHandler` (the `<int-xmpp:outbound-channel-adapter>` in XML configuration).
 Along with the regular `String` and `org.jivesoftware.smack.packet.Message` payload, now you can send a message with a payload of `org.jivesoftware.smack.packet.ExtensionElement` (which is populated to the `org.jivesoftware.smack.packet.Message.addExtension()`) instead of `setBody()`.
@@ -216,13 +201,11 @@ The payload of the message is a `org.jivesoftware.smack.packet.Presence` object 
 The `presence-inbound-channel-adapter` element provides configuration support for the XMPP inbound presence message channel adapter.
 The following example configures an inbound presence message channel adapter:
 
-====
 [source,xml]
 ----
 <int-xmpp:presence-inbound-channel-adapter channel="outChannel"
 		xmpp-connection="testConnection" auto-startup="false"/>
 ----
-====
 
 Along with the usual attributes, this adapter requires a reference to an XMPP Connection.
 This adapter is event-driven and a `Lifecycle` implementation.
@@ -237,18 +220,15 @@ When you send a message to the outbound presence message channel adapter, it ext
 The `presence-outbound-channel-adapter` element provides configuration support for the XMPP outbound presence message channel adapter.
 The following example shows how to configure an outbound presence message channel adapter:
 
-====
 [source,xml]
 ----
 <int-xmpp:presence-outbound-channel-adapter id="eventOutboundPresenceChannel"
 	xmpp-connection="testConnection"/>
 ----
-====
 
 It can also be a polling consumer (if it receives messages from a pollable channel) in which case you would need to register a poller.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <int-xmpp:presence-outbound-channel-adapter id="pollingOutboundPresenceAdapter"
@@ -257,7 +237,6 @@ The following example shows how to do so:
 	<int:poller fixed-rate="1000" max-messages-per-poll="1"/>
 </int-xmpp:presence-outbound-channel-adapter>
 ----
-====
 
 Like its inbound counterpart, it requires a reference to an XMPP Connection.
 
@@ -277,7 +256,6 @@ You can specify every property you need directly on that `ConnectionConfiguratio
 This way, you can directly set SSL (or any other attributes).
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <bean id="xmppConnection" class="o.s.i.xmpp.XmppConnectionFactoryBean">
@@ -295,7 +273,6 @@ The following example shows how to do so:
     channel="outboundEventChannel"
     xmpp-connection="xmppConnection"/>
 ----
-====
 
 The Smack API also offers static initializers, which can be helpful.
 For more complex cases (such as registering a SASL mechanism), you may need to execute certain static initializers.
@@ -304,7 +281,6 @@ For that level of complexity, we recommend using Spring Java configuration for t
 That way, you can configure the entire component through Java code and execute all other necessary Java code, including static initializers, at the appropriate time.
 The following example shows how to configure an XMPP connection with an SASL (Simple Authentication and Security Layer) in Java:
 
-====
 [source,java]
 ----
 @Configuration
@@ -321,7 +297,6 @@ public class CustomConnectionConfiguration {
   }
 }
 ----
-====
 
 For more information on using Java for application context configuration, see the following section in the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-java[Spring Reference Manual].
 
@@ -382,26 +357,21 @@ Starting with Spring Integration version 4.3, you can use any XEP with the exist
 To be able to process XEPs or any other custom XMPP extensions, you must provide the Smack's `ProviderManager` pre-configuration.
 You can do so with `static` Java code, as the following example shows:
 
-====
 [source,java]
 ----
 ProviderManager.addIQProvider("element", "namespace", new MyIQProvider());
 ProviderManager.addExtensionProvider("element", "namespace", new MyExtProvider());
 ----
-====
 
 You can also use a  `.providers` configuration file in the specific instance and access it with a JVM argument, as the following example shows:
 
-====
 [source,xml]
 ----
 -Dsmack.provider.file=file:///c:/my/provider/mycustom.providers
 ----
-====
 
 The `mycustom.providers` file might be as follows:
 
-====
 [source,xml]
 ----
 <?xml version="1.0"?>
@@ -425,13 +395,11 @@ The `mycustom.providers` file might be as follows:
 </extensionProvider>
 </smackProviders>
 ----
-====
 
 For example, the most popular XMPP messaging extension is https://developers.google.com/cloud-messaging/[Google Cloud Messaging] (GCM).
 The Smack library provides `org.jivesoftware.smackx.gcm.provider.GcmExtensionProvider` for that purposes.
 By default, it registers that class with the `smack-experimental` jar in the classpath by using the `experimental.providers` resource, as the following Maven example shows:
 
-====
 [source,xml]
 ----
 <!-- GCM JSON payload -->
@@ -441,11 +409,9 @@ By default, it registers that class with the `smack-experimental` jar in the cla
     <className>org.jivesoftware.smackx.gcm.provider.GcmExtensionProvider</className>
 </extensionProvider>
 ----
-====
 
 Also, the `GcmPacketExtension` lets the target messaging protocol parse incoming packets and build outgoing packets, as the following examples show:
 
-====
 [source,java]
 ----
 GcmPacketExtension gcmExtension = (GcmPacketExtension) xmppMessage.getExtension(GcmPacketExtension.NAMESPACE);
@@ -458,6 +424,5 @@ GcmPacketExtension packetExtension = new GcmPacketExtension(gcmJson);
 Message smackMessage = new Message();
 smackMessage.addExtension(packetExtension);
 ----
-====
 
 See xref:xmpp.adoc#xmpp-message-inbound-channel-adapter[Inbound Message Channel Adapter] and xref:xmpp.adoc#xmpp-message-outbound-channel-adapter[Outbound Message Channel Adapter] earlier in this chapter for more information.

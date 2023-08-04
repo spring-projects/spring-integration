@@ -10,7 +10,6 @@ However, we first present a couple of implementations that fulfill common requir
 
 A `PayloadTypeRouter` sends messages to the channel defined by payload-type mappings, as the following example shows:
 
-====
 [source,xml]
 ----
 <bean id="payloadTypeRouter"
@@ -23,12 +22,10 @@ A `PayloadTypeRouter` sends messages to the channel defined by payload-type mapp
     </property>
 </bean>
 ----
-====
 
 Configuration of the `PayloadTypeRouter` is also supported by the namespace provided by Spring Integration (see `xref:configuration/namespace.adoc[Namespace Support]`), which essentially simplifies configuration by combining the `<router/>` configuration and its corresponding implementation (defined by using a `<bean/>` element) into a single and more concise configuration element.
 The following example shows a `PayloadTypeRouter` configuration that is equivalent to the one above but uses the namespace support:
 
-====
 [source,xml]
 ----
 <int:payload-type-router input-channel="routingChannel">
@@ -36,11 +33,9 @@ The following example shows a `PayloadTypeRouter` configuration that is equivale
     <int:mapping type="java.lang.Integer" channel="integerChannel" />
 </int:payload-type-router>
 ----
-====
 
 The following example shows the equivalent router configured in Java:
 
-====
 [source, java]
 ----
 @ServiceActivator(inputChannel = "routingChannel")
@@ -52,7 +47,6 @@ public PayloadTypeRouter router() {
     return router;
 }
 ----
-====
 
 When using the Java DSL, there are two options.
 
@@ -80,7 +74,6 @@ The flow registers it if it is not a `@Bean`.
 
 Second, you can define the routing function within the DSL flow itself, as the following example shows:
 
-====
 [source, java]
 ----
 @Bean
@@ -92,7 +85,6 @@ public IntegrationFlow routerFlow2() {
             .get();
 }
 ----
-====
 
 [[router-implementations-headervaluerouter]]
 == `HeaderValueRouter`
@@ -110,7 +102,6 @@ Otherwise, no additional configuration is needed.
 Spring Integration provides a simple namespace-based XML configuration to configure a `HeaderValueRouter`.
 The following example demonstrates configuration for the `HeaderValueRouter` when mapping of header values to channels is required:
 
-====
 [source,xml]
 ----
 <int:header-value-router input-channel="routingChannel" header-name="testHeader">
@@ -118,7 +109,6 @@ The following example demonstrates configuration for the `HeaderValueRouter` whe
     <int:mapping value="someOtherHeaderValue" channel="channelB" />
 </int:header-value-router>
 ----
-====
 
 During the resolution process, the router defined in the preceding example may encounter channel resolution failures, causing an exception.
 If you want to suppress such exceptions and send unresolved messages to the default output channel (identified with the `default-output-channel` attribute) set `resolution-required` to `false`.
@@ -128,7 +118,6 @@ However, when the header value is mapped to a channel name but the channel canno
 
 The following example shows the equivalent router configured in Java:
 
-====
 [source, java]
 ----
 @ServiceActivator(inputChannel = "routingChannel")
@@ -140,12 +129,10 @@ public HeaderValueRouter router() {
     return router;
 }
 ----
-====
 
 When using the Java DSL, there are two options.
 First, you can define the router object as shown in the preceding example:
 
-====
 [source, java]
 ----
 @Bean
@@ -162,14 +149,12 @@ public HeaderValueRouter router() {
     return router;
 }
 ----
-====
 
 Note that the router can be, but does not have to be, a `@Bean`.
 The flow registers it if it is not a `@Bean`.
 
 Second, you can define the routing function within the DSL flow itself, as the following example shows:
 
-====
 [source, java]
 ----
 @Bean
@@ -183,17 +168,14 @@ public IntegrationFlow routerFlow2() {
             .get();
 }
 ----
-====
 
 Configuration where mapping of header values to channel names is not required, because header values themselves represent channel names.
 The following example shows a router that does not require mapping of header values to channel names:
 
-====
 [source,xml]
 ----
 <int:header-value-router input-channel="routingChannel" header-name="testHeader"/>
 ----
-====
 
 [NOTE]
 =====
@@ -210,7 +192,6 @@ If you really want to drop messages, you must also have `default-output-channel`
 A `RecipientListRouter` sends each received message to a statically defined list of message channels.
 The following example creates a `RecipientListRouter`:
 
-====
 [source,xml]
 ----
 <bean id="recipientListRouter"
@@ -224,11 +205,9 @@ The following example creates a `RecipientListRouter`:
     </property>
 </bean>
 ----
-====
 
 Spring Integration also provides namespace support for the `RecipientListRouter` configuration (see xref:configuration/namespace.adoc[Namespace Support]) as the following example shows:
 
-====
 [source,xml]
 ----
 <int:recipient-list-router id="customRouter" input-channel="routingChannel"
@@ -239,11 +218,9 @@ Spring Integration also provides namespace support for the `RecipientListRouter`
   <int:recipient channel="channel2"/>
 </int:recipient-list-router>
 ----
-====
 
 The following example shows the equivalent router configured in Java:
 
-====
 [source, java]
 ----
 @ServiceActivator(inputChannel = "routingChannel")
@@ -259,11 +236,9 @@ public RecipientListRouter router() {
     return router;
 }
 ----
-====
 
 The following example shows the equivalent router configured by using the Java DSL:
 
-====
 [source, java]
 ----
 @Bean
@@ -279,7 +254,6 @@ public IntegrationFlow routerFlow() {
             .get();
 }
 ----
-====
 
 NOTE: The 'apply-sequence' flag here has the same effect as it does for a publish-subscribe-channel, and, as with a publish-subscribe-channel, it is disabled by default on the `recipient-list-router`.
 See xref:channel/configuration.adoc#channel-configuration-pubsubchannel[`PublishSubscribeChannel` Configuration] for more information.
@@ -288,7 +262,6 @@ Another convenient option when configuring a `RecipientListRouter` is to use Spr
 Doing so is similar to using a filter at the beginning of a 'chain' to act as a "`selective consumer`".
 However, in this case, it is all combined rather concisely into the router's configuration, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:recipient-list-router id="customRouter" input-channel="routingChannel">
@@ -296,7 +269,6 @@ However, in this case, it is all combined rather concisely into the router's con
     <int:recipient channel="channel2" selector-expression="headers.containsKey('bar')"/>
 </int:recipient-list-router>
 ----
-====
 
 In the preceding configuration, a SpEL expression identified by the `selector-expression` attribute is evaluated to determine whether this recipient should be included in the recipient list for a given input message.
 The evaluation result of the expression must be a `boolean`.
@@ -309,7 +281,6 @@ Starting with version 4.1, the `RecipientListRouter` provides several operations
 These management operations are presented by `RecipientListRouterManagement` through the `@ManagedResource` annotation.
 They are available by using xref:groovy.adoc#groovy-control-bus[Control Bus] as well as by using JMX, as the following example shows:
 
-====
 [source,xml]
 ----
 <control-bus input-channel="controlBus"/>
@@ -324,7 +295,6 @@ They are available by using xref:groovy.adoc#groovy-control-bus[Control Bus] as 
 ----
 messagingTemplate.convertAndSend(controlBus, "@'simpleRouter.handler'.addRecipient('channel2')");
 ----
-====
 
 From the application start up the `simpleRouter`, has only one `channel1` recipient.
 But after the `addRecipient` command, `channel2` recipient is added.
@@ -356,9 +326,11 @@ NOTE: Since version 4.3 the `ErrorMessageExceptionTypeRouter` loads all mapping 
 
 The following example shows a sample configuration for `ErrorMessageExceptionTypeRouter`:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -369,8 +341,10 @@ public IntegrationFlow someFlow() {
                  .defaultOutputChannel("defaultChannel"));
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun someFlow() =
@@ -382,8 +356,10 @@ fun someFlow() =
                 }
     }
 ----
+
+Groovy DSL::
++
 [source, groovy, role="secondary"]
-.Groovy DSL
 ----
 @Bean
 someFlow() {
@@ -396,8 +372,10 @@ someFlow() {
     }
 }
 ----
+
+XML DSL::
++
 [source, xml, role="secondary"]
-.XML DSL
 ----
 <int:exception-type-router input-channel="inputChannel"
                            default-output-channel="defaultChannel">
@@ -410,5 +388,5 @@ someFlow() {
 <int:channel id="illegalChannel" />
 <int:channel id="npeChannel" />
 ----
-====
+======
 

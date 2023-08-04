@@ -6,9 +6,11 @@ The `DebeziumMessageProducer` allows capturing database change events, convertin
 
 You need to include the spring integration Debezium dependency to your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,19 +18,23 @@ You need to include the spring integration Debezium dependency to your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-debezium:{project-version}"
 ----
-====
+======
 
 You also need to include a https://debezium.io/documentation/reference/connectors/index.html[debezium connector] dependency for your input Database.
 For example to use Debezium with PostgreSQL you will need the postgres debezium connector:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>io.debezium</groupId>
@@ -37,12 +43,14 @@ For example to use Debezium with PostgreSQL you will need the postgres debezium 
 </dependency>
 
 ----
+
+Gradle::
++
 [source, groovy, role="secondary"]
-.Gradle
 ----
 compile "io.debezium:debezium-connector-postgres:{debezium-version}"
 ----
-====
+======
 
 [NOTE]
 ====
@@ -87,7 +95,6 @@ The following code snippets demonstrate various configuration for this channel a
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -136,7 +143,6 @@ public class DebeziumJavaApplication {
 <3> Like the key, the payload has a schema section and a payload value section.
     The schema section contains the schema that describes the Envelope structure of the payload value section, including its nested fields.
     Change events for operations that create, update or delete data all have a value payload with an envelope structure.
-====
 
 [TIP]
 ====
@@ -145,7 +151,6 @@ The `key.converter.schemas.enable=false` and/or `value.converter.schemas.enable=
 
 Similarly, we can configure the `DebeziumMessageProducer` to process the incoming change events in batches:
 
-====
 [source, java]
 ----
 @Bean
@@ -164,7 +169,6 @@ public void handler(List<ChangeEvent<Object, Object>> payload) {
     System.out.println(payload);
 }
 ----
-====
 
 [[debezium-java-dsl]]
 == Debezium Java DSL Support
@@ -172,7 +176,6 @@ public void handler(List<ChangeEvent<Object, Object>> payload) {
 The `spring-integration-debezium` provides a convenient Java DSL fluent API via the `Debezium` factory and the `DebeziumMessageProducerSpec` implementations.
 
 The Inbound Channel Adapter for Debezium Java DSL is:
-====
 [source, java]
 ----
  DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>>   debeziumEngineBuilder = ...
@@ -183,11 +186,9 @@ The Inbound Channel Adapter for Debezium Java DSL is:
         .enableBatch(false))
     .handle(m -> System.out.println(new String((byte[]) m.getPayload())))
 ----
-====
 
 Or create an `DebeziumMessageProducerSpec` instance from native debezium configuration properties and default to `JSON` serialization formats.
 
-====
 [source, java]
 ----
  Properties debeziumConfig = ...
@@ -195,11 +196,9 @@ Or create an `DebeziumMessageProducerSpec` instance from native debezium configu
     .from(Debezium.inboundChannelAdapter(debeziumConfig))
     .handle(m -> System.out.println(new String((byte[]) m.getPayload())))
 ----
-====
 
 The following Spring Boot application provides an example of configuring the inbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -227,4 +226,3 @@ public class DebeziumJavaApplication {
 
 }
 ----
-====

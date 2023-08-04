@@ -4,7 +4,6 @@
 Spring Integration includes a `.wireTap()` fluent API `MessageChannelSpec` builders.
 The following example shows how to use the `wireTap` method to log input:
 
-====
 [source,java]
 ----
 @Bean
@@ -18,7 +17,6 @@ public IntegrationFlow loggingFlow() {
     return f -> f.log();
 }
 ----
-====
 
 [IMPORTANT]
 ====
@@ -43,14 +41,12 @@ MessageChannel myChannel() {
 When the current `MessageChannel` does not implement `InterceptableChannel`, an implicit `DirectChannel` and `BridgeHandler` are injected into the `IntegrationFlow`, and the `WireTap` is added to this new `DirectChannel`.
 The following example does not have any channel declaration:
 
-====
 [source,java]
 ----
 .handle(...)
 .log()
 }
 ----
-====
 
 In the preceding example (and any time no channel has been declared), an implicit `DirectChannel` is injected in the current position of the `IntegrationFlow` and used as an output channel for the currently configured `ServiceActivatingHandler` (from the `.handle()`, xref:dsl/java-handle.adoc[described earlier]).
 

@@ -7,7 +7,6 @@ Refer to their javadocs for more information.
 Here are some examples of using the DSL to configure flows using the DSL.
 
 .Server Adapter Flow
-====
 [source, java]
 ----
 @Bean
@@ -22,10 +21,8 @@ public IntegrationFlow server() {
             .get();
 }
 ----
-====
 
 .Client Adapter Flow
-====
 [source, java]
 ----
 @Bean
@@ -34,10 +31,8 @@ public IntegrationFlow client() {
                         .serializer(TcpCodecs.lengthHeader1())));
 }
 ----
-====
 
 .Server Gateway Flow
-====
 [source, java]
 ----
 @Bean
@@ -53,10 +48,8 @@ public IntegrationFlow server() {
             .get();
 }
 ----
-====
 
 .Client Gateway Flow
-====
 [source, java]
 ----
 @Bean
@@ -66,4 +59,3 @@ public IntegrationFlow client() {
                         .serializer(TcpCodecs.lengthHeader1())));
 }
 ----
-====

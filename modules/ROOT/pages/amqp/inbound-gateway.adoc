@@ -4,9 +4,11 @@
 The inbound gateway supports all the attributes on the inbound channel adapter (except that 'channel' is replaced by 'request-channel'), plus some additional attributes.
 The following listing shows the available attributes:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean // return the upper cased payload
 public IntegrationFlow amqpInboundGateway(ConnectionFactory connectionFactory) {
@@ -15,8 +17,10 @@ public IntegrationFlow amqpInboundGateway(ConnectionFactory connectionFactory) {
             .get();
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 public MessageChannel amqpInputChannel() {
@@ -55,8 +59,10 @@ public MessageHandler handler() {
     };
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-amqp:inbound-gateway
                           id="inboundGateway"                <1>
@@ -70,6 +76,7 @@ public MessageHandler handler() {
                           default-reply-to="" />             <9>
 
 ----
+======
 
 <1> The Unique ID for this adapter.
 Optional.
@@ -103,7 +110,6 @@ You must either specify this option or configure a default `exchange` and `routi
 if you anticipate cases when no `replyTo` property exists in the request message.
 
 See the note in xref:amqp/inbound-channel-adapter.adoc[Inbound Channel Adapter] about configuring the `listener-container` attribute.
-====
 
 Starting with version 5.5, the `AmqpInboundChannelAdapter` can be configured with an `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when the retry operation is called internally.
 See `setMessageRecoverer()` JavaDocs for more information.

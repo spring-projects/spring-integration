@@ -6,9 +6,11 @@ It is fully based on the https://spring.io/projects/spring-data-cassandra[Spring
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,12 +18,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-cassandra:{project-version}"
 ----
-====
+======
 
 [[cassandra-outbound]]
 == Cassandra Outbound Components
@@ -33,9 +37,11 @@ The `ingestQuery` sets the mode into an `INSERT`; the `query` or `statementExpre
 
 The following code snippets demonstrate various configuration for this channel adapter or gateway:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 IntegrationFlow cassandraSelectFlow(ReactiveCassandraOperations cassandraOperations) {
@@ -47,8 +53,10 @@ IntegrationFlow cassandraSelectFlow(ReactiveCassandraOperations cassandraOperati
             .channel(c -> c.flux("resultChannel"));
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun outboundReactive(cassandraOperations: ReactiveCassandraOperations) =
@@ -59,8 +67,10 @@ fun outboundReactive(cassandraOperations: ReactiveCassandraOperations) =
         ) { async(false) }
     }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @ServiceActivator(inputChannel = "cassandraSelectChannel")
 @Bean
@@ -79,8 +89,10 @@ public MessageHandler cassandraMessageHandler() {
     return cassandraMessageHandler;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-cassandra:outbound-channel-adapter id="outboundAdapter"
                                         cassandra-template="cassandraTemplate"
@@ -100,7 +112,7 @@ public MessageHandler cassandraMessageHandler() {
     <int-cassandra:parameter-expression name="size" expression="headers.limit"/>
 </int-cassandra:outbound-gateway>
 ----
-====
+======
 
 If a `CassandraMessageHandler` is used as a gateway in the default async mode, a `Mono<WriteResult>` is produced, which is handled according to the provided `MessageChannel` implementation.
 For true reactive processing a `FluxMessageChannel` is recommended for the output channel configuration.
@@ -112,7 +124,6 @@ If the payload is a list of entities, then the respective batch operation is per
 The `ingestQuery` mode expects the payload to be present as a matrix of values to insert - `List<List<?>>`.
 For example, if the entity is like this:
 
-====
 [source,java]
 ----
 @Table("book")
@@ -125,11 +136,9 @@ public record Book(@PrimaryKey String isbn,
 
 }
 ----
-====
 
 And channel adapter has this configuration:
 
-====
 [source,java]
 ----
 @Bean
@@ -141,11 +150,9 @@ public MessageHandler cassandraMessageHandler3() {
     return cassandraMessageHandler;
 }
 ----
-====
 
 The request message payload must be converted like this:
 
-====
 [source,java]
 ----
 List<List<Object>> ingestBooks =
@@ -160,7 +167,6 @@ List<List<Object>> ingestBooks =
                             book.isInStock()))
             .toList();
 ----
-====
 
 For more sophisticated use-cases, the payload can be as an instance of `com.datastax.oss.driver.api.core.cql.Statement`.
 The `com.datastax.oss.driver.api.querybuilder.QueryBuilder` API is recommended to build various statements to execute against Apache Cassandra.
@@ -168,12 +174,10 @@ For example, to remove all the data from the `Book` table, a message with a payl
 Alternatively, for logic based on a request message, a `statementExpression` or `statementProcessor` can be provided for the `CassandraMessageHandler` to build a `Statement` based on that message.
 For convenience, a `com.datastax.oss.driver.api.querybuilder` is registered as an `import` into a SpEL evaluation context, so a target expression can be as simple as this:
 
-====
 [source,xml]
 ----
 statement-expression="T(QueryBuilder).selectFrom("book").all()"
 ----
-====
 
 The `setParameterExpressions(Map<String, Expression> parameterExpressions)` represents bindable named query parameters and is used only with a `setQuery(String query)` option.
 See Java and XML samples mentioned above.

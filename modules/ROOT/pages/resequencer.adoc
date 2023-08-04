@@ -26,7 +26,6 @@ Configuring a resequencer requires only including the appropriate element in XML
 
 The following example shows a resequencer configuration:
 
-====
 [source,xml]
 ----
 <int:channel id="inputChannel"/>
@@ -119,7 +118,6 @@ The new group is never released normally because of the "`hole`" in the sequence
 Empty groups can be expired (completely removed) later by using a `MessageGroupStoreReaper` together with the `empty-group-min-timeout` attribute.
 Starting with version 5.0, empty groups are also scheduled for removal after the `empty-group-min-timeout` elapses.
 The default is 'false'.
-====
 
 Also see xref:aggregator.adoc#aggregator-expiring-groups[Aggregator Expiring Groups] for more information.
 

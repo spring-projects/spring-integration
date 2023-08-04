@@ -13,7 +13,6 @@ NOTE: Since the `Channel` is a reference to a "`live`" object, it cannot be seri
 
 The following example shows how you might use `MANUAL` acknowledgement:
 
-====
 [source,java]
 ----
 @ServiceActivator(inputChannel = "foo", outputChannel = "bar")
@@ -34,5 +33,4 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
     return someResultForDownStreamProcessing;
 }
 ----
-====
 

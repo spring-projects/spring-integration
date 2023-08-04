@@ -8,7 +8,6 @@ You can clear the key by calling `clearThreadKey()` after use.
 
 We added convenience methods so that you can more easily do so from a message flow, as the following example shows:
 
-====
 [source, xml]
 ----
 <bean id="dsf" class="org.springframework.integration.file.remote.session.DelegatingSessionFactory">
@@ -27,7 +26,6 @@ We added convenience methods so that you can more easily do so from a message fl
 <int:service-activator input-channel="c2" output-channel="out"
         expression="@dsf.clearThreadKey(#root)" />
 ----
-====
 
 IMPORTANT: When using session caching (see xref:sftp/session-caching.adoc[SFTP Session Caching]), each of the delegates should be cached.
 You cannot cache the `DelegatingSessionFactory` itself.

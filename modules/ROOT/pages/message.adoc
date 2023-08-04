@@ -9,7 +9,6 @@ Any object can be provided as the payload, and each `Message` instance includes 
 
 The following listing shows the definition of the `Message` interface:
 
-====
 [source,java]
 ----
 public interface Message<T> {
@@ -20,7 +19,6 @@ public interface Message<T> {
 
 }
 ----
-====
 
 The `Message` interface is a core part of the API.
 By encapsulating the data in a generic wrapper, the messaging system can pass it around without any knowledge of the data's type.
@@ -33,14 +31,12 @@ On the other hand, when some component in the messaging system does require acce
 Just as Spring Integration lets any `Object` be used as the payload of a `Message`, it also supports any `Object` types as header values.
 In fact, the `MessageHeaders` class implements the `java.util.Map_ interface`, as the following class definition shows:
 
-====
 [source,java]
 ----
 public final class MessageHeaders implements Map<String, Object>, Serializable {
   ...
 }
 ----
-====
 
 NOTE: Even though the `MessageHeaders` class implements `Map`, it is effectively a read-only implementation.
 Any attempt to `put` a value in the Map results in an `UnsupportedOperationException`.
@@ -54,7 +50,6 @@ Alternatively, you can provide the expected `Class` as an additional parameter.
 Even better, when retrieving one of the pre-defined values, convenient getters are available.
 The following example shows each of these three options:
 
-====
 [source,java]
 ----
 Object someValue = message.getHeaders().get("someKey");
@@ -63,12 +58,11 @@ CustomerId customerId = message.getHeaders().get("customerId", CustomerId.class)
 
 Long timestamp = message.getHeaders().getTimestamp();
 ----
-====
 
 The following table describes the pre-defined message headers:
 
-.Pre-defined Message Headers
 
+.Pre-defined Message Headers
 [cols="2l,2l,5", options="header"]
 |===
 | Header Name
@@ -177,7 +171,6 @@ See xref:polling-consumer.adoc#deferred-acks-message-source[Deferred Acknowledgm
 
 Convenient typed getters for some of these headers are provided on the `IntegrationMessageHeaderAccessor` class, as the following example shows:
 
-====
 [source,java]
 ----
 IntegrationMessageHeaderAccessor accessor = new IntegrationMessageHeaderAccessor(message);
@@ -185,7 +178,6 @@ int sequenceNumber = accessor.getSequenceNumber();
 Object correlationId = accessor.getCorrelationId();
 ...
 ----
-====
 
 The following table describes headers that also appear in the `IntegrationMessageHeaderAccessor` but are generally not used by user code (that is, they are generally used by internal parts of Spring Integration -- their inclusion here is for completeness):
 
@@ -275,14 +267,12 @@ IMPORTANT: Header propagation suppression does not apply to those endpoints that
 
 The base implementation of the `Message` interface is `GenericMessage<T>`, and it provides two constructors, shown in the following listing:
 
-====
 [source,java]
 ----
 new GenericMessage<T>(T payload);
 
 new GenericMessage<T>(T payload, Map<String, Object> headers)
 ----
-====
 
 When a `Message` is created, a random unique ID is generated.
 The constructor that accepts a `Map` of headers copies the provided headers to the newly created `Message`.
@@ -290,14 +280,12 @@ The constructor that accepts a `Map` of headers copies the provided headers to t
 There is also a convenient implementation of `Message` designed to communicate error conditions.
 This implementation takes a `Throwable` object as its payload, as the following example shows:
 
-====
 [source,java]
 ----
 ErrorMessage message = new ErrorMessage(someThrowable);
 
 Throwable t = message.getPayload();
 ----
-====
 
 Note that this implementation takes advantage of the fact that the `GenericMessage` base class is parameterized.
 Therefore, as shown in both examples, no casting is necessary when retrieving the `Message` payload `Object`.
@@ -318,7 +306,6 @@ Rather than requiring the creation and population of a Map to pass into the Gene
 The `MessageBuilder` provides two factory methods for creating `Message` instances from either an existing `Message` or with a payload `Object`.
 When building from an existing `Message`, the headers and payload of that `Message` are copied to the new `Message`, as the following example shows:
 
-====
 [source,java]
 ----
 Message<String> message1 = MessageBuilder.withPayload("test")
@@ -330,7 +317,6 @@ Message<String> message2 = MessageBuilder.fromMessage(message1).build();
 assertEquals("test", message2.getPayload());
 assertEquals("bar", message2.getHeaders().get("foo"));
 ----
-====
 
 If you need to create a `Message` with a new payload but still want to copy the headers from an existing `Message`, you can use one of the 'copy' methods, as the following example shows:
 

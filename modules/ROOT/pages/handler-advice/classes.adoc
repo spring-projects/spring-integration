@@ -11,8 +11,8 @@ In addition to providing the general mechanism to apply AOP advice classes, Spri
 * `ReactiveRequestHandlerAdvice` (described in xref:handler-advice/reactive.adoc[Reactive Advice])
 * `ContextHolderRequestHandlerAdvice` (described in xref:handler-advice/context-holder.adoc[Context Holder Advice])
 
-[[expression-advice]]
 
+[[expression-advice]]
 [[retry-advice]]
 == Retry Advice
 
@@ -40,7 +40,6 @@ In high-volume environments, back off policies should be used with caution.
 
 The examples in this section use the following `<service-activator>` that always throws an exception:
 
-====
 [source,java]
 ----
 public class FailingService {
@@ -50,7 +49,6 @@ public class FailingService {
     }
 }
 ----
-====
 
 Simple Stateless Retry::
 The default `RetryTemplate` has a `SimpleRetryPolicy` which tries three times.
@@ -59,7 +57,6 @@ There is no `RecoveryCallback`, so the result is to throw the exception to the c
 In a Spring Integration environment, this final exception might be handled by using an `error-channel` on the inbound endpoint.
 The following example uses `RetryTemplate` and shows its `DEBUG` output:
 +
-====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -77,12 +74,10 @@ DEBUG [task-scheduler-2]Retry: count=2
 DEBUG [task-scheduler-2]Checking for rethrow: count=3
 DEBUG [task-scheduler-2]Retry failed last attempt: count=3
 ----
-====
 
 Simple Stateless Retry with Recovery::
 The following example adds a `RecoveryCallback` to the preceding example and uses an `ErrorMessageSendingRecoverer` to send an `ErrorMessage` to a channel:
 +
-====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -107,7 +102,6 @@ DEBUG [task-scheduler-2]Checking for rethrow: count=3
 DEBUG [task-scheduler-2]Retry failed last attempt: count=3
 DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]
 ----
-====
 
 Stateless Retry with Customized Policies, and Recovery::
 For more sophistication, we can provide the advice with a customized `RetryTemplate`.
@@ -115,7 +109,6 @@ This example continues to use the `SimpleRetryPolicy` but increases the attempts
 It also adds an `ExponentialBackoffPolicy` where the first retry waits one second, the second waits five seconds and the third waits 25 (for four attempts in all).
 The following listing shows the example and its `DEBUG` output:
 +
-====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -161,12 +154,10 @@ The following listing shows the example and its `DEBUG` output:
 58.084 DEBUG [task-scheduler-1]Retry failed last attempt: count=4
 58.086 DEBUG [task-scheduler-1]Sending ErrorMessage :failedMessage:[Payload=...]
 ----
-====
 
 Namespace Support for Stateless Retry::
 Starting with version 4.0, the preceding configuration can be greatly simplified, thanks to the namespace support for the retry advice, as the following example shows:
 +
-====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -179,12 +170,10 @@ Starting with version 4.0, the preceding configuration can be greatly simplified
     <int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
 </int:handler-retry-advice>
 ----
-====
 +
 In the preceding example, the advice is defined as a top-level bean so that it can be used in multiple `request-handler-advice-chain` instances.
 You can also define the advice directly within the chain, as the following example shows:
 +
-====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -195,7 +184,6 @@ You can also define the advice directly within the chain, as the following examp
     </int:request-handler-advice-chain>
 </int:service-activator>
 ----
-====
 +
 A `<handler-retry-advice>` can have a `<fixed-back-off>` or `<exponential-back-off>` child element or have no child element.
 A `<handler-retry-advice>` with no child element uses no back off.
@@ -212,7 +200,6 @@ This example again uses the default policies (three attempts with no back off).
 As with stateless retry, these policies can be customized.
 The following listing shows the example and its `DEBUG` output:
 +
-====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -269,7 +256,6 @@ Caused by: java.lang.RuntimeException: foo
 27.426 DEBUG [Container#0-1]Retry failed last attempt: count=3
 27.426 DEBUG [Container#0-1]Sending ErrorMessage :failedMessage:[Payload=...]
 ----
-====
 +
 If you compare the preceding example with the stateless examples, you can see that, with stateful retry, the exception is thrown to the caller on each failure.
 
@@ -310,7 +296,6 @@ The default is 1000 milliseconds.
 
 The following example configures a circuit breaker and shows its `DEBUG` and `ERROR` output:
 
-====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -340,7 +325,6 @@ The following example configures a circuit breaker and shows its `DEBUG` and `ER
 30.598 DEBUG [task-scheduler-1]preSend on channel 'input', message: [Payload=foo...]
 30.599 ERROR [task-scheduler-1]org.springframework.messaging.MessagingException: Circuit Breaker is Open for ServiceActivator
 ----
-====
 
 In the preceding example, the threshold is set to `2` and `halfOpenAfter` is set to `12` seconds.
 A new request arrives every 5 seconds.
@@ -372,7 +356,6 @@ When an exception is thrown in the scope of the advice, by default, that excepti
 If you wish to suppress throwing the exception, set the `trapException` property to `true`.
 The following advice shows how to configure an `advice` with Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -422,7 +405,6 @@ public class EerhaApplication {
 
 }
 ----
-====
 
 [[rate-limiter-advice]]
 == Rate Limiter Advice
@@ -436,7 +418,6 @@ The `RateLimiterRequestHandlerAdvice` implementation is fully based on the https
 Can also be configured with defaults and/or custom name.
 
 The following example configures a rate limiter advice with one request per 1 second:
-====
 [source, java]
 ----
 @Bean
@@ -453,7 +434,6 @@ public String handleRequest(String payload) {
     ...
 }
 ----
-====
 
 [[cache-advice]]
 == Caching Advice
@@ -471,7 +451,6 @@ If a `CacheManager` is not provided, a single bean is resolved by default from t
 
 The following example configures two advices with different set of caching operations:
 
-====
 [source, java]
 ----
 @Bean
@@ -504,5 +483,4 @@ public Message<?> service(Message<?> message) {
     ...
 }
 ----
-====
 

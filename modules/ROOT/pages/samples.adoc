@@ -25,23 +25,19 @@ NOTE: If you need more information on how to install or use Git, visit: https://
 
 To clone (check out) the Spring Integration samples repository by using the Git command line tool, issue the following command:
 
-====
 [source,xml]
 ----
 $ git clone https://github.com/spring-projects/spring-integration-samples.git
 ----
-====
 
 The preceding command clones the entire samples repository into a directory named `spring-integration-samples` within the working directory where you issued that `git` command.
 Since the samples repository is a live repository, you might want to perform periodic pulls (updates) to get new samples and updates to the existing samples.
 To do so, issue the following `git pull` command:
 
-====
 [source,xml]
 ----
 $ git pull
 ----
-====
 
 [[submitting-samples-or-sample-requests]]
 == Submitting Samples or Sample Requests
@@ -206,7 +202,6 @@ In Spring Integration, you can define the gateway as a plain old java interface 
 Spring Integration takes care of delegating and mapping method invocations to the messaging infrastructure by generating a message (the payload is mapped to an input parameter of the method) and sending it to the designated channel.
 The following example shows how to define such a gateway with XML:
 
-====
 [source,xml]
 ----
 <int:gateway id="loanBrokerGateway"
@@ -217,7 +212,6 @@ The following example shows how to define such a gateway with XML:
   </int:method>
 </int:gateway>
 ----
-====
 
 Our current gateway provides two methods that could be invoked.
 One that returns the best single quote and another one that returns all quotes.
@@ -272,7 +266,6 @@ Spring Integration provides several implementations of the aggregator pattern as
 
 The following example shows how to define an aggregator:
 
-====
 [source,xml]
 ----
 <int:aggregator id="quotesAggregator"
@@ -281,7 +274,6 @@ The following example shows how to define an aggregator:
   <beans:bean class="org.springframework.integration.samples.loanbroker.LoanQuoteAggregator"/>
 </int:aggregator>
 ----
-====
 
 Our Loan Broker defines a 'quotesAggregator' bean with the `<aggregator>` element, which provides a default aggregation and correlation strategy.
 The default correlation strategy correlates messages based on the `correlationId` header (see https://www.enterpriseintegrationpatterns.com/patterns/messaging/CorrelationIdentifier.html[the correlation identifier pattern in the EIP book]).
@@ -330,7 +322,6 @@ The prepared drinks are then sent to the `Waiter` where they are aggregated into
 
 The following listing shows the XML configuration:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -382,14 +373,12 @@ The following listing shows the XML configuration:
 
 </beans:beans>
 ----
-====
 
 Each message endpoint connects to input channels, output channels, or both.
 Each endpoint manages its own lifecycle (by default, endpoints start automatically upon initialization, to prevent that, add the `auto-startup` attribute with a value of `false`).
 Most importantly, notice that the objects are simple POJOs with strongly typed method arguments.
 The following example shows the Splitter:
 
-====
 [source,java]
 ----
 public class OrderSplitter {
@@ -398,12 +387,10 @@ public class OrderSplitter {
     }
 }
 ----
-====
 
 In the case of the router, the return value does not have to be a `MessageChannel` instance (although it can be).
 In this example, a `String` value that holds the channel name is returned instead, as the following listing shows.
 
-====
 [source,java]
 ----
 public class DrinkRouter {
@@ -412,13 +399,11 @@ public class DrinkRouter {
     }
 }
 ----
-====
 
 Now, turning back to the XML, you can see that there are two `<service-activator>` elements.
 Each of these is delegating to the same `Barista` instance but with different methods (`prepareHotDrink` or `prepareColdDrink`), each corresponding to one of the two channels where order items have been routed.
 The following listing shows the Barista class (which contains the `prepareHotDrink` and `prepareColdDrink` methods)
 
-====
 [source,java]
 ----
 public class Barista {
@@ -470,7 +455,6 @@ public class Barista {
     }
 }
 ----
-====
 
 As you can see from the preceding code excerpt, the `Barista` methods have different delays (the hot drinks take five times as long to prepare).
 This simulates work being completed at different rates.
@@ -480,7 +464,6 @@ In the earlier XML configuration, you can see that the `<gateway>` element is sp
 This triggers the creation of a proxy that implements the given service interface and connects it to a channel.
 The channel name is provided on the `@Gateway` annotation of the `Cafe` interface, as the following interface definition shows:
 
-====
 [source,java]
 ----
 public interface Cafe {
@@ -490,11 +473,9 @@ public interface Cafe {
 
 }
 ----
-====
 
 Finally, have a look at the `main()` method of the `CafeDemo` itself:
 
-====
 [source,java]
 ----
 public static void main(String[] args) {
@@ -514,7 +495,6 @@ public static void main(String[] args) {
     }
 }
 ----
-====
 
 TIP: To run this sample as well as eight others, refer to the `README.txt` within the `samples` directory of the main distribution (as described at xref:samples.adoc#samples-impl[the beginning of this chapter]).
 
@@ -525,7 +505,6 @@ However, by configuring a poller with a concurrent task executor, you can dramat
 For example, you could use a thread pool executor with five workers for the hot drink barista while keeping the cold drink barista as it is.
 The following listing configures such an arrangement:
 
-====
 [source,xml]
 ----
 <int:service-activator input-channel="hotDrinks"
@@ -542,7 +521,6 @@ The following listing configures such an arrangement:
 
   <task:executor id="pool" pool-size="5"/>
 ----
-====
 
 Also, notice that the worker thread name is displayed with each invocation.
 You can see that the hot drinks are prepared by the task-executor threads.
@@ -563,7 +541,6 @@ While we usually use, `int-xml` for integration XML components, the sample uses 
 First, the order is split into a number of messages, each one representing a single order item from the XPath splitter component.
 The following listing shows the configuration of the splitter:
 
-====
 [source,xml]
 ----
 <si-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel"
@@ -572,7 +549,6 @@ The following listing shows the configuration of the splitter:
                                 namespace-map="orderNamespaceMap" />
   </si-xml:xpath-splitter>
 ----
-====
 
 A service activator then passes the message into a stock checker POJO.
 The order item document is enriched with information from the stock checker about the order item stock level.
@@ -580,7 +556,6 @@ This enriched order item message is then used to route the message.
 In the case where the order item is in stock, the message is routed to the warehouse.
 The following listing configures the `xpath-router` that routes the messages:
 
-====
 [source,xml]
 ----
 <si-xml:xpath-router id="inStockRouter" input-channel="orderRoutingChannel" resolution-required="true">
@@ -589,16 +564,13 @@ The following listing configures the `xpath-router` that routes the messages:
     <si-xml:mapping value="false" channel="outOfStockChannel"/>
 </si-xml:xpath-router>
 ----
-====
 
 When the order item is not in stock, the message is transformed with XSLT into a format suitable for sending to the supplier.
 The following listing configures the XSLT transformer:
 
-====
 [source,xml]
 ----
 <si-xml:xslt-transformer input-channel="outOfStockChannel"
   output-channel="resupplyOrderChannel"
   xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>
 ----
-====

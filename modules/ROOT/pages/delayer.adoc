@@ -15,20 +15,20 @@ The `<delayer>` element is used to delay the message flow between two message ch
 As with the other endpoints, you can provide the 'input-channel' and 'output-channel' attributes, but the delayer also has 'default-delay' and 'expression' attributes (and the 'expression' element) that determine the number of milliseconds by which each message should be delayed.
 The following example delays all messages by three seconds:
 
-====
 [source,xml]
 ----
 <int:delayer id="delayer" input-channel="input"
              default-delay="3000" output-channel="output"/>
 ----
-====
 
 If you need to determine the delay for each message, you can also provide the SpEL expression by using the 'expression' attribute, as the following expression shows:
 
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow flow() {
@@ -41,8 +41,10 @@ public IntegrationFlow flow() {
             .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun flow() =
@@ -55,8 +57,10 @@ fun flow() =
         channel("output")
     }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @ServiceActivator(inputChannel = "input")
 @Bean
@@ -68,13 +72,15 @@ public DelayHandler delayer() {
     return handler;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:delayer id="delayer" input-channel="input" output-channel="output"
              default-delay="3000" expression="headers['delay']"/>
 ----
-====
+======
 
 In the preceding example, the three-second delay applies only when the expression evaluates to null for a given inbound message.
 If you want to apply a delay only to messages that have a valid result of the expression evaluation, you can use a 'default-delay' of `0` (the default).
@@ -105,13 +111,11 @@ However, different results are achieved if the header is missing.
 In the first case, the expression evaluates to `null`.
 The second results in something similar to the following:
 
-====
 [source,java]
 ----
  org.springframework.expression.spel.SpelEvaluationException: EL1008E:(pos 8):
 		   Field or property 'delay' cannot be found on object of type 'org.springframework.messaging.MessageHeaders'
 ----
-====
 
 Consequently, if there is a possibility of the header being omitted and you want to fall back to the default delay, it is generally more efficient (and recommended) using the indexer syntax instead of dot property accessor syntax, because detecting the null is faster than catching an exception.
 =====
@@ -121,7 +125,6 @@ The default scheduler used by the delayer is the `ThreadPoolTaskScheduler` insta
 See xref:configuration/namespace-taskscheduler.adoc[Configuring the Task Scheduler].
 If you want to delegate to a different scheduler, you can provide a reference through the delayer element's 'scheduler' attribute, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:delayer id="delayer" input-channel="input" output-channel="output"
@@ -130,7 +133,6 @@ If you want to delegate to a different scheduler, you can provide a reference th
 
 <task:scheduler id="exampleTaskScheduler" pool-size="3"/>
 ----
-====
 
 TIP: If you configure an external `ThreadPoolTaskScheduler`, you can set `waitForTasksToCompleteOnShutdown = true` on this property.
 It allows successful completion of 'delay' tasks that are already in the execution state (releasing the message) when the application is shutdown.
@@ -168,7 +170,6 @@ You can use any custom `org.aopalliance.aop.Advice` implementation within the `<
 The `<transactional>` element defines a simple advice chain that has only the transactional advice.
 The following example shows an `advice-chain` within a `<delayer>`:
 
-====
 [source,xml]
 ----
 <int:delayer id="delayer" input-channel="input" output-channel="output"
@@ -184,19 +185,16 @@ The following example shows an `advice-chain` within a `<delayer>`:
     </int:advice-chain>
 </int:delayer>
 ----
-====
 
 The `DelayHandler` can be exported as a JMX `MBean` with managed operations (`getDelayedMessageCount` and `reschedulePersistedMessages`), which allows the rescheduling of delayed persisted messages at runtime -- for example, if the `TaskScheduler` has previously been stopped.
 These operations can be invoked through a `Control Bus` command, as the following example shows:
 
-====
 [source,java]
 ----
 Message<String> delayerReschedulingMessage =
     MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
 controlBusChannel.send(delayerReschedulingMessage);
 ----
-====
 
 NOTE: For more information regarding the message store, JMX, and the control bus, see xref:system-management.adoc[System Management].
 

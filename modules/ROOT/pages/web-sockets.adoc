@@ -8,9 +8,11 @@ For more information, see the https://docs.spring.io/spring/docs/current/spring-
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -18,12 +20,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-websocket:{project-version}"
 ----
-====
+======
 
 For server side, the `org.springframework:spring-webmvc` dependency must be included explicitly.
 
@@ -31,7 +35,6 @@ The Spring Framework WebSocket infrastructure is based on the Spring messaging f
 Consequently, Spring Integration can be directly involved in a WebSocket flow, even without WebSocket adapters.
 For this purpose, you can configure a Spring Integration `@MessagingGateway` with appropriate annotations, as the following example shows:
 
-====
 [source,java]
 ----
 @MessagingGateway
@@ -45,7 +48,6 @@ public interface WebSocketGateway {
 
 }
 ----
-====
 
 [[web-socket-overview]]
 == Overview
@@ -57,7 +59,6 @@ Consequently, most connection and `WebSocketSession` registry options are the sa
 That lets us reuse many configuration items and infrastructure hooks to build WebSocket applications on the server side as well as on the client side.
 The following example shows how components can serve both purposes:
 
-====
 [source,java]
 ----
 //Client side
@@ -77,7 +78,6 @@ public IntegrationWebSocketContainer serverWebSocketContainer() {
     return new ServerWebSocketContainer("/endpoint").withSockJs();
 }
 ----
-====
 
 The `IntegrationWebSocketContainer` is designed to achieve bidirectional messaging and can be shared between inbound and outbound channel adapters (see below), can be referenced from only one of them when using one-way (sending or receiving) WebSocket messaging.
 It can be used without any channel adapter, but, in this case, `IntegrationWebSocketContainer` only plays a role as the `WebSocketSession` registry.
@@ -142,7 +142,6 @@ The rest of this chapter covers largely additional configuration options.
 The Spring Integration WebSocket namespace includes several components described in the remainder of this chapter.
 To include it in your configuration, use the following namespace declaration in your application context configuration file:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -160,14 +159,12 @@ To include it in your configuration, use the following namespace declaration in 
     ...
 </beans>
 ----
-====
 
 [[websocket-client-container-attributes]]
 === `<int-websocket:client-container>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:client-container>` element:
 
-====
 [source,xml]
 ----
 <int-websocket:client-container
@@ -210,14 +207,12 @@ The default is `Integer.MAX_VALUE`.
 Values can be negative.
 See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/SmartLifecycle.html[`SmartLifeCycle`].
 <11> A `Map` of `HttpHeaders` to be used with the Handshake request.
-====
 
 [[<int-websocket:server-container>-attributes]]
 === `<int-websocket:server-container>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:server-container>` element:
 
-====
 [source,xml]
 ----
 <int-websocket:server-container
@@ -296,14 +291,12 @@ By default, `Jackson2SockJsMessageCodec` is used, which requires the Jackson lib
 <19> List of `TransportHandler` bean references.
 <20> Whether to disable automatic addition of CORS headers for SockJS requests.
 The default value is `false`.
-====
 
 [[websocket-outbound-channel-adapter-attributes]]
 === `<int-websocket:outbound-channel-adapter>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:outbound-channel-adapter>` element:
 
-====
 [source,xml]
 ----
 <int-websocket:outbound-channel-adapter
@@ -344,14 +337,12 @@ The lower the value, the earlier this endpoint starts and the later it stops.
 The default is `Integer.MIN_VALUE`.
 Values can be negative.
 See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/SmartLifecycle.html[`SmartLifeCycle`].
-====
 
 [[<int-websocket:inbound-channel-adapter>-attributes]]
 === `<int-websocket:inbound-channel-adapter>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:outbound-channel-adapter>` element:
 
-====
 [source,xml]
 ----
 <int-websocket:inbound-channel-adapter
@@ -393,7 +384,6 @@ On the client side, it is ignored.
 Defaults to `false`.
 <12> See the same option on the <<websocket-outbound-channel-adapter-attributes,`<int-websocket:outbound-channel-adapter>`>>.
 <13> See the same option on the <<websocket-outbound-channel-adapter-attributes,`<int-websocket:outbound-channel-adapter>`>>.
-====
 
 [[client-stomp-encoder]]
 == Using `ClientStompEncoder`
@@ -410,7 +400,6 @@ The purpose of the `ClientStompEncoder`, in this case, is to override the `stomp
 Starting with version 5.5, the WebSocket server endpoints (channel adapters based on a `ServerWebSocketContainer`) can now be registered (and removed) at runtime - the `paths` a `ServerWebSocketContainer` is mapped is exposed via `HandlerMapping` into a `DispatcherServlet` and accessible for WebSocket clients.
 The xref:dsl/java-runtime-flows.adoc[Dynamic and Runtime Integration Flows] support helps to register these endpoints in a transparent manner:
 
-====
 [source,java]
 ----
 @Autowired
@@ -440,7 +429,6 @@ IntegrationFlowContext.IntegrationFlowRegistration dynamicServerFlow =
 ...
 dynamicServerFlow.destroy();
 ----
-====
 
 NOTE: It is important to call `.addBean(serverWebSocketContainer)` on the dynamic flow registration to add the instance of `ServerWebSocketContainer` into an `ApplicationContext` for endpoint registration.
 When a dynamic flow registration is destroyed, the associated `ServerWebSocketContainer` instance is destroyed, too, as well as the respective endpoint registration, including URL path mappings.

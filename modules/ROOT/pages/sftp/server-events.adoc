@@ -17,7 +17,6 @@ The `source` property of each event is a `ServerSession`, from which you can obt
 
 To configure the server with the listener (which must be a Spring bean), simply add it to the `SftpSubsystemFactory`:
 
-====
 [source, java]
 ----
 server = SshServer.setUpDefaultServer();
@@ -26,11 +25,9 @@ SftpSubsystemFactory sftpFactory = new SftpSubsystemFactory();
 sftpFactory.addSftpEventListener(apacheMinaSftpEventListenerBean);
 ...
 ----
-====
 
 To consume these events using a Spring Integration event adapter:
 
-====
 [source, java]
 ----
 @Bean
@@ -42,5 +39,4 @@ public ApplicationEventListeningMessageProducer eventsAdapter() {
     return producer;
 }
 ----
-====
 

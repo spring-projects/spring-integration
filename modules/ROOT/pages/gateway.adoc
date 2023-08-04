@@ -14,7 +14,6 @@ By using dependency injection, you can then expose the interface to your busines
 
 The following example shows an interface that can be used to interact with Spring Integration:
 
-====
 [source,java]
 ----
 package org.cafeteria;
@@ -25,7 +24,6 @@ public interface Cafe {
 
 }
 ----
-====
 
 [[gateway-namespace]]
 == Gateway XML Namespace Support
@@ -33,7 +31,6 @@ public interface Cafe {
 Namespace support is also provided.
 It lets you configure an interface as a service, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:gateway id="cafeService"
@@ -42,7 +39,6 @@ It lets you configure an interface as a service, as the following example shows:
          default-reply-timeout="10000"
          default-reply-channel="replyChannel"/>
 ----
-====
 
 With this configuration defined, the `cafeService` can now be injected into other beans, and the code that invokes the methods on that proxied instance of the `Cafe` interface has no awareness of the Spring Integration API.
 See the xref:samples.adoc#samples-impl["`Samples`"] Appendix for an example that uses the `gateway` element (in the Cafe demo).
@@ -89,7 +85,6 @@ This allows any possible reply from the downstream flow to be discarded, meeting
 
 Consider the following example, which expands on the previous `Cafe` interface example by adding a `@Gateway` annotation:
 
-====
 [source,java]
 ----
 public interface Cafe {
@@ -99,11 +94,9 @@ public interface Cafe {
 
 }
 ----
-====
 
 The `@Header` annotation lets you add values that are interpreted as message headers, as the following example shows:
 
-====
 [source,java]
 ----
 public interface FileWriter {
@@ -113,11 +106,9 @@ public interface FileWriter {
 
 }
 ----
-====
 
 If you prefer the XML approach to configuring gateway methods, you can add `method` elements to the gateway configuration, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:gateway id="myGateway" service-interface="org.foo.bar.TestGateway"
@@ -128,7 +119,6 @@ If you prefer the XML approach to configuring gateway methods, you can add `meth
   <int:method name="echoViaDefault"/>
 </int:gateway>
 ----
-====
 
 You can also use XML to provide individual headers for each method invocation.
 This could be useful if the headers you want to set are static in nature, and you do not want to embed them in the gateway's method signature by using `@Header` annotations.
@@ -137,7 +127,6 @@ Determining the type of the request by evaluating which gateway method was invok
 However, expressing your intention (meta information) in message headers is natural in a messaging architecture.
 The following example shows how to add a different message header for each of two methods:
 
-====
 [source,xml]
 ----
 <int:gateway id="loanBrokerGateway"
@@ -150,7 +139,6 @@ The following example shows how to add a different message header for each of tw
   </int:method>
 </int:gateway>
 ----
-====
 
 In the preceding example a different value is set for the 'RESPONSE_TYPE' header, based on the gateway's method.
 
@@ -186,14 +174,12 @@ When no explicit configuration is used, certain conventions are used to perform 
 In some cases, these conventions cannot determine which argument is the payload and which should be mapped to headers.
 Consider the following example:
 
-====
 [source,java]
 ----
 public String send1(Object thing1, Map thing2);
 
 public String send2(Map thing1, Map thing2);
 ----
-====
 
 In the first case, the convention is to map the first argument to the payload (as long as it is not a `Map`) and the contents of the second argument become headers.
 
@@ -212,7 +198,6 @@ Similarly, the `payload-expression` attribute and `<header/>` elements are not a
 
 The following examples show how method arguments can be mapped to the message and shows some examples of invalid configuration:
 
-====
 [source,java]
 ----
 public interface MyGateway {
@@ -251,14 +236,12 @@ public interface MyGateway {
 
 }
 ----
-====
 
 <1> Note that, in this example, the SpEL variable, `#this`, refers to the argument -- in this case, the value of `s`.
 
 The XML equivalent looks a little different, since there is no `#this` context for the method argument.
 However, expressions can refer to method arguments by using the `args` property for the `MethodArgsHolder` root object (see xref:gateway.adoc#gateway-expressions[Expressions and "`Global`" Headers] for more information), as the following example shows:
 
-====
 [source,xml]
 ----
 <int:gateway id="myGateway" service-interface="org.something.MyGateway">
@@ -270,7 +253,6 @@ However, expressions can refer to method arguments by using the `args` property 
   </int:method>
 </int:gateway>
 ----
-====
 
 [[messaging-gateway-annotation]]
 == `@MessagingGateway` Annotation
@@ -278,7 +260,6 @@ However, expressions can refer to method arguments by using the `args` property 
 Starting with version 4.0, gateway service interfaces can be marked with a `@MessagingGateway` annotation instead of requiring the definition of a `<gateway />` xml element for configuration.
 The following pair of examples compares the two approaches for configuring the same gateway:
 
-====
 [source,xml]
 ----
 <int:gateway id="myGateway" service-interface="org.something.TestGateway"
@@ -309,7 +290,6 @@ public interface TestGateway {
 
 }
 ----
-====
 
 IMPORTANT: Similarly to the XML version, when Spring Integration discovers these annotations during a component scan, it creates the `proxy` implementation with its messaging infrastructure.
 To perform this scan and register the `BeanDefinition` in the application context, add the `@IntegrationComponentScan` annotation to a `@Configuration` class.
@@ -392,12 +372,10 @@ The gateway invocation can result in errors.
 By default, any error that occurs downstream is re-thrown "`as is`" upon the gateway's method invocation.
 For example, consider the following simple flow:
 
-====
 [source]
 ----
 gateway -> service-activator
 ----
-====
 
 If the service invoked by the service activator throws a `MyException` (for example), the framework wraps it in a `MessagingException` and attaches the message passed to the service activator in the `failedMessage` property.
 Consequently, any logging performed by the framework has full the context of the failure.
@@ -405,7 +383,6 @@ By default, when the exception is caught by the gateway, the `MyException` is un
 You can configure a `throws` clause on the gateway method declaration to match the particular exception type in the cause chain.
 For example, if you want to catch a whole `MessagingException` with all the messaging information of the reason of downstream error, you should have a gateway method similar to the following:
 
-====
 [source, java]
 ----
 public interface MyGateway {
@@ -414,7 +391,6 @@ public interface MyGateway {
 
 }
 ----
-====
 
 Since we encourage POJO programming, you may not want to expose the caller to messaging infrastructure.
 
@@ -516,20 +492,17 @@ Individual methods can override these defaults (in `<method/>` child elements) o
 
 Starting with version 5.0, the timeouts can be defined as expressions, as the following example shows:
 
-====
 [source, java]
 ----
 @Gateway(payloadExpression = "args[0]", requestChannel = "someChannel",
         requestTimeoutExpression = "args[1]", replyTimeoutExpression = "args[2]")
 String lateReply(String payload, long requestTimeout, long replyTimeout);
 ----
-====
 
 The evaluation context has a `BeanResolver` (use `@someBean` to reference other beans), and the `args` array property from the `#root` object is available.
 See xref:gateway.adoc#gateway-expressions[Expressions and "`Global`" Headers] for more information about this root object.
 When configuring with XML, the timeout attributes can be a long value or a SpEL expression, as the following example shows:
 
-====
 [source, xml]
 ----
 <method name="someMethod" request-channel="someRequestChannel"
@@ -538,7 +511,6 @@ When configuring with XML, the timeout attributes can be a long value or a SpEL 
                       reply-timeout="args[1]">
 </method>
 ----
-====
 
 [[async-gateway]]
 == Asynchronous Gateway
@@ -578,7 +550,6 @@ Then you can interact with the `Future` at your own pace to get the result, canc
 Also, as with any other use of `Future` instances, calling `get()` may reveal a timeout, an execution exception, and so on.
 The following example shows how to use a `Future` that returns from an asynchronous gateway:
 
-====
 [source,java]
 ----
 MathServiceGateway mathService = ac.getBean("mathService", MathServiceGateway.class);
@@ -586,7 +557,6 @@ Future<Integer> result = mathService.multiplyByTwo(number);
 // do something else here since the reply might take a moment
 int finalResult =  result.get(1000, TimeUnit.SECONDS);
 ----
-====
 
 For a more detailed example, see the https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/async-gateway[async-gateway] sample in the Spring Integration samples.
 
@@ -600,7 +570,6 @@ The (default) `SimpleAsyncTaskExecutor` supports both `Future` and `CompletableF
 See xref:gateway.adoc#gw-completable-future[`CompletableFuture`].
 Even though there is a default executor, it is often useful to provide an external one so that you can identify its threads in logs (when using XML, the thread name is based on the executor's bean name), as the following example shows:
 
-====
 [source,java]
 ----
 @Bean
@@ -618,14 +587,12 @@ public interface ExecGateway {
 
 }
 ----
-====
 
 If you wish to return a different `Future` implementation, you can provide a custom executor or disable the executor altogether and return the `Future` in the reply message payload from the downstream flow.
 To disable the executor, set it to `null` in the `GatewayProxyFactoryBean` (by using `setAsyncTaskExecutor(null)`).
 When configuring the gateway with XML, use `async-executor=""`.
 When configuring by using the `@MessagingGateway` annotation, use code similar to the following:
 
-====
 [source,java]
 ----
 @MessagingGateway(asyncExecutor = AnnotationConstants.NULL)
@@ -636,7 +603,6 @@ public interface NoExecGateway {
 
 }
 ----
-====
 
 IMPORTANT: If the return type is a specific concrete `Future` implementation or some other sub-interface that is not supported by the configured executor, the flow runs on the caller's thread and the flow must return the required type in the reply message payload.
 
@@ -660,7 +626,6 @@ It is recommended now to migrate to the `CompletableFuture` which provides simil
 
 In the following scenario, the caller thread returns immediately with a `CompletableFuture<Invoice>`, which is completed when the downstream flow replies to the gateway (with an `Invoice` object).
 
-====
 [source, java]
 ----
 CompletableFuture<Invoice> order(Order order);
@@ -670,12 +635,10 @@ CompletableFuture<Invoice> order(Order order);
 ----
 <int:gateway service-interface="something.Service" default-request-channel="orders" />
 ----
-====
 
 In the following  scenario, the caller thread returns with a `CompletableFuture<Invoice>` when the downstream flow provides it as the payload of the reply to the gateway.
 Some other process must complete the future when the invoice is ready.
 
-====
 [source, java]
 ----
 CompletableFuture<Invoice> order(Order order);
@@ -686,13 +649,11 @@ CompletableFuture<Invoice> order(Order order);
 <int:gateway service-interface="foo.Service" default-request-channel="orders"
     async-executor="" />
 ----
-====
 
 In the following scenario, the caller thread returns with a `CompletableFuture<Invoice>` when the downstream flow provides it as the payload of the reply to the gateway.
 Some other process must complete the future when the invoice is ready.
 If `DEBUG` logging is enabled, a log entry is emitted, indicating that the async executor cannot be used for this scenario.
 
-====
 [source, java]
 ----
 MyCompletableFuture<Invoice> order(Order order);
@@ -702,11 +663,9 @@ MyCompletableFuture<Invoice> order(Order order);
 ----
 <int:gateway service-interface="foo.Service" default-request-channel="orders" />
 ----
-====
 
 `CompletableFuture` instances can be used to perform additional manipulation on the reply, as the following example shows:
 
-====
 [source, java]
 ----
 CompletableFuture<String> process(String data);
@@ -720,7 +679,6 @@ CompletableFuture result = process("foo")
 
 String out = result.get(10, TimeUnit.SECONDS);
 ----
-====
 
 [[reactor-mono]]
 === Reactor `Mono`
@@ -736,7 +694,6 @@ The flow starts when the `Mono` is subscribed to.
 Alternatively, the `Mono` (being a "`Composable`") might be a part of Reactor stream, when the `subscribe()` is related to the entire `Flux`.
 The following example shows how to create a gateway with Project Reactor:
 
-====
 [source,java]
 ----
 @MessagingGateway
@@ -752,11 +709,9 @@ public Integer multiply(Integer value) {
     return value * 2;
 }
 ----
-====
 
 where such a gateway can be used in some service which deals with the `Flux` of data:
 
-====
 [source,java]
 ----
 @Autowired
@@ -770,18 +725,15 @@ public void hadnleFlux() {
             .subscribe(System.out::println);
 }
 ----
-====
 
 Another example that uses Project Reactor is a simple callback scenario, as the following example shows:
 
-====
 [source,java]
 ----
 Mono<Invoice> mono = service.process(myOrder);
 
 mono.subscribe(invoice -> handleInvoice(invoice));
 ----
-====
 
 The calling thread continues, with `handleInvoice()` being called when the flow completes.
 
@@ -798,7 +750,6 @@ The flow is then invoked on the caller thread and the result can be retrieved la
 
 The messaging gateway method can be declared like this:
 
-====
 [source, java]
 ----
 @MessagingGateway
@@ -810,7 +761,6 @@ public interface MyGateway {
 
 }
 ----
-====
 
 But downstream exceptions are not going to be propagated back to the caller.
 To ensure asynchronous behavior for downstream flow invocation and exception propagation to the caller, starting with version 6.0, the framework provides support for the `Future<Void>` and `Mono<Void>` return types.

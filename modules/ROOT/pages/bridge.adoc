@@ -20,29 +20,24 @@ If data format translation is not required, the messaging bridge may indeed be s
 You can use the `<bridge>` element is used to create a messaging bridge between two message channels or channel adapters.
 To do so, provide the `input-channel` and `output-channel` attributes, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:bridge input-channel="input" output-channel="output"/>
 ----
-====
 
 As mentioned above, a common use case for the messaging bridge is to connect a `PollableChannel` to a `SubscribableChannel`.
 When performing this role, the messaging bridge may also serve as a throttler:
 
-====
 [source,xml]
 ----
 <int:bridge input-channel="pollable" output-channel="subscribable">
      <int:poller max-messages-per-poll="10" fixed-rate="5000"/>
  </int:bridge>
 ----
-====
 
 You can use a similar mechanism to connecting channel adapters.
 The following example shows a simple "`echo`" between the `stdin` and `stdout` adapters from Spring Integration's `stream` namespace:
 
-====
 [source,xml]
 ----
 <int-stream:stdin-channel-adapter id="stdin"/>
@@ -51,7 +46,6 @@ The following example shows a simple "`echo`" between the `stdin` and `stdout` a
 
  <int:bridge id="echo" input-channel="stdin" output-channel="stdout"/>
 ----
-====
 
 Similar configurations work for other (potentially more useful) Channel Adapter bridges, such as file-to-JMS or mail-to-file.
 Upcoming chapters cover the various channel adapters.
@@ -64,7 +58,6 @@ If neither an output nor a reply channel is available, an exception is thrown.
 
 The following example shows how to configure a bridge in Java by using the `@BridgeFrom` annotation:
 
-====
 [source, java]
 ----
 @Bean
@@ -78,7 +71,6 @@ public SubscribableChannel direct() {
     return new DirectChannel();
 }
 ----
-====
 
 The following example shows how to configure a bridge in Java by using the `@BridgeTo` annotation:
 

@@ -30,7 +30,6 @@ If another thread attempts to send a message before the current response has bee
 If, however, the client connection factory is configured for single-use connections, each new request gets its own connection and is processed immediately.
 The following example configures an inbound TCP gateway:
 
-====
 [source,xml]
 ----
 
@@ -40,13 +39,11 @@ The following example configures an inbound TCP gateway:
     connection-factory="cfServer"
     reply-timeout="10000"/>
 ----
-====
 
 If a connection factory configured with the default serializer or deserializer is used, messages is `\r\n` delimited data and the gateway can be used by a simple client such as telnet.
 
 The following example shows an outbound TCP gateway:
 
-====
 [source,xml]
 ----
 
@@ -57,7 +54,6 @@ The following example shows an outbound TCP gateway:
     request-timeout="10000"
     remote-timeout="10000"/> <!-- or e.g. remote-timeout-expression="headers['timeout']" -->
 ----
-====
 
 The `client-mode` is not currently available with the outbound gateway.
 

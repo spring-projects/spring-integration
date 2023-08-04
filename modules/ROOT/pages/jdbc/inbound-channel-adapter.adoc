@@ -15,14 +15,12 @@ The update can be parameterized by the list of IDs from the original select.
 By default, this is done through a naming convention (a column in the input result set called `id` is translated into a list in the parameter map for the update called `id`).
 The following example defines an inbound channel adapter with an update query and a `DataSource` reference.
 
-====
 [source,xml]
 ----
 <int-jdbc:inbound-channel-adapter query="select * from item where status=2"
     channel="target" data-source="dataSource"
     update="update item set status=10 where id in (:id)" />
 ----
-====
 
 NOTE: The parameters in the update query are specified with a colon (`:`) prefix to the name of a parameter (which, in the preceding example, is an expression to be applied to each of the rows in the polled result set).
 This is a standard feature of the named parameter JDBC support in Spring JDBC, combined with a convention (projection onto the polled result list) adopted in Spring Integration.
@@ -37,7 +35,6 @@ You can also use a parameter source for the select query.
 In this case, since there is no "`result`" object to evaluate against, a single parameter source is used each time (rather than using a parameter source factory).
 Starting with version 4.0, you can use Spring to create a SpEL based parameter source, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jdbc:inbound-channel-adapter query="select * from item where status=:status"
@@ -60,7 +57,6 @@ Starting with version 4.0, you can use Spring to create a SpEL based parameter s
 
 <bean id="statusBean" class="foo.StatusDetermination" />
 ----
-====
 
 The `value` in each parameter expression can be any valid SpEL expression.
 The `#root` object for the expression evaluation is the constructor argument defined on the `parameterSource` bean.
@@ -70,7 +66,6 @@ Starting with version 5.0, you ca supply `ExpressionEvaluatingSqlParameterSource
 
 The following example provides SQL types for the parameters being used in the query:
 
-====
 [source,xml]
 ----
 <int-jdbc:inbound-channel-adapter query="select * from item where status=:status"
@@ -91,7 +86,6 @@ The following example provides SQL types for the parameters being used in the qu
     </property>
 </bean>
 ----
-====
 
 IMPORTANT: Use the `createParameterSourceNoCache` factory method.
 Otherwise, the parameter source caches the result of the evaluation.
@@ -104,7 +98,6 @@ The inbound adapter accepts a regular Spring Integration poller as a child eleme
 Consequently, the frequency of the polling can be controlled (among other uses).
 An important feature of the poller for JDBC usage is the option to wrap the poll operation in a transaction, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jdbc:inbound-channel-adapter query="..."
@@ -114,7 +107,6 @@ An important feature of the poller for JDBC usage is the option to wrap the poll
     </int:poller>
 </int-jdbc:inbound-channel-adapter>
 ----
-====
 
 NOTE: If you do not explicitly specify a poller, a default value is used.
 As is normal with Spring Integration, it can be defined as a top-level bean).

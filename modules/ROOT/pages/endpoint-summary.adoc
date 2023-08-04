@@ -13,7 +13,6 @@ As discussed in the earlier sections, Spring Integration provides a number of en
 
 For transparent dependency management Spring Integration provides a bill-of-materials POM to be imported into the Maven configuration:
 
-====
 [source, xml, subs="normal"]
 ----
 <dependencyManagement>
@@ -28,7 +27,6 @@ For transparent dependency management Spring Integration provides a bill-of-mate
     </dependencies>
 </dependencyManagement>
 ----
-====
 
 To recap:
 

@@ -76,17 +76,21 @@ The `null` splitting result remains as an end of flow indicator.
 
 An example of simple splitter based on a `Message` and its iterable payload with DSL configuration:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
     return f -> f.split(Message.class, Message::getPayload);
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun someFlow() =
@@ -94,8 +98,10 @@ fun someFlow() =
         split<Message<*>> { it.payload }
     }
 ----
+
+Groovy DSL::
++
 [source, groovy, role="secondary"]
-.Groovy DSL
 ----
 @Bean
 someFlow() {
@@ -107,7 +113,7 @@ someFlow() {
     }
 }
 ----
-====
+======
 
 See more information about the DSLs in the respective chapters:
 
@@ -120,7 +126,6 @@ See more information about the DSLs in the respective chapters:
 
 A splitter can be configured through XML as follows:
 
-====
 [source,xml]
 ----
 <int:channel id="inputChannel"/>
@@ -149,12 +154,10 @@ Required.
 Optional (because incoming messages can specify a reply channel themselves).
 <6> The channel to which the request message is sent in case of empty splitting result.
 Optional (they will stop as in case of `null` result).
-====
 
 We recommend using a `ref` attribute if the custom splitter implementation can be referenced in other `<splitter>` definitions.
 However, if the custom splitter handler implementation should be scoped to a single definition of the `<splitter>`, you can configure an inner bean definition, as the following example follows:
 
-====
 [source,xml]
 ----
 <int:splitter id="testSplitter" input-channel="inChannel" method="split"
@@ -162,7 +165,6 @@ However, if the custom splitter handler implementation should be scoped to a sin
   <beans:bean class="org.foo.TestSplitter"/>
 </int:splitter>
 ----
-====
 
 NOTE: Using both a `ref` attribute and an inner handler definition in the same `<int:splitter>` configuration is not allowed, as it creates an ambiguous condition and results in an exception being thrown.
 
@@ -180,7 +182,6 @@ Each resulting `Message` is sent to the designated output channel for the endpoi
 
 The following example shows how to configure a splitter by using the `@Splitter` annotation:
 
-====
 [source,java]
 ----
 @Splitter
@@ -188,6 +189,5 @@ List<LineItem> extractItems(Order order) {
     return order.getItems()
 }
 ----
-====
 
 See also xref:handler-advice/advising-with-annotations.adoc[Advising Endpoints Using Annotations] and xref:file/splitter.adoc[File Splitter].

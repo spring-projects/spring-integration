@@ -8,9 +8,11 @@ Spring Integration for Apache Kafka is based on the https://projects.spring.io/s
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -19,12 +21,13 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-kafka:{project-version}"
 ----
-====
+======
 
 It provides the following components:
 
@@ -66,12 +69,10 @@ If you use constant values, you can also configure them on the adapter by using 
 NOTE : If the adapter is configured with a topic or message key (either with a constant or expression), those are used and the corresponding header is ignored.
 If you wish the header to override the configuration, you need to configure it in an expression, such as the following:
 
-====
 [source,java]
 ----
 topic-expression="headers['topic'] != null ? headers['topic'] : 'myTopic'"
 ----
-====
 
 The adapter requires a `KafkaTemplate`, which, in turn, requires a suitably configured `KafkaProducerFactory`.
 
@@ -99,9 +100,11 @@ IMPORTANT: That timeout is 120 seconds by default so you may wish to reduce it t
 
 The following example shows how to configure the outbound channel adapter for Apache Kafka:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public ProducerFactory<Integer, String> producerFactory() {
@@ -142,8 +145,10 @@ private KafkaProducerMessageHandlerSpec<Integer, String, ?> kafkaMessageHandler(
             .configureKafkaTemplate(t -> t.id("kafkaTemplate:" + topic));
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 @ServiceActivator(inputChannel = "toKafka")
@@ -170,8 +175,10 @@ public ProducerFactory<String, String> producerFactory() {
     return new DefaultKafkaProducerFactory<>(props);
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapter"
                                     kafka-template="template"
@@ -199,7 +206,7 @@ public ProducerFactory<String, String> producerFactory() {
     </constructor-arg>
 </bean>
 ----
-====
+======
 
 [[kafka-inbound]]
 == Message-driven Channel Adapter
@@ -234,9 +241,11 @@ Instead, consider adding a `DefaultErrorHandler` to the listener container, conf
 
 The following example shows how to configure a message-driven channel adapter:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow topic1ListenerFromKafkaFlow() {
@@ -258,8 +267,10 @@ public IntegrationFlow topic1ListenerFromKafkaFlow() {
             .get();
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 public KafkaMessageDrivenChannelAdapter<String, String>
@@ -285,8 +296,10 @@ public ConsumerFactory<String, String> consumerFactory() {
     return new DefaultKafkaConsumerFactory<>(props);
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-kafka:message-driven-channel-adapter
         id="kafkaListener"
@@ -320,7 +333,7 @@ public ConsumerFactory<String, String> consumerFactory() {
 
 </bean>
 ----
-====
+======
 
 You can also use the container factory that is used for `@KafkaListener` annotations to create `ConcurrentMessageListenerContainer` instances for other purposes.
 See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] for an example.
@@ -328,7 +341,6 @@ See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring 
 With the Java DSL, the container does not have to be configured as a `@Bean`, because the DSL registers the container as a bean.
 The following example shows how to do so:
 
-====
 [source, java]
 ----
 @Bean
@@ -341,7 +353,6 @@ public IntegrationFlow topic2ListenerFromKafkaFlow() {
             get();
 }
 ----
-====
 
 Notice that, in this case, the adapter is given an `id` (`topic2Adapter`).
 The container is registered in the application context with a name of `topic2Adapter.container`.
@@ -355,9 +366,11 @@ The `KafkaMessageSource` provides a pollable channel adapter implementation.
 [[kafka-message-source-configuration]]
 === Configuration
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow flow(ConsumerFactory<String, String> cf)  {
@@ -367,8 +380,10 @@ public IntegrationFlow flow(ConsumerFactory<String, String> cf)  {
             .get();
 }
 ----
+
+Kotlin::
++
 [source, kotlin, role="secondary"]
-.Kotlin
 ----
 @Bean
 fun sourceFlow(cf: ConsumerFactory<String, String>) =
@@ -382,8 +397,10 @@ fun sourceFlow(cf: ConsumerFactory<String, String>) =
         }
     }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @InboundChannelAdapter(channel = "fromKafka", poller = @Poller(fixedDelay = "5000"))
 @Bean
@@ -394,8 +411,10 @@ public KafkaMessageSource<String, String> source(ConsumerFactory<String, String>
     retunr new KafkaMessageSource<>(cf, consumerProperties);
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-kafka:inbound-channel-adapter
         id="adapter1"
@@ -424,7 +443,7 @@ public KafkaMessageSource<String, String> source(ConsumerFactory<String, String>
     <property name="clientId" value="client"/>
 </bean>
 ----
-====
+======
 
 Refer to the javadocs for available properties.
 
@@ -461,9 +480,11 @@ IMPORTANT: That timeout is 120 seconds by default, so you may wish to reduce it 
 
 The following example shows how to configure a gateway:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow outboundGateFlow(
@@ -475,8 +496,10 @@ public IntegrationFlow outboundGateFlow(
             .get();
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 @ServiceActivator(inputChannel = "kafkaRequests", outputChannel = "kafkaReplies")
@@ -485,8 +508,10 @@ public KafkaProducerMessageHandler<String, String> outGateway(
     return new KafkaProducerMessageHandler<>(kafkaTemplate);
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-kafka:outbound-gateway
     id="allProps"
@@ -506,7 +531,7 @@ public KafkaProducerMessageHandler<String, String> outGateway(
     timestamp-expression="T(System).currentTimeMillis()"
     topic-expression="'topic'"/>
 ----
-====
+======
 
 Refer to the javadocs for available properties.
 
@@ -524,7 +549,6 @@ Again, this is validated against the template's reply container's subscriptions.
 
 Alternatively, you can also use a configuration similar to the following bean:
 
-====
 [source, java]
 ----
 @Bean
@@ -536,7 +560,6 @@ public IntegrationFlow outboundGateFlow() {
             .get();
 }
 ----
-====
 
 [[kafka-inbound-gateway]]
 == Inbound Gateway
@@ -548,9 +571,11 @@ The inbound gateway is for request/reply operations.
 
 The following example shows how to configure an inbound gateway:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow serverGateway(
@@ -563,8 +588,10 @@ public IntegrationFlow serverGateway(
             .get();
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 public KafkaInboundGateway<Integer, String, String> inboundGateway(
@@ -579,8 +606,10 @@ public KafkaInboundGateway<Integer, String, String> inboundGateway(
     return gateway;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-kafka:inbound-gateway
         id="gateway1"
@@ -598,7 +627,7 @@ public KafkaInboundGateway<Integer, String, String> inboundGateway(
         retry-template="retryTemplate"
         recovery-callback="recoveryCallback"/>
 ----
-====
+======
 
 Refer to the javadocs for available properties.
 
@@ -616,7 +645,6 @@ The following example shows how to configure a simple upper case converter with 
 
 Alternatively, you could configure an upper-case converter by using code similar to the following:
 
-====
 [source, java]
 ----
 @Bean
@@ -629,7 +657,6 @@ public IntegrationFlow serverGateway() {
             .get();
 }
 ----
-====
 
 You can also use the container factory that is used for `@KafkaListener` annotations to create `ConcurrentMessageListenerContainer` instances for other purposes.
 See https://docs.spring.io/spring-kafka/docs/current/reference/html/[the Spring for Apache Kafka documentation] and xref:kafka.adoc#kafka-inbound[Message-driven Channel Adapter] for examples.
@@ -644,9 +671,11 @@ Each channel requires a `KafkaTemplate` for the sending side and either a listen
 [[java-dsl-configuration]]
 === Java DSL Configuration
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow flowWithSubscribable(KafkaTemplate<Integer, String> template,
@@ -693,8 +722,10 @@ public IntegrationFlow flowWithPollable(KafkaTemplate<Integer, String> template,
             .get();
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 /**
  * Channel for a single subscriber.
@@ -735,8 +766,10 @@ PollableKafkaChannel pollable(KafkaTemplate<String, String> template,
     return channel;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-kafka:channel kafka-template="template" id="ptp" topic="ptpTopic" group-id="ptpGroup"
     container-factory="containerFactory" />
@@ -747,7 +780,7 @@ PollableKafkaChannel pollable(KafkaTemplate<String, String> template,
 <int-kafka:publish-subscribe-channel kafka-template="template" id="pubSub" topic="pubSubTopic"
     group-id="pubSubGroup" container-factory="containerFactory" />
 ----
-====
+======
 
 [[message-conversion]]
 == Message Conversion
@@ -759,7 +792,6 @@ When using this converter with a message-driven channel adapter, you can specify
 This is achieved by setting the `payload-type` attribute (`payloadType` property) on the adapter.
 The following example shows how to do so in XML configuration:
 
-====
 [source, xml]
 ----
 <int-kafka:message-driven-channel-adapter
@@ -777,11 +809,9 @@ The following example shows how to do so in XML configuration:
     class="org.springframework.kafka.support.converter.MessagingMessageConverter"/>
 
 ----
-====
 
 The following example shows how to set the `payload-type` attribute (`payloadType` property) on the adapter in Java configuration:
 
-====
 [source, java]
 ----
 @Bean
@@ -795,7 +825,6 @@ public KafkaMessageDrivenChannelAdapter<String, String>
     return kafkaMessageDrivenChannelAdapter;
 }
 ----
-====
 
 [[kafka-tombstones]]
 == Null Payloads and Log Compaction 'Tombstone' Records
@@ -808,7 +837,6 @@ The POJO methods for Spring Integration endpoints can use a true `null` value in
 To do so, mark the parameter with `@Payload(required = false)`.
 The following example shows how to do so:
 
-====
 [source, java]
 ----
 @ServiceActivator(inputChannel = "fromSomeKafkaInboundEndpoint")
@@ -818,14 +846,12 @@ public void in(@Header(KafkaHeaders.RECEIVED_KEY) String key,
     ...
 }
 ----
-====
 
 [[streams-integration]]
 == Calling a Spring Integration flow from a `KStream`
 
 You can use a `MessagingTransformer` to invoke an integration flow from a `KStream`:
 
-====
 [source, java]
 ----
 @Bean
@@ -859,7 +885,6 @@ public IntegrationFlow flow() {
         .get();
 }
 ----
-====
 
 When an integration flow starts with an interface, the proxy that is created has the name of the flow bean, appended with ".gateway" so this bean name can be used a a `@Qualifier` if needed.
 
@@ -877,7 +902,6 @@ This is achieved by adding a `futuresChannel` to the message handler.
 To enable the feature add `KafkaIntegrationHeaders.FUTURE_TOKEN` to the outbound messages; this can then be used to correlate a `Future` to a particular sent message.
 Here is an example of how you might use this feature:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -940,4 +964,3 @@ interface Gate {
 
 }
 ----
-====

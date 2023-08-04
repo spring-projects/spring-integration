@@ -43,7 +43,6 @@ These provide for atomic updates and can be used across multiple component or ap
 The metadata store is useful for implementing the EIP https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html[idempotent receiver] pattern when there is need to filter an incoming message if it has already been processed and you can discard it or perform some other logic on discarding.
 The following configuration shows an example of how to do so:
 
-====
 [source,xml]
 ----
 <int:filter input-channel="serviceChannel"
@@ -58,7 +57,6 @@ The following configuration shows an example of how to do so:
 
 <int:service-activator input-channel="idempotentServiceChannel" ref="service"/>
 ----
-====
 
 The `value` of the idempotent entry may be an expiration date, after which that entry should be removed from metadata store by some scheduled reaper.
 
@@ -69,7 +67,6 @@ See also xref:handler-advice/idempotent-receiver.adoc[Idempotent Receiver Enterp
 
 Some metadata stores (currently only zookeeper) support registering a listener to receive events when items change, as the following example shows:
 
-====
 [source, java]
 ----
 public interface MetadataStoreListener {
@@ -81,7 +78,6 @@ public interface MetadataStoreListener {
 	void onUpdate(String key, String newValue);
 }
 ----
-====
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/metadata/MetadataStoreListenerAdapter.html[Javadoc] for more information.
 The `MetadataStoreListenerAdapter` can be subclassed if you are interested only in a subset of events.

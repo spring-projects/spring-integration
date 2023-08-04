@@ -8,7 +8,6 @@ Even more important are the various method-level annotations.
 They indicate that the annotated method is capable of handling a message.
 The following example demonstrates both class-level and method-level annotations:
 
-====
 [source,java]
 ----
 @MessageEndpoint
@@ -20,7 +19,6 @@ public class FooService {
     }
 }
 ----
-====
 
 Exactly what it means for the method to "`handle`" the Message depends on the particular annotation.
 Annotations available in Spring Integration include:
@@ -44,7 +42,6 @@ In that case, the annotation prevents ambiguity even when no method-level attrib
 In most cases, the annotated handler method should not require the `Message` type as its parameter.
 Instead, the method parameter type can match the message's payload type, as the following example shows:
 
-====
 [source,java]
 ----
 public class ThingService {
@@ -56,13 +53,11 @@ public class ThingService {
 
 }
 ----
-====
 
 When the method parameter should be mapped from a value in the `MessageHeaders`, another option is to use the parameter-level `@Header` annotation.
 In general, methods annotated with the Spring Integration annotations can accept the `Message` itself, the message payload, or a header value (with `@Header`) as the parameter.
 In fact, the method can accept a combination, as the following example shows:
 
-====
 [source,java]
 ----
 public class ThingService {
@@ -74,11 +69,9 @@ public class ThingService {
 
 }
 ----
-====
 
 You can also use the  `@Headers` annotation to provide all the message headers as a `Map`, as the following example shows:
 
-====
 [source,java]
 ----
 public class ThingService {
@@ -90,7 +83,6 @@ public class ThingService {
 
 }
 ----
-====
 
 NOTE: The value of the annotation can also be a SpEL expression (for example, `someHeader.toUpperCase()`), which is useful when you wish to manipulate the header value before injecting it.
 It also provides an optional `required` property, which specifies whether the attribute value must be available within the headers.
@@ -105,7 +97,6 @@ This is an example of the https://www.enterpriseintegrationpatterns.com/ReturnAd
 
 In addition to the examples shown here, these annotations also support the `inputChannel` and `outputChannel` properties, as the following example shows:
 
-====
 [source,java]
 ----
 @Service
@@ -118,7 +109,6 @@ public class ThingService {
 
 }
 ----
-====
 
 The processing of these annotations creates the same beans as the corresponding XML components -- `AbstractEndpoint` instances and `MessageHandler` instances (or `MessageSource` instances for the inbound channel adapter).
 See xref:configuration/meta-annotations.adoc#annotations_on_beans[Annotations on `@Bean` Methods].
@@ -138,7 +128,6 @@ For these purposes, you should use the `beanName` mentioned earlier in the prece
 Channels automatically created after parsing the mentioned annotations (when no specific channel bean is configured), and the corresponding consumer endpoints, are declared as beans near the end of the context initialization.
 These beans **can** be autowired in other services, but they have to be marked with the `@Lazy` annotation because the definitions, typically, won't yet be available during normal autowiring processing.
 
-====
 [source, java]
 ----
 @Autowired
@@ -152,11 +141,9 @@ Thing1 dependsOnSPCA(@Qualifier("someInboundAdapter") @Lazy SourcePollingChannel
     ...
 }
 ----
-====
 =====
 
 Starting with version 6.0, all the messaging annotations are `@Repeatable` now, so several of the same type can be declared on the same service method with the meaning to create as many endpoints as those annotations are repeated:
-====
 [source, java]
 ----
 @Transformer(inputChannel = "inputChannel1", outputChannel = "outputChannel1")
@@ -165,7 +152,6 @@ public String transform(String input) {
     return input.toUpperCase();
 }
 ----
-====
 
 [[configuration-using-poller-annotation]]
 == Using the `@Poller` Annotation
@@ -174,7 +160,6 @@ Before Spring Integration 4.0, messaging annotations required that the `inputCha
 For `PollableChannel` instances, an `<int:bridge/>` element was needed to configure an `<int:poller/>` and make the composite endpoint be a `PollingConsumer`.
 Version 4.0 introduced the `@Poller` annotation to allow the configuration of `poller` attributes directly on the messaging annotations, as the following example shows:
 
-====
 [source,java]
 ----
 public class AnnotationService {
@@ -186,7 +171,6 @@ public class AnnotationService {
     }
 }
 ----
-====
 
 The `@Poller` annotation provides only simple `PollerMetadata` options.
 You can configure the `@Poller` annotation's attributes (`maxMessagesPerPoll`, `fixedDelay`, `fixedRate`, and `cron`) with property placeholders.
@@ -196,7 +180,6 @@ In this case, no other attributes are allowed (they must be specified on the `Po
 Note, if `inputChannel` is a `PollableChannel` and no `@Poller` is configured, the default `PollerMetadata` is used (if it is present in the application context).
 To declare the default poller by using a `@Configuration` annotation, use code similar to the following example:
 
-====
 [source,java]
 ----
 @Bean(name = PollerMetadata.DEFAULT_POLLER)
@@ -206,11 +189,9 @@ public PollerMetadata defaultPoller() {
     return pollerMetadata;
 }
 ----
-====
 
 The following example shows how to use the default poller:
 
-====
 [source,java]
 ----
 public class AnnotationService {
@@ -221,11 +202,9 @@ public class AnnotationService {
     }
 }
 ----
-====
 
 The following example shows how to use a named poller:
 
-====
 [source,java]
 ----
 @Bean
@@ -235,11 +214,9 @@ public PollerMetadata myPoller() {
     return pollerMetadata;
 }
 ----
-====
 
 The following example shows an endpoint that uses the default poller:
 
-====
 [source,java]
 ----
 public class AnnotationService {
@@ -251,7 +228,6 @@ public class AnnotationService {
     }
 }
 ----
-====
 
 Starting with version 4.3.3, the `@Poller` annotation has the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
 This attribute plays the same role as `error-channel` in the `<poller>` XML component.
@@ -271,7 +247,6 @@ The function is used from the `Flux.transform()` operator to apply some customiz
 
 The following example demonstrates how to change the publishing thread from the input channel independently of the final subscriber and producer to that `DirectChannel`:
 
-====
 [source,java]
 ----
 @Bean
@@ -284,7 +259,6 @@ public void handleReactive(String payload) {
     ...
 }
 ----
-====
 
 The `reactive()` attribute on the messaging annotations is mutually exclusive with the `poller()` attribute.
 See xref:configuration/annotations.adoc#configuration-using-poller-annotation[Using the `@Poller` Annotation] and xref:reactive-streams.adoc[Reactive Streams Support] for more information.
@@ -300,7 +274,6 @@ If you need to provide some `MessageHeaders`, use a `Message<?>` return type and
 Using a `MessageBuilder` lets you configure the `MessageHeaders`.
 The following example shows how to use an `@InboundChannelAdapter` annotation:
 
-====
 [source,java]
 ----
 @InboundChannelAdapter("counterChannel")
@@ -313,7 +286,6 @@ public String foo() {
     return "foo";
 }
 ----
-====
 
 Version 4.3 introduced the `channel` alias for the `value` annotation attribute, to provide better source code readability.
 Also, the target `MessageChannel` bean is resolved in the `SourcePollingChannelAdapter` by the provided name (set by the `outputChannelName` option) on the first `receive()` call, not during the initialization phase.

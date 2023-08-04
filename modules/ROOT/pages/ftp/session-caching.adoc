@@ -17,7 +17,6 @@ The `sessionWaitTimeout` property configures that value.
 If you want your sessions to be cached, configure your default session factory as described earlier and then wrap it in an instance of `CachingSessionFactory`, where you can provide those additional properties.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <bean id="ftpSessionFactory" class="o.s.i.ftp.session.DefaultFtpSessionFactory">
@@ -30,7 +29,6 @@ The following example shows how to do so:
     <property name="sessionWaitTimeout" value="1000"/>
 </bean>
 ----
-====
 
 The preceding example shows a `CachingSessionFactory` created with the `sessionCacheSize` set to `10` and the `sessionWaitTimeout` set to one second (its value is in milliseconds).
 

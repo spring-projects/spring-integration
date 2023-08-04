@@ -8,7 +8,6 @@ This section describes how to configure and use the UDP adapters.
 
 The following example configures a UDP outbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-ip:udp-outbound-channel-adapter id="udpOut"
@@ -18,7 +17,6 @@ The following example configures a UDP outbound channel adapter:
     socket-customizer="udpCustomizer"
     channel="exampleChannel"/>
 ----
-====
 
 TIP: When setting `multicast` to `true`, you should also provide the multicast address in the host attribute.
 
@@ -36,7 +34,6 @@ Starting with version 5.3.3, you can add a `SocketCustomizer` bean to modify the
 
 The following example shows an outbound channel adapter that adds length checking to the datagram packets:
 
-====
 [source,xml]
 ----
 <int-ip:udp-outbound-channel-adapter id="udpOut"
@@ -46,7 +43,6 @@ The following example shows an outbound channel adapter that adds length checkin
     check-length="true"
     channel="exampleChannel"/>
 ----
-====
 
 TIP: The recipient of the packet must also be configured to expect a length to precede the actual data.
 For a Spring Integration UDP inbound channel adapter, set its `check-length` attribute.
@@ -56,7 +52,6 @@ The receiver must send an acknowledgment to the sender within a specified time.
 
 The following example shows an outbound channel adapter that adds length checking to the datagram packets and waits for an acknowledgment:
 
-====
 [source,xml]
 ----
 <int-ip:udp-outbound-channel-adapter id="udpOut"
@@ -70,7 +65,6 @@ The following example shows an outbound channel adapter that adds length checkin
     ack-timeout="10000"
     channel="exampleChannel"/>
 ----
-====
 
 TIP: Setting `acknowledge` to `true` implies that the recipient of the packet can interpret the header added to the packet containing acknowledgment data (host and port).
 Most likely, the recipient is a Spring Integration inbound channel adapter.
@@ -84,7 +78,6 @@ Starting with version 4.3, you can set the `ackPort` to `0`, in which case the o
 
 The following example shows how to configure an outbound UDP adapter with Java:
 
-====
 [source, java]
 ----
 @Bean
@@ -93,7 +86,6 @@ public UnicastSendingMessageHandler handler() {
     return new UnicastSendingMessageHandler("localhost", 11111);
 }
 ----
-====
 
 (or `MulticastSendingChannelAdapter` for multicast).
 
@@ -102,7 +94,6 @@ public UnicastSendingMessageHandler handler() {
 
 The following example shows how to configure an outbound UDP adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @Bean
@@ -112,14 +103,12 @@ public IntegrationFlow udpOutFlow() {
                 .get();
 }
 ----
-====
 
 [[inbound-udp-adapters-xml-configuration]]
 == Inbound UDP Adapters (XML Configuration)
 
 The following example shows how to configure a basic unicast inbound udp channel adapter.
 
-====
 [source,xml]
 ----
 <int-ip:udp-inbound-channel-adapter id="udpReceiver"
@@ -130,11 +119,9 @@ The following example shows how to configure a basic unicast inbound udp channel
     socket-customizer="udpCustomizer"
     check-length="true"/>
 ----
-====
 
 The following example shows how to configure a basic multicast inbound udp channel adapter:
 
-====
 [source,xml]
 ----
 <int-ip:udp-inbound-channel-adapter id="udpReceiver"
@@ -145,7 +132,6 @@ The following example shows how to configure a basic multicast inbound udp chann
     multicast-address="225.6.7.8"
     check-length="true"/>
 ----
-====
 
 By default, reverse DNS lookups are not performed on inbound packets: in environments where DNS is not configured (e.g. Docker containers), this can cause connection delays.
 To convert IP addresses to host names for use in message headers, the default behavior can be overridden by setting the `lookup-host` attribute to `true`.
@@ -208,7 +194,6 @@ The `requestMessage` is used as the root object for the evaluation context.
 You cannot use the `socket-expression` parameter with the `multicast` and `acknowledge` parameters.
 The following example shows how to configure a UDP inbound channel adapter with a transformer that converts to upper case and uses a socket:
 
-====
 [source,xml]
 ----
 <int-ip:udp-inbound-channel-adapter id="inbound" port="0" channel="in" />
@@ -225,11 +210,9 @@ The following example shows how to configure a UDP inbound channel adapter with 
                         destination-expression="headers['ip_packetAddress']"
                         channel="out" />
 ----
-====
 
 The following example shows the equivalent configuration with the Java DSL:
 
-====
 [source, java]
 ----
 @Bean
@@ -241,5 +224,4 @@ public IntegrationFlow udpEchoUpcaseServer() {
             .get();
 }
 ----
-====
 

@@ -31,7 +31,6 @@ There is not much that can be done with regard to dynamic routing if Step 1 resu
 However, if the first step results in a channel identifier that is not an instance of `MessageChannel`, you have quite a few possible ways to influence the process of deriving the `MessageChannel`.
 Consider the following example of a payload type router:
 
-====
 [source,xml]
 ----
 <int:payload-type-router input-channel="routingChannel">
@@ -39,7 +38,6 @@ Consider the following example of a payload type router:
     <int:mapping type="java.lang.Integer" channel="channel2" />
 </int:payload-type-router>
 ----
-====
 
 Within the context of a payload type router, the three steps mentioned earlier would be realized as follows:
 
@@ -52,7 +50,6 @@ In other words, each step feeds the next step until the process completes.
 
 Now consider an example of a header value router:
 
-====
 [source,xml]
 ----
 <int:header-value-router input-channel="inputChannel" header-name="testHeader">
@@ -60,7 +57,6 @@ Now consider an example of a header value router:
     <int:mapping value="bar" channel="barChannel" />
 </int:header-value-router>
 ----
-====
 
 Now we can consider how the three steps work for a header value router:
 
@@ -71,12 +67,10 @@ Now we can consider how the three steps work for a header value router:
 The preceding two configurations of two different router types look almost identical.
 However, if you look at the alternate configuration of the `HeaderValueRouter` we clearly see that there is no `mapping` sub element, as the following listing shows:
 
-====
 [source,xml]
 ----
 <int:header-value-router input-channel="inputChannel" header-name="testHeader"/>
 ----
-====
 
 However, the configuration is still perfectly valid.
 So the natural question is what about the mapping in the second step?
@@ -134,12 +128,10 @@ The following methods let you do so:
 Note that the `channelMappings` parameter is a `Properties` object.
 This arrangement lets a control bus command use the built-in `StringToPropertiesConverter`, as the following example shows:
 
-====
 [source]
 ----
 "@'router.handler'.replaceChannelMappings('foo=qux \n baz=bar')"
 ----
-====
 
 Note that each mapping is separated by a newline character (`\n`).
 For programmatic changes to the map, we recommend that you use the `setChannelMappings` method, due to type-safety concerns.

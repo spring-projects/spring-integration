@@ -5,7 +5,6 @@ The following example shows how to configure an inbound gateway with Java:
 
 
 .Inbound Gateway Using Java Configuration
-====
 [source, java]
 ----
 @Bean
@@ -26,12 +25,10 @@ public RequestMapping mapping() {
     return requestMapping;
 }
 ----
-====
 
 The following example shows how to configure an inbound gateway with the Java DSL:
 
 .Inbound Gateway Using the Java DSL
-====
 [source, java]
 ----
 @Bean
@@ -43,12 +40,10 @@ public IntegrationFlow inbound() {
         .get();
 }
 ----
-====
 
 The following example shows how to configure an outbound gateway with Java:
 
 .Outbound Gateway Using Java Configuration
-====
 [source, java]
 ----
 @ServiceActivator(inputChannel = "httpOutRequest")
@@ -61,12 +56,10 @@ public HttpRequestExecutingMessageHandler outbound() {
     return handler;
 }
 ----
-====
 
 The following example shows how to configure an outbound gateway with the Java DSL:
 
 .Outbound Gateway Using the Java DSL
-====
 [source, java]
 ----
 @Bean
@@ -78,5 +71,4 @@ public IntegrationFlow outbound() {
         .get();
 }
 ----
-====
 

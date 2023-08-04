@@ -14,7 +14,6 @@ This `MetadataStore` implementation can be used with adapters such as the follow
 To configure these adapters to use the `JdbcMetadataStore`, declare a Spring bean by using a bean name of `metadataStore`.
 The Feed inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `JdbcMetadataStore`, as the following example shows:
 
-====
 [source,java]
 ----
 @Bean
@@ -22,12 +21,10 @@ public MetadataStore metadataStore(DataSource dataSource) {
     return new JdbcMetadataStore(dataSource);
 }
 ----
-====
 
 The `org.springframework.integration.jdbc` package has Database schema scripts for several RDMBS vendors.
 For example, the following listing shows the H2 DDL for the metadata table:
 
-====
 [source,sql]
 ----
 CREATE TABLE INT_METADATA_STORE  (
@@ -37,7 +34,6 @@ CREATE TABLE INT_METADATA_STORE  (
 	constraint INT_METADATA_STORE_PK primary key (METADATA_KEY, REGION)
 );
 ----
-====
 
 You can change the `INT_` prefix to match the target database design requirements.
 You can also configure `JdbcMetadataStore` to use the custom prefix.

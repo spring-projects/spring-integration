@@ -9,9 +9,11 @@ Version 4.2 added https://zookeeper.apache.org/[Zookeeper] support to the framew
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -20,12 +22,13 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-zookeeper:{project-version}"
 ----
-====
+======
 
 [[zk-metadata-store]]
 == Zookeeper Metadata Store
@@ -34,7 +37,6 @@ You ca use the `ZookeeperMetadataStore` where any `MetadataStore` is needed, suc
 See xref:meta-data-store.adoc[Metadata Store] for more information.
 The following example configures a Zookeeper metadata store with XML:
 
-====
 [source, xml]
 ----
 <bean id="client" class="org.springframework.integration.zookeeper.config.CuratorFrameworkFactoryBean">
@@ -45,11 +47,9 @@ The following example configures a Zookeeper metadata store with XML:
     <constructor-arg ref="client" />
 </bean>
 ----
-====
 
 The following example shows how to configure a Zookeeper metadata store with Java:
 
-====
 [source, java]
 ----
 @Bean
@@ -57,7 +57,6 @@ public MetadataStore zkStore(CuratorFramework client) {
     return new ZookeeperMetadataStore(client);
 }
 ----
-====
 
 [[zk-lock-registry]]
 == Zookeeper Lock Registry
@@ -68,7 +67,6 @@ A `LockRegistry` is used to "`look up`" a lock based on a key (the aggregator us
 By default, locks in the `ZookeeperLockRegistry` are maintained in zookeeper under the following path: `/SpringIntegration-LockRegistry/`.
 You can customize the path by providing an implementation of `ZookeeperLockRegistry.KeyToPathStrategy`, as the following example shows:
 
-====
 [source, java]
 ----
 public interface KeyToPathStrategy {
@@ -79,7 +77,6 @@ public interface KeyToPathStrategy {
 
 }
 ----
-====
 
 If the strategy returns `true` from `isBounded`, unused locks do not need to be harvested.
 For unbounded strategies (such as the default), you need to periodically invoke `expireUnusedOlderThan(long age)` to remove old unused locks from memory.
@@ -92,12 +89,10 @@ See its JavaDocs for more information.
 
 The following example uses XML to configure an application for leader election in Zookeeper:
 
-====
 [source, xml]
 ----
 <int-zk:leader-listener client="client" path="/siNamespace" role="cluster" />
 ----
-====
 
 `client` is a reference to a `CuratorFramework` bean.
 A `CuratorFrameworkFactoryBean` is available.
@@ -109,7 +104,6 @@ See xref:endpoint.adoc#endpoint-roles[Endpoint Roles] for more information.
 
 You can use Java configuration to create an instance of the leader initiator, as the following example shows:
 
-====
 [source, java]
 ----
 @Bean
@@ -120,7 +114,6 @@ public LeaderInitiatorFactoryBean leaderInitiator(CuratorFramework client) {
                 .setRole("cluster");
 }
 ----
-====
 
 Starting with version 5.3, a `candidate` option is exposed on the `LeaderInitiatorFactoryBean` for more configuration control of the externally provided `Candidate` instance.
 Only one of the `candidate` or `role` options has to be provided, but not both; the `role` options creates internally a `DefaultCandidate` instance with an `UUID` for `id` option.

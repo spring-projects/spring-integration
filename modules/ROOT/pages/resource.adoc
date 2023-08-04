@@ -15,7 +15,6 @@ That is one major difference between resource inbound channel adapter and file i
 
 The following example shows a simple configuration that finds all files that end with the 'properties' extension in the `things.thing1` package available on the classpath and sends them as the payload of a `Message` to the channel named '`resultChannel`':
 
-====
 [source,xml]
 ----
 <int:resource-inbound-channel-adapter id="resourceAdapter"
@@ -24,13 +23,11 @@ The following example shows a simple configuration that finds all files that end
     <int:poller fixed-rate="1000"/>
 </int:resource-inbound-channel-adapter>
 ----
-====
 
 The resource inbound channel adapter relies on the `org.springframework.core.io.support.ResourcePatternResolver` strategy interface to resolve the provided pattern.
 It defaults to an instance of the current `ApplicationContext`.
 However, you can provide a reference to an instance of your own implementation of `ResourcePatternResolver` by setting the `pattern-resolver` attribute, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:resource-inbound-channel-adapter id="resourceAdapter"
@@ -42,7 +39,6 @@ However, you can provide a reference to an instance of your own implementation o
 
 <bean id="myPatternResolver" class="org.example.MyPatternResolver"/>
 ----
-====
 
 You may have a use case where you need to further filter the collection of resources resolved by the `ResourcePatternResolver`.
 For example, you may want to prevent resources that were already resolved from appearing in a collection of resolved resources ever again.
@@ -50,7 +46,6 @@ On the other hand, your resources might be updated rather often, and you _do_ wa
 In other words, both defining an additional filter and disabling filtering altogether are valid use cases.
 You can provide your own implementation of the `org.springframework.integration.util.CollectionFilter` strategy interface, as the following example shows:
 
-====
 [source,java]
 ----
 public interface CollectionFilter<T> {
@@ -59,7 +54,6 @@ public interface CollectionFilter<T> {
 
 }
 ----
-====
 
 The `CollectionFilter` receives a collection of un-filtered elements (which are `Resource` objects in the preceding example), and it returns a collection of filtered elements of that same type.
 
@@ -69,7 +63,6 @@ It remembers the elements passed in the previous invocation in order to avoid re
 
 To inject your own implementation of `CollectionFilter` instead, use the `filter` attribute, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:resource-inbound-channel-adapter id="resourceAdapter"
@@ -81,6 +74,5 @@ To inject your own implementation of `CollectionFilter` instead, use the `filter
 
 <bean id="myFilter" class="org.example.MyFilter"/>
 ----
-====
 
 If you do not need any filtering and want to disable even the default `CollectionFilter` strategy, provide an empty value for the filter attribute (for example, `filter=""`)

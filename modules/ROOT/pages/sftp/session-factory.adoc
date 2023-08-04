@@ -7,7 +7,6 @@ See xref:sftp/session-caching.adoc[SFTP Session Caching].
 Before configuring SFTP adapters, you must configure an SFTP session factory.
 You can configure the SFTP session factory with a regular bean definition, as the following example shows:
 
-====
 [source,xml]
 ----
 <beans:bean id="sftpSessionFactory"
@@ -19,7 +18,6 @@ You can configure the SFTP session factory with a regular bean definition, as th
     <beans:property name="user" value="kermit"/>
 </beans:bean>
 ----
-====
 
 Every time an adapter requests a session object from its `SessionFactory`, a new SFTP session is created.
 Under the covers, the SFTP Session Factory relies on the https://mina.apache.org/sshd-project/index.html[Apache MINA SSHD] library to provide the SFTP capabilities.

@@ -50,7 +50,6 @@ However, the `gatherChannel` option is also provided, letting suppliers send the
 
 The following example shows Java configuration for the bean definition for `Scatter-Gather`:
 
-====
 [source,java]
 ----
 @Bean
@@ -80,7 +79,6 @@ public MessageHandler scatterGatherDistribution() {
 	return handler;
 }
 ----
-====
 
 In the preceding example, we configure the `RecipientListRouter` `distributor` bean with `applySequence="true"` and the list of recipient channels.
 The next bean is for an `AggregatingMessageHandler`.
@@ -88,7 +86,6 @@ Finally, we inject both those beans into the `ScatterGatherHandler` bean definit
 
 The following example shows how to configure the `<scatter-gather>` endpoint by using the XML namespace:
 
-====
 [source,xml]
 ----
 <scatter-gather
@@ -156,7 +153,6 @@ Optional.
 Mutually exclusive with `scatter-channel` attribute.
 <13> The `<aggregator>` options.
 Required.
-====
 
 [[scatter-gather-error-handling]]
 == Error Handling
@@ -179,7 +175,6 @@ It is populated to the `errorChannel` header of the scatter message and is used 
 
 The sample configuration below demonstrates async error handling by returning a compensation message:
 
-====
 [source,java]
 ----
 @Bean
@@ -204,7 +199,6 @@ public Message<?> processAsyncScatterError(MessagingException payload) {
             .build();
 }
 ----
-====
 
 To produce a proper reply, we have to copy headers (including `replyChannel` and `errorChannel`) from the `failedMessage` of the `MessagingException` that has been sent to the `scatterGatherErrorChannel` by the `MessagePublishingErrorHandler`.
 This way the target exception is returned to the gatherer of the `ScatterGatherHandler` for reply messages group completion.

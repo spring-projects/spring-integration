@@ -7,13 +7,11 @@ A `BiFunction<Message<?>, Mono<?>, Publisher<?>>` has to be provided for this ad
 Typically, such a `Mono` customization is necessary when we would like to control network fluctuations via `timeout()`, `retry()` and similar support operators.
 For example when we can an HTTP request over WebFlux client, we could use below configuration to not wait for response more than 5 seconds:
 
-====
 [source, java]
 ----
 .handle(WebFlux.outboundGateway("https://somehost/"),
                        e -> e.customizeMonoReply((message, mono) -> mono.timeout(Duration.ofSeconds(5))));
 ----
-====
 
 The `message` argument is the request message for the message handler and can be used to determine request-scope attributes.
 The `mono` argument is the result of this message handler's `handleRequestMessage()` method implementation.

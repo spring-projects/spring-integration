@@ -19,7 +19,6 @@ For more information on those transformers, see xref:xml.adoc[XML Support - Deal
 
 For simple Java & Annotation configuration, the Spring bean POJO method must be marked with a `@Transformer` annotation and the framework calls it when messages are consumed from an input channel:
 
-====
 [source,java]
 ----
 public class SomeService {
@@ -31,15 +30,16 @@ public class SomeService {
 
 }
 ----
-====
 
 See more information in the xref:configuration/annotations.adoc[Annotation Support].
 
 For Java, Groovy or Kotlin DSLs, the `.transform()` operator of an `IntegrationFlow` represents a transformer endpoint:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -50,8 +50,10 @@ public IntegrationFlow someFlow() {
              .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun someFlow() =
@@ -60,8 +62,10 @@ fun someFlow() =
         channel("nextServiceChannel")
     }
 ----
+
+Groovy DSL::
++
 [source, groovy, role="secondary"]
-.Groovy DSL
 ----
 @Bean
 someFlow() {
@@ -72,7 +76,7 @@ someFlow() {
             }
 }
 ----
-====
+======
 
 See more information about the DSLs in the respective chapters:
 
@@ -87,19 +91,16 @@ The `<transformer>` element is used to create a message-transforming endpoint.
 In addition to `input-channel` and `output-channel` attributes, it requires a `ref` attribute.
 The `ref` may either point to an object that contains the `@Transformer` annotation on a single method (see xref:transformer.adoc#transformer-annotation[Configuring a Transformer with Annotations]), or it may be combined with an explicit method name value provided in the `method` attribute.
 
-====
 [source,xml]
 ----
 <int:transformer id="testTransformer" ref="testTransformerBean" input-channel="inChannel"
              method="transform" output-channel="outChannel"/>
 <beans:bean id="testTransformerBean" class="org.foo.TestTransformer" />
 ----
-====
 
 Using a `ref` attribute is generally recommended if the custom transformer handler implementation can be reused in other `<transformer>` definitions.
 However, if the custom transformer handler implementation should be scoped to a single definition of the `<transformer>`, you can define an inner bean definition, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:transformer id="testTransformer" input-channel="inChannel" method="transform"
@@ -107,7 +108,6 @@ However, if the custom transformer handler implementation should be scoped to a 
   <beans:bean class="org.foo.TestTransformer"/>
 </transformer>
 ----
-====
 
 NOTE: Using both the `ref` attribute and an inner handler definition in the same `<transformer>` configuration is not allowed, as it creates an ambiguous condition and results in an exception being thrown.
 
@@ -132,14 +132,12 @@ Its `requires-reply` value is `false` by default, but that can be set to `true` 
 Like routers, aggregators, and other components, as of Spring Integration 2.0, transformers can also benefit from https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[SpEL support] whenever transformation logic is relatively simple.
 The following example shows how to use a SpEL expression:
 
-====
 [source,xml]
 ----
 <int:transformer input-channel="inChannel"
 	output-channel="outChannel"
 	expression="payload.toUpperCase() + '- [' + T(System).currentTimeMillis() + ']'"/>
 ----
-====
 
 The preceding example transforms the payload without writing a custom transformer.
 Our payload (assumed to be a `String`) is upper-cased, concatenated with the current timestamp, and has some formatting applied.
@@ -156,9 +154,11 @@ Because it is fairly common to use the `toString()` representation of an `Object
 That `String` is the result of invoking the `toString()` operation on the inbound Message's payload.
 The following example shows how to declare an instance of the object-to-string transformer:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -169,8 +169,10 @@ public IntegrationFlow someFlow() {
              .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun someFlow() =
@@ -179,8 +181,10 @@ fun someFlow() =
         channel("out")
     }
 ----
+
+Groovy DSL::
++
 [source, groovy, role="secondary"]
-.Groovy DSL
 ----
 @Bean
 someFlow() {
@@ -191,12 +195,14 @@ someFlow() {
             }
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:object-to-string-transformer input-channel="in" output-channel="out"/>
 ----
-====
+======
 
 A potential use for this transformer would be sending some arbitrary object to the 'outbound-channel-adapter' in the `file` namespace.
 Whereas that channel adapter only supports `String`, byte-array, or `java.io.File` payloads by default, adding this transformer immediately before the adapter handles the necessary conversion.
@@ -216,9 +222,11 @@ The `charset` can be modified by supplying the charset attribute on the transfor
 
 For more sophistication (such as selection of the charset dynamically, at runtime), you can use a SpEL expression-based transformer instead, as the following example shows:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -229,22 +237,26 @@ public IntegrationFlow someFlow() {
              .get();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:transformer input-channel="in" output-channel="out"
        expression="new String(payload, headers['myCharset']" />
 ----
-====
+======
 
 If you need to serialize an `Object` to a byte array or deserialize a byte array back into an `Object`, Spring Integration provides symmetrical serialization transformers.
 These use standard Java serialization by default, but you can provide an implementation of Spring `Serializer` or `Deserializer` strategies by using the `serializer` and `deserializer` attributes, respectively.
 See also the `Transformers` factory class.
 The following example shows to use Spring's serializer and deserializer:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -258,15 +270,17 @@ public IntegrationFlow someFlow() {
              .get();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
 
 <int:payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"
     allow-list="com.mycom.*,com.yourcom.*"/>
 ----
-====
+======
 
 IMPORTANT: When deserializing data from untrusted sources, you should consider adding a `allow-list` of package and class patterns.
 By default, all classes are deserialized.
@@ -281,7 +295,6 @@ The primitive type becomes the value.
 
 Consider the following example:
 
-====
 [source,java]
 ----
 public class Parent{
@@ -296,22 +309,18 @@ public class Child{
     // setters and getters are omitted
 }
 ----
-====
 
 The two classes in the preceding example are transformed to the following `Map`:
 
-====
 [source]
 ----
 {person.name=George, person.child.name=Jenna, person.child.nickNames[0]=Jen ...}
 ----
-====
 
 The JSON-based `Map` lets you describe the object structure without sharing the actual types, which lets you restore and rebuild the object graph into a differently typed object graph, as long as you maintain the structure.
 
 For example, the preceding structure could be restored back to the following object graph by using the `Map`-to-`Object` transformer:
 
-====
 [source,java]
 ----
 public class Father {
@@ -326,7 +335,6 @@ public class Kid {
     // setters and getters are omitted
 }
 ----
-====
 
 If you need to create a "`structured`" map, you can provide the `flatten` attribute.
 The default is 'true'.
@@ -334,7 +342,6 @@ If you set it to 'false', the structure is a `Map` of `Map` objects.
 
 Consider the following example:
 
-====
 [source,java]
 ----
 public class Parent {
@@ -349,22 +356,21 @@ public class Child {
 	// setters and getters are omitted
 }
 ----
-====
 
 The two classes in the preceding example are transformed to the following `Map`:
 
-====
 [source]
 ----
 {name=George, child={name=Jenna, nickNames=[Bimbo, ...]}}
 ----
-====
 
 To configure these transformers, Spring Integration provides respective XML component and Java DSL factory:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -375,18 +381,22 @@ public IntegrationFlow someFlow() {
              .get();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:object-to-map-transformer input-channel="directInput" output-channel="output"/>
 ----
-====
+======
 
 You can also set the `flatten` attribute to false, as follows:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -397,18 +407,22 @@ public IntegrationFlow someFlow() {
              .get();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:object-to-map-transformer input-channel="directInput" output-channel="output" flatten="false"/>
 ----
-====
+======
 
 Spring Integration provides XML namespace support for Map-to-Object and the Java DSL factory has the `fromMap()` method, as the following example shows:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -419,20 +433,24 @@ public IntegrationFlow someFlow() {
              .get();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:map-to-object-transformer input-channel="input"
                          output-channel="output"
                          type="org.something.Person"/>
 ----
-====
+======
 
 Alternatively, you could use a `ref` attribute and a prototype-scoped bean, as the following example shows:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 IntegrationFlow someFlow() {
@@ -449,15 +467,17 @@ Person person() {
     return new Person();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:map-to-object-transformer input-channel="inputA"
                                output-channel="outputA"
                                ref="person"/>
 <bean id="person" class="org.something.Person" scope="prototype"/>
 ----
-====
+======
 
 NOTE: The 'ref' and 'type' attributes are mutually exclusive.
 Also, if you use the 'ref' attribute, you must point to a 'prototype' scoped bean.
@@ -473,9 +493,11 @@ The `StreamTransformer` transforms `InputStream` payloads to a `byte[]`( or a `S
 
 The following example shows how to use the `stream-transformer` element in XML:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -486,19 +508,20 @@ public IntegrationFlow someFlow() {
              .get();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:stream-transformer input-channel="directInput" output-channel="output"/> <!-- byte[] -->
 
 <int:stream-transformer id="withCharset" charset="UTF-8"
     input-channel="charsetChannel" output-channel="output"/> <!-- String -->
 ----
-====
+======
 
 The following example shows how to use the `StreamTransformer` class and the `@Transformer` annotation to configure a stream transformer in Java:
 
-====
 [source, java]
 ----
 @Bean
@@ -513,7 +536,6 @@ public StreamTransformer streamToString() {
     return new StreamTransformer("UTF-8"); // transforms to String
 }
 ----
-====
 
 [[json-transformers]]
 === JSON Transformers
@@ -521,7 +543,6 @@ public StreamTransformer streamToString() {
 Spring Integration provides Object-to-JSON and JSON-to-Object transformers.
 The following pair of examples show how to declare them in XML:
 
-====
 [source,xml]
 ----
 <int:object-to-json-transformer input-channel="objectMapperInput"/>
@@ -529,19 +550,16 @@ The following pair of examples show how to declare them in XML:
 <int:json-to-object-transformer input-channel="objectMapperInput"
     type="foo.MyDomainObject"/>
 ----
-====
 
 By default, the transformers in the preceding listing use a vanilla `JsonObjectMapper`.
 It is based on an implementation from the classpath.
 You can provide your own custom `JsonObjectMapper` implementation with appropriate options or based on a required library (such as GSON), as the following example shows:
 
-====
 [source,xml]
 ----
 <int:json-to-object-transformer input-channel="objectMapperInput"
     type="something.MyDomainObject" object-mapper="customObjectMapper"/>
 ----
-====
 
 [NOTE]
 ====
@@ -554,7 +572,6 @@ The class is `Jackson2JsonObjectMapper`, respectively.
 You may wish to consider using a `FactoryBean` or a factory method to create the `JsonObjectMapper` with the required characteristics.
 The following example shows how to use such a factory:
 
-====
 [source,java]
 ----
 public class ObjectMapperFactory {
@@ -566,17 +583,14 @@ public class ObjectMapperFactory {
     }
 }
 ----
-====
 
 The following example shows how to do the same thing in XML:
 
-====
 [source,xml]
 ----
 <bean id="customObjectMapper" class="something.ObjectMapperFactory"
             factory-method="getMapper"/>
 ----
-====
 
 [IMPORTANT]
 ====
@@ -666,7 +680,6 @@ The default SpEL expression is `headers[proto_type]` (`ProtoHeaders.TYPE`) which
 
 For example, compiling the following IDL:
 
-====
 [source,proto]
 ----
 syntax = "proto2";
@@ -681,12 +694,10 @@ message MyMessageClass {
   optional string bar = 2;
 }
 ----
-====
 
 will generate a new `org.example.MyMessageClass` class.
 
 Then use the:
-====
 [source,java]
 ----
 // Transforms a MyMessageClass instance into a byte array.
@@ -706,7 +717,6 @@ FromProtobufTransformer fromTransformer = new FromProtobufTransformer();
 Message message2 =  fromTransformer.transform(message1);
 
 ----
-====
 
 [[transformer-annotation]]
 == Configuring a Transformer with Annotations
@@ -715,7 +725,6 @@ You can add the `@Transformer` annotation to methods that expect either the `Mes
 The return value is handled in the exact same way as described earlier <<transformer-namespace,in the section describing the `<transformer>` element>>.
 The following example shows how to use the `@Transformer` annotation to transform a `String` into an `Order`:
 
-====
 [source,java]
 ----
 @Transformer
@@ -723,12 +732,10 @@ Order generateOrder(String productId) {
     return new Order(productId);
 }
 ----
-====
 
 Transformer methods can also accept the `@Header` and `@Headers` annotations, as documented in `xref:configuration/annotations.adoc[Annotation Support]`.
 The following examples shows how to use the `@Header` annotation:
 
-====
 [source,java]
 ----
 @Transformer
@@ -736,7 +743,6 @@ Order generateOrder(String productId, @Header("customerName") String customer) {
     return new Order(productId, customer);
 }
 ----
-====
 
 See also xref:handler-advice/advising-with-annotations.adoc[Advising Endpoints Using Annotations].
 
@@ -749,9 +755,11 @@ Basically, the header filter is the opposite  of the header enricher.
 The latter is discussed in xref:content-enrichment.adoc#header-enricher[Header Enricher].
 The following example defines a header filter:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -762,13 +770,15 @@ public IntegrationFlow someFlow() {
              .get();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:header-filter input-channel="inputChannel"
 		output-channel="outputChannel" header-names="lastName, state"/>
 ----
-====
+======
 
 As you can see, configuration of a header filter is quite simple.
 It is a typical endpoint with input and output channels and a `header-names` attribute.

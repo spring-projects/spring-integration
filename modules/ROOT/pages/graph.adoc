@@ -8,7 +8,6 @@ The `IntegrationGraphServer` should be declared as a bean to build, retrieve, an
 The resulting `Graph` object can be serialized to any format, although JSON is flexible and convenient to parse and represent on the client side.
 A Spring Integration application with only the default components would expose a graph as follows:
 
-====
 [source,json,subs="normal"]
 ----
 {
@@ -89,7 +88,6 @@ A Spring Integration application with only the default components would expose a
   } ]
 }
 ----
-====
 
 NOTE: Version 5.2 deprecated the legacy metrics in favor of Micrometer meters as discussed xref:metrics.adoc[Metrics Management].
 The legacy metrics were removed in Version 5.4 and will no longer appear in the graph.
@@ -119,7 +117,6 @@ For example, the `link` element can be used to determine the proper `port` on th
 
 The following "`text image`" shows the relationships between the types:
 
-====
 ----
               +---(discard)
               |
@@ -135,7 +132,6 @@ The following "`text image`" shows the relationships between the types:
               |
               +---(error)
 ----
-====
 
 The `nodes` graph element is perhaps the most interesting, because its elements contain not only the runtime components with their `componentType` instances and `name` values but can also optionally contain metrics exposed by the component.
 Node elements contain various properties that are generally self-explanatory.
@@ -151,7 +147,6 @@ See the next section for more information.
 Starting with version 5.1, the `IntegrationGraphServer` accepts a `Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback` for population of additional properties on the `IntegrationNode` for a particular `NamedComponent`.
 For example, you can expose the `SmartLifecycle` `autoStartup` and `running` properties into the target graph:
 
-====
 [source,java]
 ----
 server.setAdditionalPropertiesCallback(namedComponent -> {
@@ -165,7 +160,6 @@ server.setAdditionalPropertiesCallback(namedComponent -> {
             return properties;
         });
 ----
-====
 
 [[graph-runtime-model]]
 == Graph Runtime Model
@@ -182,7 +176,6 @@ Another example is `CompositeMessageHandlerNode` -- for a `MessageHandlerChain` 
 NOTE: The `@MessagingGateway` (see xref:gateway.adoc[Messaging Gateways]) provides nodes for each of its method, where the `name` attribute is based on the gateway's bean name and the short method signature.
 Consider the following example of a gateway:
 
-====
 [source,java]
 ----
 @MessagingGateway(defaultRequestChannel = "four")
@@ -196,11 +189,9 @@ public interface Gate {
 
 }
 ----
-====
 
 The preceding gateway produces nodes similar to the following:
 
-====
 [source,json]
 ----
 {
@@ -234,7 +225,6 @@ The preceding gateway produces nodes similar to the following:
   "errors" : null
 }
 ----
-====
 
 You can use this  `IntegrationNode` hierarchy for parsing the graph model on the client side as well as to understand the general Spring Integration runtime behavior.
 See also xref:overview.adoc#programming-tips[Programming Tips and Tricks] for more information.

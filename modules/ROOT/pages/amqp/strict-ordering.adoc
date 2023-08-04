@@ -16,7 +16,6 @@ Strict ordering requirements come at the cost of decreased performance.
 
 Consider the following integration flow:
 
-====
 [source, java]
 ----
 @Bean
@@ -28,7 +27,6 @@ public IntegrationFlow flow(RabbitTemplate template) {
             .get();
 }
 ----
-====
 
 Suppose we send messages `A`, `B` and `C` to the gateway.
 While it is likely that messages `A`, `B`, `C` are sent in order, there is no guarantee.
@@ -40,7 +38,6 @@ See xref:handler-advice/handle-message.adoc[Handling Message Advice].
 When applied before the splitter, it ensures that all downstream operations are performed on the same channel and, optionally, can wait until publisher confirmations for all sent messages are received (if the connection factory is configured for confirmations).
 The following example shows how to use `BoundRabbitChannelAdvice`:
 
-====
 [source, java]
 ----
 @Bean
@@ -53,7 +50,6 @@ public IntegrationFlow flow(RabbitTemplate template) {
             .get();
 }
 ----
-====
 
 Notice that the same `RabbitTemplate` (which implements `RabbitOperations`) is used in the advice and the outbound adapter.
 The advice runs the downstream flow within the template's `invoke` method so that all operations run on the same channel.

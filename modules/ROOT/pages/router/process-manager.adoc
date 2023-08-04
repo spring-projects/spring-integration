@@ -9,7 +9,6 @@ A `MessageChannel` can be created within the `RoutingSlipRouteStrategy` and retu
 A `FixedSubscriberChannel` with an associated `MessageHandler` implementation is a good combination for such cases.
 For example, you can route to a https://projectreactor.io/docs/core/release/reference/#getting-started[Reactive Streams], as the following example shows:
 
-====
 [source,java]
 ----
 @Bean
@@ -29,4 +28,3 @@ public RoutingSlipRouteStrategy routeStrategy() {
                     .subscribe(v -> messagingTemplate().convertAndSend(resultsChannel(), v)));
 }
 ----
-====

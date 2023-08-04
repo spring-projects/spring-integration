@@ -3,9 +3,11 @@
 
 The following listing shows the possible properties for an AMQP Outbound Gateway:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source,java,role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate) {
@@ -21,8 +23,10 @@ public interface MyGateway {
 
 }
 ----
+
+Java::
++
 [source,java,role="secondary"]
-.Java
 ----
 @Bean
 @ServiceActivator(inputChannel = "amqpOutboundChannel")
@@ -45,8 +49,10 @@ public interface MyGateway {
 
 }
 ----
+
+XML::
++
 [source,xml,role="secondary"]
-.XML
 ----
 <int-amqp:outbound-gateway id="outboundGateway"               <1>
                            request-channel="myRequestChannel" <2>
@@ -69,6 +75,7 @@ public interface MyGateway {
                            lazy-connect="true" />             <19>
 
 ----
+======
 
 <1> The unique ID for this adapter.
 Optional.
@@ -145,7 +152,6 @@ Optional.
 <19> When set to `false`, the endpoint attempts to connect to the broker during application context initialization.
 This allows "`fail fast`" detection of bad configuration by logging an error message if the broker is down.
 When `true` (the default), the connection is established (if it does not already exist because some other component established it) when the first message is sent.
-====
 
 [IMPORTANT]
 .return-channel

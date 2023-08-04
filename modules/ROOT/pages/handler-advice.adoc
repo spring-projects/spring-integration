@@ -7,10 +7,8 @@ However, suppose you want to retry, say, just a REST Web Service call, and not a
 For example, consider the following flow:
 
 
-====
 [source]
 inbound-adapter->poller->http-gateway1->http-gateway2->jdbc-outbound-adapter
-====
 
 If you configure some retry-logic into an advice chain on the poller and the call to `http-gateway2` failed because of a network glitch, the retry causes both `http-gateway1` and `http-gateway2` to be called a second time.
 Similarly, after a transient failure in the jdbc-outbound-adapter, both HTTP gateways are called a second time before again calling the `jdbc-outbound-adapter`.

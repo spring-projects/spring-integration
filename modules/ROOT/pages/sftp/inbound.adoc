@@ -4,7 +4,6 @@
 The SFTP inbound channel adapter is a special listener that connects to the server and listens for the remote directory events (such as a new file being created), at which point it initiates a file transfer.
 The following example shows how to configure an SFTP inbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
@@ -24,7 +23,6 @@ The following example shows how to configure an SFTP inbound channel adapter:
         <int:poller fixed-rate="1000"/>
 </int-sftp:inbound-channel-adapter>
 ----
-====
 
 The preceding configuration example shows how to provide values for various attributes, including the following:
 
@@ -107,7 +105,6 @@ To handle these scenarios, you can use the filtering support provided by the `fi
 If you need a custom filter implementation, you can include a reference in your adapter by setting the `filter` attribute.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <int-sftp:inbound-channel-adapter id="sftpInbondAdapter"
@@ -121,7 +118,6 @@ The following example shows how to do so:
 
 <bean id="customFilter" class="org.foo.CustomFilter"/>
 ----
-====
 
 [[recovering-from-failures]]
 == Recovering from Failures
@@ -141,7 +137,6 @@ If, after synchronizing the files, an error occurs on the downstream flow proces
 
 If you wish to reprocess such files after a failure, you can use a configuration similar to the following to facilitate the removal of the failed file from the filter:
 
-====
 [source, xml]
 ----
 <int-sftp:inbound-channel-adapter id="sftpAdapter"
@@ -166,7 +161,6 @@ If you wish to reprocess such files after a failure, you can use a configuration
 <bean id="transactionManager"
     class="org.springframework.integration.transaction.PseudoTransactionManager" />
 ----
-====
 
 The preceding configuration works for any `ResettableFileListFilter`.
 
@@ -184,7 +178,6 @@ See xref:file/reading.adoc#watch-service-directory-scanner[`WatchServiceDirector
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -244,14 +237,12 @@ public class SftpJavaApplication {
 
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -280,7 +271,6 @@ public class SftpJavaApplication {
     }
 }
 ----
-====
 
 [[sftp-incomplete]]
 == Dealing With Incomplete Data

@@ -5,14 +5,12 @@ Similar to SpEL-based routers, Spring Integration provides support for routing m
 Instead, one or more output channels are determined dynamically.
 The following example shows how to create such a router:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel">
     <int-xml:xpath-expression expression="/order/type"/>
 </int-xml:xpath-router>
 ----
-====
 
 NOTE: For an overview of attributes that are common among Routers, see xref:router/common-parameters.adoc[Common Router Parameters].
 
@@ -24,7 +22,6 @@ Consequently, messages are sent to all the channels in the list.
 
 Thus, assuming that the XML file passed to the following router configuration contains many `responder` sub-elements that represent channel names, the message is sent to all of those channels:
 
-====
 [source,xml]
 ----
 <!-- route the order to all responders-->
@@ -33,12 +30,10 @@ Thus, assuming that the XML file passed to the following router configuration co
 </int-xml:xpath-router>
 
 ----
-====
 
 If the returned values do not represent the channel names directly, you can specify additional mapping parameters to map those returned values to actual channel names.
 For example if the `/request/responders` expression results in two values (`responderA` and `responderB`), but you do not want to couple the responder names to channel names, you can provide additional mapping configuration, such as the following:
 
-====
 [source,xml]
 ----
 <!-- route the order to all responders-->
@@ -49,19 +44,16 @@ For example if the `/request/responders` expression results in two values (`resp
 </int-xml:xpath-router>
 
 ----
-====
 
 As already mentioned, the default evaluation type for XPath expressions is `NODESET`, which is converted to a `List<String>` of channel names, which handles single channel scenarios as well as multiple channel scenarios.
 
 Nonetheless, certain XPath expressions may evaluate as type `String` from the very beginning.
 Consider, for example, the following XPath Expression:
 
-====
 [source,xml]
 ----
 name(./node())
 ----
-====
 
 This expression returns the name of the root node.
 If the default evaluation type `NODESET` is being used, it results in an exception.
@@ -90,7 +82,6 @@ For further information, see:
 
 For example, if we want to route based on the name of the root node, we can use the following configuration:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-router id="xpathRouterAsString"
@@ -100,7 +91,6 @@ For example, if we want to route based on the name of the root node, we can use 
 </int-xml:xpath-router>
 
 ----
-====
 
 [[xpath-routing-converter]]
 == XML Payload Converter

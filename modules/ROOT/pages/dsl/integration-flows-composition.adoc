@@ -8,7 +8,6 @@ All that is needed for the final composition is knowledge about a `MessageChanne
 
 Starting with version `5.5.4`, to abstract more from `MessageChannel` and hide implementation details from the end-user, the `IntegrationFlow` introduces the `from(IntegrationFlow)` factory method to allow starting the current `IntegrationFlow` from the output of an existing flow:
 
-====
 [source,java]
 ----
 @Bean
@@ -26,11 +25,9 @@ IntegrationFlow compositionMainFlow(IntegrationFlow templateSourceFlow) {
             .get();
 }
 ----
-====
 
 On the other hand, the `IntegrationFlowDefinition` has added a `to(IntegrationFlow)` terminal operator to continue the current flow at the input channel of some other flow:
 
-====
 [source,java]
 ----
 @Bean
@@ -47,7 +44,6 @@ IntegrationFlow otherFlow() {
             .channel(c -> c.queue("otherFlowResultChannel"));
 }
 ----
-====
 
 The composition in the middle of the flow is simply achievable with an existing `gateway(IntegrationFlow)` EIP-method.
 This way we can build flows with any complexity by composing them from simpler, reusable logical blocks.

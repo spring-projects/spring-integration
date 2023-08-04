@@ -5,9 +5,11 @@ This section describes how to work with mail messages in Spring Integration.
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,12 +18,13 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-mail:{project-version}"
 ----
-====
+======
 
 The `jakarta.mail:jakarta.mail-api` must be included via vendor-specific implementation.
 
@@ -31,14 +34,12 @@ The `jakarta.mail:jakarta.mail-api` must be included via vendor-specific impleme
 Spring Integration provides support for outbound email with the `MailSendingMessageHandler`.
 It delegates to a configured instance of Spring's `JavaMailSender`, as the following example shows:
 
-====
 [source,java]
 ----
  JavaMailSender mailSender = context.getBean("mailSender", JavaMailSender.class);
 
  MailSendingMessageHandler mailSendingHandler = new MailSendingMessageHandler(mailSender);
 ----
-====
 
 `MailSendingMessageHandler` has various mapping strategies that use Spring's `MailMessage` abstraction.
 If the received message's payload is already a `MailMessage` instance, it is sent directly.
@@ -53,7 +54,6 @@ You can also configure the outbound `MailMessage` with certain values from `Mess
 If available, values are mapped to the outbound mail's properties, such as the recipients (To, Cc, and BCc), the `from`, the `reply-to`, and the `subject`.
 The header names are defined by the following constants:
 
-====
 [source,java]
 ----
  MailHeaders.SUBJECT
@@ -63,7 +63,6 @@ The header names are defined by the following constants:
  MailHeaders.FROM
  MailHeaders.REPLY_TO
 ----
-====
 
 NOTE: `MailHeaders` also lets you override corresponding `MailMessage` values.
 For example, if `MailMessage.to` is set to 'thing1@things.com' and the `MailHeaders.TO` message header is provided, it takes precedence and overrides the corresponding value in `MailMessage`.
@@ -76,12 +75,10 @@ It delegates to a configured instance of Spring Integration's own `MailReceiver`
 There are two implementations: `Pop3MailReceiver` and `ImapMailReceiver`.
 The easiest way to instantiate either of these is bypassing the 'uri' for a mail store to the receiver's constructor, as the following example shows:
 
-====
 [source,java]
 ----
 MailReceiver receiver = new Pop3MailReceiver("pop3://usr:pwd@localhost/INBOX");
 ----
-====
 
 Another option for receiving mail is the IMAP `idle` command (if supported by your mail server).
 Spring Integration provides the `ImapIdleChannelAdapter`, which is itself a message-producing endpoint.
@@ -94,7 +91,6 @@ The next section has examples of configuring both types of inbound channel adapt
 Normally, when the `IMAPMessage.getContent()` method is called, certain headers as well as the body are rendered (for a simple text email), as the following example shows:
 ====
 
-====
 [source]
 ----
 To: thing1@things.com
@@ -103,7 +99,6 @@ Subject: Test Email
 
 something
 ----
-====
 
 With a simple `MimeMessage`, `getContent()` returns the mail body (`something` in the preceding example).
 
@@ -122,7 +117,6 @@ Setting it to `false` doesn't close the folder automatically after a fetch, but 
 This does not work with `Pop3MailReceiver` as it relies on opening and closing the folder to get new messages.
 It is the target application's responsibility to call the `close()` on this header whenever it is necessary in the downstream flow:
 
-====
 [source,java]
 ----
 Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(mailMessage);
@@ -130,7 +124,6 @@ if (closeableResource != null) {
     closeableResource.close();
 }
 ----
-====
 
 Keeping the folder open is useful in cases where communication with the server is needed during parsing multipart content of the email with attachments.
 The `close()` on the `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header delegates to the `AbstractMailReceiver` to close the folder with `expunge` option if `shouldDeleteMessages` is configured respectively on the `AbstractMailReceiver`.
@@ -186,16 +179,20 @@ For content types that are unknown to the `DataHandler`, the contents are render
 When you do not provide a header mapper, the message payload is the `MimeMessage` presented by `jakarta.mail`.
 The framework provides a `MailToStringTransformer` that you can use to convert the message by using a strategy to convert the mail contents to a `String`:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
    ...
    .transform(Mail.toStringTransformer())
    ...
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 @Transformer(inputChannel="...", outputChannel="...")
@@ -203,19 +200,23 @@ public Transformer transformer() {
     return new MailToStringTransformer();
 }
 ----
+
+Kotlin::
++
 [source, kotlin, role="secondary"]
-.Kotlin
 ----
    ...
    transform(Mail.toStringTransformer())
    ...
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-mail:mail-to-string-transformer ... >
 ----
-====
+======
 
 Starting with version 4.3, the transformer handles embedded `Part` instances (as well as `Multipart` instances, which were handled previously).
 The transformer is a subclass of `AbstractMailTransformer` that maps the address and subject headers from the preceding list.
@@ -231,7 +232,6 @@ All the mentioned above transformations are still valid.
 Spring Integration provides a namespace for mail-related configuration.
 To use it, configure the following schema locations:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -243,39 +243,32 @@ To use it, configure the following schema locations:
     http://www.springframework.org/schema/integration/mail
     https://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
 ----
-====
 
 To configure an outbound channel adapter, provide the channel from which to receive and the MailSender, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-mail:outbound-channel-adapter channel="outboundMail"
     mail-sender="mailSender"/>
 ----
-====
 
 Alternatively, you can provide the host, username, and password, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-mail:outbound-channel-adapter channel="outboundMail"
     host="somehost" username="someuser" password="somepassword"/>
 ----
-====
 
 Starting with version 5.1.3, the `host`, `username` ane `mail-sender` can be omitted, if `java-mail-properties` is provided.
 However, the `host` and `username` has to be configured with appropriate Java mail properties, e.g. for SMTP:
 
-====
 [source]
 ----
 mail.user=someuser@gmail.com
 mail.smtp.host=smtp.gmail.com
 mail.smtp.port=587
 ----
-====
 
 NOTE: As with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`, you should provide a `<poller>` element (see xref:endpoint.adoc#endpoint-namespace[Endpoint Namespace Support]).
 
@@ -284,7 +277,6 @@ Doing so simplifies the application of the headers mentioned earlier to any mess
 
 The following example assumes the payload is a Java bean with appropriate getters for the specified properties, but you can use any SpEL expression:
 
-====
 [source,xml]
 ----
 <int-mail:header-enricher input-channel="expressionsInput" default-overwrite="false">
@@ -296,7 +288,6 @@ The following example assumes the payload is a Java bean with appropriate getter
 	<int-mail:subject expression="payload.subject" overwrite="true"/>
 </int-mail:header-enricher>
 ----
-====
 
 Alternatively, you can use the `value` attribute to specify a literal.
 You also can specify `default-overwrite` and individual `overwrite` attributes to control the behavior with existing headers.
@@ -306,7 +297,6 @@ A polling channel adapter requires the store URI and the channel to which to sen
 The URI may begin with `pop3` or `imap`.
 The following example uses an `imap` URI:
 
-====
 [source,xml]
 ----
 <int-mail:inbound-channel-adapter id="imapAdapter"
@@ -319,14 +309,12 @@ The following example uses an `imap` URI:
       <int:poller max-messages-per-poll="1" fixed-rate="5000"/>
 </int-mail:inbound-channel-adapter>
 ----
-====
 
 If you do have IMAP `idle` support, you may want to configure the `imap-idle-channel-adapter` element instead.
 Since the `idle` command enables event-driven notifications, no poller is necessary for this adapter.
 It sends a message to the specified channel as soon as it receives the notification that new mail is available.
 The following example configures an IMAP `idle` mail channel:
 
-====
 [source,xml]
 ----
 <int-mail:imap-idle-channel-adapter id="customAdapter"
@@ -337,7 +325,6 @@ The following example configures an IMAP `idle` mail channel:
       should-mark-messages-as-read="true"
       java-mail-properties="javaMailProperties"/>
 ----
-====
 
 You can provide `javaMailProperties` by creating and populating a regular `java.utils.Properties` object -- for example, by using the `util` namespace provided by Spring.
 
@@ -345,7 +332,6 @@ IMPORTANT: If your username contains the '@' character, use '%40' instead of '@'
 
 The following example shows how to configure a `java.util.Properties` object:
 
-====
 [source,xml]
 ----
 <util:properties id="javaMailProperties">
@@ -355,7 +341,6 @@ The following example shows how to configure a `java.util.Properties` object:
   <prop key="mail.debug">false</prop>
 </util:properties>
 ----
-====
 
 [[search-term]]
 By default, the `ImapMailReceiver` searches for messages based on the default `SearchTerm`, which is all mail messages that:
@@ -371,7 +356,6 @@ Since version 2.2, the `SearchTerm` used by the `ImapMailReceiver` is fully conf
 A `SearchTermStrategy` is a strategy interface with a single method that lets you create an instance of the `SearchTerm` used by the `ImapMailReceiver`.
 The following listing shows the `SearchTermStrategy` interface:
 
-====
 [source,java]
 ----
 public interface SearchTermStrategy {
@@ -380,11 +364,9 @@ public interface SearchTermStrategy {
 
 }
 ----
-====
 
 The following example relies on `TestSearchTermStrategy` rather than the default `SearchTermStrategy`:
 
-====
 [source,xml]
 ----
 <mail:imap-idle-channel-adapter id="customAdapter"
@@ -395,7 +377,6 @@ The following example relies on `TestSearchTermStrategy` rather than the default
 <bean id="searchTermStrategy"
   class="o.s.i.mail.config.ImapIdleChannelAdapterParserTests.TestSearchTermStrategy"/>
 ----
-====
 
 See xref:mail.adoc#imap-seen[Marking IMAP Messages When `Recent` Is Not Supported] for information about message flagging.
 
@@ -505,7 +486,6 @@ However, since we now set the `PEEK` flag of every incoming message to 'true', o
 
 So, in the following example, only messages that match the filter expression are output by this adapter and only those messages are marked as read:
 
-====
 [source,xml]
 ----
 <int-mail:imap-idle-channel-adapter id="customAdapter"
@@ -515,7 +495,6 @@ So, in the following example, only messages that match the filter expression are
 	java-mail-properties="javaMailProperties"
 	mail-filter-expression="subject matches '(?i).*Spring Integration.*'"/>
 ----
-====
 
 In the preceding example, thanks to the `mail-filter-expression` attribute, only messages that contain 'Spring Integration' in the subject line are produced by this adapter.
 
@@ -541,7 +520,6 @@ Because of the different mail servers and specifically the limitations that some
 You can send the messages to some other Spring Integration components or invoke a custom bean to perform some action.
 For example, to move an IMAP message to a different folder after the transaction commits, you might use something similar to the following:
 
-====
 [source,xml]
 ----
 <int-mail:imap-idle-channel-adapter id="customAdapter"
@@ -559,11 +537,9 @@ For example, to move an IMAP message to a different folder after the transaction
 
 <bean id="syncProcessor" class="thing1.thing2.Mover"/>
 ----
-====
 
 The following example shows what the `Mover` class might look like:
 
-====
 [source,java]
 ----
 public class Mover {
@@ -594,7 +570,6 @@ public class Mover {
     }
 }
 ----
-====
 
 IMPORTANT: For the message to be still available for manipulation after the transaction, _should-delete-messages_ must be set to 'false'.
 
@@ -603,7 +578,6 @@ IMPORTANT: For the message to be still available for manipulation after the tran
 
 To configure mail component in Java DSL, the framework provides a `o.s.i.mail.dsl.Mail` factory, which can be used like this:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -645,4 +619,3 @@ public class MailApplication {
     }
 }
 ----
-====

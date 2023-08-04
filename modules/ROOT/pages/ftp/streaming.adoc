@@ -11,7 +11,6 @@ Standard framework components, such as the `FileSplitter` and `StreamTransformer
 See xref:file/splitter.adoc[File Splitter] and xref:transformer.adoc#stream-transformer[Stream Transformer] for more information about these components.
 The following example shows how to configure an `inbound-streaming-channel-adapter`:
 
-====
 [source, xml]
 ----
 <int-ftp:inbound-streaming-channel-adapter id="ftpInbound"
@@ -28,7 +27,6 @@ The following example shows how to configure an `inbound-streaming-channel-adapt
         <int:poller fixed-rate="1000" />
 </int-ftp:inbound-streaming-channel-adapter>
 ----
-====
 
 Only one of `filename-pattern`, `filename-regex`, `filter`, or `filter-expression` is allowed.
 
@@ -60,7 +58,6 @@ This is because the sort is now performed earlier in the processing, before filt
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -110,7 +107,6 @@ public class FtpJavaApplication {
 
 }
 ----
-====
 
 Notice that, in this example, the message handler downstream of the transformer has an `advice` that removes the remote file after processing.
 

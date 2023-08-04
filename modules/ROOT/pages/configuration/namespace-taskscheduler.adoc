@@ -6,12 +6,10 @@ First, you may want to control the central `TaskScheduler` instance.
 You can do so by providing a single bean named `taskScheduler`.
 This is also defined as a constant, as follows:
 
-====
 [source,java]
 ----
 IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME
 ----
-====
 
 By default, Spring Integration relies on an instance of `ThreadPoolTaskScheduler`, as described in the https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling[Task Execution and Scheduling] section of the Spring Framework reference manual.
 That default `TaskScheduler` starts up automatically with a pool of ten threads, but see xref:configuration/global-properties.adoc[Global Properties].
@@ -36,7 +34,6 @@ Such endpoints have no poller configuration, since their handlers are invoked di
 When running in a JEE container, you may need to use Spring's `TimerManagerTaskScheduler`, as described https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling-task-scheduler-implementations[here], instead of the default `taskScheduler`.
 To do so, define a bean with the appropriate JNDI name for your environment, as the following example shows:
 
-====
 [source,xml]
 ----
 <bean id="taskScheduler" class="org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler">
@@ -44,7 +41,6 @@ To do so, define a bean with the appropriate JNDI name for your environment, as 
     <property name="resourceRef" value="true" />
 </bean>
 ----
-====
 =====
 
 IMPORTANT: When a custom `TaskScheduler` is configured in the application context (like the above mentioned `DefaultManagedTaskScheduler`), it is recommended to supply it with a `MessagePublishingErrorHandler` (`integrationMessagePublishingErrorHandler` bean) to be able to handle exceptions as `ErrorMessage`s sent to the error channel, as is done with the default `TaskScheduler` bean provided by the framework.

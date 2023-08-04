@@ -5,7 +5,6 @@ Spring Integration, since version 3.0, provides the built-in `#xpath` SpEL funct
 This method delegates to an `org.springframework.xml.xpath.XPathExpression`.
 The following listing shows some usage examples:
 
-====
 [source,xml]
 ----
 <transformer expression="#xpath(payload, '/name')"/>
@@ -19,7 +18,6 @@ The following listing shows some usage examples:
     <mapping channel="output2" value="45"/>
 </router>
 ----
-====
 
 The `#xpath()` also supports a third optional parameter for converting the result of the XPath evaluation.
 It can be one of the String constants (`string`, `boolean`, `number`, `node`, `node_list` and `document_list`) or an `org.springframework.xml.xpath.NodeMapper` instance.

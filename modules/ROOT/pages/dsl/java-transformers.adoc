@@ -4,7 +4,6 @@
 The DSL API provides a convenient, fluent `Transformers` factory to be used as inline target object definition within the `.transform()` EIP method.
 The following example shows how to use it:
 
-====
 [source,java]
 ----
 @Bean
@@ -15,7 +14,6 @@ public IntegrationFlow transformFlow() {
             .get();
 }
 ----
-====
 
 It avoids inconvenient coding using setters and makes the flow definition more straightforward.
 Note that you can use `Transformers` to declare target `Transformer` instances as `@Bean` instances and, again, use them from `IntegrationFlow` definition as bean methods.

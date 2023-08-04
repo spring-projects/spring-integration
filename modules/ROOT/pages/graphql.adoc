@@ -6,9 +6,11 @@ The implementation is based on the https://spring.io/projects/spring-graphql[Spr
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,12 +18,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-graphql:{project-version}"
 ----
-====
+======
 
 [[graphql-outbound-gateway]]
 == GraphQL Outbound Gateway
@@ -40,7 +44,6 @@ The `GraphQlMessageHandler` is a reactive streams component and produces a `Mono
 Such a `Mono` is subscribed by the framework in the `ReactiveStreamsSubscribableChannel` output channel or in the `AbstractMessageProducingHandler` asynchronously when the output channel is not reactive.
 See documentation for the `ExecutionGraphQlResponse` how to process the GraphQL operation result.
 
-====
 [source, java]
 ----
 @Bean
@@ -84,13 +87,11 @@ AnnotatedControllerConfigurer annotatedDataFetcherConfigurer() {
     return new AnnotatedControllerConfigurer();
 }
 ----
-====
 
 The special treatment should be applied for the result of a subscription operation.
 In this case the `ExecutionGraphQlResponse.getData()` returns a `SubscriptionPublisher` which has to subscribed and processed manually.
 Or it can be flat-mapped via plain service activator to the reply for the `FluxMessageChannel`:
 
-====
 [source, java]
 ----
 @ServiceActivator(inputChannel = "graphQlResultChannel", outputChannel="graphQlSubscriptionChannel")
@@ -98,7 +99,6 @@ public SubscriptionPublisher obtainSubscriptionResult(ExecutionGraphQlResponse g
 	return graphQlResponse.getData();
 }
 ----
-====
 
 Such an outbound gateway can be used not only for GraphQL request via HTTP, but from any upstream endpoint which produces or carries a GraphQL operation or its arguments in the message.
 The result of the `GraphQlMessageHandler` handling can be produced as a reply to the upstream request or sent downstream for further processing in the integration flow.

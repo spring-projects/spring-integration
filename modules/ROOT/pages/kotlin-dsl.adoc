@@ -7,7 +7,6 @@ All you need to get started is just an import for `org.springframework.integrati
 
 For `IntegrationFlow` definitions as lambdas we typically don't need anything else from Kotlin and just declare a bean like this:
 
-====
 [source, kotlin]
 ----
 @Bean
@@ -16,13 +15,11 @@ IntegrationFlow { flow ->
     flow.handle<Any> { _, _ -> "odd" }
 }
 ----
-====
 
 In this case Kotlin understands that the lambda should be translated into `IntegrationFlow` anonymous instance and target Java DSL processor parses this construction properly into Java objects.
 
 As an alternative to the construction above and for consistency with use-cases explained below, a Kotlin-specific DSL should be used for declaring integration flows in the *builder* pattern style:
 
-====
 [source, kotlin]
 ----
 @Bean
@@ -35,7 +32,6 @@ fun flowLambda() =
         transform<String> { it.toUpperCase() }
     }
 ----
-====
 
 Such a global `integrationFlow()` function expects a lambda in builder style for a `KotlinIntegrationFlowDefinition` (a Kotlin wrapper for the `IntegrationFlowDefinition`) and produces a regular `IntegrationFlow` lambda implementation.
 See more overloaded `integrationFlow()` variants below.
@@ -44,7 +40,6 @@ Many other scenarios require an `IntegrationFlow` to be started from source of d
 For this purpose, the Spring Integration Java DSL provides an `IntegrationFlow` fluent API with its large number of overloaded `from()` methods.
 This API can be used in Kotlin as well:
 
-====
 [source, kotlin]
 ----
 @Bean
@@ -53,7 +48,6 @@ fun flowFromSupplier() =
                  .channel { c -> c.queue("fromSupplierQueue") }
                  .get()
 ----
-====
 
 But unfortunately not all `from()` methods are compatible with Kotlin structures.
 To fix the gap, this project provides a Kotlin DSL around an `IntegrationFlow` fluent API.
@@ -61,7 +55,6 @@ It is implemented as a set of overloaded `integrationFlow()` functions.
 With a consumer for a `KotlinIntegrationFlowDefinition` to declare the rest of the flow as an `IntegrationFlow` lambda to reuse the mentioned above experience and also avoid `get()` call in the end.
 For example:
 
-====
 [source, kotlin]
 ----
 @Bean
@@ -77,12 +70,10 @@ fun messageSourceFlow() =
             channel { queue("fromSupplierQueue") }
         }
 ----
-====
 
 In addition, Kotlin extensions are provided for the Java DSL API which needs some refinement for Kotlin structures.
 For example `IntegrationFlowDefinition<*>` requires a reifying for many methods with `Class<P>` argument:
 
-====
 [source, kotlin]
 ----
 @Bean
@@ -91,6 +82,5 @@ fun convertFlow() =
         convert<TestPojo>()
     }
 ----
-====
 
 NOTE: The reified type can be a whole `Message<*>` if there need access to headers as well in the lambda of the operator.

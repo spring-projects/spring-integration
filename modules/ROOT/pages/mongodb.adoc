@@ -5,9 +5,11 @@ Version 2.1 introduced support for https://www.mongodb.org/[MongoDB]: a "`high-p
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,12 +17,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-mongodb:{project-version}"
 ----
-====
+======
 
 To download, install, and run MongoDB, see the https://www.mongodb.org/downloads[MongoDB documentation].
 
@@ -33,40 +37,48 @@ To download, install, and run MongoDB, see the https://www.mongodb.org/downloads
 Beginning with version 5.3, Spring Integration provides support for reactive MongoDB drivers to enable non-blocking I/O when accessing MongoDB.
 To enable reactive support, add the MongoDB reactive streams driver to your dependencies:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.mongodb</groupId>
     <artifactId>mongodb-driver-reactivestreams</artifactId>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.mongodb:mongodb-driver-reactivestreams"
 ----
-====
+======
 
 For regular synchronous client you need to add its respective driver into dependencies:
 
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.mongodb</groupId>
     <artifactId>mongodb-driver-sync</artifactId>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.mongodb:mongodb-driver-sync"
 ----
-====
+======
 
 Both of them are `optional` in the framework for better end-user choice support.
 
@@ -83,15 +95,19 @@ To connect to MongoDB you can use an implementation of the `MongoDatabaseFactory
 
 The following example shows how to use `SimpleMongoClientDatabaseFactory`:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 MongoDatabaseFactory mongoDbFactory =
         new SimpleMongoClientDatabaseFactory(com.mongodb.client.MongoClients.create(), "test");
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <bean id="mongoDbFactory" class="o.s.data.mongodb.core.SimpleMongoClientDatabaseFactory">
     <constructor-arg>
@@ -100,7 +116,7 @@ MongoDatabaseFactory mongoDbFactory =
     <constructor-arg value="test"/>
 </bean>
 ----
-====
+======
 
 `SimpleMongoClientDatabaseFactory` takes two arguments: a `MongoClient` instance and a `String` that specifies the name of the database.
 If you need to configure properties such as `host`, `port`, and others, you can pass those by using one of the constructors provided by the underlying `MongoClients` class.
@@ -114,15 +130,19 @@ To connect to MongoDB with the reactive driver, you can use an implementation of
 The following example shows how to use `SimpleReactiveMongoDatabaseFactory`:
 
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 ReactiveMongoDatabaseFactory mongoDbFactory =
         new SimpleReactiveMongoDatabaseFactory(com.mongodb.reactivestreams.client.MongoClients.create(), "test");
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <bean id="mongoDbFactory" class="o.s.data.mongodb.core.SimpleReactiveMongoDatabaseFactory">
     <constructor-arg>
@@ -131,7 +151,7 @@ ReactiveMongoDatabaseFactory mongoDbFactory =
     <constructor-arg value="test"/>
 </bean>
 ----
-====
+======
 
 [[mongodb-message-store]]
 == MongoDB Message Store
@@ -144,7 +164,6 @@ Spring Integration's MongoDB module provides the `MongoDbMessageStore`, which is
 
 The following example configures a `MongoDbMessageStore` to use a `QueueChannel` and an `aggregator`:
 
-====
 [source,xml]
 ----
 <bean id="mongoDbMessageStore" class="o.s.i.mongodb.store.MongoDbMessageStore">
@@ -158,7 +177,6 @@ The following example configures a `MongoDbMessageStore` to use a `QueueChannel`
 <int:aggregator input-channel="inputChannel" output-channel="outputChannel"
          message-store="mongoDbMessageStore"/>
 ----
-====
 
 The preceding example is a simple bean configuration, and it expects a `MongoDbFactory` as a constructor argument.
 
@@ -195,7 +213,6 @@ NOTE: We do not recommend using the same `MongoDbChannelMessageStore` bean for p
 However, the same `collection` can be used for both `MongoDbChannelMessageStore` types, because message polling from the store is sorted and uses indexes.
 To configure that scenario, you can extend one message store bean from the other, as the following example shows:
 
-====
 [source,xml]
 ----
 <bean id="channelStore" class="o.s.i.mongodb.store.MongoDbChannelMessageStore">
@@ -214,7 +231,6 @@ To configure that scenario, you can extend one message store bean from the other
     <int:priority-queue message-store="priorityStore"/>
 </int:channel>
 ----
-====
 
 [[mongodb-metadata-store]]
 === MongoDB Metadata Store
@@ -233,7 +249,6 @@ To instruct these adapters to use the new `MongoDbMetadataStore`, declare a Spri
 The feed inbound channel adapter automatically picks up and use the declared `MongoDbMetadataStore`.
 The following example shows how to declare a bean with a name of `metadataStore`:
 
-====
 [source,java]
 ----
 @Bean
@@ -241,7 +256,6 @@ public MetadataStore metadataStore(MongoDbFactory factory) {
     return new MongoDbMetadataStore(factory, "integrationMetadataStore");
 }
 ----
-====
 
 The `MongoDbMetadataStore` also implements `ConcurrentMetadataStore`, letting it be reliably shared across multiple application instances, where only one instance is allowed to store or modify a key's value.
 All these operations are atomic, thanks to MongoDB guarantees.
@@ -252,7 +266,6 @@ All these operations are atomic, thanks to MongoDB guarantees.
 The MongoDB inbound channel adapter is a polling consumer that reads data from MongoDB and sends it as a `Message` payload.
 The following example shows how to configure a MongoDB inbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
@@ -263,7 +276,6 @@ The following example shows how to configure a MongoDB inbound channel adapter:
 		<int:poller fixed-rate="100"/>
 </int-mongodb:inbound-channel-adapter>
 ----
-====
 
 As the preceding configuration shows, you configure a MongoDb inbound channel adapter by using the `inbound-channel-adapter` element and providing values for various attributes, such as:
 
@@ -287,7 +299,6 @@ Also, you may wish to do some post-processing to the successfully processed data
 For example; you may want to move or remove a document after it has been processed.
 You can do so by using that transaction synchronization feature Spring Integration 2.2 added, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
@@ -310,11 +321,9 @@ You can do so by using that transaction synchronization feature Spring Integrati
 
 <bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager"/>
 ----
-====
 
 The following example shows the `DocumentCleaner` referenced in the preceding example:
 
-====
 [source,java]
 ----
 public class DocumentCleaner {
@@ -328,7 +337,6 @@ public class DocumentCleaner {
     }
 }
 ----
-====
 
 You can declare your poller to be transactional by using the `transactional` element.
 This element can reference a real transaction manager (for example, if some other part of your flow invokes JDBC).
@@ -362,7 +370,6 @@ It is recommended that this `MongoDbChangeStreamMessageProducer` is combined wit
 
 The Java DSL configuration for this channel adapter may look like this:
 
-====
 [source,java]
 ----
 @Bean
@@ -376,7 +383,6 @@ IntegrationFlow changeStreamFlow(ReactiveMongoOperations mongoTemplate) {
             .get();
 }
 ----
-====
 
 When the `MongoDbChangeStreamMessageProducer` is stopped, or the subscription is cancelled downstream, or the MongoDb change stream produces an `OperationType.INVALIDATE`, the `Publisher` is completed.
 The channel adapter can be started again and a new `Publisher` of source data is created and it is automatically subscribed in the `MessageProducerSupport.subscribeToPublisher(Publisher<? extends Message<?>>)`.
@@ -389,7 +395,6 @@ See more information about change stream support in Spring Data MongoDb https://
 
 The MongoDB outbound channel adapter lets you write the message payload to a MongoDB document store, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-mongodb:outbound-channel-adapter id="fullConfigWithCollectionExpression"
@@ -397,7 +402,6 @@ The MongoDB outbound channel adapter lets you write the message payload to a Mon
 	mongo-converter="mongoConverter"
 	mongodb-factory="mongoDbFactory" />
 ----
-====
 
 As the preceding configuration shows, you can configure a MongoDB outbound channel adapter by using the `outbound-channel-adapter` element, providing values for various attributes, such as:
 
@@ -421,9 +425,11 @@ The gateway then send the response to the reply channel.
 You can use the message payload and headers to specify the query and the collection name, as the following example shows:
 
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @SpringBootApplication
 public class MongoDbJavaApplication {
@@ -458,8 +464,10 @@ public class MongoDbJavaApplication {
 
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 class MongoDbKotlinApplication {
 
@@ -488,8 +496,10 @@ class MongoDbKotlinApplication {
 
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @SpringBootApplication
 public class MongoDbJavaApplication {
@@ -522,8 +532,10 @@ public class MongoDbJavaApplication {
     }
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-mongodb:outbound-gateway id="gatewayQuery"
     mongodb-factory="mongoDbFactory"
@@ -534,7 +546,7 @@ public class MongoDbJavaApplication {
     reply-channel="out"
     entity-class="org.springframework.integration.mongodb.test.entity$Person"/>
 ----
-====
+======
 
 You can use the following attributes with a MongoDB outbound Gateway:
 
@@ -555,7 +567,6 @@ NOTE: You can not have both `collection-callback` and any of the query attribute
 As an alternate to the `query` and `query-expression` properties, you can specify other database operations by using the `collectionCallback` property as a reference to the `MessageCollectionCallback` functional interface implementation.
 The following example specifies a count operation:
 
-====
 [source, java]
 ----
 private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway() {
@@ -564,7 +575,6 @@ private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway() {
             .collectionName("myCollection");
 }
 ----
-====
 
 [[mongodb-reactive-channel-adapters]]
 == MongoDB Reactive Channel Adapters
@@ -578,7 +588,6 @@ See more information in the xref:reactive-streams.adoc#reactive-message-handler[
 From configuration perspective there is no difference with many other standard channel adapters.
 For example with Java DSL such a channel adapter could be used like:
 
-====
 [source, java]
 ----
 @Bean
@@ -588,7 +597,6 @@ public IntegrationFlow reactiveMongoDbFlow(ReactiveMongoDatabaseFactory mongoDbF
             .handle(MongoDb.reactiveOutboundChannelAdapter(mongoDbFactory));
 }
 ----
-====
 
 In this sample we are going to connect to the MongoDb via provided `ReactiveMongoDatabaseFactory` and store a data from request message into a default collection with the `data` name.
 The real operation is going to be performed on-demand from the reactive stream composition in the internally created `ReactiveStreamsConsumer`.
@@ -600,7 +608,6 @@ Otherwise, it is target application responsibility to subscribe into a polled pu
 
 With Java DSL such a channel adapter could be configured like:
 
-====
 [source, java]
 ----
 @Bean
@@ -614,7 +621,6 @@ public IntegrationFlow reactiveMongoDbFlow(ReactiveMongoDatabaseFactory mongoDbF
             .get();
 }
 ----
-====
 
 Starting with version 5.5, the `ReactiveMongoDbMessageSource` can be configured with an `updateExpression`.
 It has the same functionality as the blocking `MongoDbMessageSource`.

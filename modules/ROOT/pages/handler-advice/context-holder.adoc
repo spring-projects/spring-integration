@@ -9,7 +9,6 @@ The `ContextHolderRequestHandlerAdvice` requires these constructor arguments: a 
 
 Following is a sample how a `ContextHolderRequestHandlerAdvice` can be used in combination with a `o.s.i.file.remote.session.DelegatingSessionFactory`:
 
-====
 [source, java]
 ----
 @Bean
@@ -28,7 +27,6 @@ FtpOutboundGateway ftpOutboundGateway(DelegatingSessionFactory<?> sessionFactory
 	return new FtpOutboundGateway(sessionFactory, "ls", "payload");
 }
 ----
-====
 
 And it is just enough to send a message to the `in` channel with a `FACTORY_KEY` header set to either `one` or `two`.
 The `ContextHolderRequestHandlerAdvice` sets the value from that header into a `DelegatingSessionFactory` via its `setThreadKey`.

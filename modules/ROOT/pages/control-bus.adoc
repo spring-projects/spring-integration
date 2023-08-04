@@ -6,12 +6,10 @@ In Spring Integration, we build upon the adapters described above so that you ca
 
 The following example shows how to configure a control bus with XML:
 
-====
 [source,xml]
 ----
 <int:control-bus input-channel="operationChannel"/>
 ----
-====
 
 The control bus has an input channel that can be accessed for invoking operations on the beans in the application context.
 It also has all the common properties of a service activating endpoint.
@@ -27,20 +25,17 @@ Resolution of any particular instance within the application context is achieved
 To do so, provide the bean name with the SpEL prefix for beans (`@`).
 For example, to execute a method on a Spring Bean, a client could send a message to the operation channel as follows:
 
-====
 [source,java]
 ----
 Message operation = MessageBuilder.withPayload("@myServiceBean.shutdown()").build();
 operationChannel.send(operation)
 ----
-====
 
 The root of the context for the expression is the `Message` itself, so you also have access to the `payload` and `headers` as variables within your expression.
 This is consistent with all the other expression support in Spring Integration endpoints.
 
 With Java annotations, you can configured the control bus as follows:
 
-====
 [source,java]
 ----
 @Bean
@@ -49,11 +44,9 @@ public ExpressionControlBusFactoryBean controlBus() {
     return new ExpressionControlBusFactoryBean();
 }
 ----
-====
 
 Similarly, you can configure Java DSL flow definitions as follows:
 
-====
 [source,java]
 ----
 @Bean
@@ -63,11 +56,9 @@ public IntegrationFlow controlBusFlow() {
               .get();
 }
 ----
-====
 
 If you prefer to use lambdas with automatic `DirectChannel` creation, you can create a control bus as follows:
 
-====
 [source,java]
 ----
 @Bean
@@ -75,6 +66,5 @@ public IntegrationFlow controlBus() {
     return IntegrationFlowDefinition::controlBus;
 }
 ----
-====
 
 In this case, the channel is named `controlBus.input`.

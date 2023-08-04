@@ -10,7 +10,6 @@ Client connection factories are always "`owned`" by an outbound adapter.
 Only one adapter of each type may get a reference to a connection factory.
 The following example shows how to define client and server TCP connection factories:
 
-====
 [source,xml]
 ----
 <bean id="javaSerializer"
@@ -59,7 +58,6 @@ The following example shows how to define client and server TCP connection facto
 
 <int:channel id="loop"/>
 ----
-====
 
 Also see xref:ip/annotation.adoc[Annotation-Based Configuration] and xref:ip/dsl.adoc[Using the Java DSL for TCP Components].
 

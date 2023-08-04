@@ -7,7 +7,6 @@ Several common properties are exposed on the session factory (since version 4.0,
 However, you sometimes need access to lower level `FTPClient` configuration to achieve more advanced configuration (such as setting the port range for active mode).
 For that purpose, `AbstractFtpSessionFactory` (the base class for all FTP Session Factories) exposes hooks, in the form of the two post-processing methods shown in the following listing:
 
-====
 [source,java]
 ----
 /**
@@ -24,12 +23,10 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
     // NOOP
 }
 ----
-====
 
 As you can see, there is no default implementation for these two methods.
 However, by extending `DefaultFtpSessionFactory`, you can override these methods to provide more advanced configuration of the `FTPClient`, as the following example shows:
 
-====
 [source,java]
 ----
 public class AdvancedFtpSessionFactory extends DefaultFtpSessionFactory {
@@ -39,7 +36,6 @@ public class AdvancedFtpSessionFactory extends DefaultFtpSessionFactory {
     }
 }
 ----
-====
 
 [[ftps-and-shared-sslsession]]
 == FTPS and Shared SSLSession

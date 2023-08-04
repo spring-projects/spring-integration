@@ -13,7 +13,6 @@ The FTP outbound channel adapter supports the following payloads:
 
 The following example shows how to configure an `outbound-channel-adapter`:
 
-====
 [source,xml]
 ----
 <int-ftp:outbound-channel-adapter id="ftpOutbound"
@@ -29,7 +28,6 @@ The following example shows how to configure an `outbound-channel-adapter`:
     chmod="600"
     mode="REPLACE"/>
 ----
-====
 
 The preceding configuration shows how you can configure an FTP outbound channel adapter by using the `outbound-channel-adapter` element while also providing values for various attributes, such as `filename-generator` (an implementation of the `o.s.i.file.FileNameGenerator` strategy interface), a reference to a `session-factory`, and other attributes.
 You can also see some examples of `*expression` attributes that let you use SpEL to configure settings such as `remote-directory-expression`, `temporary-remote-directory-expression`, and `remote-filename-generator-expression` (a SpEL alternative to `filename-generator`, shown in the preceding example).
@@ -81,7 +79,6 @@ When this attribute is `false`, the file is written with its final name and the 
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -133,14 +130,12 @@ public class FtpJavaApplication {
     }
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter using the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -187,5 +182,4 @@ public class FtpJavaApplication {
 
 }
 ----
-====
 

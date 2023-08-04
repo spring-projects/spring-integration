@@ -50,7 +50,6 @@ The `spring-integration-test-support` module provides utilities and helpers for 
 
 The `TestUtils` class is mostly used for properties assertions in JUnit tests, as the following example shows:
 
-====
 [source,java]
 ----
 @Test
@@ -61,7 +60,6 @@ public void loadBalancerRef() {
     assertTrue(lbStrategy instanceof SampleLoadBalancingStrategy);
 }
 ----
-====
 
 `TestUtils.getPropertyValue()` is based on Spring's `DirectFieldAccessor` and provides the ability to get a value from the target private property.
 As shown in the preceding example, it also supports nested properties access by using dotted notation.
@@ -76,7 +74,6 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 https://docs.spring.io/spring-integration/api/org/springframework/integration/test/util/OnlyOnceTrigger.html[`OnlyOnceTrigger`] is useful for polling endpoints when you need to produce only one test message and verify the behavior without impacting other period messages.
 The following example shows how to configure `OnlyOnceTrigger`:
 
-====
 [source,xml]
 ----
 <bean id="testTrigger" class="org.springframework.integration.test.util.OnlyOnceTrigger" />
@@ -85,11 +82,9 @@ The following example shows how to configure `OnlyOnceTrigger`:
     <int:transactional transaction-manager="transactionManager" />
 </int:poller>
 ----
-====
 
 The following example shows how to use the preceding configuration of `OnlyOnceTrigger` for testing:
 
-====
 [source,java]
 ----
 @Autowired
@@ -113,7 +108,6 @@ public void testWithEntityClass() throws Exception {
     ...
 }
 ----
-====
 
 [[support-components]]
 === Support Components
@@ -141,7 +135,6 @@ For the same reason since version 5.1, a `@LongRunningTest` conditional annotati
 The `org.springframework.integration.test.matcher` package contains several `Matcher` implementations to assert `Message` and its properties in unit tests.
 The following example shows how to use one such matcher (`PayloadMatcher`):
 
-====
 [source,java]
 ----
 import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
@@ -154,11 +147,9 @@ public void transform_withFilePayload_convertedToByteArray() throws Exception {
     assertThat(result, hasPayload(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING)));
 }
 ----
-====
 
 The `MockitoMessageMatchers` factory can be used for mocks for stubbing and verifications, as the following example shows:
 
-====
 [source,java]
 ----
 static final Date SOME_PAYLOAD = new Date();
@@ -180,7 +171,6 @@ when(channel.send(messageWithHeaderEntry(SOME_HEADER_KEY, is(instanceOf(Short.cl
         .thenReturn(true);
 assertThat(channel.send(message), is(false));
 ----
-====
 
 [[assertj-conditions-and-predicates]]
 === AssertJ conditions and predicates
@@ -198,7 +188,6 @@ Since Spring Integration is based on the Spring Framework foundation, everything
 The `org.springframework.integration.test.context` package provides some components for enhancing the test context for integration needs.
 First we configure our test class with a `@SpringIntegrationTest` annotation to enable the Spring Integration Test Framework, as the following example shows:
 
-====
 [source,java]
 ----
 @SpringJUnitConfig
@@ -210,7 +199,6 @@ public class MyIntegrationTests {
 
 }
 ----
-====
 
 The `@SpringIntegrationTest` annotation populates a `MockIntegrationContext` bean, which you can autowire to the test class to access its methods.
 With the `noAutoStartup` option, the Spring Integration Test Framework prevents endpoints that are normally `autoStartup=true` from starting.
@@ -221,7 +209,6 @@ This is useful when we would like to not have real connections to the target sys
 The `MockIntegrationContext` is meant to be used in the target test cases for modifications to beans in the real application context.
 For example, endpoints that have `autoStartup` overridden to `false` can be replaced with mocks, as the following example shows:
 
-====
 [source,java]
 ----
 @Test
@@ -234,14 +221,12 @@ public void testMockMessageSource() {
     assertNotNull(receive);
 }
 ----
-====
 
 NOTE: The `mySourceEndpoint` refers here to the bean name of the `SourcePollingChannelAdapter` for which we replace the real `MessageSource` with our mock.
 Similarly, the `MockIntegrationContext.substituteMessageHandlerFor()` expects a bean name for the `IntegrationConsumer`, which wraps a `MessageHandler` as an endpoint.
 
 After test is performed you can restore the state of endpoint beans to the real configuration using `MockIntegrationContext.resetBeans()`:
 
-====
 [source,java]
 ----
 @After
@@ -249,7 +234,6 @@ public void tearDown() {
     this.mockIntegrationContext.resetBeans();
 }
 ----
-====
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/test/context/MockIntegrationContext.html[Javadoc] for more information.
 
@@ -266,7 +250,6 @@ The mocking functionality is fully based on and compatible with the well known M
 The `MockIntegration` factory provides an API to build mocks for Spring Integration beans that are parts of the integration flow (`MessageSource`, `MessageProducer`, `MessageHandler`, and `MessageChannel`).
 You can use the target mocks during the configuration phase as well as in the target test method to replace the real endpoints before performing verifications and assertions, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:inbound-channel-adapter id="inboundChannelAdapter" channel="results">
@@ -281,11 +264,9 @@ You can use the target mocks during the configuration phase as well as in the ta
     </bean>
 </int:inbound-channel-adapter>
 ----
-====
 
 The following example shows how to use Java Configuration to achieve the same configuration as the preceding example:
 
-====
 [source,java]
 ----
 @InboundChannelAdapter(channel = "results")
@@ -302,11 +283,9 @@ StandardIntegrationFlow flow = IntegrationFlow
 IntegrationFlowRegistration registration = this.integrationFlowContext.registration(flow)
         .register();
 ----
-====
 
 For this purpose, the aforementioned `MockIntegrationContext` should be used from the test, as the following example shows:
 
-====
 [source,java]
 ----
 this.mockIntegrationContext.substituteMessageSourceFor("mySourceEndpoint",
@@ -315,7 +294,6 @@ Message<?> receive = this.results.receive(10_000);
 assertNotNull(receive);
 assertEquals("FOO", receive.getPayload());
 ----
-====
 
 Unlike the Mockito `MessageSource` mock object, the `MockMessageHandler` is a regular `AbstractMessageProducingHandler` extension with a chain API to stub handling for incoming messages.
 The `MockMessageHandler` provides `handleNext(Consumer<Message<?>>)` to specify a one-way stub for the next request message.
@@ -333,7 +311,6 @@ The `MockIntegrationContext` provides a `substituteMessageHandlerFor()` API that
 
 The following example shows a typical usage scenario:
 
-====
 [source,java]
 ----
 ArgumentCaptor<Message<?>> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
@@ -351,7 +328,6 @@ assertNotNull(received);
 assertEquals("FOO", received.getPayload());
 assertSame(message, messageArgumentCaptor.getValue());
 ----
-====
 
 NOTE: The regular `MessageHandler` mocking (or `MockMessageHandler`) has to be used even for a `ReactiveStreamsConsumer` with a `ReactiveMessageHandler` configuration.
 

@@ -30,7 +30,6 @@ The `PublisherAnnotationAdvisor` defines and binds the following variables:
 
 Consider the following example:
 
-====
 [source,java]
 ----
 @Publisher
@@ -38,7 +37,6 @@ public String defaultPayload(String fname, String lname) {
   return fname + " " + lname;
 }
 ----
-====
 
 In the preceding example, the message is constructed with the following structure:
 
@@ -48,7 +46,6 @@ This is the default.
 
 The following example is the same as the preceding example, except that it does not use a default publishing channel:
 
-====
 [source,java]
 ----
 @Publisher(channel="testChannel")
@@ -56,7 +53,6 @@ public String defaultPayload(String fname, @Header("last") String lname) {
   return fname + " " + lname;
 }
 ----
-====
 
 Instead of using a default publishing channel, we specify the publishing channel by setting the 'channel' attribute of the `@Publisher` annotation.
 We also add a `@Header` annotation, which results in the message header named 'last' having the same value as the 'lname' method parameter.
@@ -64,7 +60,6 @@ That header is added to the newly constructed message.
 
 The following example is almost identical to the preceding example:
 
-====
 [source,java]
 ----
 @Publisher(channel="testChannel")
@@ -73,13 +68,11 @@ public String defaultPayloadButExplicitAnnotation(String fname, @Header String l
   return fname + " " + lname;
 }
 ----
-====
 
 The only difference is that we use a `@Payload` annotation on the method to explicitly specify that the return value of the method should be used as the payload of the message.
 
 The following example expands on the previous configuration by using the Spring Expression Language in the `@Payload` annotation to further instruct the framework about how the message should be constructed:
 
-====
 [source,java]
 ----
 @Publisher(channel="testChannel")
@@ -88,13 +81,11 @@ public String setName(String fname, String lname, @Header("x") int num) {
   return fname + " " + lname;
 }
 ----
-====
 
 In the preceding example, the message is a concatenation of the return value of the method invocation and the 'lname' input argument.
 The Message header named 'x' has its value determined by the 'num' input argument.
 That header is added to the newly constructed message.
 
-====
 [source,java]
 ----
 @Publisher(channel="testChannel")
@@ -102,7 +93,6 @@ public String argumentAsPayload(@Payload String fname, @Header String lname) {
   return fname + " " + lname;
 }
 ----
-====
 
 In the preceding example, you see another usage of the `@Payload` annotation.
 Here, we annotate a method argument that becomes the payload of the newly constructed message.
@@ -110,27 +100,22 @@ Here, we annotate a method argument that becomes the payload of the newly constr
 As with most other annotation-driven features in Spring, you need to register a post-processor (`PublisherAnnotationBeanPostProcessor`).
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <bean class="org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor"/>
 ----
-====
 
 For a more concise configuration, you can instead use namespace support, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:annotation-config>
     <int:enable-publisher default-publisher-channel="defaultChannel"/>
 </int:annotation-config>
 ----
-====
 
 For Java configuration, you must use the `@EnablePublisher` annotation, as the following example shows:
 
-====
 [source,java]
 ----
 @Configuration
@@ -140,7 +125,6 @@ public class IntegrationConfiguration {
     ...
 }
 ----
-====
 
 Starting with version 5.1.3, the `<int:enable-publisher>` component, as well as the `@EnablePublisher` annotation have the `proxy-target-class` and `order` attributes for tuning the `ProxyFactory` configuration.
 
@@ -148,7 +132,6 @@ Similar to other Spring annotations (`@Component`, `@Scheduled`, and so on), you
 This means that you can define your own annotations that are treated in the same way as the `@Publisher` itself.
 The following example shows how to do so:
 
-====
 [source,java]
 ----
 @Target({ElementType.METHOD, ElementType.TYPE})
@@ -158,13 +141,11 @@ public @interface Audit {
 ...
 }
 ----
-====
 
 In the preceding example, we define the `@Audit` annotation, which is itself annotated with `@Publisher`.
 Also note that you can define a `channel` attribute on the meta-annotation to encapsulate where messages are sent inside of this annotation.
 Now you can annotate any method with the `@Audit` annotation, as the following example shows:
 
-====
 [source,java]
 ----
 @Audit
@@ -172,7 +153,6 @@ public String test() {
     return "Hello";
 }
 ----
-====
 
 In the preceding example, every invocation of the `test()` method results in a message with a payload created from its return value.
 Each message is sent to the channel named `auditChannel`.
@@ -181,7 +161,6 @@ You also can provide a level of indirection between your own, potentially domain
 
 You can also annotate the class, which lets you apply the properties of this annotation on every public method of that class, as the following example shows:
 
-====
 [source,java]
 ----
 @Audit
@@ -198,7 +177,6 @@ static class BankingOperationsImpl implements BankingOperations {
 
 }
 ----
-====
 
 [[aop-based-interceptor]]
 === XML-based Approach with the `<publishing-interceptor>` element
@@ -251,14 +229,12 @@ The second method, mapping the execution of any method that begins with `echoDef
 
 For simple mapping rules you can rely on the `publisher` defaults, as the following example shows:
 
-====
 [source,xml]
 ----
 
 <publishing-interceptor id="anotherInterceptor"/>
 
 ----
-====
 
 The preceding example maps the return value of every method that matches the pointcut expression to a payload and is sent to a `default-channel`.
 If you do not specify the `defaultChannel` (as the preceding example does not do), the messages are sent to the global `nullChannel` (the equivalent of `/dev/null`).
@@ -277,21 +253,18 @@ So, instead of sending inbound requests for processing to the output channel (th
 
 The service in the following example receives a complex payload (which needs to be sent further for processing), but it also needs to reply to the caller with a simple acknowledgment:
 
-====
 [source,java]
 ----
 public String echo(Object complexPayload) {
      return "ACK";
 }
 ----
-====
 
 So, instead of hooking up the complex flow to the output channel, we use the message-publishing feature instead.
 We configure it to create a new message, by using the input argument of the service method (shown in the preceding example), and send that to the 'localProcessChannel'.
 To make sure this flow is asynchronous, all we need to do is send it to any type of asynchronous channel (`ExecutorChannel` in the next example).
 The following example shows how to an asynchronous `publishing-interceptor`:
 
-====
 [source,xml]
 ----
 <int:service-activator  input-channel="inputChannel" output-channel="outputChannel" ref="sampleservice"/>
@@ -314,7 +287,6 @@ The following example shows how to an asynchronous `publishing-interceptor`:
 
 <task:executor id="executor" pool-size="5"/>
 ----
-====
 
 Another way of handling this type of scenario is with a wire-tap.
 See xref:channel/configuration.adoc#channel-wiretap[Wire Tap].
@@ -331,7 +303,6 @@ Currently, we support `cron`, `fixed-rate`, `fixed-delay` and any custom trigger
 As mentioned earlier, support for scheduled producers and publishers is provided via the `<inbound-channel-adapter>` XML element.
 Consider the following example:
 
-====
 [source,xml]
 ----
 <int:inbound-channel-adapter id="fixedDelayProducer"
@@ -340,14 +311,12 @@ Consider the following example:
     <int:poller fixed-delay="1000"/>
 </int:inbound-channel-adapter>
 ----
-====
 
 The preceding example creates an inbound channel adapter that constructs a `Message`, with its payload being the result of the expression  defined in the `expression` attribute.
 Such messages are created and sent every time the delay specified by the `fixed-delay` attribute occurs.
 
 The following example is similar to the preceding example, except that it uses the `fixed-rate` attribute:
 
-====
 [source,xml]
 ----
 <int:inbound-channel-adapter id="fixedRateProducer"
@@ -356,13 +325,11 @@ The following example is similar to the preceding example, except that it uses t
     <int:poller fixed-rate="1000"/>
 </int:inbound-channel-adapter>
 ----
-====
 
 The `fixed-rate` attribute lets you send messages at a fixed rate (measuring from the start time of each task).
 
 The following example shows how you can apply a Cron trigger with a value specified in the `cron` attribute:
 
-====
 [source,xml]
 ----
 <int:inbound-channel-adapter id="cronProducer"
@@ -371,7 +338,6 @@ The following example shows how you can apply a Cron trigger with a value specif
     <int:poller cron="7 6 5 4 3 ?"/>
 </int:inbound-channel-adapter>
 ----
-====
 
 The following example shows how to insert additional headers into the message:
 
@@ -392,7 +358,6 @@ The additional message headers can take scalar values or the results of evaluati
 If you need to implement your own custom trigger, you can use the `trigger` attribute to provide a reference to any spring configured bean that implements the `org.springframework.scheduling.Trigger` interface.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <int:inbound-channel-adapter id="triggerRefProducer"
@@ -404,4 +369,3 @@ The following example shows how to do so:
     <beans:constructor-arg value="9999"/>
 </beans:bean>
 ----
-====

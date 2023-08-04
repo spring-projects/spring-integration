@@ -7,9 +7,11 @@ Instead, messages are created from data that is read from an input stream, and m
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -17,12 +19,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-stream:{project-version}"
 ----
-====
+======
 
 [[stream-reading]]
 == Reading from Streams
@@ -35,7 +39,6 @@ The `ByteStreamReadingMessageSource` also accepts the 'bytesPerMessage' property
 The default value is `1024`.
 The following example creates an input stream that creates messages that each contain 2048 bytes:
 
-====
 [source,xml]
 ----
 <bean class="org.springframework.integration.stream.ByteStreamReadingMessageSource">
@@ -47,7 +50,6 @@ The following example creates an input stream that creates messages that each co
   <constructor-arg ref="someReader"/>
 </bean>
 ----
-====
 
 The `CharacterStreamReadingMessageSource` wraps the reader in a `BufferedReader` (if it is not one already).
 You can set the buffer size used by the buffered reader in the second constructor argument.
@@ -69,7 +71,6 @@ Note that sending to a `QueueChannel` is interruptible, so, if you wish to send 
 
 This facilitates "`piping`" or redirecting data to `stdin`, as the following two examples shows:
 
-====
 [source]
 ----
 cat myfile.txt | java -jar my.jar
@@ -79,13 +80,11 @@ cat myfile.txt | java -jar my.jar
 ----
 java -jar my.jar < foo.txt
 ----
-====
 
 This approach lets the application stop when the pipe is closed.
 
 Four convenient factory methods are available:
 
-====
 [source, java]
 ----
 public static final CharacterStreamReadingMessageSource stdin() { ... }
@@ -96,7 +95,6 @@ public static final CharacterStreamReadingMessageSource stdinPipe() { ... }
 
 public static final CharacterStreamReadingMessageSource stdinPipe(String charsetName) { ... }
 ----
-====
 
 [[stream-writing]]
 == Writing to Streams
@@ -105,7 +103,6 @@ For target streams, you can use either of two implementations: `ByteStreamWritin
 Each requires a single constructor argument (`OutputStream` for byte streams or `Writer` for character streams), and each provides a second constructor that adds the optional 'bufferSize'.
 Since both of these ultimately implement the `MessageHandler` interface, you can reference them from a `channel-adapter` configuration, as described in xref:overview.adoc#overview-endpoints-channeladapter[Channel Adapter].
 
-====
 [source,xml]
 ----
 <bean class="org.springframework.integration.stream.ByteStreamWritingMessageHandler">
@@ -117,7 +114,6 @@ Since both of these ultimately implement the `MessageHandler` interface, you can
   <constructor-arg ref="someWriter"/>
 </bean>
 ----
-====
 
 [[stream-namespace]]
 == Stream Namespace Support
@@ -125,7 +121,6 @@ Since both of these ultimately implement the `MessageHandler` interface, you can
 Spring Integration defines a namespace to reduce the configuration needed for stream-related channel adapters.
 The following schema locations are needed to use it:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -137,18 +132,15 @@ The following schema locations are needed to use it:
       http://www.springframework.org/schema/integration/stream
       https://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 ----
-====
 
 The following code snippet shows the different configuration options that are supported to configure the inbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-stream:stdin-channel-adapter id="adapterWithDefaultCharset"/>
 
 <int-stream:stdin-channel-adapter id="adapterWithProvidedCharset" charset="UTF-8"/>
 ----
-====
 
 Starting with version 5.0, you can set the `detect-eof` attribute, which sets the `blockToDetectEOF` property.
 See xref:stream.adoc#stream-reading[Reading from Streams] for more information.
@@ -156,7 +148,6 @@ See xref:stream.adoc#stream-reading[Reading from Streams] for more information.
 To configure the outbound channel adapter, you can use the namespace support as well.
 The following example shows the different configuration for an outbound channel adapters:
 
-====
 [source,xml]
 ----
 <int-stream:stdout-channel-adapter id="stdoutAdapterWithDefaultCharset"
@@ -170,4 +161,3 @@ The following example shows the different configuration for an outbound channel 
 <int-stream:stdout-channel-adapter id="newlineAdapter" append-newline="true"
     channel="testChannel"/>
 ----
-====

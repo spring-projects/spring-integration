@@ -7,9 +7,11 @@ All components encapsulate ZeroMQ socket lifecycles and manage threads for them 
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -18,12 +20,13 @@ You need to include this dependency into your project:
 </dependency>
 ----
 
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-zeromq:{project-version}"
 ----
-====
+======
 
 [[zeromq-proxy]]
 == ZeroMQ Proxy
@@ -51,7 +54,6 @@ This customization is available through `setFrontendSocketConfigurer(Consumer<ZM
 
 The `ZeroMqProxy` could be provided as simple bean like this:
 
-====
 [source,java]
 ----
 @Bean
@@ -63,7 +65,6 @@ ZeroMqProxy zeroMqProxy() {
     return proxy;
 }
 ----
-====
 
 All the client nodes should connect to the host of this proxy via `tcp://` and use the respective port of their interest.
 
@@ -90,7 +91,6 @@ Local PUB/SUB logic is implemented as a `Flux.publish()` operator to allow all o
 
 The following is a simple example of a `ZeroMqChannel` configuration:
 
-====
 [source,java]
 ----
 @Bean
@@ -101,7 +101,6 @@ ZeroMqChannel zeroMqPubSubChannel(ZContext context) {
     return channel;
 }
 ----
-====
 
 [[zeromq-inbound-channel-adapter]]
 == ZeroMQ Inbound Channel Adapter
@@ -125,7 +124,6 @@ Subscriptions can be adjusted at runtime using `subscribeToTopics()` and `unsubs
 
 Here is a sample of `ZeroMqMessageProducer` configuration:
 
-====
 [source,java]
 ----
 @Bean
@@ -139,7 +137,6 @@ ZeroMqMessageProducer zeroMqMessageProducer(ZContext context, MessageChannel out
     return messageProducer;
 }
 ----
-====
 
 [[zeromq-outbound-channel-adapter]]
 == ZeroMQ Outbound Channel Adapter
@@ -156,7 +153,6 @@ The socket options (e.g. security or write timeout) can be configured via `setSo
 
 Here is a sample of `ZeroMqMessageHandler` configuration:
 
-====
 [source,java]
 ----
 @Bean
@@ -169,7 +165,6 @@ ZeroMqMessageHandler zeroMqMessageHandler(ZContext context) {
     messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
 }
 ----
-====
 
 [[zeromq-dsl]]
 == ZeroMQ Java DSL Support
@@ -178,7 +173,6 @@ The `spring-integration-zeromq` provide a convenient Java DSL fluent API via `Ze
 
 This is a sample of Java DSL for `ZeroMqChannel`:
 
-====
 [source,java]
 ----
 .channel(ZeroMq.zeroMqChannel(this.context)
@@ -186,11 +180,9 @@ This is a sample of Java DSL for `ZeroMqChannel`:
             .consumeDelay(Duration.ofMillis(100)))
 }
 ----
-====
 
 The Inbound Channel Adapter for ZeroMQ Java DSL is:
 
-====
 [source,java]
 ----
 IntegrationFlow.from(
@@ -201,15 +193,12 @@ IntegrationFlow.from(
                         .consumeDelay(Duration.ofMillis(100)))
 }
 ----
-====
 
 The Outbound Channel Adapter for ZeroMQ Java DSL is:
 
-====
 [source,java]
 ----
 .handle(ZeroMq.outboundChannelAdapter(this.context, "tcp://localhost:9001", SocketType.PUB)
                   .topicFunction(message -> message.getHeaders().get("myTopic")))
 }
 ----
-====

@@ -179,26 +179,22 @@ The property is an integer and is usually supplied in the familiar octal format 
 
 The following example configures a file outbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>
 ----
-====
 
 The namespace-based configuration also supports a `delete-source-files` attribute.
 If set to `true`, it triggers the deletion of the original source files after writing to a destination.
 The default value for that flag is `false`.
 The following example shows how to set it to `true`:
 
-====
 [source,xml]
 ----
 <int-file:outbound-channel-adapter id="filesOut"
     directory="${output.directory}"
     delete-source-files="true"/>
 ----
-====
 
 NOTE: The `delete-source-files` attribute has an effect only if the inbound message has a `File` payload or if the `FileHeaders.ORIGINAL_FILE` header value contains either the source `File` instance or a `String` representing the original file path.
 
@@ -207,14 +203,12 @@ If set to `true`, a new line is appended to the file after a message is written.
 The default attribute value is `false`.
 The following example shows how to use the `append-new-line` option:
 
-====
 [source,xml]
 ----
 <int-file:outbound-channel-adapter id="newlineAdapter"
 	append-new-line="true"
     directory="${output.directory}"/>
 ----
-====
 
 [[file-writing-output-gateway]]
 == Outbound Gateway
@@ -225,7 +219,6 @@ However, after writing the file, it also sends it to the reply channel as the pa
 
 The following example configures an outbound gateway:
 
-====
 [source,xml]
 ----
 <int-file:outbound-gateway id="mover" request-channel="moveInput"
@@ -233,7 +226,6 @@ The following example configures an outbound gateway:
     directory="${output.directory}"
     mode="REPLACE" delete-source-files="true"/>
 ----
-====
 
 As mentioned earlier, you can also specify the `mode` attribute, which defines the behavior of how to deal with situations where the destination file already exists.
 See xref:file/writing.adoc#file-writing-destination-exists[Dealing with Existing Destination Files] for further details.
@@ -254,7 +246,6 @@ If you have more elaborate requirements or need to support additional payload ty
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -288,14 +279,12 @@ public class FileWritingJavaApplication {
     }
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -322,5 +311,4 @@ public class FileWritingJavaApplication {
 
 }
 ----
-====
 

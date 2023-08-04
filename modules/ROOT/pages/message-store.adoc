@@ -17,22 +17,18 @@ Details on how to configure a specific message store implementation and how to i
 The following pair of examples show how to add a reference to a message store for a `QueueChannel` and for an aggregator:
 
 .QueueChannel
-====
 [source,xml]
 ----
 <int:channel id="myQueueChannel">
     <int:queue message-store="refToMessageStore"/>
 <int:channel>
 ----
-====
 
 .Aggregator
-====
 [source,xml]
 ----
 <int:aggregator … message-store="refToMessageStore"/>
 ----
-====
 
 By default, messages are stored in-memory by using `o.s.i.store.SimpleMessageStore`, an implementation of `MessageStore`.
 That might be fine for development or simple low-volume environments where the potential loss of non-persistent messages is not a concern.
@@ -117,7 +113,6 @@ You can use the `AbstractMessageGroupStore.setLazyLoadMessageGroups(false)` opti
 
 Our performance tests for lazy-load on MongoDB `MessageStore` (xref:mongodb.adoc#mongodb-message-store[MongoDB Message Store]) and `<aggregator>` (xref:overview.adoc#overview-endpoints-aggregator[Aggregator]) use a custom `release-strategy` similar to the following:
 
-====
 [source,xml]
 ----
 <int:aggregator input-channel="inputChannel"
@@ -125,11 +120,9 @@ Our performance tests for lazy-load on MongoDB `MessageStore` (xref:mongodb.adoc
                 message-store="mongoStore"
                 release-strategy-expression="size() == 1000"/>
 ----
-====
 
 It produces results similar to the following for 1000 simple messages:
 
-====
 [source]
 ----
 ...
@@ -141,7 +134,6 @@ ms     %     Task name
 36266  093%  Eager
 ...
 ----
-====
 
 However, starting with version 5.5, all the persistent `MessageGroupStore` implementations provide a `streamMessagesForGroup(Object groupId)` contract based on the target database streaming API.
 This improves resources utilization when groups are very big in the store.

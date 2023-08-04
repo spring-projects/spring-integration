@@ -30,7 +30,6 @@ In other words, this is not part of the public API, and you would not typically 
 Nevertheless, it is used by a message consumer for actually handling the consumed messages, so being aware of this strategy interface does help in terms of understanding the overall role of a consumer.
 The interface is defined as follows:
 
-====
 [source,java]
 ----
 public interface MessageHandler {
@@ -39,7 +38,6 @@ public interface MessageHandler {
 
 }
 ----
-====
 
 Despite its simplicity, this interface provides the foundation for most of the components (routers, transformers, splitters, aggregators, service activators, and others) covered in the following chapters.
 Those components each perform very different functionality with the messages they handle, but the requirements for actually receiving a message are the same, and the choice between polling and event-driven behavior is also the same.
@@ -52,7 +50,6 @@ Because it is the simpler of the two, we cover the event-driven consumer endpoin
 You may recall that the `SubscribableChannel` interface provides a `subscribe()` method and that the method accepts a `MessageHandler` parameter (as shown in xref:channel/interfaces.adoc#channel-interfaces-subscribablechannel[`SubscribableChannel`]).
 The following listing shows the definition of the `subscribe` method:
 
-====
 [source,java]
 ----
 subscribableChannel.subscribe(messageHandler);
@@ -60,28 +57,24 @@ subscribableChannel.subscribe(messageHandler);
 
 Since a handler that is subscribed to a channel does not have to actively poll that channel, this is an event-driven consumer, and the implementation provided by Spring Integration accepts a `SubscribableChannel` and a `MessageHandler`, as the following example shows:
 
-====
 [source,java]
 ----
 SubscribableChannel channel = context.getBean("subscribableChannel", SubscribableChannel.class);
 
 EventDrivenConsumer consumer = new EventDrivenConsumer(channel, exampleHandler);
 ----
-====
 
 [[endpoint-pollingconsumer]]
 == Polling Consumer
 
 Spring Integration also provides a `PollingConsumer`, and it can be instantiated in the same way except that the channel must implement `PollableChannel`, as the following example shows:
 
-====
 [source,java]
 ----
 PollableChannel channel = context.getBean("pollableChannel", PollableChannel.class);
 
 PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);
 ----
-====
 
 NOTE: For more information regarding polling consumers, see xref:overview.adoc#overview-endpoints-channeladapter[Channel Adapter] and xref:channel-adapter.adoc#channel-adapter[Channel Adapter].
 
@@ -89,26 +82,22 @@ There are many other configuration options for the polling consumer.
 For example, the trigger is a required property.
 The following example shows how to set the trigger:
 
-====
 [source,java]
 ----
 PollingConsumer consumer = new PollingConsumer(channel, handler);
 
 consumer.setTrigger(new PeriodicTrigger(Duration.ofSeconds(30)));
 ----
-====
 
 The `PeriodicTrigger` is typically defined with a simple interval (`Duration`) but also supports an `initialDelay` property and a boolean `fixedRate` property (the default is `false` -- that is, no fixed delay).
 The following example sets both properties:
 
-====
 [source,java]
 ----
 PeriodicTrigger trigger = new PeriodicTrigger(Duration.ofSeconds(1));
 trigger.setInitialDelay(Duration.ofSeconds(5));
 trigger.setFixedRate(true);
 ----
-====
 
 The result of the three settings in the preceding example is a trigger that waits five seconds and then triggers every second.
 
@@ -116,19 +105,16 @@ The `CronTrigger` requires a valid cron expression.
 See the https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/support/CronTrigger.html[Javadoc] for details.
 The following example sets a new `CronTrigger`:
 
-====
 [source,java]
 ----
 CronTrigger trigger = new CronTrigger("*/10 * * * * MON-FRI");
 ----
-====
 
 The result of the trigger defined in the previous example is a trigger that triggers every ten seconds, Monday through Friday.
 
 In addition to the trigger, you can specify two other polling-related configuration properties: `maxMessagesPerPoll` and `receiveTimeout`.
 The following example shows how to set these two properties:
 
-====
 [source,java]
 ----
 PollingConsumer consumer = new PollingConsumer(channel, handler);
@@ -136,7 +122,6 @@ PollingConsumer consumer = new PollingConsumer(channel, handler);
 consumer.setMaxMessagesPerPoll(10);
 consumer.setReceiveTimeout(5000);
 ----
-====
 
 The `maxMessagesPerPoll` property specifies the maximum number of messages to receive within a given poll operation.
 This means that the poller continues calling `receive()` without waiting, until either `null` is returned or the maximum value is reached.
@@ -155,7 +140,6 @@ This technique, known as "`long polling`", can be used to emulate event-driven b
 
 A polling consumer can also delegate to a Spring `TaskExecutor`, as the following example shows:
 
-====
 [source,java]
 ----
 PollingConsumer consumer = new PollingConsumer(channel, handler);
@@ -163,7 +147,6 @@ PollingConsumer consumer = new PollingConsumer(channel, handler);
 TaskExecutor taskExecutor = context.getBean("exampleExecutor", TaskExecutor.class);
 consumer.setTaskExecutor(taskExecutor);
 ----
-====
 
 Furthermore, a `PollingConsumer` has a property called `adviceChain`.
 This property lets you specify a `List` of AOP advices for handling additional cross-cutting concerns including transactions.
@@ -273,7 +256,6 @@ Optional.
 
 A simple interval-based poller with a 1-second interval can be configured as follows:
 
-====
 [source,xml]
 ----
 <int:transformer input-channel="pollable"
@@ -282,13 +264,11 @@ A simple interval-based poller with a 1-second interval can be configured as fol
     <int:poller fixed-rate="1000"/>
 </int:transformer>
 ----
-====
 
 As an alternative to using the `fixed-rate` attribute, you can also use the `fixed-delay` attribute.
 
 For a poller based on a Cron expression, use the `cron` attribute instead, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:transformer input-channel="pollable"
@@ -297,7 +277,6 @@ For a poller based on a Cron expression, use the `cron` attribute instead, as th
     <int:poller cron="*/10 * * * * MON-FRI"/>
 </int:transformer>
 ----
-====
 
 If the input channel is a `PollableChannel`, the poller configuration is required.
 Specifically, as mentioned earlier, the `trigger` is a required property of the `PollingConsumer` class.
@@ -329,9 +308,11 @@ For Java configuration a `PollerMetadata` bean with the `PollerMetadata.DEFAULT_
 In that case, any endpoint with a `PollableChannel` for its input channel, that is defined within the same `ApplicationContext`, and has no explicitly configured `poller` uses that default.
 The following example shows such a poller and a transformer that uses it:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean(name = PollerMetadata.DEFAULT_POLLER)
 public PollerMetadata defaultPoller() {
@@ -350,8 +331,10 @@ public IntegrationFlow transformFlow(MyTransformer transformer) {
                            .get();
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean(PollerMetadata.DEFAULT_POLLER)
 public PollerMetadata defaultPoller() {
@@ -371,8 +354,10 @@ public Object transform(Object payload) {
     ...
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean(PollerMetadata.DEFAULT_POLLER)
 fun defaultPoller() =
@@ -389,8 +374,10 @@ fun convertFlow() =
     	channel("output")
     }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-delay="3000"/>
 
@@ -399,7 +386,7 @@ fun convertFlow() =
                  ref="transformer"
                  output-channel="output"/>
 ----
-====
+======
 
 [[transaction-support]]
 ==== Transaction Support
@@ -428,7 +415,6 @@ Since Spring transaction support depends on the proxy mechanism with `Transactio
 For that, the `poller` defines an `advice-chain` element that lets you add more advices in a class that implements the `MethodInterceptor` interface.
 The following example shows how to define an `advice-chain` for a `poller`:
 
-====
 [source,xml]
 ----
 <int:service-activator id="advicedSa" input-channel="goodInputWithAdvice" ref="testBean"
@@ -442,7 +428,6 @@ The following example shows how to define an `advice-chain` for a `poller`:
 	</int:poller>
 </int:service-activator>
 ----
-====
 
 For more information on how to implement the `MethodInterceptor` interface, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#aop-api[AOP sections of the Spring Framework Reference Guide].
 An advice chain can also be applied on a poller that does not have any transaction configuration, letting you enhance the behavior of the message flow initiated by the poller.
@@ -462,7 +447,6 @@ Configuring a thread-pooling executor can make a substantial difference in how t
 These settings are available for each endpoint, since the performance of an endpoint is one of the major factors to consider (the other major factor being the expected volume on the channel to which the endpoint subscribes).
 To enable concurrency for a polling endpoint that is configured with the XML namespace support, provide the `task-executor` reference on its `<poller/>` element and then provide one or more of the properties shown in the following example:
 
-====
 [source,xml]
 ----
 <int:poller task-executor="pool" fixed-rate="1000"/>
@@ -472,7 +456,6 @@ To enable concurrency for a polling endpoint that is configured with the XML nam
                queue-capacity="20"
                keep-alive="120"/>
 ----
-====
 
 If you do not provide a task-executor, the consumer's handler is invoked in the caller's thread.
 Note that the caller is usually the default `TaskScheduler` (see xref:configuration/namespace-taskscheduler.adoc[Configuring the Task Scheduler]).
@@ -488,7 +471,6 @@ Therefore, even if a poller contains a long `receive-timeout`, that value would 
 On the other hand, when using Spring Integration's own queue-based channels, the timeout value does have a chance to participate.
 The following example shows how a polling consumer can receive messages nearly instantaneously:
 
-====
 [source,xml]
 ----
 <int:service-activator input-channel="someQueueChannel"
@@ -497,7 +479,6 @@ The following example shows how a polling consumer can receive messages nearly i
 
 </int:service-activator>
 ----
-====
 
 Using this approach does not carry much overhead, since, internally, it is nothing more then a timed-wait thread, which does not require nearly as much CPU resource usage as (for example) a thrashing, infinite while loop.
 
@@ -549,29 +530,24 @@ For more information, see the Javadoc for these interfaces:
 
 When you have implemented your converter, you can register it with convenient namespace support, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:converter ref="sampleConverter"/>
 
 <bean id="sampleConverter" class="foo.bar.TestConverter"/>
 ----
-====
 
 Alternately, you can use an inner bean, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:converter>
     <bean class="o.s.i.config.xml.ConverterParserTests$TestConverter3"/>
 </int:converter>
 ----
-====
 
 Starting with Spring Integration 4.0, you can use annotations to create the preceding configuration, as the following example shows:
 
-====
 [source,java]
 ----
 @Component
@@ -584,7 +560,6 @@ public class TestConverter implements Converter<Boolean, Number> {
 
 }
 ----
-====
 
 Alternately, you can use the `@Configuration` annotation, as the following example shows:
 
@@ -614,12 +589,10 @@ Converters that are intended for use when wiring bean constructor arguments and 
 
 However, if you do want to use the Spring `conversionService` as the Spring Integration `integrationConversionService`, you can configure an alias in the application context, as the following example shows:
 
-====
 [source,xml]
 ----
 <alias name="conversionService" alias="integrationConversionService"/>
 ----
-====
 
 In this case, the converters provided by the `conversionService` are available for Spring Integration runtime conversion.
 =====
@@ -642,7 +615,6 @@ See the Javadoc (linked in the preceding list) for more information about their 
 The `ConfigurableCompositeMessageConverter` is used because it can be supplied with any other `MessageConverter` implementations, including or excluding the previously mentioned default converters.
 It can also be registered as an appropriate bean in the application context, overriding the default converter, as the following example shows:
 
-====
 [source,java]
 ----
 @Bean(name = IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)
@@ -653,7 +625,6 @@ public ConfigurableCompositeMessageConverter compositeMessageConverter() {
     return new ConfigurableCompositeMessageConverter(converters);
 }
 ----
-====
 
 Those two new converters are registered in the composite before the defaults.
 You can also not use a `ConfigurableCompositeMessageConverter` but provide your own `MessageConverter` by registering a bean with the name, `integrationArgumentResolverMessageConverter` (by setting the `IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME` property).
@@ -673,7 +644,6 @@ Otherwise, you might end up creating an artificial memory leak.
 
 Consider the following configuration:
 
-====
 [source,xml]
 ----
 <int:channel id="publishChannel">
@@ -686,7 +656,6 @@ Consider the following configuration:
 
 <task:executor id="taskExecutor" pool-size="20" />
 ----
-====
 
 The preceding configuration demonstrates an out-of-tune configuration.
 
@@ -716,7 +685,6 @@ These beans can be obtained from the `ApplicationContext` with well known names.
 The preceding only applies to the framework component itself.
 You can instead use an inner bean definition, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:service-activator id="exampleServiceActivator" input-channel="inChannel"
@@ -724,7 +692,6 @@ You can instead use an inner bean definition, as the following example shows:
     <beans:bean class="org.foo.ExampleServiceActivator"/>
 </int:service-activator>
 ----
-====
 
 The bean is treated like any inner bean declared and is not registered with the application context.
 If you wish to access this bean in some other manner, declare it at the top level with an `id` and use the `ref` attribute instead.

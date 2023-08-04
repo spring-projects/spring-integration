@@ -9,7 +9,6 @@ All you need to get started is just an import for `import static org.springframe
 
 For `IntegrationFlow` definitions as lambdas we typically don't need anything else from Groovy and just declare a bean like this:
 
-====
 [source, groovy]
 ----
 @Bean
@@ -19,13 +18,11 @@ IntegrationFlow oddFlow() {
     }
 }
 ----
-====
 
 In this case Groovy understands that the closure should be translated into an `IntegrationFlow` anonymous instance and the target Java DSL processor parses this construction properly into Java objects.
 
 As an alternative to the construction above and for consistency with use-cases explained below, the `spring-integration-groovy` module provides a Groovy-specific DSL for declaring integration flows in a *builder* pattern style:
 
-====
 [source, groovy]
 ----
 @Bean
@@ -46,7 +43,6 @@ flowLambda() {
     }
 }
 ----
-====
 
 Such a global `integrationFlow()` function expects a closure in the builder style for a `GroovyIntegrationFlowDefinition` (a Groovy wrapper for the `IntegrationFlowDefinition`) and produces a regular `IntegrationFlow` lambda implementation.
 See more overloaded `integrationFlow()` variants below.
@@ -55,7 +51,6 @@ Many other scenarios require an `IntegrationFlow` to be started from the source 
 For this purpose, Spring Integration Java DSL provides an `IntegrationFlow` factory with a number of overloaded `from()` methods.
 This factory can be used in groovy as well:
 
-====
 [source, groovy]
 ----
 @Bean
@@ -65,7 +60,6 @@ flowFromSupplier() {
             .get()
 }
 ----
-====
 
 But unfortunately not all `from()` methods are compatible with Groovy structures.
 To solve this, Spring Integration provides a Groovy DSL factory around the `IntegrationFlow` factory.
@@ -73,7 +67,6 @@ It is implemented as a set of overloaded `integrationFlow()` functions.
 With a consumer for a `GroovyIntegrationFlowDefinition` to declare the remainder of the flow as an `IntegrationFlow` closure to reuse the mentioned above experience and also avoid the need for a `get()` call in the end.
 For example:
 
-====
 [source, groovy]
 ----
 @Bean
@@ -119,4 +112,3 @@ someFlow() {
             }
 }
 ----
-====

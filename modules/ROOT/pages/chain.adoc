@@ -41,7 +41,6 @@ The sub-elements are then filters, transformers, splitters, and service-activato
 The last element may also be a router or an outbound channel adapter.
 The following example shows a chain definition:
 
-====
 [source,xml]
 ----
 <int:chain input-channel="input" output-channel="output">
@@ -52,7 +51,6 @@ The following example shows a chain definition:
     <int:service-activator ref="someService" method="someMethod"/>
 </int:chain>
 ----
-====
 
 The `<header-enricher>` element used in the preceding example sets a message header named `thing1` with a value of `thing2` on the message.
 A header enricher is a specialization of `Transformer` that touches only header values.
@@ -61,7 +59,6 @@ You could obtain the same result by implementing a `MessageHandler` that did the
 The `<chain>` can be configured as the last "`closed-box`" consumer of the message flow.
 For this solution, you can to put it at the end of the <chain> some <outbound-channel-adapter>, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:chain input-channel="input">
@@ -73,7 +70,6 @@ For this solution, you can to put it at the end of the <chain> some <outbound-ch
     <int:logging-channel-adapter level="INFO" log-full-message="true"/>
 </int:chain>
 ----
-====
 
 .Disallowed Attributes and Elements
 [IMPORTANT]
@@ -95,7 +91,6 @@ Beginning with Spring Integration 3.0, if a chain element is given an `id` attri
 Elements without `id` attributes are not registered as beans, but each one is given a `componentName` that includes the chain `id`.
 Consider the following example:
 
-====
 [source,xml]
 ----
 <int:chain id="somethingChain" input-channel="input">
@@ -103,7 +98,6 @@ Consider the following example:
     <int:object-to-json-transformer/>
 </int:chain>
 ----
-====
 
 In the preceding example:
 
@@ -137,7 +131,6 @@ TIP: It is useful to provide an explicit `id` attribute on `<chain>` elements to
 Sometimes, you need to make a nested call to another chain from within a chain and then come back and continue execution within the original chain.
 To accomplish this, you can use a messaging gateway by including a <gateway> element, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:chain id="main-chain" input-channel="in" output-channel="out">
@@ -169,7 +162,6 @@ To accomplish this, you can use a messaging gateway by including a <gateway> ele
     </int:service-activator>
 </int:chain>
 ----
-====
 
 In the preceding example, `nested-chain-a` is called at the end of `main-chain` processing by the 'gateway' element configured there.
 While in `nested-chain-a`, a call to a `nested-chain-b` is made after header enrichment.

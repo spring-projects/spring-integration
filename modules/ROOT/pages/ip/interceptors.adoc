@@ -27,7 +27,6 @@ By extending this class, you only need to implement those methods you wish to in
 
 The following example shows how to configure a connection interceptor factory chain:
 
-====
 [source,xml]
 ----
 <bean id="helloWorldInterceptorFactory"
@@ -55,5 +54,4 @@ The following example shows how to configure a connection interceptor factory ch
     using-nio="true"
     interceptor-factory-chain="helloWorldInterceptorFactory"/>
 ----
-====
 

@@ -8,9 +8,11 @@ FTPS stands for "`FTP over SSL`".
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -18,12 +20,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-ftp:{project-version}"
 ----
-====
+======
 
 There are two actors when it comes to FTP communication: client and server.
 To transfer files with FTP or FTPS, you use a client that initiates a connection to a remote computer that is running an FTP server.
@@ -34,7 +38,6 @@ It also provides convenient namespace-based configuration options for defining t
 
 To use the FTP namespace, add the following to the header of your XML file:
 
-====
 [source,xml]
 ----
 xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
@@ -42,5 +45,4 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
     https://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd"
 
 ----
-====
 

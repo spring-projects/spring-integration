@@ -6,14 +6,12 @@ We introduced the `FunctionExpression` class (an implementation of SpEL's `Expre
 The `Function<T, R>` option is provided for the DSL components, along with an `expression` option, when there is the implicit `Strategy` variant from Core Spring Integration.
 The following example shows how to use a function expression:
 
-====
 [source,java]
 ----
 .enrich(e -> e.requestChannel("enrichChannel")
             .requestPayload(Message::getPayload)
             .propertyFunction("date", m -> new Date()))
 ----
-====
 
 The `FunctionExpression` also supports runtime type conversion, as is done in `SpelExpression`.
 

@@ -25,7 +25,6 @@ Convenient namespace-based mechanisms are available to configure them.
 An incoming claim check transformer transforms an incoming message by storing it in the message store identified by its `message-store` attribute.
 The following example defines an incoming claim check transformer:
 
-====
 [source,xml]
 ----
 <int:claim-check-in id="checkin"
@@ -33,7 +32,6 @@ The following example defines an incoming claim check transformer:
         message-store="testMessageStore"
         output-channel="output"/>
 ----
-====
 
 In the preceding configuration, the message that is received on the `input-channel` is persisted to the message store identified with the `message-store` attribute and indexed with a generated ID.
 That ID is the claim check for that message.
@@ -44,7 +42,6 @@ You can access the message store manually and get the contents of the message, o
 
 The following listing provides an overview of all available parameters of an incoming claim check transformer:
 
-====
 [source,xml]
 ----
 <int:claim-check-in auto-startup="true"             <1>
@@ -86,14 +83,12 @@ Optional.
 <8> Defines a poller.
 This element is not available inside a `Chain` element.
 Optional.
-====
 
 [[claim-check-out]]
 == Outgoing Claim Check Transformer
 
 An outgoing claim check transformer lets you transform a message with a claim check payload into a message with the original content as its payload.
 
-====
 [source,xml]
 ----
 <int:claim-check-out id="checkout"
@@ -101,7 +96,6 @@ An outgoing claim check transformer lets you transform a message with a claim ch
         message-store="testMessageStore"
         output-channel="output"/>
 ----
-====
 
 In the preceding configuration, the message received on the `input-channel` should have a claim check as its payload.
 The outgoing claim check transformer transforms it into a message with the original payload by querying the message store for a message identified by the provided claim check.
@@ -109,7 +103,6 @@ It then sends the newly checked-out message to the `output-channel`.
 
 The following listing provides an overview of all available parameters of an outgoing claim check transformer:
 
-====
 [source,xml]
 ----
 <int:claim-check-out auto-startup="true"             <1>
@@ -156,7 +149,6 @@ Optional.
 <9> Defines a poller.
 This element is not available inside a `Chain` element.
 Optional.
-====
 
 [[claim-once]]
 == Claim Once
@@ -173,7 +165,6 @@ This feature has an impact in terms of storage space, especially in the case of 
 Therefore, if you do not expect multiple claims to be made, we recommend that you set the `remove-message` attribute's value to `true`.
 The following example show how to use the `remove-message` attribute:
 
-====
 [source,xml]
 ----
 <int:claim-check-out id="checkout"
@@ -182,7 +173,6 @@ The following example show how to use the `remove-message` attribute:
         output-channel="output"
         remove-message="true"/>
 ----
-====
 
 [[a-word-on-message-store]]
 == A Word on Message Store

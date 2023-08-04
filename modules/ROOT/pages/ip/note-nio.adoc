@@ -78,7 +78,6 @@ By default, the delay is 100ms, but you can change it by setting the `readDelay`
 
 The following three examples shows how to configure the composite executor:
 
-====
 [source,java]
 ----
 @Bean
@@ -100,9 +99,7 @@ private CompositeExecutor compositeExecutor() {
     return new CompositeExecutor(ioExec, assemblerExec);
 }
 ----
-====
 
-====
 [source,xml]
 ----
 <bean id="myTaskExecutor" class="org.springframework.integration.util.CompositeExecutor">
@@ -113,9 +110,7 @@ private CompositeExecutor compositeExecutor() {
 <task:executor id="io" pool-size="4-10" queue-capacity="0" rejection-policy="ABORT" />
 <task:executor id="assembler" pool-size="4-10" queue-capacity="0" rejection-policy="ABORT" />
 ----
-====
 
-====
 [source,xml]
 ----
 <bean id="myTaskExecutor" class="org.springframework.integration.util.CompositeExecutor">
@@ -143,5 +138,4 @@ private CompositeExecutor compositeExecutor() {
     </constructor-arg>
 </bean>
 ----
-====
 

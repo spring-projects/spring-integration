@@ -10,7 +10,6 @@ That way, you can see the discarded message when logging at `INFO` level but not
 With a `NullChannel`, you would see only the discarded message when logging at the `DEBUG` level.
 The following listing shows all the possible attributes for the `logging-channel-adapter` element:
 
-====
 [source, xml]
 ----
 
@@ -22,7 +21,6 @@ The following listing shows all the possible attributes for the `logging-channel
     logger-name="" /> <5>
 
 ----
-====
 
 <1> The channel connecting the logging adapter to an upstream component.
 <2> The logging level at which messages sent to this adapter will be logged.
@@ -43,7 +41,6 @@ By default, all adapters log under the following name: `org.springframework.inte
 
 The following Spring Boot application shows an example of configuring the `LoggingHandler` by using Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -76,14 +73,12 @@ public class LoggingJavaApplication {
 
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following Spring Boot application shows an example of configuring the logging channel adapter by using the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -114,4 +109,3 @@ public class LoggingJavaApplication {
 
 }
 ----
-====

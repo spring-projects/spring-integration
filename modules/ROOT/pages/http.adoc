@@ -7,9 +7,11 @@ See also xref:webflux.adoc[WebFlux Support].
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -17,12 +19,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-http:{project-version}"
 ----
-====
+======
 
 The `jakarta.servlet:jakarta.servlet-api` dependency must be provided on the target Servlet container.
 

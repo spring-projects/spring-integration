@@ -14,7 +14,6 @@ You can think of the factory classes as "`Namespace Factories`", because they pl
 Currently, Spring Integration Java DSL supports the `Amqp`, `Feed`, `Jms`, `Files`, `(S)Ftp`, `Http`, `JPA`, `MongoDb`,  `TCP/UDP`, `Mail`, `WebFlux`, and `Scripts` namespace factories.
 The following example shows how to use three of them (`Amqp`, `Jms`, and `Mail`):
 
-====
 [source,java]
 ----
 @Bean
@@ -48,7 +47,6 @@ public IntegrationFlow sendMailFlow() {
             .get();
 }
 ----
-====
 
 The preceding example shows how to use the "`namespace factories`" as inline adapters declarations.
 However, you can use them from `@Bean` definitions to make the `IntegrationFlow` method chain more readable.
@@ -60,7 +58,6 @@ You can find more Java DSL samples in the protocol-specific chapters throughout 
 
 All other protocol channel adapters may be configured as generic beans and wired to the `IntegrationFlow`, as the following examples show:
 
-====
 [source,java]
 ----
 @Bean
@@ -91,5 +88,4 @@ public AbstractMappingMessageRouter xpathRouter(MessageChannel wrongMessagesChan
     return router;
 }
 ----
-====
 

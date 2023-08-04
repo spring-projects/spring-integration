@@ -12,7 +12,6 @@ The `RestTemplate` takes care of the rest (no pun intended) by converting it to 
 This particular client sends a multipart HTTP Request that contains the name of the company and an image file (the company logo).
 The following listing shows the example:
 
-====
 [source,java]
 ----
 RestTemplate template = new RestTemplate();
@@ -27,13 +26,11 @@ headers.setContentType(new MediaType("multipart", "form-data"));
 HttpEntity request = new HttpEntity(map, headers);
 ResponseEntity<?> httpResponse = template.exchange(uri, HttpMethod.POST, request, null);
 ----
-====
 
 That is all we need for the client.
 
 On the server side, we have the following configuration:
 
-====
 [source,xml]
 ----
 <int-http:inbound-channel-adapter id="httpInboundAdapter"
@@ -50,12 +47,10 @@ On the server side, we have the following configuration:
 <bean id="multipartResolver"
     class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
 ----
-====
 
 The 'httpInboundAdapter' receives the request and converts it to a `Message` with a payload that is a `LinkedMultiValueMap`.
 We then parse that in the 'multipartReceiver' service-activator, as the following example shows:
 
-====
 [source,java]
 ----
 public void receive(LinkedMultiValueMap<String, Object> multipartRequest){
@@ -73,15 +68,12 @@ public void receive(LinkedMultiValueMap<String, Object> multipartRequest){
     }
 }
 ----
-====
 
 You should see the following output:
 
-====
 [source,xml]
 ----
 ### Successfully received multipart request ###
    company - SpringSource
    company-logo - as UploadedMultipartFile: spring09_logo.png
 ----
-====

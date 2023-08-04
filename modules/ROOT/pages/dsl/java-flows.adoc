@@ -17,7 +17,6 @@ Since the Spring Integration Java DSL produces the same bean definition model as
 You can also define direct `IntegrationFlow` instances by using a lambda.
 The following example shows how to do so:
 
-====
 [source,java]
 ----
 @Bean
@@ -27,7 +26,6 @@ public IntegrationFlow lambdaFlow() {
                    .handle(System.out::println);
 }
 ----
-====
 
 The result of this definition is the same set of integration components that are wired with an implicit direct channel.
 The only limitation here is that this flow is started with a named direct channel - `lambdaFlow.input`.

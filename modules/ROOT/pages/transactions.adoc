@@ -75,7 +75,6 @@ However, the `receive()` method being included in a transaction boundary is the 
 
 Any time you configure a Poller, you can provide transactional configuration by using the `transactional` child element and its attributes,as the following example shows:
 
-====
 [source,xml]
 ----
 <int:poller max-messages-per-poll="1" fixed-rate="1000">
@@ -86,7 +85,6 @@ Any time you configure a Poller, you can provide transactional configuration by 
                    timeout="1000"/>
 </poller>
 ----
-====
 
 The preceding configuration looks similar to a native Spring transaction configuration.
 You must still provide a reference to a transaction manager and either specify transaction attributes or rely on defaults (for example, if the 'transaction-manager' attribute is not specified, it defaults to the bean named 'transactionManager').
@@ -104,7 +102,6 @@ One of the significant changes evolving from this effort is that we made the `<t
 The rationale behind this is that, if you need more than one advice and one of them is Transaction advice, you can include it in the `<advice-chain>` with the same convenience as before but with much more control, since you now have an option to position the advice in the desired order.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <int:poller max-messages-per-poll="1" fixed-rate="10000">
@@ -122,7 +119,6 @@ The following example shows how to do so:
   </tx:attributes>
 </tx:advice>
 ----
-====
 
 The preceding example shows a basic XML-based configuration of Spring Transaction advice (`txAdvice`) and included it within the `<advice-chain>` defined by the Poller.
 If you need to address only the transactional concerns of the poller, you can still use the `<transactional>` element as a convenience.
@@ -152,7 +148,6 @@ For more information, see xref:transactions.adoc#pseudo-transactions[Pseudo Tran
 
 The following listing shows the key strategy interfaces for this feature:
 
-====
 [source,java]
 ----
 public interface TransactionSynchronizationFactory {
@@ -170,7 +165,6 @@ public interface TransactionSynchronizationProcessor {
 
 }
 ----
-====
 
 The factory is responsible for creating a https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html[`TransactionSynchronization`] object.
 You can implement your own or use the one provided by the framework: `DefaultTransactionSynchronizationFactory`.
@@ -194,7 +188,6 @@ Previously, the `ErrorMessage` had a payload that was the raw exception thrown b
 To simplify configuration of these components, Spring Integration provides namespace support for the default factory.
 The following example shows how to use the namespace to configure a file inbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="inputDirPoller"
@@ -214,7 +207,6 @@ The following example shows how to use the namespace to configure a file inbound
         channel="rolledBackChannel" />
 </int:transaction-synchronization-factory>
 ----
-====
 
 The result of the SpEL evaluation is sent as the payload to either `committedChannel` or `rolledBackChannel` (in this case, this would be `Boolean.TRUE` or `Boolean.FALSE` -- the result of the `java.io.File.renameTo()` method call).
 
@@ -249,12 +241,10 @@ The pseudo transaction is a vehicle used to enable the synchronization features.
 To use a `PseudoTransactionManager`, you can define it as a <bean/>, in the same way you would configure a real transaction manager.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager" />
 ----
-====
 
 [[reactive-transactions]]
 == Reactive Transactions

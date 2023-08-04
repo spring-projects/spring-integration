@@ -5,7 +5,6 @@ An inbound channel adapter is used to execute a select query over the database u
 The message payload is either a single entity or a `List` of entities.
 The following XML configures an `inbound-channel-adapter`:
 
-====
 [source,xml]
 ----
 <int-jpa:inbound-channel-adapter channel="inboundChannelAdapterOne"  <1>
@@ -44,14 +43,12 @@ You must ensure that the component operates as part of a transaction.
 Otherwise, you may encounter an exception such as: `java.lang.IllegalArgumentException: Removing a detached instance ...`
 <9> Set this value to `true` if you want to flush the persistence context immediately after deleting received entities and if you do not want to rely on the `flushMode` of the `EntityManager`.
 The value defaults to `false`.
-====
 
 [[jpaInboundChannelAdapterParameters]]
 == Configuration Parameter Reference
 
 The following listing shows all the values that can be set for an `inbound-channel-adapter`:
 
-====
 [source,xml]
 ----
 <int-jpa:inbound-channel-adapter
@@ -115,14 +112,12 @@ Ignored if the `entity-class` attribute has a value.
 Optional.
 <14> Maximum amount of time (in milliseconds) to wait when sending a message to the channel.
 Optional.
-====
 
 [[configuring-with-java-configuration]]
 == Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -160,14 +155,12 @@ public class JpaJavaApplication {
 
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -197,5 +190,4 @@ public class JpaJavaApplication {
 
 }
 ----
-====
 

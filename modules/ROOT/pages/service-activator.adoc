@@ -16,7 +16,6 @@ Therefore, any outbound gateway and outbound channel adapter mentioned in this r
 
 With Java & Annotation configuration, it is sufficient to mark the respective service method with the `@ServiceActivator` annotation - and the framework calls it when messages are consumed from an input channel:
 
-====
 [source,java]
 ----
 public class SomeService {
@@ -28,15 +27,16 @@ public class SomeService {
 
 }
 ----
-====
 
 See more information in the xref:configuration/annotations.adoc[Annotation Support].
 
 For Java, Groovy or Kotlin DSLs, the `.handle()` operator of an `IntegrationFlow` represents a service activator:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow someFlow() {
@@ -46,8 +46,10 @@ public IntegrationFlow someFlow() {
              .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun someFlow() =
@@ -55,8 +57,10 @@ fun someFlow() =
         handle(someService, "exampleHandler")
     }
 ----
+
+Groovy DSL::
++
 [source, groovy, role="secondary"]
-.Groovy DSL
 ----
 @Bean
 someFlow() {
@@ -66,7 +70,7 @@ someFlow() {
             }
 }
 ----
-====
+======
 
 See more information about the DSLs in the respective chapters:
 
@@ -76,12 +80,10 @@ See more information about the DSLs in the respective chapters:
 
 To create a service activator when using XML configuration, use the 'service-activator' element with the 'input-channel' and 'ref' attributes, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:service-activator input-channel="exampleChannel" ref="exampleHandler"/>
 ----
-====
 
 The preceding configuration selects all the methods from the `exampleHandler` that meet one of the messaging requirements, which are as follows:
 
@@ -96,23 +98,19 @@ This can be useful when using xref:endpoint.adoc#content-type-conversion[ conten
 
 To delegate to an explicitly defined method of any object, you can add the `method` attribute, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:service-activator input-channel="exampleChannel" ref="somePojo" method="someMethod"/>
 ----
-====
 
 In either case, when the service method returns a non-null value, the endpoint tries to send the reply message to an appropriate reply channel.
 To determine the reply channel, it first checks whether an `output-channel` was provided in the endpoint configuration, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:service-activator input-channel="exampleChannel" output-channel="replyChannel"
                        ref="somePojo" method="someMethod"/>
 ----
-====
 
 If the method returns a result and no `output-channel` is defined, the framework then checks the request message's `replyChannel` header value.
 If that value is available, it then checks its type.
@@ -143,7 +141,6 @@ An example use case for such an implementation is a simple counter or monitor of
 
 Starting with version 4.1, the framework correctly converts message properties (`payload` and `headers`) to the Java 8 `Optional` POJO method parameters, as the following example shows:
 
-====
 [source,java]
 ----
 public class MyBean {
@@ -161,12 +158,10 @@ public class MyBean {
 
 }
 ----
-====
 
 We generally recommend using a `ref` attribute if the custom service activator handler implementation can be reused in other `<service-activator>` definitions.
 However, if the custom service activator handler implementation is only used within a single definition of the `<service-activator>`, you can provide an inner bean definition, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:service-activator id="exampleServiceActivator" input-channel="inChannel"
@@ -174,7 +169,6 @@ However, if the custom service activator handler implementation is only used wit
     <beans:bean class="org.something.ExampleServiceActivator"/>
 </int:service-activator>
 ----
-====
 
 NOTE: Using both the `ref` attribute and an inner handler definition in the same `<service-activator>` configuration is not allowed, as it creates an ambiguous condition and results in an exception being thrown.
 
@@ -189,7 +183,6 @@ Since Spring Integration 2.0, service activators can also benefit from https://d
 
 For example, you can invoke any bean method without pointing to the bean in a `ref` attribute or including it as an inner bean definition, as follows:
 
-====
 [source,xml]
 ----
 <int:service-activator input-channel="in" output-channel="out"
@@ -197,19 +190,16 @@ For example, you can invoke any bean method without pointing to the bean in a `r
 
 	<bean id="accountService" class="thing1.thing2.Account"/>
 ----
-====
 
 In the preceding configuration, instead of injecting 'accountService' by using a `ref` or as an inner bean, we use SpEL's `@beanId` notation and invoke a method that takes a type compatible with the message payload.
 We also pass a header value.
 Any valid SpEL expression can be evaluated against any content in the message.
 For simple scenarios, your service activators need not reference a bean if all logic can be encapsulated in such an expression, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:service-activator input-channel="in" output-channel="out" expression="payload * 2"/>
 ----
-====
 
 In the preceding configuration, our service logic is to multiply the payload value by two.
 SpEL lets us handle it relatively easily.

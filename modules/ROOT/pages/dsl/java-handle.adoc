@@ -7,7 +7,6 @@ Consequently, we introduced a generic `GenericHandler<P>` functional interface.
 Its `handle` method requires two arguments: `P payload` and `MessageHeaders headers` (starting with version 5.1).
 Having that, we can define a flow as follows:
 
-====
 [source,java]
 ----
 @Bean
@@ -17,7 +16,6 @@ public IntegrationFlow myFlow() {
         .get();
 }
 ----
-====
 
 The preceding example doubles any integer it receives.
 
@@ -26,7 +24,6 @@ Since Java does not support generic type resolution for lambda classes, we intro
 Doing so delegates the hard conversion work to Spring's `ConversionService`, which uses the provided `type` and the requested message to target method arguments.
 The following example shows what the resulting `IntegrationFlow` might look like:
 
-====
 [source,java]
 ----
 @Bean
@@ -37,11 +34,9 @@ public IntegrationFlow integerFlow() {
             .get();
 }
 ----
-====
 
 We also can register some `BytesToIntegerConverter` within `ConversionService` to get rid of that additional `.transform()`:
 
-====
 [source,java]
 ----
 @Bean
@@ -57,7 +52,6 @@ public IntegrationFlow integerFlow() {
             .get();
 }
 ----
-====
 
 Also see xref:dsl/java-basics.adoc#java-dsl-class-cast[Lambdas And `Message<?>` Arguments].
 

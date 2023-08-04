@@ -27,7 +27,6 @@ The `aggregate()` method collects those messages.
 However, you can change the default behavior by specifying a release strategy and correlation strategy, among other things.
 Consider the following example:
 
-====
 [source,java]
 ----
 .aggregate(a ->
@@ -35,7 +34,6 @@ Consider the following example:
             .releaseStrategy(g -> g.size() > 10)
             .messageStore(messageStore()))
 ----
-====
 
 The preceding example correlates messages that have `myCorrelationKey` headers and releases the messages once at least ten have been accumulated.
 

@@ -10,7 +10,6 @@ The following sections cover the possible ways of performing these operations.
 
 The following XML configures the outbound channel adapter to persist an entity to the database:
 
-====
 [source,xml]
 ----
 <int-jpa:outbound-channel-adapter channel="entityTypeChannel"               <1>
@@ -26,7 +25,6 @@ You can actually leave off this attribute in most cases as the adapter can deter
 The valid values are `PERSIST`, `MERGE`, and `DELETE`.
 The default value is `MERGE`.
 <4> The JPA entity manager to be used.
-====
 
 These four attributes of the `outbound-channel-adapter` configure it to accept entities over the input channel and process them to `PERSIST`, `MERGE`, or `DELETE` the entities from the underlying data source.
 
@@ -44,7 +42,6 @@ This section shows how to use an outbound channel adapter with JPA QL.
 
 The following XML configures the outbound channel adapter to persist an entity to the database:
 
-====
 [source,xml]
 ----
 <int-jpa:outbound-channel-adapter channel="jpaQlChannel"                                      <1>
@@ -60,7 +57,6 @@ The following XML configures the outbound channel adapter to persist an entity t
 This query may contain parameters that are evaluated by using the `parameter` element.
 <3> The entity manager used by the adapter to perform the JPA operations.
 <4> The elements (one for each parameter) used to define the value of the parameter names for the JPA QL specified in the `query` attribute.
-====
 
 The `parameter` element accepts an attribute whose `name` corresponds to the named parameter specified in the provided JPA QL (point 2 in the preceding example).
 The value of the parameter can either be static or be derived by using an expression.
@@ -72,7 +68,6 @@ The value of this attribute is the fully qualified name of the class whose value
 By default, the type is assumed to be a `java.lang.String`.
 The following example shows how to define a JPA parameter:
 
-====
 [source,xml]
 ----
 <int-jpa:outbound-channel-adapter ...
@@ -81,7 +76,6 @@ The following example shows how to define a JPA parameter:
     <int-jpa:parameter name="name" expression="payload['name']"/>
 </int-jpa:outbound-channel-adapter>
 ----
-====
 
 As the preceding example shows, you can use multiple `parameter` elements within an outbound channel adapter element and define some parameters by using expressions and others with static values.
 However, take care not to specify the same parameter name multiple times.
@@ -111,7 +105,6 @@ Section 3.8.12 of the JPA 2.0 spec states: "`Only positional parameter binding a
 
 The following example configures an outbound-channel-adapter with a native query:
 
-====
 [source,xml]
 ----
 <int-jpa:outbound-channel-adapter channel="nativeQlChannel"
@@ -123,7 +116,6 @@ The following example configures an outbound-channel-adapter with a native query
 ----
 
 <1> The native query executed by this outbound channel adapter.
-====
 
 Note that the other attributes (such as `channel` and `entity-manager`) and the `parameter` element have the same semantics as they do for JPA QL.
 
@@ -136,7 +128,6 @@ Then we cover how to declare an outbound channel adapter to work with a named qu
 If we have an entity called `Student`, we can use annotations on the `Student` class to define two named queries: `selectStudent` and `updateStudent`.
 The following example shows how to do so:
 
-====
 [source,java]
 ----
 @Entity
@@ -153,11 +144,9 @@ public class Student {
 ...
 }
 ----
-====
 
 Alternatively, you can use orm.xml to define named queries as the following example shows:
 
-====
 [source,xml]
 ----
 <entity-mappings ...>
@@ -167,11 +156,9 @@ Alternatively, you can use orm.xml to define named queries as the following exam
     </named-query>
 </entity-mappings>
 ----
-====
 
 Now that we have shown how to define named queries by using annotations or by using `orm.xml`, we now show a small XML fragment that defines an `outbound-channel-adapter` by using a named query, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jpa:outbound-channel-adapter channel="namedQueryChannel"
@@ -183,14 +170,12 @@ Now that we have shown how to define named queries by using annotations or by us
 ----
 
 <1> The named query that we want the adapter to execute when it receives a message over the channel.
-====
 
 [[jpaOutboundChannelAdapterParameters]]
 == Configuration Parameter Reference
 
 The following listing shows all the attributes that you can set on an outbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-jpa:outbound-channel-adapter
@@ -275,14 +260,12 @@ Optional.
 <18> One or more `parameter` attributes -- one for each parameter used in the query.
 The value or expression is evaluated to compute the value of the parameter.
 Optional.
-====
 
 [[configuring-with-java-configuration]]
 == Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -326,14 +309,12 @@ public class JpaJavaApplication {
 
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -360,5 +341,4 @@ public class JpaJavaApplication {
 
 }
 ----
-====
 

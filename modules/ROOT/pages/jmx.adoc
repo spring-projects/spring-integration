@@ -5,9 +5,11 @@ Spring Integration provides channel Adapters for receiving and publishing JMX No
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,12 +17,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-jmx:{project-version}"
 ----
-====
+======
 
 An inbound channel adapter allows for polling JMX MBean attribute values, and an outbound channel adapter allows for invoking JMX MBean operations.
 
@@ -30,14 +34,12 @@ An inbound channel adapter allows for polling JMX MBean attribute values, and an
 The notification-listening channel adapter requires a JMX `ObjectName` for the MBean that publishes notifications to which this listener should be registered.
 A very simple configuration might resemble the following:
 
-====
 [source,xml]
 ----
 <int-jmx:notification-listening-channel-adapter id="adapter"
     channel="channel"
     object-name="example.domain:name=publisher"/>
 ----
-====
 
 TIP: The `notification-listening-channel-adapter` registers with an `MBeanServer` at startup, and the default bean name is `mbeanServer`, which happens to be the same bean name generated when using Spring's `<context:mbean-server/>` element.
 If you need to use a different name, be sure to include the `mbean-server` attribute.
@@ -46,7 +48,6 @@ The adapter can also accept a reference to a `NotificationFilter` and a "`handba
 Both of those attributes are optional.
 Extending the preceding example to include those attributes as well as an explicit `MBeanServer` bean name produces the following example:
 
-====
 [source,xml]
 ----
 <int-jmx:notification-listening-channel-adapter id="adapter"
@@ -56,7 +57,6 @@ Extending the preceding example to include those attributes as well as an explic
     notification-filter="notificationFilter"
     handback="myHandback"/>
 ----
-====
 
 The _Notification-listening channel adapter is event-driven and registered with the `MBeanServer` directly.
 It does not require any poller configuration.
@@ -89,7 +89,6 @@ The names of the located MBean(s) are logged when DEBUG level logging is enabled
 The notification-publishing channel adapter is relatively simple.
 It requires only a JMX object name in its configuration, as the following example shows:
 
-====
 [source,xml]
 ----
 <context:mbean-export/>
@@ -98,7 +97,6 @@ It requires only a JMX object name in its configuration, as the following exampl
     channel="channel"
     object-name="example.domain:name=publisher"/>
 ----
-====
 
 It also requires that an `MBeanExporter` be present in the context.
 That is why the `<context:mbean-export/>` element is also shown in the preceding example.
@@ -112,7 +110,6 @@ There are two ways to provide the `type`.
 Precedence is always given to a message header value associated with the `JmxHeaders.NOTIFICATION_TYPE` key.
 Alternatively, you can provide a fallback `default-notification-type` attribute in the configuration, as the following example shows:
 
-====
 [source,xml]
 ----
 <context:mbean-export/>
@@ -122,7 +119,6 @@ Alternatively, you can provide a fallback `default-notification-type` attribute 
     object-name="example.domain:name=publisher"
     default-notification-type="some.default.type"/>
 ----
-====
 
 [[jmx-attribute-polling-channel-adapter]]
 == Attribute-polling Channel Adapter
@@ -134,7 +130,6 @@ An MBeanServer reference is also required.
 However, by default, it automatically checks for a bean named `mbeanServer`, same as the notification-listening channel adapter xref:jmx.adoc#jmx-notification-listening-channel-adapter[described earlier].
 The following example shows how to configure an attribute-polling channel adapter with XML:
 
-====
 [source,xml]
 ----
 <int-jmx:attribute-polling-channel-adapter id="adapter"
@@ -144,7 +139,6 @@ The following example shows how to configure an attribute-polling channel adapte
         <int:poller max-messages-per-poll="1" fixed-rate="5000"/>
 </int-jmx:attribute-polling-channel-adapter>
 ----
-====
 
 [[tree-polling-channel-adapter]]
 == Tree-polling Channel Adapter
@@ -156,7 +150,6 @@ An MBeanServer reference is also required.
 However, by default, it automatically checks for a bean named `mbeanServer`, same as the notification-listening channel adapter xref:jmx.adoc#jmx-notification-listening-channel-adapter[described earlier].
 The following example shows how to configure a tree-polling channel adapter with XML:
 
-====
 [source,xml]
 ----
 <int-jmx:tree-polling-channel-adapter id="adapter"
@@ -165,7 +158,6 @@ The following example shows how to configure a tree-polling channel adapter with
         <int:poller max-messages-per-poll="1" fixed-rate="5000"/>
 </int-jmx:tree-polling-channel-adapter>
 ----
-====
 
 The preceding example includes all the attributes on the selected MBeans.
 You can filter the attributes by providing an `MBeanObjectConverter` that has an appropriate filter configured.
@@ -185,14 +177,12 @@ The operation-invoking channel adapter enables message-driven invocation of any 
 Each invocation requires the operation name to be invoked and the object name of the target MBean.
 Both of these must be explicitly provided by adapter configuration or via `JmxHeaders.OBJECT_NAME` and `JmxHeaders.OPERATION_NAME` message headers, respectively:
 
-====
 [source,xml]
 ----
 <int-jmx:operation-invoking-channel-adapter id="adapter"
     object-name="example.domain:name=TestBean"
     operation-name="ping"/>
 ----
-====
 
 Then the adapter only needs to be able to discover the `mbeanServer` bean.
 If a different bean name is required, then provide the `mbean-server` attribute with a reference.
@@ -211,7 +201,6 @@ Similarly to the operation-invoking channel adapter, Spring Integration also pro
 The return value is sent as the message payload to the `reply-channel` specified by the gateway.
 The following example shows how to configure an operation-invoking outbound gateway with XML:
 
-====
 [source,xml]
 ----
 <int-jmx:operation-invoking-outbound-gateway request-channel="requestChannel"
@@ -219,7 +208,6 @@ The following example shows how to configure an operation-invoking outbound gate
    object-name="o.s.i.jmx.config:type=TestBean,name=testBeanGateway"
    operation-name="testWithReturn"/>
 ----
-====
 
 If you do not provide the `reply-channel` attribute, the reply message is sent to the channel identified by the `IntegrationMessageHeaderAccessor.REPLY_CHANNEL` header.
 That header is typically auto-created by the entry point into a message flow, such as any gateway component.
@@ -233,7 +221,6 @@ To create an instance of the `IntegrationMBeanExporter`, define a bean and provi
 You can leave out the domain, in which case the default domain is `org.springframework.integration`.
 The following example shows how to declare an instance of an `IntegrationMBeanExporter` and an associated `MBeanServer` instance:
 
-====
 [source,xml]
 ----
 <int-jmx:mbean-export id="integrationMBeanExporter"
@@ -243,7 +230,6 @@ The following example shows how to declare an instance of an `IntegrationMBeanEx
     <property name="locateExistingServerIfPossible" value="true"/>
 </bean>
 ----
-====
 
 [IMPORTANT]
 =====
@@ -258,7 +244,6 @@ It also has a useful operation, as discussed in xref:jmx.adoc#jmx-mbean-shutdown
 Spring Integration 4.0 introduced the `@EnableIntegrationMBeanExport` annotation to allow for convenient configuration of a default `integrationMbeanExporter` bean of type `IntegrationMBeanExporter` with several useful options at the `@Configuration` class level.
 The following example shows how to configure this bean:
 
-====
 [source,java]
 ----
 @Configuration
@@ -272,7 +257,6 @@ public class ContextConfiguration {
 	}
 }
 ----
-====
 
 If you need to provide more options or have several `IntegrationMBeanExporter` beans (such as for different MBean Servers or to avoid conflicts with the standard Spring `MBeanExporter` -- such as through `@EnableMBeanExport`), you can configure an `IntegrationMBeanExporter` as a generic bean.
 
@@ -327,7 +311,6 @@ Also, since Spring Integration 3.0, you can use a custom https://docs.spring.io/
 Doing so permits greater control over the naming of the MBeans, such as grouping all integration MBeans under an 'Integration' type.
 The following example shows one possible custom naming strategy implementation:
 
-====
 [source,java]
 ----
 public class Namer implements ObjectNamingStrategy {
@@ -341,7 +324,6 @@ public class Namer implements ObjectNamingStrategy {
 
 }
 ----
-====
 
 The `beanKey` argument is a `String` that contain the standard object name, beginning with the `default-domain` and including any additional static properties.
 The preceding example moves the standard `type` part to `componentType` and sets the `type` to 'Integration', enabling selection of all Integration MBeans in one query:`my.domain:type=Integration,*`.
@@ -395,11 +377,9 @@ The MBean exporter lets a JMX operation shut down the application in an orderly 
 It is intended for use before stopping the JVM.
 The following example shows how to use it:
 
-====
 [source,java]
 ----
 public void stopActiveComponents(long howLong)
 ----
-====
 
 Its use and operation are described in xref:shutdown.adoc[Orderly Shutdown].

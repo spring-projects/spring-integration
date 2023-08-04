@@ -6,7 +6,6 @@ Before version 5.0, we used the `BeanFactory.registerSingleton()` hook.
 Starting in the Spring Framework `5.0`, we use the `instanceSupplier` hook for programmatic `BeanDefinition` registration.
 The following example shows how to programmatically register a bean:
 
-====
 [source,java]
 ----
 BeanDefinition beanDefinition =
@@ -15,7 +14,6 @@ BeanDefinition beanDefinition =
 
 ((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(beanName, beanDefinition);
 ----
-====
 
 Note that, in the preceding example, the `instanceSupplier` hook is the last parameter to the `genericBeanDefinition` method, provided by a lambda in this case.
 
@@ -23,7 +21,6 @@ All the necessary bean initialization and lifecycle is done automatically, as it
 
 To simplify the development experience, Spring Integration introduced `IntegrationFlowContext` to register and manage `IntegrationFlow` instances at runtime, as the following example shows:
 
-====
 [source,java]
 ----
 @Autowired
@@ -50,14 +47,12 @@ public void testTcpGateways() {
     assertThat(theFlow.getMessagingTemplate().convertSendAndReceive("foo", String.class), equalTo("FOO"));
 }
 ----
-====
 
 This is useful when we have multiple configuration options and have to create several instances of similar flows.
 To do so, we can iterate our options and create and register `IntegrationFlow` instances within a loop.
 Another variant is when our source of data is not Spring-based, so we must create it on the fly.
 Such a sample is Reactive Streams event source, as the following example shows:
 
-====
 [source,java]
 ----
 Flux<Message<?>> messageFlux =
@@ -78,7 +73,6 @@ IntegrationFlow integrationFlow =
 this.integrationFlowContext.registration(integrationFlow)
             .register();
 ----
-====
 
 The `IntegrationFlowRegistrationBuilder` (as a result of the `IntegrationFlowContext.registration()`) can be used to specify a bean name for the `IntegrationFlow` to register, to control its `autoStartup`, and to register, non-Spring Integration beans.
 Usually, those additional beans are connection factories (AMQP, JMS, (S)FTP, TCP/UDP, and others.), serializers and deserializers, or any other required support components.
@@ -94,7 +88,6 @@ We synchronize on these two operations to avoid a race condition when the same g
 Also, starting with version 5.0.6, the registration builder API has a new method: `useFlowIdAsPrefix()`.
 This is useful if you wish to declare multiple instances of the same flow and avoid bean name collisions when components in the flows have the same ID, as the following example shows:
 
-====
 [source, java]
 ----
 private void registerFlows() {
@@ -121,7 +114,6 @@ private IntegrationFlow buildFlow(int port) {
             .transform(Transformers.objectToString());
 }
 ----
-====
 
 In this case, the message handler for the first flow can be referenced with bean a name of `tcp1.client.handler`.
 

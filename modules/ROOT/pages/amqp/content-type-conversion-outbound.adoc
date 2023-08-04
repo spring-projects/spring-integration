@@ -9,7 +9,6 @@ As of Spring Integration version 4.3, you can use the `ContentTypeDelegatingMess
 
 The following example configures a `ContentTypeDelegatingMessageConverter`, with the default converter being the `SimpleMessageConverter` (which handles Java serialization and plain text), together with a JSON converter:
 
-====
 [source, xml]
 ----
 <amqp:outbound-channel-adapter id="withContentTypeConverter" channel="ctRequestChannel"
@@ -33,7 +32,6 @@ The following example configures a `ContentTypeDelegatingMessageConverter`, with
     </property>
 </bean>
 ----
-====
 
 Sending a message to `ctRequestChannel` with the `contentType` header set to `application/json` causes the JSON converter to be selected.
 

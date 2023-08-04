@@ -62,7 +62,6 @@ It causes the creation of a `TransactionHandleMessageAdvice`, not a regular `Tra
 
 Java DSL supports an `Advice` through the `.transactional()` options on the endpoint configuration, as the following example shows:
 
-====
 [source,java]
 ----
 @Bean
@@ -73,5 +72,4 @@ public IntegrationFlow updatingGatewayFlow() {
         .channel(c -> c.queue("persistResults"));
 }
 ----
-====
 

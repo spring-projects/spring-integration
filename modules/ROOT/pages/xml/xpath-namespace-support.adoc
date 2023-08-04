@@ -5,7 +5,6 @@ All components within the Spring Integration XML module provide namespace suppor
 In order to enable namespace support, you need to import the schema for the Spring Integration XML Module.
 The following example shows a typical setup:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -21,7 +20,6 @@ The following example shows a typical setup:
     https://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
 </beans>
 ----
-====
 
 [[xml-xpath-expressions]]
 == XPath Expressions
@@ -39,7 +37,6 @@ For a deeper understanding, see the respective documentation at https://docs.spr
 Here is an overview of all available configuration parameters of the `xpath-expression` element:
 The following listing shows the available attributes for the `xpath-expression` element:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-expression expression="" <1>
@@ -71,7 +68,6 @@ Only one `map` child element is allowed.
 The key of the map defines the namespace prefix, and the value of the map sets the namespace URI.
 It is not valid to specify both this element and the `map` attribute or set the `ns-prefix` and `ns-uri` attributes.
 Optional.
-====
 
 [[providing-namespaces-optional-to-xpath-expressions]]
 === Providing Namespaces (Optional) to XPath Expressions
@@ -88,7 +84,6 @@ Only one option can be set.
 
 The following example shows several different ways to use XPath expressions, including the options for setting the XML namespaces xref:xpath-namespace-support[mentioned earlier]:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-filter id="filterReferencingXPathExpression"
@@ -124,7 +119,6 @@ The following example shows several different ways to use XPath expressions, inc
     <util:entry key="ns2" value="www.example.org/two"/>
 </util:map>
 ----
-====
 
 [[using-xpath-expressions-with-default-namespaces]]
 === Using XPath Expressions with Default Namespaces
@@ -132,7 +126,6 @@ The following example shows several different ways to use XPath expressions, inc
 When working with default namespaces, you may run into situations that behave differently than you might expect.
 Assume we have the following XML document (which represents an order of two books):
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -147,21 +140,17 @@ Assume we have the following XML document (which represents an order of two book
     </orderItem>
 </order>
 ----
-====
 
 This document does not declare a namespace.
 Therefore, applying the following XPath Expression works as expected:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-expression expression="/order/orderItem" />
 ----
-====
 
 You might expect that the same expression also works for the following XML file:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -176,7 +165,6 @@ You might expect that the same expression also works for the following XML file:
 	</orderItem>
 </order>
 ----
-====
 
 The preceding example looks exactly the same as the previous example but declares a default namespace.
 
@@ -193,24 +181,20 @@ In the case of a namespace prefix consisting of an empty string, your Xpath expr
 If you leave off the colon, the XPath expression does not match.
 The following XPath Expression matches against the XML document in the preceding example:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-expression expression="/:order/:orderItem"
     ns-prefix="" ns-uri="https://www.example.org/prodcuts"/>
 ----
-====
 
 You can also provide any other arbitrarily chosen namespace prefix.
 The following XPath expression (which use the `myorder` namespace prefix) also matches:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-expression expression="/myorder:order/myorder:orderItem"
     ns-prefix="myorder" ns-uri="https://www.example.org/prodcuts"/>
 ----
-====
 
 The namespace URI is the really important piece of information, not the prefix.
 The https://github.com/jaxen-xpath/jaxen[Jaxen] summarizes the point very well:

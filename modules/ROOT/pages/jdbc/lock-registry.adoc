@@ -14,7 +14,6 @@ The `JdbcLockRegistry` is based on the `LockRepository` abstraction, which has a
 The database schema scripts are located in the `org.springframework.integration.jdbc` package, which is divided for the particular RDBMS vendors.
 For example, the following listing shows the H2 DDL for the lock table:
 
-====
 [source,sql]
 ----
 CREATE TABLE INT_LOCK  (
@@ -25,7 +24,6 @@ CREATE TABLE INT_LOCK  (
     constraint INT_LOCK_PK primary key (LOCK_KEY, REGION)
 );
 ----
-====
 
 The `INT_` can be changed according to the target database design requirements.
 Therefore, you must use `prefix` property on the `DefaultLockRepository` bean definition.
@@ -54,10 +52,8 @@ String with version 6.1, the `DefaultLockRepository` can be configured for custo
 For this purpose the respective setters and getters are exposed.
 For example, an insert query for PostgreSQL hint can be configured like this:
 
-====
 [source,java]
 ----
 lockRepository.setInsertQuery(lockRepository.getInsertQuery() + " ON CONFLICT DO NOTHING");
 ----
-====
 

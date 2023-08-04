@@ -28,12 +28,10 @@ Unlike the `PublishSubscribeChannel`, the `QueueChannel` has point-to-point sema
 In other words, even if the channel has multiple consumers, only one of them should receive any `Message` sent to that channel.
 It provides a default no-argument constructor (providing an essentially unbounded capacity of `Integer.MAX_VALUE`) as well as a constructor that accepts the queue capacity, as the following listing shows:
 
-====
 [source,java]
 ----
 public QueueChannel(int capacity)
 ----
-====
 
 A channel that has not reached its capacity limit stores messages in its internal queue, and the `send(Message<?>)` method returns immediately, even if no receiver is ready to handle the message.
 If the queue has reached capacity, the sender blocks until room is available in the queue.
@@ -96,7 +94,6 @@ However, since version 3.0, you can provide your own implementation of the `Load
 A `FixedSubscriberChannel` is a `SubscribableChannel` that only supports a single `MessageHandler` subscriber that cannot be unsubscribed.
 This is useful for high-throughput performance use-cases when no other subscribers are involved and no channel interceptors are needed.
 
-====
 [source,xml]
 ----
 <int:channel id="lbRefChannel">
@@ -105,7 +102,6 @@ This is useful for high-throughput performance use-cases when no other subscribe
 
 <bean id="lb" class="foo.bar.SampleLoadBalancingStrategy"/>
 ----
-====
 
 Note that the `load-balancer` and `load-balancer-ref` attributes are mutually exclusive.
 
@@ -147,7 +143,6 @@ This factory is used to populate single-thread executors into a `MessageDispatch
 By default, the `IntegrationMessageHeaderAccessor.CORRELATION_ID` message header is used as the partition key.
 This channel can be configured as a simple bean:
 
-====
 [source,java]
 ----
 @Bean
@@ -155,7 +150,6 @@ PartitionedChannel somePartitionedChannel() {
     return new PartitionedChannel(3, (message) -> message.getHeaders().get("partitionKey"));
 }
 ----
-====
 
 The channel will have `3` partitions - dedicated threads; will use the `partitionKey` header to determine in which partition the message will be handled.
 See `PartitionedChannel` class Javadocs for more information.
@@ -179,7 +173,6 @@ The value of the attribute can be the name of a scope that is available within t
 For example, in a web environment, certain scopes are available, and any custom scope implementations can be registered with the context.
 The following example shows a thread-local scope being applied to a channel, including the registration of the scope itself:
 
-====
 [source,xml]
 ----
 <int:channel id="threadScopedChannel" scope="thread">
@@ -194,7 +187,6 @@ The following example shows a thread-local scope being applied to a channel, inc
     </property>
 </bean>
 ----
-====
 
 The channel defined in the previous example also delegates to a queue internally, but the channel is bound to the current thread, so the contents of the queue are similarly bound.
 That way, the thread that sends to the channel can later receive those same messages, but no other thread would be able to access them.

@@ -5,14 +5,12 @@ A `FileReadingMessageSource` can be used to consume files from the filesystem.
 This is an implementation of `MessageSource` that creates messages from a file system directory.
 The following example shows how to configure a `FileReadingMessageSource`:
 
-====
 [source,xml]
 ----
 <bean id="pollableFileSource"
     class="org.springframework.integration.file.FileReadingMessageSource"
     p:directory="${input.directory}"/>
 ----
-====
 
 To prevent creating messages for certain files, you can supply a `FileListFilter`.
 By default, we use the following filters:
@@ -56,7 +54,6 @@ For this reason, the property is `false` by default; this may change in a future
 
 The following example configures a `FileReadingMessageSource` with a filter:
 
-====
 [source,xml]
 ----
 <bean id="pollableFileSource"
@@ -64,7 +61,6 @@ The following example configures a `FileReadingMessageSource` with a filter:
     p:inputDirectory="${input.directory}"
     p:filter-ref="customFilterBean"/>
 ----
-====
 
 A common problem with reading files is that a file may be detected before it is ready (that is, some other process may still be writing the file).
 The default `AcceptOnceFileListFilter` does not prevent this.
@@ -72,7 +68,6 @@ In most cases, this can be prevented if the file-writing process renames each fi
 A `filename-pattern` or `filename-regex` filter that accepts only files that are ready (perhaps based on a known suffix), composed with the default `AcceptOnceFileListFilter`, allows for this situation.
 The `CompositeFileListFilter` enables the composition, as the following example shows:
 
-====
 [source,xml]
 ----
 <bean id="pollableFileSource"
@@ -92,7 +87,6 @@ The `CompositeFileListFilter` enables the composition, as the following example 
     </constructor-arg>
 </bean>
 ----
-====
 
 If it is not possible to create the file with a temporary name and rename to the final name, Spring Integration provides another alternative.
 Version 4.2 added the `LastModifiedFileListFilter`.
@@ -100,14 +94,12 @@ This filter can be configured with an `age` property so that only files older th
 The age defaults to 60 seconds, but you should choose an age that is large enough to avoid picking up a file early (due to, say, network glitches).
 The following example shows how to configure a `LastModifiedFileListFilter`:
 
-====
 [source, xml]
 ----
 <bean id="filter" class="org.springframework.integration.file.filters.LastModifiedFileListFilter">
     <property name="age" value="120" />
 </bean>
 ----
-====
 
 Starting with version 4.3.7, a `ChainFileListFilter` (an extension of `CompositeFileListFilter`) has been introduced to allow scenarios when subsequent filters should only see the result of the previous filter.
 (With the `CompositeFileListFilter`, all filters see all the files, but it passes only files that have passed all filters).
@@ -126,7 +118,6 @@ NOTE: With the `ChainFileListFilter`, if any filter in the chain returns an empt
 Version 5.0 introduced an `ExpressionFileListFilter` to execute SpEL expression against a file as a context evaluation root object.
 For this purpose, all the XML components for file handling (local and remote), along with an existing `filter` attribute, have been supplied with the `filter-expression` option, as the following example shows:
 
-====
 [source, xml]
 ----
 <int-file:inbound-channel-adapter
@@ -134,7 +125,6 @@ For this purpose, all the XML components for file handling (local and remote), a
         filter-expression="name matches '.text'"
         auto-startup="false"/>
 ----
-====
 
 Version 5.0.5 introduced the `DiscardAwareFileListFilter` implementations that have an interest in rejected files.
 For this purpose, such a filter implementation should be supplied with a callback through `addDiscardCallback(Consumer<File>)`.
@@ -195,7 +185,6 @@ NOTE: Starting with version 5.5, the `FileInboundChannelAdapterSpec` of the Java
 The configuration for file reading can be simplified by using the file-specific namespace.
 To do so, use the following template:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -211,11 +200,9 @@ To do so, use the following template:
     https://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 </beans>
 ----
-====
 
 Within this namespace, you can reduce the `FileReadingMessageSource` and wrap it in an inbound Channel Adapter, as follows:
 
-====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="filesIn1"
@@ -233,7 +220,6 @@ Within this namespace, you can reduce the `FileReadingMessageSource` and wrap it
     directory="file:${input.directory}"
     filename-regex="test[0-9]+\.txt" />
 ----
-====
 
 The first channel adapter example relies on the default `FileListFilter` implementations:
 
@@ -257,7 +243,6 @@ To do so, you can use a `FileLocker`.
 There is a `java.nio`-based implementation available, but it is also possible to implement your own locking scheme.
 The `nio` locker can be injected as follows:
 
-====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="filesIn"
@@ -265,11 +250,9 @@ The `nio` locker can be injected as follows:
     <int-file:nio-locker/>
 </int-file:inbound-channel-adapter>
 ----
-====
 
 You can configure a custom locker as follows:
 
-====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="filesIn"
@@ -277,7 +260,6 @@ You can configure a custom locker as follows:
     <int-file:locker ref="customLocker"/>
 </int-file:inbound-channel-adapter>
 ----
-====
 
 NOTE: When a file inbound adapter is configured with a locker, it takes responsibility for acquiring a lock before the file is allowed to be received.
 It does not assume the responsibility to unlock the file.
@@ -290,13 +272,11 @@ This scanner lets you determine exactly what files are listed in each poll.
 This is also the interface that Spring Integration uses internally to wire `FileListFilter` instances and `FileLocker` to the `FileReadingMessageSource`.
 You can inject a custom `DirectoryScanner` into the `<int-file:inbound-channel-adapter/>` on the `scanner` attribute, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="filesIn" directory="file:${input.directory}"
      scanner="customDirectoryScanner"/>
 ----
-====
 
 Doing so gives you full freedom to choose the ordering, listing, and locking strategies.
 
@@ -348,7 +328,6 @@ More specifically, `ENTRY_DELETE` event, which is related to the previous direct
 On some operating systems (like Windows), the `ENTRY_DELETE` event has to be registered to deal with that situation.
 Otherwise, renaming watched sub-directory in the File Explorer could result in the new files not being detected in that sub-directory.
 
-====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="newFiles"
@@ -361,7 +340,6 @@ Otherwise, renaming watched sub-directory in the File Explorer could result in t
      filter="acceptAllFilter"
      watch-events="MODIFY"/> <!-- The default is CREATE. -->
 ----
-====
 
 Starting with version 6.1, the `FileReadingMessageSource` exposes two new `WatchService`-related options:
 
@@ -392,7 +370,6 @@ Generally, instead of using an `AcceptOnceFileListFilter` in this case, you shou
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -426,14 +403,12 @@ public class FileReadingJavaApplication {
 
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -458,7 +433,6 @@ public class FileReadingJavaApplication {
 
 }
 ----
-====
 
 [[file-tailing]]
 == 'tail'ing Files
@@ -472,7 +446,6 @@ For operating systems that do not have a `tail` command, the second implementati
 In both cases, file system events, such as files being unavailable and other events, are published as `ApplicationEvent` instances by using the normal Spring event publishing mechanism.
 Examples of such events include the following:
 
-====
 [source,bash]
 ----
 [message=tail: cannot open '/tmp/somefile' for reading:
@@ -486,19 +459,16 @@ Examples of such events include the following:
 [message=tail: '/tmp/somefile' has appeared;
                following end of new file, file=/tmp/somefile]
 ----
-====
 
 The sequence of events shown in the preceding example might occur, for example, when a file is rotated.
 
 Starting with version 5.0, a `FileTailingIdleEvent` is emitted when there is no data in the file during `idleEventInterval`.
 The following example shows what such an event looks like:
 
-====
 [source,bash]
 ----
 [message=Idle timeout, file=/tmp/somefile] [idle time=5438]
 ----
-====
 
 NOTE: Not all platforms that support a `tail` command provide these status messages.
 
@@ -512,7 +482,6 @@ You can now obtain that string representation by calling `getAbsolutePath()` on 
 
 The following example creates a native adapter with the default options ('-F -n 0', meaning to follow the file name from the current end).
 
-====
 [source,xml]
 ----
 <int-file:tail-inbound-channel-adapter id="native"
@@ -520,11 +489,9 @@ The following example creates a native adapter with the default options ('-F -n 
 	task-executor="exec"
 	file="/tmp/foo"/>
 ----
-====
 
 The following example creates a native adapter with '-F -n +0' options (meaning follow the file name, emitting all existing lines).
 
-====
 [source,xml]
 ----
 <int-file:tail-inbound-channel-adapter id="native"
@@ -534,7 +501,6 @@ The following example creates a native adapter with '-F -n +0' options (meaning 
 	file-delay=10000
 	file="/tmp/foo"/>
 ----
-====
 
 If the `tail` command fails (on some platforms, a missing file causes the `tail` to fail, even with `-F` specified), the command is retried every 10 seconds.
 
@@ -542,7 +508,6 @@ By default, native adapters capture from standard output and send the content as
 They also capture from standard error to raise events.
 Starting with version 4.3.6, you can discard the standard error events by setting the `enable-status-reader` to `false`, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-file:tail-inbound-channel-adapter id="native"
@@ -551,11 +516,9 @@ Starting with version 4.3.6, you can discard the standard error events by settin
 	task-executor="exec"
 	file="/tmp/foo"/>
 ----
-====
 
 In the following example, `IdleEventInterval` is set to `5000`, meaning that, if no lines are written for five seconds, `FileTailingIdleEvent` is triggered every five seconds:
 
-====
 [source,xml]
 ----
 <int-file:tail-inbound-channel-adapter id="native"
@@ -564,13 +527,11 @@ In the following example, `IdleEventInterval` is set to `5000`, meaning that, if
 	task-executor="exec"
 	file="/tmp/somefile"/>
 ----
-====
 
 This can be useful when you need to stop the adapter.
 
 The following example creates an Apache `commons-io` `Tailer` adapter that examines the file for new lines every two seconds and checks for existence of a missing file every ten seconds:
 
-====
 [source,xml]
 ----
 <int-file:tail-inbound-channel-adapter id="apache"
@@ -585,7 +546,6 @@ The following example creates an Apache `commons-io` `Tailer` adapter that exami
 
 <1> The file is tailed from the beginning (`end="false"`) instead of the end (which is the default).
 <2> The file is reopened for each chunk (the default is to keep the file open).
-====
 
 IMPORTANT: Specifying the `delay`, `end` or `reopen` attributes forces the use of the Apache `commons-io` adapter and makes the `native-options` attribute unavailable.
 

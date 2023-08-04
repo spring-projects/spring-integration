@@ -16,9 +16,11 @@ See xref:message-store.adoc#message-group-condition[Message Group Condition] for
 
 The following listing shows possible ways to configure a `FileAggregator`:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow fileSplitterAggregatorFlow(TaskExecutor taskExecutor) {
@@ -35,8 +37,10 @@ public IntegrationFlow fileSplitterAggregatorFlow(TaskExecutor taskExecutor) {
             .channel(c -> c.queue("resultChannel"));
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun fileSplitterAggregatorFlow(taskExecutor: TaskExecutor?) =
@@ -50,8 +54,10 @@ fun fileSplitterAggregatorFlow(taskExecutor: TaskExecutor?) =
         channel { queue("resultChannel") }
     }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @serviceActivator(inputChannel="toAggregateFile")
 @Bean
@@ -62,8 +68,10 @@ public AggregatorFactoryBean fileAggregator() {
     return aggregator;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:chain input-channel="input" output-channel="output">
     <int-file:splitter markers="true"/>
@@ -72,7 +80,7 @@ public AggregatorFactoryBean fileAggregator() {
     </int:aggregator>
 </int:chain>
 ----
-====
+======
 
 If default behavior of the `FileAggregator` does not satisfy the target logic, it is recommended to configure an aggregator endpoint with individual strategies.
 See `FileAggregator` JavaDocs for more information.

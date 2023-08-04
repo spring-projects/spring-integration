@@ -4,7 +4,6 @@
 The FTP inbound channel adapter is a special listener that connects to the FTP server and listens for the remote directory events (for example, new file created) at which point it initiates a file transfer.
 The following example shows how to configure an `inbound-channel-adapter`:
 
-====
 [source,xml]
 ----
 <int-ftp:inbound-channel-adapter id="ftpInbound"
@@ -25,7 +24,6 @@ The following example shows how to configure an `inbound-channel-adapter`:
     <int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>
 ----
-====
 
 As the preceding configuration shows, you can configure an FTP inbound channel adapter by using the `inbound-channel-adapter` element while also providing values for various attributes, such as `local-directory`, `filename-pattern` (which is based on simple pattern matching, not regular expressions), and the reference to a `session-factory`.
 
@@ -109,7 +107,6 @@ In most cases, you are only interested in files that are complete and would like
 To handle these scenarios, you can use the filtering support provided by the `filename-pattern`, `filename-regex`, and `filter` attributes.
 The following example uses a custom filter implementation:
 
-====
 [source,xml]
 ----
 <int-ftp:inbound-channel-adapter
@@ -123,7 +120,6 @@ The following example uses a custom filter implementation:
 
 <bean id="customFilter" class="org.example.CustomFilter"/>
 ----
-====
 
 [[poller-configuration-notes-for-the-inbound-ftp-adapter]]
 == Poller Configuration Notes for the Inbound FTP Adapter
@@ -174,7 +170,6 @@ If, after synchronizing the files, an error occurs on the downstream flow proces
 If you wish to reprocess such files after a failure, you can use configuration similar to the following to facilitate
 the removal of the failed file from the filter:
 
-====
 [source, xml]
 ----
 <int-ftp:inbound-channel-adapter id="ftpAdapter"
@@ -199,7 +194,6 @@ the removal of the failed file from the filter:
 <bean id="transactionManager"
     class="org.springframework.integration.transaction.PseudoTransactionManager" />
 ----
-====
 
 The preceding configuration works for any `ResettableFileListFilter`.
 
@@ -218,7 +212,6 @@ See xref:file/reading.adoc#watch-service-directory-scanner[`WatchServiceDirector
 
 The following Spring Boot application show an example of how to configure the inbound adapter with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -277,14 +270,12 @@ public class FtpJavaApplication {
 
 }
 ----
-====
 
 [[configuring-with-the-java-dsl]]
 == Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -313,7 +304,6 @@ public class FtpJavaApplication {
     }
 }
 ----
-====
 
 [[ftp-incomplete]]
 == Dealing With Incomplete Data

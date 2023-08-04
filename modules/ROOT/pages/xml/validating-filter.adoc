@@ -12,7 +12,6 @@ Furthermore, you can configure this filter to throw an `Exception` in case valid
 
 The following listing shows all the available configuration parameters:
 
-====
 [source,xml]
 ----
 <int-xml:validating-filter discard-channel=""                    <1>
@@ -54,4 +53,3 @@ You can set this attribute or the `schema-location` attribute but not both.
 Optional.
 <10> A poller to use with the XPath filter.
 Optional.
-====

@@ -13,9 +13,11 @@ Other payload types are emitted unchanged.
 
 The following listing shows possible ways to configure a `FileSplitter`:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @SpringBootApplication
 public class FileSplitterApplication {
@@ -45,8 +47,10 @@ public class FileSplitterApplication {
 
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun fileSplitterFlow() =
@@ -68,8 +72,10 @@ fun fileSplitterFlow() =
         channel { queue("fileSplittingResultChannel") }
     }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Splitter(inputChannel="toSplitter")
 @Bean
@@ -80,8 +86,10 @@ public MessageHandler fileSplitter() {
     return splitter;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-file:splitter id="splitter" <1>
     iterator=""                  <2>
@@ -98,6 +106,7 @@ public MessageHandler fileSplitter() {
     order=""                     <13>
     phase="" />                  <14>
 ----
+======
 
 <1> The bean name of the splitter.
 <2> Set to `true` (the default) to use an iterator or `false` to load the file into memory before sending lines.
@@ -131,7 +140,6 @@ Only applies if the `output-channel` can block -- such as a full `QueueChannel`.
 The default is `true`.
 <13> Set the order of this endpoint if the `input-channel` is a `<publish-subscribe-channel/>`.
 <14> Set the startup phase for the splitter (used when `auto-startup` is `true`).
-====
 
 The `FileSplitter` also splits any text-based `InputStream` into lines.
 Starting with version 4.3, when used in conjunction with an FTP or SFTP streaming inbound channel adapter or an FTP or SFTP outbound gateway that uses the `stream` option to retrieve a file, the splitter automatically closes the session that supports the stream when the file is completely consumed
@@ -139,12 +147,10 @@ See xref:ftp/streaming.adoc[FTP Streaming Inbound Channel Adapter] and xref:sftp
 
 When using Java configuration, an additional constructor is available, as the following example shows:
 
-====
 [source, java]
 ----
 public FileSplitter(boolean iterator, boolean markers, boolean markersJson)
 ----
-====
 
 When `markersJson` is true, the markers are represented as a JSON string (using a `SimpleJsonSerializer`).
 
@@ -166,7 +172,6 @@ The line number can be used with an xref:handler-advice/idempotent-receiver.adoc
 
 For example:
 
-====
 [source, java]
 ----
 @Bean
@@ -200,5 +205,4 @@ public IntegrationFlow flow() {
     ...
 }
 ----
-====
 

@@ -18,9 +18,11 @@ The most drastic changed has happened with a `DefaultSftpSessionFactory` which i
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -28,21 +30,21 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-sftp:{project-version}"
 ----
-====
+======
 
 To include the SFTP namespace in your xml configuration, include the following attributes on the root element:
 
-====
 [source,xml]
 ----
 xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
     https://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
 ----
-====
 

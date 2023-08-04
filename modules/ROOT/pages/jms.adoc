@@ -5,9 +5,11 @@ Spring Integration provides channel adapters for receiving and sending JMS messa
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,12 +17,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-jms:{project-version}"
 ----
-====
+======
 
 The `jakarta.jms:jakarta.jms-api` must be added explicitly via some JMS vendor-specific implementation, e.g. Apache ActiveMQ.
 
@@ -53,9 +57,11 @@ Some JMS vendors handle these destinations differently.
 The inbound channel adapter requires a reference to either a single `JmsTemplate` instance or both a `ConnectionFactory` and a `Destination` (you can provide a 'destinationName' in place of the 'destination' reference).
 The following example defines an inbound channel adapter with a `Destination` reference:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow jmsInbound(ConnectionFactory connectionFactory) {
@@ -67,8 +73,10 @@ public IntegrationFlow jmsInbound(ConnectionFactory connectionFactory) {
             .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun jmsInbound(connectionFactory: ConnectionFactory) =
@@ -79,8 +87,10 @@ fun jmsInbound(connectionFactory: ConnectionFactory) =
             handle { m -> println(m.payload) }
        }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 @InboundChannelAdapter(value = "exampleChannel", poller = @Poller(fixedRate = "30000"))
@@ -90,14 +100,16 @@ public MessageSource<Object> jmsIn(ConnectionFactory connectionFactory) {
     return source;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-jms:inbound-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel">
     <int:poller fixed-rate="30000"/>
 </int-jms:inbound-channel-adapter>
 ----
-====
+======
 
 TIP: Notice from the preceding configuration that the `inbound-channel-adapter` is a polling consumer.
 That means that it invokes `receive()` when triggered.
@@ -117,14 +129,12 @@ Starting with version 5.0.8, a default value of the `receive-timeout` is `-1` (n
 The JMS Inbound Channel Adapter crates a `DynamicJmsTemplate` based on the provided `ConnectionFactory` and options.
 If an external `JmsTemplate` is required (e.g. in Spring Boot environment), or `ConnectionFactory` is not caching, or no `cacheConsumers`, it is recommended to set `jmsTemplate.receiveTimeout(-1)` if a non-blocking consumption is expected:
 
-====
 [source,java]
 ----
 Jms.inboundAdapter(connectionFactory)
         .destination(queueName)
         .configureJmsTemplate(template -> template.receiveTimeout(-1))
 ----
-====
 
 [[jms-ib-transactions]]
 === Transactions
@@ -145,9 +155,11 @@ Alternatively, consider using a `jms-message-driven-channel-adapter` with `ackno
 The `message-driven-channel-adapter` requires a reference to either an instance of a Spring `MessageListener` container (any subclass of `AbstractMessageListenerContainer`) or both `ConnectionFactory` and `Destination` (a 'destinationName' can be provided in place of the 'destination' reference).
 The following example defines a message-driven channel adapter with a `Destination` reference:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow jmsMessageDrivenRedeliveryFlow() {
@@ -158,8 +170,10 @@ public IntegrationFlow jmsMessageDrivenRedeliveryFlow() {
             .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun jmsMessageDrivenFlowWithContainer() =
@@ -169,8 +183,10 @@ fun jmsMessageDrivenFlowWithContainer() =
             channel("exampleChannel")
         }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 public JmsMessageDrivenEndpoint jmsIn() {
@@ -192,12 +208,14 @@ public ChannelPublishingJmsMessageListener listener() {
     return listener;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-jms:message-driven-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel"/>
 ----
-====
+======
 
 [NOTE]
 =====
@@ -232,14 +250,12 @@ Finally, the `<message-driven-channel-adapter>` element also accepts the 'error-
 This provides the same basic functionality, as described in xref:gateway.adoc#gateway-proxy[Enter the `GatewayProxyFactoryBean`].
 The following example shows how to set an error channel on a message-driven channel adapter:
 
-====
 [source,xml]
 ----
 <int-jms:message-driven-channel-adapter id="jmsIn" destination="inQueue"
     channel="exampleChannel"
     error-channel="exampleErrorChannel"/>
 ----
-====
 
 When comparing the preceding example to the generic gateway configuration or the JMS 'inbound-gateway' that we discuss later, the key difference is that we are in a one-way flow, since this is a 'channel-adapter', not a gateway.
 Therefore, the flow downstream from the 'error-channel' should also be one-way.
@@ -273,9 +289,11 @@ It requires either a `jmsTemplate` reference or both `jmsConnectionFactory` and 
 As with the inbound channel adapter, the easiest way to configure this adapter is with the namespace support.
 The following configuration produces an adapter that receives Spring Integration messages from the `exampleChannel`, converts those into JMS messages, and sends them to the JMS destination reference whose bean name is `outQueue`:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow jmsOutboundFlow() {
@@ -285,8 +303,10 @@ public IntegrationFlow jmsOutboundFlow() {
                     .configureJmsTemplate(t -> t.id("jmsOutboundFlowTemplate")));
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun jmsOutboundFlow() =
@@ -301,8 +321,10 @@ fun jmsOutboundFlow() =
             )
         }
 ----
+
+Groovy DSL::
++
 [source, groovy, role="secondary"]
-.Groovy DSL
 ----
 @Bean
 jmsOutboundFlow() {
@@ -320,8 +342,10 @@ jmsOutboundFlow() {
     }
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 @ServiceActivator(inputChannel = "exampleChannel")
@@ -331,12 +355,14 @@ public MessageHandler jmsOut() {
     return handler;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-jms:outbound-channel-adapter id="jmsOut" destination="outQueue" channel="exampleChannel"/>
 ----
-====
+======
 
 As with the inbound channel adapters, there is an 'extract-payload' property.
 However, the meaning is reversed for the outbound adapter.
@@ -352,13 +378,11 @@ NOTE: Regardless of the boolean value for payload extraction, the Spring Integra
 Starting with version 5.1, the `<int-jms:outbound-channel-adapter>` (`JmsSendingMessageHandler`) can be configured with the `deliveryModeExpression` and `timeToLiveExpression` properties to evaluate an appropriate QoS values for JMS message to send at runtime against request Spring `Message`.
 The new `setMapInboundDeliveryMode(true)` and `setMapInboundExpiration(true)` options of the `DefaultJmsHeaderMapper` may facilitate as a source of the information for the dynamic `deliveryMode` and `timeToLive` from message headers:
 
-====
 [source,xml]
 ----
 <int-jms:outbound-channel-adapter delivery-mode-expression="headers.jms_deliveryMode"
                         time-to-live-expression="headers.jms_expiration - T(System).currentTimeMillis()"/>
 ----
-====
 
 [[jms-ob-transactions]]
 === Transactions
@@ -376,14 +400,12 @@ Spring Integration's message-driven JMS inbound-gateway delegates to a `MessageL
 The inbound gateway requires references to a `ConnectionFactory` and a request `Destination` (or 'requestDestinationName').
 The following example defines a JMS `inbound-gateway` that receives from the JMS queue referenced by the bean id, `inQueue`, and sends to the Spring Integration channel named `exampleChannel`:
 
-====
 [source,xml]
 ----
 <int-jms:inbound-gateway id="jmsInGateway"
     request-destination="inQueue"
     request-channel="exampleChannel"/>
 ----
-====
 
 Since the gateways provide request-reply behavior instead of unidirectional send or receive behavior, they also have two distinct properties for "`payload extraction`" (as xref:changes-3.0-4.0.adoc#x4.0-jms-ib[discussed earlier] for the channel adapters' 'extract-payload' setting).
 For an inbound gateway, the 'extract-request-payload' property determines whether the received JMS Message body is extracted.
@@ -400,7 +422,6 @@ However, there might be times when you want to communicate an error condition ba
 To accomplish this, JMS inbound gateway provides support for a message channel to which errors can be sent for processing, potentially resulting in a reply message payload that conforms to some contract that defines what a caller may expect as an "`error`" reply.
 You can use the error-channel attribute to configure such a channel, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jms:inbound-gateway request-destination="requestQueue"
@@ -411,7 +432,6 @@ You can use the error-channel attribute to configure such a channel, as the foll
         ref="exceptionTransformer" method="createErrorResponse"/>
 
 ----
-====
 
 You might notice that this example looks very similar to that included within xref:gateway.adoc#gateway-proxy[Enter the `GatewayProxyFactoryBean`].
 The same idea applies here: The `exceptionTransformer` could be a POJO that creates error-response objects, you could reference the `nullChannel` to suppress the errors, or you could leave 'error-channel' out to let the exception propagate.
@@ -436,7 +456,6 @@ In addition, starting with version 6.1, a `replyToExpression` can be configured 
 The received `jakarta.jms.Message` is used the root evaluation context object.
 The following example demonstrates how to use Java DSL API to configure an inbound JMS gateway with a custom reply destination resolved from the request message:
 
-====
 [source,java]
 ----
 @Bean
@@ -449,7 +468,6 @@ public IntegrationFlow jmsInboundGatewayFlow(ConnectionFactory connectionFactory
             .get();
 }
 ----
-====
 
 [[jms-outbound-gateway]]
 == Outbound Gateway
@@ -470,7 +488,6 @@ Alternatively, consider using a `<reply-listener/>` as xref:jms.adoc#jms-outboun
 
 The following example shows how to configure an outbound gateway:
 
-====
 [source,xml]
 ----
 <int-jms:outbound-gateway id="jmsOutGateway"
@@ -478,7 +495,6 @@ The following example shows how to configure an outbound gateway:
     request-channel="outboundJmsRequests"
     reply-channel="jmsReplies"/>
 ----
-====
 
 The 'outbound-gateway' payload extraction properties are inversely related to those of the 'inbound-gateway' (see the xref:changes-2.2-3.0.adoc#x3.0-jms-mdca-te[earlier discussion]).
 That means that the 'extract-request-payload' property value applies to the Spring Integration message being converted into a JMS message to be sent as a request.
@@ -508,7 +524,6 @@ Note that, in this situation, a new consumer is used for each request, and consu
 
 The following example shows a reply listener with default attributes:
 
-====
 [source,xml]
 ----
 <int-jms:outbound-gateway id="jmsOutGateway"
@@ -518,7 +533,6 @@ The following example shows a reply listener with default attributes:
     <int-jms:reply-listener />
 </int-jms-outbound-gateway>
 ----
-====
 
 The listener is very lightweight, and we anticipate that, in most cases, you need only a single consumer.
 However, you can add attributes such as `concurrent-consumers`, `max-concurrent-consumers`, and others.
@@ -660,7 +674,6 @@ If either of these conditions are not met, `async` is ignored.
 
 The following listing shows all the available attributes for an `outbound-gateway`:
 
-====
 [source,xml]
 ----
 <int-jms:outbound-gateway
@@ -770,7 +783,6 @@ The stop time is a minimum and may actually be up to 1.5x this value.
 <26> See xref:jms.adoc#jms-async-gateway[Async Gateway].
 <27> When this element is included, replies are received by an asynchronous `MessageListenerContainer` rather than creating a consumer for each reply.
 This can be more efficient in many cases.
-====
 
 [[jms-header-mapping]]
 == Mapping Message Headers to and from JMS Message
@@ -799,7 +811,6 @@ The `JMSCorrelationID` is generally used to correlate requests and replies, wher
 
 Starting with version 5.1, the `DefaultJmsHeaderMapper` can be configured for mapping inbound `JMSDeliveryMode` and `JMSExpiration` properties:
 
-====
 [source,java]
 ----
 @Bean
@@ -810,7 +821,6 @@ public DefaultJmsHeaderMapper jmsHeaderMapper() {
     return mapper;
 }
 ----
-====
 
 These JMS properties are mapped to the `JmsHeaders.DELIVERY_MODE` and `JmsHeaders.EXPIRATION` Spring Message headers respectively.
 
@@ -822,7 +832,6 @@ To do so, provide the bean name of an instance of `MessageConverter` that is ava
 Also, to provide some consistency with marshaller and unmarshaller interfaces, Spring provides `MarshallingMessageConverter`, which you can configure with your own custom marshallers and unmarshallers.
 The following example shows how to do so
 
-====
 [source,xml]
 ----
 <int-jms:inbound-gateway request-destination="requestQueue"
@@ -839,7 +848,6 @@ The following example shows how to do so
     </constructor-arg>
 </bean>
 ----
-====
 
 NOTE: When you provide your own `MessageConverter` instance, it is still wrapped within the `HeaderMappingMessageConverter`.
 This means that the 'extract-request-payload' and 'extract-reply-payload' properties can affect the actual objects passed to your converter.
@@ -861,12 +869,10 @@ The problem with that approach is that you need two adapters, even though, conce
 A better option is supported as of Spring Integration version 2.0.
 Now it is possible to define a single "`channel`" when using the JMS namespace, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jms:channel id="jmsChannel" queue="exampleQueue"/>
 ----
-====
 
 The channel in the preceding example behaves much like a normal `<channel/>` element from the main Spring Integration namespace.
 It can be referenced by both the `input-channel` and `output-channel` attributes of any endpoint.
@@ -886,36 +892,30 @@ Since the preceding example above references a JMS Queue instance, it acts as a 
 If, on the other hand, you need publish-subscribe behavior, you can use a separate element and reference a JMS Topic instead.
 The following example shows how to do so:
 
-====
 [source,xml]
 ----
 <int-jms:publish-subscribe-channel id="jmsChannel" topic="exampleTopic"/>
 ----
-====
 
 For either type of JMS-backed channel, the name of the destination may be provided instead of a reference, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jms:channel id="jmsQueueChannel" queue-name="exampleQueueName"/>
 
 <jms:publish-subscribe-channel id="jmsTopicChannel" topic-name="exampleTopicName"/>
 ----
-====
 
 In the preceding examples, the destination names are resolved by Spring's default `DynamicDestinationResolver` implementation, but you could provide any implementation of the `DestinationResolver` interface.
 Also, the JMS `ConnectionFactory` is a required property of the channel, but, by default, the expected bean name would be `jmsConnectionFactory`.
 The following example provides both a custom instance for resolution of the JMS destination names and a different name for the `ConnectionFactory`:
 
-====
 [source,xml]
 ----
 <int-jms:channel id="jmsChannel" queue-name="exampleQueueName"
     destination-resolver="customDestinationResolver"
     connection-factory="customConnectionFactory"/>
 ----
-====
 
 For the `<publish-subscribe-channel />`, set the `durable` attribute to `true` for a durable subscription or `subscription-shared` for a shared subscription (requires a JMS 2.0 broker and has been available since version 4.2).
 Use `subscription` to name the subscription.
@@ -926,12 +926,10 @@ Use `subscription` to name the subscription.
 With JMS message selectors, you can filter https://javadoc.io/doc/jakarta.jms/jakarta.jms-api/latest/jakarta/jms/Message.html[JMS Messages] based on JMS headers as well as JMS properties.
 For example, if you want to listen to messages whose custom JMS header property, `myHeaderProperty`, equals `something`, you can specify the following expression:
 
-====
 [source,xml]
 ----
 myHeaderProperty = 'something'
 ----
-====
 
 Message selector expressions are a subset of the https://en.wikipedia.org/wiki/SQL-92[SQL-92] conditional expression syntax and are defined as part of the https://docs.oracle.com/cd/E19798-01/821-1841/bncer/index.html[Java Message Service] specification.
 You can specify the JMS message `selector` attribute by using XML namespace configuration for the following Spring Integration JMS components:

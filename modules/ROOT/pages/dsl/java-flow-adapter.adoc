@@ -3,7 +3,6 @@
 
 The `IntegrationFlow` interface can be implemented directly and specified as a component for scanning, as the following example shows:
 
-====
 [source,java]
 ----
 @Component
@@ -16,14 +15,12 @@ public class MyFlow implements IntegrationFlow {
 
 }
 ----
-====
 
 It is picked up by the `IntegrationFlowBeanPostProcessor` and correctly parsed and registered in the application context.
 
 For convenience and to gain the benefits of loosely coupled architecture, we provide the `IntegrationFlowAdapter` base class implementation.
 It requires a `buildFlow()` method implementation to produce an `IntegrationFlowDefinition` by using one of `from()` methods, as the following example shows:
 
-====
 [source,java]
 ----
 @Component
@@ -79,5 +76,4 @@ public class MyFlowAdapter extends IntegrationFlowAdapter {
 
 }
 ----
-====
 

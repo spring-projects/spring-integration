@@ -17,9 +17,11 @@ The poller is scheduled with the `TaskScheduler` according to the provided confi
 To configure the polling interval or cron expression for an individual channel adapter, you can provide a 'poller' element with one of the scheduling attributes, such as 'fixed-rate' or 'cron'.
 The following example defines two `inbound-channel-adapter` instances:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow source1() {
@@ -37,8 +39,10 @@ public IntegrationFlow source2() {
                 .get();
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 public class SourceService {
 
@@ -53,8 +57,10 @@ public class SourceService {
     }
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun messageSourceFlow() =
@@ -63,8 +69,10 @@ fun messageSourceFlow() =
         ...
     }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:inbound-channel-adapter ref="source1" method="method1" channel="channel1">
     <int:poller fixed-rate="5000"/>
@@ -74,7 +82,7 @@ fun messageSourceFlow() =
     <int:poller cron="30 * 9-17 * * MON-FRI"/>
 </int:channel-adapter>
 ----
-====
+======
 
 See also xref:channel-adapter.adoc#channel-adapter-expressions-and-scripts[Channel Adapter Expressions and Scripts].
 
@@ -87,25 +95,21 @@ See xref:endpoint.adoc#endpoint-namespace[Endpoint Namespace Support] for more d
 All the `inbound-channel-adapter` types are backed by a `SourcePollingChannelAdapter`, which means they contain a poller configuration that polls the `MessageSource` (to invoke a custom method that produces the value that becomes a `Message` payload) based on the configuration specified in the Poller.
 The following example shows the configuration of two pollers:
 
-====
 [source,xml]
 ----
 <int:poller max-messages-per-poll="1" fixed-rate="1000"/>
 
 <int:poller max-messages-per-poll="10" fixed-rate="1000"/>
 ----
-====
 
 In the first configuration, the polling task is invoked once per poll, and, during each task (poll), the method (which results in the production of the message) is invoked once, based on the `max-messages-per-poll` attribute value.
 In the second configuration, the polling task is invoked 10 times per poll or until it returns 'null', thus possibly producing ten messages per poll while each poll happens at one-second intervals.
 However, what happens if the configuration looks like the following example:
 
-====
 [source,xml]
 ----
 <int:poller fixed-rate="1000"/>
 ----
-====
 
 Note that there is no `max-messages-per-poll` specified.
 As we cover later, the identical poller configuration in the `PollingConsumer` (for example, `service-activator`, `filter`, `router`, and others) would have a default value of `-1` for `max-messages-per-poll`, which means "`execute the polling task non-stop unless the polling method returns null (perhaps because there are no more messages in the `QueueChannel`)`" and then sleep for one second.
@@ -116,12 +120,10 @@ This makes sure that the poller can react to lifecycle events (such as start and
 
 However, if you are sure that your method can return null, and you need to poll for as many sources as available per each poll, you should explicitly set `max-messages-per-poll` to a negative value, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:poller max-messages-per-poll="-1" fixed-rate="1000"/>
 ----
-====
 
 Starting with version 5.5, a `0` value for `max-messages-per-poll` has a special meaning - skip the `MessageSource.receive()` call altogether, which may be considered as pausing for this inbound channel adapter until the `maxMessagesPerPoll` is changed to a non-zero value at a later time, e.g. via a Control Bus.
 
@@ -137,9 +139,11 @@ Also see xref:endpoint.adoc#global-default-poller[Global Default Poller] for mor
 An `outbound-channel-adapter` element (a `@ServiceActivator` for Java configuration) can also connect a `MessageChannel` to any POJO consumer method that should be invoked with the payload of messages sent to that channel.
 The following example shows how to define an outbound channel adapter:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow outboundChannelAdapterFlow(MyPojo myPojo) {
@@ -147,8 +151,10 @@ public IntegrationFlow outboundChannelAdapterFlow(MyPojo myPojo) {
              .handle(myPojo, "handle");
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 public class MyPojo {
 
@@ -159,8 +165,10 @@ public class MyPojo {
 
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun outboundChannelAdapterFlow(myPojo: MyPojo) =
@@ -168,20 +176,24 @@ fun outboundChannelAdapterFlow(myPojo: MyPojo) =
         handle(myPojo, "handle")
     }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:outbound-channel-adapter channel="channel1" ref="target" method="handle"/>
 
 <beans:bean id="target" class="org.MyPojo"/>
 ----
-====
+======
 
 If the channel being adapted is a `PollableChannel`, you must provide a poller sub-element (the `@Poller` sub-annotation on the `@ServiceActivator`), as the following example shows:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 public class MyPojo {
 
@@ -192,8 +204,10 @@ public class MyPojo {
 
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:outbound-channel-adapter channel="channel2" ref="target" method="handle">
     <int:poller fixed-rate="3000" />
@@ -201,19 +215,17 @@ public class MyPojo {
 
 <beans:bean id="target" class="org.MyPojo"/>
 ----
-====
+======
 
 You should use a `ref` attribute if the POJO consumer implementation can be reused in other `<outbound-channel-adapter>` definitions.
 However, if the consumer implementation is referenced by only a single definition of the `<outbound-channel-adapter>`, you can define it as an inner bean, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:outbound-channel-adapter channel="channel" method="handle">
     <beans:bean class="org.Foo"/>
 </int:outbound-channel-adapter>
 ----
-====
 
 NOTE: Using both the `ref` attribute and an inner handler definition in the same `<outbound-channel-adapter>` configuration is not allowed, as it creates an ambiguous condition.
 Such a configuration results in an exception being thrown.
@@ -233,7 +245,6 @@ Starting with Spring Integration 3.0, an `<int:inbound-channel-adapter/>` can al
 If you provide a script as a `Resource` by using the `location` attribute, you can also set `refresh-check-delay`, which allows the resource to be periodically refreshed.
 If you want the script to be checked on each poll, you would need to coordinate this setting with the poller's trigger, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:inbound-channel-adapter ref="source1" method="method1" channel="channel1">
@@ -241,7 +252,6 @@ If you want the script to be checked on each poll, you would need to coordinate 
     <script:script lang="ruby" location="Foo.rb" refresh-check-delay="5000"/>
 </int:inbound-channel-adapter>
 ----
-====
 
 See also the `cacheSeconds` property on the `ReloadableResourceBundleExpressionSource` when using the `<expression/>` sub-element.
 For more information regarding expressions, see xref:spel.adoc[Spring Expression Language (SpEL)].

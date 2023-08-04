@@ -33,23 +33,27 @@ A default `errorChannel` bean is created internally by the Framework.
 However, you can define your own if you want to control the settings.
 The following example shows how to define an error channel in XML configuration backed by a queue with a capacity of `500`:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 QueueChannel errorChannel() {
     return new QueueChannel(500);
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="errorChannel">
     <int:queue capacity="500"/>
 </int:channel>
 ----
-====
+======
 
 NOTE: The default error channel is a `PublishSubscribeChannel`.
 By default, it has a `LoggingHandler` as a subscriber with an `ERROR` logging level and subscription order as `Ordered.LOWEST_PRECEDENCE - 100`.

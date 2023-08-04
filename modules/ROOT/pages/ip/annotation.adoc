@@ -3,7 +3,6 @@
 
 The following example from the samples repository shows some of the configuration options available when you use  annotations instead of XML:
 
-====
 [source, java]
 ----
 @EnableIntegration <1>
@@ -93,5 +92,4 @@ In this scenario, the `@ServiceActivator` configures the endpoint, according to 
 <7> The client-side connection factory.
 
 <8> The server-side connection factory.
-====
 

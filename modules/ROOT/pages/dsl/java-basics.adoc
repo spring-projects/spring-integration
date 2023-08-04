@@ -25,7 +25,6 @@ The DSL provides an `IntegrationFlow` component to define a composition of chann
 However, the bean for `IntegrationFlow` can be autowired as a `Lifecycle` to control `start()` and `stop()` for the whole flow which is delegated to all the Spring Integration components associated with this `IntegrationFlow`.
 The following example uses the `IntegrationFlow` fluent API to define an `IntegrationFlow` bean by using EIP-methods from `IntegrationFlowBuilder`:
 
-====
 [source,java]
 ----
 @Bean
@@ -35,7 +34,6 @@ public IntegrationFlow integerFlow() {
             .get();
 }
 ----
-====
 
 The `transform` method accepts a lambda as an endpoint argument to operate on the message payload.
 The real argument of this method is a `GenericTransformer<S, T>` instance.
@@ -44,7 +42,6 @@ Consequently, any of the provided transformers  (`ObjectToJsonTransformer`, `Fil
 Under the covers, `IntegrationFlowBuilder` recognizes the `MessageHandler` and the endpoint for it, with `MessageTransformingHandler` and `ConsumerEndpointFactoryBean`, respectively.
 Consider another example:
 
-====
 [source,java]
 ----
 @Bean
@@ -56,7 +53,6 @@ public IntegrationFlow myFlow() {
                 .get();
 }
 ----
-====
 
 The preceding example composes a sequence of `Filter -> Transformer -> Service Activator`.
 The flow is "'one way'".

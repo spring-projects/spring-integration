@@ -6,9 +6,11 @@ For more information about Spring's support for events and listeners, see the ht
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -16,12 +18,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-event:{project-version}"
 ----
-====
+======
 
 [[appevent-inbound]]
 == Receiving Spring Application Events
@@ -39,7 +43,6 @@ When the accepted event is an instance of `PayloadApplicationEvent`, its `payloa
 
 For convenience, namespace support is provided to configure an `ApplicationEventListeningMessageProducer` with the `inbound-channel-adapter` element, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-event:inbound-channel-adapter channel="eventChannel"
@@ -48,7 +51,6 @@ For convenience, namespace support is provided to configure an `ApplicationEvent
 
 <int:publish-subscribe-channel id="eventChannel"/>
 ----
-====
 
 In the preceding example, all application context events that match one of the types specified by the 'event-types' (optional) attribute are delivered as Spring Integration messages to the message channel named 'eventChannel'.
 If a downstream component throws an exception, a `MessagingException` that contains the failed message and exception is sent to the channel named 'eventErrorChannel'.
@@ -56,7 +58,6 @@ If no `error-channel` is specified and the downstream channels are synchronous, 
 
 Using Java to configure the same adapter:
 
-====
 [source, java]
 ----
 @Bean
@@ -71,11 +72,9 @@ public ApplicationEventListeningMessageProducer eventsAdapter(
     return producer;
 }
 ----
-====
 
 With the Java DSL:
 
-====
 [source, java]
 ----
 @Bean
@@ -97,7 +96,6 @@ public IntegrationFlow eventFlow(ApplicationEventListeningMessageProducer events
         .get();
 }
 ----
-====
 
 [[appevent-outbound]]
 == Sending Spring Application Events
@@ -107,20 +105,17 @@ This implementation of the `MessageHandler` interface also implements Spring's `
 
 For convenience, namespace support is provided to configure an `ApplicationEventPublishingMessageHandler` with the `outbound-channel-adapter` element, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:channel id="eventChannel"/>
 
 <int-event:outbound-channel-adapter channel="eventChannel"/>
 ----
-====
 
 If you use a `PollableChannel` (such as a `QueueChannel`), you can also provide a `poller` child element of the `outbound-channel-adapter` element.
 You can also optionally provide a `task-executor` reference for that poller.
 The following example demonstrates both:
 
-====
 [source,xml]
 ----
 <int:channel id="eventChannel">
@@ -133,7 +128,6 @@ The following example demonstrates both:
 
 <task:executor id="executor" pool-size="5"/>
 ----
-====
 
 In the preceding example, all messages sent to the 'eventChannel' channel are published as `ApplicationEvent` instances to any relevant `ApplicationListener` instances that are registered within the same Spring `ApplicationContext`.
 If the payload of the message is an `ApplicationEvent`, it is passed as-is.
@@ -143,7 +137,6 @@ Starting with version 4.2, you can configure the `ApplicationEventPublishingMess
 
 To configure the adapter using Java configuration:
 
-====
 [source, java]
 ----
 @Bean
@@ -155,11 +148,9 @@ public ApplicationEventPublishingMessageHandler eventHandler() {
     return handler;
 }
 ----
-====
 
 With the Java DSL:
 
-====
 [source, java]
 ----
 @Bean
@@ -176,11 +167,9 @@ public IntegrationFlow eventsOutFlow(ApplicationEventPublishingMessageHandler ev
     return f -> f.handle(eventHandler);
 }
 ----
-====
 
 The `@Publisher` annotation also can be used in combination with an `@EventListener`:
 
-====
 [source, java]
 ----
 @Configuration
@@ -201,7 +190,6 @@ public static class ContextConfiguration {
 
 }
 ----
-====
 
 In this case a return value of the event listener method is used as a payload for a `Message` to be published to that `eventFromPublisher` channel.
 See more information about the `@Publisher` in the xref:message-publishing.adoc#publisher-annotation[Annotation-driven Configuration] section.

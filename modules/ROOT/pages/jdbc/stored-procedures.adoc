@@ -122,7 +122,6 @@ The following elements are available:
 * `parameter`: Provides a mechanism to provide stored procedure parameters.
 Parameters can be either static or provided by using a SpEL Expressions.
 +
-====
 [source,xml]
 ----
 <int-jdbc:parameter name=""         <1>
@@ -145,19 +144,16 @@ Optional.
 <4> Instead of the `value` attribute, you can specify a SpEL expression for passing the value of the parameter.
 If you specify the `expression`, the `value` attribute is not allowed.
 Optional.
-====
 Optional.
 +
 * `returning-resultset`: Stored procedures may return multiple result sets.
 By setting one or more `returning-resultset` elements, you can specify `RowMappers` to convert each returned `ResultSet` to meaningful objects.
 Optional.
 +
-====
 [source,xml]
 ----
 <int-jdbc:returning-resultset name="" row-mapper="" />
 ----
-====
 
 * `sql-parameter-definition`: If you use a database that is fully supported, you typically do not have to specify the stored procedure parameter definitions.
 Instead, those parameters can be automatically derived from the JDBC metadata.
@@ -165,7 +161,6 @@ However, if you use databases that are not fully supported, you must set those p
 +
 You can also choose to turn off any processing of parameter metadata information obtained through JDBC by using the `ignore-column-meta-data` attribute.
 +
-====
 [source,xml]
 ----
 <int-jdbc:sql-parameter-definition
@@ -199,7 +194,6 @@ Optional.
 An implementation of https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/SqlReturnType.html[`SqlReturnType`].
 This attribute is mutually exclusive with the `scale` attribute and is only applicable for OUT and INOUT parameters.
 Optional.
-====
 * `poller`: Lets you configure a message poller if this endpoint is a `PollingConsumer`.
 Optional.
 
@@ -224,14 +218,12 @@ Furthermore, we have a simplistic Stored Procedure called `INSERT_COFFEE` that a
 We also use a fully supported database.
 In that case, the following configuration for a stored procedure outbound adapter suffices:
 
-====
 [source,xml]
 ----
 <int-jdbc:stored-proc-outbound-channel-adapter data-source="dataSource"
     channel="insertCoffeeProcedureRequestChannel"
     stored-procedure-name="INSERT_COFFEE"/>
 ----
-====
 
 For more sophisticated options, consider passing in one or more `ProcedureParameter` values.
 
@@ -244,7 +236,6 @@ If you need even more control over how parameters are retrieved, consider passin
 
 The following listing calls out the attributes that matter for a stored procedure inbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-jdbc:stored-proc-inbound-channel-adapter
@@ -279,14 +270,12 @@ Optional.
 <3> Indicates whether this procedure's return value should be included.
 Since Spring Integration 3.0.
 Optional.
-====
 
 [[stored-procedure-outbound-channel-adapter]]
 == Stored Procedure Outbound Channel Adapter
 
 The following listing calls out the attributes that matter for a stored procedure outbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-jdbc:stored-proc-outbound-channel-adapter channel=""                        <1>
@@ -311,14 +300,12 @@ Required.
 This is particularly relevant when that channel is using a `failover` dispatching strategy.
 It has no effect when this endpoint is itself a polling consumer for a channel with a queue.
 Optional.
-====
 
 [[stored-procedure-outbound-gateway]]
 == Stored Procedure Outbound Gateway
 
 The following listing calls out the attributes that matter for a stored procedure outbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-jdbc:stored-proc-outbound-gateway request-channel=""                        <1>
@@ -361,7 +348,6 @@ The exact behavior depends on the database.
 The value is set on the underlying `JdbcTemplate`.
 The value defaults to `true`.
 Optional.
-====
 
 [[sp-examples]]
 == Examples
@@ -385,7 +371,6 @@ In the first example, we call a stored procedure named `FIND_ALL_COFFEE_BEVERAGE
 In Apache Derby, stored procedures are implemented in Java.
 The following listing shows the method signature:
 
-====
 [source,java]
 ----
 public static void findAllCoffeeBeverages(ResultSet[] coffeeBeverages)
@@ -393,22 +378,18 @@ public static void findAllCoffeeBeverages(ResultSet[] coffeeBeverages)
     ...
 }
 ----
-====
 
 The following listing shows the corresponding SQL:
 
-====
 [source,sql]
 ----
 CREATE PROCEDURE FIND_ALL_COFFEE_BEVERAGES() \
 PARAMETER STYLE JAVA LANGUAGE JAVA MODIFIES SQL DATA DYNAMIC RESULT SETS 1 \
 EXTERNAL NAME 'o.s.i.jdbc.storedproc.derby.DerbyStoredProcedures.findAllCoffeeBeverages';
 ----
-====
 
 In Spring Integration, you can now call this stored procedure by using, for example, a `stored-proc-outbound-gateway`, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jdbc:stored-proc-outbound-gateway id="outbound-gateway-storedproc-find-all"
@@ -420,13 +401,11 @@ In Spring Integration, you can now call this stored procedure by using, for exam
     row-mapper="org.springframework.integration.support.CoffeBeverageMapper"/>
 </int-jdbc:stored-proc-outbound-gateway>
 ----
-====
 
 In the second example, we call a stored procedure named `FIND_COFFEE` that has one input parameter.
 Instead of returning a `ResultSet`, it uses an output parameter.
 The following example shows the method signature:
 
-====
 [source,java]
 ----
 public static void findCoffee(int coffeeId, String[] coffeeDescription)
@@ -434,22 +413,18 @@ public static void findCoffee(int coffeeId, String[] coffeeDescription)
     ...
 }
 ----
-====
 
 The following listing shows the corresponding SQL:
 
-====
 [source,sql]
 ----
 CREATE PROCEDURE FIND_COFFEE(IN ID INTEGER, OUT COFFEE_DESCRIPTION VARCHAR(200)) \
 PARAMETER STYLE JAVA LANGUAGE JAVA EXTERNAL NAME \
 'org.springframework.integration.jdbc.storedproc.derby.DerbyStoredProcedures.findCoffee';
 ----
-====
 
 In Spring Integration, you can now call this Stored Procedure by using, for example, a `stored-proc-outbound-gateway`, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jdbc:stored-proc-outbound-gateway id="outbound-gateway-storedproc-find-coffee"
@@ -461,5 +436,4 @@ In Spring Integration, you can now call this Stored Procedure by using, for exam
     <int-jdbc:parameter name="ID" expression="payload" />
 </int-jdbc:stored-proc-outbound-gateway>
 ----
-====
 

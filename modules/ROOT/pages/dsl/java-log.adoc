@@ -7,14 +7,12 @@ Internally, it is represented by the `WireTap` `ChannelInterceptor` with a `Logg
 It is responsible for logging the incoming message into the next endpoint or the current channel.
 The following example shows how to use `LoggingHandler`:
 
-====
 [source,java]
 ----
 .filter(...)
 .log(LoggingHandler.Level.ERROR, "test.category", m -> m.getHeaders().getId())
 .route(...)
 ----
-====
 
 In the preceding example, an `id` header is logged at the `ERROR` level onto `test.category` only for messages that passed the filter and before routing.
 

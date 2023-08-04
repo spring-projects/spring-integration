@@ -8,26 +8,21 @@ The target object can be accessed through the `target` argument (when subclassin
 
 When the entire handler is advised (such as when the handler does not produce replies or the advice implements `HandleMessageAdvice`), you can cast the target object to an interface, such as `NamedComponent`, as shown in the following example:
 
-====
 [source, java]
 ----
 String componentName = ((NamedComponent) target).getComponentName();
 ----
-====
 
 When you implement `MethodInterceptor` directly, you could cast the target object as follows:
 
-====
 [source, java]
 ----
 String componentName = ((NamedComponent) invocation.getThis()).getComponentName();
 ----
-====
 
 When only the `handleRequestMessage()` method is advised (in a reply-producing handler), you need to access the full handler, which is an `AbstractReplyProducingMessageHandler`.
 The following example shows how to do so:
 
-====
 [source, java]
 ----
 AbstractReplyProducingMessageHandler handler =
@@ -35,5 +30,4 @@ AbstractReplyProducingMessageHandler handler =
 
 String componentName = handler.getComponentName();
 ----
-====
 

@@ -5,7 +5,6 @@ In addition to the `IntegrationFlowBuilder` with EIP methods, the Java DSL provi
 For this purpose the `MessageChannels` builder factory is provided.
 The following example shows how to use it:
 
-====
 [source,java]
 ----
 @Bean
@@ -14,7 +13,6 @@ public PriorityChannelSpec priorityChannel() {
                         .interceptor(wireTap());
 }
 ----
-====
 
 The same `MessageChannels` builder factory can be used in the `channel()` EIP method from `IntegrationFlowBuilder` to wire endpoints, similar to wiring an `input-channel`/`output-channel` pair in the XML configuration.
 By default, endpoints are wired with `DirectChannel` instances where the bean name is based on the following pattern: `[IntegrationFlow.beanName].channel#[channelNameIndex]`.

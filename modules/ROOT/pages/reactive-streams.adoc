@@ -168,7 +168,6 @@ Any `ReactiveMessageHandler` implementation (even just a plain lambda using the 
 The framework subscribes to the returned `Mono<Void>` automatically.
 Here is a simple sample of possible configuration for this operator:
 
-====
 [source, java]
 ----
 @Bean
@@ -178,7 +177,6 @@ public IntegrationFlow wireTapFlow1() {
             .handleReactive((message) -> Mono.just(message).log().then());
 }
 ----
-====
 
 An overloaded version of this operator accepts a `Consumer<GenericEndpointSpec<ReactiveMessageHandlerAdapter>>` to customize a consumer endpoint around the provided `ReactiveMessageHandler`.
 
@@ -200,7 +198,6 @@ This limitation can be handled using thread pools and queues or `FluxMessageChan
 
 An example for a reactive **event-driven** inbound channel adapter:
 
-====
 [source, java]
 ----
 public class CustomReactiveMessageProducer extends MessageProducerSupport {
@@ -226,11 +223,9 @@ public class CustomReactiveMessageProducer extends MessageProducerSupport {
     }
 }
 ----
-====
 
 Usage would look like:
 
-====
 [source, java]
 ----
 public class MainFlow {
@@ -245,11 +240,9 @@ public class MainFlow {
   }
 }
 ----
-====
 
 Or in a declarative way:
 
-====
 [source, java]
 ----
 public class MainFlow {
@@ -261,11 +254,9 @@ public class MainFlow {
   }
 }
 ----
-====
 
 Or even without a channel adapter, we can always use the Java DSL in the following way:
 
-====
 [source, java]
 ----
 public class MainFlow {
@@ -283,7 +274,6 @@ public class MainFlow {
   }
 }
 ----
-====
 
 A reactive outbound channel adapter implementation is about the initiation (or continuation) of a reactive stream to interaction with an external system according to the provided reactive API for the target protocol.
 An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of the reactive stream on top.
@@ -291,7 +281,6 @@ A returned reactive type can be subscribed immediately if we are in a one-way, f
 
 An example for a reactive outbound channel adapter:
 
-====
 [source, java]
 ----
 public class CustomReactiveMessageHandler extends AbstractReactiveMessageHandler {
@@ -334,11 +323,9 @@ public class CustomReactiveMessageHandler extends AbstractReactiveMessageHandler
     }
 }
 ----
-====
 
 We will be able to use both of the channel adapters:
 
-====
 [source, java]
 ----
 public class MainFlow {
@@ -358,7 +345,6 @@ public class MainFlow {
   }
 }
 ----
-====
 
 Currently, Spring Integration provides channel adapter (or gateway) implementations for xref:webflux.adoc[WebFlux], xref:rsocket.adoc[RSocket], xref:mongodb.adoc[MongoDb], xref:r2dbc.adoc[R2DBC], xref:zeromq.adoc[ZeroMQ], xref:graphql.adoc[GraphQL], xref:cassandra.adoc[Apache Cassandra].
 The xref:redis.adoc#redis-stream-outbound[Redis Stream Channel Adapters] are also reactive and uses `ReactiveStreamOperations` from Spring Data.
@@ -378,7 +364,6 @@ This header is used then in the `FluxMessageChannel.subscribeTo()` to restore a 
 Currently, this header is populated from the `WebFluxInboundEndpoint` and `RSocketInboundGateway` components, but can be used in any solution where reactive to imperative integration is performed.
 The logic to populate this header is like this:
 
-====
 [source, java]
 ----
 return requestMono
@@ -399,18 +384,15 @@ private Message<?> messageWithReactorContextIfAny(Message<?> message, ContextVie
     return message;
 }
 ----
-====
 
 Note, that we still need to use a `handle()` operator to make Reactor restore `ThreadLocal` values from the context.
 Even if it is sent as a header, the framework cannot make an assumption if it is going to be to restore onto `ThreadLocal` values downstream.
 
 To restore the context from a `Message` on the other `Flux` or `Mono` composition, this logic can be performed:
 
-====
 [source, java]
 ----
 Mono.just(message)
         .handle((messageToHandle, sink) -> ...)
         .contextWrite(StaticMessageHeaderAccessor.getReactorContext(message)));
 ----
-====

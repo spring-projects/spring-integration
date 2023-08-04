@@ -4,7 +4,6 @@
 The outbound channel adapter is the inverse of the inbound: its role is to handle a message and use it to execute a SQL query.
 By default, the message payload and headers are available as input parameters to the query, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jdbc:outbound-channel-adapter
@@ -12,7 +11,6 @@ By default, the message payload and headers are available as input parameters to
     data-source="dataSource"
     channel="input"/>
 ----
-====
 
 In the preceding example, messages arriving at the channel labelled `input` have a payload of a map with a key of `something`, so the `[]` operator dereferences that value from the map.
 The headers are also accessed as a map.
@@ -35,7 +33,6 @@ However, if you need to pass SpEL expression as parameters, you must explicitly 
 
 The following example uses a `ExpressionEvaluatingSqlParameterSourceFactory` to achieve that requirement:
 
-====
 [source,xml]
 ----
 <jdbc:outbound-channel-adapter data-source="dataSource" channel="input"
@@ -53,7 +50,6 @@ The following example uses a `ExpressionEvaluatingSqlParameterSourceFactory` to 
     </property>
 </bean>
 ----
-====
 
 For further information, see xref:jdbc/stored-procedures.adoc#sp-defining-parameter-sources[Defining Parameter Sources].
 
@@ -72,7 +68,6 @@ This functional interface option is mutually exclusive with `sqlParameterSourceF
 For example, it is useful when we need to store `File` data to the DataBase `BLOB` column in a streaming manner.
 The following example shows how to do so:
 
-====
 [source,java]
 ----
 @Bean
@@ -93,7 +88,6 @@ public MessageHandler jdbcMessageHandler(DataSource dataSource) {
     return jdbcMessageHandler;
 }
 ----
-====
 
 From the XML configuration perspective, the `prepared-statement-setter` attribute is available on the `<int-jdbc:outbound-channel-adapter>` component.
 It lets you specify a `MessagePreparedStatementSetter` bean reference.

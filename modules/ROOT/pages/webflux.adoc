@@ -5,9 +5,11 @@ The WebFlux Spring Integration module (`spring-integration-webflux`) allows for 
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,12 +17,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-webflux:{project-version}"
 ----
-====
+======
 
 The `io.projectreactor.netty:reactor-netty` dependency must be included in case of non-Servlet-based server configuration.
 
@@ -34,7 +38,6 @@ See xref:http.adoc[HTTP Support] for more information, since many options are sh
 Spring Integration provides a `webflux` namespace and the corresponding schema definition.
 To include it in your configuration, add the following namespace declaration in your application context configuration file:
 
-====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -52,7 +55,6 @@ To include it in your configuration, add the following namespace declaration in 
     ...
 </beans>
 ----
-====
 
 [[webflux-inbound]]
 == WebFlux Inbound Components
@@ -62,9 +64,11 @@ This component is similar to the MVC-based `HttpRequestHandlingEndpointSupport`,
 It is used in the Spring WebFlux reactive environment (instead of MVC).
 The following example shows a simple implementation of a WebFlux endpoint:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow inboundChannelAdapterFlow() {
@@ -77,8 +81,10 @@ public IntegrationFlow inboundChannelAdapterFlow() {
         .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun inboundChannelAdapterFlow() =
@@ -93,8 +99,10 @@ fun inboundChannelAdapterFlow() =
         channel { queue("storeChannel") }
     }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Configuration
 @EnableWebFlux
@@ -118,14 +126,16 @@ public class ReactiveHttpConfiguration {
 
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-webflux:inbound-gateway request-channel="requests" path="/sse">
     <int-webflux:request-mapping produces="text/event-stream"/>
 </int-webflux:inbound-gateway>
 ----
-====
+======
 
 The configuration is similar to the `HttpRequestHandlingEndpointSupport` (mentioned prior to the example), except that we use `@EnableWebFlux` to add the WebFlux infrastructure to our integration application.
 Also, the `WebFluxInboundEndpoint` performs `sendAndReceive` operations to the downstream flow by using back-pressure, on-demand based capabilities, provided by the reactive HTTP server implementation.
@@ -136,9 +146,11 @@ You can configure the `WebFluxInboundEndpoint` with a custom `ServerCodecConfigu
 The latter provides a mechanism you can use to return a reply as any reactive type: Reactor `Flux`, RxJava `Observable`, `Flowable`, and others.
 This way, we can implement https://en.wikipedia.org/wiki/Server-sent_events[Server Sent Events] scenarios with Spring Integration components, as the following example shows:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow sseFlow() {
@@ -149,8 +161,10 @@ public IntegrationFlow sseFlow() {
             .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun sseFlow() =
@@ -161,8 +175,10 @@ fun sseFlow() =
                  handle { (p, h) -> Flux.just("foo", "bar", "baz") }
             }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 public WebFluxInboundEndpoint webfluxInboundGateway() {
@@ -175,8 +191,10 @@ public WebFluxInboundEndpoint webfluxInboundGateway() {
     return endpoint;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-webflux:inbound-channel-adapter id="reactiveFullConfig" channel="requests"
                                path="test1"
@@ -196,7 +214,7 @@ public WebFluxInboundEndpoint webfluxInboundGateway() {
             <int-webflux:header name="foo" expression="'foo'"/>
 </int-webflux:inbound-channel-adapter>
 ----
-====
+======
 
 See xref:changes-2.2-3.0.adoc#x3.0-request-mapping[Request Mapping Support] and xref:http/namespace.adoc#http-cors[Cross-origin Resource Sharing (CORS) Support] for more possible configuration options.
 
@@ -220,9 +238,11 @@ The `WebFluxRequestExecutingMessageHandler` (starting with version 5.0) implemen
 It uses a `WebClient` from the Spring Framework WebFlux module.
 To configure it, define a bean similar to the following:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow outboundReactive() {
@@ -236,8 +256,10 @@ public IntegrationFlow outboundReactive() {
                 .expectedResponseType(String.class));
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun outboundReactive() =
@@ -254,8 +276,10 @@ fun outboundReactive() =
         )
     }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @ServiceActivator(inputChannel = "reactiveHttpOutRequest")
 @Bean
@@ -267,8 +291,10 @@ public WebFluxRequestExecutingMessageHandler reactiveOutbound(WebClient client) 
     return handler;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int-webflux:outbound-gateway id="reactiveExample1"
     request-channel="requests"
@@ -290,7 +316,7 @@ public WebFluxRequestExecutingMessageHandler reactiveOutbound(WebClient client) 
     order="3"
     auto-startup="false"/>
 ----
-====
+======
 
 The `WebClient` `exchange()` operation returns a `Mono<ClientResponse>`, which is mapped (by using several `Mono.map()` steps) to an `AbstractIntegrationMessageBuilder` as the output from the `WebFluxRequestExecutingMessageHandler`.
 Together with the `ReactiveChannel` as an `outputChannel`, the `Mono<ClientResponse>` evaluation is deferred until a downstream subscription is made.

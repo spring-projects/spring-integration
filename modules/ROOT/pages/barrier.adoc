@@ -35,9 +35,11 @@ An exception is thrown if a second thread arrives with the same correlation.
 
 The following example shows how to use a custom header for correlation:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @ServiceActivator(inputChannel="in")
 @Bean
@@ -54,8 +56,10 @@ public MessageHandler releaser(MessageTriggerAction barrier) {
     return barrier::trigger;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:barrier id="barrier1" input-channel="in" output-channel="out"
         correlation-strategy-expression="headers['myHeader']"
@@ -66,7 +70,7 @@ public MessageHandler releaser(MessageTriggerAction barrier) {
 
 <int:outbound-channel-adapter channel="release" ref="barrier1.handler" method="trigger" />
 ----
-====
+======
 
 Depending on which one has a message arrive first, either the thread sending a message to `in` or the thread sending a message to `release` waits for up to ten seconds until the other message arrives.
 When the message is released, the `out` channel is sent a message that combines the result of invoking the custom `MessageGroupProcessor` bean, named `myOutputProcessor`.

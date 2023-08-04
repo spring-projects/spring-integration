@@ -5,7 +5,6 @@ One of the advantages of a messaging architecture is the ability to provide comm
 Since the `Message` instances are sent to and received from `MessageChannel` instances, those channels provide an opportunity for intercepting the send and receive operations.
 The `ChannelInterceptor` strategy interface, shown in the following listing, provides methods for each of those operations:
 
-====
 [source,java]
 ----
 public interface ChannelInterceptor {
@@ -23,16 +22,13 @@ public interface ChannelInterceptor {
     void afterReceiveCompletion(Message<?> message, MessageChannel channel, Exception ex);
 }
 ----
-====
 
 After implementing the interface, registering the interceptor with a channel is just a matter of making the following call:
 
-====
 [source,java]
 ----
 channel.addInterceptor(someChannelInterceptor);
 ----
-====
 
 The methods that return a `Message` instance can be used for transforming the `Message` or can return 'null' to prevent further processing (of course, any of the methods can throw a `RuntimeException`).
 Also, the `preReceive` method can return `false` to prevent the receive operation from proceeding.

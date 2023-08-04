@@ -7,7 +7,6 @@ This has the benefit of avoiding the writing of low-level aspect-oriented progra
 
 Subclasses need to implement the `doInvoke()` method, the definition of which follows:
 
-====
 [source,java]
 ----
 /**
@@ -21,7 +20,6 @@ Subclasses need to implement the `doInvoke()` method, the definition of which fo
  */
 protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception;
 ----
-====
 
 The callback parameter is a convenience to avoid subclasses that deal with AOP directly.
 Invoking the `callback.execute()` method invokes the message handler.
@@ -39,7 +37,6 @@ However, the advice does have the ability to modify the return value.
 Note that only `AbstractReplyProducingMessageHandler` instances return values.
 The following example shows a custom advice class that extends `AbstractRequestHandlerAdvice`:
 
-====
 [source,java]
 ----
 public class MyAdvice extends AbstractRequestHandlerAdvice {
@@ -53,7 +50,6 @@ public class MyAdvice extends AbstractRequestHandlerAdvice {
     }
 }
 ----
-====
 
 [NOTE]
 =====

@@ -6,20 +6,17 @@ However, it is sometimes necessary to invoke the messaging system from your appl
 For convenience when implementing such use cases, Spring Integration provides a `MessagingTemplate` that supports a variety of operations across the message channels, including request and reply scenarios.
 For example, it is possible to send a request and wait for a reply, as follows:
 
-====
 [source,java]
 ----
 MessagingTemplate template = new MessagingTemplate();
 
 Message reply = template.sendAndReceive(someChannel, new GenericMessage("test"));
 ----
-====
 
 In the preceding example, a temporary anonymous channel would be created internally by the template.
 The 'sendTimeout' and 'receiveTimeout' properties may also be set on the template, and other exchange types are also supported.
 The following listing shows the signatures for such methods:
 
-====
 [source,java]
 ----
 public boolean send(final MessageChannel channel, final Message<?> message) { ...
@@ -31,7 +28,6 @@ public Message<?> sendAndReceive(final MessageChannel channel, final Message<?> 
 public Message<?> receive(final PollableChannel<?> channel) { ...
 }
 ----
-====
 
 NOTE: A less invasive approach that lets you invoke simple interfaces with payload or header values instead of `Message` instances is described in xref:gateway.adoc#gateway-proxy[Enter the `GatewayProxyFactoryBean`].
 

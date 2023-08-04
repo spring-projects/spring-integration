@@ -3,41 +3,49 @@
 
 To create a message channel instance, you can use the `<channel/>` element for xml or `DirectChannel` instance for Java configuration, as follows:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public MessageChannel exampleChannel() {
     return new DirectChannel();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="exampleChannel"/>
 ----
-====
+======
 
 When you use the `<channel/>` element without any sub-elements, it creates a `DirectChannel` instance (a `SubscribableChannel`).
 
 To create a publish-subscribe channel, use the `<publish-subscribe-channel/>` element (the `PublishSubscribeChannel` in Java), as follows:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public MessageChannel exampleChannel() {
     return new PublishSubscribeChannel();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:publish-subscribe-channel id="exampleChannel"/>
 ----
-====
+======
 
 You can alternatively provide a variety of `<queue/>` sub-elements to create any of the pollable channel types (as described in xref:channel/implementations.adoc[Message Channel Implementations]).
 The following sections shows examples of each channel type.
@@ -48,28 +56,34 @@ The following sections shows examples of each channel type.
 As mentioned earlier, `DirectChannel` is the default type.
 The following listing shows who to define one:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public MessageChannel directChannel() {
     return new DirectChannel();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="directChannel"/>
 ----
-====
+======
 
 A default channel has a round-robin load-balancer and also has failover enabled (see xref:channel/implementations.adoc#channel-implementations-directchannel[`DirectChannel`] for more detail).
 To disable one or both of these, add a `<dispatcher/>` sub-element (a `LoadBalancingStrategy` constructor of the `DirectChannel`) and configure the attributes as follows:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public MessageChannel failFastChannel() {
@@ -83,8 +97,10 @@ public MessageChannel failFastChannel() {
     return new DirectChannel(null);
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="failFastChannel">
     <int:dispatcher failover="false"/>
@@ -94,7 +110,7 @@ public MessageChannel failFastChannel() {
     <int:dispatcher load-balancer="none"/>
 </int:channel>
 ----
-====
+======
 
 [[channel-datatype-channel]]
 == Datatype Channel Configuration
@@ -108,9 +124,11 @@ You can use separate datatype channels for each specific payload data type.
 
 To create a datatype channel that accepts only messages that contain a certain payload type, provide the data type's fully-qualified class name in the channel element's `datatype` attribute, as the following example shows:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public MessageChannel numberChannel() {
@@ -119,20 +137,24 @@ public MessageChannel numberChannel() {
     return channel;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="numberChannel" datatype="java.lang.Number"/>
 ----
-====
+======
 
 Note that the type check passes for any type that is assignable to the channel's datatype.
 In other words, the `numberChannel` in the preceding example would accept messages whose payload is `java.lang.Integer` or `java.lang.Double`.
 Multiple types can be provided as a comma-delimited list, as the following example shows:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public MessageChannel numberChannel() {
@@ -141,12 +163,14 @@ public MessageChannel numberChannel() {
     return channel;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>
 ----
-====
+======
 
 So the 'numberChannel' in the preceding example accepts only messages with a data type of `java.lang.Number`.
 But what happens if the payload of the message is not of the required type?
@@ -158,18 +182,15 @@ You can even register custom converters.
 For example, suppose you send a message with a `String` payload to the 'numberChannel' we configured above.
 You might handle the message as follows:
 
-====
 [source,java]
 ----
 MessageChannel inChannel = context.getBean("numberChannel", MessageChannel.class);
 inChannel.send(new GenericMessage<String>("5"));
 ----
-====
 
 Typically, this would be a perfectly legal operation.
 However, since we use Datatype Channel, the result of such operation would generate an exception similar to the following:
 
-====
 [source]
 ----
 Exception in thread "main" org.springframework.integration.MessageDeliveryException:
@@ -178,13 +199,11 @@ expected one of the following datataypes [class java.lang.Number],
 but received [class java.lang.String]
 …
 ----
-====
 
 The exception happens because we require the payload type to be a `Number`, but we sent a `String`.
 So we need something to convert a `String` to a `Number`.
 For that, we can implement a converter similar to the following example:
 
-====
 [source,java]
 ----
 public static class StringToIntegerConverter implements Converter<String, Integer> {
@@ -193,13 +212,14 @@ public static class StringToIntegerConverter implements Converter<String, Intege
     }
 }
 ----
-====
 
 Then we can register it as a converter with the Integration Conversion Service, as the following example shows:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 @IntegrationConverter
@@ -207,14 +227,16 @@ public StringToIntegerConverter strToInt {
     return new StringToIntegerConverter();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:converter ref="strToInt"/>
 
 <bean id="strToInt" class="org.springframework.integration.util.Demo.StringToIntegerConverter"/>
 ----
-====
+======
 
 Or on the `StringToIntegerConverter` class when it is marked with the `@Component` annotation for auto-scanning.
 
@@ -239,23 +261,27 @@ Alternatively, you can declare a `<bean/>` of type `MessageConverter` with an ID
 To create a `QueueChannel`, use the `<queue/>` sub-element.
 You may specify the channel's capacity as follows:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public PollableChannel queueChannel() {
     return new QueueChannel(25);
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="queueChannel">
     <queue capacity="25"/>
 </int:channel>
 ----
-====
+======
 
 NOTE: If you do not provide a value for the 'capacity' attribute on this `<queue/>` sub-element, the resulting queue is unbounded.
 To avoid issues such as running out of memory, we highly recommend that you set an explicit value for a bounded queue.
@@ -277,7 +303,6 @@ However, Spring Integration provides persistent stores, such as the `JdbcChannel
 
 You can configure a message store for any `QueueChannel` by adding the `message-store` attribute, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:channel id="dbBackedChannel">
@@ -289,7 +314,6 @@ You can configure a message store for any `QueueChannel` by adding the `message-
     <property name="channelMessageStoreQueryProvider" ref="queryProvider"/>
 </bean>
 ----
-====
 
 (See samples below for Java/Kotlin Configuration options.)
 
@@ -308,9 +332,11 @@ If the `ChannelMessageStore` is a `ChannelPriorityMessageStore`, the messages ar
 The notion of priority is determined by the message store implementation.
 For example, the following example shows the Java configuration for the xref:mongodb.adoc#mongodb-priority-channel-message-store[MongoDB Channel Message Store]:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public BasicMessageGroupStore mongoDbChannelMessageStore(MongoDbFactory mongoDbFactory) {
@@ -324,8 +350,10 @@ public PollableChannel priorityQueue(BasicMessageGroupStore mongoDbChannelMessag
     return new PriorityChannel(new MessageGroupQueue(mongoDbChannelMessageStore, "priorityQueue"));
 }
 ----
+
+Java DSL::
++
 [source, java, role="secondary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow priorityFlow(PriorityCapableChannelMessageStore mongoDbChannelMessageStore) {
@@ -335,8 +363,10 @@ public IntegrationFlow priorityFlow(PriorityCapableChannelMessageStore mongoDbCh
             .get();
 }
 ----
+
+Kotlin DSL::
++
 [source, kotlin, role="secondary"]
-.Kotlin DSL
 ----
 @Bean
 fun priorityFlow(mongoDbChannelMessageStore: PriorityCapableChannelMessageStore) =
@@ -344,7 +374,7 @@ fun priorityFlow(mongoDbChannelMessageStore: PriorityCapableChannelMessageStore)
         channel { priority("priorityChannel", mongoDbChannelMessageStore, "priorityGroup") }
     }
 ----
-====
+======
 
 NOTE: Pay attention to the `MessageGroupQueue` class.
 That is a `BlockingQueue` implementation to use the `MessageGroupStore` operations.
@@ -353,7 +383,6 @@ Another option to customize the `QueueChannel` environment is provided by the `r
 This attribute supplies the reference to any `java.util.Queue` implementation.
 For example, a Hazelcast distributed https://hazelcast.com/use-cases/imdg/imdg-messaging/[`IQueue`] can be configured as follows:
 
-====
 [source,java]
 ----
 @Bean
@@ -368,7 +397,6 @@ public PollableChannel distributedQueue() {
                               .getQueue("springIntegrationQueue"));
 }
 ----
-====
 
 [[channel-configuration-pubsubchannel]]
 == `PublishSubscribeChannel` Configuration
@@ -376,21 +404,25 @@ public PollableChannel distributedQueue() {
 To create a `PublishSubscribeChannel`, use the <publish-subscribe-channel/> element.
 When using this element, you can also specify the `task-executor` used for publishing messages (if none is specified, it publishes in the sender's thread), as follows:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public MessageChannel pubsubChannel() {
     return new PublishSubscribeChannel(someExecutor());
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:publish-subscribe-channel id="pubsubChannel" task-executor="someExecutor"/>
 ----
-====
+======
 
 If you provide a resequencer or aggregator downstream from a `PublishSubscribeChannel`, you can set the 'apply-sequence' property on the channel to `true`.
 Doing so indicates that the channel should set the `sequence-size` and `sequence-number` message headers as well as the correlation ID prior to passing along the messages.
@@ -406,9 +438,11 @@ For example, if there are five subscribers, the sequence-size would be set to `5
 
 The following example shows how to set the `apply-sequence` header to `true`:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public MessageChannel pubsubChannel() {
@@ -417,12 +451,14 @@ public MessageChannel pubsubChannel() {
     return channel;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:publish-subscribe-channel id="pubsubChannel" apply-sequence="true"/>
 ----
-====
+======
 
 NOTE: The `apply-sequence` value is `false` by default so that a publish-subscribe channel can send the exact same message instances to multiple outbound channels.
 Since Spring Integration enforces immutability of the payload and header references, when the flag is set to `true`, the channel creates new `Message` instances with the same payload reference but different header values.
@@ -439,23 +475,27 @@ For example, doing so enables configuration of a thread pool for dispatching mes
 As mentioned earlier, doing so breaks the single-threaded execution context between sender and receiver so that any active transaction context is not shared by the invocation of the handler (that is, the handler may throw an `Exception`, but the `send` invocation has already returned successfully).
 The following example shows how to use the `dispatcher` element and specify an executor in the `task-executor` attribute:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public MessageChannel executorChannel() {
     return new ExecutorChannel(someExecutor());
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="executorChannel">
     <int:dispatcher task-executor="someExecutor"/>
 </int:channel>
 ----
-====
+======
 
 [NOTE]
 =====
@@ -463,14 +503,12 @@ The `load-balancer` and `failover` options are also both available on the <dispa
 The same defaults apply.
 Consequently, the channel has a round-robin load-balancing strategy with failover enabled unless explicit configuration is provided for one or both of those attributes, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:channel id="executorChannelWithoutFailover">
     <int:dispatcher task-executor="someExecutor" failover="false"/>
 </int:channel>
 ----
-====
 =====
 
 [[channel-configuration-prioritychannel]]
@@ -478,23 +516,27 @@ Consequently, the channel has a round-robin load-balancing strategy with failove
 
 To create a `PriorityChannel`, use the `<priority-queue/>` sub-element, as the following example shows:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public PollableChannel priorityChannel() {
     return new PriorityChannel(20);
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="priorityChannel">
     <int:priority-queue capacity="20"/>
 </int:channel>
 ----
-====
+======
 
 By default, the channel consults the `priority` header of the message.
 However, you can instead provide a custom `Comparator` reference.
@@ -502,9 +544,11 @@ Also, note that the `PriorityChannel` (like the other types) does support the `d
 As with the `QueueChannel`, it also supports a `capacity` attribute.
 The following example demonstrates all of these:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public PollableChannel priorityChannel() {
@@ -513,15 +557,17 @@ public PollableChannel priorityChannel() {
     return channel;
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="priorityChannel" datatype="example.Widget">
     <int:priority-queue comparator="widgetComparator"
                     capacity="10"/>
 </int:channel>
 ----
-====
+======
 
 Since version 4.0, the `priority-channel` child element supports the `message-store` option (`comparator` and `capacity` are not allowed in that case).
 The message store must be a `PriorityCapableChannelMessageStore`.
@@ -536,35 +582,37 @@ A `RendezvousChannel` is created when the queue sub-element is a `<rendezvous-qu
 It does not provide any additional configuration options to those described earlier, and its queue does not accept any capacity value, since it is a zero-capacity direct handoff queue.
 The following example shows how to declare a `RendezvousChannel`:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 public PollableChannel rendezvousChannel() {
     return new RendezvousChannel();
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:channel id="rendezvousChannel"/>
     <int:rendezvous-queue/>
 </int:channel>
 ----
-====
+======
 
 [[channel-configuration-threadlocalchannel]]
 == Scoped Channel Configuration
 
 Any channel can be configured with a `scope` attribute, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:channel id="threadLocalChannel" scope="thread"/>
 ----
-====
 
 // TODO What scope values are available? Can I create my own?
 
@@ -575,7 +623,6 @@ Message channels may also have interceptors, as described in xref:channel/interc
 The `<interceptors/>` sub-element can be added to a `<channel/>` (or the more specific element types).
 You can provide the `ref` attribute to reference any Spring-managed object that implements the `ChannelInterceptor` interface, as the following example shows:
 
-====
 [source,xml]
 ----
 <int:channel id="exampleChannel">
@@ -584,7 +631,6 @@ You can provide the `ref` attribute to reference any Spring-managed object that 
     </int:interceptors>
 </int:channel>
 ----
-====
 
 In general, we recommend defining the interceptor implementations in a separate location, since they usually provide common behavior that can be reused across multiple channels.
 
@@ -596,7 +642,6 @@ If the same behavior should be applied on multiple channels, configuring the sam
 To avoid repeated configuration while also enabling interceptors to apply to multiple channels, Spring Integration provides global interceptors.
 Consider the following pair of examples:
 
-====
 [source,xml]
 ----
 <int:channel-interceptor pattern="input*, thing2*, thing1, !cat*" order="3">
@@ -610,7 +655,6 @@ Consider the following pair of examples:
 
 <bean id="myInterceptor" class="thing1.thing2SampleInterceptor"/>
 ----
-====
 
 Each `<channel-interceptor/>` element lets you define a global interceptor, which is applied on all channels that match any patterns defined by the `pattern` attribute.
 In the preceding case, the global interceptor is applied on the 'thing1' channel and all other channels that begin with 'thing2' or 'input' but not to channels starting with 'thing3' (since version 5.0).
@@ -624,7 +668,6 @@ The pattern `\!thing1` matches a bean named `!thing1`.
 The order attribute lets you manage where this interceptor is injected when there are multiple interceptors on a given channel.
 For example, channel 'inputChannel' could have individual interceptors configured locally (see below), as the following example shows:
 
-====
 [source,xml]
 ----
 <int:channel id="inputChannel">
@@ -633,7 +676,6 @@ For example, channel 'inputChannel' could have individual interceptors configure
   </int:interceptors>
 </int:channel>
 ----
-====
 
 A reasonable question is "`how is a global interceptor injected in relation to other interceptors configured locally or through other global interceptor definitions?`"
 The current implementation provides a simple mechanism for defining the order of interceptor execution.
@@ -652,7 +694,6 @@ As mentioned earlier, Spring Integration provides a simple wire tap interceptor.
 You can configure a wire tap on any channel within an `<interceptors/>` element.
 Doing so is especially useful for debugging and can be used in conjunction with Spring Integration's logging channel adapter as follows:
 
-====
 [source,xml]
 ----
 <int:channel id="in">
@@ -663,7 +704,6 @@ Doing so is especially useful for debugging and can be used in conjunction with 
 
 <int:logging-channel-adapter id="logger" level="DEBUG"/>
 ----
-====
 
 TIP: The 'logging-channel-adapter' also accepts an 'expression' attribute so that you can evaluate a SpEL expression against the 'payload' and 'headers' variables.
 Alternatively, to log the full message `toString()` result, provide a value of `true` for the 'log-full-message' attribute.
@@ -721,7 +761,6 @@ IMPORTANT: Channel resolution requires a `BeanFactory`, so the wire tap instance
 
 This late-binding approach also allows simplification of typical wire-tapping patterns with Java DSL configuration, as the following example shows:
 
-====
 [source,java]
 ----
 @Bean
@@ -736,7 +775,6 @@ public IntegrationFlow loggingFlow() {
     return f -> f.log();
 }
 ----
-====
 
 [[conditional-wiretap]]
 == Conditional Wire Taps
@@ -753,9 +791,11 @@ To do so, configure a top level `wire-tap` element.
 Now, in addition to the normal `wire-tap` namespace support, the `pattern` and `order` attributes are supported and work in exactly the same way as they do for the `channel-interceptor`.
 The following example shows how to configure a global wire tap:
 
-====
+[tabs]
+======
+Java::
++
 [source, java, role="primary"]
-.Java
 ----
 @Bean
 @GlobalChannelInterceptor(patterns = "input*,thing2*,thing1", order = 3)
@@ -763,12 +803,14 @@ public WireTap wireTap(MessageChannel wiretapChannel) {
     return new WireTap(wiretapChannel);
 }
 ----
+
+XML::
++
 [source, xml, role="secondary"]
-.XML
 ----
 <int:wire-tap pattern="input*, thing2*, thing1" order="3" channel="wiretapChannel"/>
 ----
-====
+======
 
 TIP: A global wire tap provides a convenient way to configure a single-channel wire tap externally without modifying the existing channel configuration.
 To do so, set the `pattern` attribute to the target channel name.

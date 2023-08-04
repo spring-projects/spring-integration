@@ -26,7 +26,6 @@ In some sense, Spring Integration's support for the Spring Expression Language (
 
 The following example shows how to use Java Configuration for Spring Integration:
 
-====
 [source,java]
 ----
 @Configuration
@@ -50,7 +49,6 @@ public class MyConfiguration {
     }
 }
 ----
-====
 
 The result of the preceding configuration example is that it creates, after `ApplicationContext` start up, Spring Integration endpoints and message channels.
 Java configuration can be used both to replace and augment XML configuration.

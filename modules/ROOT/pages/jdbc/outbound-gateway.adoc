@@ -4,21 +4,18 @@
 The outbound gateway is like a combination of the outbound and inbound adapters: Its role is to handle a message and use it to execute a SQL query and then respond with the result by sending it to a reply channel.
 By default, the message payload and headers are available as input parameters to the query, as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jdbc:outbound-gateway
     update="insert into mythings (id, status, name) values (:headers[id], 0, :payload[thing])"
     request-channel="input" reply-channel="output" data-source="dataSource" />
 ----
-====
 
 The result of the preceding example is to insert a record into the `mythings` table and return a message that indicates the number of rows affected (the payload is a map: `{UPDATED=1}`) to the output channel .
 
 If the update query is an insert with auto-generated keys, you can populate the reply message with the generated keys by adding `keys-generated="true"` to the preceding example (this is not the default because it is not supported by some database platforms).
 The following example shows the changed configuration:
 
-====
 [source,xml]
 ----
 <int-jdbc:outbound-gateway
@@ -26,11 +23,9 @@ The following example shows the changed configuration:
     request-channel="input" reply-channel="output" data-source="dataSource"
     keys-generated="true"/>
 ----
-====
 
 Instead of the update count or the generated keys, you can also provide a select query to execute and generate a reply message from the result (such as the inbound adapter), as the following example shows:
 
-====
 [source,xml]
 ----
 <int-jdbc:outbound-gateway
@@ -38,7 +33,6 @@ Instead of the update count or the generated keys, you can also provide a select
     query="select * from foos where id=:headers[$id]"
     request-channel="input" reply-channel="output" data-source="dataSource"/>
 ----
-====
 
 Since Spring Integration 2.2, the update SQL query is no longer mandatory.
 You can now provide only a select query, by using either the `query` attribute or the `query` element.
@@ -46,7 +40,6 @@ This is extremely useful if you need to actively retrieve data by using, for exa
 The reply message is then generated from the result (similar to how the inbound adapter works) and passed to the reply channel.
 The following example show to use the `query` attribute:
 
-====
 [source,xml]
 ----
 <int-jdbc:outbound-gateway
@@ -55,7 +48,6 @@ The following example show to use the `query` attribute:
     reply-channel="output"
     data-source="dataSource"/>
 ----
-====
 
 [IMPORTANT]
 ====

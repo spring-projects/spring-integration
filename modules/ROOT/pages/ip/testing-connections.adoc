@@ -6,7 +6,6 @@ One such scenario might be when using a xref:ip/tcp-connection-factories.adoc#fa
 
 In order to support this feature, add a `connectionTest` to the client connection factory.
 
-====
 [source, java]
 ----
 /**
@@ -19,7 +18,6 @@ public void setConnectionTest(@Nullable Predicate<TcpConnectionSupport> connecti
     this.connectionTest = connectionTest;
 }
 ----
-====
 
 To test the connection, attach a temporary listener to the connection within the test.
 If the test fails, the connection is closed and an exception thrown.
@@ -29,7 +27,6 @@ IMPORTANT: Only the first reply from the server will go to the test listener.
 
 In the following example, the server is considered healthy if the server replies `PONG` when we send `PING`.
 
-====
 [source, java]
 ----
 Message<String> ping = new GenericMessage<>("PING");
@@ -54,5 +51,4 @@ clientFactory.setConnectionTest(conn -> {
     return result.get();
 });
 ----
-====
 

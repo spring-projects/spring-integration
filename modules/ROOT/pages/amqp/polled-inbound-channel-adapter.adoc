@@ -11,9 +11,11 @@ It does not currently support XML configuration.
 
 The following example shows how to configure an `AmqpMessageSource`:
 
-====
+[tabs]
+======
+Java DSL::
++
 [source, java, role="primary"]
-.Java DSL
 ----
 @Bean
 public IntegrationFlow flow() {
@@ -25,14 +27,17 @@ public IntegrationFlow flow() {
             .get();
 }
 ----
+
+Java::
++
 [source, java, role="secondary"]
-.Java
 ----
 @Bean
 public AmqpMessageSource source(ConnectionFactory connectionFactory) {
     return new AmqpMessageSource(connectionFactory, "someQueue");
 }
 ----
+======
 
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/inbound/AmqpMessageSource.html[Javadoc] for configuration properties.
 
@@ -41,7 +46,6 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 ----
 This adapter currently does not have XML configuration support.
 ----
-====
 
 [[amqp-polled-debatching]]
 == Batched Messages

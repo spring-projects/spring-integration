@@ -5,9 +5,11 @@ Spring Integration provides inbound and outbound channel adapters to support the
 
 You need to include this dependency into your project:
 
-====
+[tabs]
+======
+Maven::
++
 [source, xml, subs="normal", role="primary"]
-.Maven
 ----
 <dependency>
     <groupId>org.springframework.integration</groupId>
@@ -15,12 +17,14 @@ You need to include this dependency into your project:
     <version>{project-version}</version>
 </dependency>
 ----
+
+Gradle::
++
 [source, groovy, subs="normal", role="secondary"]
-.Gradle
 ----
 compile "org.springframework.integration:spring-integration-mqtt:{project-version}"
 ----
-====
+======
 
 The current implementation uses the https://www.eclipse.org/paho/[Eclipse Paho MQTT Client] library.
 
@@ -39,7 +43,6 @@ The inbound channel adapter is implemented by the `MqttPahoMessageDrivenChannelA
 For convenience, you can configure it by using the namespace.
 A minimal configuration might be as follows:
 
-====
 [source,xml]
 ----
 <bean id="clientFactory"
@@ -59,11 +62,9 @@ A minimal configuration might be as follows:
     client-factory="clientFactory"
     channel="output"/>
 ----
-====
 
 The following listing shows the available attributes:
 
-====
 [source,xml]
 ----
 <int-mqtt:message-driven-channel-adapter id="oneTopicAdapter"
@@ -101,7 +102,6 @@ The payload is a `MessagingException` that contains the failed message and cause
 It controls the interval at which the adapter attempts to reconnect after a failure.
 It defaults to `10000ms` (ten seconds).
 <10> The acknowledgment mode; set to true for manual acknowledgment.
-====
 
 NOTE: Starting with version 4.1, you can omit the URL.
 Instead, you can provide the server URIs in the `serverURIs` property of the `DefaultMqttPahoClientFactory`.
@@ -160,12 +160,10 @@ You must invoke the `acknowledge()` method to complete the delivery.
 See the Javadocs for `IMqttClient` `setManualAcks()` and `messageArrivedComplete()` for more information.
 For convenience a header accessor is provided:
 
-====
 [source, java]
 ----
 StaticMessageHeaderAccessor.acknowledgment(someMessage).acknowledge();
 ----
-====
 
 Starting with version `5.2.11`, when the message converter throws an exception or returns `null` from the `MqttMessage` conversion, the `MqttPahoMessageDrivenChannelAdapter` sends an `ErrorMessage` into the `errorChannel`, if provided.
 Re-throws this conversion error otherwise into an MQTT client callback.
@@ -175,7 +173,6 @@ Re-throws this conversion error otherwise into an MQTT client callback.
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -219,14 +216,12 @@ public class MqttJavaApplication {
 
 }
 ----
-====
 
 [[mqtt-ack-mode-java-dsl]]
 === Configuring with the Java DSL
 
 The following Spring Boot application provides an example of configuring the inbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -249,7 +244,6 @@ public class MqttJavaApplication {
 
 }
 ----
-====
 
 [[mqtt-outbound]]
 == Outbound Channel Adapter
@@ -262,7 +256,6 @@ You can emit application events to enable applications to confirm delivery if de
 
 The following listing shows the attributes available for an outbound channel adapter:
 
-====
 [source,xml]
 ----
 <int-mqtt:outbound-channel-adapter id="withConverter"
@@ -312,7 +305,6 @@ It contains the `messageId`, the `clientId`, and the `clientInstance`, enabling 
 Any `ApplicationListener` or an event inbound channel adapter can received these events.
 Note that it is possible for the `MqttMessageDeliveredEvent` to be received before the `MqttMessageSentEvent`.
 The default is `false`.
-====
 
 NOTE: Starting with version 4.1, the URL can be omitted.
 Instead, the server URIs can be provided in the `serverURIs` property of the `DefaultMqttPahoClientFactory`.
@@ -323,7 +315,6 @@ This enables, for example, connection to a highly available (HA) cluster.
 
 The following Spring Boot application show an example of how to configure the outbound adapter with Java configuration:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -374,14 +365,12 @@ public class MqttJavaApplication {
 
 }
 ----
-====
 
 [[mqtt-outbound-java-dsl]]
 === Configuring with the Java DSL
 
 The following Spring Boot application provides an example of configuring the outbound adapter with the Java DSL:
 
-====
 [source, java]
 ----
 @SpringBootApplication
@@ -400,7 +389,6 @@ public class MqttJavaApplication {
 
 }
 ----
-====
 
 [[mqtt-events]]
 == Events
@@ -417,14 +405,12 @@ These events can be received by an `ApplicationListener<MqttIntegrationEvent>` o
 
 To determine the source of an event, use the following; you can check the bean name and/or the connect options (to access the server URIs etc).
 
-====
 [source, java]
 ----
 MqttPahoComponent source = event.getSourceAsType();
 String beanName = source.getBeanName();
 MqttConnectOptions options = source.getConnectionInfo();
 ----
-====
 
 [[mqtt-v5]]
 == MQTT v5 Support
@@ -446,7 +432,6 @@ The remaining use-cases are delegated to the provided `MessageConverter` which i
 Note: the provided `HeaderMapper<MqttProperties>` is not used when the requested message payload is already an `MqttMessage`.
 The following Java DSL configuration sample demonstrates how to use this channel adapter in the integration flow:
 
-====
 [source, java]
 ----
 @Bean
@@ -462,7 +447,6 @@ public IntegrationFlow mqttOutFlow() {
     return f -> f.handle(messageHandler);
 }
 ----
-====
 
 IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverter` cannot be used with the `Mqttv5PahoMessageHandler` since its contract is aimed only for the MQTT v3 protocol.
 
@@ -483,7 +467,6 @@ See `MqttHeaders` for more information.
 
 The following Java DSL configuration sample demonstrates how to use this channel adapter in the integration flow:
 
-====
 [source, java]
 ----
 @Bean
@@ -499,7 +482,6 @@ public IntegrationFlow mqttInFlow() {
             .get();
 }
 ----
-====
 
 IMPORTANT: The `org.springframework.integration.mqtt.support.MqttMessageConverter` cannot be used with the `Mqttv5PahoMessageDrivenChannelAdapter` since its contract is aimed only for the MQTT v3 protocol.
 
@@ -520,7 +502,6 @@ Note that both MQTT v5 and v3 channel adapters are supported.
 
 The following Java DSL configuration sample demonstrates how to use this client manager in the integration flow:
 
-====
 [source,java]
 ----
 @Bean
@@ -564,4 +545,3 @@ public IntegrationFlow mqttOutFlow(
     return f -> f.handle(new Mqttv5PahoMessageHandler(clientManager));
 }
 ----
-====

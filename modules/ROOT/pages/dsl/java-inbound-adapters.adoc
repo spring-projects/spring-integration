@@ -9,7 +9,6 @@ You can configure the `MessageSource<?>` as a bean and provide it as an argument
 The second parameter of `IntegrationFlow.from()` is a `Consumer<SourcePollingChannelAdapterSpec>` lambda that lets you provide options (such as `PollerMetadata` or `SmartLifecycle`) for the `SourcePollingChannelAdapter`.
 The following example shows how to use the fluent API and a lambda to create an `IntegrationFlow`:
 
-====
 [source,java]
 ----
 @Bean
@@ -26,7 +25,6 @@ public IntegrationFlow pollingFlow() {
             .get();
 }
 ----
-====
 
 For those cases that have no requirements to build `Message` objects directly, you can use a `IntegrationFlow.fromSupplier()` variant that is based on the `java.util.function.Supplier` .
 The result of the `Supplier.get()` is automatically wrapped in a `Message` (if it is not already a `Message`).

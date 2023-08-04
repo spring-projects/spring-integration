@@ -5,7 +5,6 @@ The XPath header enricher defines a header enricher message transformer that eva
 
 The following listing shows all the available configuration parameters:
 
-====
 [source,xml]
 ----
 <int-xml:xpath-header-enricher default-overwrite="true"    <1>
@@ -58,5 +57,4 @@ Optional.
 You must set either this attribute or `xpath-expression-ref`, but not both.
 <12> The XPath expression reference.
 You must set either this attribute or `xpath-expression`, but not both.
-====
 

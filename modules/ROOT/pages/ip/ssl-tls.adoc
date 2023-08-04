@@ -31,7 +31,6 @@ After establishing the key stores, the next step is to indicate their locations 
 
 The following example configures an SSL connection:
 
-====
 [source,xml]
 ----
 <bean id="sslContextSupport"
@@ -48,7 +47,6 @@ The following example configures an SSL connection:
     port="1234"
     ssl-context-support="sslContextSupport" />
 ----
-====
 
 The `DefaultTcpSSLContextSupport` class also has an optional `protocol` property, which can be `SSL` or `TLS` (the default).
 
@@ -69,7 +67,6 @@ Host verification is used to ensure the server you are connected to matches info
 
 When using NIO, configure the `DefaultTcpNioSSLConnectionSupport`, for example.
 
-====
 [source, java]
 ----
 @Bean
@@ -82,19 +79,16 @@ public DefaultTcpNioSSLConnectionSupport connectionSupport() {
     return tcpNioConnectionSupport;
 }
 ----
-====
 
 The second constructor argument disables host verification.
 The `connectionSupport` bean is then injected into the NIO connection factory.
 
 When not using NIO, the configuration is in the `TcpSocketSupport`:
 
-====
 [source, java]
 ----
 connectionFactory.setTcpSocketSupport(new DefaultTcpSocketSupport(false));
 ----
-====
 
 Again, the constructor argument disables host verification.
 

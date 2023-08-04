@@ -8,7 +8,6 @@ The DSL factory class for these endpoints is `RabbitStream`.
 [[rmq-stream-inbound-channel-adapter]]
 == RabbitMQ Stream Inbound Channel Adapter
 
-====
 [source, java]
 ----
 @Bean
@@ -25,12 +24,10 @@ IntegrationFlow superStream(Environment env) {
 			.get();
 }
 ----
-====
 
 [[rmq-stream-outbound-channel-adapter]]
 == RabbitMQ Stream Outbound Channel Adapter
 
-====
 [source, java]
 ----
 @Bean
@@ -41,4 +38,3 @@ IntegrationFlow outbound(Environment env) {
 
 }
 ----
-====

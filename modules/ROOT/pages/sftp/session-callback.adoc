@@ -5,7 +5,6 @@ Starting with Spring Integration version 4.2, you can use a `MessageSessionCallb
 You can use it for any non-standard or low-level SFTP operation (or several), such as allowing access from an integration flow definition, or functional interface (lambda) implementation injection.
 The following example uses a lambda:
 
-====
 [source,java]
 ----
 @Bean
@@ -15,7 +14,6 @@ public MessageHandler sftpOutboundGateway(SessionFactory<SftpClient.DirEntry> se
          (session, requestMessage) -> session.list(requestMessage.getPayload()));
 }
 ----
-====
 
 Another example might be to pre- or post-process the file data being sent or retrieved.
 

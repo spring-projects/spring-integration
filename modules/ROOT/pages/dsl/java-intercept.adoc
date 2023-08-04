@@ -6,12 +6,10 @@ Starting with version 5.3, the `intercept()` operator allows to register one or 
 This is an alternative to creating an explicit `MessageChannel` via the `MessageChannels` API.
 The following example uses a `MessageSelectingInterceptor` to reject certain messages with an exception:
 
-====
 [source,java]
 ----
 .transform(...)
 .intercept(new MessageSelectingInterceptor(m -> m.getPayload().isValid()))
 .handle(...)
 ----
-====
 
