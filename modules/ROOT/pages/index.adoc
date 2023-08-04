@@ -1,17 +1,6 @@
 = Spring Integration
 :toc!:
 
-
-ifdef::backend-html5[]
-*{revnumber}*
-
-NOTE: This documentation is also available as single searchable link:index-single.html[html] and link:../pdf/spring-integration-reference.pdf[pdf] documents.
-endif::[]
-
-ifdef::backend-pdf[]
-NOTE: This documentation is also available as https://docs.spring.io/spring-integration/docs/current/reference/html/index.html[multiple (faster to load) HTML pages] and as a single https://docs.spring.io/spring-integration/docs/current/reference/html/index-single.html[(more easily searchable) HTML file].
-endif::[]
-
 Welcome to the Spring Integration reference documentation!
 
 [horizontal]
