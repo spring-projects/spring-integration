@@ -2,7 +2,7 @@
 = Changes between 5.4 and 5.5
 
 [[x5.5-new-components]]
-= New Components
+== New Components
 
 [[x5.5-file-aggregator]]
 == File Aggregator
@@ -17,7 +17,7 @@ The `Mqttv5PahoMessageDrivenChannelAdapter` and `Mqttv5PahoMessageHandler` (incl
 See xref:mqtt.adoc#mqtt-v5[MQTT v5 Support] for more information.
 
 [[x5.5-general]]
-= General Changes
+== General Changes
 
 All the persistent `MessageGroupStore` implementation provide a `streamMessagesForGroup(Object groupId)` contract based on the target database streaming API.
 See xref:message-store.adoc[Message Store] for more information.

@@ -1,3 +1,4 @@
+= Spring Integration
 :toc!:
 
 

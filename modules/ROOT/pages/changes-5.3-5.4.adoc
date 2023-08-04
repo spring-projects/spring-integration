@@ -2,7 +2,7 @@
 = Changes between 5.3 and 5.4
 
 [[x5.4-new-components]]
-= New Components
+== New Components
 
 [[x5.4-sik]]
 == Channel Adapters for Apache Kafka
@@ -39,7 +39,7 @@ See <<./jdbc.adoc#jdbc-lock-registry,JDBC implementation>> for more information.
 See xref:zeromq.adoc[ZeroMQ Support] for more information.
 
 [[x5.4-general]]
-= General Changes
+== General Changes
 
 The one-way messaging gateway (the `void` method return type) now sets a `nullChannel` explicitly into the `replyChannel` header to ignore any possible downstream replies.
 See xref:gateway.adoc#gateway-default-reply-channel[Setting the Default Reply Channel] for more information.
@@ -56,7 +56,7 @@ The legacy metrics that were replaced by Micrometer meters have been removed.
 The xref:barrier.adoc[Thread Barrier] has now two separate timeout options: `requestTimeout` and `triggerTimeout`.
 
 [[x5.4-tcp]]
-= TCP/UDP Changes
+== TCP/UDP Changes
 
 Connection factories now support multiple sending components (`TcpSender`); they remain limited to one receiving component (`TcpListener`).
 This allows, for example, an inbound gateway and outbound channel adapter to share the same factory, supporting both request/reply and arbitrary messaging from the server to the client.
@@ -67,7 +67,7 @@ The UDP channel adapters can now be configured with a `SocketCustomizer` which a
 See xref:ip/udp-adapters.adoc[UDP Adapters] for more information.
 
 [[x5.4-amqp]]
-= AMQP Changes
+== AMQP Changes
 
 The outbound endpoints now have a new mechanism for handling publisher confirms and returns.
 See xref:amqp/alternative-confirms-returns.adoc[Alternative Mechanism for Publisher Confirms and Returns] for more information.
@@ -76,7 +76,7 @@ A new `BatchMode.EXTRACT_PAYLOAD_WITH_HEADERS` is supported by the `AmqpInboundC
 See xref:amqp/inbound-channel-adapter.adoc[Inbound Channel Adapter] for more information.
 
 [[x5.4-mail]]
-= Mail Changes
+== Mail Changes
 
 The `AbstractMailReceiver` can now produce the `MimeMessage` as-is without eager fetching its content.
 See xref:mail.adoc#mail-inbound[Mail-receiving Channel Adapter] for more information.

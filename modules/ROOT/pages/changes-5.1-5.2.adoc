@@ -2,62 +2,62 @@
 = Changes between 5.1 and 5.2
 
 [[x5.2-package-class]]
-= Package and Class Changes
+== Package and Class Changes
 
 `Pausable` has been moved from `o.s.i.endpoint` to `o.s.i.core`.
 
 [[x5.2-behavior]]
-= Behavior Changes
+== Behavior Changes
 
 See the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-5.1-to-5.2-Migration-Guide[Migration Guide] about behavior changes in this version.
 
 [[x5.2-new-components]]
-= New Components
+== New Components
 
 [[x5.2-rsocket-support]]
-== RSocket Support
+=== RSocket Support
 
 The `spring-integration-rsocket` module is now available with channel adapter implementations for RSocket protocol support.
 See xref:rsocket.adoc[RSocket Support] for more information.
 
 [[x5.2-rate-limit-advice]]
-== Rate Limit Advice Support
+=== Rate Limit Advice Support
 
 The `RateLimiterRequestHandlerAdvice` is now available for limiting requests rate on handlers.
 See xref:handler-advice/classes.adoc#rate-limiter-advice[Rate Limiter Advice] for more information.
 
 [[x5.2-cache-advice]]
-== Caching Advice Support
+=== Caching Advice Support
 
 The `CacheRequestHandlerAdvice` is now available for caching request results on handlers.
 See xref:handler-advice/classes.adoc#cache-advice[Caching Advice] for more information.
 
 [[x5.2-kotlin-scripts]]
-== Kotlin Scripts Support
+=== Kotlin Scripts Support
 
 The JSR223 scripting module now includes a support for Kotlin scripts.
 See xref:scripting.adoc[Scripting Support] for more information.
 
 [[x5.2-flux-aggregator]]
-== Flux Aggregator Support
+=== Flux Aggregator Support
 
 The `FluxAggregatorMessageHandler` is now available for grouping and windowing messages logic based on the Project Reactor `Flux` operators.
 See xref:aggregator.adoc#flux-aggregator[Flux Aggregator] for more information.
 
 [[x5.2-sftp-events]]
-== FTP/SFTP Event Publisher
+=== FTP/SFTP Event Publisher
 
 The FTP and SFTP modules now provide an event listener for certain Apache Mina FTP/SFTP server events.
 See xref:ftp/server-events.adoc[Apache Mina FTP Server Events] and xref:sftp/server-events.adoc[Apache Mina SFTP Server Events] for more information.
 
 [[x5.2-avro]]
-== Avro Transformers
+=== Avro Transformers
 
 Simple Apache Avro transformers are now provided.
 See xref:changes-5.1-5.2.adoc#x5.2-avro[Avro Transformers] for more information.
 
 [[x5.2-general]]
-= General Changes
+== General Changes
 
 The `JsonToObjectTransformer` now supports generics for the target object to deserialize into.
 See xref:transformer.adoc#json-transformers[JSON Transformers] for more information.
@@ -81,7 +81,7 @@ The `#args` and `#method` evaluation context variables are now deprecated.
 See xref:gateway.adoc[Messaging Gateways] for more information.
 
 [[x5.2-amqp]]
-== AMQP Changes
+=== AMQP Changes
 
 The outbound endpoints can now be configured to synthesize a "nack" if no publisher confirm is received within a timeout.
 See xref:changes-4.0-4.1.adoc#x4.1-amqp-outbound-lazy-connect[Outbound Channel Adapter] for more information.
@@ -93,13 +93,13 @@ The outbound channel adapter can now be configured to block the calling thread u
 See xref:amqp/outbound-channel-adapter.adoc[Outbound Channel Adapter] for more information.
 
 [[x5.2-file]]
-== File Changes
+=== File Changes
 
 Some improvements to filtering remote files have been made.
 See xref:file/remote-persistent-flf.adoc[Remote Persistent File List Filters] for more information.
 
 [[x5.2-tcp]]
-== TCP Changes
+=== TCP Changes
 
 The length header used by the `ByteArrayLengthHeaderSerializer` can now include the length of the header in addition to the payload.
 See xref:ip/tcp-connection-factories.adoc#tcp-codecs[Message Demarcation (Serializers and Deserializers)] for more information.
@@ -117,38 +117,38 @@ See <<./ip.adoc#tcp-connection-factory, TCP Connection Factories>> for more info
 `SoftEndOfStreamException` is now a `RuntimeException` instead of extending `IOException`.
 
 [[x5.2-mail]]
-== Mail Changes
+=== Mail Changes
 
 The `AbstractMailReceiver` has now an `autoCloseFolder` option (`true` by default), to disable an automatic folder close after a fetch, but populate `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header instead for downstream interaction.
 See xref:mail.adoc#mail-inbound[Mail-receiving Channel Adapter] for more information.
 
 [[x5.2-http]]
-== HTTP Changes
+=== HTTP Changes
 
 The HTTP inbound endpoint now support a request payload validation.
 See xref:http.adoc[HTTP Support] for more information.
 
 [[x5.2-webflux]]
-== WebFlux Changes
+=== WebFlux Changes
 
 The `WebFluxRequestExecutingMessageHandler` now supports a `Publisher`, `Resource` and `MultiValueMap` as a request message `payload`.
 The `WebFluxInboundEndpoint` now supports a request payload validation.
 See xref:webflux.adoc[WebFlux Support] for more information.
 
 [[x5.2-mongodb]]
-== MongoDb Changes
+=== MongoDb Changes
 
 The `MongoDbMessageStore` can now be configured with custom converters.
 See xref:mongodb.adoc[MongoDB Support] for more information.
 
 [[x5.2-routers]]
-== Router Changes
+=== Router Changes
 
 You can now disable falling back to the channel key as the channel bean name.
 See xref:router/dynamic-routers.adoc[Dynamic Routers] for more information.
 
 [[x5.2--ftp-sftp]]
-== FTP/SFTP Changes
+=== FTP/SFTP Changes
 
 The `RotatingServerAdvice` is decoupled now from the `RotationPolicy` and its `StandardRotationPolicy`.
 

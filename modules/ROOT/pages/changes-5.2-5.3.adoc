@@ -2,67 +2,67 @@
 = Changes between 5.2 and 5.3
 
 [[x5.3-new-components]]
-= New Components
+== New Components
 
 [[x5.3-integration-pattern]]
-== Integration Pattern
+=== Integration Pattern
 
 The `IntegrationPattern` abstraction has been introduced to indicate which enterprise integration pattern (an `IntegrationPatternType`) and category a Spring Integration component belongs to.
 See its JavaDocs and <<./graph.adoc#integration-graph,Integration Graph>> for more information about this abstraction and its use-cases.
 
 [[x5.3-reactive-message-handler]]
-== `ReactiveMessageHandler`
+=== `ReactiveMessageHandler`
 
 The `ReactiveMessageHandler` is now natively supported in the framework.
 See xref:reactive-streams.adoc#reactive-message-handler[ReactiveMessageHandler] for more information.
 
 
 [[x5.3-reactive-message-source-producer]]
-== `ReactiveMessageSourceProducer`
+=== `ReactiveMessageSourceProducer`
 
 The `ReactiveMessageSourceProducer` is a reactive implementation of the `MessageProducerSupport` to wrap a provided `MessageSource` into a `Flux` for on demand `receive()` calls.
 See xref:reactive-streams.adoc[Reactive Streams Support] for more information.
 
 [[x5.3-java-dsl-extensions]]
-== Java DSL Extensions
+=== Java DSL Extensions
 
 A new `IntegrationFlowExtension` API has been introduced to allow extension of the existing Java DSL with custom or composed EIP-operators.
 This also can be used to introduce customizers for any out-of-the-box `IntegrationComponentSpec` extensions.
 See xref:changes-5.2-5.3.adoc#x5.3-java-dsl-extensions[DSL Extensions] for more information.
 
 [[x5.3-kotlin-dsl]]
-== Kotlin DSL
+=== Kotlin DSL
 
 The Kotlin DSL for integration flow configurations has been introduced.
 See xref:kotlin-dsl.adoc[Kotlin DSL Chapter] for more information.
 
 [[x5.3-reactive-request-handler-advice]]
-== ReactiveRequestHandlerAdvice
+=== ReactiveRequestHandlerAdvice
 
 A `ReactiveRequestHandlerAdvice` is provided to customize `Mono` replies from message handlers.
 See xref:handler-advice/reactive.adoc[Reactive Advice] for more information.
 
 [[x5.3-handle-message-advice-adapter]]
-== HandleMessageAdviceAdapter
+=== HandleMessageAdviceAdapter
 
 A `HandleMessageAdviceAdapter` is provided to wrap any `MethodInterceptor` for applying on the `MessageHandler.handleMessage()` instead of a default `AbstractReplyProducingMessageHandler.RequestHandler.handleRequestMessage()` behavior.
 See xref:handler-advice/handle-message.adoc[Handling Message Advice] for more information.
 
 [[x5.3-mongodb-reactive-channel-adapters]]
-== MongoDB Reactive Channel Adapters
+=== MongoDB Reactive Channel Adapters
 
 The `spring-integration-mongodb` module now provides channel adapter implementations for the Reactive MongoDb driver support in Spring Data.
 Also, a reactive implementation for MongoDb change stream support is present with the `MongoDbChangeStreamMessageProducer`.
 See xref:mongodb.adoc[MongoDB Support] for more information.
 
 [[x5.3-receive-message-advice]]
-== ReceiveMessageAdvice
+=== ReceiveMessageAdvice
 
 A special `ReceiveMessageAdvice` has been introduced to proxy exactly `MessageSource.receive()` or `PollableChannel.receive()`.
 See xref:polling-consumer.adoc#smart-polling[Smart Polling] for more information.
 
 [[x5.3-general]]
-= General Changes
+== General Changes
 
 The gateway proxy now doesn't proxy `default` methods by default.
 See xref:gateway.adoc#gateway-calling-default-methods[Invoking `default` Methods] for more information.
@@ -91,7 +91,7 @@ The `MessageProducerSupport` base class now has a `subscribeToPublisher(Publishe
 See xref:reactive-streams.adoc[Reactive Streams Support] for more information.
 
 [[x5.3-amqp]]
-= AMQP Changes
+== AMQP Changes
 
 The outbound channel adapter has a new property `multiSend` allowing multiple messages to be sent within the scope of one `RabbitTemplate` invocation.
 See xref:amqp/outbound-channel-adapter.adoc[AMQP Outbound Channel Adapter] for more information.
@@ -100,7 +100,7 @@ The inbound channel adapter now supports a listener container with the `consumer
 See xref:amqp/inbound-channel-adapter.adoc[AMQP Inbound Channel Adapter]
 
 [[x5.3-http]]
-= HTTP Changes
+== HTTP Changes
 
 The `encodeUri` property on the `AbstractHttpRequestExecutingMessageHandler` has been deprecated in favor of newly introduced `encodingMode`.
 See `DefaultUriBuilderFactory.EncodingMode` JavaDocs and xref:http/namespace.adoc#http-uri-encoding[Controlling URI Encoding] for more information.
@@ -108,14 +108,14 @@ This also affects `WebFluxRequestExecutingMessageHandler`, respective Java DSL a
 The same option is added into an `AbstractWebServiceOutboundGateway`.
 
 [[x5.3-ws]]
-= Web Services Changes
+== Web Services Changes
 
 Java DSL support has been added for Web Service components.
 The `encodeUri` property on the `AbstractWebServiceOutboundGateway` has been deprecated in favor of newly introduced `encodingMode` - similar to HTTP changes above.
 See xref:ws.adoc[Web Services Support] for more information.
 
 [[x5.3-tcp]]
-= TCP Changes
+== TCP Changes
 
 The `FailoverClientConnectionFactory` no longer fails back, by default, until the current connection fails.
 See xref:ip/tcp-connection-factories.adoc#failover-cf[TCP Failover Client Connection Factory] for more information.
@@ -127,19 +127,19 @@ You can now configure client connections to perform some arbitrary test on new c
 See xref:ip/testing-connections.adoc[Testing Connections] for more information.
 
 [[x5.3-rsocket]]
-= RSocket Changes
+== RSocket Changes
 
 A `decodeFluxAsUnit` option has been added to the `RSocketInboundGateway` with the meaning to decode incoming `Flux` as a single unit or apply decoding for each event in it.
 See xref:rsocket.adoc#rsocket-inbound[RSocket Inbound Gateway] for more information.
 
 [[x5.3-zookeeper]]
-= Zookeeper Changes
+== Zookeeper Changes
 
 A `LeaderInitiatorFactoryBean` (as well as its XML `<int-zk:leader-listener>`) exposes a `candidate` option for more control over a `Candidate` configuration.
 See xref:zookeeper.adoc#zk-leadership[Leadership event handling] for more information.
 
 [[x5.3-mqtt]]
-= MQTT Changes
+== MQTT Changes
 
 The inbound channel adapter can now be configured to provide user control over when a message is acknowledged as being delivered.
 See xref:mqtt.adoc#mqtt-ack-mode[Manual Acks] for more information.
@@ -149,13 +149,13 @@ Previously, only the inbound adapter did so.
 See xref:mqtt.adoc#mqtt-events[MQTT Events].
 
 [[x5.3-sftp]]
-= (S)FTP Changes
+== (S)FTP Changes
 
 The `FileTransferringMessageHandler` (for FTP and SFTP, for example) in addition to `File`, `byte[]`, `String` and `InputStream` now also supports an `org.springframework.core.io.Resource`.
 See xref:sftp.adoc[SFTP Support] and xref:ftp.adoc[FTP Support] for more information.
 
 [[x5.3-file]]
-= File Changes
+== File Changes
 
 The `FileSplitter` doesn't require a Jackson processor (or similar) dependency any more for the `markersJson` mode.
 It uses a `SimpleJsonSerializer` for a straightforward string representation of the `FileSplitter.FileMarker` instances.
