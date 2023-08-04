@@ -87,7 +87,7 @@ This generator `Flux` is subscribed by the provided `ReactiveStreamsSubscribable
 Starting with version 5.5, when `maxMessagesPerPoll == 0`, the source is not called at all, and `flatMapMany()` is completed immediately via a `Mono.empty()` result until the `maxMessagesPerPoll` is changed to non-zero value at a later time, e.g. via a Control Bus.
 This way, any `MessageSource` implementation can be turned into a reactive hot source.
 
-See <<./polling-consumer.adoc#polling-consumer,Polling Consumer>> for more information.
+See xref:polling-consumer.adoc#polling-consumer[Polling Consumer] for more information.
 
 [[event-driven-channel-adapter]]
 == Event-Driven Channel Adapter
@@ -149,7 +149,7 @@ For the exact opposite use-case, when `IntegrationFlow` should call a reactive s
 The flow at this point is turned into a `FluxMessageChannel` which is propagated into a provided `fluxFunction`, performed in the `Flux.transform()` operator.
 A result of the function is wrapped into a `Mono<Message<?>>` for flat-mapping into an output `Flux` which is subscribed by another `FluxMessageChannel` for downstream flow.
 
-See <<./dsl.adoc#java-dsl,Java DSL Chapter>> for more information.
+See xref:dsl.adoc#java-dsl[Java DSL Chapter] for more information.
 
 [[reactive-message-handler]]
 == `ReactiveMessageHandler`
@@ -236,7 +236,7 @@ Usage would look like:
 public class MainFlow {
   @Autowired
   private CustomReactiveMessageProducer customReactiveMessageProducer;
-  
+
   @Bean
   public IntegrationFlow buildFlow() {
      return IntegrationFlow.from(customReactiveMessageProducer)
@@ -252,7 +252,7 @@ Or in a declarative way:
 ====
 [source, java]
 ----
-public class MainFlow {  
+public class MainFlow {
   @Bean
   public IntegrationFlow buildFlow() {
      return IntegrationFlow.from(new CustomReactiveMessageProducer(new CustomReactiveSource()))
@@ -268,7 +268,7 @@ Or even without a channel adapter, we can always use the Java DSL in the followi
 ====
 [source, java]
 ----
-public class MainFlow {  
+public class MainFlow {
   @Bean
   public IntegrationFlow buildFlow() {
     Flux<Message<?>> myFlux = this.customReactiveSource
@@ -345,10 +345,10 @@ public class MainFlow {
 
   @Autowired
   private CustomReactiveMessageProducer customReactiveMessageProducer;
-  
+
   @Autowired
   private CustomReactiveMessageHandler customReactiveMessageHandler;
-  
+
   @Bean
   public IntegrationFlow buildFlow() {
      return IntegrationFlow.from(customReactiveMessageProducer)

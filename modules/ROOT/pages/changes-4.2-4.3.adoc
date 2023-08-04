@@ -13,7 +13,7 @@ Version 4.3 added a number of new components.
 [[amqp-async-outbound-gateway]]
 === AMQP Async Outbound Gateway
 
-See <<./amqp.adoc#amqp-async-outbound-gateway,Asynchronous Outbound Gateway>>.
+See xref:amqp.adoc#amqp-async-outbound-gateway[Asynchronous Outbound Gateway].
 
 [[messagegroupfactory]]
 === `MessageGroupFactory`
@@ -46,13 +46,13 @@ See xref:transformer.adoc#stream-transformer[Stream Transformer] for more inform
 === Integration Graph
 
 We added `IntegrationGraphServer`, together with the `IntegrationGraphController` REST service, to expose the runtime model of a Spring Integration application as a graph.
-See <<./graph.adoc#integration-graph,Integration Graph>> for more information.
+See xref:graph.adoc#integration-graph[Integration Graph] for more information.
 
 [[jdbc-lock-registry]]
 === JDBC Lock Registry
 
 We added `JdbcLockRegistry` for distributed locks shared through a database table.
-See <<./jdbc.adoc#jdbc-lock-registry,JDBC Lock Registry>> for more information.
+See xref:jdbc.adoc#jdbc-lock-registry[JDBC Lock Registry] for more information.
 
 [[leaderinitiator-for-lockregistry]]
 === `LeaderInitiator` for `LockRegistry`
@@ -176,7 +176,7 @@ See xref:file/writing.adoc#file-writing-file-names[Generating File Names] for mo
 The `FileReadingMessageSource` now hides the `WatchService` directory scanning logic in the inner class.
 We added the `use-watch-service` and `watch-events` options to enable this behavior.
 We deprecated the top-level `WatchServiceDirectoryScanner` because of inconsistency around the API.
-See <<./file.adoc#watch-service-directory-scanner,`WatchServiceDirectoryScanner`>> for more information.
+See xref:file.adoc#watch-service-directory-scanner[`WatchServiceDirectoryScanner`] for more information.
 
 [[buffer-size]]
 ==== Buffer Size

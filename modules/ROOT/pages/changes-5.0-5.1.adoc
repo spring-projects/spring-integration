@@ -225,7 +225,7 @@ See xref:metrics.adoc#micrometer-integration[Micrometer Integration] for more in
 == Integration Graph Customization
 
 It is now possible to add additional properties to the `IntegrationNode` s via `Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback` on the `IntegrationGraphServer`.
-See <<./graph.adoc#integration-graph,Integration Graph>> for more information.
+See xref:graph.adoc#integration-graph[Integration Graph] for more information.
 
 [[x51.-global-properties]]
 == Integration Global Properties

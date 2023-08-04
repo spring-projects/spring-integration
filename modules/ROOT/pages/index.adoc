@@ -4,7 +4,7 @@
 Welcome to the Spring Integration reference documentation!
 
 [horizontal]
-<<./preface.adoc#preface,Preface>> :: General project info, conventions
+xref:preface.adoc#preface[Preface] :: General project info, conventions
 xref:whats-new.adoc#whats-new[What's New] :: Features and changes made in the current version
 xref:overview.adoc[Overview] :: Introduction to EIP and its implementation in the project
 xref:core.adoc[Core Messaging] :: Main project abstractions and components
@@ -12,7 +12,7 @@ xref:overview.adoc#overview-components-message[Message] :: Details about the mes
 xref:message-routing.adoc[Message Routing] :: main EIP components: router, splitter, aggregator, filter etc.
 xref:message-transformation.adoc[Message Transformation] :: Transformer, content enricher, claim check, codec
 xref:messaging-endpoints.adoc[Messaging Endpoints] :: Consumer endpoints, service activator, gateway, scripting, AOP aspects etc.
-<<./dsl.adoc#java-dsl,Java DSL>> :: Details about Java DSL for EIP
+xref:dsl.adoc#java-dsl[Java DSL] :: Details about Java DSL for EIP
 xref:groovy-dsl.adoc[Groovy DSL] :: Details about Groovy DSL for EIP
 xref:kotlin-dsl.adoc[Kotlin DSL] :: Details about Kotlin DSL for EIP
 xref:system-management.adoc[System Management] :: Message store, control bus, integration graph, metrics, JMX

@@ -21,7 +21,7 @@ If the send call times out or is interrupted, it returns `false`.
 [[channel-interfaces-pollablechannel]]
 == `PollableChannel`
 
-Since message channels may or may not buffer messages (as discussed in the <<./overview.adoc#overview,Spring Integration Overview>>), two sub-interfaces define the buffering (pollable) and non-buffering (subscribable) channel behavior.
+Since message channels may or may not buffer messages (as discussed in the xref:overview.adoc[Spring Integration Overview]), two sub-interfaces define the buffering (pollable) and non-buffering (subscribable) channel behavior.
 The following listing shows the definition of the `PollableChannel` interface:
 
 ====

@@ -177,7 +177,7 @@ See https://docs.spring.io/spring-integration/api/org/springframework/integratio
 Also, you can now switch the `AbstractInboundFileSynchronizingMessageSource` to the `WatchService`-based `DirectoryScanner` by using `setUseWatchService()` option.
 It is also configured for all the `WatchEventType` instances to react for any modifications in local directory.
 The reprocessing sample shown earlier is based on the built-in functionality of the `FileReadingMessageSource.WatchServiceDirectoryScanner`, which uses `ResettableFileListFilter.remove()` when the file is deleted (`StandardWatchEventKinds.ENTRY_DELETE`) from the local directory.
-See <<./file.adoc#watch-service-directory-scanner,`WatchServiceDirectoryScanner`>> for more information.
+See xref:file/reading.adoc#watch-service-directory-scanner[`WatchServiceDirectoryScanner`] for more information.
 
 [[configuring-with-java-configuration]]
 == Configuring with Java Configuration

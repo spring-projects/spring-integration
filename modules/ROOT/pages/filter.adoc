@@ -70,7 +70,7 @@ someFlow() {
 
 See more information about DSLs in the respective chapters:
 
-* <<./dsl.adoc#java-dsl,Java DSL>>
+* xref:dsl.adoc#java-dsl[Java DSL]
 * xref:kotlin-dsl.adoc[Kotlin DSL]
 * xref:groovy-dsl.adoc[Groovy DSL]
 

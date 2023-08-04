@@ -1,7 +1,7 @@
 [[error-handling]]
 = Error Handling
 
-As described in the <<./overview.adoc#overview,overview>> at the very beginning of this manual, one of the main motivations behind a message-oriented framework such as Spring Integration is to promote loose coupling between components.
+As described in the xref:overview.adoc#overview[overview] at the very beginning of this manual, one of the main motivations behind a message-oriented framework such as Spring Integration is to promote loose coupling between components.
 The message channel plays an important role, in that producers and consumers do not have to know about each other.
 However, the advantages also have some drawbacks.
 Some things become more complicated in a loosely coupled environment, and one example is error handling.

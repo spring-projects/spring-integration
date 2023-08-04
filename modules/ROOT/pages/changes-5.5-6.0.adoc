@@ -115,7 +115,7 @@ See xref:overview.adoc#overview-endpoints-aggregator[Aggregator] for more inform
 The `IntegrationFlows` factory is now marked as deprecated in favor of the fluent API available in the `IntegrationFlow` interface itself.
 The factory class will be removed in the future releases.
 
-See <<./dsl.adoc#java-dsl,Java DSL>> for more information.
+See xref:dsl.adoc#java-dsl[Java DSL] for more information.
 
 The `org.springframework.util.concurrent.ListenableFuture` has been deprecated starting with Spring Framework `6.0`.
 All Spring Integration async API has been migrated to the `CompletableFuture`.
@@ -167,7 +167,7 @@ See xref:kafka.adoc[Spring for Apache Kafka Support] for more information.
 
 The `DefaultLockRepository` can now be supplied with a `PlatformTransactionManager` instead of relying on the primary bean from the application context.
 
-See <<./jdbc.adoc#jdbc-lock-registry,JDBC Lock Registry>> for more information.
+See xref:jdbc.adoc#jdbc-lock-registry[JDBC Lock Registry] for more information.
 
 [[x6.0-tcp]]
 == TCP/IP Changes

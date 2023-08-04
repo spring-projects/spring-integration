@@ -56,7 +56,7 @@ See xref:redis.adoc#redis-queue-inbound-gateway[Redis Queue Inbound Gateway] and
 === `PollSkipAdvice`
 
 We added the `PollSkipAdvice`, which you can use within the `<advice-chain>` of the `<poller>` to determine if the current poll should be suppressed (skipped) by some condition that you implement with `PollSkipStrategy`.
-See <<./polling-consumer.adoc#polling-consumer,Poller>> for more information.
+See xref:polling-consumer.adoc#polling-consumer[Poller] for more information.
 
 [[x4.1-general]]
 == General Changes

@@ -83,7 +83,7 @@ PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);
 ----
 ====
 
-NOTE: For more information regarding polling consumers, see xref:overview.adoc#overview-endpoints-channeladapter[Channel Adapter] and <<./channel-adapter.adoc#channel-adapter,Channel Adapter>>.
+NOTE: For more information regarding polling consumers, see xref:overview.adoc#overview-endpoints-channeladapter[Channel Adapter] and xref:channel-adapter.adoc#channel-adapter[Channel Adapter].
 
 There are many other configuration options for the polling consumer.
 For example, the trigger is a required property.

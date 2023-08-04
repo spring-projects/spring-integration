@@ -11,7 +11,7 @@ Spring Integration's XML support extends the core of Spring Integration with the
 * xref:xml/xpath-routing.adoc[XPath Router]
 * xref:xml/xpath-header-enricher.adoc[XPath Header Enricher]
 * xref:xml/xpath-filter.adoc[XPath Filter]
-* <<xpath-spel-function,#xpath SpEL Function>>
+* xref:xpath-spel-function[#xpath SpEL Function]
 * xref:xml/validating-filter.adoc[Validating Filter]
 
 You need to include this dependency into your project:

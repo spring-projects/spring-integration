@@ -9,7 +9,7 @@ In either case, the chain requires only a single `input-channel` and a single `o
 
 NOTE: The `MessageHandlerChain` is mostly designed for an XML configuration.
 For Java DSL, an `IntegrationFlow` definition can be treated as a chain component, but it has nothing to do with concepts and principles described in this chapter below.
-See <<./dsl.adoc#java-dsl,Java DSL>> for more information.
+See xref:dsl.adoc#java-dsl[Java DSL] for more information.
 
 TIP: Spring Integration's `Filter` provides a boolean property: `throwExceptionOnRejection`.
 When you provide multiple selective consumers on the same point-to-point channel with different acceptance criteria, you should set this value 'true' (the default is `false`) so that the dispatcher knows that the message was rejected and, as a result, tries to pass the message on to other subscribers.

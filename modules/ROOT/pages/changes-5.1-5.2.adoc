@@ -112,7 +112,7 @@ This is useful for servers that use the EOF to signal end of message instead of 
 See xref:ip/tcp-gateways.adoc[TCP Gateways] for more information.
 
 The client connection factories now support `connectTimeout` which causes an exception to be thrown if the connection is not established in that time.
-See <<./ip.adoc#tcp-connection-factory, TCP Connection Factories>> for more information.
+See xref:ip.adoc#tcp-connection-factory[ TCP Connection Factories] for more information.
 
 `SoftEndOfStreamException` is now a `RuntimeException` instead of extending `IOException`.
 

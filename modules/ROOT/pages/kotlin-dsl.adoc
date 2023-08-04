@@ -1,7 +1,7 @@
 [[kotlin-dsl]]
 = Kotlin DSL
 
-The Kotlin DSL is a wrapper and extension to <<./dsl.adoc#java-dsl,Java DSL>> and aimed to make Spring Integration development on Kotlin as smooth and straightforward as possible with interoperability with the existing Java API and Kotlin language-specific structures.
+The Kotlin DSL is a wrapper and extension to xref:dsl.adoc#java-dsl[Java DSL] and aimed to make Spring Integration development on Kotlin as smooth and straightforward as possible with interoperability with the existing Java API and Kotlin language-specific structures.
 
 All you need to get started is just an import for `org.springframework.integration.dsl.integrationFlow` - an overloaded global function for Kotlin DSL.
 

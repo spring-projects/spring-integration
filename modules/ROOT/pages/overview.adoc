@@ -586,7 +586,7 @@ Their implementations (contracts) are:
 
 * `org.springframework.messaging.Message`: See xref:overview.adoc#overview-components-message[Message];
 * `org.springframework.messaging.MessageChannel`: See xref:channel.adoc[Message Channels];
-* `org.springframework.integration.endpoint.AbstractEndpoint`: See <<./polling-consumer.adoc#polling-consumer,Poller>>.
+* `org.springframework.integration.endpoint.AbstractEndpoint`: See xref:polling-consumer.adoc#polling-consumer[Poller].
 
 The first two are simple enough to understand how to implement, configure, and use.
 The last one deserves more attention

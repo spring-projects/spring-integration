@@ -14,7 +14,7 @@ Version 5.0 added a number of new components.
 
 The separate https://github.com/spring-projects/spring-integration-java-dsl[Spring Integration Java DSL] project has now been merged into the core Spring Integration project.
 The `IntegrationComponentSpec` implementations for channel adapters and gateways are distributed to their specific modules.
-See <<./dsl.adoc#java-dsl,Java DSL>> for more information about Java DSL support.
+See xref:dsl.adoc#java-dsl[Java DSL] for more information about Java DSL support.
 See also the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-4.3-to-5.0-Migration-Guide#java-dsl[4.3 to 5.0 Migration Guide] for the required steps to move to Spring Integration 5.0.
 
 [[testing-support]]
@@ -30,7 +30,7 @@ See xref:testing.adoc[Testing support] for more information.
 
 The new `MongoDbOutboundGateway` lets you make queries to the database on demand by sending a message to its request channel.
 
-See <<./mongodb.adoc#mongodb-outbound-gateway,MongoDB Outbound Gateway>> for more information.
+See xref:mongodb.adoc#mongodb-outbound-gateway[MongoDB Outbound Gateway] for more information.
 
 [[webflux-gateways-and-channel-adapters]]
 === WebFlux Gateways and Channel Adapters
@@ -44,7 +44,7 @@ See xref:webflux.adoc[WebFlux Support] for more information.
 
 Now that we use the new `InvocableHandlerMethod`-based infrastructure for service method invocations, we can perform `contentType` conversion from the payload to a target method argument.
 
-See <<./endpoint.adoc#content-type-conversion,Content Type Conversion>> for more information.
+See xref:endpoint.adoc#content-type-conversion[Content Type Conversion] for more information.
 
 [[errormessagepublisher-and-errormessagestrategy]]
 === `ErrorMessagePublisher` and `ErrorMessageStrategy`
@@ -59,7 +59,7 @@ See xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] for m
 We added a JDBC implementation of the `MetadataStore` implementation.
 This is useful when you need to ensure transactional boundaries for metadata.
 
-See <<./jdbc.adoc#jdbc-metadata-store,JDBC Metadata Store>> for more information.
+See xref:jdbc.adoc#jdbc-metadata-store[JDBC Metadata Store] for more information.
 
 [[x5.0-general]]
 == General Changes

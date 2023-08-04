@@ -70,7 +70,7 @@ someFlow() {
 
 See more information about the DSLs in the respective chapters:
 
-* <<./dsl.adoc#java-dsl,Java DSL>>
+* xref:dsl.adoc#java-dsl[Java DSL]
 * xref:kotlin-dsl.adoc[Kotlin DSL]
 * xref:groovy-dsl.adoc[Groovy DSL]
 
@@ -92,7 +92,7 @@ The preceding configuration selects all the methods from the `exampleHandler` th
 The target method for invocation at runtime is selected for each request message by their `payload` type or as a fallback to the `Message<?>` type if such a method is present on target class.
 
 Starting with version 5.0, one service method can be marked with the `@org.springframework.integration.annotation.Default` as a fallback for all non-matching cases.
-This can be useful when using <<./endpoint.adoc#content-type-conversion, content-type conversion>> with the target method being invoked after conversion.
+This can be useful when using xref:endpoint.adoc#content-type-conversion[ content-type conversion] with the target method being invoked after conversion.
 
 To delegate to an explicitly defined method of any object, you can add the `method` attribute, as the following example shows:
 

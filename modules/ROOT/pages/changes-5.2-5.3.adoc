@@ -8,7 +8,7 @@
 === Integration Pattern
 
 The `IntegrationPattern` abstraction has been introduced to indicate which enterprise integration pattern (an `IntegrationPatternType`) and category a Spring Integration component belongs to.
-See its JavaDocs and <<./graph.adoc#integration-graph,Integration Graph>> for more information about this abstraction and its use-cases.
+See its JavaDocs and xref:graph.adoc#integration-graph[Integration Graph] for more information about this abstraction and its use-cases.
 
 [[x5.3-reactive-message-handler]]
 === `ReactiveMessageHandler`
@@ -68,7 +68,7 @@ The gateway proxy now doesn't proxy `default` methods by default.
 See xref:gateway.adoc#gateway-calling-default-methods[Invoking `default` Methods] for more information.
 
 Internal components (such as `_org.springframework.integration.errorLogger`) now have a shortened name when they are represented in the integration graph.
-See <<./graph.adoc#integration-graph,Integration Graph>> for more information.
+See xref:graph.adoc#integration-graph[Integration Graph] for more information.
 
 In the aggregator, when the `MessageGroupProcessor` returns a `Message`, the `MessageBuilder.popSequenceDetails()` is performed on the output message if the `sequenceDetails` matches the header in the first message of the group.
 See xref:aggregator.adoc#aggregator-api[Aggregator Programming Model] for more information.

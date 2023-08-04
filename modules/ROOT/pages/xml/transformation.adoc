@@ -134,7 +134,7 @@ For more information and examples, see xref:xml/transformation.adoc#xml-using-re
 [[xml-transformer-namespace]]
 == Namespace Support for XML Transformers
 
-Namespace support for all XML transformers is provided in the Spring Integration XML namespace, a template for which was <<xpath-namespace-support,shown earlier>>.
+Namespace support for all XML transformers is provided in the Spring Integration XML namespace, a template for which was xref:xpath-namespace-support[shown earlier].
 The namespace support for transformers creates an instance of either `EventDrivenConsumer` or `PollingConsumer`, according to the type of the provided input channel.
 The namespace support is designed to reduce the amount of XML configuration by allowing the creation of an endpoint and transformer that use one element.
 
