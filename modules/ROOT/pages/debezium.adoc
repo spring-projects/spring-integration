@@ -27,7 +27,7 @@ You also need to include a https://debezium.io/documentation/reference/connector
 For example to use Debezium with PostgreSQL you will need the postgres debezium connector:
 
 ====
-[source, xml, subs="normal", role="primary"]
+[source, xml, role="primary"]
 .Maven
 ----
 <dependency>
@@ -37,7 +37,7 @@ For example to use Debezium with PostgreSQL you will need the postgres debezium 
 </dependency>
 
 ----
-[source, groovy, subs="normal", role="secondary"]
+[source, groovy, role="secondary"]
 .Gradle
 ----
 compile "io.debezium:debezium-connector-postgres:{debezium-version}"
