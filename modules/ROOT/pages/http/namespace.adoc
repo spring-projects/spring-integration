@@ -229,7 +229,7 @@ In the following example configuration, an inbound channel adapter is configured
 ----
 ====
 
-When you use the `payload-expression` attribute, the `{firstName}` URI template variable maps to be the `Message` payload, while the `{lastName}` URI template variable maps to the `lname` message header, as defined in the following example:
+When you use the `payload-expression` attribute, the `+{firstName}+` URI template variable maps to be the `Message` payload, while the `+{lastName}+` URI template variable maps to the `lname` message header, as defined in the following example:
 
 ====
 [source,xml]
