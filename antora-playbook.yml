@@ -1,0 +1,43 @@
+antora:
+  extensions:
+  - '@springio/antora-extensions/partial-build-extension'
+  - require: '@springio/antora-extensions/latest-version-extension'
+  - require: '@springio/antora-extensions/inject-collector-cache-config-extension'
+  - '@antora/collector-extension'
+  - '@antora/atlas-extension'
+  - require: '@springio/antora-extensions/root-component-extension'
+    root_component_name: 'integration'
+site:
+  title: Spring Integration
+  url: https://docs.spring.io/spring-integration/reference
+  robots: allow
+git:
+  ensure_git_suffix: false
+content:
+  sources:
+  - url: https://github.com/spring-projects/spring-integration
+    # Refname matching:
+    # https://docs.antora.org/antora/latest/playbook/content-refname-matching/
+    branches: [ main,'({6..9}).+({0..9}).x', '!(6.{0..1}.x)' ]
+    tags: [ 'v({6..9}).+({0..9}).+({0..9})?(-{RC,M}+({0..9}))', '!(v6.{0..1}.+({0..9})?(-{RC,M}+({0..9})))', '!(v6.2.0-M1)' ]
+    start_path: src/reference/antora
+asciidoc:
+  attributes:
+    page-stackoverflow-url: https://stackoverflow.com/tags/spring-integration
+    page-pagination: ''
+    hide-uri-scheme: '@'
+    tabs-sync-option: '@'
+  extensions:
+  - '@asciidoctor/tabs'
+  - '@springio/asciidoctor-extensions'
+urls:
+  latest_version_segment_strategy: redirect:to
+  latest_version_segment: ''
+  redirect_facility: httpd
+ui:
+  bundle:
+    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.3.3/ui-bundle.zip
+    snapshot: true
+runtime:
+  log:
+    failure_level: warn
