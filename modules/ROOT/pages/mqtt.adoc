@@ -170,7 +170,7 @@ StaticMessageHeaderAccessor.acknowledgment(someMessage).acknowledge();
 Starting with version `5.2.11`, when the message converter throws an exception or returns `null` from the `MqttMessage` conversion, the `MqttPahoMessageDrivenChannelAdapter` sends an `ErrorMessage` into the `errorChannel`, if provided.
 Re-throws this conversion error otherwise into an MQTT client callback.
 
-[[configuring-with-java-configuration]]
+[[mqtt-ack-mode-java-configuration]]
 === Configuring with Java Configuration
 
 The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
@@ -221,7 +221,7 @@ public class MqttJavaApplication {
 ----
 ====
 
-[[configuring-with-the-java-dsl]]
+[[mqtt-ack-mode-java-dsl]]
 === Configuring with the Java DSL
 
 The following Spring Boot application provides an example of configuring the inbound adapter with the Java DSL:
@@ -318,7 +318,7 @@ NOTE: Starting with version 4.1, the URL can be omitted.
 Instead, the server URIs can be provided in the `serverURIs` property of the `DefaultMqttPahoClientFactory`.
 This enables, for example, connection to a highly available (HA) cluster.
 
-[[configuring-with-java-configuration]]
+[[mqtt-outbound-java-configuration]]
 === Configuring with Java Configuration
 
 The following Spring Boot application show an example of how to configure the outbound adapter with Java configuration:
@@ -376,7 +376,7 @@ public class MqttJavaApplication {
 ----
 ====
 
-[[configuring-with-the-java-dsl]]
+[[mqtt-outbound-java-dsl]]
 === Configuring with the Java DSL
 
 The following Spring Boot application provides an example of configuring the outbound adapter with the Java DSL:

@@ -341,7 +341,7 @@ public MessageHandler smbMessageHandler(SmbSessionFactory smbSessionFactory) {
 }
 ----
 
-[[configuring-with-the-java-dsl]]
+[[inbound-channel-java-dsl]]
 === Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound adapter using the Java DSL:
@@ -723,7 +723,7 @@ public class SmbJavaApplication {
 ----
 ====
 
-[[configuring-with-the-java-dsl]]
+[[outbound-gateway-java-dsl]]
 === Configuring with the Java DSL
 
 The following Spring Boot application shows an example of how to configure the outbound gateway with the Java DSL:

@@ -1,4 +1,4 @@
-[[polling-consumer]]
+[[polling]]
 = Poller
 
 This section describes how polling works in Spring Integration.
