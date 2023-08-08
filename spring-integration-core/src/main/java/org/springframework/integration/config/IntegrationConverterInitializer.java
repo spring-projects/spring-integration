@@ -65,10 +65,11 @@ public class IntegrationConverterInitializer implements IntegrationConfiguration
 		}
 
 		if (!registry.containsBeanDefinition(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)) {
+			RootBeanDefinition beanDefinition = new RootBeanDefinition(CustomConversionServiceFactoryBean.class);
+			beanDefinition.setAutowireCandidate(false);
 			registry.registerBeanDefinition(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
-					new RootBeanDefinition(CustomConversionServiceFactoryBean.class));
+					beanDefinition);
 		}
-
 	}
 
 	private static boolean isIntegrationConverter(BeanDefinition beanDefinition) {
