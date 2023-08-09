@@ -6,7 +6,8 @@ ext {
 
 antora {
 	version = '3.2.0-alpha.2'
-	options = [clean: true, fetch: !project.gradle.startParameter.offline, stacktrace: true]
+	playbook = file('src/reference/antora/antora-playbook.yml')
+	options = ['to-dir' : project.layout.buildDirectory.dir('site').get().toString(), clean: true, fetch: !project.gradle.startParameter.offline, stacktrace: true]
 	dependencies = [
 			'@antora/atlas-extension': '1.0.0-alpha.1',
 			'@antora/collector-extension': '1.0.0-alpha.3',
@@ -20,6 +21,7 @@ tasks.named("generateAntoraYml") {
 	asciidocAttributes = project.provider( {
 		return ['project-version' : project.version ]
 	} )
+	baseAntoraYmlFile = file('src/reference/antora/antora.yml')
 }
 
 tasks.create(name: 'createAntoraPartials', type: Sync) {

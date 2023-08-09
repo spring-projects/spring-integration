@@ -9,7 +9,7 @@ ext:
       command: gradlew -q "-Dorg.gradle.jvmargs=-Xmx3g -XX:+HeapDumpOnOutOfMemoryError" :generateAntoraResources
       local: true
     scan:
-      dir: ./build/generated-antora-resources
+      dir: build/generated-antora-resources
 
 asciidoc:
   attributes:
