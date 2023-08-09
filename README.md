@@ -58,7 +58,7 @@ Please see our [Security policy](https://github.com/spring-projects/spring-integ
 
 # Documentation
 
-The Spring Integration maintains reference documentation ([published](https://docs.spring.io/spring-integration/docs/current/reference/html/) and [source](src/reference/asciidoc)), GitHub [wiki pages](https://github.com/spring-projects/spring-integration/wiki), and an [API reference](https://docs.spring.io/spring-integration/docs/current/api/). 
+The Spring Integration maintains reference documentation ([published](https://docs.spring.io/spring-integration/reference/) and [source](src/reference/antora)), GitHub [wiki pages](https://github.com/spring-projects/spring-integration/wiki), and an [API reference](https://docs.spring.io/spring-integration/docs/current/api/). 
 There are also [guides and tutorials](https://spring.io/guides) across Spring projects.
 
 
@@ -90,9 +90,9 @@ To build api Javadoc (results will be in `build/api`):
 
     ./gradlew api
 
-To build the reference documentation (results will be in `build/docs/asciidoc` and `build/docs/asciidocPdf`):
+To build the reference documentation (results will be in `build/site`):
 
-    ./gradlew reference
+    ./gradlew antora
 
 To build complete distribution including `-dist`, `-docs`, and `-schema` zip files (results will be in `build/distributions`):
 

@@ -15,14 +15,13 @@ buildscript {
 }
 
 plugins {
+    id 'base'
     id 'org.sonarqube' version '4.3.0.3225'
     id 'io.spring.nohttp' version '0.0.11' apply false
     id 'org.ajoberstar.grgit' version '4.1.1'
     id 'io.spring.dependency-management' version '1.1.2'
     id 'com.jfrog.artifactory' version '4.33.1' apply false
     id 'org.jetbrains.dokka' version "1.8.20"
-    id 'org.asciidoctor.jvm.pdf' version '3.3.2'
-    id 'org.asciidoctor.jvm.convert' version '3.3.2'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
 }
@@ -339,7 +338,7 @@ configure(javaProjects) { subproject ->
         }
     }
 
-    task testAll(type: Test, dependsOn: [':checkAsciidocLinks', 'check'])
+    task testAll(type: Test, dependsOn: ['check'])
 
     gradle.taskGraph.whenReady { graph ->
         if (graph.hasTask(testAll)) {
@@ -1239,7 +1238,7 @@ task schemaZip(type: Zip) {
     }
 }
 
-task docsZip(type: Zip, dependsOn: [reference, dokkaHtmlMultiModule]) {
+task docsZip(type: Zip, dependsOn: [dokkaHtmlMultiModule]) {
     group = 'Distribution'
     archiveClassifier = 'docs'
     description = "Builds -${archiveClassifier} archive containing api and reference " +
@@ -1251,16 +1250,6 @@ task docsZip(type: Zip, dependsOn: [reference, dokkaHtmlMultiModule]) {
 
     from(api) {
         into 'api'
-    }
-
-    from('build/docs/asciidoc') {
-        into 'reference/html'
-    }
-
-    from('build/docs/asciidocPdf') {
-        include 'index-single.pdf'
-        rename 'index-single.pdf', 'spring-integration-reference.pdf'
-        into 'reference/pdf'
     }
 
     from(dokkaHtmlMultiModule.outputDirectory) {

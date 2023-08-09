@@ -1,5 +1,4 @@
 ext {
-	backendVersion = '0.0.5'
 	micrometerDocsVersion='1.0.1'
 }
 
@@ -35,51 +34,11 @@ tasks.create('generateAntoraResources') {
 }
 
 configurations {
-	asciidoctorExtensions
 	micrometerDocs
 }
 
 dependencies {
-	asciidoctorExtensions "io.spring.asciidoctor.backends:spring-asciidoctor-backends:$backendVersion"
 	micrometerDocs "io.micrometer:micrometer-docs-generator:$micrometerDocsVersion"
-}
-
-task checkAsciidocLinks {
-	inputs.dir('src/reference/asciidoc')
-	doLast {
-		def errors = new ArrayList<>();
-		errors.add('*** Anchor reference errors found:')
-		inputs.files.filter{ f -> f.path.endsWith('.adoc') }.each { file ->
-			def doc = file.text
-			def anchors = new HashSet<>()
-			def matcher = (doc =~ /\[\[([^]]+)]]/)
-			while (matcher.find()) {
-				anchors.add(matcher.group(1))
-			}
-			matcher = (doc =~ /<<([^>]+)>>/)
-			while (matcher.find()) {
-				def anchor = matcher.group(1);
-				def hasComma = anchor.contains(',')
-				if (!anchor.startsWith('./')) {
-					if (hasComma) {
-						anchor = anchor.substring(0, anchor.indexOf(","));
-					}
-					if (!anchors.contains(anchor)) {
-						errors.add("\nAnchor '$anchor' not found in '${file.name}', " +
-								"if in another file, it needs to be qualified with './fileName.adoc#'")
-					}
-				}
-				else {
-					if (!hasComma) {
-						errors.add("\nExternal anchor '$anchor' in '${file.name}' should have a textual description (,...)")
-					}
-				}
-			}
-		}
-		if (errors.size() > 1) {
-			throw new InvalidUserDataException(errors.toString())
-		}
-	}
 }
 
 def observationInputDir = file('spring-integration-core/src/main/java/org/springframework/integration/support/management/observation').absolutePath
@@ -101,81 +60,3 @@ task filterMetricsDocsContent(type: Copy) {
 	rename { filename -> filename.replace '_', '' }
 	filter { line -> line.replaceAll('org.springframework.integration', 'o.s.i') }
 }
-
-task prepareDocs(type: Copy) {
-	dependsOn checkAsciidocLinks, filterMetricsDocsContent
-	from 'src/reference/asciidoc'
-	into "$buildDir/reference"
-}
-
-asciidoctorPdf {
-	dependsOn prepareDocs
-
-	forkOptions {
-		jvmArgs '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED'
-	}
-
-	baseDirFollowsSourceFile()
-
-	asciidoctorj {
-		sourceDir "$buildDir/reference"
-		sources {
-			include 'index-single.adoc'
-		}
-		options doctype: 'book'
-		attributes 'icons': 'font',
-				'sectanchors': '',
-				'sectnums': '',
-				'toc': '',
-				'source-highlighter' : 'coderay',
-				revnumber: project.version,
-				'project-version': project.version
-	}
-}
-
-asciidoctor {
-	dependsOn asciidoctorPdf
-
-	forkOptions {
-		jvmArgs '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED'
-	}
-
-	baseDirFollowsSourceFile()
-
-	configurations 'asciidoctorExtensions'
-	sourceDir "$buildDir/reference"
-	outputOptions {
-		backends 'spring-html'
-	}
-	resources {
-		from(sourceDir) {
-			include 'images/*', 'css/**', 'js/**'
-		}
-	}
-
-	options doctype: 'book', eruby: 'erubis'
-	attributes 'docinfo': 'shared',
-			stylesdir: 'css/',
-			stylesheet: 'stylesheet.css',
-			'linkcss': true,
-			'copycss': false,
-			'icons': 'font',
-			'sectanchors': '',
-			'source-highlighter': 'highlight.js',
-			'highlightjsdir': 'js/highlight',
-			'highlightjs-theme': 'github',
-			'idprefix': '',
-			'idseparator': '-',
-			'allow-uri-read': '',
-			'toc': 'left',
-			'toclevels': '4',
-			revnumber: project.version,
-			'project-version': project.version
-}
-
-task reference(dependsOn: asciidoctor) {
-	group = 'Documentation'
-	description = 'Generate the reference documentation'
-}
-
-reference.onlyIf { 'true' != System.env['NO_REFERENCE_TASK'] || project.hasProperty('ignoreEnvToStopReference') }
