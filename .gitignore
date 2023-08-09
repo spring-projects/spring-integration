@@ -9,5 +9,3 @@
 /*.iml
 /*.ipr
 /*.iws
-!/.idea/checkstyle-idea.xml
-!/.idea/externalDependencies.xml
