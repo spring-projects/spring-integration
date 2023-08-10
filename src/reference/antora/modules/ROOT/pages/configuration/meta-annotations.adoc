@@ -1,0 +1,176 @@
+[[meta-annotations]]
+= Messaging Meta-Annotations
+
+Starting with version 4.0, all messaging annotations can be configured as meta-annotations and all user-defined messaging annotations can define the same attributes to override their default values.
+In addition, meta-annotations can be configured hierarchically, as the following example shows:
+
+[source,java]
+----
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@ServiceActivator(inputChannel = "annInput", outputChannel = "annOutput")
+public @interface MyServiceActivator {
+
+    String[] adviceChain = { "annAdvice" };
+}
+
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@MyServiceActivator
+public @interface MyServiceActivator1 {
+
+    String inputChannel();
+
+    String outputChannel();
+}
+...
+
+@MyServiceActivator1(inputChannel = "inputChannel", outputChannel = "outputChannel")
+public Object service(Object payload) {
+   ...
+}
+----
+
+Configuring meta-annotations hierarchically lets users set defaults for various attributes and enables isolation of framework Java dependencies to user annotations, avoiding their use in user classes.
+If the framework finds a method with a user annotation that has a framework meta-annotation, it is treated as if the method were annotated directly with the framework annotation.
+
+[[annotations_on_beans]]
+== Annotations on `@Bean` Methods
+
+Starting with version 4.0, you can configure messaging annotations on `@Bean` method definitions in `@Configuration` classes, to produce message endpoints based on the beans, not the methods.
+It is useful when `@Bean` definitions are "`out-of-the-box`" `MessageHandler` instances (`AggregatingMessageHandler`, `DefaultMessageSplitter`, and others), `Transformer` instances (`JsonToObjectTransformer`, `ClaimCheckOutTransformer`, and others), and `MessageSource` instances (`FileReadingMessageSource`, `RedisStoreMessageSource`, and others).
+The following example shows how to use messaging annotations with `@Bean` annotations:
+
+[source,java]
+----
+@Configuration
+@EnableIntegration
+public class MyFlowConfiguration {
+
+    @Bean
+    @InboundChannelAdapter(value = "inputChannel", poller = @Poller(fixedDelay = "1000"))
+    public MessageSource<String> consoleSource() {
+        return CharacterStreamReadingMessageSource.stdin();
+    }
+
+    @Bean
+    @Transformer(inputChannel = "inputChannel", outputChannel = "httpChannel")
+    public ObjectToMapTransformer toMapTransformer() {
+        return new ObjectToMapTransformer();
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "httpChannel")
+    public HttpRequestExecutingMessageHandler httpHandler() {
+    HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("https://foo/service");
+        handler.setExpectedResponseType(String.class);
+        handler.setOutputChannelName("outputChannel");
+        return handler;
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "outputChannel")
+    public LoggingHandler loggingHandler() {
+        return new LoggingHandler("info");
+    }
+
+}
+----
+
+Version 5.0 introduced support for a `@Bean` annotated with `@InboundChannelAdapter` that returns `java.util.function.Supplier`, which can produce either a POJO or a `Message`.
+The following example shows how to use that combination:
+
+[source,java]
+----
+@Configuration
+@EnableIntegration
+public class MyFlowConfiguration {
+
+    @Bean
+    @InboundChannelAdapter(value = "inputChannel", poller = @Poller(fixedDelay = "1000"))
+    public Supplier<String> pojoSupplier() {
+        return () -> "foo";
+    }
+
+    @Bean
+    @InboundChannelAdapter(value = "inputChannel", poller = @Poller(fixedDelay = "1000"))
+    public Supplier<Message<String>> messageSupplier() {
+        return () -> new GenericMessage<>("foo");
+    }
+}
+----
+
+The meta-annotation rules work on `@Bean` methods as well (the `@MyServiceActivator` annotation xref:configuration/meta-annotations.adoc[described earlier] can be applied to a `@Bean` definition).
+
+NOTE: When you use these annotations on consumer `@Bean` definitions, if the bean definition returns an appropriate `MessageHandler` (depending on the annotation type), you must set attributes (such as `outputChannel`, `requiresReply`, `order`, and others), on the `MessageHandler` `@Bean` definition itself.
+Only the following annotation attributes are used: `adviceChain`, `autoStartup`, `inputChannel`, `phase`, and `poller`.
+All other attributes are for the handler.
+
+NOTE: The bean names are generated with the following algorithm:
+
+* The `MessageHandler` (`MessageSource`) `@Bean` gets its own standard name from the method name or `name` attribute on the `@Bean`.
+This works as though there were no messaging annotation on the `@Bean` method.
+* The `AbstractEndpoint` bean name is generated with the following pattern: `[@Bean name].[decapitalizedAnnotationClassShortName]`.
+For example, the `SourcePollingChannelAdapter` endpoint for the `consoleSource()` definition xref:configuration/meta-annotations.adoc#annotations_on_beans[shown earlier] gets a bean name of `consoleSource.inboundChannelAdapter`.
+Unlike with POJO methods, the bean method name is not included in the endpoint bean name.
+See also xref:overview.adoc#endpoint-bean-names[Endpoint Bean Names].
+* If `@Bean` cannot be used directly in the target endpoint (not an instance of a `MessageSource`, `AbstractReplyProducingMessageHandler` or `AbstractMessageRouter`), a respective `AbstractStandardMessageHandlerFactoryBean` is registered to delegate to this `@Bean`.
+The bean name for this wrapper is generated with the following pattern: `[@Bean name].[decapitalizedAnnotationClassShortName].[handler (or source)]`.
+
+IMPORTANT: When using these annotations on `@Bean` definitions, the `inputChannel` must reference a declared bean.
+Channels are automatically declared if not present in the application context yet.
+
+[NOTE]
+=====
+With Java configuration, you can use any `@Conditional` (for example, `@Profile`) definition on the `@Bean` method level to skip the bean registration for some conditional reason.
+The following example shows how to do so:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "skippedChannel")
+@Profile("thing")
+public MessageHandler skipped() {
+    return System.out::println;
+}
+----
+Together with the existing Spring container logic, the messaging endpoint bean (based on the `@ServiceActivator` annotation), is also not registered.
+=====
+
+[[creating-a-bridge-with-annotations]]
+== Creating a Bridge with Annotations
+
+Starting with version 4.0, Java configuration provides the `@BridgeFrom` and `@BridgeTo` `@Bean` method annotations to mark `MessageChannel` beans in `@Configuration` classes.
+These really exists for completeness, providing a convenient mechanism to declare a `BridgeHandler` and its message endpoint configuration:
+
+[source,java]
+----
+@Bean
+public PollableChannel bridgeFromInput() {
+    return new QueueChannel();
+}
+
+@Bean
+@BridgeFrom(value = "bridgeFromInput", poller = @Poller(fixedDelay = "1000"))
+public MessageChannel bridgeFromOutput() {
+    return new DirectChannel();
+}
+@Bean
+public QueueChannel bridgeToOutput() {
+    return new QueueChannel();
+}
+
+@Bean
+@BridgeTo("bridgeToOutput")
+public MessageChannel bridgeToInput() {
+    return new DirectChannel();
+}
+----
+
+You can use these annotations as meta-annotations as well.
+
+[[advising-annotated-endpoints]]
+== Advising Annotated Endpoints
+
+See xref:handler-advice/advising-with-annotations.adoc[Advising Endpoints Using Annotations].
+

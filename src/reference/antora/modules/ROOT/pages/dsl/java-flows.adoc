@@ -1,0 +1,43 @@
+[[java-dsl-flows]]
+= Working With Message Flows
+
+`IntegrationFlowBuilder` provides a top-level API to produce integration components wired to message flows.
+When your integration may be accomplished with a single flow (which is often the case), this is convenient.
+Alternately `IntegrationFlow` instances can be joined via `MessageChannel` instances.
+
+By default, `MessageFlow` behaves as a "`chain`" in Spring Integration parlance.
+That is, the endpoints are automatically and implicitly wired by `DirectChannel` instances.
+The message flow is not actually constructed as a chain, which offers much more flexibility.
+For example, you may send a message to any component within the flow, if you know its `inputChannel` name (that is, if you explicitly define it).
+You may also reference externally defined channels within a flow to allow the use of channel adapters (to enable remote transport protocols, file I/O, and so on), instead of direct channels.
+As such, the DSL does not support the Spring Integration `chain` element, because it does not add much value in this case.
+
+Since the Spring Integration Java DSL produces the same bean definition model as any other configuration options and is based on the existing Spring Framework `@Configuration` infrastructure, it can be used together with XML definitions and wired with Spring Integration messaging annotation configuration.
+
+You can also define direct `IntegrationFlow` instances by using a lambda.
+The following example shows how to do so:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow lambdaFlow() {
+    return f -> f.filter("World"::equals)
+                   .transform("Hello "::concat)
+                   .handle(System.out::println);
+}
+----
+
+The result of this definition is the same set of integration components that are wired with an implicit direct channel.
+The only limitation here is that this flow is started with a named direct channel - `lambdaFlow.input`.
+Also, a Lambda flow cannot start from `MessageSource` or `MessageProducer`.
+
+Starting with version 5.1, this kind of `IntegrationFlow` is wrapped to the proxy to expose lifecycle control and provide access to the `inputChannel` of the internally associated `StandardIntegrationFlow`.
+
+Starting with version 5.0.6, the generated bean names for the components in an `IntegrationFlow` include the flow bean followed by a dot (`.`) as a prefix.
+For example, the `ConsumerEndpointFactoryBean` for the `.transform("Hello "::concat)` in the preceding sample results in a bean name of `lambdaFlow.o.s.i.config.ConsumerEndpointFactoryBean#0`.
+(The `o.s.i` is a shortened from `org.springframework.integration` to fit on the page.)
+The `Transformer` implementation bean for that endpoint  has a bean name of `lambdaFlow.transformer#0` (starting with version 5.1), where instead of a fully qualified name of the `MethodInvokingTransformer` class, its component type is used.
+The same pattern is applied for all the `NamedComponent` s when the bean name has to be generated within the flow.
+These generated bean names are prepended with the flow ID for purposes such as parsing logs or grouping components together in some analysis tool, as well as to avoid a race condition when we concurrently register integration flows at runtime.
+See xref:dsl/java-runtime-flows.adoc[Dynamic and Runtime Integration Flows] for more information.
+

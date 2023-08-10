@@ -1,0 +1,47 @@
+[[ftp-server-events]]
+= Apache Mina FTP Server Events
+
+The `ApacheMinaFtplet`, added in version 5.2, listens for certain Apache Mina FTP server events and publishes them as `ApplicationEvent` s which can be received by any `ApplicationListener` bean, `@EventListener` bean method, or xref:event.adoc#appevent-inbound[Event Inbound Channel Adapter].
+
+Currently, supported events are:
+
+* `SessionOpenedEvent` - a client session was opened
+* `DirectoryCreatedEvent` - a directory was created
+* `FileWrittenEvent` - a file was written to
+* `PathMovedEvent` - a file or directory was renamed
+* `PathRemovedEvent` - a file or directory was removed
+* `SessionClosedEvent` - the client has disconnected
+
+Each of these is a subclass of `ApacheMinaFtpEvent`; you can configure a single listener to receive all the event types.
+The `source` property of each event is a `FtpSession`, from which you can obtain information such as the client address; a convenient `getSession()` method is provided on the abstract event.
+
+Events other than session open/close have another property `FtpRequest` which has properties such as the command and arguments.
+
+To configure the server with the listener (which must be a Spring bean), add it to the server factory:
+
+[source, java]
+----
+FtpServerFactory serverFactory = new FtpServerFactory();
+...
+ListenerFactory factory = new ListenerFactory();
+...
+serverFactory.addListener("default", factory.createListener());
+serverFactory.setFtplets(new HashMap<>(Collections.singletonMap("springFtplet", apacheMinaFtpletBean)));
+server = serverFactory.createServer();
+server.start();
+----
+
+To consume these events using a Spring Integration event adapter:
+
+[source, java]
+----
+@Bean
+public ApplicationEventListeningMessageProducer eventsAdapter() {
+    ApplicationEventListeningMessageProducer producer =
+        new ApplicationEventListeningMessageProducer();
+    producer.setEventTypes(ApacheMinaFtpEvent.class);
+    producer.setOutputChannel(eventChannel());
+    return producer;
+}
+----
+

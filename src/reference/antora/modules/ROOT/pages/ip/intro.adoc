@@ -1,0 +1,29 @@
+[[ip-intro]]
+= Introduction
+
+Two flavors each of UDP inbound and outbound channel adapters are provided:
+
+* `UnicastSendingMessageHandler` sends a datagram packet to a single destination.
+* `UnicastReceivingChannelAdapter` receives incoming datagram packets.
+* `MulticastSendingMessageHandler` sends (broadcasts) datagram packets to a multicast address.
+* `MulticastReceivingChannelAdapter` receives incoming datagram packets by joining to a multicast address.
+
+TCP inbound and outbound channel adapters are provided:
+
+* `TcpSendingMessageHandler` sends messages over TCP.
+* `TcpReceivingChannelAdapter` receives messages over TCP.
+
+An inbound TCP gateway is provided.
+It allows for simple request-response processing.
+While the gateway can support any number of connections, each connection can only be processed serially.
+The thread that reads from the socket waits for, and sends, the response before reading again.
+If the connection factory is configured for single use connections, the connection is closed after the socket times out.
+
+An outbound TCP gateway is provided.
+It allows for simple request-response processing.
+If the associated connection factory is configured for single-use connections, a new connection is immediately created for each new request.
+Otherwise, if the connection is in use, the calling thread blocks on the connection until either a response is received or a timeout or I/O error occurs.
+
+The TCP and UDP inbound channel adapters and the TCP inbound gateway support the `error-channel` attribute.
+This provides the same basic functionality as described in xref:gateway.adoc#gateway-proxy[Enter the `GatewayProxyFactoryBean`].
+

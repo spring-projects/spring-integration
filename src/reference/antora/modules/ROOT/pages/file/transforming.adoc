@@ -1,0 +1,33 @@
+[[file-transforming]]
+= File Transformers
+
+To transform data read from the file system to objects and the other way around, you need to do some work.
+Unlike `FileReadingMessageSource` and to a lesser extent `FileWritingMessageHandler`, you probably need your own mechanism to get the job done.
+For this, you can implement the `Transformer` interface.
+Alternatively, you can extend the `AbstractFilePayloadTransformer` for inbound messages.
+Spring Integration provides some obvious implementations.
+
+See the https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/Transformer.html[Javadoc for the `Transformer` interface] to see which Spring Integration classes implement it.
+Similarly, you can check the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/transformer/AbstractFilePayloadTransformer.html[Javadoc for the `AbstractFilePayloadTransformer` class] to see which Spring Integration classes extend it.
+
+`FileToByteArrayTransformer` extends `AbstractFilePayloadTransformer` and transforms a `File` object into a `byte[]` by using Spring's `FileCopyUtils`.
+It is often better to use a sequence of transformers than to put all transformations in a single class.
+In that case the `File` to `byte[]` conversion might be a logical first step.
+
+`FileToStringTransformer` extends `AbstractFilePayloadTransformer` convert a `File` object to a `String`.
+If nothing else, this can be useful for debugging (consider using it with a xref:channel/configuration.adoc#channel-wiretap[wire tap]).
+
+To configure file-specific transformers, you can use the appropriate elements from the file namespace, as the following example shows:
+
+[source,xml]
+----
+<int-file:file-to-bytes-transformer  input-channel="input" output-channel="output"
+    delete-files="true"/>
+
+<int-file:file-to-string-transformer input-channel="input" output-channel="output"
+    delete-files="true" charset="UTF-8"/>
+----
+
+The `delete-files` option signals to the transformer that it should delete the inbound file after the transformation is complete.
+This is in no way a replacement for using an `AcceptOnceFileListFilter` when the `FileReadingMessageSource` is being used in a multi-threaded environment (such as when you use Spring Integration in general).
+

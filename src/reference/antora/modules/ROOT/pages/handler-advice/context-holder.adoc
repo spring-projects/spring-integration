@@ -1,0 +1,36 @@
+[[context-holder-advice]]
+= Context Holder Advice
+
+Starting with version 6.1, the `ContextHolderRequestHandlerAdvice` has been introduced.
+This advice takes some value from the request message as and stores it in the context holder.
+The value is clear from the context when an execution is finished on the target `MessageHandler`.
+The best way to think about this advice is similar to the programming flow where we store some value into a `ThreadLocal`, get access to it from the target call and then clean up the `ThreadLocal` after execution.
+The `ContextHolderRequestHandlerAdvice` requires these constructor arguments: a `Function<Message<?>, Object>` as a value provider, `Consumer<Object>` as a context set callback and `Runnable` as a context clean up hook.
+
+Following is a sample how a `ContextHolderRequestHandlerAdvice` can be used in combination with a `o.s.i.file.remote.session.DelegatingSessionFactory`:
+
+[source, java]
+----
+@Bean
+DelegatingSessionFactory<?> dsf(SessionFactory<?> one, SessionFactory<?> two) {
+    return new DelegatingSessionFactory<>(Map.of("one", one, "two", two), null);
+}
+
+@Bean
+ContextHolderRequestHandlerAdvice contextHolderRequestHandlerAdvice(DelegatingSessionFactory<String> dsf) {
+    return new ContextHolderRequestHandlerAdvice(message -> message.getHeaders().get("FACTORY_KEY"),
+                                      dsf::setThreadKey, dsf::clearThreadKey);
+}
+
+@ServiceActivator(inputChannel = "in", adviceChain = "contextHolderRequestHandlerAdvice")
+FtpOutboundGateway ftpOutboundGateway(DelegatingSessionFactory<?> sessionFactory) {
+	return new FtpOutboundGateway(sessionFactory, "ls", "payload");
+}
+----
+
+And it is just enough to send a message to the `in` channel with a `FACTORY_KEY` header set to either `one` or `two`.
+The `ContextHolderRequestHandlerAdvice` sets the value from that header into a `DelegatingSessionFactory` via its `setThreadKey`.
+Then when `FtpOutboundGateway` executes an `ls` command a proper delegating `SessionFactory` is chosen from the `DelegatingSessionFactory` according to the value in its `ThreadLocal`.
+When the result is produced from the `FtpOutboundGateway`, a `ThreadLocal` value in the `DelegatingSessionFactory` is cleared according to the `clearThreadKey()` call from the `ContextHolderRequestHandlerAdvice`.
+See xref:ftp/dsf.adoc[Delegating Session Factory] for more information.
+

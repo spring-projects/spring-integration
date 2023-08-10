@@ -1,0 +1,67 @@
+[[xml-xpath-filter]]
+= Using the XPath Filter
+
+This component defines an XPath-based message filter.
+Internally, these components uses a `MessageFilter` that wraps an instance of `AbstractXPathMessageSelector`.
+
+NOTE: See xref:filter.adoc[Filter] for further details.
+
+to use the XPath filter you must, at a minimum, provide an XPath expression either by declaring the `xpath-expression` element or by referencing an XPath Expression in the `xpath-expression-ref` attribute.
+
+If the provided XPath expression evaluates to a `boolean` value, no further configuration parameters are necessary.
+However, if the XPath expression evaluates to a `String`, you should set the `match-value` attribute, against which the evaluation result is matched.
+
+`match-type` has three options:
+
+* `exact`: Correspond to `equals` on `java.lang.String`.
+The underlying implementation uses a `StringValueTestXPathMessageSelector`
+
+* `case-insensitive`: Correspond to `equals-ignore-case` on `java.lang.String`.
+The underlying implementation uses a `StringValueTestXPathMessageSelector`
+
+* `regex`: Matches operations one `java.lang.String`.
+The underlying implementation uses a `RegexTestXPathMessageSelector`
+
+When providing a 'match-type' value of 'regex', the value provided with the `match-value` attribute must be a valid regular expression.
+
+The following example shows all the available attributes for the `xpath-filter` element:
+
+[source,xml]
+----
+<int-xml:xpath-filter discard-channel=""                      <1>
+                      id=""                                   <2>
+                      input-channel=""                        <3>
+                      match-type="exact"                      <4>
+                      match-value=""                          <5>
+                      output-channel=""                       <6>
+                      throw-exception-on-rejection="false"    <7>
+                      xpath-expression-ref="">                <8>
+    <int-xml:xpath-expression ... />                          <9>
+    <int:poller ... />                                        <10>
+</int-xml:xpath-filter>
+----
+
+<1> Message channel where you want rejected messages to be sent.
+Optional.
+<2> ID for the underlying bean definition.
+Optional.
+<3> The receiving message channel of this endpoint.
+Optional.
+<4> Type of match to apply between the XPath evaluation result and the `match-value`.
+The default is `exact`.
+Optional.
+<5> String value to be matched against the XPath evaluation result.
+If you do not set this attribute, the XPath evaluation must produce a boolean result.
+Optional.
+<6> The channel to which messages that matched the filter criteria are dispatched.
+Optional.
+<7> By default, this property is set to `false` and rejected messages (those did not match the filter criteria) are silently dropped.
+However, if set to `true`, message rejection results in an error condition and an exception being propagated upstream to the caller.
+Optional.
+<8> Reference to an XPath expression instance to evaluate.
+<9> This child element sets the XPath expression to be evaluated.
+If you do not include this element, you must set the `xpath-expression-ref` attribute.
+Also, you can include only one `xpath-expression` element.
+<10> A poller to use with the XPath filter.
+Optional.
+

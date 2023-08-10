@@ -1,0 +1,108 @@
+[[router-namespace]]
+= Configuring a Generic Router
+
+Spring Integration provides a generic router.
+You can use it for general-purpose routing (as opposed to the other routers provided by Spring Integration, each of which has some form of specialization).
+
+[[configuring-a-content-based-router-with-xml]]
+== Configuring a Content-based Router with XML
+
+The `router` element provides a way to connect a router to an input channel and also accepts the optional `default-output-channel` attribute.
+The `ref` attribute references the bean name of a custom router implementation (which must extend `AbstractMessageRouter`).
+The following example shows three generic routers:
+
+[source,xml]
+----
+<int:router ref="payloadTypeRouter" input-channel="input1"
+            default-output-channel="defaultOutput1"/>
+
+<int:router ref="recipientListRouter" input-channel="input2"
+            default-output-channel="defaultOutput2"/>
+
+<int:router ref="customRouter" input-channel="input3"
+            default-output-channel="defaultOutput3"/>
+
+<beans:bean id="customRouterBean" class="org.foo.MyCustomRouter"/>
+----
+
+Alternatively, `ref` may point to a POJO that contains the `@Router` annotation (shown later), or you can combine the `ref` with an explicit method name.
+Specifying a method applies the same behavior described in the `@Router` annotation section, later in this document.
+The following example defines a router that points to a POJO in its `ref` attribute:
+
+[source,xml]
+----
+<int:router input-channel="input" ref="somePojo" method="someMethod"/>
+----
+
+We generally recommend using a `ref` attribute if the custom router implementation is referenced in other `<router>` definitions.
+However, if the custom router implementation should be scoped to a single definition of the `<router>`, you can provide an inner bean definition, as the following example shows:
+
+[source,xml]
+----
+<int:router method="someMethod" input-channel="input3"
+            default-output-channel="defaultOutput3">
+    <beans:bean class="org.foo.MyCustomRouter"/>
+</int:router>
+----
+
+NOTE: Using both the `ref` attribute and an inner handler definition in the same `<router>` configuration is not allowed.
+Doing so creates an ambiguous condition and throws an exception.
+
+IMPORTANT: If the `ref` attribute references a bean that extends `AbstractMessageProducingHandler` (such as routers provided by the framework itself), the configuration is optimized to reference the router directly.
+In this case, each `ref` attribute must refer to a separate bean instance (or a `prototype`-scoped bean) or use the inner `<bean/>` configuration type.
+However, this optimization applies only if you do not provide any router-specific attributes in the router XML definition.
+If you inadvertently reference the same message handler from multiple beans, you get a configuration exception.
+
+The following example shows the equivalent router configured in Java:
+
+[source, java]
+----
+@Bean
+@Router(inputChannel = "routingChannel")
+public AbstractMessageRouter myCustomRouter() {
+    return new AbstractMessageRouter() {
+
+        @Override
+        protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+            return // determine channel(s) for message
+        }
+
+    };
+}
+----
+
+The following example shows the equivalent router configured by using the Java DSL:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow() {
+    return IntegrationFlow.from("routingChannel")
+            .route(myCustomRouter())
+            .get();
+}
+
+public AbstractMessageRouter myCustomRouter() {
+    return new AbstractMessageRouter() {
+
+        @Override
+        protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+            return // determine channel(s) for message
+        }
+
+    };
+}
+----
+
+Alternately, you can route on data from the message payload, as the following example shows:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow() {
+    return IntegrationFlow.from("routingChannel")
+            .route(String.class, p -> p.contains("foo") ? "fooChannel" : "barChannel")
+            .get();
+}
+----
+

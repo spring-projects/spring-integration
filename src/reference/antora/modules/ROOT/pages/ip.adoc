@@ -1,0 +1,32 @@
+[[ip]]
+= TCP and UDP Support
+
+Spring Integration provides channel adapters for receiving and sending messages over internet protocols.
+Both UDP (User Datagram Protocol) and TCP (Transmission Control Protocol) adapters are provided.
+Each adapter provides for one-way communication over the underlying protocol.
+In addition, Spring Integration provides simple inbound and outbound TCP gateways.
+These are used when two-way communication is needed.
+
+You need to include this dependency into your project:
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-ip</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "org.springframework.integration:spring-integration-ip:{project-version}"
+----
+======
+

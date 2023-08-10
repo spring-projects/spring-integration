@@ -1,0 +1,15 @@
+[[messaging-routing-chapter]]
+= Message Routing
+:page-section-summary-toc: 1
+
+This chapter covers the details of using Spring Integration to route messages.
+
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
+
+
+
+
+
+
+
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297

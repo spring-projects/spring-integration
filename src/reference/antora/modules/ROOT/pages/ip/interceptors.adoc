@@ -1,0 +1,57 @@
+[[ip-interceptors]]
+= TCP Connection Interceptors
+
+You can configure connection factories with a reference to a `TcpConnectionInterceptorFactoryChain`.
+You can use interceptors to add behavior to connections, such as negotiation, security, and other options.
+No interceptors are currently provided by the framework, but see https://github.com/spring-projects/spring-integration/blob/main/spring-integration-ip/src/test/java/org/springframework/integration/ip/tcp/InterceptedSharedConnectionTests.java[`InterceptedSharedConnectionTests` in the source repository] for an example.
+
+The `HelloWorldInterceptor` used in the test case works as follows:
+
+The interceptor is first configured with a client connection factory.
+When the first message is sent over an intercepted connection, the interceptor sends 'Hello' over the connection and expects to receive 'world!'.
+When that occurs, the negotiation is complete and the original message is sent.
+Further, messages that use the same connection are sent without any additional negotiation.
+
+When configured with a server connection factory, the interceptor requires the first message to be 'Hello' and, if it is, returns 'world!'.
+Otherwise, it throws an exception that causes the connection to be closed.
+
+All `TcpConnection` methods are intercepted.
+Interceptor instances are created for each connection by an interceptor factory.
+If an interceptor is stateful, the factory should create a new instance for each connection.
+If there is no state, the same interceptor can wrap each connection.
+Interceptor factories are added to the configuration of an interceptor factory chain, which you can provide to a connection factory by setting the `interceptor-factory` attribute.
+Interceptors must extend `TcpConnectionInterceptorSupport`.
+Factories must implement the `TcpConnectionInterceptorFactory` interface.
+`TcpConnectionInterceptorSupport` has passthrough methods.
+By extending this class, you only need to implement those methods you wish to intercept.
+
+The following example shows how to configure a connection interceptor factory chain:
+
+[source,xml]
+----
+<bean id="helloWorldInterceptorFactory"
+    class="o.s.i.ip.tcp.connection.TcpConnectionInterceptorFactoryChain">
+    <property name="interceptors">
+        <array>
+            <bean class="o.s.i.ip.tcp.connection.HelloWorldInterceptorFactory"/>
+        </array>
+    </property>
+</bean>
+
+<int-ip:tcp-connection-factory id="server"
+    type="server"
+    port="12345"
+    using-nio="true"
+    single-use="true"
+    interceptor-factory-chain="helloWorldInterceptorFactory"/>
+
+<int-ip:tcp-connection-factory id="client"
+    type="client"
+    host="localhost"
+    port="12345"
+    single-use="true"
+    so-timeout="100000"
+    using-nio="true"
+    interceptor-factory-chain="helloWorldInterceptorFactory"/>
+----
+

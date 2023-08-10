@@ -1,0 +1,74 @@
+[[jdbc-outbound-gateway]]
+= Outbound Gateway
+
+The outbound gateway is like a combination of the outbound and inbound adapters: Its role is to handle a message and use it to execute a SQL query and then respond with the result by sending it to a reply channel.
+By default, the message payload and headers are available as input parameters to the query, as the following example shows:
+
+[source,xml]
+----
+<int-jdbc:outbound-gateway
+    update="insert into mythings (id, status, name) values (:headers[id], 0, :payload[thing])"
+    request-channel="input" reply-channel="output" data-source="dataSource" />
+----
+
+The result of the preceding example is to insert a record into the `mythings` table and return a message that indicates the number of rows affected (the payload is a map: `{UPDATED=1}`) to the output channel .
+
+If the update query is an insert with auto-generated keys, you can populate the reply message with the generated keys by adding `keys-generated="true"` to the preceding example (this is not the default because it is not supported by some database platforms).
+The following example shows the changed configuration:
+
+[source,xml]
+----
+<int-jdbc:outbound-gateway
+    update="insert into mythings (status, name) values (0, :payload[thing])"
+    request-channel="input" reply-channel="output" data-source="dataSource"
+    keys-generated="true"/>
+----
+
+Instead of the update count or the generated keys, you can also provide a select query to execute and generate a reply message from the result (such as the inbound adapter), as the following example shows:
+
+[source,xml]
+----
+<int-jdbc:outbound-gateway
+    update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
+    query="select * from foos where id=:headers[$id]"
+    request-channel="input" reply-channel="output" data-source="dataSource"/>
+----
+
+Since Spring Integration 2.2, the update SQL query is no longer mandatory.
+You can now provide only a select query, by using either the `query` attribute or the `query` element.
+This is extremely useful if you need to actively retrieve data by using, for example, a generic gateway or a payload enricher.
+The reply message is then generated from the result (similar to how the inbound adapter works) and passed to the reply channel.
+The following example show to use the `query` attribute:
+
+[source,xml]
+----
+<int-jdbc:outbound-gateway
+    query="select * from foos where id=:headers[id]"
+    request-channel="input"
+    reply-channel="output"
+    data-source="dataSource"/>
+----
+
+[IMPORTANT]
+====
+By default, the component for the `SELECT` query returns only one (the first) row from the cursor.
+You can adjust this behavior with the `max-rows` option.
+If you need to return all the rows from the SELECT, consider specifying `max-rows="0"`.
+====
+
+As with the channel adapters, you can also provide `SqlParameterSourceFactory` instances for request and reply.
+The default is the same as for the outbound adapter, so the request message is available as the root of an expression.
+If `keys-generated="true"`, the root of the expression is the generated keys (a map if there is only one or a list of maps if multi-valued).
+
+The outbound gateway requires a reference to either a `DataSource` or a `JdbcTemplate`.
+It can also have a `SqlParameterSourceFactory` injected to control the binding of the incoming message to the query.
+
+Starting with the version 4.2, the `request-prepared-statement-setter` attribute is available on the `<int-jdbc:outbound-gateway>` as an alternative to `request-sql-parameter-source-factory`.
+It lets you specify a `MessagePreparedStatementSetter` bean reference, which implements more sophisticated `PreparedStatement` preparation before its execution.
+
+Starting with the version 6.0, the `JdbcOutboundGateway` returns an empty list result as is instead of converting it to `null` as it was before with the meaning "no reply".
+This caused an extra configuration in applications where handling of empty lists is a part of downstream logic.
+See xref:splitter.adoc#split-stream-and-flux[Splitter Discard Channel] for possible empty list handling option.
+
+See xref:jdbc/outbound-channel-adapter.adoc[Outbound Channel Adapter] for more information about `MessagePreparedStatementSetter`.
+

@@ -1,0 +1,185 @@
+[[ftp-outbound]]
+= FTP Outbound Channel Adapter
+
+The FTP outbound channel adapter relies on a `MessageHandler` implementation that connects to the FTP server and initiates an FTP transfer for every file it receives in the payload of incoming messages.
+It also supports several representations of a file, so you are not limited only to `java.io.File`-typed payloads.
+The FTP outbound channel adapter supports the following payloads:
+
+* `java.io.File`: The actual file object
+* `byte[]`: A byte array that represents the file contents
+* `java.lang.String`: Text that represents the file contents
+* `java.io.InputStream`: a stream of data to transfer to remote file
+* `org.springframework.core.io.Resource`: a resource for data to transfer to remote file
+
+The following example shows how to configure an `outbound-channel-adapter`:
+
+[source,xml]
+----
+<int-ftp:outbound-channel-adapter id="ftpOutbound"
+    channel="ftpChannel"
+    session-factory="ftpSessionFactory"
+    charset="UTF-8"
+    remote-file-separator="/"
+    auto-create-directory="true"
+    remote-directory-expression="headers['remote_dir']"
+    temporary-remote-directory-expression="headers['temp_remote_dir']"
+    filename-generator="fileNameGenerator"
+    use-temporary-filename="true"
+    chmod="600"
+    mode="REPLACE"/>
+----
+
+The preceding configuration shows how you can configure an FTP outbound channel adapter by using the `outbound-channel-adapter` element while also providing values for various attributes, such as `filename-generator` (an implementation of the `o.s.i.file.FileNameGenerator` strategy interface), a reference to a `session-factory`, and other attributes.
+You can also see some examples of `*expression` attributes that let you use SpEL to configure settings such as `remote-directory-expression`, `temporary-remote-directory-expression`, and `remote-filename-generator-expression` (a SpEL alternative to `filename-generator`, shown in the preceding example).
+As with any component that allows the usage of SpEL, access to the payload and the message Headers is available through the 'payload' and 'headers' variables.
+See the https://github.com/spring-projects/spring-integration/tree/main/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more details on the available attributes.
+
+NOTE: By default,  if no file name generator is specified, Spring Integration uses `o.s.i.file.DefaultFileNameGenerator`.
+`DefaultFileNameGenerator` determines the file name based on the value of the `file_name` header (if it exists) in the `MessageHeaders`, or, if the payload of the Message is already a `java.io.File`, it uses the original name of that file.
+
+IMPORTANT: Defining certain values (such as `remote-directory`) might be platform- or FTP server-dependent.
+For example, as was reported on https://forum.spring.io/showthread.php?p=333478&posted=1#post333478, on some platforms, you must add a slash to the end of the directory definition (for example, `remote-directory="/thing1/thing2/"` instead of `remote-directory="/thing1/thing2"`).
+
+Starting with version 4.1, you can specify the `mode` when transferring the file.
+By default, an existing file is overwritten.
+The modes are defined by the `FileExistsMode` enumeration, which includes the following values:
+
+* `REPLACE` (default)
+* `REPLACE_IF_MODIFIED`
+* `APPEND`
+* `APPEND_NO_FLUSH`
+* `IGNORE`
+* `FAIL`
+
+`IGNORE` and `FAIL` do not transfer the file.
+`FAIL` causes an exception to be thrown, while `IGNORE` silently ignores the transfer (although a `DEBUG` log entry is produced).
+
+Version 5.2 introduced the `chmod` attribute, which you can use to change the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
+Only applies if your FTP server supports the `SITE CHMOD` subcommand.
+
+[[avoiding-partially-written-files]]
+== Avoiding Partially Written Files
+
+One of the common problems that arises when dealing with file transfers is the possibility of processing a partial file.
+That is, a file might appear in the file system before its transfer is actually complete.
+
+To deal with this issue, Spring Integration FTP adapters use a common algorithm: Files are transferred under a temporary name and then renamed once they are fully transferred.
+
+By default, every file that is in the process of being transferred appears in the file system with an additional suffix, which, by default, is `.writing`.
+You can change this suffix by setting the `temporary-file-suffix` attribute.
+
+However, there may be situations where you do not want to use this technique (for example, if the server does not permit renaming files).
+For situations like this, you can disable this feature by setting `use-temporary-file-name` to `false` (the default is `true`).
+When this attribute is `false`, the file is written with its final name and the consuming application needs some other mechanism to detect that the file is completely uploaded before accessing it.
+
+[[configuring-with-java-configuration]]
+== Configuring with Java Configuration
+
+The following Spring Boot application shows an example of how to configure the outbound adapter with Java configuration:
+
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class FtpJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+                    new SpringApplicationBuilder(FtpJavaApplication.class)
+                        .web(false)
+                        .run(args);
+        MyGateway gateway = context.getBean(MyGateway.class);
+        gateway.sendToFtp(new File("/foo/bar.txt"));
+    }
+
+    @Bean
+    public SessionFactory<FTPFile> ftpSessionFactory() {
+        DefaultFtpSessionFactory sf = new DefaultFtpSessionFactory();
+        sf.setHost("localhost");
+        sf.setPort(port);
+        sf.setUsername("foo");
+        sf.setPassword("foo");
+        sf.setTestSession(true);
+        return new CachingSessionFactory<FTPFile>(sf);
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "ftpChannel")
+    public MessageHandler handler() {
+        FtpMessageHandler handler = new FtpMessageHandler(ftpSessionFactory());
+        handler.setRemoteDirectoryExpressionString("headers['remote-target-dir']");
+        handler.setFileNameGenerator(new FileNameGenerator() {
+
+            @Override
+            public String generateFileName(Message<?> message) {
+                 return "handlerContent.test";
+            }
+
+        });
+        return handler;
+    }
+
+    @MessagingGateway
+    public interface MyGateway {
+
+         @Gateway(requestChannel = "toFtpChannel")
+         void sendToFtp(File file);
+
+    }
+}
+----
+
+[[configuring-with-the-java-dsl]]
+== Configuring with the Java DSL
+
+The following Spring Boot application shows an example of how to configure the outbound adapter using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class FtpJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+            new SpringApplicationBuilder(FtpJavaApplication.class)
+                .web(false)
+                .run(args);
+        MyGateway gateway = context.getBean(MyGateway.class);
+        gateway.sendToFtp(new File("/foo/bar.txt"));
+    }
+
+    @Bean
+    public SessionFactory<FTPFile> ftpSessionFactory() {
+        DefaultFtpSessionFactory sf = new DefaultFtpSessionFactory();
+        sf.setHost("localhost");
+        sf.setPort(port);
+        sf.setUsername("foo");
+        sf.setPassword("foo");
+        sf.setTestSession(true);
+        return new CachingSessionFactory<FTPFile>(sf);
+    }
+
+    @Bean
+    public IntegrationFlow ftpOutboundFlow() {
+        return IntegrationFlow.from("toFtpChannel")
+                .handle(Ftp.outboundAdapter(ftpSessionFactory(), FileExistsMode.FAIL)
+                        .useTemporaryFileName(false)
+                        .fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+                        .remoteDirectory(this.ftpServer.getTargetFtpDirectory().getName())
+                ).get();
+    }
+
+    @MessagingGateway
+    public interface MyGateway {
+
+         @Gateway(requestChannel = "toFtpChannel")
+         void sendToFtp(File file);
+
+    }
+
+}
+----
+

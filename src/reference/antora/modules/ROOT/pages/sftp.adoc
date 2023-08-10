@@ -1,0 +1,50 @@
+[[sftp]]
+= SFTP Adapters
+
+Spring Integration provides support for file transfer operations over SFTP.
+
+The Secure File Transfer Protocol (SFTP) is a network protocol that lets you transfer files between two computers on the Internet over any reliable stream.
+
+The SFTP protocol requires a secure channel, such as SSH, and visibility to a client's identity throughout the SFTP session.
+
+Spring Integration supports sending and receiving files over SFTP by providing three client side endpoints: inbound channel adapter, outbound channel adapter, and outbound gateway.
+It also provides convenient namespace configuration to define these client components.
+
+NOTE: Starting with version 6.0, an outdated JCraft JSch client has been replaced with modern https://mina.apache.org/sshd-project/index.html[Apache MINA SSHD] framework.
+This caused a lot of breaking changes in the framework components.
+However, in most cases, such a migration is hidden behind Spring Integration API.
+The most drastic changed has happened with a `DefaultSftpSessionFactory` which is based now on the `org.apache.sshd.client.SshClient` and exposes some if its configuration properties.
+
+
+You need to include this dependency into your project:
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-sftp</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "org.springframework.integration:spring-integration-sftp:{project-version}"
+----
+======
+
+To include the SFTP namespace in your xml configuration, include the following attributes on the root element:
+
+[source,xml]
+----
+xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
+xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
+    https://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
+----
+

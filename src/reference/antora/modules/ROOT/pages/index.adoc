@@ -1,0 +1,77 @@
+= Spring Integration
+:toc!:
+
+Welcome to the Spring Integration reference documentation!
+
+[horizontal]
+xref:preface.adoc#preface[Preface] :: General project info, conventions
+xref:whats-new.adoc#whats-new[What's New] :: Features and changes made in the current version
+xref:overview.adoc[Overview] :: Introduction to EIP and its implementation in the project
+xref:core.adoc[Core Messaging] :: Main project abstractions and components
+xref:overview.adoc#overview-components-message[Message] :: Details about the message abstraction implementations
+xref:message-routing.adoc[Message Routing] :: main EIP components: router, splitter, aggregator, filter etc.
+xref:message-transformation.adoc[Message Transformation] :: Transformer, content enricher, claim check, codec
+xref:messaging-endpoints.adoc[Messaging Endpoints] :: Consumer endpoints, service activator, gateway, scripting, AOP aspects etc.
+xref:dsl.adoc#java-dsl[Java DSL] :: Details about Java DSL for EIP
+xref:groovy-dsl.adoc[Groovy DSL] :: Details about Groovy DSL for EIP
+xref:kotlin-dsl.adoc[Kotlin DSL] :: Details about Kotlin DSL for EIP
+xref:system-management.adoc[System Management] :: Message store, control bus, integration graph, metrics, JMX
+xref:reactive-streams.adoc[Reactive Streams Support] :: Details about Reactive Streams support: message channels, channel adapters etc.
+xref:native-aot.adoc[Native Images Support] :: GraalVM native images and Spring AOT support
+
+[horizontal]
+**Integration Endpoints** ::
+
+[horizontal]
+xref:endpoint-summary.adoc[Integration Endpoint Summary] :: Protocol-specific channel adapters and gateways summary
+xref:amqp.adoc[AMQP Support] :: AMQP channels, adapters and gateways
+xref:camel.adoc[Apache Camel Support] :: Apache Camel channel adapters and gateways
+xref:cassandra.adoc[Apache Cassandra Support] :: Apache Cassandra channel adapters
+xref:debezium.adoc[Debezium CDC Support] :: Debezium channel adapters
+xref:event.adoc[Spring `ApplicationEvent` Support] :: Handling and consuming Spring application events with channel adapters
+xref:feed.adoc[Feed Adapter] :: RSS and Atom channel adapters
+xref:file.adoc[File Support] :: Channel adapters and gateways for file system support
+xref:ftp.adoc[FTP/FTPS Adapters] :: Channel adapters and gateways for FTP protocol
+xref:graphql.adoc[GraphQL Support] :: Channel adapters for GraphQL
+xref:hazelcast.adoc[Hazelcast Support] :: Channel adapters, gateways and utilities for Hazelcast
+xref:http.adoc[HTTP Support] :: Channel adapters and gateways for HTTP communication
+xref:jdbc.adoc[JDBC Support] :: Channel adapters and gateways for JDBC, message and metadata stores
+xref:jpa.adoc[JPA Support] :: Channel adapters and gateways for JPA API
+xref:jms.adoc[JMS Support] :: Channel adapters and gateways for JMS API
+xref:jmx.adoc[JMX Support] :: Channel adapters for JMX interaction, integration-specific MBean exporter
+xref:kafka.adoc[Apache Kafka Support] :: Channels, adapters and gateways for Apache Kafka
+xref:mail.adoc[Mail Support] :: Channel adapters for Java Mail API
+xref:mongodb.adoc[MongoDb Support] :: Channels, adapters, gateways and message store for MongoDb
+xref:mqtt.adoc[MQTT Support] :: Channel adapters for MQTT protocol
+xref:r2dbc.adoc[R2DBC Support] :: Channel adapters for R2DBC API
+xref:redis.adoc[Redis Support] ::  Channels, adapters, gateways and message store for Redis
+xref:resource.adoc[Resource Support] :: Spring resource channel adapters
+xref:rsocket.adoc[RSocket Support] :: Channel adapters for RSocket protocol
+xref:sftp.adoc[SFTP Adapters] :: Channel adapters and gateways for FTP protocol
+xref:smb.adoc[SMB Support] :: Channel adapters and gateways for SMB protocol
+xref:stomp.adoc[STOMP Support] :: Channel adapters and gateways for STOMP protocol
+xref:stream.adoc[Stream Support] :: Channel adapters for Java IO stream API
+xref:syslog.adoc[Syslog Support] :: Channel adapters for Syslog protocol
+xref:ip.adoc[TCP and UDP Support] :: Channel adapters and gateways for TCP and UDP protocols
+xref:webflux.adoc[WebFlux Support] :: Channel adapters and gateways for WebFlux API
+xref:web-sockets.adoc[WebSockets Support] :: Channel adapters for WebSockets protocol
+xref:ws.adoc[Web Services Support] :: Channel adapters for SOAP protocol
+xref:xml.adoc[XML Support - Dealing with XML Payloads] :: Channel adapters and transformers for XML API, xPath
+xref:xmpp.adoc[XMPP Support] :: Channel adapters for XMPP protocol
+xref:zeromq.adoc[ZeroMQ Support] :: Channels and adapters for ZeroMQ protocol
+xref:zookeeper.adoc[Zookeeper Support] :: Channel adapters for Zookeeper and Curator API
+
+[horizontal]
+**Appendices** ::
+
+[horizontal]
+xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] :: Overview of error handling approaches in Spring Integration
+xref:spel.adoc[Spring Expression Language (SpEL)] :: Details about SpEL support
+xref:message-publishing.adoc[Message Publishing] :: The Publisher annotation etc.
+xref:jms.adoc#jms-ob-transactions[Transaction Support] :: Overview of transactions support in Spring Integration
+xref:security.adoc[Security in Spring Integration] :: Securing Spring Integration flows
+xref:kafka.adoc#kafka-inbound-gateway-configurartion[Configuration] :: Messaging annotations, task scheduler, global properties, message mapping
+xref:testing.adoc[Testing support] :: Test utilities, Integration mocks and testing framework
+xref:samples.adoc#samples-impl[Spring Integration Samples] :: The samples dedicated project
+xref:resources.adoc[Additional Resources] :: Other resources related to project
+xref:history.adoc[Change History] :: The changes made in the project over time

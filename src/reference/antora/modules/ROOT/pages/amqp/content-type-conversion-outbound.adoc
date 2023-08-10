@@ -1,0 +1,57 @@
+[[content-type-conversion-outbound]]
+= Outbound Message Conversion
+
+Spring AMQP 1.4 introduced the `ContentTypeDelegatingMessageConverter`, where the actual converter is selected based
+on the incoming content type message property.
+This can be used by inbound endpoints.
+
+As of Spring Integration version 4.3, you can use the `ContentTypeDelegatingMessageConverter` on outbound endpoints as well, with the `contentType` header specifying which converter is used.
+
+The following example configures a `ContentTypeDelegatingMessageConverter`, with the default converter being the `SimpleMessageConverter` (which handles Java serialization and plain text), together with a JSON converter:
+
+[source, xml]
+----
+<amqp:outbound-channel-adapter id="withContentTypeConverter" channel="ctRequestChannel"
+                               exchange-name="someExchange"
+                               routing-key="someKey"
+                               amqp-template="amqpTemplateContentTypeConverter" />
+
+<int:channel id="ctRequestChannel"/>
+
+<rabbit:template id="amqpTemplateContentTypeConverter"
+        connection-factory="connectionFactory" message-converter="ctConverter" />
+
+<bean id="ctConverter"
+        class="o.s.amqp.support.converter.ContentTypeDelegatingMessageConverter">
+    <property name="delegates">
+        <map>
+            <entry key="application/json">
+                <bean class="o.s.amqp.support.converter.Jackson2JsonMessageConverter" />
+            </entry>
+        </map>
+    </property>
+</bean>
+----
+
+Sending a message to `ctRequestChannel` with the `contentType` header set to `application/json` causes the JSON converter to be selected.
+
+This applies to both the outbound channel adapter and gateway.
+
+[NOTE]
+====
+Starting with version 5.0, headers that are added to the `MessageProperties` of the outbound message are never overwritten by mapped headers (by default).
+Previously, this was only the case if the message converter was a `ContentTypeDelegatingMessageConverter` (in that case, the header was mapped first so that the proper converter could be selected).
+For other converters, such as the `SimpleMessageConverter`, mapped headers overwrote any headers added by the converter.
+This caused problems when an outbound message had some leftover `contentType` headers (perhaps from an inbound channel adapter) and the correct outbound `contentType` was incorrectly overwritten.
+The work-around was to use a header filter to remove the header before sending the message to the outbound endpoint.
+
+There are, however, cases where the previous behavior is desired -- for example, when a `String` payload that contains JSON, the `SimpleMessageConverter` is not aware of the content and sets the `contentType` message property to `text/plain` but your application would like to override that to `application/json` by setting the `contentType` header of the message sent to the outbound endpoint.
+The `ObjectToJsonTransformer` does exactly that (by default).
+
+There is now a property called `headersMappedLast` on the outbound channel adapter and gateway (as well as on AMQP-backed channels).
+Setting this to `true` restores the behavior of overwriting the property added by the converter.
+
+Starting with version 5.1.9, a similar `replyHeadersMappedLast` is provided for the `AmqpInboundGateway` when we produce a reply and would like to override headers populated by the converter.
+See its JavaDocs for more information.
+====
+

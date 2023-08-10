@@ -1,0 +1,121 @@
+[[amqp-inbound-gateway]]
+= Inbound Gateway
+
+The inbound gateway supports all the attributes on the inbound channel adapter (except that 'channel' is replaced by 'request-channel'), plus some additional attributes.
+The following listing shows the available attributes:
+
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean // return the upper cased payload
+public IntegrationFlow amqpInboundGateway(ConnectionFactory connectionFactory) {
+    return IntegrationFlow.from(Amqp.inboundGateway(connectionFactory, "foo"))
+            .transform(String.class, String::toUpperCase)
+            .get();
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
+----
+@Bean
+public MessageChannel amqpInputChannel() {
+    return new DirectChannel();
+}
+
+@Bean
+public AmqpInboundGateway inbound(SimpleMessageListenerContainer listenerContainer,
+        @Qualifier("amqpInputChannel") MessageChannel channel) {
+    AmqpInboundGateway gateway = new AmqpInboundGateway(listenerContainer);
+    gateway.setRequestChannel(channel);
+    gateway.setDefaultReplyTo("bar");
+    return gateway;
+}
+
+@Bean
+public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
+    SimpleMessageListenerContainer container =
+                    new SimpleMessageListenerContainer(connectionFactory);
+    container.setQueueNames("foo");
+    container.setConcurrentConsumers(2);
+    // ...
+    return container;
+}
+
+@Bean
+@ServiceActivator(inputChannel = "amqpInputChannel")
+public MessageHandler handler() {
+    return new AbstractReplyProducingMessageHandler() {
+
+        @Override
+        protected Object handleRequestMessage(Message<?> requestMessage) {
+            return "reply to " + requestMessage.getPayload();
+        }
+
+    };
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
+----
+<int-amqp:inbound-gateway
+                          id="inboundGateway"                <1>
+                          request-channel="myRequestChannel" <2>
+                          header-mapper=""                   <3>
+                          mapped-request-headers=""          <4>
+                          mapped-reply-headers=""            <5>
+                          reply-channel="myReplyChannel"     <6>
+                          reply-timeout="1000"               <7>
+                          amqp-template=""                   <8>
+                          default-reply-to="" />             <9>
+
+----
+======
+
+<1> The Unique ID for this adapter.
+Optional.
+<2> Message channel to which converted messages are sent.
+Required.
+<3> A reference to an `AmqpHeaderMapper` to use when receiving AMQP Messages.
+Optional.
+By default, only standard AMQP properties (such as `contentType`) are copied to and from Spring Integration `MessageHeaders`.
+Any user-defined headers within the AMQP `MessageProperties` are not copied to or from an AMQP message by the default `DefaultAmqpHeaderMapper`.
+Not allowed if 'request-header-names' or 'reply-header-names' is provided.
+<4> Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the `MessageHeaders`.
+This attribute can be provided only if the 'header-mapper' reference is not provided.
+The values in this list can also be simple patterns to be matched against the header names (e.g. `"\*"` or `"thing1*, thing2"` or `"*thing1"`).
+<5> Comma-separated list of names of `MessageHeaders` to be mapped into the AMQP message properties of the AMQP reply message.
+All standard Headers (such as `contentType`) are mapped to AMQP Message Properties, while user-defined headers are mapped to the 'headers' property.
+This attribute can only be provided if the 'header-mapper' reference is not provided.
+The values in this list can also be simple patterns to be matched against the header names (for example, `"\*"` or `"foo*, bar"` or `"*foo"`).
+<6> Message Channel where reply Messages are expected.
+Optional.
+<7> Sets the `receiveTimeout` on the underlying `o.s.i.core.MessagingTemplate` for receiving messages from the reply channel.
+If not specified, this property defaults to `1000` (1 second).
+Only applies if the container thread hands off to another thread before the reply is sent.
+<8> The customized `AmqpTemplate` bean reference (to have more control over the reply messages to send).
+You can provide an alternative implementation to the `RabbitTemplate`.
+<9> The `replyTo` `o.s.amqp.core.Address` to be used when the `requestMessage` does not have a `replyTo`
+property.
+If this option is not specified, no `amqp-template` is provided, no `replyTo` property exists in the request message, and
+an `IllegalStateException` is thrown because the reply cannot be routed.
+If this option is not specified and an external `amqp-template` is provided, no exception is thrown.
+You must either specify this option or configure a default `exchange` and `routingKey` on that template,
+if you anticipate cases when no `replyTo` property exists in the request message.
+
+See the note in xref:amqp/inbound-channel-adapter.adoc[Inbound Channel Adapter] about configuring the `listener-container` attribute.
+
+Starting with version 5.5, the `AmqpInboundChannelAdapter` can be configured with an `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when the retry operation is called internally.
+See `setMessageRecoverer()` JavaDocs for more information.
+
+[[amqp-gateway-debatching]]
+== Batched Messages
+
+See xref:amqp/inbound-channel-adapter.adoc#amqp-debatching[Batched Messages].
+

@@ -1,0 +1,21 @@
+[[advising-with-annotations]]
+= Advising Endpoints Using Annotations
+:page-section-summary-toc: 1
+
+When configuring certain endpoints by using annotations (`@Filter`, `@ServiceActivator`, `@Splitter`, and `@Transformer`), you can supply a bean name for the advice chain in the `adviceChain` attribute.
+In addition, the `@Filter` annotation also has the `discardWithinAdvice` attribute, which can be used to configure the discard behavior, as discussed in xref:handler-advice/advising-filters.adoc[Advising Filters].
+The following example causes the discard to be performed after the advice:
+
+[source,java]
+----
+@MessageEndpoint
+public class MyAdvisedFilter {
+
+    @Filter(inputChannel="input", outputChannel="output",
+            adviceChain="adviceChain", discardWithinAdvice="false")
+    public boolean filter(String s) {
+        return s.contains("good");
+    }
+}
+----
+

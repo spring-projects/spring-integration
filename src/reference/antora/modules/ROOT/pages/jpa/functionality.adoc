@@ -1,0 +1,13 @@
+[[functionality]]
+= Functionality
+:page-section-summary-toc: 1
+
+All JPA components perform their respective JPA operations by using one of the following:
+
+* Entity classes
+* Java Persistence Query Language (JPQL) for update, select and delete (JPQL does not support inserts)
+* Native Query
+* Named Query
+
+The following sections describe each of these components in more detail.
+

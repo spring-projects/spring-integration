@@ -1,0 +1,56 @@
+[[channel-interfaces]]
+= The MessageChannel Interface
+
+Spring Integration's top-level `MessageChannel` interface is defined as follows:
+
+[source,java]
+----
+public interface MessageChannel {
+
+    boolean send(Message message);
+
+    boolean send(Message message, long timeout);
+}
+----
+
+When sending a message, the return value is `true` if the message is sent successfully.
+If the send call times out or is interrupted, it returns `false`.
+
+[[channel-interfaces-pollablechannel]]
+== `PollableChannel`
+
+Since message channels may or may not buffer messages (as discussed in the xref:overview.adoc[Spring Integration Overview]), two sub-interfaces define the buffering (pollable) and non-buffering (subscribable) channel behavior.
+The following listing shows the definition of the `PollableChannel` interface:
+
+[source,java]
+----
+public interface PollableChannel extends MessageChannel {
+
+    Message<?> receive();
+
+    Message<?> receive(long timeout);
+
+}
+----
+
+As with the send methods, when receiving a message, the return value is null in the case of a timeout or interrupt.
+
+[[channel-interfaces-subscribablechannel]]
+== `SubscribableChannel`
+
+The `SubscribableChannel` base interface is implemented by channels that send messages directly to their subscribed `MessageHandler` instances.
+Therefore, they do not provide receive methods for polling.
+Instead, they define methods for managing those subscribers.
+The following listing shows the definition of the `SubscribableChannel` interface:
+
+[source,java]
+----
+public interface SubscribableChannel extends MessageChannel {
+
+    boolean subscribe(MessageHandler handler);
+
+    boolean unsubscribe(MessageHandler handler);
+
+}
+----
+

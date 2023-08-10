@@ -1,0 +1,27 @@
+[[sftp-max-fetch]]
+= Inbound Channel Adapters: Controlling Remote File Fetching
+
+You should consider two properties when configuring inbound channel adapters.
+`max-messages-per-poll`, as with all pollers, can be used to limit the number of messages emitted on each poll (if more than the configured value are ready).
+`max-fetch-size` (since version 5.0) can limit the number of files retrieved from the remote server at a time.
+
+The following scenarios assume the starting state is an empty local directory:
+
+* `max-messages-per-poll=2` and `max-fetch-size=1`: The adapter fetches one file, emits it, fetches the next file, and emit it.
+Then it sleeps until the next poll.
+* `max-messages-per-poll=2` and `max-fetch-size=2`): The adapter fetch both files and then emits each one.
+* `max-messages-per-poll=2` and `max-fetch-size=4`: The adapter fetches up to 4 files (if available) and emits the first two (if there are at least two).
+The next two files will be emitted on the next poll.
+* `max-messages-per-poll=2` and `max-fetch-size` not specified: The adapter fetches all remote files and emits the first two (if there are at least two).
+The subsequent files are emitted on subsequent polls (two at a time).
+When all are consumed, the remote fetch is attempted again, to pick up any new files.
+
+IMPORTANT: When you deploy multiple instances of an application, we recommend setting a small `max-fetch-size`, to avoid one instance "`grabbing`" all the files and starving other instances.
+
+Another use for `max-fetch-size` is when you want to stop fetching remote files but continue to process files that have already been fetched.
+Setting the `maxFetchSize` property on the `MessageSource` (programmatically, via JMX, or via a xref:groovy.adoc#groovy-control-bus[control bus]) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
+If the poller is active when the property is changed, the change takes effect on the next poll.
+
+Starting with version 5.1, the synchronizer can be provided with a `Comparator<?>`.
+This is useful when restricting the number of files fetched with `maxFetchSize`.
+

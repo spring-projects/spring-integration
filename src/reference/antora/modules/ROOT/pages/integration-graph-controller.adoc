@@ -1,0 +1,67 @@
+[[integration-graph-controller]]
+= Integration Graph Controller
+
+If your application is web-based (or built on top of Spring Boot with an embedded web container) and the Spring Integration HTTP or WebFlux module (see xref:http.adoc[HTTP Support] and xref:webflux.adoc[WebFlux Support], respectively) is present on the classpath, you can use a `IntegrationGraphController` to expose the `IntegrationGraphServer` functionality as a REST service.
+For this purpose, the `@EnableIntegrationGraphController` and `@Configuration` class annotations and the `<int-http:graph-controller/>` XML element are available in the HTTP module.
+Together with the `@EnableWebMvc` annotation (or `<mvc:annotation-driven/>` for XML definitions), this configuration registers an `IntegrationGraphController` `@RestController` where its `@RequestMapping.path` can be configured on the `@EnableIntegrationGraphController` annotation or `<int-http:graph-controller/>` element.
+The default path is `/integration`.
+
+The `IntegrationGraphController` `@RestController` provides the following services:
+
+* `@GetMapping(name = "getGraph")`: To retrieve the state of the Spring Integration components since the last `IntegrationGraphServer` refresh.
+The `o.s.i.support.management.graph.Graph` is returned as a `@ResponseBody` of the REST service.
+* `@GetMapping(path = "/refresh", name = "refreshGraph")`: To refresh the current `Graph` for the actual runtime state and return it as a REST response.
+It is not necessary to refresh the graph for metrics.
+They are provided in real-time when the graph is retrieved.
+Refresh can be called if the application context has been modified since the graph was last retrieved.
+In that case, the graph is completely rebuilt.
+
+You can set security and cross-origin restrictions for the `IntegrationGraphController` with the standard configuration options and components provided by the Spring Security and Spring MVC projects.
+The following example achieves those goals:
+
+[source,xml]
+----
+<mvc:annotation-driven />
+
+<mvc:cors>
+	<mvc:mapping path="/myIntegration/**"
+				 allowed-origins="http://localhost:9090"
+				 allowed-methods="GET" />
+</mvc:cors>
+
+<security:http>
+    <security:intercept-url pattern="/myIntegration/**" access="ROLE_ADMIN" />
+</security:http>
+
+
+<int-http:graph-controller path="/myIntegration" />
+----
+
+The following example shows how to do the same thing with Java configuration:
+
+[source,java]
+----
+@Configuration
+@EnableWebMvc // or @EnableWebFlux
+@EnableWebSecurity // or @EnableWebFluxSecurity
+@EnableIntegration
+@EnableIntegrationGraphController(path = "/testIntegration", allowedOrigins="http://localhost:9090")
+public class IntegrationConfiguration extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+	    http
+            .authorizeRequests()
+               .antMatchers("/testIntegration/**").hasRole("ADMIN")
+            // ...
+            .formLogin();
+    }
+
+    //...
+
+}
+----
+
+Note that, for convenience, the `@EnableIntegrationGraphController` annotation provides an `allowedOrigins` attribute.
+This provides `GET` access to the `path`.
+For more sophistication, you can configure the CORS mappings by using standard Spring MVC mechanisms.

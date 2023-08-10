@@ -1,0 +1,44 @@
+[[sftp-session-caching]]
+= SFTP Session Caching
+
+IMPORTANT: Starting with Spring Integration version 3.0, sessions are no longer cached by default.
+The `cache-sessions` attribute is no longer supported on endpoints.
+If you wish to cache sessions, you must use a `CachingSessionFactory` (see the next example).
+
+In versions prior to 3.0, the sessions were automatically cached by default.
+A `cache-sessions` attribute was available for disabling the auto caching, but that solution did not provide a way to configure other session-caching attributes.
+For example, you could not limit on the number of sessions created.
+To support that requirement and other configuration options, we added a `CachingSessionFactory`.
+It provides `sessionCacheSize` and `sessionWaitTimeout` properties.
+As its name suggests, the `sessionCacheSize` property controls how many active sessions the factory maintains in its cache (the default is unbounded).
+If the `sessionCacheSize` threshold has been reached, any attempt to acquire another session blocks until either one of the cached sessions becomes available or until the wait time for a session expires (the default wait time is `Integer.MAX_VALUE`).
+The `sessionWaitTimeout` property enables configuration of the wait time.
+
+If you want your sessions to be cached, configure your default session factory (as xref:sftp/session-factory.adoc[described earlier]) and then wrap it in an instance of `CachingSessionFactory` where you may provide those additional properties.
+The following example shows how to do so:
+
+[source,xml]
+----
+<bean id="sftpSessionFactory"
+    class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+    <property name="host" value="localhost"/>
+</bean>
+
+<bean id="cachingSessionFactory"
+    class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+    <constructor-arg ref="sftpSessionFactory"/>
+    <constructor-arg value="10"/>
+    <property name="sessionWaitTimeout" value="1000"/>
+</bean>
+----
+
+The preceding example creates a `CachingSessionFactory` with its `sessionCacheSize` set to `10` and its `sessionWaitTimeout` set to one second (1000 milliseconds).
+
+Starting with Spring Integration version 3.0, the `CachingConnectionFactory` provides a `resetCache()` method.
+When invoked, all idle sessions are immediately closed and in-use sessions are closed when they are returned to the cache.
+When using `isSharedSession=true`, the channel is closed and the shared session is closed only when the last channel is closed.
+New requests for sessions establish new sessions as necessary.
+
+Starting with version 5.1, the `CachingSessionFactory` has a new property `testSession`.
+When true, the session will be tested by performing a `REALPATH` command for an empty path to ensure it is still active; if not, it will be removed from the cache; a new session is created if no active sessions are in the cache.
+

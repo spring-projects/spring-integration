@@ -1,0 +1,245 @@
+[[message-mapping-rules]]
+= Message Mapping Rules and Conventions
+
+Spring Integration implements a flexible facility to map messages to methods and their arguments without providing extra configuration, by relying on some default rules and defining certain conventions.
+The examples in the following sections articulate the rules.
+
+[[sample-scenarios]]
+== Sample Scenarios
+
+The following example shows a single un-annotated parameter (object or primitive) that is not a `Map` or a `Properties` object with a non-void return type:
+
+[source,java]
+----
+public String doSomething(Object o);
+----
+
+The input parameter is a message payload.
+If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
+The return value is incorporated as a payload of the returned message.
+
+The following example shows a single un-annotated parameter (object or primitive)that is not a `Map` or a `Properties` with a `Message` return type:
+
+[source,java]
+----
+public Message doSomething(Object o);
+----
+
+The input parameter is a message payload.
+If the parameter type is not compatible with a message payload, an attempt is made to convert it by using a conversion service provided by Spring 3.0.
+The return value is a newly constructed message that is sent to the next destination.
+
+The following example shows a single parameter that is a message (or one of its subclasses) with an arbitrary object or primitive return type:
+
+[source,java]
+----
+public int doSomething(Message msg);
+----
+
+The input parameter is itself a `Message`.
+The return value becomes a payload of the `Message` that is sent to the next destination.
+
+The following example shows a single parameter that is a `Message` (or one of its subclasses) with a `Message` (or one of its subclasses) as the return type:
+
+[source,java]
+----
+public Message doSomething(Message msg);
+----
+
+The input parameter is itself a `Message`.
+The return value is a newly constructed `Message` that is sent to the next destination.
+
+The following example shows a single parameter of type `Map` or `Properties` with a `Message` as the return type:
+
+[source,java]
+----
+public Message doSomething(Map m);
+----
+
+This one is a bit interesting.
+Although, at first, it might seem like an easy mapping straight to message headers, preference is always given to a `Message` payload.
+This means that if a `Message` payload is of type `Map`, this input argument represents a `Message` payload.
+However, if the `Message` payload is not of type `Map`, the conversion service does not try to convert the payload, and the input argument is mapped to message headers.
+
+The following example shows two parameters, where one of them is an arbitrary type (an object or a primitive) that is not a `Map` or a `Properties` object and the other is of type `Map` or `Properties` type (regardless of the return):
+
+[source,java]
+----
+public Message doSomething(Map h, <T> t);
+----
+
+This combination contains two input parameters where one of them is of type `Map`.
+The non-`Map` parameters (regardless of the order) are mapped to a `Message` payload and the `Map` or `Properties` (regardless of the order) is mapped to message headers, giving you a nice POJO way of interacting with `Message` structure.
+
+The following example shows no parameters (regardless of the return):
+
+[source,java]
+----
+public String doSomething();
+----
+
+This message handler method is invoked based on the Message sent to the input channel to which this handler is connected.
+However, no `Message` data is mapped, thus making the `Message` act as event or trigger to invoke the handler.
+The output is mapped according to the rules xref:configuration/message-mapping-rules.adoc[described earlier].
+
+The following example shows no parameters and a void return:
+
+[source,java]
+----
+public void soSomething();
+----
+
+This example is the same as the previous example, but it produces no output.
+
+[[annotation-based-mapping]]
+== Annotation-based Mapping
+
+Annotation-based mapping is the safest and least ambiguous approach to map messages to methods.
+The following example shows how to explicitly map a method to a header:
+
+[source,java]
+----
+public String doSomething(@Payload String s, @Header("someheader") String b)
+----
+
+As you can see later on, without an annotation this signature would result in an ambiguous condition.
+However, by explicitly mapping the first argument to a `Message` payload and the second argument to a value of the `someheader` message header, we avoid any ambiguity.
+
+The following example is nearly identical to the preceding example:
+
+[source,java]
+----
+public String doSomething(@Payload String s, @RequestParam("something") String b)
+----
+
+`@RequestMapping` or any other non-Spring Integration mapping annotation is irrelevant and is therefore ignored, leaving the second parameter unmapped.
+Although the second parameter could easily be mapped to a payload, there can only be one payload.
+Therefore, the annotations keep this method from being ambiguous.
+
+The following example shows another similar method that would be ambiguous were it not for annotations to clarify the intent:
+
+[source,java]
+----
+public String foo(String s, @Header("foo") String b)
+----
+
+The only difference is that the first argument is implicitly mapped to the message payload.
+
+The following example shows yet another signature that would definitely be treated as ambiguous without annotations, because it has more than two arguments:
+
+[source,java]
+----
+public String soSomething(@Headers Map m, @Header("something") Map f, @Header("someotherthing") String bar)
+----
+
+This example would be especially problematic, because two of its arguments are `Map` instances.
+However, with annotation-based mapping, the ambiguity is easily avoided.
+In this example the first argument is mapped to all the message headers, while the second and third argument map to the values of the message headers named 'something' and 'someotherthing'.
+The payload is not being mapped to any argument.
+
+[[complex-scenarios]]
+== Complex Scenarios
+
+The following example uses multiple parameters:
+
+Multiple parameters can create a lot of ambiguity in regards to determining the appropriate mappings.
+The general advice is to annotate your method parameters with `@Payload`, `@Header`, and `@Headers`.
+The examples in this section show ambiguous conditions that result in an exception being raised.
+
+[source,java]
+----
+public String doSomething(String s, int i)
+----
+
+The two parameters are equal in weight.
+Therefore, there is no way to determine which one is a payload.
+
+
+The following example shows a similar problem, only with three parameters:
+
+[source,java]
+----
+public String foo(String s, Map m, String b)
+----
+
+Although the Map could be easily mapped to message headers, there is no way to determine what to do with the two String parameters.
+
+The following example shows another ambiguous method:
+
+[source,java]
+----
+public String foo(Map m, Map f)
+----
+
+Although one might argue that one `Map` could be mapped to the message payload and the other one to the message headers, we cannot rely on the order.
+
+TIP: Any method signature with more than one method argument that is not (`Map`, `<T>`) and with unannotated parameters results in an ambiguous condition and triggers an exception.
+
+The next set of examples each show multiple methods that result in ambiguity.
+
+Message handlers with multiple methods are mapped based on the same rules that are described earlier (in the examples).
+However, some scenarios might still look confusing.
+
+The following example shows multiple methods with legal (mappable and unambiguous) signatures:
+
+[source,java]
+----
+public class Something {
+    public String doSomething(String str, Map m);
+
+    public String doSomething(Map m);
+}
+----
+
+(Whether the methods have the same name or different names makes no difference).
+The `Message` could be mapped to either method.
+The first method would be invoked when the message payload could be mapped to `str` and the message headers could be mapped to `m`.
+The second method could also be a candidate by mapping only the message headers to `m`.
+To make matters worse, both methods have the same name.
+At first, that might look ambiguous because of the following configuration:
+
+[source,xml]
+----
+<int:service-activator input-channel="input" output-channel="output" method="doSomething">
+    <bean class="org.things.Something"/>
+</int:service-activator>
+----
+
+It works because mappings are based on the payload first and everything else next.
+In other words, the method whose first argument can be mapped to a payload takes precedence over all other methods.
+
+Now consider an alternate example, which produces a truly ambiguous condition:
+
+[source,java]
+----
+public class Something {
+    public String doSomething(String str, Map m);
+
+    public String doSomething(String str);
+}
+----
+
+Both methods have signatures that could be mapped to a message payload.
+They also have the same name.
+Such handler methods will trigger an exception.
+However, if the method names were different, you could influence the mapping with a `method` attribute (shown in the next example).
+The following example shows the same example with two different method names:
+
+[source,java]
+----
+public class Something {
+    public String doSomething(String str, Map m);
+
+    public String doSomethingElse(String str);
+}
+----
+
+The following example shows how to use the `method` attribute to dictate the mapping:
+
+[source,xml]
+----
+<int:service-activator input-channel="input" output-channel="output" method="doSomethingElse">
+    <bean class="org.bar.Foo"/>
+</int:service-activator>
+----
+Because the configuration explicitly maps the `doSomethingElse` method, we have eliminated the ambiguity.

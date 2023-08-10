@@ -1,0 +1,10 @@
+[[amqp-delay]]
+= Delayed Message Exchange
+:page-section-summary-toc: 1
+
+Spring AMQP supports the https://docs.spring.io/spring-amqp/reference/html/#delayed-message-exchange[RabbitMQ Delayed Message Exchange Plugin].
+For inbound messages, the `x-delay` header is mapped to the `AmqpHeaders.RECEIVED_DELAY` header.
+Setting the `AMQPHeaders.DELAY` header causes the corresponding `x-delay` header to be set in outbound messages.
+You can also specify the `delay` and `delayExpression` properties on outbound endpoints (`delay-expression` when using XML configuration).
+These properties take precedence over the `AmqpHeaders.DELAY` header.
+

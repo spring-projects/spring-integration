@@ -1,0 +1,74 @@
+[[http-java-config]]
+= Configuring HTTP Endpoints with Java
+
+The following example shows how to configure an inbound gateway with Java:
+
+
+.Inbound Gateway Using Java Configuration
+[source, java]
+----
+@Bean
+public HttpRequestHandlingMessagingGateway inbound() {
+    HttpRequestHandlingMessagingGateway gateway =
+        new HttpRequestHandlingMessagingGateway(true);
+    gateway.setRequestMapping(mapping());
+    gateway.setRequestPayloadType(String.class);
+    gateway.setRequestChannelName("httpRequest");
+    return gateway;
+}
+
+@Bean
+public RequestMapping mapping() {
+    RequestMapping requestMapping = new RequestMapping();
+    requestMapping.setPathPatterns("/foo");
+    requestMapping.setMethods(HttpMethod.POST);
+    return requestMapping;
+}
+----
+
+The following example shows how to configure an inbound gateway with the Java DSL:
+
+.Inbound Gateway Using the Java DSL
+[source, java]
+----
+@Bean
+public IntegrationFlow inbound() {
+    return IntegrationFlow.from(Http.inboundGateway("/foo")
+            .requestMapping(m -> m.methods(HttpMethod.POST))
+            .requestPayloadType(String.class))
+        .channel("httpRequest")
+        .get();
+}
+----
+
+The following example shows how to configure an outbound gateway with Java:
+
+.Outbound Gateway Using Java Configuration
+[source, java]
+----
+@ServiceActivator(inputChannel = "httpOutRequest")
+@Bean
+public HttpRequestExecutingMessageHandler outbound() {
+    HttpRequestExecutingMessageHandler handler =
+        new HttpRequestExecutingMessageHandler("http://localhost:8080/foo");
+    handler.setHttpMethod(HttpMethod.POST);
+    handler.setExpectedResponseType(String.class);
+    return handler;
+}
+----
+
+The following example shows how to configure an outbound gateway with the Java DSL:
+
+.Outbound Gateway Using the Java DSL
+[source, java]
+----
+@Bean
+public IntegrationFlow outbound() {
+    return IntegrationFlow.from("httpOutRequest")
+        .handle(Http.outboundGateway("http://localhost:8080/foo")
+            .httpMethod(HttpMethod.POST)
+            .expectedResponseType(String.class))
+        .get();
+}
+----
+

@@ -1,0 +1,30 @@
+[[process-manager]]
+= Process Manager Enterprise Integration Pattern
+
+Enterprise integration patterns include the https://www.enterpriseintegrationpatterns.com/ProcessManager.html[process manager] pattern.
+You can now easily implement this pattern by using custom process manager logic encapsulated in a `RoutingSlipRouteStrategy` within the routing slip.
+In addition to a bean name, the `RoutingSlipRouteStrategy` can return any `MessageChannel` object, and there is no requirement that this `MessageChannel` instance be a bean in the application context.
+This way, we can provide powerful dynamic routing logic when there is no way to predict which channel should be used.
+A `MessageChannel` can be created within the `RoutingSlipRouteStrategy` and returned.
+A `FixedSubscriberChannel` with an associated `MessageHandler` implementation is a good combination for such cases.
+For example, you can route to a https://projectreactor.io/docs/core/release/reference/#getting-started[Reactive Streams], as the following example shows:
+
+[source,java]
+----
+@Bean
+public PollableChannel resultsChannel() {
+    return new QueueChannel();
+}
+@Bean
+public RoutingSlipRouteStrategy routeStrategy() {
+    return (requestMessage, reply) -> requestMessage.getPayload() instanceof String
+            ? new FixedSubscriberChannel(m ->
+            Mono.just((String) m.getPayload())
+                    .map(String::toUpperCase)
+                    .subscribe(v -> messagingTemplate().convertAndSend(resultsChannel(), v)))
+            : new FixedSubscriberChannel(m ->
+            Mono.just((Integer) m.getPayload())
+                    .map(v -> v * 2)
+                    .subscribe(v -> messagingTemplate().convertAndSend(resultsChannel(), v)));
+}
+----

@@ -1,0 +1,21 @@
+[[java-dsl-pollers]]
+= Pollers
+:page-section-summary-toc: 1
+
+Spring Integration also provides a fluent API that lets you configure `PollerMetadata` for `AbstractPollingEndpoint` implementations.
+You can use the `Pollers` builder factory to configure common bean definitions or those created from `IntegrationFlowBuilder` EIP methods, as the following example shows:
+
+[source,java]
+----
+@Bean(name = PollerMetadata.DEFAULT_POLLER)
+public PollerSpec poller() {
+    return Pollers.fixedRate(500)
+        .errorChannel("myErrors");
+}
+----
+
+See https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/Pollers.html[`Pollers`] and https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/PollerSpec.html[`PollerSpec`] in the Javadoc for more information.
+
+IMPORTANT: If you use the DSL to construct a `PollerSpec` as a `@Bean`, do not call the `getObject()` method in the bean definition.
+The `PollerSpec` is a `FactoryBean` that generates the `PollerMetadata` object from the specification and initializes all of its properties.
+

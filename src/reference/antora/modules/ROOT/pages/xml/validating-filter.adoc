@@ -1,0 +1,55 @@
+[[xml-validating-filter]]
+= XML Validating Filter
+
+The XML Validating Filter lets you validate incoming messages against provided schema instances.
+The following schema types are supported:
+
+* xml-schema (https://www.w3.org/2001/XMLSchema)
+* relax-ng (https://relaxng.org)
+
+Messages that fail validation can either be silently dropped or be forwarded to a definable `discard-channel`.
+Furthermore, you can configure this filter to throw an `Exception` in case validation fails.
+
+The following listing shows all the available configuration parameters:
+
+[source,xml]
+----
+<int-xml:validating-filter discard-channel=""                    <1>
+                           id=""                                 <2>
+                           input-channel=""                      <3>
+                           output-channel=""                     <4>
+                           schema-location=""                    <5>
+                           schema-type="xml-schema"              <6>
+                           throw-exception-on-rejection="false"  <7>
+                           xml-converter=""                      <8>
+                           xml-validator="">                     <9>
+    <int:poller .../>                                            <10>
+</int-xml:validating-filter>
+----
+
+<1> Message channel where you want rejected messages to be sent.
+Optional.
+<2> ID for the underlying bean definition.
+Optional.
+<3> The receiving message channel of this endpoint.
+Optional.
+<4> Message channel where you want accepted messages to be sent.
+Optional.
+<5> Sets the location of the schema to validate the message's payload against.
+Internally uses the `org.springframework.core.io.Resource` interface.
+You can set this attribute or the `xml-validator` attribute but not both.
+Optional.
+<6> Sets the schema type.
+Can be either `xml-schema` or `relax-ng`.
+Optional.
+If not set, it defaults to `xml-schema`, which internally translates to `org.springframework.xml.validation.XmlValidatorFactory#SCHEMA_W3C_XML`.
+<7> If `true`, a `MessageRejectedException` is thrown if validation fails for the provided Message's payload.
+Defaults to `false` if not set.
+Optional.
+<8> Reference to a custom `org.springframework.integration.xml.XmlPayloadConverter` strategy.
+Optional.
+<9> Reference to a custom `sorg.springframework.xml.validation.XmlValidator` strategy.
+You can set this attribute or the `schema-location` attribute but not both.
+Optional.
+<10> A poller to use with the XPath filter.
+Optional.

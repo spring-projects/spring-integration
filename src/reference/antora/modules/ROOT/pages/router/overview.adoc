@@ -1,0 +1,319 @@
+[[router-overview]]
+= Overview
+
+Routers are a crucial element in many messaging architectures.
+They consume messages from a message channel and forward each consumed message to one or more different message channels depending on a set of conditions.
+
+Spring Integration provides the following routers:
+
+* xref:router/implementations.adoc#router-implementations-payloadtyperouter[Payload Type Router]
+* xref:router/implementations.adoc#router-implementations-headervaluerouter[Header Value Router]
+* xref:router/implementations.adoc#router-implementations-recipientlistrouter[Recipient List Router]
+* xref:xml/xpath-routing.adoc[XPath Router (part of the XML module)]
+* xref:router/implementations.adoc#router-implementations-exception-router[Error Message Exception Type Router]
+* xref:router/namespace.adoc[(Generic) Router]
+
+Router implementations share many configuration parameters.
+However, certain differences exist between routers.
+Furthermore, the availability of configuration parameters depends on whether routers are used inside or outside a chain.
+In order to provide a quick overview, all available attributes are listed in the two following tables .
+
+The following table shows the configuration parameters available for a router outside a chain:
+
+.Routers Outside a Chain
+[cols="2,1,1,1,1,1,1", options="header"]
+|===
+| Attribute
+| router
+| header value router
+| xpath router
+| payload type router
+| recipient list route
+| exception type router
+
+| apply-sequence
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| default-output-channel
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| resolution-required
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| ignore-send-failures
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| timeout
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| id
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| auto-startup
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| input-channel
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| order
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| method
+a| image::tickmark.png[]
+|
+|
+|
+|
+|
+
+| ref
+a| image::tickmark.png[]
+|
+|
+|
+|
+|
+
+| expression
+a| image::tickmark.png[]
+|
+|
+|
+|
+|
+
+| header-name
+|
+a| image::tickmark.png[]
+|
+|
+|
+|
+
+| evaluate-as-string
+|
+|
+a| image::tickmark.png[]
+|
+|
+|
+
+| xpath-expression-ref
+|
+|
+a| image::tickmark.png[]
+|
+|
+|
+
+| converter
+|
+|
+a| image::tickmark.png[]
+|
+|
+|
+|===
+
+
+The following table shows the configuration parameters available for a router inside a chain:
+
+.Routers Inside a Chain
+[cols="2,1,1,1,1,1,1", options="header"]
+|===
+| Attribute
+| router
+| header value router
+| xpath router
+| payload type router
+| recipient list router
+| exception type router
+
+| apply-sequence
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| default-output-channel
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| resolution-required
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| ignore-send-failures
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| timeout
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+a| image::tickmark.png[]
+
+| id
+|
+|
+|
+|
+|
+|
+
+| auto-startup
+|
+|
+|
+|
+|
+|
+
+| input-channel
+|
+|
+|
+|
+|
+|
+
+| order
+|
+|
+|
+|
+|
+|
+
+| method
+a| image::tickmark.png[]
+|
+|
+|
+|
+|
+
+| ref
+a| image::tickmark.png[]
+|
+|
+|
+|
+|
+
+| expression
+a| image::tickmark.png[]
+|
+|
+|
+|
+|
+
+| header-name
+|
+a| image::tickmark.png[]
+|
+|
+|
+|
+
+| evaluate-as-string
+|
+|
+a| image::tickmark.png[]
+|
+|
+|
+
+| xpath-expression-ref
+|
+|
+a| image::tickmark.png[]
+|
+|
+|
+
+| converter
+|
+|
+a| image::tickmark.png[]
+|
+|
+|
+|===
+
+[IMPORTANT]
+=====
+As of Spring Integration 2.1, router parameters have been more standardized across all router implementations.
+Consequently, a few minor changes may break older Spring Integration based applications.
+
+Since Spring Integration 2.1, the `ignore-channel-name-resolution-failures` attribute is removed in favor of consolidating its behavior with the `resolution-required` attribute.
+Also, the `resolution-required` attribute now defaults to `true`.
+
+Prior to these changes, the `resolution-required` attribute defaulted to `false`, causing messages to be silently dropped when no channel was resolved and no `default-output-channel` was set.
+The new behavior requires at least one resolved channel and, by default, throws a `MessageDeliveryException` if no channel was determined (or an attempt to send was not successful).
+
+If you do desire to drop messages silently, you can set `default-output-channel="nullChannel"`.
+=====
+

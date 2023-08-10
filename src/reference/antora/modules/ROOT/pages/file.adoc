@@ -1,0 +1,34 @@
+[[files]]
+= File Support
+
+Spring Integration's file support extends the Spring Integration core with a dedicated vocabulary to deal with reading, writing, and transforming files.
+
+You need to include this dependency into your project:
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-file</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "org.springframework.integration:spring-integration-file:{project-version}"
+----
+======
+
+It provides a namespace that enables elements defining channel adapters dedicated to files and support for transformers that can read file contents into strings or byte arrays.
+
+This section explains the workings of `FileReadingMessageSource` and `FileWritingMessageHandler` and how to configure them as beans.
+It also discusses the support for dealing with files through file-specific implementations of `Transformer`.
+Finally, it explains the file-specific namespace.
+

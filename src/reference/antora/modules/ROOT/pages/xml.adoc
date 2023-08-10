@@ -1,0 +1,45 @@
+[[xml]]
+= XML Support - Dealing with XML Payloads
+
+Spring Integration's XML support extends the core of Spring Integration with the following components:
+
+* xref:xml/transformation.adoc[Marshalling Transformer]
+* xref:xml/transformation.adoc[Unmarshalling Transformer]
+* xref:xml/transformation.adoc[XSLT Transformer]
+* xref:xml/xpath-transformer.adoc[XPath Transformer]
+* xref:xml/xpath-splitting.adoc[XPath Splitter]
+* xref:xml/xpath-routing.adoc[XPath Router]
+* xref:xml/xpath-header-enricher.adoc[XPath Header Enricher]
+* xref:xml/xpath-filter.adoc[XPath Filter]
+* xref:xpath-spel-function[#xpath SpEL Function]
+* xref:xml/validating-filter.adoc[Validating Filter]
+
+You need to include this dependency into your project:
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-xml</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "org.springframework.integration:spring-integration-xml:{project-version}"
+----
+======
+
+These components make working with XML messages in Spring Integration simpler.
+The messaging components work with XML that is represented in a range of formats, including instances of `java.lang.String`, `org.w3c.dom.Document`, and `javax.xml.transform.Source`.
+However, where a DOM representation is required (for example, in order to evaluate an XPath expression), the `String` payload is converted into the required type and then converted back to `String`.
+Components that require an instance of `DocumentBuilder` create a namespace-aware instance if you do not provide one.
+When you require greater control over document creation, you can provide an appropriately configured instance of `DocumentBuilder`.
+

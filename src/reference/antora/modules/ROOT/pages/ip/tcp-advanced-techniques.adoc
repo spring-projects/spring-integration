@@ -1,0 +1,210 @@
+[[tcp-advanced-techniques]]
+= Advanced Techniques
+
+This section covers advanced techniques that you may find to be helpful in certain situations.
+
+[[strategy-interfaces]]
+== Strategy Interfaces
+
+In many cases, the configuration described earlier is all that is needed to enable secure communication over TCP/IP.
+However, Spring Integration provides a number of strategy interfaces to allow customization and modification of socket factories and sockets:
+
+* `TcpSSLContextSupport`
+* `TcpSocketFactorySupport`
+* `TcpSocketSupport`
+* `TcpNetConnectionSupport`
+* `TcpNioConnectionSupport`
+
+[[the-tcpsslcontextsupport-strategy-interface]]
+=== The `TcpSSLContextSupport` Strategy Interface
+
+The following listing shows the `TcpSSLContextSupport` strategy interface:
+
+[source,java]
+----
+public interface TcpSSLContextSupport {
+
+    SSLContext getSSLContext() throws Exception;
+
+}
+----
+
+Implementations of the `TcpSSLContextSupport` interface are responsible for creating an `SSLContext` object.
+The implementation provided by the framework is the `DefaultTcpSSLContextSupport`, xref:ip/ssl-tls.adoc#ip-ssl-tls-getting-started[described earlier].
+If you require different behavior, implement this interface and provide the connection factory with a reference to a bean of your class' implementation.
+
+[[the-tcpsocketfactorysupport-strategy-interface]]
+=== The `TcpSocketFactorySupport` Strategy Interface
+
+The following listing shows the definition of the `TcpSocketFactorySupport` strategy interface:
+
+[source,java]
+----
+public interface TcpSocketFactorySupport {
+
+    ServerSocketFactory getServerSocketFactory();
+
+    SocketFactory getSocketFactory();
+
+}
+----
+
+Implementations of this interface are responsible for obtaining references to `ServerSocketFactory` and `SocketFactory`.
+Two implementations are provided.
+The first is `DefaultTcpNetSocketFactorySupport` for non-SSL sockets (when no `ssl-context-support` attribute is defined).
+This uses the JDK's default factories.
+The second implementation is `DefaultTcpNetSSLSocketFactorySupport`.
+By default, this is used when an `ssl-context-support` attribute is defined.
+It uses the `SSLContext` created by that bean to create the socket factories.
+
+NOTE: This interface applies only if `using-nio` is `false`.
+NIO does not use socket factories.
+
+[[the-tcpsocketsupport-strategy-interface]]
+=== The `TcpSocketSupport` Strategy Interface
+
+The following listing shows the definition of the `TcpSocketSupport` strategy interface:
+
+[source,java]
+----
+public interface TcpSocketSupport {
+
+    void postProcessServerSocket(ServerSocket serverSocket);
+
+    void postProcessSocket(Socket socket);
+
+}
+----
+
+Implementations of this interface can modify sockets after they are created and after all configured attributes have been applied but before the sockets are used.
+This applies whether you use NIO or not.
+For example, you could use an implementation of this interface to modify the supported cipher suites on an SSL socket, or you could add a listener that gets notified after SSL handshaking is complete.
+The sole implementation provided by the framework is the `DefaultTcpSocketSupport`, which does not modify the sockets in any way.
+
+To supply your own implementation of `TcpSocketFactorySupport` or `TcpSocketSupport`, provide the connection factory with references to beans of your custom type by setting the `socket-factory-support` and `socket-support` attributes, respectively.
+
+[[the-tcpnetconnectionsupport-strategy-interface]]
+=== The `TcpNetConnectionSupport` Strategy Interface
+
+The following listing shows the definition of the `TcpNetConnectionSupport` strategy interface:
+
+[source, java]
+----
+public interface TcpNetConnectionSupport {
+
+    TcpNetConnection createNewConnection(Socket socket,
+            boolean server, boolean lookupHost,
+            ApplicationEventPublisher applicationEventPublisher,
+            String connectionFactoryName) throws Exception;
+
+}
+----
+
+This interface is invoked to create objects of type `TcpNetConnection` (or its subclasses).
+The framework provides a single implementation (`DefaultTcpNetConnectionSupport`), which, by default, creates simple `TcpNetConnection` objects.
+It has two properties: `pushbackCapable` and `pushbackBufferSize`.
+When push back is enabled, the implementation returns a subclass that wraps the connection's `InputStream` in a `PushbackInputStream`.
+Aligned with the `PushbackInputStream` default, the buffer size defaults to 1.
+This lets deserializers "`unread`" (push back) bytes into the stream.
+The following trivial example shows how it might be used in a delegating deserializer that "`peeks`" at the first byte to determine which deserializer to invoke:
+
+[source, java]
+----
+public class CompositeDeserializer implements Deserializer<byte[]> {
+
+    private final ByteArrayStxEtxSerializer stxEtx = new ByteArrayStxEtxSerializer();
+
+    private final ByteArrayCrLfSerializer crlf = new ByteArrayCrLfSerializer();
+
+    @Override
+    public byte[] deserialize(InputStream inputStream) throws IOException {
+        PushbackInputStream pbis = (PushbackInputStream) inputStream;
+        int first = pbis.read();
+        if (first < 0) {
+            throw new SoftEndOfStreamException();
+        }
+        pbis.unread(first);
+        if (first == ByteArrayStxEtxSerializer.STX) {
+            this.receivedStxEtx = true;
+            return this.stxEtx.deserialize(pbis);
+        }
+        else {
+            this.receivedCrLf = true;
+            return this.crlf.deserialize(pbis);
+        }
+    }
+
+}
+----
+
+[[the-tcpnioconnectionsupport-strategy-interface]]
+=== The `TcpNioConnectionSupport` Strategy Interface
+
+The following listing shows the definition of the `TcpNioConnectionSupport` strategy interface:
+
+[source, java]
+----
+public interface TcpNioConnectionSupport {
+
+    TcpNioConnection createNewConnection(SocketChannel socketChannel,
+            boolean server, boolean lookupHost,
+            ApplicationEventPublisher applicationEventPublisher,
+            String connectionFactoryName) throws Exception;
+
+}
+----
+
+This interface is invoked to create `TcpNioConnection` objects (or objects from subclasses).
+Spring Integration provides two implementations: `DefaultTcpNioSSLConnectionSupport` and `DefaultTcpNioConnectionSupport`.
+Which one is  used depends on whether SSL is in use.
+A common use case is to subclass `DefaultTcpNioSSLConnectionSupport` and override `postProcessSSLEngine`.
+See the xref:ip/tcp-advanced-techniques.adoc#ssl-client-authentication-example[SSL client authentication example].
+As with the `DefaultTcpNetConnectionSupport`, these implementations also support push back.
+
+[[ssl-client-authentication-example]]
+== Example: Enabling SSL Client Authentication
+
+To enable client certificate authentication when you use SSL, the technique depends on whether you use NIO.
+When you do not NIO , provide a custom `TcpSocketSupport` implementation to post-process the server socket:
+
+[source, java]
+----
+serverFactory.setTcpSocketSupport(new DefaultTcpSocketSupport() {
+
+    @Override
+    public void postProcessServerSocket(ServerSocket serverSocket) {
+        ((SSLServerSocket) serverSocket).setNeedClientAuth(true);
+    }
+
+});
+----
+
+(When you use XML configuration, provide a reference to your bean by setting the `socket-support` attribute).
+
+When you use NIO, provide a custom `TcpNioSslConnectionSupport` implementation to post-process the `SSLEngine`, as the following example shows:
+
+[source, java]
+----
+@Bean
+public DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport() {
+    return new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport) {
+
+            @Override
+            protected void postProcessSSLEngine(SSLEngine sslEngine) {
+                sslEngine.setNeedClientAuth(true);
+            }
+
+    }
+}
+
+@Bean
+public TcpNioServerConnectionFactory server() {
+    ...
+    serverFactory.setTcpNioConnectionSupport(tcpNioConnectionSupport());
+    ...
+}
+----
+
+(When you use XML configuration, since version 4.3.7, provide a reference to your bean by setting the `nio-connection-support` attribute).
+
+

@@ -1,0 +1,36 @@
+[[amqp-inbound-ack]]
+= Inbound Endpoint Acknowledge Mode
+
+By default, the inbound endpoints use the `AUTO` acknowledge mode, which means the container automatically acknowledges the message when the downstream integration flow completes (or a message is handed off to another thread by using a `QueueChannel` or `ExecutorChannel`).
+Setting the mode to `NONE` configures the consumer such that acknowledgments are not used at all (the broker automatically acknowledges the message as soon as it is sent).
+Setting the mode to `MANUAL` lets user code acknowledge the message at some other point during processing.
+To support this, with this mode, the endpoints provide the `Channel` and `deliveryTag` in the `amqp_channel` and `amqp_deliveryTag` headers, respectively.
+
+You can perform any valid Rabbit command on the `Channel` but, generally, only `basicAck` and `basicNack` (or `basicReject`) are used.
+In order to not interfere with the operation of the container, you should not retain a reference to the channel and use it only in the context of the current message.
+
+NOTE: Since the `Channel` is a reference to a "`live`" object, it cannot be serialized and is lost if a message is persisted.
+
+The following example shows how you might use `MANUAL` acknowledgement:
+
+[source,java]
+----
+@ServiceActivator(inputChannel = "foo", outputChannel = "bar")
+public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Channel channel,
+        @Header(AmqpHeaders.DELIVERY_TAG) Long deliveryTag) throws Exception {
+
+    // Do some processing
+
+    if (allOK) {
+        channel.basicAck(deliveryTag, false);
+
+        // perhaps do some more processing
+
+    }
+    else {
+        channel.basicNack(deliveryTag, false, true);
+    }
+    return someResultForDownStreamProcessing;
+}
+----
+

@@ -1,0 +1,63 @@
+[[custom-advice]]
+= Custom Advice Classes
+
+In addition to the provided advice classes xref:handler-advice/classes.adoc[described earlier], you can implement your own advice classes.
+While you can provide any implementation of `org.aopalliance.aop.Advice` (usually `org.aopalliance.intercept.MethodInterceptor`), we generally recommend that you subclass `o.s.i.handler.advice.AbstractRequestHandlerAdvice`.
+This has the benefit of avoiding the writing of low-level aspect-oriented programming code as well as providing a starting point that is specifically tailored for use in this environment.
+
+Subclasses need to implement the `doInvoke()` method, the definition of which follows:
+
+[source,java]
+----
+/**
+ * Subclasses implement this method to apply behavior to the {@link MessageHandler} callback.execute()
+ * invokes the handler method and returns its result, or null).
+ * @param callback Subclasses invoke the execute() method on this interface to invoke the handler method.
+ * @param target The target handler.
+ * @param message The message that will be sent to the handler.
+ * @return the result after invoking the {@link MessageHandler}.
+ * @throws Exception
+ */
+protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception;
+----
+
+The callback parameter is a convenience to avoid subclasses that deal with AOP directly.
+Invoking the `callback.execute()` method invokes the message handler.
+
+The `target` parameter is provided for those subclasses that need to maintain state for a specific handler, perhaps by maintaining that state in a `Map` keyed by the target.
+This feature allows the same advice to be applied to multiple handlers.
+The `RequestHandlerCircuitBreakerAdvice` uses advice this to keep circuit breaker state for each handler.
+
+The `message` parameter is the message sent to the handler.
+While the advice cannot modify the message before invoking the handler, it can modify the payload (if it has mutable properties).
+Typically, an advice would use the message for logging or to send a copy of the message somewhere before or after invoking the handler.
+
+The return value would normally be the value returned by `callback.execute()`.
+However, the advice does have the ability to modify the return value.
+Note that only `AbstractReplyProducingMessageHandler` instances return values.
+The following example shows a custom advice class that extends `AbstractRequestHandlerAdvice`:
+
+[source,java]
+----
+public class MyAdvice extends AbstractRequestHandlerAdvice {
+
+    @Override
+    protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+        // add code before the invocation
+        Object result = callback.execute();
+        // add code after the invocation
+        return result;
+    }
+}
+----
+
+[NOTE]
+=====
+In addition to the `execute()` method, `ExecutionCallback` provides an additional method: `cloneAndExecute()`.
+This method must be used in cases where the invocation might be called multiple times within a single execution of `doInvoke()`, such as in the `RequestHandlerRetryAdvice`.
+This is required because the Spring AOP `org.springframework.aop.framework.ReflectiveMethodInvocation` object maintains state by keeping track of which advice in a chain was last invoked.
+This state must be reset for each call.
+
+For more information, see the https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html[ReflectiveMethodInvocation] Javadoc.
+=====
+

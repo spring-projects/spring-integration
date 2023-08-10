@@ -1,0 +1,54 @@
+[[testing-connections]]
+= Testing Connections
+
+In some scenarios, it can be useful to send some kind of health-check request when a connection is first opened.
+One such scenario might be when using a xref:ip/tcp-connection-factories.adoc#failover-cf[TCP Failover Client Connection Factory] so that we can fail over if the selected server allowed a connection to be opened but reports that it is not healthy.
+
+In order to support this feature, add a `connectionTest` to the client connection factory.
+
+[source, java]
+----
+/**
+ * Set a {@link Predicate} that will be invoked to test a new connection; return true
+ * to accept the connection, false the reject.
+ * @param connectionTest the predicate.
+ * @since 5.3
+ */
+public void setConnectionTest(@Nullable Predicate<TcpConnectionSupport> connectionTest) {
+    this.connectionTest = connectionTest;
+}
+----
+
+To test the connection, attach a temporary listener to the connection within the test.
+If the test fails, the connection is closed and an exception thrown.
+When used with the xref:ip/tcp-connection-factories.adoc#failover-cf[TCP Failover Client Connection Factory] this triggers trying the next server.
+
+IMPORTANT: Only the first reply from the server will go to the test listener.
+
+In the following example, the server is considered healthy if the server replies `PONG` when we send `PING`.
+
+[source, java]
+----
+Message<String> ping = new GenericMessage<>("PING");
+byte[] pong = "PONG".getBytes();
+clientFactory.setConnectionTest(conn -> {
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicBoolean result = new AtomicBoolean();
+    conn.registerTestListener(msg -> {
+        if (Arrays.equals(pong, (byte[]) msg.getPayload())) {
+            result.set(true);
+        }
+        latch.countDown();
+        return false;
+    });
+    conn.send(ping);
+    try {
+        latch.await(10, TimeUnit.SECONDS);
+    }
+    catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+    return result.get();
+});
+----
+

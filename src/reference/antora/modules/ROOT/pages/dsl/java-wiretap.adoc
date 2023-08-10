@@ -1,0 +1,53 @@
+[[java-dsl-wiretap]]
+= `MessageChannelSpec.wireTap()`
+
+Spring Integration includes a `.wireTap()` fluent API `MessageChannelSpec` builders.
+The following example shows how to use the `wireTap` method to log input:
+
+[source,java]
+----
+@Bean
+public QueueChannelSpec myChannel() {
+    return MessageChannels.queue()
+            .wireTap("loggingFlow.input");
+}
+
+@Bean
+public IntegrationFlow loggingFlow() {
+    return f -> f.log();
+}
+----
+
+[IMPORTANT]
+====
+If the `MessageChannel` is an instance of `InterceptableChannel`, the `log()`, `wireTap()` or `intercept()` operators are applied to the current `MessageChannel`.
+Otherwise, an intermediate `DirectChannel` is injected into the flow for the currently configured endpoint.
+In the following example, the `WireTap` interceptor is added to `myChannel` directly, because `DirectChannel` implements `InterceptableChannel`:
+
+[source,java]
+----
+@Bean
+MessageChannel myChannel() {
+    return new DirectChannel();
+}
+
+...
+    .channel(myChannel())
+    .log()
+}
+----
+====
+
+When the current `MessageChannel` does not implement `InterceptableChannel`, an implicit `DirectChannel` and `BridgeHandler` are injected into the `IntegrationFlow`, and the `WireTap` is added to this new `DirectChannel`.
+The following example does not have any channel declaration:
+
+[source,java]
+----
+.handle(...)
+.log()
+}
+----
+
+In the preceding example (and any time no channel has been declared), an implicit `DirectChannel` is injected in the current position of the `IntegrationFlow` and used as an output channel for the currently configured `ServiceActivatingHandler` (from the `.handle()`, xref:dsl/java-handle.adoc[described earlier]).
+
+

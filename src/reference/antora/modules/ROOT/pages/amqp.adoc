@@ -1,0 +1,49 @@
+[[amqp]]
+= AMQP (RabbitMQ) Support
+
+Spring Integration provides channel adapters for receiving and sending messages by using the Advanced Message Queuing Protocol (AMQP).
+
+You need to include this dependency into your project:
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-amqp</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "org.springframework.integration:spring-integration-amqp:{project-version}"
+----
+======
+
+The following adapters are available:
+
+* xref:amqp/inbound-channel-adapter.adoc[Inbound Channel Adapter]
+* xref:amqp/inbound-gateway.adoc[Inbound Gateway]
+* xref:amqp/outbound-channel-adapter.adoc[Outbound Channel Adapter]
+* xref:amqp/outbound-gateway.adoc[Outbound Gateway]
+* xref:amqp-async-outbound-gateway[Async Outbound Gateway]
+* xref:amqp/rmq-streams.adoc#rmq-stream-inbound-channel-adapter[RabbitMQ Stream Queue Inbound Channel Adapter]
+* xref:amqp/rmq-streams.adoc#rmq-stream-outbound-channel-adapter[RabbitMQ Stream Queue Outbound Channel Adapter]
+
+Spring Integration also provides a point-to-point message channel and a publish-subscribe message channel backed by AMQP Exchanges and Queues.
+
+To provide AMQP support, Spring Integration relies on (https://projects.spring.io/spring-amqp[Spring AMQP]), which applies core Spring concepts to the development of AMQP-based messaging solutions.
+Spring AMQP provides similar semantics to (https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#jms[Spring JMS]).
+
+Whereas the provided AMQP Channel Adapters are intended for unidirectional messaging (send or receive) only, Spring Integration also provides inbound and outbound AMQP gateways for request-reply operations.
+
+TIP:
+You should familiarize yourself with the https://docs.spring.io/spring-amqp/reference/html/[reference documentation of the Spring AMQP project].
+It provides much more in-depth information about Spring's integration with AMQP in general and RabbitMQ in particular.
+

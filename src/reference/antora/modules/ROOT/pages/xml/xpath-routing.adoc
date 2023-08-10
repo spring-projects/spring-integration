@@ -1,0 +1,104 @@
+[[xml-xpath-routing]]
+= Routing XML Messages with XPath
+
+Similar to SpEL-based routers, Spring Integration provides support for routing messages based on XPath expressions, which lets you create a message endpoint with an input channel but no output channel.
+Instead, one or more output channels are determined dynamically.
+The following example shows how to create such a router:
+
+[source,xml]
+----
+<int-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel">
+    <int-xml:xpath-expression expression="/order/type"/>
+</int-xml:xpath-router>
+----
+
+NOTE: For an overview of attributes that are common among Routers, see xref:router/common-parameters.adoc[Common Router Parameters].
+
+Internally, XPath expressions are evaluated as type `NODESET` and converted to a `List<String>` that represents channel names.
+Typically, such a list contains a single channel name.
+However, based on the results of an XPath Expression, the XPath router can also take on the characteristics of a recipient list router if the XPath expression returns more than one value.
+In that case, the `List<String>` contains more than one channel name.
+Consequently, messages are sent to all the channels in the list.
+
+Thus, assuming that the XML file passed to the following router configuration contains many `responder` sub-elements that represent channel names, the message is sent to all of those channels:
+
+[source,xml]
+----
+<!-- route the order to all responders-->
+<int-xml:xpath-router id="responderRouter" input-channel="orderChannel">
+    <int-xml:xpath-expression expression="/request/responders"/>
+</int-xml:xpath-router>
+
+----
+
+If the returned values do not represent the channel names directly, you can specify additional mapping parameters to map those returned values to actual channel names.
+For example if the `/request/responders` expression results in two values (`responderA` and `responderB`), but you do not want to couple the responder names to channel names, you can provide additional mapping configuration, such as the following:
+
+[source,xml]
+----
+<!-- route the order to all responders-->
+<int-xml:xpath-router id="responderRouter" input-channel="orderChannel">
+    <int-xml:xpath-expression expression="/request/responders"/>
+    <int-xml:mapping value="responderA" channel="channelA"/>
+    <int-xml:mapping value="responderB" channel="channelB"/>
+</int-xml:xpath-router>
+
+----
+
+As already mentioned, the default evaluation type for XPath expressions is `NODESET`, which is converted to a `List<String>` of channel names, which handles single channel scenarios as well as multiple channel scenarios.
+
+Nonetheless, certain XPath expressions may evaluate as type `String` from the very beginning.
+Consider, for example, the following XPath Expression:
+
+[source,xml]
+----
+name(./node())
+----
+
+This expression returns the name of the root node.
+If the default evaluation type `NODESET` is being used, it results in an exception.
+
+For these scenarios, you can use the `evaluate-as-string` attribute, which lets you manage the evaluation type.
+It is `FALSE` by default.
+However, if you set it to `TRUE`, the `String` evaluation type is used.
+
+[NOTE]
+=====
+XPath 1.0 specifies 4 data types:
+
+* Node-sets
+* Strings
+* Number
+* Boolean
+
+When the XPath Router evaluates expressions by using the optional `evaluate-as-string` attribute, the return value is determined by the `string()` function, as defined in the XPath specification.
+This means that, if the expression selects multiple nodes, it return the string value of the first node.
+
+For further information, see:
+
+* https://www.w3.org/TR/xpath/[Specification: XML Path Language (XPath) Version 1.0]
+* https://www.w3.org/TR/xpath-functions-31[XPath specification - string() function]
+=====
+
+For example, if we want to route based on the name of the root node, we can use the following configuration:
+
+[source,xml]
+----
+<int-xml:xpath-router id="xpathRouterAsString"
+        input-channel="xpathStringChannel"
+        evaluate-as-string="true">
+    <int-xml:xpath-expression expression="name(./node())"/>
+</int-xml:xpath-router>
+
+----
+
+[[xpath-routing-converter]]
+== XML Payload Converter
+
+For XPath Routers, you can also specify the Converter to use when converting payloads prior to XPath evaluation.
+As such, the XPath Router supports custom implementations of the `XmlPayloadConverter` strategy, and when configuring an `xpath-router` element in XML, a reference to such an implementation may be provided via the `converter` attribute.
+
+If this reference is not explicitly provided, the `DefaultXmlPayloadConverter` is used.
+It should be sufficient in most cases, since it can convert from Node, Document, Source, File, and String typed payloads.
+If you need to extend beyond the capabilities of that default implementation, then an upstream Transformer is generally a better option in most cases, rather than providing a reference to a custom implementation of this strategy here.
+

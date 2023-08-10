@@ -1,0 +1,24 @@
+[[sftp-session-callback]]
+= MessageSessionCallback
+
+Starting with Spring Integration version 4.2, you can use a `MessageSessionCallback<F, T>` implementation with the `<int-sftp:outbound-gateway/>` (`SftpOutboundGateway`) to perform any operation on the `Session<SftpClient.DirEntry>` with the `requestMessage` context.
+You can use it for any non-standard or low-level SFTP operation (or several), such as allowing access from an integration flow definition, or functional interface (lambda) implementation injection.
+The following example uses a lambda:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "sftpChannel")
+public MessageHandler sftpOutboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory) {
+    return new SftpOutboundGateway(sessionFactory,
+         (session, requestMessage) -> session.list(requestMessage.getPayload()));
+}
+----
+
+Another example might be to pre- or post-process the file data being sent or retrieved.
+
+When using XML configuration, the `<int-sftp:outbound-gateway/>` provides a `session-callback` attribute that lets you specify the `MessageSessionCallback` bean name.
+
+NOTE: The `session-callback` is mutually exclusive with the `command` and `expression` attributes.
+When configuring with Java, the `SftpOutboundGateway` class offers different constructors.
+

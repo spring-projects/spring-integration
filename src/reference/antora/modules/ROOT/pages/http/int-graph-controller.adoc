@@ -1,0 +1,7 @@
+[[int-graph-controller]]
+= Integration Graph Controller
+:page-section-summary-toc: 1
+
+Starting with version 4.3, the HTTP module provides an `@EnableIntegrationGraphController` configuration class annotation and an `<int-http:graph-controller/>` XML element to expose the `IntegrationGraphServer` as a REST service.
+See xref:graph.adoc[Integration Graph] for more information.
+

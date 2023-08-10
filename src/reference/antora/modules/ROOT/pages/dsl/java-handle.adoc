@@ -1,0 +1,57 @@
+[[java-dsl-handle]]
+= Service Activators and the `.handle()` method
+
+The `.handle()` EIP method's goal is to invoke any `MessageHandler` implementation or any method on some POJO.
+Another option is to define an "`activity`" by using lambda expressions.
+Consequently, we introduced a generic `GenericHandler<P>` functional interface.
+Its `handle` method requires two arguments: `P payload` and `MessageHeaders headers` (starting with version 5.1).
+Having that, we can define a flow as follows:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow myFlow() {
+    return IntegrationFlow.from("flow3Input")
+        .<Integer>handle((p, h) -> p * 2)
+        .get();
+}
+----
+
+The preceding example doubles any integer it receives.
+
+However, one main goal of Spring Integration is `loose coupling`, through runtime type conversion from message payload to the target arguments of the message handler.
+Since Java does not support generic type resolution for lambda classes, we introduced a workaround with an additional `payloadType` argument for the most EIP methods and `LambdaMessageProcessor`.
+Doing so delegates the hard conversion work to Spring's `ConversionService`, which uses the provided `type` and the requested message to target method arguments.
+The following example shows what the resulting `IntegrationFlow` might look like:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow integerFlow() {
+    return IntegrationFlow.from("input")
+            .<byte[], String>transform(p - > new String(p, "UTF-8"))
+            .handle(Integer.class, (p, h) -> p * 2)
+            .get();
+}
+----
+
+We also can register some `BytesToIntegerConverter` within `ConversionService` to get rid of that additional `.transform()`:
+
+[source,java]
+----
+@Bean
+@IntegrationConverter
+public BytesToIntegerConverter bytesToIntegerConverter() {
+   return new BytesToIntegerConverter();
+}
+
+@Bean
+public IntegrationFlow integerFlow() {
+    return IntegrationFlow.from("input")
+             .handle(Integer.class, (p, h) -> p * 2)
+            .get();
+}
+----
+
+Also see xref:dsl/java-basics.adoc#java-dsl-class-cast[Lambdas And `Message<?>` Arguments].
+

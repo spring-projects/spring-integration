@@ -1,0 +1,16 @@
+[[ftp-remote-file-info]]
+= Remote File Information
+:page-section-summary-toc: 1
+
+Starting with version 5.2, the `FtpStreamingMessageSource` (xref:ftp/streaming.adoc[FTP Streaming Inbound Channel Adapter]), `FtpInboundFileSynchronizingMessageSource` (xref:ftp/inbound.adoc[FTP Inbound Channel Adapter]) and "read"-commands of the `FtpOutboundGateway` (xref:ftp/outbound-gateway.adoc[FTP Outbound Gateway]) provide additional headers in the message to produce with an information about the remote file:
+
+* `FileHeaders.REMOTE_HOST_PORT` - the host:port pair the remote session has been connected to during file transfer operation;
+* `FileHeaders.REMOTE_DIRECTORY` - the remote directory the operation has been performed;
+* `FileHeaders.REMOTE_FILE` - the remote file name; applicable only for single file operations.
+
+Since the `FtpInboundFileSynchronizingMessageSource` doesn't produce messages against remote files, but using a local copy, the `AbstractInboundFileSynchronizer` stores an information about remote file in the `MetadataStore` (which can be configured externally) in the URI style (`protocol://host:port/remoteDirectory#remoteFileName`) during synchronization operation.
+This metadata is retrieved by the `FtpInboundFileSynchronizingMessageSource` when local file is polled.
+When local file is deleted, it is recommended to remove its metadata entry.
+The `AbstractInboundFileSynchronizer` provides a `removeRemoteFileMetadata()` callback for this purpose.
+In addition, there is a `setMetadataStorePrefix()` to be used in the metadata keys.
+It is recommended to have this prefix be different from the one used in the `MetadataStore`-based `FileListFilter` implementations, when the same `MetadataStore` instance is shared between these components, to avoid entry overriding because both filter and `AbstractInboundFileSynchronizer` use the same local file name for the metadata entry key.

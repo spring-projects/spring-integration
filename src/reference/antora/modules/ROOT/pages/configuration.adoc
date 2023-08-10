@@ -1,0 +1,12 @@
+[[configuration]]
+= Configuration
+:page-section-summary-toc: 1
+
+Spring Integration offers a number of configuration options.
+Which option you choose depends upon your particular needs and at what level you prefer to work.
+As with the Spring framework in general, you can mix and match the various techniques to suit the problem at hand.
+For example, you can choose the XSD-based namespace for the majority of configuration and combine it with a handful of objects that you configure with annotations.
+As much as possible, the two provide consistent naming.
+The XML elements defined by the XSD schema match the names of the annotations, and the attributes of those XML elements match the names of annotation properties.
+You can also use the API directly, but we expect most developers to choose one of the higher-level options or a combination of the namespace-based and annotation-driven configuration.
+

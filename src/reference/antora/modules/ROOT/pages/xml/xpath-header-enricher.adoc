@@ -1,0 +1,60 @@
+[[xml-xpath-header-enricher]]
+= XPath Header Enricher
+
+The XPath header enricher defines a header enricher message transformer that evaluates an XPath expression against the message payload and inserts the result of the evaluation into a message header.
+
+The following listing shows all the available configuration parameters:
+
+[source,xml]
+----
+<int-xml:xpath-header-enricher default-overwrite="true"    <1>
+                               id=""                       <2>
+                               input-channel=""            <3>
+                               output-channel=""           <4>
+                               should-skip-nulls="true">   <5>
+    <int:poller></int:poller>                              <6>
+    <int-xml:header name=""                                <7>
+                    evaluation-type="STRING_RESULT"        <8>
+                    header-type="int"                      <9>
+                    overwrite="true"                       <10>
+                    xpath-expression=""                    <11>
+                    xpath-expression-ref=""/>              <12>
+</int-xml:xpath-header-enricher>
+
+----
+
+<1> Specifies the default boolean value for whether to overwrite existing header values.
+It takes effect only for child elements that do not provide their own 'overwrite' attribute.
+If you do not set the 'default- overwrite' attribute, the specified header values do not overwrite any existing ones with the same header names.
+Optional.
+<2> ID for the underlying bean definition.
+Optional.
+<3> The receiving message channel of this endpoint.
+Optional.
+<4> Channel to which enriched messages are sent.
+Optional.
+<5> Specifies whether null values, such as might be returned from an expression evaluation, should be skipped.
+The default value is `true`.
+If a null value should trigger removal of the corresponding header, set this to `false`.
+Optional.
+<6> A poller to use with the header enricher.
+Optional.
+<7> The name of the header to be enriched.
+Mandatory.
+<8> The result type expected from the XPath evaluation.
+If you did not set a `header-type` attribute, this is the type of the header value.
+The following values are allowed: `BOOLEAN_RESULT`, `STRING_RESULT`, `NUMBER_RESULT`, `NODE_RESULT`, and `NODE_LIST_RESULT`.
+If not set, it defaults internally to `XPathEvaluationType.STRING_RESULT`.
+Optional.
+<9> The fully qualified class name for the header value type.
+The result of the XPath evaluation is converted to this type by `ConversionService`.
+This allows, for example, a `NUMBER_RESULT` (a double) to be converted to an `Integer`.
+The type can be declared as a primitive (such as `int`), but the result is always the equivalent wrapper class (such as `Integer`).
+The same integration `ConversionService` discussed in xref:endpoint.adoc#payload-type-conversion[Payload Type Conversion] is used for the conversion, so conversion to custom types is supported by adding a custom converter to the service.
+Optional.
+<10> Boolean value to indicate whether this header value should overwrite an existing header value for the same name if already present on the input `Message`.
+<11> The XPath expression as a `String`.
+You must set either this attribute or `xpath-expression-ref`, but not both.
+<12> The XPath expression reference.
+You must set either this attribute or `xpath-expression`, but not both.
+

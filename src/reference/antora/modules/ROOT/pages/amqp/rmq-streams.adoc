@@ -1,0 +1,40 @@
+[[rmq-streams]]
+= RabbitMQ Stream Queue Support
+
+Version 6.0 introduced support for RabbitMQ Stream Queues.
+
+The DSL factory class for these endpoints is `RabbitStream`.
+
+[[rmq-stream-inbound-channel-adapter]]
+== RabbitMQ Stream Inbound Channel Adapter
+
+[source, java]
+----
+@Bean
+IntegrationFlow simpleStream(Environment env) {
+	return IntegrationFlow.from(RabbitStream.inboundAdapter(env).streamName("my.stream"))
+			// ...
+			.get();
+}
+
+@Bean
+IntegrationFlow superStream(Environment env) {
+	return IntegrationFlow.from(RabbitStream.inboundAdapter(env).superStream("my.super.stream", "my.consumer"))
+			// ...
+			.get();
+}
+----
+
+[[rmq-stream-outbound-channel-adapter]]
+== RabbitMQ Stream Outbound Channel Adapter
+
+[source, java]
+----
+@Bean
+IntegrationFlow outbound(Environment env) {
+    return f -> f
+            // ...
+            .handle(RabbitStream.outboundStreamAdapter(env, "my.stream"));
+
+}
+----

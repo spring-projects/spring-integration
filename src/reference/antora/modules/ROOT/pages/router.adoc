@@ -1,0 +1,14 @@
+[[router]]
+= Routers
+:page-section-summary-toc: 1
+
+This section covers how routers work.
+It includes the following topics:
+
+* xref:router/overview.adoc[Overview]
+* xref:router/common-parameters.adoc[Common Router Parameters]
+* xref:router/implementations.adoc[Router Implementations]
+* xref:router/namespace.adoc[Configuring a Generic Router]
+* xref:router/spel.adoc[Routers and the Spring Expression Language (SpEL)]
+* xref:router/dynamic-routers.adoc[Dynamic Routers]
+

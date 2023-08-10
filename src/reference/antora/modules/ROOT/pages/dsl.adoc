@@ -1,0 +1,57 @@
+[[java-dsl]]
+= Java DSL
+
+The Spring Integration Java configuration and DSL provides a set of convenient builders and a fluent API that lets you configure Spring Integration message flows from Spring `@Configuration` classes.
+
+(See also xref:kotlin-dsl.adoc[Kotlin DSL].)
+
+(See also xref:groovy-dsl.adoc[Groovy DSL].)
+
+The Java DSL for Spring Integration is essentially a facade for Spring Integration.
+The DSL provides a simple way to embed Spring Integration Message Flows into your application by using the fluent `Builder` pattern together with existing Java configuration from Spring Framework and Spring Integration.
+We also use and support lambdas (available with Java 8) to further simplify Java configuration.
+
+The https://github.com/spring-projects/spring-integration-samples/tree/main/dsl/cafe-dsl[cafe] offers a good example of using the DSL.
+
+The DSL is  presented by the `IntegrationFlow` fluent API (see `IntegrationFlowBuilder`).
+This produces the `IntegrationFlow` component, which should be registered as a Spring bean (by using the `@Bean` annotation).
+The builder pattern is used to express arbitrarily complex structures as a hierarchy of methods that can accept lambdas as arguments.
+
+The `IntegrationFlowBuilder` only collects integration components (`MessageChannel` instances, `AbstractEndpoint` instances, and so on) in the `IntegrationFlow` bean for further parsing and registration of concrete beans in the application context by the `IntegrationFlowBeanPostProcessor`.
+
+The Java DSL uses Spring Integration classes directly and bypasses any XML generation and parsing.
+However, the DSL offers more than syntactic sugar on top of XML.
+One of its most compelling features is the ability to define inline lambdas to implement endpoint logic, eliminating the need for external classes to implement custom logic.
+In some sense, Spring Integration's support for the Spring Expression Language (SpEL) and inline scripting address this, but lambdas are easier and much more powerful.
+
+The following example shows how to use Java Configuration for Spring Integration:
+
+[source,java]
+----
+@Configuration
+@EnableIntegration
+public class MyConfiguration {
+
+    @Bean
+    public AtomicInteger integerSource() {
+        return new AtomicInteger();
+    }
+
+    @Bean
+    public IntegrationFlow myFlow(AtomicInteger integerSource) {
+        return IntegrationFlow.fromSupplier(integerSource::getAndIncrement,
+                                         c -> c.poller(Pollers.fixedRate(100)))
+                    .channel("inputChannel")
+                    .filter((Integer p) -> p > 0)
+                    .transform(Object::toString)
+                    .channel(MessageChannels.queue())
+                    .get();
+    }
+}
+----
+
+The result of the preceding configuration example is that it creates, after `ApplicationContext` start up, Spring Integration endpoints and message channels.
+Java configuration can be used both to replace and augment XML configuration.
+You need not replace all of your existing XML configuration to use Java configuration.
+
+

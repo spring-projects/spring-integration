@@ -1,0 +1,39 @@
+[[ftp-rft]]
+= Using `RemoteFileTemplate`
+
+Starting with Spring Integration 3.0, a new abstraction is provided over the `FtpSession` object.
+The template provides methods to send, retrieve (as an `InputStream`), remove, and rename files.
+In addition, an `execute` method is provided allowing the caller to execute multiple operations on the session.
+In all cases, the template takes care of reliably closing the session.
+For more information, see the
+https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[Javadoc for `RemoteFileTemplate`].
+There is a subclass for FTP: `FtpRemoteFileTemplate`.
+
+Version 4.1 added additional methods, including `getClientInstance()`, which provides access to the underlying `FTPClient` and thus gives you access to low-level APIs.
+
+Not all FTP servers properly implement the `STAT <path>` command.
+Some return a positive result for a non-existent path.
+The `NLST` command reliably returns the name when the path is a file, and it exists.
+However, this does not support checking that an empty directory exists since `NLST` always returns an empty list when the path is a directory.
+Since the template does not know whether the path represents a directory, it has to perform additional checks when the path does not appear to exist (when using `NLST`).
+This adds overhead, requiring several requests to the server.
+Starting with version 4.1.9, the `FtpRemoteFileTemplate` provides the `FtpRemoteFileTemplate.ExistsMode` property, which has the following options:
+
+* `STAT`: Perform the `STAT` FTP command (`FTPClient.getStatus(path)`) to check the path existence.
+This is the default and requires that your FTP server properly support the `STAT` command (with a path).
+* `NLST`: Perform the `NLST` FTP command -- `FTPClient.listName(path)`.
+Use this if you are testing for a path that is a full path to a file.
+It does not work for empty directories.
+* `NLST_AND_DIRS`:  Perform the `NLST` command first and, if it returns no files, fall back to a technique that temporarily switches the working directory by using `FTPClient.changeWorkingDirectory(path)`.
+See https://docs.spring.io/spring-integration/api/org/springframework/integration/ftp/session/FtpSession.html#exists[`FtpSession.exists()`] for more information.
+
+Since we know that the `FileExistsMode.FAIL` case is always only looking for a file (and not a directory), we safely use `NLST` mode for the `FtpMessageHandler` and `FtpOutboundGateway` components.
+
+For any other cases, the `FtpRemoteFileTemplate` can be extended to implement custom logic in the overridden `exist()` method.
+
+Starting with version 5.0, the new `RemoteFileOperations.invoke(OperationsCallback<F, T> action)` method is available.
+This method lets several `RemoteFileOperations` calls be called in the scope of the same, thread-bounded, `Session`.
+This is useful when you need to perform several high-level operations of the `RemoteFileTemplate` as one unit of work.
+For example, `AbstractRemoteFileOutboundGateway` uses it with the `mput` command implementation, where we perform a `put` operation for each file in the provided directory and recursively for its sub-directories.
+See the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileOperations.html#invoke[Javadoc] for more information.
+

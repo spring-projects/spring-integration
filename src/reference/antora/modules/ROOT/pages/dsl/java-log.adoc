@@ -1,0 +1,22 @@
+[[java-dsl-log]]
+= Operator log()
+:page-section-summary-toc: 1
+
+For convenience, to log the message journey through the Spring Integration flow (`<logging-channel-adapter>`), a `log()` operator is presented.
+Internally, it is represented by the `WireTap` `ChannelInterceptor` with a `LoggingHandler` as its subscriber.
+It is responsible for logging the incoming message into the next endpoint or the current channel.
+The following example shows how to use `LoggingHandler`:
+
+[source,java]
+----
+.filter(...)
+.log(LoggingHandler.Level.ERROR, "test.category", m -> m.getHeaders().getId())
+.route(...)
+----
+
+In the preceding example, an `id` header is logged at the `ERROR` level onto `test.category` only for messages that passed the filter and before routing.
+
+Starting with version 6.0, the behavior of this operator in the end of flow is aligned with its usage in the middle.
+In other words the behavior of the flow remains the same even if the `log()` operator is removed.
+So, if a reply is not expected to be produced in the end of the flow, the `nullChannel()` is recommended to be used after the last `log()`.
+

@@ -1,0 +1,40 @@
+[[jdbc]]
+= JDBC Support
+
+Spring Integration provides channel adapters for receiving and sending messages by using database queries.
+Through those adapters, Spring Integration supports not only plain JDBC SQL queries but also stored procedure and stored function calls.
+
+You need to include this dependency into your project:
+
+[tabs]
+======
+Maven::
++
+[source, xml, subs="normal", role="primary"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-jdbc</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+Gradle::
++
+[source, groovy, subs="normal", role="secondary"]
+----
+compile "org.springframework.integration:spring-integration-jdbc:{project-version}"
+----
+======
+
+By default, the following JDBC components are available:
+
+* xref:jdbc/inbound-channel-adapter.adoc[Inbound Channel Adapter]
+* xref:jdbc/outbound-channel-adapter.adoc[Outbound Channel Adapter]
+* xref:jdbc/outbound-gateway.adoc[Outbound Gateway]
+* xref:jdbc/stored-procedures.adoc#stored-procedure-inbound-channel-adapter[Stored Procedure Inbound Channel Adapter]
+* xref:jdbc/stored-procedures.adoc#stored-procedure-outbound-channel-adapter[Stored Procedure Outbound Channel Adapter]
+* xref:jdbc/stored-procedures.adoc#stored-procedure-outbound-gateway[Stored Procedure Outbound Gateway]
+
+The Spring Integration JDBC Module also provides a xref:jdbc/message-store.adoc[JDBC Message Store].
+

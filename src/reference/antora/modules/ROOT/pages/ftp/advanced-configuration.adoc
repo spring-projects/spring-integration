@@ -1,0 +1,113 @@
+[[advanced-configuration]]
+= Advanced Configuration
+
+`DefaultFtpSessionFactory` provides an abstraction over the underlying client API, which (since Spring Integration 2.0) is https://commons.apache.org/net/[Apache Commons Net].
+This spares you from the low-level configuration details of the `org.apache.commons.net.ftp.FTPClient`.
+Several common properties are exposed on the session factory (since version 4.0, this now includes `connectTimeout`, `defaultTimeout`, and `dataTimeout`).
+However, you sometimes need access to lower level `FTPClient` configuration to achieve more advanced configuration (such as setting the port range for active mode).
+For that purpose, `AbstractFtpSessionFactory` (the base class for all FTP Session Factories) exposes hooks, in the form of the two post-processing methods shown in the following listing:
+
+[source,java]
+----
+/**
+ * Will handle additional initialization after client.connect() method was invoked,
+ * but before any action on the client has been taken
+ */
+protected void postProcessClientAfterConnect(T t) throws IOException {
+    // NOOP
+}
+/**
+ * Will handle additional initialization before client.connect() method was invoked.
+ */
+protected void postProcessClientBeforeConnect(T client) throws IOException {
+    // NOOP
+}
+----
+
+As you can see, there is no default implementation for these two methods.
+However, by extending `DefaultFtpSessionFactory`, you can override these methods to provide more advanced configuration of the `FTPClient`, as the following example shows:
+
+[source,java]
+----
+public class AdvancedFtpSessionFactory extends DefaultFtpSessionFactory {
+
+    protected void postProcessClientBeforeConnect(FTPClient ftpClient) throws IOException {
+       ftpClient.setActivePortRange(4000, 5000);
+    }
+}
+----
+
+[[ftps-and-shared-sslsession]]
+== FTPS and Shared SSLSession
+
+When using FTP over SSL or TLS, some servers require the same `SSLSession` to be used on the control and data connections.
+This is to prevent "`stealing`" data connections.
+See https://scarybeastsecurity.blogspot.cz/2009/02/vsftpd-210-released.html for more information.
+
+Currently, the Apache FTPSClient does not support this feature.
+See https://issues.apache.org/jira/browse/NET-408[NET-408].
+
+The following solution, courtesy of https://stackoverflow.com/questions/32398754/how-to-connect-to-ftps-server-with-data-connection-using-same-tls-session[Stack Overflow], uses reflection on the `sun.security.ssl.SSLSessionContextImpl`, so it may not work on other JVMs.
+The stack overflow answer was submitted in 2015, and the solution has been tested by the Spring Integration team on JDK 1.8.0_112.
+
+The following example shows how to create an FTPS session:
+
+[source, java]
+----
+@Bean
+public DefaultFtpsSessionFactory sf() {
+    DefaultFtpsSessionFactory sf = new DefaultFtpsSessionFactory() {
+
+        @Override
+        protected FTPSClient createClientInstance() {
+            return new SharedSSLFTPSClient();
+        }
+
+    };
+    sf.setHost("...");
+    sf.setPort(21);
+    sf.setUsername("...");
+    sf.setPassword("...");
+    sf.setNeedClientAuth(true);
+    return sf;
+}
+
+private static final class SharedSSLFTPSClient extends FTPSClient {
+
+    @Override
+    protected void _prepareDataSocket_(final Socket socket) throws IOException {
+        if (socket instanceof SSLSocket) {
+            // Control socket is SSL
+            final SSLSession session = ((SSLSocket) _socket_).getSession();
+            final SSLSessionContext context = session.getSessionContext();
+            context.setSessionCacheSize(0); // you might want to limit the cache
+            try {
+                final Field sessionHostPortCache = context.getClass()
+                        .getDeclaredField("sessionHostPortCache");
+                sessionHostPortCache.setAccessible(true);
+                final Object cache = sessionHostPortCache.get(context);
+                final Method method = cache.getClass().getDeclaredMethod("put", Object.class,
+                        Object.class);
+                method.setAccessible(true);
+                String key = String.format("%s:%s", socket.getInetAddress().getHostName(),
+                        String.valueOf(socket.getPort())).toLowerCase(Locale.ROOT);
+                method.invoke(cache, key, session);
+                key = String.format("%s:%s", socket.getInetAddress().getHostAddress(),
+                        String.valueOf(socket.getPort())).toLowerCase(Locale.ROOT);
+                method.invoke(cache, key, session);
+            }
+            catch (NoSuchFieldException e) {
+                // Not running in expected JRE
+                logger.warn("No field sessionHostPortCache in SSLSessionContext", e);
+            }
+            catch (Exception e) {
+                // Not running in expected JRE
+                logger.warn(e.getMessage());
+            }
+        }
+
+    }
+
+}
+----
+

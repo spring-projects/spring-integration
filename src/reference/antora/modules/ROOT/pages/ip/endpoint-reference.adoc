@@ -1,0 +1,552 @@
+[[ip-endpoint-reference]]
+= IP Configuration Attributes
+
+The following table describes attributes that you can set to configure IP connections:
+
+.Connection Factory Attributes
+[cols="2,^1,^1,1,4", options="header"]
+|===
+
+| Attribute Name
+| Client?
+| Server?
+| Allowed Values
+| Attribute Description
+
+| `type`
+| Y
+| Y
+| client, server
+| Determines whether the connection factory is a client or a server.
+
+| `host`
+| Y
+| N
+|
+| The host name or IP address of the destination.
+
+| `port`
+| Y
+| Y
+|
+| The port.
+
+| `serializer`
+| Y
+| Y
+|
+| An implementation of `Serializer` used to serialize the payload.
+Defaults to `ByteArrayCrLfSerializer`
+
+| `deserializer`
+| Y
+| Y
+|
+| An implementation of `Deserializer` used to deserialize the payload.
+Defaults to `ByteArrayCrLfSerializer`
+
+| `using-nio`
+| Y
+| Y
+| `true`, `false`
+| Whether the connection uses NIO.
+Refer to the `java.nio` package for more information.
+See xref:ip/note-nio.adoc[About Non-blocking I/O (NIO)].
+Default: `false`.
+
+| `using-direct-buffers`
+| Y
+| N
+| `true`, `false`
+| When using NIO, whether the connection uses direct buffers.
+Refer to the `java.nio.ByteBuffer` documentation for more information.
+Must be `false` if `using-nio` is `false`.
+
+| `apply-sequence`
+| Y
+| Y
+| `true`, `false`
+| When you use NIO, it may be necessary to resequence messages.
+When this attribute is set to `true`, `correlationId` and `sequenceNumber` headers are added to received messages.
+See xref:ip/note-nio.adoc[About Non-blocking I/O (NIO)].
+Default: `false`.
+
+| `so-timeout`
+| Y
+| Y
+|
+| Defaults to `0` (infinity), except for server connection factories with `single-use="true"`.
+In that case, it defaults to the default reply timeout (10 seconds).
+
+| `so-send-buffer-size`
+| Y
+| Y
+|
+| See `java.net.Socket.`
+`setSendBufferSize()`.
+
+| `so-receive-buffer-size`
+| Y
+| Y
+|
+| See `java.net.Socket.`
+`setReceiveBufferSize()`.
+
+| `so-keep-alive`
+| Y
+| Y
+| `true`, `false`
+| See `java.net.Socket.setKeepAlive()`.
+
+| `so-linger`
+| Y
+| Y
+|
+| Sets `linger` to `true` with the supplied value.
+See `java.net.Socket.setSoLinger()`.
+
+| `so-tcp-no-delay`
+| Y
+| Y
+| `true`, `false`
+| See `java.net.Socket.setTcpNoDelay()`.
+
+| `so-traffic-class`
+| Y
+| Y
+|
+| See `java.net.Socket.`
+`setTrafficClass()`.
+
+| `local-address`
+| N
+| Y
+|
+| On a multi-homed system, specifies an IP address for the interface to which the socket is bound.
+
+| `task-executor`
+| Y
+| Y
+|
+| Specifies a specific executor to be used for socket handling.
+If not supplied, an internal cached thread executor is used.
+Needed on some platforms that require the use of specific task executors, such as a `WorkManagerTaskExecutor`.
+
+| `single-use`
+| Y
+| Y
+| `true`, `false`
+| Specifies whether a connection can be used for multiple messages.
+If `true`, a new connection is used for each message.
+
+| `pool-size`
+| N
+| N
+|
+| This attribute is no longer used.
+For backward compatibility, it sets the backlog, but you should use `backlog` to specify the connection backlog in server factories.
+
+| `backlog`
+| N
+| Y
+|
+| Sets the connection backlog for server factories.
+
+| `lookup-host`
+| Y
+| Y
+| `true`, `false`
+| Specifies whether reverse lookups are done on IP addresses to convert to host names for use in message headers.
+If false, the IP address is used instead.
+Default: `false`.
+
+| `interceptor-factory-chain`
+| Y
+| Y
+|
+| See xref:ip/interceptors.adoc[TCP Connection Interceptors].
+
+| `ssl-context-support`
+| Y
+| Y
+|
+| See `xref:ip/ssl-tls.adoc[SSL/TLS Support]`.
+
+| `socket-factory-support`
+| Y
+| Y
+|
+| See `xref:ip/ssl-tls.adoc[SSL/TLS Support]`.
+
+| `socket-support`
+| Y
+| Y
+|
+| See xref:ip/ssl-tls.adoc[SSL/TLS Support].
+
+| `nio-connection-support`
+| Y
+| Y
+|
+| See xref:ip/tcp-advanced-techniques.adoc[Advanced Techniques].
+
+| `read-delay`
+| Y
+| Y
+| long > 0
+| The delay (in milliseconds) before retrying a read after the previous attempt failed due to insufficient threads.
+Default: 100.
+Only applies if `using-nio` is `true`.
+|===
+
+The following table describes attributes that you can set to configure UDP inbound channel adapters:
+
+[[ip-udp-ib-atts]]
+.UDP Inbound Channel Adapter Attributes
+[cols="1,^1,4", options="header"]
+|===
+| Attribute Name
+| Allowed Values
+| Attribute Description
+
+| `port`
+|
+| The port on which the adapter listens.
+
+| `multicast`
+| `true`, `false`
+| Whether or not the UDP adapter uses multicast.
+
+| `multicast-address`
+|
+| When multicast is true, the multicast address to which the adapter joins.
+
+| `pool-size`
+|
+| Specifies how many packets can be handled concurrently.
+It only applies if task-executor is not configured.
+Default: 5.
+
+| task-executor
+|
+| Specifies a specific executor to be used for socket handling.
+If not supplied, an internal pooled executor is used.
+Needed on some platforms that require the use of specific task executors such as a `WorkManagerTaskExecutor`.
+See pool-size for thread requirements.
+
+| `receive-buffer-size`
+|
+| The size of the buffer used to receive `DatagramPackets`.
+Usually set to the maximum transmission unit (MTU) size.
+If a smaller buffer is used than the size of the sent packet, truncation can occur.
+You can detect this by using the `check-length` attribute..
+
+| `check-length`
+| `true`, `false`
+| Whether a UDP adapter expects a data length field in the packet received.
+Used to detect packet truncation.
+
+| `so-timeout`
+|
+| See the `setSoTimeout()` methods in `java.net.DatagramSocket` for more information.
+
+| `so-send-buffer-size`
+|
+| Used for UDP acknowledgment packets.
+See the setSendBufferSize() methods in `java.net.DatagramSocket` for more information.
+
+| `so-receive-buffer-size`
+|
+| See `java.net.DatagramSocket.setReceiveBufferSize()` for more information.
+
+| `local-address`
+|
+| On a multi-homed system, specifies an IP address for the interface to which the socket is bound.
+
+| `error-channel`
+|
+| If a downstream component throws an exception, the `MessagingException` message that contains the exception and failed message is sent to this channel.
+
+| `lookup-host`
+| `true`, `false`
+| Specifies whether reverse lookups are done on IP addresses to convert to host names for use in message headers.
+If `false`, the IP address is used instead.
+Default: `false`.
+
+|===
+
+The following table describes attributes that you can set to configure UDP outbound channel adapters:
+
+.UDP Outbound Channel Adapter Attributes
+[cols="2,^1,4", options="header"]
+|===
+| Attribute Name
+| Allowed Values
+| Attribute Description
+
+| `host`
+|
+| The host name or ip address of the destination.
+For multicast udp adapters, the multicast address.
+
+| `port`
+|
+| The port on the destination.
+
+| `multicast`
+| `true`, `false`
+| Whether or not the udp adapter uses multicast.
+
+| `acknowledge`
+| `true`, `false`
+| Whether a UDP adapter requires an acknowledgment from the destination.
+When enabled, it requires setting the following four attributes: `ack-host`, `ack-port`, `ack-timeout`, and `min-acks-for- success`.
+
+| `ack-host`
+|
+| When `acknowledge` is `true`, indicates the host or IP address to which the acknowledgment should be sent.
+Usually the current host, but may be different -- for example, when Network Address Translation (NAT) is being used.
+
+| `ack-port`
+|
+| When `acknowledge` is `true`, indicates the port to which the acknowledgment should be sent.
+The adapter listens on this port for acknowledgments.
+
+| `ack-timeout`
+|
+| When `acknowledge` is `true`, indicates the time in milliseconds that the adapter waits for an acknowledgment.
+If an acknowledgment is not received in time, the adapter throws an exception.
+
+| `min-acks-for- success`
+|
+| Defaults to 1.
+For multicast adapters, you can set this to a larger value, which requires acknowledgments from multiple destinations.
+
+| `check-length`
+| `true`, `false`
+| Whether or not a UDP adapter includes a data length field in the packet sent to the destination.
+
+| `time-to-live`
+|
+| For multicast adapters, specifies the time-to-live attribute for the `MulticastSocket`.
+Controls the scope of the multicasts.
+Refer to the Java API documentation for more information.
+
+| `so-timeout`
+|
+| See `java.net.DatagramSocket` setSoTimeout() methods for more information.
+
+| `so-send-buffer-size`
+|
+| See the `setSendBufferSize()` methods in `java.net.DatagramSocket` for more information.
+
+| `so-receive-buffer-size`
+|
+| Used for UDP acknowledgment packets.
+See the `setReceiveBufferSize()` methods in `java.net.DatagramSocket` for more information.
+| local-address
+|
+| On a multi-homed system, for the UDP adapter, specifies an IP address for the interface to which the socket is bound for reply messages.
+For a multicast adapter, it also determines which interface the multicast packets are sent over.
+
+| `task-executor`
+|
+| Specifies a specific executor to be used for acknowledgment handling.
+If not supplied, an internal single threaded executor is used.
+Needed on some platforms that require the use of specific task executors, such as a `WorkManagerTaskExecutor`.
+One thread is dedicated to handling acknowledgments (if the `acknowledge` option is true).
+
+| `destination-expression`
+| SpEL expression
+| A SpEL expression to be evaluated to determine which `SocketAddress` to use as a destination address for the outgoing UDP packets.
+
+| `socket-expression`
+| SpEL expression
+| A SpEL expression to be evaluated to determine which datagram socket use for sending outgoing UDP packets.
+|===
+
+The following table describes attributes that you can set to configure TCP inbound channel adapters:
+
+.TCP Inbound Channel Adapter Attributes
+[cols="2,^1,4", options="header"]
+|===
+| Attribute Name
+| Allowed Values
+| Attribute Description
+
+| `channel`
+|
+| The channel to which inbound messages is sent.
+
+| `connection-factory`
+|
+| If the connection factory has a type of `server`, the factory is "`owned`" by this adapter.
+If it has a type of `client`, it is "`owned`" by an outbound channel adapter, and this adapter receives any incoming messages on the connection created by the outbound adapter.
+
+| `error-channel`
+|
+| If an exception is thrown by a downstream component, the `MessagingException` message containing the exception and the failed message is sent to this channel.
+
+| `client-mode`
+| `true`, `false`
+| When `true`, the inbound adapter acts as a client with respect to establishing the connection and then receiving incoming messages on that connection.
+Default: `false`.
+See also `retry-interval` and `scheduler`.
+The connection factory must be of type `client` and have `single-use` set to `false`.
+
+| `retry-interval`
+|
+| When in `client-mode`, specifies the number of milliseconds to wait between connection attempts or after a connection failure.
+Default: 60000 (60 seconds).
+
+| `scheduler`
+| `true`, `false`
+| Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
+If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
+See xref:configuration/namespace-taskscheduler.adoc[Configuring the Task Scheduler].
+|===
+
+The following table describes attributes that you can set to configure TCP outbound channel adapters:
+
+.TCP Outbound Channel Adapter Attributes
+[cols="2,^1,4", options="header"]
+|===
+| Attribute Name
+| Allowed Values
+| Attribute Description
+
+| `channel`
+|
+| The channel on which outbound messages arrive.
+
+| `connection-factory`
+|
+| If the connection factory has a type of `client`, the factory is "`owned`" by this adapter.
+If it has a type of `server`, it is "`owned`" by an inbound channel adapter, and this adapter tries to correlate messages to the connection on which an original inbound message was received.
+
+| `client-mode`
+| `true`, `false`
+| When `true`, the outbound adapter tries to establish the connection as soon as it is started.
+When `false`, the connection is established when the first message is sent.
+Default: `false`.
+See also `retry-interval` and `scheduler`.
+The connection factory must be of type `client` and have `single-use` set to `false`.
+
+| `retry-interval`
+|
+| When in `client-mode`, specifies the number of milliseconds to wait between connection attempts or after a connection failure.
+Default: 60000 (60 seconds).
+
+| `scheduler`
+| `true`, `false`
+| Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
+If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
+See xref:configuration/namespace-taskscheduler.adoc[Configuring the Task Scheduler].
+|===
+
+The following table describes attributes that you can set to configure TCP inbound gateways:
+
+.TCP Inbound Gateway Attributes
+[cols="2,^1,4", options="header"]
+|===
+| Attribute Name
+| Allowed Values
+| Attribute Description
+
+| `connection-factory`
+|
+| The connection factory must be of type server.
+
+| `request-channel`
+|
+| The channel to which incoming messages are sent.
+
+| `reply-channel`
+|
+| The channel on which reply messages may arrive.
+Usually, replies arrive on a temporary reply channel added to the inbound message header.
+
+| `reply-timeout`
+|
+| The time in milliseconds for which the gateway waits for a reply.
+Default: 1000 (1 second).
+
+| `error-channel`
+|
+| If an exception is thrown by a downstream component, the `MessagingException` message containing the exception and the failed message is sent to this channel.
+Any reply from that flow is then returned as a response by the gateway.
+
+| `client-mode`
+| `true`, `false`
+| When `true`, the inbound gateway acts as a client with respect to establishing the connection and then receiving (and replying to) incoming messages on that connection.
+Default: false.
+See also `retry-interval` and `scheduler`.
+The connection factory must be of type `client` and have `single-use` set to `false`.
+
+| `retry-interval`
+|
+| When in `client-mode`, specifies the number of milliseconds to wait between connection attempts or after a connection failure.
+Default: 60000 (60 seconds).
+
+| `scheduler`
+| `true`, `false`
+| Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
+If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
+See xref:configuration/namespace-taskscheduler.adoc[Configuring the Task Scheduler].
+|===
+
+The following table describes attributes that you can set to configure TCP outbound gateways:
+
+[[tcp-ob-gateway-attributes]]
+.TCP Outbound Gateway Attributes
+[cols="2,^1,4", options="header"]
+|===
+| Attribute Name
+| Allowed Values
+| Attribute Description
+
+| `connection-factory`
+|
+| The connection factory must be of type `client`.
+
+| `request-channel`
+|
+| The channel on which outgoing messages arrive.
+
+| `reply-channel`
+|
+| Optional.
+The channel to which reply messages are sent.
+
+| `remote-timeout`
+|
+| The time in milliseconds for which the gateway waits for a reply from the remote system.
+Mutually exclusive with `remote-timeout-expression`.
+Default: 10000 (10 seconds).
+Note: In versions prior to 4.2 this value defaulted to `reply-timeout` (if set).
+
+| `remote-timeout-expression`
+|
+| A SpEL expression that is evaluated against the message to determine the time in milliseconds for which the gateway waits for a reply from the remote system.
+Mutually exclusive with `remote-timeout`.
+
+| `request-timeout`
+|
+| If a single-use connection factory is not being used, the time in milliseconds for which the gateway waits to get access to the shared connection.
+
+| `reply-timeout`
+|
+| The time in milliseconds for which the gateway waits when sending the reply to the reply-channel.
+Only applies if the reply-channel might block (such as a bounded QueueChannel that is currently full).
+
+| `async`
+|
+| Release the sending thread after the send; the reply (or error) will be sent on the receiving thread.
+
+| `unsolicited`
+`MessageChannel`
+|
+| A channel to which to send unsolicited messages and late replies.
+|===
+
+.IP Message Headers

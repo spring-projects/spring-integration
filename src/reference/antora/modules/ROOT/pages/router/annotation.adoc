@@ -1,0 +1,37 @@
+[[router-annotation]]
+= Configuring a Router with Annotations
+
+When using `@Router` to annotate a method, the method may return either a `MessageChannel` or a `String` type.
+In the latter case, the endpoint resolves the channel name as it does for the default output channel.
+Additionally, the method may return either a single value or a collection.
+If a collection is returned, the reply message is sent to multiple channels.
+To summarize, the following method signatures are all valid:
+
+[source,java]
+----
+@Router
+public MessageChannel route(Message message) {...}
+
+@Router
+public List<MessageChannel> route(Message message) {...}
+
+@Router
+public String route(Foo payload) {...}
+
+@Router
+public List<String> route(Foo payload) {...}
+----
+
+In addition to payload-based routing, a message may be routed based on metadata available within the message header as either a property or an attribute.
+In this case, a method annotated with `@Router` may include a parameter annotated with `@Header`, which is mapped to a header value as the following example shows and documented in xref:configuration/annotations.adoc[Annotation Support]:
+
+[source,java]
+----
+@Router
+public List<String> route(@Header("orderStatus") OrderStatus status)
+----
+
+NOTE: For routing of XML-based Messages, including XPath support, see xref:xml.adoc[XML Support - Dealing with XML Payloads].
+
+See also xref:dsl/java-routers.adoc[Message Routers] in the Java DSL chapter for more information about router configuration.
+

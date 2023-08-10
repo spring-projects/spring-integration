@@ -1,0 +1,72 @@
+[[router-common-parameters]]
+= Common Router Parameters
+
+This section describes the parameters common to all router parameters (the parameters with all their boxes ticked in the two tables shown earlier in this chapter).
+
+[[router-common-parameters-all]]
+== Inside and Outside a Chain
+
+The following parameters are valid for all routers inside and outside of chains.
+
+`apply-sequence`::
+This attribute specifies whether sequence number and size headers should be added to each message.
+This optional attribute defaults to `false`.
+
+`default-output-channel`::
+If set, this attribute provides a reference to the channel where messages should be sent if channel resolution fails to return any channels.
+If no default output channel is provided, the router throws an exception.
+If you would like to silently drop those messages instead, set the default output channel attribute value to `nullChannel`.
++
+NOTE: Starting with version 6.0, setting a default output channel also resets the `channelKeyFallback` option to `false`.
+So, no attempts will be made to resolve a channel from its name, but rather fallback to this default output channel - similar to a Java `switch` statement.
+If `channelKeyFallback` is set to `true` explicitly, the further logic depends on the `resolutionRequired` option: the message to non-resolved channel from key can reach a `defaultOutputChannel` only if `resolutionRequired` is `false`.
+Therefore, a configuration where `defaultOutputChannel` is provided and both `channelKeyFallback` & `resolutionRequired` are set to `true` is rejected by the `AbstractMappingMessageRouter` initialization phase.
+
+`resolution-required`::
+This attribute specifies whether channel names must always be successfully resolved to channel instances that exist.
+If set to `true`, a `MessagingException` is raised when the channel cannot be resolved.
+Setting this attribute to `false` causes any unresolvable channels to be ignored.
+This optional attribute defaults to `true`.
++
+NOTE: A Message is sent only to the `default-output-channel`, if specified, when `resolution-required` is `false` and the channel is not resolved.
+
+`ignore-send-failures`::
+If set to `true`, failures to send to a message channel is ignored.
+If set to `false`, a `MessageDeliveryException` is thrown instead, and, if the router resolves more than one channel, any subsequent channels do not receive the message.
++
+The exact behavior of this attribute depends on the type of the `Channel` to which the messages are sent.
+For example, when using direct channels (single threaded), send failures can be caused by exceptions thrown by components much further downstream.
+However, when sending messages to a simple queue channel (asynchronous), the likelihood of an exception to be thrown is rather remote.
++
+NOTE: While most routers route to a single channel, they can return more than one channel name.
+The `recipient-list-router`, for instance, does exactly that.
+If you set this attribute to `true` on a router that only routes to a single channel, any caused exception is swallowed, which usually makes little sense.
+In that case, it would be better to catch the exception in an error flow at the flow entry point.
+Therefore, setting the `ignore-send-failures` attribute to `true` usually makes more sense when the router implementation returns more than one channel name, because the other channel(s) following the one that fails would still receive the message.
++
+This attribute defaults to `false`.
+
+`timeout`::
+The `timeout` attribute specifies the maximum amount of time in milliseconds to wait when sending messages to the target Message Channels.
+
+[[router-common-parameters-top]]
+== Top-Level (Outside a Chain)
+
+The following parameters are valid only across all top-level routers that are outside of chains.
+
+`id`::
+Identifies the underlying Spring bean definition, which, in the case of routers, is an instance of `EventDrivenConsumer` or `PollingConsumer`, depending on whether the router's `input-channel` is a `SubscribableChannel` or a `PollableChannel`, respectively.
+This is an optional attribute.
+
+`auto-startup`::
+This "`lifecycle`" attribute signaled whether this component should be started during startup of the application context.
+This optional attribute defaults to `true`.
+
+`input-channel`::
+The receiving message channel of this endpoint.
+
+`order`::
+This attribute defines the order for invocation when this endpoint is connected as a subscriber to a channel.
+This is particularly relevant when that channel uses a failover dispatching strategy.
+It has no effect when this endpoint itself is a polling consumer for a channel with a queue.
+

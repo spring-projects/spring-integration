@@ -1,0 +1,263 @@
+[[amqp-inbound-channel-adapter]]
+= Inbound Channel Adapter
+
+The following listing shows the possible configuration options for an AMQP Inbound Channel Adapter:
+
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+public IntegrationFlow amqpInbound(ConnectionFactory connectionFactory) {
+    return IntegrationFlow.from(Amqp.inboundAdapter(connectionFactory, "aName"))
+            .handle(m -> System.out.println(m.getPayload()))
+            .get();
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
+----
+@Bean
+public MessageChannel amqpInputChannel() {
+    return new DirectChannel();
+}
+
+@Bean
+public AmqpInboundChannelAdapter inbound(SimpleMessageListenerContainer listenerContainer,
+        @Qualifier("amqpInputChannel") MessageChannel channel) {
+    AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
+    adapter.setOutputChannel(channel);
+    return adapter;
+}
+
+@Bean
+public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
+    SimpleMessageListenerContainer container =
+                               new SimpleMessageListenerContainer(connectionFactory);
+    container.setQueueNames("aName");
+    container.setConcurrentConsumers(2);
+    // ...
+    return container;
+}
+
+@Bean
+@ServiceActivator(inputChannel = "amqpInputChannel")
+public MessageHandler handler() {
+    return new MessageHandler() {
+
+        @Override
+        public void handleMessage(Message<?> message) throws MessagingException {
+            System.out.println(message.getPayload());
+        }
+
+    };
+}
+----
+
+XML::
++
+[source, xml, role="secondary"]
+----
+<int-amqp:inbound-channel-adapter
+                                  id="inboundAmqp"                <1>
+                                  channel="inboundChannel"        <2>
+                                  queue-names="si.test.queue"     <3>
+                                  acknowledge-mode="AUTO"         <4>
+                                  advice-chain=""                 <5>
+                                  channel-transacted=""           <6>
+                                  concurrent-consumers=""         <7>
+                                  connection-factory=""           <8>
+                                  error-channel=""                <9>
+                                  expose-listener-channel=""      <10>
+                                  header-mapper=""                <11>
+                                  mapped-request-headers=""       <12>
+                                  listener-container=""           <13>
+                                  message-converter=""            <14>
+                                  message-properties-converter="" <15>
+                                  phase=""                        <16>
+                                  prefetch-count=""               <17>
+                                  receive-timeout=""              <18>
+                                  recovery-interval=""            <19>
+                                  missing-queues-fatal=""         <20>
+                                  shutdown-timeout=""             <21>
+                                  task-executor=""                <22>
+                                  transaction-attribute=""        <23>
+                                  transaction-manager=""          <24>
+                                  tx-size=""                      <25>
+                                  consumers-per-queue             <26>
+                                  batch-mode="MESSAGES"/>         <27>
+
+<1> The unique ID for this adapter.
+Optional.
+<2> Message channel to which converted messages should be sent.
+Required.
+<3> Names of the AMQP queues (comma-separated list) from which messages should be consumed.
+Required.
+<4> Acknowledge mode for the `MessageListenerContainer`.
+When set to `MANUAL`, the delivery tag and channel are provided in message headers `amqp_deliveryTag` and `amqp_channel`, respectively.
+The user application is responsible for acknowledgement.
+`NONE` means no acknowledgements (`autoAck`).
+`AUTO` means the adapter's container acknowledges when the downstream flow completes.
+Optional (defaults to AUTO).
+See xref:amqp/inbound-ack.adoc[Inbound Endpoint Acknowledge Mode].
+<5> Extra AOP Advices to handle cross-cutting behavior associated with this inbound channel adapter.
+Optional.
+<6> Flag to indicate that channels created by this component are transactional.
+If true, it tells the framework to use a transactional channel and to end all operations (send or receive) with a commit or rollback, depending on the outcome, with an exception that signals a rollback.
+Optional (Defaults to false).
+<7> Specify the number of concurrent consumers to create.
+The default is `1`.
+We recommend raising the number of concurrent consumers to scale the consumption of messages coming in from a queue.
+However, note that any ordering guarantees are lost once multiple consumers are registered.
+In general, use one consumer for low-volume queues.
+Not allowed when 'consumers-per-queue' is set.
+Optional.
+<8> Bean reference to the RabbitMQ `ConnectionFactory`.
+Optional (defaults to `connectionFactory`).
+<9> Message channel to which error messages should be sent.
+Optional.
+<10> Whether the listener channel (com.rabbitmq.client.Channel) is exposed to a registered `ChannelAwareMessageListener`.
+Optional (defaults to true).
+<11> A reference to an `AmqpHeaderMapper` to use when receiving AMQP Messages.
+Optional.
+By default, only standard AMQP properties (such as `contentType`) are copied to Spring Integration `MessageHeaders`.
+Any user-defined headers within the AMQP `MessageProperties` are NOT copied to the message by the default `DefaultAmqpHeaderMapper`.
+Not allowed if 'request-header-names' is provided.
+<12> Comma-separated list of the names of AMQP Headers to be mapped from the AMQP request into the `MessageHeaders`.
+This can only be provided if the 'header-mapper' reference is not provided.
+The values in this list can also be simple patterns to be matched against the header names (such as "\*" or "thing1*, thing2" or "*something").
+<13> Reference to the `AbstractMessageListenerContainer` to use for receiving AMQP Messages.
+If this attribute is provided, no other attribute related to the listener container configuration should be provided.
+In other words, by setting this reference, you must take full responsibility for the listener container configuration.
+The only exception is the `MessageListener` itself.
+Since that is actually the core responsibility of this channel adapter implementation, the referenced listener container must not already have its own `MessageListener`.
+Optional.
+<14> The `MessageConverter` to use when receiving AMQP messages.
+Optional.
+<15> The `MessagePropertiesConverter` to use when receiving AMQP messages.
+Optional.
+<16> Specifies the phase in which the underlying `AbstractMessageListenerContainer` should be started and stopped.
+The startup order proceeds from lowest to highest, and the shutdown order is the reverse of that.
+By default, this value is `Integer.MAX_VALUE`, meaning that this container starts as late as possible and stops as soon as possible.
+Optional.
+<17> Tells the AMQP broker how many messages to send to each consumer in a single request.
+Often, you can set this value high to improve throughput.
+It should be greater than or equal to the transaction size (see the `tx-size` attribute, later in this list).
+Optional (defaults to `1`).
+<18> Receive timeout in milliseconds.
+Optional (defaults to `1000`).
+<19> Specifies the interval between recovery attempts of the underlying `AbstractMessageListenerContainer` (in milliseconds).
+Optional (defaults to `5000`).
+<20> If 'true' and none of the queues are available on the broker, the container throws a fatal exception during startup and stops if the queues are deleted when the container is running (after making three attempts to passively declare the queues).
+If `false`, the container does not throw an exception and goes into recovery mode, attempting to restart according to the `recovery-interval`.
+Optional (defaults to `true`).
+<21> The time to wait for workers (in milliseconds) after the underlying `AbstractMessageListenerContainer` is stopped and before the AMQP connection is forced closed.
+If any workers are active when the shutdown signal comes, they are allowed to finish processing as long as they can finish within this timeout.
+Otherwise, the connection is closed and messages remain unacknowledged (if the channel is transactional).
+Optional (defaults to `5000`).
+<22> By default, the underlying `AbstractMessageListenerContainer` uses a `SimpleAsyncTaskExecutor` implementation, that fires up a new thread for each task, running it asynchronously.
+By default, the number of concurrent threads is unlimited.
+Note that this implementation does not reuse threads.
+Consider using a thread-pooling `TaskExecutor` implementation as an alternative.
+Optional (defaults to `SimpleAsyncTaskExecutor`).
+<23> By default, the underlying `AbstractMessageListenerContainer` creates a new instance of the `DefaultTransactionAttribute` (it takes the EJB approach to rolling back on runtime but not checked exceptions).
+Optional (defaults to `DefaultTransactionAttribute`).
+<24> Sets a bean reference to an external `PlatformTransactionManager` on the underlying `AbstractMessageListenerContainer`.
+The transaction manager works in conjunction with the `channel-transacted` attribute.
+If there is already a transaction in progress when the framework is sending or receiving a message and the `channelTransacted` flag is `true`, the commit or rollback of the messaging transaction is deferred until the end of the current transaction.
+If the `channelTransacted` flag is `false`, no transaction semantics apply to the messaging operation (it is auto-acked).
+For further information, see
+https://docs.spring.io/spring-amqp/reference/html/%255Freference.html#%5Ftransactions[Transactions with Spring AMQP].
+Optional.
+<25> Tells the `SimpleMessageListenerContainer` how many messages to process in a single transaction (if the channel is transactional).
+For best results, it should be less than or equal to the value set in `prefetch-count`.
+Not allowed when 'consumers-per-queue' is set.
+Optional (defaults to `1`).
+<26> Indicates that the underlying listener container should be a `DirectMessageListenerContainer` instead of the default `SimpleMessageListenerContainer`.
+See the https://docs.spring.io/spring-amqp/reference/html/[Spring AMQP Reference Manual] for more information.
+<27> When the container's `consumerBatchEnabled` is `true`, determines how the adapter presents the batch of messages in the message payload.
+When set to `MESSAGES` (default), the payload is a `List<Message<?>>` where each message has headers mapped from the incoming AMQP `Message` and the payload is the converted `body`.
+When set to `EXTRACT_PAYLOADS`, the payload is a `List<?>` where the elements are converted from the AMQP `Message` body.
+`EXTRACT_PAYLOADS_WITH_HEADERS` is similar to `EXTRACT_PAYLOADS` but, in addition, the headers from each message are mapped from the `MessageProperties` into a `List<Map<String, Object>` at the corresponding index; the header name is `AmqpInboundChannelAdapter.CONSOLIDATED_HEADERS`.
+----
+======
+
+[NOTE]
+.container
+====
+Note that when configuring an external container with XML, you cannot use the Spring AMQP namespace to define the container.
+This is because the namespace requires at least one `<listener/>` element.
+In this environment, the listener is internal to the adapter.
+For this reason, you must define the container by using a normal Spring `<bean/>` definition, as the following example shows:
+
+[source,xml]
+----
+
+<bean id="container"
+ class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+    <property name="connectionFactory" ref="connectionFactory" />
+    <property name="queueNames" value="aName.queue" />
+    <property name="defaultRequeueRejected" value="false"/>
+</bean>
+----
+====
+
+IMPORTANT: Even though the Spring Integration JMS and AMQP support is similar, important differences exist.
+The JMS inbound channel adapter is using a `JmsDestinationPollingSource` under the covers and expects a configured poller.
+The AMQP inbound channel adapter uses an `AbstractMessageListenerContainer` and is message driven.
+In that regard, it is more similar to the JMS message-driven channel adapter.
+
+Starting with version 5.5, the `AmqpInboundChannelAdapter` can be configured with an `org.springframework.amqp.rabbit.retry.MessageRecoverer` strategy which is used in the `RecoveryCallback` when the retry operation is called internally.
+See `setMessageRecoverer()` JavaDocs for more information.
+
+The `@Publisher` annotation also can be used in combination with a `@RabbitListener`:
+
+[source, java]
+----
+@Configuration
+@EnableIntegration
+@EnableRabbit
+@EnablePublisher
+public static class ContextConfiguration {
+
+    @Bean
+    QueueChannel fromRabbitViaPublisher() {
+        return new QueueChannel();
+    }
+
+    @RabbitListener(queuesToDeclare = @Queue("publisherQueue"))
+    @Publisher("fromRabbitViaPublisher")
+    @Payload("#args.payload.toUpperCase()")
+    public void consumeForPublisher(String payload) {
+
+    }
+
+}
+----
+
+By default, the `@Publisher` AOP interceptor deals with a return value from a method call.
+However, the return value from a `@RabbitListener` method is treated as an AMQP reply message.
+Therefore, such an approach cannot be used together with a `@Publisher`, so a `@Payload` annotation with respective SpEL expression against method arguments is a recommended way for this combination.
+See more information about the `@Publisher` in the xref:message-publishing.adoc#publisher-annotation[Annotation-driven Configuration] section.
+
+IMPORTANT: When using exclusive or single-active consumers in the listener container, it is recommended that you set the container property `forceStop` to `true`.
+This will prevent a race condition where, after stopping the container, another consumer could start consuming messages before this instance has fully stopped.
+
+[[amqp-debatching]]
+== Batched Messages
+
+See https://docs.spring.io/spring-amqp/docs/current/reference/html/#template-batching[the Spring AMQP Documentation] for more information about batched messages.
+
+To produce batched messages with Spring Integration, simply configure the outbound endpoint with a `BatchingRabbitTemplate`.
+
+When receiving batched messages, by default, the listener containers extract each fragment message and the adapter will produce a `Message<?>` for each fragment.
+Starting with version 5.2, if the container's `deBatchingEnabled` property is set to `false`, the de-batching is performed by the adapter instead, and a single `Message<List<?>>` is produced with the payload being a list of the fragment payloads (after conversion if appropriate).
+
+The default `BatchingStrategy` is the `SimpleBatchingStrategy`, but this can be overridden on the adapter.
+
+NOTE: The `org.springframework.amqp.rabbit.retry.MessageBatchRecoverer` must be used with batches when recovery is required for retry operations.
+

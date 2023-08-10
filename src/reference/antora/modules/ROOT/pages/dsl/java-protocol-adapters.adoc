@@ -1,0 +1,91 @@
+[[java-dsl-protocol-adapters]]
+= Using Protocol Adapters
+
+All the examples shown so far illustrate how the DSL supports a messaging architecture by using the Spring Integration programming model.
+However, we have yet to do any real integration.
+Doing so requires access to remote resources over HTTP, JMS, AMQP, TCP, JDBC, FTP, SMTP, and so on or access to the local file system.
+Spring Integration supports all of these and more.
+Ideally, the DSL should offer first class support for all of them, but it is a daunting task to implement all of these and keep up as new adapters are added to Spring Integration.
+So the expectation is that the DSL is continually catching up with Spring Integration.
+
+Consequently, we provide the high-level API to seamlessly define protocol-specific messaging.
+We do so with the factory and builder patterns and with lambdas.
+You can think of the factory classes as "`Namespace Factories`", because they play the same role as the XML namespace for components from the concrete protocol-specific Spring Integration modules.
+Currently, Spring Integration Java DSL supports the `Amqp`, `Feed`, `Jms`, `Files`, `(S)Ftp`, `Http`, `JPA`, `MongoDb`,  `TCP/UDP`, `Mail`, `WebFlux`, and `Scripts` namespace factories.
+The following example shows how to use three of them (`Amqp`, `Jms`, and `Mail`):
+
+[source,java]
+----
+@Bean
+public IntegrationFlow amqpFlow() {
+    return IntegrationFlow.from(Amqp.inboundGateway(this.rabbitConnectionFactory, queue()))
+            .transform("hello "::concat)
+            .transform(String.class, String::toUpperCase)
+            .get();
+}
+
+@Bean
+public IntegrationFlow jmsOutboundGatewayFlow() {
+    return IntegrationFlow.from("jmsOutboundGatewayChannel")
+            .handle(Jms.outboundGateway(this.jmsConnectionFactory)
+                        .replyContainer(c ->
+                                    c.concurrentConsumers(3)
+                                            .sessionTransacted(true))
+                        .requestDestination("jmsPipelineTest"))
+            .get();
+}
+
+@Bean
+public IntegrationFlow sendMailFlow() {
+    return IntegrationFlow.from("sendMailChannel")
+            .handle(Mail.outboundAdapter("localhost")
+                            .port(smtpPort)
+                            .credentials("user", "pw")
+                            .protocol("smtp")
+                            .javaMailProperties(p -> p.put("mail.debug", "true")),
+                    e -> e.id("sendMailEndpoint"))
+            .get();
+}
+----
+
+The preceding example shows how to use the "`namespace factories`" as inline adapters declarations.
+However, you can use them from `@Bean` definitions to make the `IntegrationFlow` method chain more readable.
+
+NOTE: We are soliciting community feedback on these namespace factories before we spend effort on others.
+We also appreciate any input into prioritization for which adapters and gateways we should support next.
+
+You can find more Java DSL samples in the protocol-specific chapters throughout this reference manual.
+
+All other protocol channel adapters may be configured as generic beans and wired to the `IntegrationFlow`, as the following examples show:
+
+[source,java]
+----
+@Bean
+public QueueChannelSpec wrongMessagesChannel() {
+    return MessageChannels
+            .queue()
+            .wireTap("wrongMessagesWireTapChannel");
+}
+
+@Bean
+public IntegrationFlow xpathFlow(MessageChannel wrongMessagesChannel) {
+    return IntegrationFlow.from("inputChannel")
+            .filter(new StringValueTestXPathMessageSelector("namespace-uri(/*)", "my:namespace"),
+                    e -> e.discardChannel(wrongMessagesChannel))
+            .log(LoggingHandler.Level.ERROR, "test.category", m -> m.getHeaders().getId())
+            .route(xpathRouter(wrongMessagesChannel))
+            .get();
+}
+
+@Bean
+public AbstractMappingMessageRouter xpathRouter(MessageChannel wrongMessagesChannel) {
+    XPathRouter router = new XPathRouter("local-name(/*)");
+    router.setEvaluateAsString(true);
+    router.setResolutionRequired(false);
+    router.setDefaultOutputChannel(wrongMessagesChannel);
+    router.setChannelMapping("Tags", "splittingChannel");
+    router.setChannelMapping("Tag", "receivedChannel");
+    return router;
+}
+----
+

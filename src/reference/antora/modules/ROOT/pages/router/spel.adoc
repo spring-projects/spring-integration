@@ -1,0 +1,74 @@
+[[router-spel]]
+= Routers and the Spring Expression Language (SpEL)
+
+Sometimes, the routing logic may be simple, and writing a separate class for it and configuring it as a bean may seem like overkill.
+As of Spring Integration 2.0, we offer an alternative that lets you use SpEL to implement simple computations that previously required a custom POJO router.
+
+NOTE: For more information about the Spring Expression Language, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[relevant chapter in the Spring Framework Reference Guide].
+
+Generally, a SpEL expression is evaluated and its result is mapped to a channel, as the following example shows:
+
+[source,xml]
+----
+<int:router input-channel="inChannel" expression="payload.paymentType">
+    <int:mapping value="CASH" channel="cashPaymentChannel"/>
+    <int:mapping value="CREDIT" channel="authorizePaymentChannel"/>
+    <int:mapping value="DEBIT" channel="authorizePaymentChannel"/>
+</int:router>
+----
+
+The following example shows the equivalent router configured in Java:
+
+[source, java]
+----
+@Router(inputChannel = "routingChannel")
+@Bean
+public ExpressionEvaluatingRouter router() {
+    ExpressionEvaluatingRouter router = new ExpressionEvaluatingRouter("payload.paymentType");
+    router.setChannelMapping("CASH", "cashPaymentChannel");
+    router.setChannelMapping("CREDIT", "authorizePaymentChannel");
+    router.setChannelMapping("DEBIT", "authorizePaymentChannel");
+    return router;
+}
+----
+
+The following example shows the equivalent router configured in the Java DSL:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow() {
+    return IntegrationFlow.from("routingChannel")
+        .route("payload.paymentType", r -> r
+            .channelMapping("CASH", "cashPaymentChannel")
+            .channelMapping("CREDIT", "authorizePaymentChannel")
+            .channelMapping("DEBIT", "authorizePaymentChannel"))
+        .get();
+}
+----
+
+To simplify things even more, the SpEL expression may evaluate to a channel name, as the following expression shows:
+
+[source,xml]
+----
+<int:router input-channel="inChannel" expression="payload + 'Channel'"/>
+----
+
+In the preceding configuration, the result channel is computed by the SpEL expression, which concatenates the value of the `payload` with the literal `String`, 'Channel'.
+
+Another virtue of SpEL for configuring routers is that an expression can return a `Collection`, effectively making every `<router>` a recipient list router.
+Whenever the expression returns multiple channel values, the message is forwarded to each channel.
+The following example shows such an expression:
+
+[source,xml]
+----
+<int:router input-channel="inChannel" expression="headers.channels"/>
+----
+
+In the above configuration, if the message includes a header with a name of 'channels' and the value of that header is a `List` of channel names, the message is sent to each channel in the list.
+You may also find collection projection and collection selection expressions useful when you need to select multiple channels.
+For further information, see:
+
+* https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions-collection-projection[Collection Projection]
+* https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions-collection-selection[Collection Selection]
+

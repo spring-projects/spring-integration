@@ -1,0 +1,206 @@
+[[xpath-namespace-support]]
+= Namespace Support
+
+All components within the Spring Integration XML module provide namespace support.
+In order to enable namespace support, you need to import the schema for the Spring Integration XML Module.
+The following example shows a typical setup:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/xml
+    https://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
+</beans>
+----
+
+[[xml-xpath-expressions]]
+== XPath Expressions
+
+Many of the components within the Spring Integration XML module work with XPath Expressions.
+Each of those components either references an XPath Expression that has been defined as a top-level element or uses a nested `<xpath-expression/>` element.
+
+All forms of XPath expressions result in the creation of an `XPathExpression` that uses the Spring `org.springframework.xml.xpath.XPathExpressionFactory`.
+When XPath expressions are created, the best XPath implementation that is available on the classpath is used (either JAXP 1.3+ or Jaxen, with JAXP being preferred).
+
+NOTE: Internally, Spring Integration uses the XPath functionality provided by the Spring Web Services project (https://www.spring.io/spring-ws).
+Specifically, we use the Spring Web Services XML module (spring-xml-x.x.x.jar).
+For a deeper understanding, see the respective documentation at https://docs.spring.io/spring-ws/docs/current/reference/#xpath.
+
+Here is an overview of all available configuration parameters of the `xpath-expression` element:
+The following listing shows the available attributes for the `xpath-expression` element:
+
+[source,xml]
+----
+<int-xml:xpath-expression expression="" <1>
+          id=""                         <2>
+          namespace-map=""              <3>
+          ns-prefix=""                  <4>
+          ns-uri="">                    <5>
+    <map></map>                         <6>
+</int-xml:xpath-expression>
+----
+
+<1> Defines an XPath expression.
+Required.
+<2> The identifier of the underlying bean definition.
+It is an instance of `org.springframework.xml.xpath.XPathExpression`.
+Optional.
+<3> Reference to a map that contains namespaces.
+The key of the map defines the namespace prefix, and the value of the map sets the namespace URI.
+It is not valid to specify both this attribute and the `map` element or the `ns-prefix` and `ns-uri` attributes.
+Optional.
+<4> Lets you set the namespace prefix directly as an attribute on the XPath expression element.
+If you set `ns-prefix`, you must also set the `ns-uri` attribute.
+Optional.
+<5> Lets you directly set the namespace URI as an attribute on the XPath expression element.
+If you set `ns-uri`, you must also set the `ns-prefix` attribute.
+Optional.
+<6> Defines a map that contains namespaces.
+Only one `map` child element is allowed.
+The key of the map defines the namespace prefix, and the value of the map sets the namespace URI.
+It is not valid to specify both this element and the `map` attribute or set the `ns-prefix` and `ns-uri` attributes.
+Optional.
+
+[[providing-namespaces-optional-to-xpath-expressions]]
+=== Providing Namespaces (Optional) to XPath Expressions
+
+For the XPath Expression Element, you can provide namespace information as configuration parameters.
+You can define namespaces by using one of the following choices:
+
+* Reference a map by using the `namespace-map` attribute
+* Provide a map of namespaces by using the `map` sub-element
+* Specify the `ns-prefix` and `ns-uri` attributes
+
+All three options are mutually exclusive.
+Only one option can be set.
+
+The following example shows several different ways to use XPath expressions, including the options for setting the XML namespaces xref:xpath-namespace-support[mentioned earlier]:
+
+[source,xml]
+----
+<int-xml:xpath-filter id="filterReferencingXPathExpression"
+                      xpath-expression-ref="refToXpathExpression"/>
+
+<int-xml:xpath-expression id="refToXpathExpression" expression="/name"/>
+
+<int-xml:xpath-filter id="filterWithoutNamespace">
+    <int-xml:xpath-expression expression="/name"/>
+</int-xml:xpath-filter>
+
+<int-xml:xpath-filter id="filterWithOneNamespace">
+    <int-xml:xpath-expression expression="/ns1:name"
+                              ns-prefix="ns1" ns-uri="www.example.org"/>
+</int-xml:xpath-filter>
+
+<int-xml:xpath-filter id="filterWithTwoNamespaces">
+    <int-xml:xpath-expression expression="/ns1:name/ns2:type">
+        <map>
+            <entry key="ns1" value="www.example.org/one"/>
+            <entry key="ns2" value="www.example.org/two"/>
+        </map>
+    </int-xml:xpath-expression>
+</int-xml:xpath-filter>
+
+<int-xml:xpath-filter id="filterWithNamespaceMapReference">
+    <int-xml:xpath-expression expression="/ns1:name/ns2:type"
+                              namespace-map="defaultNamespaces"/>
+</int-xml:xpath-filter>
+
+<util:map id="defaultNamespaces">
+    <util:entry key="ns1" value="www.example.org/one"/>
+    <util:entry key="ns2" value="www.example.org/two"/>
+</util:map>
+----
+
+[[using-xpath-expressions-with-default-namespaces]]
+=== Using XPath Expressions with Default Namespaces
+
+When working with default namespaces, you may run into situations that behave differently than you might expect.
+Assume we have the following XML document (which represents an order of two books):
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<order>
+    <orderItem>
+        <isbn>0321200683</isbn>
+        <quantity>2</quantity>
+    </orderItem>
+    <orderItem>
+        <isbn>1590596439</isbn>
+        <quantity>1</quantity>
+    </orderItem>
+</order>
+----
+
+This document does not declare a namespace.
+Therefore, applying the following XPath Expression works as expected:
+
+[source,xml]
+----
+<int-xml:xpath-expression expression="/order/orderItem" />
+----
+
+You might expect that the same expression also works for the following XML file:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<order xmlns="http://www.example.org/orders">
+	<orderItem>
+		<isbn>0321200683</isbn>
+		<quantity>2</quantity>
+	</orderItem>
+	<orderItem>
+		<isbn>1590596439</isbn>
+		<quantity>1</quantity>
+	</orderItem>
+</order>
+----
+
+The preceding example looks exactly the same as the previous example but declares a default namespace.
+
+However, the previous XPath expression (`/order/orderItem`) fails in this case.
+
+In order to solve this issue, you must provide a namespace prefix and a namespace URI either by setting the `ns-prefix` and `ns-uri` attributes or by setting the `namespace-map` attribute.
+The namespace URI must match the namespace declared in your XML document.
+In the preceding example, that is `http://www.example.org/orders`.
+
+You can, however, arbitrarily choose the namespace prefix.
+In fact, providing an empty string actually works.
+(However, null is not allowed.)
+In the case of a namespace prefix consisting of an empty string, your Xpath expression must use a colon (":") to indicate the default namespace.
+If you leave off the colon, the XPath expression does not match.
+The following XPath Expression matches against the XML document in the preceding example:
+
+[source,xml]
+----
+<int-xml:xpath-expression expression="/:order/:orderItem"
+    ns-prefix="" ns-uri="https://www.example.org/prodcuts"/>
+----
+
+You can also provide any other arbitrarily chosen namespace prefix.
+The following XPath expression (which use the `myorder` namespace prefix) also matches:
+
+[source,xml]
+----
+<int-xml:xpath-expression expression="/myorder:order/myorder:orderItem"
+    ns-prefix="myorder" ns-uri="https://www.example.org/prodcuts"/>
+----
+
+The namespace URI is the really important piece of information, not the prefix.
+The https://github.com/jaxen-xpath/jaxen[Jaxen] summarizes the point very well:
+
+[quote]
+In XPath 1.0, all unprefixed names are unqualified.
+There is no requirement that the prefixes used in the XPath expression are the same as the prefixes used in the document being queried.
+Only the namespace URIs need to match, not the prefixes.
+

@@ -1,0 +1,56 @@
+[[polled-inbound-channel-adapter]]
+= Polled Inbound Channel Adapter
+
+[[overview]]
+== Overview
+
+Version 5.0.1 introduced a polled channel adapter, letting you fetch individual messages on demand -- for example, with a `MessageSourcePollingTemplate` or a poller.
+See xref:polling-consumer.adoc#deferred-acks-message-source[Deferred Acknowledgment Pollable Message Source] for more information.
+
+It does not currently support XML configuration.
+
+The following example shows how to configure an `AmqpMessageSource`:
+
+[tabs]
+======
+Java DSL::
++
+[source, java, role="primary"]
+----
+@Bean
+public IntegrationFlow flow() {
+    return IntegrationFlow.from(Amqp.inboundPolledAdapter(connectionFactory(), DSL_QUEUE),
+                    e -> e.poller(Pollers.fixedDelay(1_000)).autoStartup(false))
+            .handle(p -> {
+                ...
+            })
+            .get();
+}
+----
+
+Java::
++
+[source, java, role="secondary"]
+----
+@Bean
+public AmqpMessageSource source(ConnectionFactory connectionFactory) {
+    return new AmqpMessageSource(connectionFactory, "someQueue");
+}
+----
+======
+
+See the https://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/inbound/AmqpMessageSource.html[Javadoc] for configuration properties.
+
+[source, xml, role="secondary"]
+.XML
+----
+This adapter currently does not have XML configuration support.
+----
+
+[[amqp-polled-debatching]]
+== Batched Messages
+
+See xref:amqp/inbound-channel-adapter.adoc#amqp-debatching[Batched Messages].
+
+For the polled adapter, there is no listener container, batched messages are always debatched (if the `BatchingStrategy` supports doing so).
+
