@@ -70,7 +70,7 @@ xref:spel.adoc[Spring Expression Language (SpEL)] :: Details about SpEL support
 xref:message-publishing.adoc[Message Publishing] :: The Publisher annotation etc.
 xref:jms.adoc#jms-ob-transactions[Transaction Support] :: Overview of transactions support in Spring Integration
 xref:security.adoc[Security in Spring Integration] :: Securing Spring Integration flows
-xref:kafka.adoc#kafka-inbound-gateway-configurartion[Configuration] :: Messaging annotations, task scheduler, global properties, message mapping
+xref:kafka.adoc#kafka-inbound-gateway-configuration[Configuration] :: Messaging annotations, task scheduler, global properties, message mapping
 xref:testing.adoc[Testing support] :: Test utilities, Integration mocks and testing framework
 xref:samples.adoc#samples-impl[Spring Integration Samples] :: The samples dedicated project
 xref:resources.adoc[Additional Resources] :: Other resources related to project

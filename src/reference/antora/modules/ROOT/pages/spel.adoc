@@ -1,7 +1,7 @@
 [[spel]]
 = Spring Expression Language (SpEL)
 
-You can configure many Spring Integration components by using expressions written in the https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions[Spring Expression Language].
+You can configure many Spring Integration components by using expressions written in the https://docs.spring.io/spring-framework/reference/core/expressions.html[Spring Expression Language].
 
 In most cases, the `#root` object is the `Message`, which has two properties (`headers` and `payload`) that allow such expressions as `payload`, `payload.thing`, `headers['my.header']`, and so on.
 
@@ -80,7 +80,7 @@ In the following example, SpEL expressions always use the bean factory's class l
 == SpEL Functions
 
 Spring Integration provides namespace support to let you create SpEL custom functions.
-You can specify `<spel-function/>` components to provide https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions-ref-functions[custom SpEL functions] to the `EvaluationContext` used throughout the framework.
+You can specify `<spel-function/>` components to provide https://docs.spring.io/spring-framework/reference/core/expressions/language-ref/functions.html[custom SpEL functions] to the `EvaluationContext` used throughout the framework.
 Instead of configuring the factory bean shown earlier, you can add one or more of these components, and the framework automatically adds them to the default `integrationEvaluationContext` factory bean.
 
 For example, suppose you have a useful static method to evaluate XPath.
@@ -149,7 +149,7 @@ Otherwise, the `#jsonPath` SpEL function is not registered.
 +
 For more information regarding JSON see 'JSON Transformers' in xref:transformer.adoc[Transformer].
 
-* `#xpath`: To evaluate an 'xpath' on some provided object.
+* `#xpath`: To evaluate an xpath on some provided object.
 For more information regarding XML and XPath, see xref:xml.adoc[XML Support - Dealing with XML Payloads].
 
 [[spel-property-accessors]]

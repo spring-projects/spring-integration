@@ -21,7 +21,7 @@ plugins {
     id 'org.ajoberstar.grgit' version '4.1.1'
     id 'io.spring.dependency-management' version '1.1.2'
     id 'com.jfrog.artifactory' version '4.33.1' apply false
-    id 'org.jetbrains.dokka' version "1.8.20"
+    id 'org.jetbrains.dokka' version '1.8.20'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
 }
@@ -288,7 +288,7 @@ configure(javaProjects) { subproject ->
     ext.xLintArg = '-Xlint:all,-options,-processing'
     [compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg, '-parameters']
 
-    task updateCopyrights {
+    tasks.register('updateCopyrights') {
         onlyIf { !isCI }
         inputs.files(modifiedFiles.map(files -> files.filter { f -> f.path.contains(subproject.name) }))
         outputs.dir('build/classes')
@@ -338,7 +338,7 @@ configure(javaProjects) { subproject ->
         }
     }
 
-    task testAll(type: Test, dependsOn: ['check'])
+    tasks.register('testAll', Test) { dependsOn['check'] }
 
     gradle.taskGraph.whenReady { graph ->
         if (graph.hasTask(testAll)) {
@@ -390,7 +390,7 @@ configure(javaProjects) { subproject ->
         }
     }
 
-    task checkClasspathForConflicts {
+    tasks.register('checkClasspathForConflicts') {
         onlyIf { isCI }
         inputs.files(configurations.runtimeClasspath)
 
@@ -1170,7 +1170,7 @@ sonar {
     }
 }
 
-task api(type: Javadoc) {
+tasks.register('api', Javadoc) {
     group = 'Documentation'
     description = 'Generates aggregated Javadoc API documentation.'
     title = "${rootProject.description} ${version} API"
@@ -1196,14 +1196,14 @@ task api(type: Javadoc) {
 }
 
 dokkaHtmlMultiModule {
-    dependsOn api
+    dependsOn 'api'
     moduleName.set('spring-integration')
     outputDirectory.set(file("$buildDir/kdoc"))
 }
 
 apply from: "${rootDir}/gradle/docs.gradle"
 
-task schemaZip(type: Zip) {
+tasks.register('schemaZip', Zip) {
     group = 'Distribution'
     archiveClassifier = 'schema'
     description = "Builds -${archiveClassifier} archive containing all " +
@@ -1238,7 +1238,8 @@ task schemaZip(type: Zip) {
     }
 }
 
-task docsZip(type: Zip, dependsOn: [dokkaHtmlMultiModule]) {
+tasks.register('docsZip', Zip) {
+    dependsOn 'dokkaHtmlMultiModule'
     group = 'Distribution'
     archiveClassifier = 'docs'
     description = "Builds -${archiveClassifier} archive containing api and reference " +
@@ -1257,7 +1258,9 @@ task docsZip(type: Zip, dependsOn: [dokkaHtmlMultiModule]) {
     }
 }
 
-task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
+tasks.register('distZip', Zip) {
+    dependsOn 'docsZip'
+    dependsOn 'schemaZip'
     group = 'Distribution'
     archiveClassifier = 'dist'
     description = "Builds -${archiveClassifier} archive, containing all jars and docs, " +
@@ -1299,7 +1302,8 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
     }
 }
 
-task dist(dependsOn: assemble) {
+tasks.register('dist') {
+    dependsOn assemble
     group = 'Distribution'
     description = 'Builds -dist, -docs and -schema distribution archives.'
 }

@@ -566,7 +566,7 @@ public IntegrationFlow outboundGateFlow() {
 
 The inbound gateway is for request/reply operations.
 
-[[kafka-inbound-gateway-configurartion]]
+[[kafka-inbound-gateway-configuration]]
 === Configuration
 
 The following example shows how to configure an inbound gateway:

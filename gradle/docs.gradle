@@ -23,12 +23,12 @@ tasks.named("generateAntoraYml") {
 	baseAntoraYmlFile = file('src/reference/antora/antora.yml')
 }
 
-tasks.create(name: 'createAntoraPartials', type: Sync) {
-	from { tasks.filterMetricsDocsContent.outputs }
+tasks.register('createAntoraPartials', Sync) {
+	from tasks.filterMetricsDocsContent.outputs
 	into layout.buildDirectory.dir('generated-antora-resources/modules/ROOT/partials')
 }
 
-tasks.create('generateAntoraResources') {
+tasks.register('generateAntoraResources') {
 	dependsOn 'createAntoraPartials'
 	dependsOn 'generateAntoraYml'
 }
@@ -44,7 +44,7 @@ dependencies {
 def observationInputDir = file('spring-integration-core/src/main/java/org/springframework/integration/support/management/observation').absolutePath
 def generatedDocsDir = file("$buildDir/reference/generated").absolutePath
 
-task generateObservabilityDocs(type: JavaExec) {
+tasks.register('generateObservabilityDocs', JavaExec) {
 	inputs.dir(observationInputDir)
 	outputs.dir(generatedDocsDir)
 	classpath configurations.micrometerDocs
@@ -52,7 +52,7 @@ task generateObservabilityDocs(type: JavaExec) {
 	mainClass = 'io.micrometer.docs.DocsGeneratorCommand'
 }
 
-task filterMetricsDocsContent(type: Copy) {
+tasks.register('filterMetricsDocsContent', Copy) {
 	dependsOn generateObservabilityDocs
 	from generatedDocsDir
 	include '_*.adoc'

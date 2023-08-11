@@ -10,7 +10,7 @@ The great benefit to the community is that we can now add more samples and make 
 Having its own GitHub repository that is not tied to the actual framework is also a great benefit.
 You now have a dedicated place to suggest samples as well as report issues with existing samples.
 You can also submit a sample to us as a Pull Request.
-If we believe your sample adds value, we would be more then glad to add it to the 'samples' repository, properly crediting you as the author.
+If we believe your sample adds value, we would be more than glad to add it to the 'samples' repository, properly crediting you as the author.
 
 [[samples-get]]
 == Where to Get Samples
@@ -225,7 +225,7 @@ For other methods, we do not add any header.
 Now we can check downstream for the existence of this header.
 Based on its presence and its value, we can determine what type of reply the caller wants.
 
-Based on the use case, we also know tat some pre-screening steps need to be performed, such as getting and evaluating the consumer's credit score, because some premiere banks only accept quote requests from consumers that meet a minimum credit score requirement.
+Based on the use case, we also know that some pre-screening steps need to be performed, such as getting and evaluating the consumer's credit score, because some premiere banks only accept quote requests from consumers that meet a minimum credit score requirement.
 So it would be nice if the message would be enriched with such information before it is forwarded to the banks.
 It would also be nice if, when several processes need to be completed to provide such meta-information, those processes could be grouped in a single unit.
 In our use case, we need to determine the credit score and, based on the credit score and some rule, select a list of message channels (bank channels) to which to send quote request.
@@ -388,7 +388,7 @@ public class OrderSplitter {
 }
 ----
 
-In the case of the router, the return value does not have to be a `MessageChannel` instance (although it can be).
+In the case of the router, the return value does not have to be a `MessageChannel` instance (although, it can be).
 In this example, a `String` value that holds the channel name is returned instead, as the following listing shows.
 
 [source,java]

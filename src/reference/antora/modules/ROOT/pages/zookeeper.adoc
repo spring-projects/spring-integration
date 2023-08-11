@@ -33,7 +33,7 @@ compile "org.springframework.integration:spring-integration-zookeeper:{project-v
 [[zk-metadata-store]]
 == Zookeeper Metadata Store
 
-You ca use the `ZookeeperMetadataStore` where any `MetadataStore` is needed, such as for persistent file list filters.
+You can use the `ZookeeperMetadataStore` where any `MetadataStore` is needed, such as for persistent file list filters.
 See xref:meta-data-store.adoc[Metadata Store] for more information.
 The following example configures a Zookeeper metadata store with XML:
 
@@ -100,7 +100,7 @@ When a leader is elected, an `OnGrantedEvent` is published for the role `cluster
 Any endpoints in that role are started.
 When leadership is revoked, an `OnRevokedEvent` is published for the role `cluster`.
 Any endpoints in that role are stopped.
-See xref:endpoint.adoc#endpoint-roles[Endpoint Roles] for more information.
+See xref:endpoint-roles.adoc[Endpoint Roles] for more information.
 
 You can use Java configuration to create an instance of the leader initiator, as the following example shows:
 

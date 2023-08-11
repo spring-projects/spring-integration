@@ -35,7 +35,7 @@ The outbound channel adapter uses the `JmsTemplate` to convert and send a JMS me
 
 By using `JmsTemplate` and the `MessageListener` container, Spring Integration relies on Spring's JMS support.
 This is important to understand, since most of the attributes exposed on these adapters configure the underlying `JmsTemplate` and `MessageListener` container.
-For more details about `JmsTemplate` and the `MessageListener` container, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS documentation].
+For more details about `JmsTemplate` and the `MessageListener` container, see the https://docs.spring.io/spring-framework/reference/integration/jms.html[Spring JMS documentation].
 
 Whereas the JMS channel adapters are intended for unidirectional messaging (send-only or receive-only), Spring Integration also provides inbound and outbound JMS Gateways for request and reply operations.
 The inbound gateway relies on one of Spring's `MessageListener` container implementations for message-driven reception.
@@ -886,7 +886,7 @@ If configured properly, the JMS-backed message channel also supports transaction
 In other words, a producer would not actually write to a transactional JMS-backed channel if its send operation is part of a transaction that rolls back.
 Likewise, a consumer would not physically remove a JMS message from the channel if the reception of that message is part of a transaction that rolls back.
 Note that the producer and consumer transactions are separate in such a scenario.
-This is significantly different than the propagation of a transactional context across a simple, synchronous `<channel/>` element that has no `<queue/>` child element.
+This is significantly different from the propagation of a transactional context across a simple, synchronous `<channel/>` element that has no `<queue/>` child element.
 
 Since the preceding example above references a JMS Queue instance, it acts as a point-to-point channel.
 If, on the other hand, you need publish-subscribe behavior, you can use a separate element and reference a JMS Topic instead.

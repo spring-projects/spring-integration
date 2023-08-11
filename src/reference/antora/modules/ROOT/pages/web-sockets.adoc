@@ -4,7 +4,7 @@
 Starting with version 4.1, Spring Integration has WebSocket support.
 It is based on the architecture, infrastructure, and API from the Spring Framework's `web-socket` module.
 Therefore, many of Spring WebSocket's components (such as `SubProtocolHandler` or `WebSocketClient`) and configuration options (such as `@EnableWebSocketMessageBroker`) can be reused within Spring Integration.
-For more information, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#websocket[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
+For more information, see the https://docs.spring.io/spring-framework/reference/web/websocket.html[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
 
 You need to include this dependency into your project:
 
@@ -208,7 +208,7 @@ Values can be negative.
 See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/SmartLifecycle.html[`SmartLifeCycle`].
 <11> A `Map` of `HttpHeaders` to be used with the Handshake request.
 
-[[<int-websocket:server-container>-attributes]]
+[[int-websocket:server-container-attributes]]
 === `<int-websocket:server-container>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:server-container>` element:
@@ -338,7 +338,7 @@ The default is `Integer.MIN_VALUE`.
 Values can be negative.
 See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/SmartLifecycle.html[`SmartLifeCycle`].
 
-[[<int-websocket:inbound-channel-adapter>-attributes]]
+[[int-websocket:inbound-channel-adapter-attributes]]
 === `<int-websocket:inbound-channel-adapter>` Attributes
 
 The following listing shows the attributes available for the `<int-websocket:outbound-channel-adapter>` element:

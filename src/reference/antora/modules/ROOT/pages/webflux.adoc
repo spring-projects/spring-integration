@@ -29,7 +29,7 @@ compile "org.springframework.integration:spring-integration-webflux:{project-ver
 The `io.projectreactor.netty:reactor-netty` dependency must be included in case of non-Servlet-based server configuration.
 
 The WebFlux support consists of the following gateway implementations: `WebFluxInboundEndpoint` and `WebFluxRequestExecutingMessageHandler`.
-The support is fully based on the Spring https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html#spring-webflux[WebFlux] and https://projectreactor.io/[Project Reactor] foundations.
+The support is fully based on the Spring https://docs.spring.io/spring-framework/reference/web/webflux.html[WebFlux] and https://projectreactor.io/[Project Reactor] foundations.
 See xref:http.adoc[HTTP Support] for more information, since many options are shared between reactive and regular HTTP components.
 
 [[webflux-namespace]]
@@ -229,7 +229,7 @@ The Framework can't assume how complex the `Publisher` object can be after build
 If there is a requirements to restrict validation visibility for exactly final payload (or its `Publisher` elements), the validation should go downstream instead of WebFlux endpoint.
 See more information in the Spring WebFlux https://docs.spring.io/spring/docs/5.1.8.RELEASE/spring-framework-reference/web-reactive.html#webflux-fn-handler-validation[documentation].
 An invalid payload is rejected with an `IntegrationWebExchangeBindException` (a `WebExchangeBindException` extension), containing all the validation `Errors`.
-See more in Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#validation[Reference Manual] about validation.
+See more in Spring Framework https://docs.spring.io/spring-framework/reference/core/validation.html[Reference Manual] about validation.
 
 [[webflux-outbound]]
 == WebFlux Outbound Components
@@ -324,7 +324,7 @@ Otherwise, it is treated as an `async` mode, and the `Mono` response is adapted 
 The target payload of the output message depends on the `WebFluxRequestExecutingMessageHandler` configuration.
 The `setExpectedResponseType(Class<?>)` or `setExpectedResponseTypeExpression(Expression)` identifies the target type of the response body element conversion.
 If `replyPayloadToFlux` is set to `true`, the response body is converted to a `Flux` with the provided `expectedResponseType` for each element, and this `Flux` is sent as the payload downstream.
-Afterwards, you can use a xref:splitter.adoc[splitter] to iterate over this `Flux` in a reactive manner.
+Afterward, you can use a xref:splitter.adoc[splitter] to iterate over this `Flux` in a reactive manner.
 
 In addition, a `BodyExtractor<?, ClientHttpResponse>` can be injected into the `WebFluxRequestExecutingMessageHandler` instead of the `expectedResponseType` and `replyPayloadToFlux` properties.
 It can be used for low-level access to the `ClientHttpResponse` and more control over body and HTTP headers conversion.

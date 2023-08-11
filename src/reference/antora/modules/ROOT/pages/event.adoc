@@ -2,7 +2,7 @@
 = Spring `ApplicationEvent` Support
 
 Spring Integration provides support for inbound and outbound `ApplicationEvents`, as defined by the underlying Spring Framework.
-For more information about Spring's support for events and listeners, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#context-functionality-events[Spring Reference Manual].
+For more information about Spring's support for events and listeners, see the https://docs.spring.io/spring-framework/reference/core/beans/context-introduction.html#context-functionality-events[Spring Reference Manual].
 
 You need to include this dependency into your project:
 

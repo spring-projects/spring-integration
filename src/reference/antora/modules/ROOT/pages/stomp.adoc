@@ -4,7 +4,7 @@
 Spring Integration version 4.2 introduced STOMP (Simple Text Orientated Messaging Protocol) client support.
 It is based on the architecture, infrastructure, and API from the Spring Framework's messaging module, stomp package.
 Spring Integration uses many of Spring STOMP components (such as `StompSession` and `StompClientSupport`).
-For more information, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#websocket-stomp-client[Spring Framework STOMP Support] chapter in the Spring Framework reference manual.
+For more information, see the https://docs.spring.io/spring-framework/reference/web/websocket/stomp/client.html[Spring Framework STOMP Support] chapter in the Spring Framework reference manual.
 
 You need to include this dependency into your project:
 
@@ -106,7 +106,7 @@ Another example is the `StompMessageHandler`.
 It processes `ERROR` STOMP frames, which are server responses to improper (unaccepted) messages sent by this `StompMessageHandler`.
 
 The `StompMessageHandler` emits `StompReceiptEvent` as a part of `StompSession.Receiptable` callbacks in the asynchronous answers for the messages sent to the `StompSession`.
-The `StompReceiptEvent` can be positive or negative, depending on whether or not the `RECEIPT` frame was received from the server within the `receiptTimeLimit` period, which you can configure on the `StompClientSupport` instance.
+The `StompReceiptEvent` can be positive or negative, depending on whether the `RECEIPT` frame was received from the server within the `receiptTimeLimit` period, which you can configure on the `StompClientSupport` instance.
 It defaults to `15 * 1000` (in milliseconds, so 15 seconds).
 
 NOTE: The `StompSession.Receiptable` callbacks are added only if the `RECEIPT` STOMP header of the message to send is not `null`.
@@ -254,7 +254,7 @@ The default is `Integer.MIN_VALUE`.
 Values can be negative.
 See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/SmartLifecycle.html[`SmartLifeCycle`].
 
-[[understanding-the-<int-stomp:inbound-channel-adapter>-element]]
+[[understanding-the-int-stomp:inbound-channel-adapter-element]]
 === Understanding the `<int-stomp:inbound-channel-adapter>` Element
 
 The following listing shows the available attributes for the STOMP inbound channel adapter:

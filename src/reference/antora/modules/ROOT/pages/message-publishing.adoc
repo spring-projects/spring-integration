@@ -269,10 +269,10 @@ The following example shows how to an asynchronous `publishing-interceptor`:
 ----
 <int:service-activator  input-channel="inputChannel" output-channel="outputChannel" ref="sampleservice"/>
 
-<bean id="sampleservice" class="test.SampleService"/>
+<bean id="sampleService" class="test.SampleService"/>
 
 <aop:config>
-  <aop:advisor advice-ref="interceptor" pointcut="bean(sampleservice)" />
+  <aop:advisor advice-ref="interceptor" pointcut="bean(sampleService)" />
 </aop:config>
 
 <int:publishing-interceptor id="interceptor" >

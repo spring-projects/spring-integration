@@ -27,7 +27,7 @@ compile "org.springframework.integration:spring-integration-rsocket:{project-ver
 ======
 
 This module is available starting with version 5.2 and is based on the Spring Messaging foundation with its RSocket component implementations, such as `RSocketRequester`, `RSocketMessageHandler` and `RSocketStrategies`.
-See https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html#rsocket[Spring Framework RSocket Support] for more information about the RSocket protocol, terminology and components.
+See https://docs.spring.io/spring-framework/reference/rsocket.html[Spring Framework RSocket Support] for more information about the RSocket protocol, terminology and components.
 
 Before starting an integration flow processing via channel adapters, we need to establish an RSocket connection between server and client.
 For this purpose, Spring Integration RSocket support provides the `ServerRSocketConnector` and `ClientRSocketConnector` implementations of the `AbstractRSocketConnector`.
@@ -140,7 +140,7 @@ Starting with version 5.3, a `decodeFluxAsUnit` option (default `false`) is adde
 By default, incoming `Flux` is transformed the way that each its event is decoded separately.
 This is an exact behavior present currently with `@MessageMapping` semantics.
 To restore a previous behavior or decode the whole `Flux` as single unit according application requirements, the `decodeFluxAsUnit` has to be set to `true`.
-However the target decoding logic depends on the `Decoder` selected, e.g. a `StringDecoder` requires a new line separator (by default) to be present in the stream to indicate a byte buffer end.
+However, the target decoding logic depends on the `Decoder` selected, e.g. a `StringDecoder` requires a new line separator (by default) to be present in the stream to indicate a byte buffer end.
 
 See xref:rsocket.adoc#rsocket-java-config[Configuring RSocket Endpoints with Java] for samples how to configure an `RSocketInboundGateway` endpoint and deal with payloads downstream.
 
