@@ -343,12 +343,12 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		/**
 		 * Unlock the lock using the unlink method in redis.
 		 */
-		protected abstract void removeLockKeyInnerUnlink();
+		protected abstract boolean removeLockKeyInnerUnlink();
 
 		/**
 		 * Unlock the lock using the delete method in redis.
 		 */
-		protected abstract void removeLockKeyInnerDelete();
+		protected abstract boolean removeLockKeyInnerDelete();
 
 		@Override
 		public final void lock() {
@@ -454,11 +454,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				return;
 			}
 			try {
-				if (!isAcquiredInThisProcess()) {
-					throw new IllegalStateException("Lock was released in the store due to expiration. " +
-							"The integrity of data protected by this lock may have been compromised.");
-				}
-
 				if (Thread.currentThread().isInterrupted()) {
 					RedisLockRegistry.this.executor.execute(this::removeLockKey);
 				}
@@ -480,8 +475,9 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		private void removeLockKey() {
 			if (RedisLockRegistry.this.unlinkAvailable) {
+				Boolean unlinkResult = null;
 				try {
-					removeLockKeyInnerUnlink();
+					unlinkResult = removeLockKeyInnerUnlink();
 					return;
 				}
 				catch (Exception ex) {
@@ -494,9 +490,17 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 						LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
 								"falling back to the regular DELETE command: " + ex.getMessage());
 					}
+				} finally {
+					if (Boolean.FALSE.equals(unlinkResult)) {
+						throw new IllegalStateException("Lock was released in the store due to expiration. " +
+								"The integrity of data protected by this lock may have been compromised.");
+					}
 				}
 			}
-			removeLockKeyInnerDelete();
+			if (!removeLockKeyInnerDelete()) {
+				throw new IllegalStateException("Lock was released in the store due to expiration. " +
+						"The integrity of data protected by this lock may have been compromised.");
+			}
 		}
 
 		@Override
@@ -559,19 +563,23 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final class RedisPubSubLock extends RedisLock {
 
-		private static final String UNLINK_UNLOCK_SCRIPT =
-				"if (redis.call('unlink', KEYS[1]) == 1) then " +
-						"redis.call('publish', ARGV[1], KEYS[1]) " +
-						"return true " +
-						"end " +
-						"return false";
+		private static final String UNLINK_UNLOCK_SCRIPT = """
+				local lockClientId = redis.call('GET', KEYS[1])
+				if (lockClientId == ARGV[1] and redis.call('UNLINK', KEYS[1]) == 1) then
+					redis.call('PUBLISH', ARGV[2], KEYS[1])
+					return true
+				end
+				return false
+				""";
 
-		private static final String DELETE_UNLOCK_SCRIPT =
-				"if (redis.call('del', KEYS[1]) == 1) then " +
-						"redis.call('publish', ARGV[1], KEYS[1]) " +
-						"return true " +
-						"end " +
-						"return false";
+		private static final String DELETE_UNLOCK_SCRIPT = """
+				local lockClientId = redis.call('GET', KEYS[1])
+				if (lockClientId == ARGV[1] and redis.call('DEL', KEYS[1]) == 1) then
+					redis.call('PUBLISH', ARGV[2], KEYS[1])
+					return true
+				end
+				return false
+				""";
 
 		private static final RedisScript<Boolean>
 				UNLINK_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
@@ -589,17 +597,17 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		@Override
-		protected void removeLockKeyInnerUnlink() {
-			RedisLockRegistry.this.redisTemplate.execute(
+		protected boolean removeLockKeyInnerUnlink() {
+			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
 					UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-					RedisLockRegistry.this.unLockChannelKey);
+					RedisLockRegistry.this.clientId, RedisLockRegistry.this.unLockChannelKey));
 		}
 
 		@Override
-		protected void removeLockKeyInnerDelete() {
-			RedisLockRegistry.this.redisTemplate.execute(
+		protected boolean removeLockKeyInnerDelete() {
+			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
 					DELETE_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-					RedisLockRegistry.this.unLockChannelKey);
+					RedisLockRegistry.this.clientId, RedisLockRegistry.this.unLockChannelKey));
 
 		}
 
@@ -694,6 +702,30 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final class RedisSpinLock extends RedisLock {
 
+		private static final String UNLINK_UNLOCK_SCRIPT = """
+				local lockClientId = redis.call('GET', KEYS[1])
+				if lockClientId == ARGV[1] then
+					redis.call('UNLINK', KEYS[1])
+					return true
+				end
+				return false
+				""";
+
+		private static final String DELETE_UNLOCK_SCRIPT = """
+				local lockClientId = redis.call('GET', KEYS[1])
+				if lockClientId == ARGV[1] then
+					redis.call('DEL', KEYS[1])
+					return true
+				end
+				return false
+				""";
+
+		private static final RedisScript<Boolean>
+				UNLINK_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
+
+		private static final RedisScript<Boolean>
+				DELETE_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(DELETE_UNLOCK_SCRIPT, Boolean.class);
+
 		private RedisSpinLock(String path) {
 			super(path);
 		}
@@ -718,13 +750,17 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		@Override
-		protected void removeLockKeyInnerUnlink() {
-			RedisLockRegistry.this.redisTemplate.unlink(this.lockKey);
+		protected boolean removeLockKeyInnerUnlink() {
+			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
+					UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+					RedisLockRegistry.this.clientId));
 		}
 
 		@Override
-		protected void removeLockKeyInnerDelete() {
-			RedisLockRegistry.this.redisTemplate.delete(this.lockKey);
+		protected boolean removeLockKeyInnerDelete() {
+			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
+					DELETE_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+					RedisLockRegistry.this.clientId));
 		}
 
 	}
