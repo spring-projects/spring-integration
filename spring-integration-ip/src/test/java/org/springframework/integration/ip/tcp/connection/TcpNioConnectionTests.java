@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -835,7 +835,7 @@ public class TcpNioConnectionTests {
 		assertThat(reading.await(10, TimeUnit.SECONDS)).isTrue();
 		socket.close();
 		cf.stop();
-		assertThat(watch.getLastTaskTimeMillis()).isLessThan(950L);
+		assertThat(watch.lastTaskInfo().getTimeMillis()).isLessThan(950L);
 	}
 
 	@Test

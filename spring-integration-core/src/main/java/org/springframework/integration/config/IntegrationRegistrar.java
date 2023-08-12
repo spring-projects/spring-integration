@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import java.beans.Introspector;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -99,19 +101,28 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 
 	/**
 	 * Register {@link MessagingAnnotationPostProcessor} and
-	 * {@link org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor},
+	 * {@link MessagingAnnotationBeanPostProcessor},
 	 * if necessary.
-	 * Inject {@code defaultPublishedChannel} from provided {@link AnnotationMetadata}, if any.
 	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
+	 * @see MessagingAnnotationPostProcessor#messagingAnnotationBeanPostProcessor()
 	 */
 	private void registerMessagingAnnotationPostProcessors(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)) {
-			BeanDefinitionBuilder builder =
-					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class)
-							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-
 			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME,
-					builder.getBeanDefinition());
+					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+							.getBeanDefinition());
+		}
+
+
+		String beanName = Introspector.decapitalize(MessagingAnnotationBeanPostProcessor.class.getName());
+		if (!registry.containsBeanDefinition(beanName)) {
+			registry.registerBeanDefinition(beanName,
+					BeanDefinitionBuilder.genericBeanDefinition()
+							.setFactoryMethodOnBean("messagingAnnotationBeanPostProcessor",
+									IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+							.getBeanDefinition());
 		}
 	}
 

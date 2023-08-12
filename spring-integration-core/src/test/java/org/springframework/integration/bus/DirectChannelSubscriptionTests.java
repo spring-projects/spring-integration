@@ -24,7 +24,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.MessagingAnnotationPostProcessor;
+import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -38,6 +38,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -54,7 +55,7 @@ public class DirectChannelSubscriptionTests {
 
 	@BeforeEach
 	public void setupChannels() {
-		this.context.registerBean(MessagingAnnotationPostProcessor.class);
+		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
 		this.context.registerChannel("sourceChannel", this.sourceChannel);
 		this.context.registerChannel("targetChannel", this.targetChannel);
 	}

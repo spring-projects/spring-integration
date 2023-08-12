@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -103,9 +102,7 @@ public class CustomMessagingAnnotationTests {
 	public static class Config {
 
 		@Bean(name = IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)
-		public static MessagingAnnotationPostProcessor messagingAnnotationPostProcessor(
-				ConfigurableListableBeanFactory beanFactory) {
-
+		public static MessagingAnnotationPostProcessor messagingAnnotationPostProcessor() {
 			MessagingAnnotationPostProcessor messagingAnnotationPostProcessor = new MessagingAnnotationPostProcessor();
 			messagingAnnotationPostProcessor.
 					addMessagingAnnotationPostProcessor(Logging.class, new LogAnnotationPostProcessor());

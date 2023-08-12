@@ -25,7 +25,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.MessagingAnnotationPostProcessor;
+import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
@@ -33,6 +33,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -49,7 +50,7 @@ public class SplitterAnnotationPostProcessorTests {
 
 	@BeforeEach
 	public void init() {
-		this.context.registerBean(MessagingAnnotationPostProcessor.class);
+		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
 		this.context.registerChannel("input", this.inputChannel);
 		this.context.registerChannel("output", this.outputChannel);
 	}

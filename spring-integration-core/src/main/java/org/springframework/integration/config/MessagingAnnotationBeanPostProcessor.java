@@ -65,16 +65,13 @@ public class MessagingAnnotationBeanPostProcessor
 
 	private final List<Runnable> methodsToPostProcessAfterContextInitialization = new ArrayList<>();
 
-	private final BeanDefinitionRegistry registry;
-
 	private ConfigurableListableBeanFactory beanFactory;
 
 	private volatile boolean initialized;
 
-	public MessagingAnnotationBeanPostProcessor(BeanDefinitionRegistry registry,
+	public MessagingAnnotationBeanPostProcessor(
 			Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors) {
 
-		this.registry = registry;
 		this.postProcessors = postProcessors;
 	}
 
@@ -187,12 +184,11 @@ public class MessagingAnnotationBeanPostProcessor
 
 			String endpointBeanName = generateBeanName(beanName, method, annotationType);
 			endpoint.setBeanName(endpointBeanName);
-			this.registry.registerBeanDefinition(endpointBeanName,
+			((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(endpointBeanName,
 					new RootBeanDefinition((Class<AbstractEndpoint>) endpoint.getClass(), () -> endpoint));
 			this.beanFactory.getBean(endpointBeanName);
 		}
 	}
-
 
 	protected String generateBeanName(String originalBeanName, Method method,
 			Class<? extends Annotation> annotationType) {

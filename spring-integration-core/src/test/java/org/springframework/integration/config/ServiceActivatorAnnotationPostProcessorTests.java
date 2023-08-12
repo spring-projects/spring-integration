@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -42,8 +43,7 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 	public void testAnnotatedMethod() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		try (TestApplicationContext context = TestUtils.createTestApplicationContext()) {
-			RootBeanDefinition postProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
-			context.registerBeanDefinition("postProcessor", postProcessorDef);
+			new IntegrationRegistrar().registerBeanDefinitions(mock(), context.getDefaultListableBeanFactory());
 			context.registerBeanDefinition("testChannel", new RootBeanDefinition(DirectChannel.class));
 			RootBeanDefinition beanDefinition = new RootBeanDefinition(SimpleServiceActivatorAnnotationTestBean.class);
 			beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(latch);

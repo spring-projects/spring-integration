@@ -27,8 +27,8 @@ import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.config.MessagingAnnotationBeanPostProcessor;
-import org.springframework.integration.config.MessagingAnnotationPostProcessor;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.test.util.TestUtils;
@@ -38,6 +38,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -56,7 +57,7 @@ public class FilterAnnotationPostProcessorTests {
 
 	@BeforeEach
 	public void init() {
-		this.context.registerBean(MessagingAnnotationPostProcessor.class);
+		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
 		this.context.registerChannel("input", this.inputChannel);
 		this.context.registerChannel("output", this.outputChannel);
 	}

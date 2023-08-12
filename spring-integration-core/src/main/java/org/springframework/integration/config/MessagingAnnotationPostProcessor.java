@@ -16,7 +16,6 @@
 
 package org.springframework.integration.config;
 
-import java.beans.Introspector;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +28,6 @@ import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
@@ -91,14 +89,6 @@ public class MessagingAnnotationPostProcessor implements BeanDefinitionRegistryP
 				.map(BeanFactoryAware.class::cast)
 				.forEach((processor) -> processor.setBeanFactory((BeanFactory) this.registry));
 
-		this.registry.registerBeanDefinition(
-				Introspector.decapitalize(MessagingAnnotationBeanPostProcessor.class.getName()),
-				BeanDefinitionBuilder.rootBeanDefinition(MessagingAnnotationBeanPostProcessor.class)
-						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-						.addConstructorArgValue(this.registry)
-						.addConstructorArgValue(this.postProcessors)
-						.getBeanDefinition());
-
 		String[] beanNames = registry.getBeanDefinitionNames();
 
 		for (String beanName : beanNames) {
@@ -109,6 +99,16 @@ public class MessagingAnnotationPostProcessor implements BeanDefinitionRegistryP
 				processCandidate(beanName, annotatedBeanDefinition);
 			}
 		}
+	}
+
+	/**
+	 * The factory method for {@link MessagingAnnotationBeanPostProcessor} based
+	 * on the environment from this {@link MessagingAnnotationPostProcessor}.
+	 * @return the {@link MessagingAnnotationBeanPostProcessor} instance based on {@link #postProcessors}.
+	 * @since 6.2
+	 */
+	public MessagingAnnotationBeanPostProcessor messagingAnnotationBeanPostProcessor() {
+		return new MessagingAnnotationBeanPostProcessor(this.postProcessors);
 	}
 
 	private void processCandidate(String beanName, AnnotatedBeanDefinition beanDefinition) {

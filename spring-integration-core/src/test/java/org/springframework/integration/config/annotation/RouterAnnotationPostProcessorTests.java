@@ -27,13 +27,14 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.MessagingAnnotationPostProcessor;
+import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -56,7 +57,7 @@ public class RouterAnnotationPostProcessorTests {
 
 	@BeforeEach
 	public void init() {
-		this.context.registerBean(MessagingAnnotationPostProcessor.class);
+		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
 		context.registerChannel("input", inputChannel);
 		context.registerChannel("output", outputChannel);
 		context.registerChannel("routingChannel", routingChannel);
