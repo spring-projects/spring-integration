@@ -115,14 +115,14 @@ public class AggregatorTests {
 			if (i % 10000 == 0) {
 				stopwatch.stop();
 				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() +
-						" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+						" (10k in " + stopwatch.lastTaskInfo().getTimeMillis() + "ms)");
 				stopwatch.start();
 			}
 			handler.handleMessage(message);
 		}
 		stopwatch.stop();
 		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() +
-				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+				" (10k in " + stopwatch.lastTaskInfo().getTimeMillis() + "ms)");
 
 		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
 		assertThat(result).isNotNull();
@@ -130,7 +130,7 @@ public class AggregatorTests {
 	}
 
 	@Test
-	@Ignore("Time sensitive")
+	@Disabled("Time sensitive")
 	public void testAggPerfDefaultPartial() throws InterruptedException, ExecutionException, TimeoutException {
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor());
 		handler.setCorrelationStrategy(message -> "foo");
@@ -161,7 +161,7 @@ public class AggregatorTests {
 			if (i % 10000 == 0) {
 				stopwatch.stop();
 				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() +
-						" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+						" (10k in " + stopwatch.lastTaskInfo().getTimeMillis() + "ms)");
 				stopwatch.start();
 			}
 			handler.handleMessage(MessageBuilder.withPayload("foo")
