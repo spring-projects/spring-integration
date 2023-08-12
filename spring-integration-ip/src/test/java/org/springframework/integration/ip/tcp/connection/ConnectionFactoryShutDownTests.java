@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.StopWatch;
@@ -70,7 +70,8 @@ public class ConnectionFactoryShutDownTests {
 		watch.start();
 		factory.stop();
 		watch.stop();
-		assertThat(watch.getLastTaskTimeMillis() < 10000).as("Expected < 10000, was: " + watch.getLastTaskTimeMillis())
+		assertThat(watch.lastTaskInfo().getTimeMillis() < 10000)
+				.as("Expected < 10000, was: " + watch.lastTaskInfo().getTimeMillis())
 				.isTrue();
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 	}

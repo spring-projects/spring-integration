@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
@@ -50,6 +50,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -69,7 +70,7 @@ public class AggregatorTests {
 
 	private final List<MessageGroupExpiredEvent> expiryEvents = new ArrayList<>();
 
-	@Before
+	@BeforeEach
 	public void configureAggregator() {
 		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
 		this.aggregator.setBeanFactory(mock(BeanFactory.class));
@@ -80,7 +81,7 @@ public class AggregatorTests {
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void testAggPerf() throws InterruptedException, ExecutionException, TimeoutException {
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor());
 		handler.setCorrelationStrategy(message -> "foo");
@@ -170,7 +171,7 @@ public class AggregatorTests {
 		}
 		stopwatch.stop();
 		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() +
-				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+				" (10k in " + stopwatch.lastTaskInfo().getTimeMillis() + "ms)");
 
 		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
 		assertThat(result).isNotNull();
@@ -186,7 +187,7 @@ public class AggregatorTests {
 
 			private final ReentrantLock lock = new ReentrantLock();
 
-			private final Collection<Message<?>> messages = new ArrayList<Message<?>>(60000);
+			private final Collection<Message<?>> messages = new ArrayList<>(60000);
 
 			private final MessageChannel outputChannel;
 
@@ -233,14 +234,14 @@ public class AggregatorTests {
 			if (i % 10000 == 0) {
 				stopwatch.stop();
 				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() +
-						" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+						" (10k in " + stopwatch.lastTaskInfo().getTimeMillis() + "ms)");
 				stopwatch.start();
 			}
 			handler.handleMessage(message);
 		}
 		stopwatch.stop();
 		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() +
-				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+				" (10k in " + stopwatch.lastTaskInfo().getTimeMillis() + "ms)");
 
 		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
 		assertThat(result).isNotNull();
@@ -465,7 +466,7 @@ public class AggregatorTests {
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	// dropped backwards compatibility for setting capacity limit (it's always Integer.MAX_VALUE)
 	public void testTrackedCorrelationIdsCapacityAtLimit() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -484,7 +485,7 @@ public class AggregatorTests {
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	// dropped backwards compatibility for setting capacity limit (it's always Integer.MAX_VALUE)
 	public void testTrackedCorrelationIdsCapacityPassesLimit() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -504,10 +505,11 @@ public class AggregatorTests {
 		assertThat(discardChannel.receive(0)).isNull();
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void testExceptionThrownIfNoCorrelationId() throws InterruptedException {
 		Message<?> message = createMessage(3, null, 2, 1, new QueueChannel(), null);
-		this.aggregator.handleMessage(message);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.aggregator.handleMessage(message));
 	}
 
 	@Test

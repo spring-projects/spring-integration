@@ -6,17 +6,22 @@ ext {
 antora {
 	version = '3.2.0-alpha.2'
 	playbook = file('src/reference/antora/antora-playbook.yml')
-	options = ['to-dir' : project.layout.buildDirectory.dir('site').get().toString(), clean: true, fetch: !project.gradle.startParameter.offline, stacktrace: true]
+	options = [
+			'to-dir' : project.layout.buildDirectory.dir('site').get().toString(),
+			clean: true,
+			fetch: !project.gradle.startParameter.offline,
+			stacktrace: true
+	]
 	dependencies = [
-			'@antora/atlas-extension': '1.0.0-alpha.1',
+			'@antora/atlas-extension': '1.0.0-alpha.2',
 			'@antora/collector-extension': '1.0.0-alpha.3',
-			'@asciidoctor/tabs': '1.0.0-beta.3',
-			'@springio/antora-extensions': '1.4.2',
-			'@springio/asciidoctor-extensions': '1.0.0-alpha.8',
+			'@asciidoctor/tabs': '1.0.0-beta.6',
+			'@springio/antora-extensions': '1.5.0',
+			'@springio/asciidoctor-extensions': '1.0.0-alpha.9',
 	]
 }
 
-tasks.named("generateAntoraYml") {
+tasks.named('generateAntoraYml') {
 	asciidocAttributes = project.provider( {
 		return ['project-version' : project.version ]
 	} )

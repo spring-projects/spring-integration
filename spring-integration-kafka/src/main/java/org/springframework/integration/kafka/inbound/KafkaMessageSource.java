@@ -61,7 +61,6 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.listener.ErrorHandlingUtils;
-import org.springframework.kafka.listener.ListenerUtils;
 import org.springframework.kafka.listener.LoggingCommitCallback;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
@@ -281,7 +280,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			this.consumerProperties.setClientId(getComponentName());
 		}
 
-		Map<String, Object> props = this.consumerFactory.getConfigurationProperties();
 		Properties kafkaConsumerProperties = this.consumerProperties.getKafkaConsumerProperties();
 		this.checkNullKeyForExceptions =
 				this.consumerProperties.isCheckDeserExWhenKeyNull() ||
@@ -390,16 +388,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			this.logger.warn(() -> ConsumerConfig.MAX_POLL_RECORDS_CONFIG
 					+ "' has been forced from " + (maxPoll == null ? "unspecified" : maxPoll)
 					+ " to 1, to avoid having to seek after each record");
-			Map<String, Object> configs = new HashMap<>(suppliedConsumerFactory.getConfigurationProperties());
-			configs.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
-			DefaultKafkaConsumerFactory<K, V> fixedConsumerFactory = new DefaultKafkaConsumerFactory<>(configs);
-			if (suppliedConsumerFactory.getKeyDeserializer() != null) {
-				fixedConsumerFactory.setKeyDeserializer(suppliedConsumerFactory.getKeyDeserializer());
-			}
-			if (suppliedConsumerFactory.getValueDeserializer() != null) {
-				fixedConsumerFactory.setValueDeserializer(suppliedConsumerFactory.getValueDeserializer());
-			}
-			return fixedConsumerFactory;
+			return fixConsumerFactory(suppliedConsumerFactory);
 		}
 		else {
 			return suppliedConsumerFactory;
@@ -494,7 +483,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 				createConsumer();
 				this.running = true;
 			}
-			if (this.pausing && !this.paused && this.assignedPartitions.size() > 0) {
+			if (this.pausing && !this.paused && !this.assignedPartitions.isEmpty()) {
 				this.consumer.pause(this.assignedPartitions);
 				this.paused = true;
 			}
@@ -675,8 +664,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		}
 	}
 
-	private void checkDeserializationException(ConsumerRecord<K, V> cRecord, String headerName) {
-		DeserializationException exception = ListenerUtils.getExceptionFromHeader(cRecord, headerName, this.logger);
+	private void checkDeserializationException(ConsumerRecord<K, V> record, String headerName) {
+		DeserializationException exception = SerializationUtils.getExceptionFromHeader(record, headerName, this.logger);
 		if (exception != null) {
 			throw exception;
 		}
@@ -705,6 +694,19 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		finally {
 			this.consumerMonitor.unlock();
 		}
+	}
+
+	private static <K, V> ConsumerFactory<K, V> fixConsumerFactory(ConsumerFactory<K, V> suppliedConsumerFactory) {
+		Map<String, Object> configs = new HashMap<>(suppliedConsumerFactory.getConfigurationProperties());
+		configs.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
+		DefaultKafkaConsumerFactory<K, V> fixedConsumerFactory = new DefaultKafkaConsumerFactory<>(configs);
+		if (suppliedConsumerFactory.getKeyDeserializer() != null) {
+			fixedConsumerFactory.setKeyDeserializer(suppliedConsumerFactory.getKeyDeserializer());
+		}
+		if (suppliedConsumerFactory.getValueDeserializer() != null) {
+			fixedConsumerFactory.setValueDeserializer(suppliedConsumerFactory.getValueDeserializer());
+		}
+		return fixedConsumerFactory;
 	}
 
 	private class IntegrationConsumerRebalanceListener implements ConsumerRebalanceListener {
