@@ -82,6 +82,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Vedran Pavic
  * @author Unseok Kim
  * @author Anton Gabov
+ * @author Eddie Cho
  *
  * @since 4.0
  *
@@ -95,7 +96,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	private static final int DEFAULT_CAPACITY = 100_000;
 
 	private final Map<String, RedisLock> locks =
-			new LinkedHashMap<String, RedisLock>(16, 0.75F, true) {
+			new LinkedHashMap<>(16, 0.75F, true) {
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, RedisLock> eldest) {
@@ -332,12 +333,12 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		/**
 		 * Unlock the lock using the unlink method in redis.
 		 */
-		protected abstract void removeLockKeyInnerUnlink();
+		protected abstract boolean removeLockKeyInnerUnlink();
 
 		/**
 		 * Unlock the lock using the delete method in redis.
 		 */
-		protected abstract void removeLockKeyInnerDelete();
+		protected abstract boolean removeLockKeyInnerDelete();
 
 		@Override
 		public final void lock() {
@@ -443,11 +444,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				return;
 			}
 			try {
-				if (!isAcquiredInThisProcess()) {
-					throw new IllegalStateException("Lock was released in the store due to expiration. " +
-							"The integrity of data protected by this lock may have been compromised.");
-				}
-
 				if (Thread.currentThread().isInterrupted()) {
 					RedisLockRegistry.this.executor.execute(this::removeLockKey);
 				}
@@ -470,7 +466,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		private void removeLockKey() {
 			if (RedisLockRegistry.this.unlinkAvailable) {
 				try {
-					removeLockKeyInnerUnlink();
+					boolean unlinkResult = removeLockKeyInnerUnlink();
+					if (!unlinkResult) {
+						throw new IllegalStateException("Lock was released in the store due to expiration. " +
+								"The integrity of data protected by this lock may have been compromised.");
+					}
 					return;
 				}
 				catch (Exception ex) {
@@ -485,7 +485,10 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					}
 				}
 			}
-			removeLockKeyInnerDelete();
+			if (!removeLockKeyInnerDelete()) {
+				throw new IllegalStateException("Lock was released in the store due to expiration. " +
+						"The integrity of data protected by this lock may have been compromised.");
+			}
 		}
 
 		@Override
@@ -548,19 +551,23 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final class RedisPubSubLock extends RedisLock {
 
-		private static final String UNLINK_UNLOCK_SCRIPT =
-				"if (redis.call('unlink', KEYS[1]) == 1) then " +
-						"redis.call('publish', ARGV[1], KEYS[1]) " +
-						"return true " +
-						"end " +
-						"return false";
+		private static final String UNLINK_UNLOCK_SCRIPT = """
+				local lockClientId = redis.call('GET', KEYS[1])
+				if (lockClientId == ARGV[1] and redis.call('UNLINK', KEYS[1]) == 1) then
+					redis.call('PUBLISH', ARGV[2], KEYS[1])
+					return true
+				end
+				return false
+				""";
 
-		private static final String DELETE_UNLOCK_SCRIPT =
-				"if (redis.call('del', KEYS[1]) == 1) then " +
-						"redis.call('publish', ARGV[1], KEYS[1]) " +
-						"return true " +
-						"end " +
-						"return false";
+		private static final String DELETE_UNLOCK_SCRIPT = """
+				local lockClientId = redis.call('GET', KEYS[1])
+				if (lockClientId == ARGV[1] and redis.call('DEL', KEYS[1]) == 1) then
+					redis.call('PUBLISH', ARGV[2], KEYS[1])
+					return true
+				end
+				return false
+				""";
 
 		private static final RedisScript<Boolean>
 				UNLINK_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
@@ -578,18 +585,19 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		@Override
-		protected void removeLockKeyInnerUnlink() {
-			RedisLockRegistry.this.redisTemplate.execute(
-					UNLINK_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-					RedisLockRegistry.this.unLockChannelKey);
+		protected boolean removeLockKeyInnerUnlink() {
+			return removeLockKeyWithScript(UNLINK_UNLOCK_REDIS_SCRIPT);
 		}
 
 		@Override
-		protected void removeLockKeyInnerDelete() {
-			RedisLockRegistry.this.redisTemplate.execute(
-					DELETE_UNLOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
-					RedisLockRegistry.this.unLockChannelKey);
+		protected boolean removeLockKeyInnerDelete() {
+			return removeLockKeyWithScript(DELETE_UNLOCK_REDIS_SCRIPT);
+		}
 
+		private boolean removeLockKeyWithScript(RedisScript<Boolean> redisScript) {
+			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
+					redisScript, Collections.singletonList(this.lockKey),
+					RedisLockRegistry.this.clientId, RedisLockRegistry.this.unLockChannelKey));
 		}
 
 		private boolean subscribeLock(long time) throws ExecutionException, InterruptedException {
@@ -679,6 +687,30 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final class RedisSpinLock extends RedisLock {
 
+		private static final String UNLINK_UNLOCK_SCRIPT = """
+				local lockClientId = redis.call('GET', KEYS[1])
+				if lockClientId == ARGV[1] then
+					redis.call('UNLINK', KEYS[1])
+					return true
+				end
+				return false
+				""";
+
+		private static final String DELETE_UNLOCK_SCRIPT = """
+				local lockClientId = redis.call('GET', KEYS[1])
+				if lockClientId == ARGV[1] then
+					redis.call('DEL', KEYS[1])
+					return true
+				end
+				return false
+				""";
+
+		private static final RedisScript<Boolean>
+				UNLINK_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(UNLINK_UNLOCK_SCRIPT, Boolean.class);
+
+		private static final RedisScript<Boolean>
+				DELETE_UNLOCK_REDIS_SCRIPT = new DefaultRedisScript<>(DELETE_UNLOCK_SCRIPT, Boolean.class);
+
 		private RedisSpinLock(String path) {
 			super(path);
 		}
@@ -703,13 +735,19 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		@Override
-		protected void removeLockKeyInnerUnlink() {
-			RedisLockRegistry.this.redisTemplate.unlink(this.lockKey);
+		protected boolean removeLockKeyInnerUnlink() {
+			return removeLockKeyWithScript(UNLINK_UNLOCK_REDIS_SCRIPT);
 		}
 
 		@Override
-		protected void removeLockKeyInnerDelete() {
-			RedisLockRegistry.this.redisTemplate.delete(this.lockKey);
+		protected boolean removeLockKeyInnerDelete() {
+			return removeLockKeyWithScript(DELETE_UNLOCK_REDIS_SCRIPT);
+		}
+
+		private boolean removeLockKeyWithScript(RedisScript<Boolean> redisScript) {
+			return Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
+					redisScript, Collections.singletonList(this.lockKey),
+					RedisLockRegistry.this.clientId));
 		}
 
 	}
