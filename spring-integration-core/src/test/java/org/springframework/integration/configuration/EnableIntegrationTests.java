@@ -53,6 +53,7 @@ import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.expression.EnvironmentAccessor;
@@ -814,7 +815,10 @@ public class EnableIntegrationTests {
 	}
 
 	@Configuration
-	@ComponentScan
+	@ComponentScan(
+			excludeFilters = @ComponentScan.Filter(
+					type = FilterType.ASSIGNABLE_TYPE,
+					classes = {ChildConfiguration.class, ContextConfiguration2.class}))
 	@IntegrationComponentScan
 	@EnableIntegration
 	//	INT-3853

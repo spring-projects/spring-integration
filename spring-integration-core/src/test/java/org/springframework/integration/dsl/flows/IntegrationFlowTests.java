@@ -45,6 +45,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageDispatchingException;
@@ -641,7 +642,16 @@ public class IntegrationFlowTests {
 	}
 
 	@Configuration
-	@ComponentScan
+	@ComponentScan(
+			excludeFilters = @ComponentScan.Filter(
+					type = FilterType.ASSIGNABLE_TYPE,
+					classes = {
+							ContextConfiguration.class,
+							ContextConfiguration3.class,
+							ContextConfiguration4.class,
+							InterceptorContextConfiguration.class,
+							SupplierContextConfiguration1.class,
+							SupplierContextConfiguration2.class}))
 	public static class ContextConfiguration2 {
 
 		@Autowired
