@@ -478,6 +478,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			if (RedisLockRegistry.this.unlinkAvailable) {
 				Boolean unlinkResult = null;
 				try {
+					// Attempt to UNLINK the lock key; an exception indicates lack of UNLINK support
 					unlinkResult = removeLockKeyInnerUnlink();
 				}
 				catch (Exception ex) {
@@ -492,7 +493,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					}
 				}
 
-				if(Boolean.TRUE.equals(unlinkResult)) {
+				if (Boolean.TRUE.equals(unlinkResult)) {
+					// Lock key successfully unlinked
 					return;
 				}
 				else if (Boolean.FALSE.equals(unlinkResult)) {
