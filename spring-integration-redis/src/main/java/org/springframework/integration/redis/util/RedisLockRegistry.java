@@ -476,13 +476,9 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		private void removeLockKey() {
 			if (RedisLockRegistry.this.unlinkAvailable) {
+				Boolean unlinkResult = null;
 				try {
-					boolean unlinkResult = removeLockKeyInnerUnlink();
-					if (!unlinkResult) {
-						throw new IllegalStateException("Lock was released in the store due to expiration. " +
-								"The integrity of data protected by this lock may have been compromised.");
-					}
-					return;
+					unlinkResult = removeLockKeyInnerUnlink();
 				}
 				catch (Exception ex) {
 					RedisLockRegistry.this.unlinkAvailable = false;
@@ -494,6 +490,14 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 						LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
 								"falling back to the regular DELETE command: " + ex.getMessage());
 					}
+				}
+
+				if(Boolean.TRUE.equals(unlinkResult)) {
+					return;
+				}
+				else if (Boolean.FALSE.equals(unlinkResult)) {
+					throw new IllegalStateException("Lock was released in the store due to expiration. " +
+							"The integrity of data protected by this lock may have been compromised.");
 				}
 			}
 			if (!removeLockKeyInnerDelete()) {
