@@ -22,7 +22,7 @@ In general the project has been moved to the latest dependency versions.
 ==== Debezium Inbound Channel Adapter
 
 The Debezium Engine based Change Data Capture (CDC) channel adapter, that allows capturing database change events, converting them into Messages and streaming those to the outbound channels.
-See xref:debezium.adoc[Debezium Support]  for more information.
+See xref:debezium.adoc[Debezium Support] for more information.
 
 [[x6.2-general]]
 === General Changes
@@ -32,6 +32,9 @@ See xref:endpoint.adoc#endpoint-pollingconsumer[Polling Consumer] for more infor
 
 - Java, Groovy and Kotlin DSLs have now context-specific methods in the `IntegrationFlowDefinition` with a single `Consumer` argument to configure an endpoint and its handler with one builder and readable options.
 See, for example, `transformWith()`, `splitWith()` in xref:dsl.adoc#java-dsl[ Java DSL Chapter].
+
+- A new `spring.integration.endpoints.defaultTimeout` global property has been introduced to override a default 30 seconds timeout for all the endpoints in the application.
+See xref:configuration/global-properties.adoc[Global Properties] for more information.
 
 [[x6.2-websockets]]
 === WebSockets Changes

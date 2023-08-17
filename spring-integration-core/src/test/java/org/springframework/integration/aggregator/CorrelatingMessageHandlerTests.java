@@ -71,8 +71,9 @@ public class CorrelatingMessageHandlerTests {
 		outputChannel = mock(MessageChannel.class);
 		handler = new AggregatingMessageHandler(processor, store, correlationStrategy, ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
+		handler.setBeanFactory(mock());
+		handler.afterPropertiesSet();
 	}
-
 
 	@Test
 	public void bufferCompletesNormally() {
@@ -95,7 +96,7 @@ public class CorrelatingMessageHandlerTests {
 	}
 
 	@Test
-	public void bufferCompletesWithException() throws Exception {
+	public void bufferCompletesWithException() {
 
 		doAnswer(new ThrowsException(new RuntimeException("Planned test exception")))
 				.when(processor).processMessageGroup(isA(SimpleMessageGroup.class));

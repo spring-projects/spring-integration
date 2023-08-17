@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class KafkaInboundGatewayTests {
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "onPartitionsAssignedSeekCallback"))
 				.isSameAs(this.context.getBean("onPartitionsAssignedSeekCallback"));
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "messagingTemplate.sendTimeout")).isEqualTo(5000L);
-		assertThat(TestUtils.getPropertyValue(this.gateway1, "replyTimeout")).isEqualTo(43L);
+		assertThat(TestUtils.getPropertyValue(this.gateway1, "messagingTemplate.receiveTimeout")).isEqualTo(43L);
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "bindSourceRecord", Boolean.class)).isTrue();
 	}
 

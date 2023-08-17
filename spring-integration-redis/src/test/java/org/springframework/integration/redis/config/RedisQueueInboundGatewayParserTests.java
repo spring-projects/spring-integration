@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.redis.config;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,8 +26,7 @@ import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,8 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * since 4.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class RedisQueueInboundGatewayParserTests {
 
@@ -65,20 +63,20 @@ public class RedisQueueInboundGatewayParserTests {
 
 
 	@Test
-	public void testDefaultConfig() throws Exception {
+	public void testDefaultConfig() {
 		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class)).isFalse();
 		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "serializer")).isSameAs(this.serializer);
 		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "serializerExplicitlySet", Boolean.class)).isTrue();
 		assertThat(this.defaultGateway.getReplyChannel()).isSameAs(this.receiveChannel);
 		assertThat(this.defaultGateway.getRequestChannel()).isSameAs(this.requestChannel);
-		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "replyTimeout")).isEqualTo(2000L);
+		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "messagingTemplate.receiveTimeout")).isEqualTo(2000L);
 		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "taskExecutor")).isNotNull();
 		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "autoStartup", Boolean.class)).isFalse();
 		assertThat(TestUtils.getPropertyValue(this.defaultGateway, "phase")).isEqualTo(3);
 	}
 
 	@Test
-	public void testZeroReceiveTimeoutConfig() throws Exception {
+	public void testZeroReceiveTimeoutConfig() {
 		assertThat(TestUtils.getPropertyValue(this.zeroReceiveTimeoutGateway, "receiveTimeout")).isEqualTo(0L);
 	}
 

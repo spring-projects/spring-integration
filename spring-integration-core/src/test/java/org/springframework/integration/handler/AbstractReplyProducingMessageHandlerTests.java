@@ -61,6 +61,8 @@ public class AbstractReplyProducingMessageHandlerTests {
 	@BeforeEach
 	void setup() {
 		channel = mock(MessageChannel.class);
+		handler.setBeanFactory(mock());
+		handler.afterPropertiesSet();
 	}
 
 	@Test
@@ -91,6 +93,9 @@ public class AbstractReplyProducingMessageHandlerTests {
 		assertThat(handler.getNotPropagatedHeaders()).isEmpty();
 		handler.setNotPropagatedHeaders("f*", "*r");
 		handler.setOutputChannel(this.channel);
+		handler.setBeanFactory(mock());
+		handler.afterPropertiesSet();
+
 		assertThat(handler.getNotPropagatedHeaders()).contains("f*", "*r");
 		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
 		willReturn(true).given(this.channel).send(captor.capture(), eq(30000L));
@@ -120,6 +125,9 @@ public class AbstractReplyProducingMessageHandlerTests {
 		handler.addNotPropagatedHeaders("boom");
 		assertThat(handler.getNotPropagatedHeaders()).contains("boom");
 		handler.setOutputChannel(this.channel);
+		handler.setBeanFactory(mock());
+		handler.afterPropertiesSet();
+
 		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
 		willReturn(true).given(this.channel).send(captor.capture(), eq(30000L));
 		handler.handleMessage(MessageBuilder.withPayload("hello")
@@ -149,6 +157,9 @@ public class AbstractReplyProducingMessageHandlerTests {
 		handler.setNotPropagatedHeaders("foo");
 		handler.addNotPropagatedHeaders("b*r");
 		handler.setOutputChannel(this.channel);
+		handler.setBeanFactory(mock());
+		handler.afterPropertiesSet();
+
 		assertThat(handler.getNotPropagatedHeaders()).contains("foo", "b*r");
 		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
 		willReturn(true).given(this.channel).send(captor.capture(), eq(30000L));

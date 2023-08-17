@@ -51,7 +51,7 @@ public class AggregatorAnnotationTests {
 		assertThat(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy)
 				.isTrue();
 		assertThat(getPropertyValue(aggregator, "outputChannel")).isNull();
-		assertThat(getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(30000L);
+		assertThat(getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(45000L);
 		assertThat(getPropertyValue(aggregator, "sendPartialResultOnExpiry")).isEqualTo(false);
 		context.close();
 	}
@@ -72,7 +72,7 @@ public class AggregatorAnnotationTests {
 	}
 
 	@Test
-	public void testAnnotationWithCustomReleaseStrategy() throws Exception {
+	public void testAnnotationWithCustomReleaseStrategy() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] {"classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml"});
 		final String endpointName = "endpointWithDefaultAnnotationAndCustomReleaseStrategy";
@@ -90,7 +90,7 @@ public class AggregatorAnnotationTests {
 	}
 
 	@Test
-	public void testAnnotationWithCustomCorrelationStrategy() throws Exception {
+	public void testAnnotationWithCustomCorrelationStrategy() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] {"classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml"});
 		final String endpointName = "endpointWithCorrelationStrategy";

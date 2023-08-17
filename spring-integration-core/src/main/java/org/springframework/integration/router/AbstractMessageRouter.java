@@ -25,7 +25,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.IntegrationPatternType;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -63,9 +62,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 
 	private volatile boolean applySequence;
 
-	{
-		this.messagingTemplate.setSendTimeout(IntegrationContextUtils.DEFAULT_TIMEOUT);
-	}
+	private boolean sendTimeoutSet;
 
 	/**
 	 * Set the default channel where Messages should be sent if channel resolution
@@ -115,10 +112,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 	 */
 	public void setSendTimeout(long timeout) {
 		this.messagingTemplate.setSendTimeout(timeout);
+		this.sendTimeoutSet = true;
 	}
 
 	/**
-	 * Specify whether send failures for one or more of the recipients should be ignored. By default this is
+	 * Specify whether send failures for one or more of the recipients should be ignored. By default, this is
 	 * <code>false</code> meaning that an Exception will be thrown whenever a send fails. To override this and suppress
 	 * Exceptions, set the value to <code>true</code>.
 	 * @param ignoreSendFailures true to ignore send failures.
@@ -173,6 +171,10 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 		BeanFactory beanFactory = getBeanFactory();
 		if (beanFactory != null) {
 			this.messagingTemplate.setBeanFactory(beanFactory);
+		}
+
+		if (!this.sendTimeoutSet) {
+			this.messagingTemplate.setSendTimeout(getIntegrationProperties().getEndpointsDefaultTimeout());
 		}
 	}
 
