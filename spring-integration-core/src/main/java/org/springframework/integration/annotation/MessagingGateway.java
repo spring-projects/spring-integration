@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 
 /**
  * A stereotype annotation to provide an Integration Messaging Gateway Proxy
@@ -164,5 +165,14 @@ public @interface MessagingGateway {
 	 * @since 5.3
 	 */
 	boolean proxyDefaultMethods() default false;
+
+	/**
+	 * If errorOnTimeout is true, null won't be returned as a result of a gateway method invocation when a timeout occurs.
+	 * Instead, a {@link org.springframework.integration.MessageTimeoutException} is thrown
+	 * or an error message is published to the error channel.
+	 * @since 6.2
+	 * @see MessagingGatewaySupport#setErrorOnTimeout(boolean)
+	 */
+	boolean errorOnTimeout() default false;
 
 }

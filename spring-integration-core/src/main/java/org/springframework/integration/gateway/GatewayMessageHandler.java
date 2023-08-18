@@ -81,6 +81,10 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 		this.gatewayProxyFactoryBean.setDefaultReplyTimeout(replyTimeout);
 	}
 
+	public void setErrorOnTimeout(boolean errorOnTimeout) {
+		this.gatewayProxyFactoryBean.setErrorOnTimeout(errorOnTimeout);
+	}
+
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		if (this.exchanger == null) {

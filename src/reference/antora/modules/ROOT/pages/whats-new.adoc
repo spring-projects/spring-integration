@@ -36,6 +36,8 @@ See, for example, `transformWith()`, `splitWith()` in xref:dsl.adoc#java-dsl[ Ja
 - A new `spring.integration.endpoints.defaultTimeout` global property has been introduced to override the default 30 seconds timeout for all the endpoints in the application.
 See xref:configuration/global-properties.adoc[Global Properties] for more information.
 
+- The `@MessagingGateway` and `GatewayEndpointSpec` provided by the Java DSL now expose the `errorOnTimeout` property of the internal `MethodInvocationGateway` extension of the `MessagingGatewaySupport`.
+See xref:gateway.adoc#gateway-no-response[ Gateway Behavior When No response Arrives] for more information.
 [[x6.2-websockets]]
 === WebSockets Changes
 

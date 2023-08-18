@@ -794,6 +794,8 @@ If a component downstream is still running (perhaps because of an infinite loop 
 However, if the timeout has been reached before the actual reply was produced, it could result in a 'null' return from the gateway method.
 You should understand that the reply message (if produced) is sent to a reply channel after the gateway method invocation might have returned, so you must be aware of that and design your flow with it in mind.
 
+Also see the `errorOnTimeout` property to throw a `MessageTimeoutException` instead of returning `null`, when a timeout occurs.
+
 [[downstream-component-returns-null-]]
 === Downstream Component Returns 'null'
 
@@ -837,5 +839,9 @@ IMPORTANT: You should understand that the timer starts when the thread returns t
 At that time, the calling thread starts waiting for the reply.
 If the flow was completely synchronous, the reply is immediately available.
 For asynchronous flows, the thread waits for up to this time.
+
+Starting with version 6.2, the `errorOnTimeout` property of the internal `MethodInvocationGateway` extension of the `MessagingGatewaySupport` is exposed on the `@MessagingGateway` and `GatewayEndpointSpec`.
+This option has exactly the same meaning as for any inbound gateway explained in the end of xref:endpoint-summary.adoc#endpoint-summary[Endpoint Summary] chapter.
+In other words, setting this option to `true`, would lead to the `MessageTimeoutException` being thrown from a send-and-receive gateway operation instead of returning `null` when the receive timeout is exhausted.
 
 See xref:dsl/integration-flow-as-gateway.adoc[`IntegrationFlow` as Gateway] in the Java DSL chapter for options to define gateways through `IntegrationFlow`.
