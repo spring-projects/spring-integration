@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,6 +95,18 @@ public class GatewayEndpointSpec extends ConsumerEndpointSpec<GatewayEndpointSpe
 	 */
 	public GatewayEndpointSpec replyTimeout(Long replyTimeout) {
 		this.handler.setReplyTimeout(replyTimeout);
+		return this;
+	}
+
+	/**
+	 * Set a error on timeout flag.
+	 * @param errorOnTimeout true to produce an error in case on reply timeout.
+	 * @return the spec
+	 * @since 6.2
+	 * @see org.springframework.integration.gateway.GatewayProxyFactoryBean#setErrorOnTimeout(boolean)
+	 */
+	public GatewayEndpointSpec errorOnTimeout(boolean errorOnTimeout) {
+		this.handler.setErrorOnTimeout(errorOnTimeout);
 		return this;
 	}
 

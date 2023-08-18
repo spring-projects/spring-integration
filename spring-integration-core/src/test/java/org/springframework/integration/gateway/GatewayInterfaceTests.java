@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,14 +59,17 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
@@ -93,6 +96,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ClassUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -149,6 +153,9 @@ public class GatewayInterfaceTests {
 
 	@Autowired
 	private MessageChannel gatewayChannel;
+
+	@Autowired
+	private PollableChannel gatewayQueueChannel;
 
 	@Autowired
 	private MessageChannel errorChannel;
@@ -468,19 +475,19 @@ public class GatewayInterfaceTests {
 		assertThat(TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean,
 				"defaultRequestTimeout", Expression.class).getValue()).isEqualTo(1111L);
 		assertThat(TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean,
-				"defaultReplyTimeout", Expression.class).getValue()).isEqualTo(222L);
+				"defaultReplyTimeout", Expression.class).getValue()).isEqualTo(0L);
 
 		Collection<MessagingGatewaySupport> messagingGateways =
 				this.annotationGatewayProxyFactoryBean.getGateways().values();
 		assertThat(messagingGateways.size()).isEqualTo(1);
 
 		MessagingGatewaySupport gateway = messagingGateways.iterator().next();
-		assertThat(gateway.getRequestChannel()).isSameAs(this.gatewayChannel);
+		assertThat(gateway.getRequestChannel()).isSameAs(this.gatewayQueueChannel);
 		assertThat(gateway.getReplyChannel()).isSameAs(this.gatewayChannel);
 		assertThat(gateway.getErrorChannel()).isSameAs(this.errorChannel);
 		Object requestMapper = TestUtils.getPropertyValue(gateway, "requestMapper");
 
-		assertThat(TestUtils.getPropertyValue(requestMapper, "payloadExpression.expression")).isEqualTo("@foo");
+		assertThat(TestUtils.getPropertyValue(requestMapper, "payloadExpression.expression")).isEqualTo("args[0]");
 
 		Map globalHeaderExpressions = TestUtils.getPropertyValue(requestMapper, "globalHeaderExpressions", Map.class);
 		assertThat(globalHeaderExpressions.size()).isEqualTo(1);
@@ -489,6 +496,9 @@ public class GatewayInterfaceTests {
 		assertThat(barHeaderExpression).isNotNull();
 		assertThat(barHeaderExpression).isInstanceOf(LiteralExpression.class);
 		assertThat(((LiteralExpression) barHeaderExpression).getValue()).isEqualTo("baz");
+
+		assertThatExceptionOfType(MessageTimeoutException.class)
+				.isThrownBy(() -> this.gatewayByAnnotationGPFB.foo("test"));
 	}
 
 	@Test
@@ -668,6 +678,12 @@ public class GatewayInterfaceTests {
 		}
 
 		@Bean
+		@BridgeTo(poller = @Poller(fixedDelay = "1000"))
+		public MessageChannel gatewayQueueChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		@BridgeTo
 		public MessageChannel gatewayThreadChannel() {
 			DirectChannel channel = new DirectChannel();
@@ -802,13 +818,14 @@ public class GatewayInterfaceTests {
 	}
 
 	@MessagingGateway(
-			defaultRequestChannel = "${gateway.channel:gatewayChannel}",
+			defaultRequestChannel = "${gateway.channel:gatewayQueueChannel}",
 			defaultReplyChannel = "${gateway.channel:gatewayChannel}",
-			defaultPayloadExpression = "${gateway.payload:@foo}",
+			defaultPayloadExpression = "${gateway.payload:args[0]}",
 			errorChannel = "${gateway.channel:errorChannel}",
 			asyncExecutor = "${gateway.executor:exec}",
 			defaultRequestTimeout = "${gateway.timeout:1111}",
-			defaultReplyTimeout = "${gateway.timeout:222}",
+			defaultReplyTimeout = "${gateway.timeout:0}",
+			errorOnTimeout = true,
 			defaultHeaders = {
 					@GatewayHeader(name = "${gateway.header.name:bar}",
 							value = "${gateway.header.value:baz}")

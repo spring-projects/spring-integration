@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -43,6 +44,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
@@ -79,9 +81,11 @@ public class GatewayDslTests {
 		assertThat(receive.getPayload()).isEqualTo("From Gateway SubFlow: FOO");
 		assertThat(this.gatewayError.receive(1)).isNull();
 
-		message = MessageBuilder.withPayload("bar").setReplyChannel(replyChannel).build();
+		Message<String> otherMessage = MessageBuilder.withPayload("bar").setReplyChannel(replyChannel).build();
 
-		this.gatewayInput.send(message);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.gatewayInput.send(otherMessage))
+				.withCauseExactlyInstanceOf(MessageTimeoutException.class);
 
 		assertThat(replyChannel.receive(1)).isNull();
 
@@ -173,7 +177,8 @@ public class GatewayDslTests {
 		@Bean
 		public IntegrationFlow gatewayFlow() {
 			return IntegrationFlow.from("gatewayInput")
-					.gateway("gatewayRequest", g -> g.errorChannel("gatewayError").replyTimeout(10L))
+					.gateway("gatewayRequest",
+							g -> g.errorChannel("gatewayError").replyTimeout(10L).errorOnTimeout(true))
 					.gateway((f) -> f.transform("From Gateway SubFlow: "::concat))
 					.get();
 		}

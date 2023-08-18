@@ -166,6 +166,8 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 
 	private MetricsCaptor metricsCaptor;
 
+	private boolean errorOnTimeout;
+
 	/**
 	 * Create a Factory whose service interface type can be configured by setter injection.
 	 * If none is set, it will fall back to the default service interface type,
@@ -453,6 +455,18 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 	public void registerMetricsCaptor(MetricsCaptor metricsCaptorToRegister) {
 		this.metricsCaptor = metricsCaptorToRegister;
 		this.gatewayMap.values().forEach(gw -> gw.registerMetricsCaptor(metricsCaptorToRegister));
+	}
+
+	/**
+	 * If errorOnTimeout is true, the null won't be returned as a result of a gateway method invocation.
+	 * Instead, a {@link org.springframework.integration.MessageTimeoutException} is thrown
+	 * or an error message is published to the error channel.
+	 * @param errorOnTimeout true to create the error message on reply timeout.
+	 * @since 6.2
+	 * @see MessagingGatewaySupport#setErrorOnTimeout(boolean)
+	 */
+	public void setErrorOnTimeout(boolean errorOnTimeout) {
+		this.errorOnTimeout = errorOnTimeout;
 	}
 
 	@Override
@@ -881,6 +895,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		gateway.setBeanFactory(getBeanFactory());
 		gateway.setShouldTrack(this.shouldTrack);
 		gateway.registerMetricsCaptor(this.metricsCaptor);
+		gateway.setErrorOnTimeout(this.errorOnTimeout);
 		gateway.afterPropertiesSet();
 
 		return gateway;
