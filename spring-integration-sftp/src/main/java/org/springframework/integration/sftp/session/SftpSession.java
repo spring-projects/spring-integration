@@ -22,8 +22,6 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.SocketAddress;
 import java.time.Duration;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -49,12 +47,9 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
- *
  * @since 2.0
  */
 public class SftpSession implements Session<SftpClient.DirEntry> {
-
-	private final Lock lock = new ReentrantLock();
 
 	private final SftpClient sftpClient;
 
@@ -113,7 +108,7 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 			}
 		}
 		remoteDir =
-				remoteDir.length() > 0 && remoteDir.charAt(0) == '/'
+				!remoteDir.isEmpty() && remoteDir.charAt(0) == '/'
 						? remoteDir
 						: this.sftpClient.canonicalPath(remoteDir);
 		return StreamSupport.stream(this.sftpClient.readDir(remoteDir).spliterator(), false)
@@ -138,30 +133,18 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 
 	@Override
 	public void write(InputStream inputStream, String destination) throws IOException {
-		this.lock.lock();
-		try {
-			OutputStream outputStream = this.sftpClient.write(destination);
-			FileCopyUtils.copy(inputStream, outputStream);
-		}
-		finally {
-			this.lock.unlock();
-		}
+		OutputStream outputStream = this.sftpClient.write(destination);
+		FileCopyUtils.copy(inputStream, outputStream);
 	}
 
 	@Override
 	public void append(InputStream inputStream, String destination) throws IOException {
-		this.lock.lock();
-		try {
-			OutputStream outputStream =
-					this.sftpClient.write(destination,
-							SftpClient.OpenMode.Create,
-							SftpClient.OpenMode.Write,
-							SftpClient.OpenMode.Append);
-			FileCopyUtils.copy(inputStream, outputStream);
-		}
-		finally {
-			this.lock.unlock();
-		}
+		OutputStream outputStream =
+				this.sftpClient.write(destination,
+						SftpClient.OpenMode.Create,
+						SftpClient.OpenMode.Write,
+						SftpClient.OpenMode.Append);
+		FileCopyUtils.copy(inputStream, outputStream);
 	}
 
 	@Override
