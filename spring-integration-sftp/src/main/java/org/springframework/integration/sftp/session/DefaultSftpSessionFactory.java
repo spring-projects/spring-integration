@@ -259,7 +259,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	 * the default connection timeout. Defaults to <code>0</code>, which means,
 	 * that no timeout will occur.
 	 * @param timeout The timeout.
-	 * @see org.apache.sshd.client.future.ConnectFuture#verify(long)
+	 * @see org.apache.sshd.client.future.ConnectFuture#verify(Duration, org.apache.sshd.common.future.CancelOption...)
 	 */
 	public void setTimeout(Integer timeout) {
 		this.timeout = timeout;
