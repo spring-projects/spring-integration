@@ -36,13 +36,15 @@ import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.config.keys.FilePasswordProvider;
 import org.apache.sshd.common.keyprovider.KeyIdentityProvider;
+import org.apache.sshd.common.util.buffer.Buffer;
 import org.apache.sshd.common.util.io.resource.AbstractIoResource;
 import org.apache.sshd.common.util.io.resource.IoResource;
 import org.apache.sshd.common.util.net.SshdSocketAddress;
 import org.apache.sshd.common.util.security.SecurityUtils;
 import org.apache.sshd.sftp.client.SftpClient;
-import org.apache.sshd.sftp.client.SftpClientFactory;
+import org.apache.sshd.sftp.client.SftpErrorDataHandler;
 import org.apache.sshd.sftp.client.SftpVersionSelector;
+import org.apache.sshd.sftp.client.impl.DefaultSftpClient;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -281,8 +283,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 			boolean freshSftpClient = false;
 			if (sftpClient == null || !sftpClient.isOpen()) {
 				sftpClient =
-						SftpClientFactory.instance()
-								.createSftpClient(initClientSession(), this.sftpVersionSelector);
+						new ConcurrentSftpClient(initClientSession(), this.sftpVersionSelector,
+								SftpErrorDataHandler.EMPTY);
 				freshSftpClient = true;
 			}
 			sftpSession = new SftpSession(sftpClient);
@@ -393,6 +395,33 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	public void resetSharedSession() {
 		Assert.state(this.isSharedSession, "Shared sessions are not being used");
 		this.sharedSftpClient = null;
+	}
+
+	/**
+	 * The {@link DefaultSftpClient} extension to lock the {@link #send(int, Buffer)}
+	 * for concurrent interaction.
+	 */
+	private static class ConcurrentSftpClient extends DefaultSftpClient {
+
+		private final Lock sendLock = new ReentrantLock();
+
+		ConcurrentSftpClient(ClientSession clientSession, SftpVersionSelector initialVersionSelector,
+				SftpErrorDataHandler errorDataHandler) throws IOException {
+
+			super(clientSession, initialVersionSelector, errorDataHandler);
+		}
+
+		@Override
+		public int send(int cmd, Buffer buffer) throws IOException {
+			this.sendLock.lock();
+			try {
+				return super.send(cmd, buffer);
+			}
+			finally {
+				this.sendLock.unlock();
+			}
+		}
+
 	}
 
 }
