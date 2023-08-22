@@ -33,7 +33,7 @@ See xref:endpoint.adoc#endpoint-pollingconsumer[Polling Consumer] for more infor
 - Java, Groovy and Kotlin DSLs have now context-specific methods in the `IntegrationFlowDefinition` with a single `Consumer` argument to configure an endpoint and its handler with one builder and readable options.
 See, for example, `transformWith()`, `splitWith()` in xref:dsl.adoc#java-dsl[ Java DSL Chapter].
 
-- A new `spring.integration.endpoints.defaultTimeout` global property has been introduced to override a default 30 seconds timeout for all the endpoints in the application.
+- A new `spring.integration.endpoints.defaultTimeout` global property has been introduced to override the default 30 seconds timeout for all the endpoints in the application.
 See xref:configuration/global-properties.adoc[Global Properties] for more information.
 
 [[x6.2-websockets]]
