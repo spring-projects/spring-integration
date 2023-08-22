@@ -33,7 +33,7 @@ See xref:endpoint.adoc#endpoint-pollingconsumer[Polling Consumer] for more infor
 - Java, Groovy and Kotlin DSLs have now context-specific methods in the `IntegrationFlowDefinition` with a single `Consumer` argument to configure an endpoint and its handler with one builder and readable options.
 See, for example, `transformWith()`, `splitWith()` in xref:dsl.adoc#java-dsl[ Java DSL Chapter].
 
-- The `@MessagingGateway` and `GatewayEndpointSpec` for Java DSL expose now an `errorOnTimeout` option of an internal `MethodInvocationGateway` extension of the `MessagingGatewaySupport`.
+- The `@MessagingGateway` and `GatewayEndpointSpec` provided by the Java DSL now expose the `errorOnTimeout` property of the internal `MethodInvocationGateway` extension of the `MessagingGatewaySupport`.
 See xref:gateway.adoc#gateway-no-response[ Gateway Behavior When No response Arrives] for more information.
 
 [[x6.2-websockets]]

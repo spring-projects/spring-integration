@@ -100,8 +100,8 @@ public class GatewayEndpointSpec extends ConsumerEndpointSpec<GatewayEndpointSpe
 
 	/**
 	 * Set a error on timeout flag.
-	 * @param errorOnTimeout true to produce an error in case on reply timeout.
-	 * @return the spec
+	 * @param errorOnTimeout true to produce an error in case of a reply timeout.
+	 * @return the spec.
 	 * @since 6.2
 	 * @see org.springframework.integration.gateway.GatewayProxyFactoryBean#setErrorOnTimeout(boolean)
 	 */

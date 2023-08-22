@@ -458,7 +458,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 	}
 
 	/**
-	 * If errorOnTimeout is true, the null won't be returned as a result of a gateway method invocation.
+	 * If errorOnTimeout is true, null won't be returned as a result of a gateway method invocation, when a timeout occurs.
 	 * Instead, a {@link org.springframework.integration.MessageTimeoutException} is thrown
 	 * or an error message is published to the error channel.
 	 * @param errorOnTimeout true to create the error message on reply timeout.
