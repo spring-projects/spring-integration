@@ -59,7 +59,7 @@ public class ResequencerParserTests {
 		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
 				ResequencingMessageHandler.class);
 		assertThat(getPropertyValue(resequencer, "outputChannel")).isNull();
-		assertThat(getPropertyValue(resequencer, "messagingTemplate.sendTimeout")).isEqualTo(30000L);
+		assertThat(getPropertyValue(resequencer, "messagingTemplate.sendTimeout")).isEqualTo(45000L);
 		assertThat(getPropertyValue(resequencer, "sendPartialResultOnExpiry"))
 				.as("The ResequencerEndpoint is not configured with the appropriate 'send partial results on " +
 						"timeout'" +

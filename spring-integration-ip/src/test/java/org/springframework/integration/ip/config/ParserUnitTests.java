@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -447,7 +447,7 @@ public class ParserUnitTests {
 	public void testInGateway1() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway1);
 		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isSameAs(cfS2);
-		assertThat(dfa.getPropertyValue("replyTimeout")).isEqualTo(456L);
+		assertThat(TestUtils.getPropertyValue(tcpInboundGateway1, "messagingTemplate.receiveTimeout")).isEqualTo(456L);
 		assertThat(tcpInboundGateway1.getComponentName()).isEqualTo("inGateway1");
 		assertThat(tcpInboundGateway1.getComponentType()).isEqualTo("ip:tcp-inbound-gateway");
 		assertThat(tcpInboundGateway1.getErrorChannel()).isEqualTo(errorChannel);
@@ -463,7 +463,7 @@ public class ParserUnitTests {
 	public void testInGateway2() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway2);
 		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isSameAs(cfS3);
-		assertThat(dfa.getPropertyValue("replyTimeout")).isEqualTo(456L);
+		assertThat(TestUtils.getPropertyValue(tcpInboundGateway2, "messagingTemplate.receiveTimeout")).isEqualTo(456L);
 		assertThat(tcpInboundGateway2.getComponentName()).isEqualTo("inGateway2");
 		assertThat(tcpInboundGateway2.getComponentType()).isEqualTo("ip:tcp-inbound-gateway");
 		assertThat(dfa.getPropertyValue("errorChannel")).isNull();

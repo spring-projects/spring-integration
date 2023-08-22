@@ -89,9 +89,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private boolean noHeadersPropagation;
 
-	{
-		this.messagingTemplate.setSendTimeout(IntegrationContextUtils.DEFAULT_TIMEOUT);
-	}
+	private boolean sendTimeoutSet;
 
 	/**
 	 * Set the timeout for sending reply Messages.
@@ -99,6 +97,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 */
 	public void setSendTimeout(long sendTimeout) {
 		this.messagingTemplate.setSendTimeout(sendTimeout);
+		this.sendTimeoutSet = true;
 	}
 
 	@Override
@@ -189,7 +188,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	@Override
 	public Collection<String> getNotPropagatedHeaders() {
 		return this.notPropagatedHeaders != null
-				? Collections.unmodifiableSet(new HashSet<>(Arrays.asList(this.notPropagatedHeaders)))
+				? Set.of(this.notPropagatedHeaders)
 				: Collections.emptyList();
 	}
 
@@ -217,6 +216,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 		this.messagingTemplate.setDestinationResolver(getChannelResolver());
 		setAsyncIfCan();
+		if (!this.sendTimeoutSet) {
+			this.messagingTemplate.setSendTimeout(getIntegrationProperties().getEndpointsDefaultTimeout());
+		}
 	}
 
 	private void setAsyncIfCan() {

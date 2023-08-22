@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,22 +58,22 @@ public class GatewayXmlAndAnnotationTests {
 			switch (entry.getKey().getName()) {
 				case "annotationShouldNotOverrideDefault" -> {
 					assertThat(TestUtils.getPropertyValue(entry.getValue(),
-							"replyTimeout")).isEqualTo(123L);
+							"messagingTemplate.receiveTimeout")).isEqualTo(123L);
 					assertions++;
 				}
 				case "annotationShouldOverrideDefault" -> {
 					assertThat(TestUtils.getPropertyValue(entry.getValue(),
-							"replyTimeout")).isEqualTo(234L);
+							"messagingTemplate.receiveTimeout")).isEqualTo(234L);
 					assertions++;
 				}
 				case "annotationShouldOverrideDefaultToInfinity" -> {
 					assertThat(TestUtils.getPropertyValue(entry.getValue(),
-							"replyTimeout")).isEqualTo(-1L);
+							"messagingTemplate.receiveTimeout")).isEqualTo(-1L);
 					assertions++;
 				}
 				case "explicitTimeoutShouldOverrideDefault" -> {
 					assertThat(TestUtils.getPropertyValue(entry.getValue(),
-							"replyTimeout")).isEqualTo(456L);
+							"messagingTemplate.receiveTimeout")).isEqualTo(456L);
 					assertions++;
 				}
 			}

@@ -49,7 +49,7 @@ class HeaderEnricherParserTests {
 	void sendTimeoutDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
 		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
-		assertThat(sendTimeout).isEqualTo(30000L);
+		assertThat(sendTimeout).isEqualTo(45000L);
 	}
 
 	@Test

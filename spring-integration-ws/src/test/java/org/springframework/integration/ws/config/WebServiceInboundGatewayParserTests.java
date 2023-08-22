@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -39,8 +38,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.ws.context.DefaultMessageContext;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.soap.SoapMessage;
@@ -57,8 +55,7 @@ import static org.mockito.Mockito.when;
  * @author Stephane Nicoll
  * @author Artem Bilan
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class WebServiceInboundGatewayParserTests {
 
@@ -179,9 +176,7 @@ public class WebServiceInboundGatewayParserTests {
 
 	@Test
 	public void testReplyTimeout() {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(replyTimeoutGateway);
-		Object replyTimeout = accessor.getPropertyValue("replyTimeout");
-		assertThat(replyTimeout).isEqualTo(1234L);
+		assertThat(TestUtils.getPropertyValue(replyTimeoutGateway, "messagingTemplate.receiveTimeout")).isEqualTo(1234L);
 	}
 
 
@@ -189,8 +184,7 @@ public class WebServiceInboundGatewayParserTests {
 	private static class TestHeaderMapper implements SoapHeaderMapper {
 
 		@Override
-		public void fromHeadersToRequest(MessageHeaders headers,
-				SoapMessage target) {
+		public void fromHeadersToRequest(MessageHeaders headers, SoapMessage target) {
 		}
 
 		@Override

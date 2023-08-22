@@ -35,7 +35,6 @@ import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -124,7 +123,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private String errorChannelName;
 
-	private long replyTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
+	private boolean requestTimeoutSet;
+
+	private boolean replyTimeoutSet;
 
 	private InboundMessageMapper<Object> requestMapper = new DefaultRequestMapper();
 
@@ -167,8 +168,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	public MessagingGatewaySupport(boolean errorOnTimeout) {
 		ConvertingMessagingTemplate template = new ConvertingMessagingTemplate();
 		template.setMessageConverter(this.messageConverter);
-		template.setSendTimeout(IntegrationContextUtils.DEFAULT_TIMEOUT);
-		template.setReceiveTimeout(this.replyTimeout);
 		this.messagingTemplate = template;
 		this.errorOnTimeout = errorOnTimeout;
 	}
@@ -252,6 +251,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 */
 	public void setRequestTimeout(long requestTimeout) {
 		this.messagingTemplate.setSendTimeout(requestTimeout);
+		this.requestTimeoutSet = true;
 	}
 
 	/**
@@ -260,8 +260,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @param replyTimeout the timeout value in milliseconds
 	 */
 	public void setReplyTimeout(long replyTimeout) {
-		this.replyTimeout = replyTimeout;
 		this.messagingTemplate.setReceiveTimeout(replyTimeout);
+		this.replyTimeoutSet = true;
 	}
 
 	/**
@@ -405,6 +405,13 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				((BeanFactoryAware) this.requestMapper).setBeanFactory(beanFactory);
 			}
 			this.messageConverter.setBeanFactory(beanFactory);
+		}
+		long endpointsDefaultTimeout = getIntegrationProperties().getEndpointsDefaultTimeout();
+		if (!this.requestTimeoutSet) {
+			this.messagingTemplate.setSendTimeout(endpointsDefaultTimeout);
+		}
+		if (!this.replyTimeoutSet) {
+			this.messagingTemplate.setReceiveTimeout(endpointsDefaultTimeout);
 		}
 		this.initialized = true;
 	}

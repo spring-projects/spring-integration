@@ -6,6 +6,7 @@ Certain global framework properties can be overridden by providing a properties 
 The default properties can be found in `org.springframework.integration.context.IntegrationProperties` class.
 The following listing shows the default values:
 
+====
 [source]
 ----
 spring.integration.channels.autoCreate=true <1>
@@ -17,6 +18,7 @@ spring.integration.readOnly.headers= <6>
 spring.integration.endpoints.noAutoStartup= <7>
 spring.integration.channels.error.requireSubscribers=true <8>
 spring.integration.channels.error.ignoreFailures=true <9>
+spring.integration.endpoints.defaultTimeout=30000 <10>
 ----
 
 <1> When true, `input-channel` instances are automatically declared as `DirectChannel` instances when not explicitly found in the application context.
@@ -51,11 +53,18 @@ See xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling] for m
 <9> A boolean flag to indicate that default global `errorChannel` must ignore dispatching errors and pass the message to the next handler.
 Since version 5.5.
 
+<10> The default number of milliseconds for request and reply timeouts in endpoints.
+Default value is 30 seconds to avoid indefinite blocking.
+Can be configured to a negative value to restore infinite blocking behavior in endpoints.
+Since version 6.2.
+====
+
 These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath or an `IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME` bean for the `org.springframework.integration.context.IntegrationProperties` instance.
 You need not provide all the properties -- only those that you want to override.
 
 Starting with version 5.1, all the merged global properties are printed in the logs after application context startup when a `DEBUG` logic level is turned on for the `org.springframework.integration` category.
 The output looks like this:
+
 [source]
 ----
 Spring Integration global properties:
@@ -67,5 +76,6 @@ spring.integration.channels.autoCreate=true
 spring.integration.channels.maxBroadcastSubscribers=0x7fffffff
 spring.integration.readOnly.headers=
 spring.integration.messagingTemplate.throwExceptionOnLateReply=true
+spring.integration.endpoints.defaultTimeout=-1
 ----
 

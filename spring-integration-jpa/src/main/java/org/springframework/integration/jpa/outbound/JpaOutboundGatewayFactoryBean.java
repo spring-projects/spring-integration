@@ -17,9 +17,9 @@
 package org.springframework.integration.jpa.outbound;
 
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
+import org.springframework.lang.Nullable;
 
 /**
  * The {@link JpaOutboundGatewayFactoryBean} creates instances of the
@@ -44,7 +44,8 @@ public class JpaOutboundGatewayFactoryBean extends AbstractSimpleMessageHandlerF
 
 	private boolean producesReply = true;
 
-	private long replyTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
+	@Nullable
+	private Long replyTimeout;
 
 	private boolean requiresReply = false;
 
@@ -79,7 +80,9 @@ public class JpaOutboundGatewayFactoryBean extends AbstractSimpleMessageHandlerF
 		JpaOutboundGateway jpaOutboundGateway = new JpaOutboundGateway(this.jpaExecutor);
 		jpaOutboundGateway.setGatewayType(this.gatewayType);
 		jpaOutboundGateway.setProducesReply(this.producesReply);
-		jpaOutboundGateway.setSendTimeout(this.replyTimeout);
+		if (this.replyTimeout != null) {
+			jpaOutboundGateway.setSendTimeout(this.replyTimeout);
+		}
 		jpaOutboundGateway.setRequiresReply(this.requiresReply);
 		return jpaOutboundGateway;
 	}

@@ -73,7 +73,7 @@ public class RecipientListRouterParserTests {
 		assertThat(handler.getClass()).isEqualTo(RecipientListRouter.class);
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
-		assertThat(TestUtils.getPropertyValue(router, "messagingTemplate.sendTimeout")).isEqualTo(30000L);
+		assertThat(TestUtils.getPropertyValue(router, "messagingTemplate.sendTimeout")).isEqualTo(45000L);
 		assertThat(accessor.getPropertyValue("applySequence")).isEqualTo(Boolean.FALSE);
 		assertThat(accessor.getPropertyValue("ignoreSendFailures")).isEqualTo(Boolean.FALSE);
 	}

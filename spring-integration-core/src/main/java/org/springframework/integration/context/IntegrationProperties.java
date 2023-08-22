@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  *   <li> {@code spring.integration.endpoints.noAutoStartup=}
  *   <li> {@code spring.integration.channels.error.requireSubscribers=true}
  *   <li> {@code spring.integration.channels.error.ignoreFailures=true}
+ *   <li> {@code spring.integration.endpoints.defaultTimeout=30000}
  * </ul>
  *
  * @author Artem Bilan
@@ -112,6 +113,12 @@ public final class IntegrationProperties {
 	 */
 	public static final String ENDPOINTS_NO_AUTO_STARTUP = INTEGRATION_PROPERTIES_PREFIX + "endpoints.noAutoStartup";
 
+	/**
+	 * Specifies the default timeout for blocking operations like send and receive messages.
+	 * @since 6.2
+	 */
+	public static final String ENDPOINTS_DEFAULT_TIMEOUT = INTEGRATION_PROPERTIES_PREFIX + "endpoints.defaultTimeout";
+
 	private static final Properties DEFAULTS;
 
 	private boolean channelsAutoCreate = true;
@@ -131,6 +138,8 @@ public final class IntegrationProperties {
 	private String[] readOnlyHeaders = {};
 
 	private String[] noAutoStartupEndpoints = {};
+
+	private long endpointsDefaultTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
 
 	private volatile Properties properties;
 
@@ -294,6 +303,23 @@ public final class IntegrationProperties {
 	}
 
 	/**
+	 * Return the value of {@link #ENDPOINTS_DEFAULT_TIMEOUT} option.
+	 * @return the value of {@link #ENDPOINTS_DEFAULT_TIMEOUT} option.
+	 * @since 6.2
+	 */
+	public long getEndpointsDefaultTimeout() {
+		return this.endpointsDefaultTimeout;
+	}
+
+	/**
+	 * Configure a value for {@link #ENDPOINTS_DEFAULT_TIMEOUT} option.
+	 * @param endpointsDefaultTimeout the value for {@link #ENDPOINTS_DEFAULT_TIMEOUT} option.
+	 */
+	public void setEndpointsDefaultTimeout(long endpointsDefaultTimeout) {
+		this.endpointsDefaultTimeout = endpointsDefaultTimeout;
+	}
+
+	/**
 	 * Represent the current instance as a {@link Properties}.
 	 * @return the {@link Properties} representation.
 	 * @since 5.5
@@ -312,6 +338,7 @@ public final class IntegrationProperties {
 			props.setProperty(READ_ONLY_HEADERS, StringUtils.arrayToCommaDelimitedString(this.readOnlyHeaders));
 			props.setProperty(ENDPOINTS_NO_AUTO_STARTUP,
 					StringUtils.arrayToCommaDelimitedString(this.noAutoStartupEndpoints));
+			props.setProperty(ENDPOINTS_DEFAULT_TIMEOUT, "" + this.endpointsDefaultTimeout);
 
 			this.properties = props;
 		}
@@ -348,7 +375,9 @@ public final class IntegrationProperties {
 								StringUtils.commaDelimitedListToStringArray(value)))
 				.acceptIfHasText(properties.getProperty(ENDPOINTS_NO_AUTO_STARTUP),
 						(value) -> integrationProperties.setNoAutoStartupEndpoints(
-								StringUtils.commaDelimitedListToStringArray(value)));
+								StringUtils.commaDelimitedListToStringArray(value)))
+				.acceptIfHasText(properties.getProperty(ENDPOINTS_DEFAULT_TIMEOUT),
+						(value) -> integrationProperties.setEndpointsDefaultTimeout(Long.parseLong(value)));
 		return integrationProperties;
 	}
 

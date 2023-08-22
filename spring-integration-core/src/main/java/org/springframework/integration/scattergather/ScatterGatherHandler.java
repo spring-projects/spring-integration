@@ -67,7 +67,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 	private String errorChannelName = IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME;
 
-	private long gatherTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
+	private Long gatherTimeout;
 
 	private AbstractEndpoint gatherEndpoint;
 
@@ -119,6 +119,10 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 	@Override
 	protected void doInit() {
+		if (this.gatherTimeout == null) {
+			this.gatherTimeout = getIntegrationProperties().getEndpointsDefaultTimeout();
+		}
+
 		BeanFactory beanFactory = getBeanFactory();
 		if (this.gatherChannel == null) {
 			this.gatherChannel =
