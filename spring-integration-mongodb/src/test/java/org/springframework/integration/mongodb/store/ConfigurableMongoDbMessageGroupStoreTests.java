@@ -28,6 +28,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.IndexInfo;
+import org.springframework.data.mongodb.core.index.IndexOperations;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -133,15 +134,17 @@ class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGr
 
 	@Test
 	void testWithCustomConverter() {
+		MongoTemplate mongoTemplate = new MongoTemplate(MONGO_DATABASE_FACTORY);
+		IndexOperations indexOperations = mongoTemplate.indexOps(MongoDbChannelMessageStore.DEFAULT_COLLECTION_NAME);
+		indexOperations.dropAllIndexes();
+
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this
 						.getClass());
 		context.refresh();
 
-		MongoTemplate mongoTemplate = new MongoTemplate(MONGO_DATABASE_FACTORY);
-		List<IndexInfo> indexesInfo = mongoTemplate.indexOps(MongoDbChannelMessageStore.DEFAULT_COLLECTION_NAME).getIndexInfo();
-
-		assertThat(indexesInfo.size()).isEqualTo(4);
+		List<IndexInfo> indexesInfo = indexOperations.getIndexInfo();
+		assertThat(indexesInfo).hasSize(0);
 
 		TestGateway gateway = context.getBean(TestGateway.class);
 		String result = gateway.service("foo");
