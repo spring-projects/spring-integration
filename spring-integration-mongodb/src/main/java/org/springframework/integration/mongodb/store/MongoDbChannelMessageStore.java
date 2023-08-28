@@ -99,7 +99,7 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	@Override
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
-		if (this.getCreateIndex()) {
+		if (this.createIndex) {
 			getMongoTemplate()
 					.indexOps(this.collectionName)
 					.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
@@ -109,12 +109,13 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 		}
 	}
 
+	/**
+	 * Define the option to auto create indexes or not.
+	 * @since 6.0.8
+	 * @param createIndex a boolean.
+	 */
 	public void setCreateIndex(boolean createIndex) {
 		this.createIndex = createIndex;
-	}
-
-	public boolean getCreateIndex() {
-		return this.createIndex;
 	}
 
 	@Override
