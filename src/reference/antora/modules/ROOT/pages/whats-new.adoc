@@ -37,14 +37,14 @@ See, for example, `transformWith()`, `splitWith()` in xref:dsl.adoc#java-dsl[ Ja
 See xref:configuration/global-properties.adoc[Global Properties] for more information.
 
 - The `@MessagingGateway` and `GatewayEndpointSpec` provided by the Java DSL now expose the `errorOnTimeout` property of the internal `MethodInvocationGateway` extension of the `MessagingGatewaySupport`.
-See xref:gateway.adoc#gateway-no-response[ Gateway Behavior When No response Arrives] for more information.
+See xref:gateway.adoc#gateway-no-response[Gateway Behavior When No response Arrives] for more information.
+
 [[x6.2-websockets]]
 === WebSockets Changes
 
 - For the server and client WebSocket containers, the send buffer overflow strategy is now configurable in `IntegrationWebSocketContainer` and in XML via `send-buffer-overflow-strategy`.
 This strategy determines the behavior when a session's outbound message buffer has reached the configured limit.
 See xref:web-sockets.adoc#websocket-client-container-attributes[WebSockets Support] for more information.
-
 
 [[x6.2-kafka]]
 === Apache Kafka Support Changes

@@ -46,7 +46,9 @@ ext {
     linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
 
     modifiedFiles =
-            files(grgit.status().unstaged.modified).filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
+            providers.provider {
+                files(grgit.status().unstaged.modified).filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
+            }
 
     apacheSshdVersion = '2.10.0'
     artemisVersion = '2.29.0'
@@ -290,7 +292,7 @@ configure(javaProjects) { subproject ->
 
     tasks.register('updateCopyrights') {
         onlyIf { !isCI }
-        inputs.files(modifiedFiles.filter { f -> f.path.contains(subproject.name) })
+        inputs.files(modifiedFiles.map(files -> files.filter { f -> f.path.contains(subproject.name) }))
         outputs.dir('build/classes')
 
         doLast {
@@ -492,7 +494,7 @@ project('spring-integration-camel') {
         api 'org.apache.camel:camel-core-model'
 
         testImplementation 'org.apache.camel:camel-test-junit5'
-        testImplementation ('org.apache.camel:camel-spring') {
+        testImplementation('org.apache.camel:camel-spring') {
             exclude group: 'org.springframework'
         }
     }
@@ -505,7 +507,7 @@ project('spring-integration-cassandra') {
         api project(':spring-integration-core')
         api 'org.springframework.data:spring-data-cassandra'
 
-        testImplementation ('org.testcontainers:cassandra') {
+        testImplementation('org.testcontainers:cassandra') {
             exclude group: 'com.datastax.cassandra'
         }
     }
@@ -538,7 +540,7 @@ project('spring-integration-core') {
         optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
         optionalApi "com.esotericsoftware:kryo:$kryoVersion"
         optionalApi 'io.micrometer:micrometer-core'
-        optionalApi ('io.micrometer:micrometer-tracing') {
+        optionalApi('io.micrometer:micrometer-tracing') {
             exclude group: 'aopalliance'
         }
         optionalApi "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"
@@ -548,7 +550,7 @@ project('spring-integration-core') {
         testImplementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
         testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
         testImplementation 'io.micrometer:micrometer-observation-test'
-        testImplementation ('io.micrometer:micrometer-tracing-integration-test') {
+        testImplementation('io.micrometer:micrometer-tracing-integration-test') {
             exclude group: 'io.opentelemetry'
             exclude group: 'com.wavefront'
             exclude group: 'io.micrometer', module: 'micrometer-tracing-bridge-otel'
@@ -637,13 +639,13 @@ project('spring-integration-ftp') {
 }
 
 project('spring-integration-graphql') {
-	description = 'Spring Integration GraphQL Support'
-	dependencies {
-		api project(':spring-integration-core')
-		api "org.springframework.graphql:spring-graphql:$springGraphqlVersion"
+    description = 'Spring Integration GraphQL Support'
+    dependencies {
+        api project(':spring-integration-core')
+        api "org.springframework.graphql:spring-graphql:$springGraphqlVersion"
 
         testImplementation 'org.springframework:spring-web'
-	}
+    }
 }
 
 project('spring-integration-groovy') {
@@ -741,7 +743,7 @@ project('spring-integration-jdbc') {
         testImplementation "org.apache.derby:derbyclient:$derbyVersion"
         testImplementation "org.postgresql:postgresql:$postgresVersion"
         testImplementation "mysql:mysql-connector-java:$mysqlVersion"
-        testImplementation ("org.apache.commons:commons-dbcp2:$commonsDbcp2Version") {
+        testImplementation("org.apache.commons:commons-dbcp2:$commonsDbcp2Version") {
             exclude group: 'commons-logging'
         }
         testImplementation 'org.testcontainers:mysql'
@@ -922,7 +924,7 @@ project('spring-integration-sftp') {
     dependencies {
         api project(':spring-integration-file')
         api 'org.springframework:spring-context-support'
-        api ("org.apache.sshd:sshd-sftp:$apacheSshdVersion") {
+        api("org.apache.sshd:sshd-sftp:$apacheSshdVersion") {
             exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
         }
 
@@ -1014,7 +1016,7 @@ project('spring-integration-webflux') {
         }
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
         testImplementation 'io.micrometer:micrometer-observation-test'
-        testImplementation ('io.micrometer:micrometer-tracing-integration-test') {
+        testImplementation('io.micrometer:micrometer-tracing-integration-test') {
             exclude group: 'io.opentelemetry'
             exclude group: 'com.wavefront'
             exclude group: 'io.micrometer', module: 'micrometer-tracing-bridge-otel'
@@ -1092,12 +1094,12 @@ project('spring-integration-xml') {
 }
 
 project('spring-integration-xmpp') {
-	description = 'Spring Integration XMPP Support'
-	dependencies {
-		api project(':spring-integration-core')
-		api "org.igniterealtime.smack:smack-tcp:$smackVersion"
-		api "org.igniterealtime.smack:smack-java8:$smackVersion"
-		api "org.igniterealtime.smack:smack-extensions:$smackVersion"
+    description = 'Spring Integration XMPP Support'
+    dependencies {
+        api project(':spring-integration-core')
+        api "org.igniterealtime.smack:smack-tcp:$smackVersion"
+        api "org.igniterealtime.smack:smack-java8:$smackVersion"
+        api "org.igniterealtime.smack:smack-extensions:$smackVersion"
 
         testImplementation project(':spring-integration-stream')
         testImplementation "org.igniterealtime.smack:smack-experimental:$smackVersion"
