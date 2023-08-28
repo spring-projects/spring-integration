@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import org.springframework.util.Assert;
  * for implementations of this class.
  *
  * @author Artem Bilan
+ * @author Adama Sorho
  *
  * @since 4.0
  */
@@ -86,6 +87,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+	private boolean createIndexes = true;
+
 	public AbstractConfigurableMongoDbMessageStore(MongoTemplate mongoTemplate, String collectionName) {
 		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
 		Assert.hasText(collectionName, "'collectionName' must not be empty");
@@ -105,6 +108,15 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		this.collectionName = collectionName;
 		this.mongoDbFactory = mongoDbFactory;
 		this.mappingMongoConverter = mappingMongoConverter;
+	}
+
+	/**
+	 * Define the option to auto create indexes or not.
+	 * @param createIndexes a boolean.
+	 * @since 6.0.8.
+	 */
+	public void setCreateIndexes(boolean createIndexes) {
+		this.createIndexes = createIndexes;
 	}
 
 	@Override
@@ -146,6 +158,12 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.applicationContext);
 
+		if (this.createIndexes) {
+			createIndexes();
+		}
+	}
+
+	protected void createIndexes() {
 		IndexOperations indexOperations = this.mongoTemplate.indexOps(this.collectionName);
 
 		indexOperations.ensureIndex(new Index(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC));
