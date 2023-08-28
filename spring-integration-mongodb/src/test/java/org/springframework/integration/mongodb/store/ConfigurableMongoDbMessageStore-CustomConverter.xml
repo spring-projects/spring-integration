@@ -29,6 +29,8 @@
 
 	<beans:bean id="messageStore" parent="abstractMessageStore">
 		<beans:constructor-arg name="mappingMongoConverter" ref="customConverter"/>
+		<beans:constructor-arg name="collectionName" value="customConverterCollection"/>
+		<beans:property name="createIndexes" value="false" />
 	</beans:bean>
 
 	<gateway id="gateway"
