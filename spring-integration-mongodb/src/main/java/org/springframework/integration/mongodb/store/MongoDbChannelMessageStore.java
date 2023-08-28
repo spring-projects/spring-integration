@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * {@code priorityEnabled = true} option.
  *
  * @author Artem Bilan
+ * @author Adama Sorho
  *
  * @since 4.0
  */
@@ -55,6 +56,8 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	public static final String DEFAULT_COLLECTION_NAME = "channelMessages";
 
 	private boolean priorityEnabled;
+
+	private boolean createIndex = true;
 
 	public MongoDbChannelMessageStore(MongoTemplate mongoTemplate) {
 		this(mongoTemplate, DEFAULT_COLLECTION_NAME);
@@ -96,12 +99,22 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	@Override
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
-		getMongoTemplate()
-				.indexOps(this.collectionName)
-				.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
-						.on(MessageDocumentFields.PRIORITY, Sort.Direction.DESC)
-						.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.ASC)
-						.on(MessageDocumentFields.SEQUENCE, Sort.Direction.ASC));
+		if (this.getCreateIndex()) {
+			getMongoTemplate()
+					.indexOps(this.collectionName)
+					.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
+							.on(MessageDocumentFields.PRIORITY, Sort.Direction.DESC)
+							.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.ASC)
+							.on(MessageDocumentFields.SEQUENCE, Sort.Direction.ASC));
+		}
+	}
+
+	public void setCreateIndex(boolean createIndex) {
+		this.createIndex = createIndex;
+	}
+
+	public boolean getCreateIndex() {
+		return this.createIndex;
 	}
 
 	@Override

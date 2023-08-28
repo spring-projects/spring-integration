@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mongodb.store;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
@@ -25,6 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.index.IndexInfo;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -42,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Amol Nayak
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Adama Sorho
  *
  */
 class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTests {
@@ -133,6 +138,11 @@ class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGr
 				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this
 						.getClass());
 		context.refresh();
+
+		MongoTemplate mongoTemplate = new MongoTemplate(MONGO_DATABASE_FACTORY);
+		List<IndexInfo> indexesInfo = mongoTemplate.indexOps(MongoDbChannelMessageStore.DEFAULT_COLLECTION_NAME).getIndexInfo();
+
+		assertThat(indexesInfo.size()).isEqualTo(4);
 
 		TestGateway gateway = context.getBean(TestGateway.class);
 		String result = gateway.service("foo");
