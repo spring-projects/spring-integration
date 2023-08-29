@@ -95,14 +95,6 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	}
 
 	@Override
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-		if (this.getCreateIndex()) {
-			createIndexes();
-		}
-	}
-
-	@Override
 	protected void createIndexes() {
 		super.createIndexes();
 		getMongoTemplate()

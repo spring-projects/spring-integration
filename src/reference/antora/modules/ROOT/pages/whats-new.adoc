@@ -38,6 +38,10 @@ See xref:configuration/global-properties.adoc[Global Properties] for more inform
 
 - The `@MessagingGateway` and `GatewayEndpointSpec` provided by the Java DSL now expose the `errorOnTimeout` property of the internal `MethodInvocationGateway` extension of the `MessagingGatewaySupport`.
 See xref:gateway.adoc#gateway-no-response[ Gateway Behavior When No response Arrives] for more information.
+
+- A new method `setCreateIndex(boolean)` has been introduced in `org.springframework.integration.mongodb.store.AbstractConfigurableMongoDbMessageStore` to disable or enable (default) the auto index creation.
+See xref:mongodb.adoc#abstract-configurable-mongodb-message-store-with-auto-index-creation-disable[ Using AbstractConfigurableMongoDbMessageStore with auto index creation disable ] for an example.
+
 [[x6.2-websockets]]
 === WebSockets Changes
 
