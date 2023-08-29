@@ -57,8 +57,6 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 
 	private boolean priorityEnabled;
 
-	private boolean createIndex = true;
-
 	public MongoDbChannelMessageStore(MongoTemplate mongoTemplate) {
 		this(mongoTemplate, DEFAULT_COLLECTION_NAME);
 	}
@@ -99,23 +97,20 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	@Override
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
-		if (this.createIndex) {
-			getMongoTemplate()
-					.indexOps(this.collectionName)
-					.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
-							.on(MessageDocumentFields.PRIORITY, Sort.Direction.DESC)
-							.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.ASC)
-							.on(MessageDocumentFields.SEQUENCE, Sort.Direction.ASC));
+		if (this.getCreateIndex()) {
+			createIndexes();
 		}
 	}
 
-	/**
-	 * Define the option to auto create indexes or not.
-	 * @since 6.0.8
-	 * @param createIndex a boolean.
-	 */
-	public void setCreateIndex(boolean createIndex) {
-		this.createIndex = createIndex;
+	@Override
+	protected void createIndexes() {
+		super.createIndexes();
+		getMongoTemplate()
+				.indexOps(this.collectionName)
+				.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
+						.on(MessageDocumentFields.PRIORITY, Sort.Direction.DESC)
+						.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.ASC)
+						.on(MessageDocumentFields.SEQUENCE, Sort.Direction.ASC));
 	}
 
 	@Override
