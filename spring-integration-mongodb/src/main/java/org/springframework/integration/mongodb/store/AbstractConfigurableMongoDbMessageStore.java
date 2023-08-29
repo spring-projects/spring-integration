@@ -161,6 +161,10 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		}
 
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.applicationContext);
+
+		if (getCreateIndex()) {
+			this.createIndexes();
+		}
 	}
 
 	protected void createIndexes() {

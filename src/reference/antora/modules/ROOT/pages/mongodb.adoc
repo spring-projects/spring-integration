@@ -231,6 +231,22 @@ To configure that scenario, you can extend one message store bean from the other
     <int:priority-queue message-store="priorityStore"/>
 </int:channel>
 ----
+[[abstract-configurable-mongodb-message-store-with-auto-index-creation-disable]]
+=== Using AbstractConfigurableMongoDbMessageStore with auto index creation disable
+Starting with version 6.0.8, the `AbstractConfigurableMongoDbMessageStore` implements a `setCreateIndex(boolean)` which can be use to desable or enable (default) the auto index creation.
+The following example shows how to declare a bean and disable the auto index creation:
+
+[source, java]
+----
+@Bean
+public AbstractConfigurableMongoDbMessageStore mongoDbChannelMessageStore(MongoDatabaseFactory databaseFactory)
+{
+    AbstractConfigurableMongoDbMessageStore mongoDbChannelMessageStore = new MongoDbChannelMessageStore(databaseFactory);
+    mongoDbChannelMessageStore.setCreateIndex(false);
+
+    return mongoDbChannelMessageStore;
+}
+----
 
 [[mongodb-metadata-store]]
 === MongoDB Metadata Store
