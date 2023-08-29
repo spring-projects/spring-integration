@@ -17,6 +17,7 @@
 	<beans:bean id="abstractMessageStore" class="org.springframework.integration.mongodb.store.MongoDbChannelMessageStore"
 				abstract="true">
 		<beans:constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+		<beans:property name="createIndex" value="false" />
 	</beans:bean>
 
 	<mongo:mapping-converter id="customConverter">
@@ -29,7 +30,6 @@
 
 	<beans:bean id="messageStore" parent="abstractMessageStore">
 		<beans:constructor-arg name="mappingMongoConverter" ref="customConverter"/>
-		<beans:property name="createIndex" value="false" />
 	</beans:bean>
 
 	<gateway id="gateway"
