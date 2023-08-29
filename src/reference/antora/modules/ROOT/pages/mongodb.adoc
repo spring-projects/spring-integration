@@ -197,6 +197,21 @@ It builds a `MongoTemplate` from the provided `MongoDbFactory` and `MappingMongo
 The default name for the collection stored by the `ConfigurableMongoDbMessageStore` is `configurableStoreMessages`.
 We recommend using this implementation to create robust and flexible solutions when messages contain complex data types.
 
+Starting with version 6.0.8, the `AbstractConfigurableMongoDbMessageStore` implements a `setCreateIndexes(boolean)` which can be use to disable or enable (default) the auto indexes creation.
+The following example shows how to declare a bean and disable the auto indexes creation:
+
+[source, java]
+----
+@Bean
+public AbstractConfigurableMongoDbMessageStore mongoDbChannelMessageStore(MongoDatabaseFactory databaseFactory)
+{
+    AbstractConfigurableMongoDbMessageStore mongoDbChannelMessageStore = new MongoDbChannelMessageStore(databaseFactory);
+    mongoDbChannelMessageStore.setCreateIndexes(false);
+
+    return mongoDbChannelMessageStore;
+}
+----
+
 [[mongodb-priority-channel-message-store]]
 === MongoDB Channel Message Store
 
@@ -230,22 +245,6 @@ To configure that scenario, you can extend one message store bean from the other
 <int:channel id="priorityChannel">
     <int:priority-queue message-store="priorityStore"/>
 </int:channel>
-----
-[[abstract-configurable-mongodb-message-store-with-auto-index-creation-disable]]
-=== Using AbstractConfigurableMongoDbMessageStore with auto index creation disable
-Starting with version 6.0.8, the `AbstractConfigurableMongoDbMessageStore` implements a `setCreateIndex(boolean)` which can be use to desable or enable (default) the auto index creation.
-The following example shows how to declare a bean and disable the auto index creation:
-
-[source, java]
-----
-@Bean
-public AbstractConfigurableMongoDbMessageStore mongoDbChannelMessageStore(MongoDatabaseFactory databaseFactory)
-{
-    AbstractConfigurableMongoDbMessageStore mongoDbChannelMessageStore = new MongoDbChannelMessageStore(databaseFactory);
-    mongoDbChannelMessageStore.setCreateIndex(false);
-
-    return mongoDbChannelMessageStore;
-}
 ----
 
 [[mongodb-metadata-store]]

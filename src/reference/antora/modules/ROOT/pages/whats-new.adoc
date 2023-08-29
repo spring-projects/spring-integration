@@ -39,9 +39,6 @@ See xref:configuration/global-properties.adoc[Global Properties] for more inform
 - The `@MessagingGateway` and `GatewayEndpointSpec` provided by the Java DSL now expose the `errorOnTimeout` property of the internal `MethodInvocationGateway` extension of the `MessagingGatewaySupport`.
 See xref:gateway.adoc#gateway-no-response[ Gateway Behavior When No response Arrives] for more information.
 
-- A new method `setCreateIndex(boolean)` has been introduced in `org.springframework.integration.mongodb.store.AbstractConfigurableMongoDbMessageStore` to disable or enable (default) the auto index creation.
-See xref:mongodb.adoc#abstract-configurable-mongodb-message-store-with-auto-index-creation-disable[ Using AbstractConfigurableMongoDbMessageStore with auto index creation disable ] for an example.
-
 [[x6.2-websockets]]
 === WebSockets Changes
 
@@ -60,3 +57,9 @@ See xref:kafka.adoc#kafka-inbound-pollable[Kafka Inbound Channel Adapter] for mo
 
 The `JdbcMessageStore`, `JdbcChannelMessageStore`, `JdbcMetadataStore`, and `DefaultLockRepository` implement `SmartLifecycle` and perform a`SELECT COUNT` query, on their respective tables, in the `start()` method to ensure that the required table (according to the provided prefix) is present in the target database.
 See xref:jdbc/message-store.adoc#jdbc-db-init[Initializing the Database] for more information.
+
+[[x6.2-mongodb]]
+=== MongoDB support change
+
+A new method `setCreateIndexes(boolean)` has been introduced in `AbstractConfigurableMongoDbMessageStore` to disable or enable (default) the auto indexes creation.
+See xref:mongodb.adoc#mongodb-message-store[ MongoDB Message Store ] for an example.

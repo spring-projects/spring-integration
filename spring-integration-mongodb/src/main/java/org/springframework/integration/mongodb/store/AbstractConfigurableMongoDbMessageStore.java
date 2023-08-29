@@ -87,7 +87,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
-	private boolean createIndex = true;
+	private boolean createIndexes = true;
 
 	public AbstractConfigurableMongoDbMessageStore(MongoTemplate mongoTemplate, String collectionName) {
 		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
@@ -112,11 +112,11 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 	/**
 	 * Define the option to auto create indexes or not.
-	 * @param createIndex a boolean.
+	 * @param createIndexes a boolean.
 	 * @since 6.0.8.
 	 */
-	public void setCreateIndex(boolean createIndex) {
-		this.createIndex = createIndex;
+	public void setCreateIndexes(boolean createIndexes) {
+		this.createIndexes = createIndexes;
 	}
 
 	@Override
@@ -140,10 +140,6 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		return this.messageBuilderFactory;
 	}
 
-	protected boolean getCreateIndex() {
-		return this.createIndex;
-	}
-
 	@Override
 	public void afterPropertiesSet() {
 		if (this.mongoTemplate == null) {
@@ -162,8 +158,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.applicationContext);
 
-		if (getCreateIndex()) {
-			this.createIndexes();
+		if (this.createIndexes) {
+			createIndexes();
 		}
 	}
 
