@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.jdbc.store.channel;
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Adama Sorho
  * @since 2.2
  */
 public class PostgresChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
@@ -30,28 +31,44 @@ public class PostgresChannelMessageStoreQueryProvider extends AbstractChannelMes
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
-		return SELECT_COMMON
+		String query =  SELECT_COMMON
 				+ "and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) "
 				+ "order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE";
+
+		return addSkipLocked(query);
+	}
+
+	private String addSkipLocked(String query) {
+		if (getUseSkipLocked()) {
+			return query + " SKIP LOCKED";
+		}
+
+		return query;
 	}
 
 	@Override
 	public String getPollFromGroupQuery() {
-		return SELECT_COMMON +
+		String query = SELECT_COMMON +
 				"order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE";
+
+		return addSkipLocked(query);
 	}
 
 	@Override
 	public String getPriorityPollFromGroupExcludeIdsQuery() {
-		return SELECT_COMMON +
+		String query = SELECT_COMMON +
 				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) " +
 				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE";
+
+		return addSkipLocked(query);
 	}
 
 	@Override
 	public String getPriorityPollFromGroupQuery() {
-		return SELECT_COMMON +
+		String query = SELECT_COMMON +
 				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE";
+
+		return addSkipLocked(query);
 	}
 
 }
