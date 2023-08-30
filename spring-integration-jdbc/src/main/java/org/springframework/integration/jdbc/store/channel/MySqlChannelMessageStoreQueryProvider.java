@@ -31,44 +31,28 @@ public class MySqlChannelMessageStoreQueryProvider extends AbstractChannelMessag
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
-		String query =  SELECT_COMMON
+		return SELECT_COMMON
 				+ "and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) "
-				+ "order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1";
-
-		return addSkipLocked(query);
-	}
-
-	private String addSkipLocked(String query) {
-		if (getUseSkipLocked()) {
-			return query + " FOR UPDATE SKIP LOCKED";
-		}
-
-		return query;
+				+ "order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE SKIP LOCKED";
 	}
 
 	@Override
 	public String getPollFromGroupQuery() {
-		String query =  SELECT_COMMON +
-				"order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1";
-
-		return addSkipLocked(query);
+		return SELECT_COMMON +
+				"order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE SKIP LOCKED";
 	}
 
 	@Override
 	public String getPriorityPollFromGroupExcludeIdsQuery() {
-		String query = SELECT_COMMON +
+		return SELECT_COMMON +
 				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) " +
-				"order by MESSAGE_PRIORITY DESC, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1";
-
-		return addSkipLocked(query);
+				"order by MESSAGE_PRIORITY DESC, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE SKIP LOCKED";
 	}
 
 	@Override
 	public String getPriorityPollFromGroupQuery() {
-		String query = SELECT_COMMON +
-				"order by MESSAGE_PRIORITY DESC, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1";
-
-		return addSkipLocked(query);
+		return SELECT_COMMON +
+				"order by MESSAGE_PRIORITY DESC, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE SKIP LOCKED";
 	}
 
 }

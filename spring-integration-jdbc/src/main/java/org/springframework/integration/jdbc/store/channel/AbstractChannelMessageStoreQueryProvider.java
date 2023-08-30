@@ -20,26 +20,9 @@ package org.springframework.integration.jdbc.store.channel;
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
- * @author Adama Sorho
  * @since 2.2
  */
 public abstract class AbstractChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
-
-	private boolean useSkipLocked = false;
-
-	/**
-	 * Enable the use of `SKIP LOCKED`.
-	 * Be sure your database support this functionality
-	 * @param useSkipLocked a boolean
-	 * @since 6.0.8
-	 */
-	public void setUseSkipLocked(boolean useSkipLocked) {
-		this.useSkipLocked = useSkipLocked;
-	}
-
-	protected boolean getUseSkipLocked() {
-		return this.useSkipLocked;
-	}
 
 	public String getCountAllMessagesInGroupQuery() {
 		return "SELECT COUNT(MESSAGE_ID) from %PREFIX%CHANNEL_MESSAGE where GROUP_KEY=? and REGION=?";
