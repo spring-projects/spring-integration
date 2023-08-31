@@ -23,6 +23,7 @@ package org.springframework.integration.jdbc.store.channel;
  *
  * @since 2.2
  */
+@Deprecated
 public abstract class AbstractChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
 
 	public String getCountAllMessagesInGroupQuery() {
