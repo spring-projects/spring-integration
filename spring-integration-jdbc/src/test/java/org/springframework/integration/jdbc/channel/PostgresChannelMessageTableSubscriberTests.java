@@ -57,6 +57,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Rafael Winterhalter
  * @author Artem Bilan
  * @author Igor Lovich
+ * @author Adama Sorho
  *
  * @since 6.0
  */
@@ -184,6 +185,8 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
 
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		postgresChannelMessageTableSubscriber.stop();
 
 		assertThat(messageStore.messageGroupSize(groupId)).isEqualTo(2);
 		assertThat(messageStore.pollMessageFromGroup(groupId).getPayload()).isEqualTo("1");
