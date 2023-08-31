@@ -94,12 +94,20 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		this.clientId = null;
 	}
 
-	private static Map<String, Integer> initTopics(String[] topic) {
-		Assert.notNull(topic, "'topics' cannot be null");
-		Assert.noNullElements(topic, "'topics' cannot have null elements");
+	private static Map<String, Integer> initTopics(String[] topics) {
+		validateTopics(topics);
 
-		return Arrays.stream(topic)
+		return Arrays.stream(topics)
 				.collect(Collectors.toMap(Function.identity(), (key) -> 1, (x, y) -> y, LinkedHashMap::new));
+	}
+
+	private static void validateTopics(String[] topics) {
+		Assert.notNull(topics, "'topics' cannot be null");
+		Assert.noNullElements(topics, "'topics' cannot have null elements");
+
+		for (String topic : topics) {
+			Assert.hasText(topic, "The topic to subscribe cannot be empty string");
+		}
 	}
 
 	public void setConverter(MqttMessageConverter converter) {
@@ -178,7 +186,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	/**
 	 * Set the completion timeout when disconnecting.
-	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
+	 * Default {@value ClientManager#DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
 	 * @param completionTimeout The timeout.
 	 * @since 5.1.10
 	 */
@@ -256,6 +264,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	 */
 	@ManagedOperation
 	public void addTopic(String topic, int qos) {
+		validateTopics(new String[] {topic});
 		this.topicLock.lock();
 		try {
 			if (this.topics.containsKey(topic)) {
@@ -277,7 +286,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	 */
 	@ManagedOperation
 	public void addTopic(String... topic) {
-		Assert.notNull(topic, "'topic' cannot be null");
+		validateTopics(topic);
 		this.topicLock.lock();
 		try {
 			for (String t : topic) {
@@ -298,8 +307,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	 */
 	@ManagedOperation
 	public void addTopics(String[] topic, int[] qos) {
-		Assert.notNull(topic, "'topic' cannot be null.");
-		Assert.noNullElements(topic, "'topic' cannot contain any null elements.");
+		validateTopics(topic);
 		Assert.isTrue(topic.length == qos.length, "topic and qos arrays must the be the same length.");
 		this.topicLock.lock();
 		try {
