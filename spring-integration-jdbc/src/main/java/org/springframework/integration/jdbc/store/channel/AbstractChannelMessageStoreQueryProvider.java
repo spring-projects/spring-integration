@@ -20,35 +20,11 @@ package org.springframework.integration.jdbc.store.channel;
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Adama Sorho
  *
  * @since 2.2
+ * @deprecated in favor of default methods in ChannelMessageStoreQueryProvider
  */
 @Deprecated
 public abstract class AbstractChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
-
-	public String getCountAllMessagesInGroupQuery() {
-		return "SELECT COUNT(MESSAGE_ID) from %PREFIX%CHANNEL_MESSAGE where GROUP_KEY=? and REGION=?";
-	}
-
-	public String getMessageQuery() {
-		return "SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE where MESSAGE_ID=? and GROUP_KEY=? and REGION=?";
-	}
-
-	public String getMessageCountForRegionQuery() {
-		return "SELECT COUNT(MESSAGE_ID) from %PREFIX%CHANNEL_MESSAGE where REGION=?";
-	}
-
-	public String getDeleteMessageQuery() {
-		return "DELETE from %PREFIX%CHANNEL_MESSAGE where MESSAGE_ID=? and GROUP_KEY=? and REGION=?";
-	}
-
-	public String getCreateMessageQuery() {
-		return "INSERT into %PREFIX%CHANNEL_MESSAGE(MESSAGE_ID, GROUP_KEY, REGION, CREATED_DATE, MESSAGE_PRIORITY, MESSAGE_BYTES)"
-				+ " values (?, ?, ?, ?, ?, ?)";
-	}
-
-	public String getDeleteMessageGroupQuery() {
-		return "DELETE from %PREFIX%CHANNEL_MESSAGE where GROUP_KEY=? and REGION=?";
-	}
-
 }
