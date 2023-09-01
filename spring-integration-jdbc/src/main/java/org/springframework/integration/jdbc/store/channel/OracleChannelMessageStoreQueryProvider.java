@@ -20,10 +20,8 @@ package org.springframework.integration.jdbc.store.channel;
  * Contains Oracle-specific queries for the
  * {@link org.springframework.integration.jdbc.store.JdbcChannelMessageStore}. Please
  * ensure that the used {@link org.springframework.jdbc.core.JdbcTemplate}'s fetchSize
- * property is <code>1</code>.
+ * property is {@code 1}.
  * <p>
- * Fore more details, please see:
- * https://stackoverflow.com/questions/6117254/force-oracle-to-return-top-n-rows-with-skip-locked
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
@@ -32,11 +30,6 @@ package org.springframework.integration.jdbc.store.channel;
  * @since 2.2
  */
 public class OracleChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
-
-	private static final String SELECT_COMMON =
-			"SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES "
-					+ "from %PREFIX%CHANNEL_MESSAGE "
-					+ "where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region ";
 
 	@Override
 	public String getCreateMessageQuery() {
@@ -60,19 +53,27 @@ public class OracleChannelMessageStoreQueryProvider implements ChannelMessageSto
 
 	@Override
 	public String getPriorityPollFromGroupExcludeIdsQuery() {
-		return "SELECT /*+ INDEX(%PREFIX%CHANNEL_MESSAGE %PREFIX%CHANNEL_MSG_PRIORITY_IDX) */ " +
-				"%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
-				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) " +
-				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE FOR UPDATE SKIP LOCKED";
+		return """
+				SELECT /*+ INDEX(%PREFIX%CHANNEL_MESSAGE %PREFIX%CHANNEL_MSG_PRIORITY_IDX) */
+					%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES
+				from %PREFIX%CHANNEL_MESSAGE
+				where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key
+					and %PREFIX%CHANNEL_MESSAGE.REGION = :region
+					and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids)
+				order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE FOR UPDATE SKIP LOCKED
+				""";
 	}
 
 	@Override
 	public String getPriorityPollFromGroupQuery() {
-		return "SELECT /*+ INDEX(%PREFIX%CHANNEL_MESSAGE %PREFIX%CHANNEL_MSG_PRIORITY_IDX) */ " +
-				"%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
-				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE FOR UPDATE SKIP LOCKED";
+		return """
+				SELECT /*+ INDEX(%PREFIX%CHANNEL_MESSAGE %PREFIX%CHANNEL_MSG_PRIORITY_IDX) */
+					%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES
+				from %PREFIX%CHANNEL_MESSAGE
+				where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key
+					and %PREFIX%CHANNEL_MESSAGE.REGION = :region
+				order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE FOR UPDATE SKIP LOCKED
+				""";
 	}
 
 }

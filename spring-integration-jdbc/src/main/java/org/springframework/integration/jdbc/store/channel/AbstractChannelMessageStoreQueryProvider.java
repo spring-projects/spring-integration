@@ -23,8 +23,8 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Adama Sorho
  *
  * @since 2.2
- * @deprecated in favor of default methods in ChannelMessageStoreQueryProvider
+ * @deprecated  since 6.2 in favor of default methods in {@link ChannelMessageStoreQueryProvider}
  */
-@Deprecated
+@Deprecated(since = "6.2", forRemoval = true)
 public abstract class AbstractChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
 }

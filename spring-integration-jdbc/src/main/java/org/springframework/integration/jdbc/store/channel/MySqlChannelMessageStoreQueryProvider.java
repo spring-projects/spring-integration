@@ -25,16 +25,12 @@ package org.springframework.integration.jdbc.store.channel;
  */
 public class MySqlChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
 
-	private static final String SELECT_COMMON =
-			"SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES "
-					+ "from %PREFIX%CHANNEL_MESSAGE "
-					+ "where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region ";
-
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
 		return SELECT_COMMON
 				+ "and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) "
-				+ "order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE SKIP LOCKED";
+				+ "order by CREATED_DATE, MESSAGE_SEQUENCE " +
+				"LIMIT 1 FOR UPDATE SKIP LOCKED";
 	}
 
 	@Override
@@ -47,13 +43,15 @@ public class MySqlChannelMessageStoreQueryProvider implements ChannelMessageStor
 	public String getPriorityPollFromGroupExcludeIdsQuery() {
 		return SELECT_COMMON +
 				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) " +
-				"order by MESSAGE_PRIORITY DESC, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE SKIP LOCKED";
+				"order by MESSAGE_PRIORITY DESC, CREATED_DATE, MESSAGE_SEQUENCE " +
+				"LIMIT 1 FOR UPDATE SKIP LOCKED";
 	}
 
 	@Override
 	public String getPriorityPollFromGroupQuery() {
 		return SELECT_COMMON +
-				"order by MESSAGE_PRIORITY DESC, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE SKIP LOCKED";
+				"order by MESSAGE_PRIORITY DESC, CREATED_DATE, MESSAGE_SEQUENCE " +
+				"LIMIT 1 FOR UPDATE SKIP LOCKED";
 	}
 
 }

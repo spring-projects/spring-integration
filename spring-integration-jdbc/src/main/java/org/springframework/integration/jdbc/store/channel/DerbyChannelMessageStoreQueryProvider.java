@@ -21,16 +21,10 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Adama Sorho
- * @since 2.2
  *
- * https://blogs.oracle.com/kah/entry/derby_10_5_preview_fetch
+ * @since 2.2
  */
 public class DerbyChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
-
-	private static final String SELECT_COMMON =
-			"SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES "
-					+ "from %PREFIX%CHANNEL_MESSAGE "
-					+ "where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region ";
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {

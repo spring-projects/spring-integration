@@ -18,16 +18,14 @@ package org.springframework.integration.jdbc.store.channel;
 
 /**
  * Channel message store query provider for Microsoft SQL Server / Azure SQL database.
+ *
  * @author Sundara Balaji
  * @author Adama Sorho
+ * @author Artem Bilan
+ *
  * @since 5.1
  */
 public class SqlServerChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
-
-	private static final String SELECT_COMMON =
-			"SELECT TOP 1 %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES "
-					+ "from %PREFIX%CHANNEL_MESSAGE "
-					+ "where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region ";
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
@@ -56,9 +54,17 @@ public class SqlServerChannelMessageStoreQueryProvider implements ChannelMessage
 
 	@Override
 	public String getCreateMessageQuery() {
-		return "INSERT into %PREFIX%CHANNEL_MESSAGE(MESSAGE_ID, GROUP_KEY, REGION, CREATED_DATE, MESSAGE_PRIORITY, "
-				+ "MESSAGE_SEQUENCE, MESSAGE_BYTES)"
-				+ " values (?, ?, ?, ?, ?,(NEXT VALUE FOR %PREFIX%MESSAGE_SEQ), ?)";
+		return """
+				INSERT into %PREFIX%CHANNEL_MESSAGE(
+					MESSAGE_ID,
+					GROUP_KEY,
+					REGION,
+					CREATED_DATE,
+					MESSAGE_PRIORITY,
+					MESSAGE_SEQUENCE,
+					MESSAGE_BYTES)
+				values (?, ?, ?, ?, ?,(NEXT VALUE FOR %PREFIX%MESSAGE_SEQ), ?)
+				""";
 	}
 
 }

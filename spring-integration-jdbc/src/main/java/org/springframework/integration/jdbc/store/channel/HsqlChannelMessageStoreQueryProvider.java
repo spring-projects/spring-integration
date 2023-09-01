@@ -20,26 +20,32 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Adama Sorho
+ *
  * @since 2.2
  *
  */
 public class HsqlChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
 
-	private static final String SELECT_COMMON =
-			"SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES "
-					+ "from %PREFIX%CHANNEL_MESSAGE "
-					+ "where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region ";
-
 	@Override
 	public String getCreateMessageQuery() {
-		return "INSERT into %PREFIX%CHANNEL_MESSAGE(MESSAGE_ID, GROUP_KEY, REGION, CREATED_DATE, MESSAGE_PRIORITY, MESSAGE_SEQUENCE, MESSAGE_BYTES)"
-				+ " values (?, ?, ?, ?, ?, NEXT VALUE FOR %PREFIX%MESSAGE_SEQ, ?)";
+		return """
+				INSERT into %PREFIX%CHANNEL_MESSAGE(
+					MESSAGE_ID,
+					GROUP_KEY,
+					REGION,
+					CREATED_DATE,
+					MESSAGE_PRIORITY,
+					MESSAGE_SEQUENCE,
+					MESSAGE_BYTES)
+				values (?, ?, ?, ?, ?, NEXT VALUE FOR %PREFIX%MESSAGE_SEQ, ?)
+				""";
 	}
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
 		return SELECT_COMMON +
-				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1";
+				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) " +
+				"order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1";
 	}
 
 	@Override
