@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -150,11 +151,11 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * @param messageConverter the converter.
 	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
-		if (messageConverter instanceof RecordMessageConverter) {
-			this.recordListener.setMessageConverter((RecordMessageConverter) messageConverter);
+		if (messageConverter instanceof RecordMessageConverter recordMessageConverter) {
+			this.recordListener.setMessageConverter(recordMessageConverter);
 		}
-		else if (messageConverter instanceof BatchMessageConverter) {
-			this.batchListener.setBatchMessageConverter((BatchMessageConverter) messageConverter);
+		else if (messageConverter instanceof BatchMessageConverter batchMessageConverter) {
+			this.batchListener.setBatchMessageConverter(batchMessageConverter);
 		}
 		else {
 			throw new IllegalArgumentException(
@@ -262,6 +263,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 */
 	public void setOnPartitionsAssignedSeekCallback(
 			BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedCallback) {
+
 		this.onPartitionsAssignedSeekCallback = onPartitionsAssignedCallback;
 	}
 
@@ -476,40 +478,35 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		}
 
 		private Message<?> enhanceHeadersAndSaveAttributes(Message<?> message, ConsumerRecord<K, V> record) {
-			Message<?> messageToReturn = message;
-			if (message.getHeaders() instanceof KafkaMessageHeaders) {
-				Map<String, Object> rawHeaders = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
-				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-					AtomicInteger deliveryAttempt =
-							new AtomicInteger(((RetryContext) ATTRIBUTES_HOLDER.get()).getRetryCount() + 1);
-					rawHeaders.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
-				}
-				else if (KafkaMessageDrivenChannelAdapter.this.containerDeliveryAttemptPresent) {
-					Header header = record.headers().lastHeader(KafkaHeaders.DELIVERY_ATTEMPT);
-					rawHeaders.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT,
-							new AtomicInteger(ByteBuffer.wrap(header.value()).getInt()));
-				}
-				if (KafkaMessageDrivenChannelAdapter.this.bindSourceRecord) {
-					rawHeaders.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
-				}
+			Supplier<Message<?>> messageSupplier = () -> message;
+			BiConsumer<String, Object> headersAcceptor;
+
+			if (message.getHeaders() instanceof KafkaMessageHeaders kafkaMessageHeaders) {
+				Map<String, Object> rawHeaders = kafkaMessageHeaders.getRawHeaders();
+				headersAcceptor = rawHeaders::put;
 			}
 			else {
 				MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
-				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-					AtomicInteger deliveryAttempt =
-							new AtomicInteger(((RetryContext) ATTRIBUTES_HOLDER.get()).getRetryCount() + 1);
-					builder.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
-				}
-				else if (KafkaMessageDrivenChannelAdapter.this.containerDeliveryAttemptPresent) {
-					Header header = record.headers().lastHeader(KafkaHeaders.DELIVERY_ATTEMPT);
-					builder.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT,
-							new AtomicInteger(ByteBuffer.wrap(header.value()).getInt()));
-				}
-				if (KafkaMessageDrivenChannelAdapter.this.bindSourceRecord) {
-					builder.setHeader(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
-				}
-				messageToReturn = builder.build();
+				headersAcceptor = builder::setHeader;
+				messageSupplier = builder::build;
 			}
+
+			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
+				AtomicInteger deliveryAttempt =
+						new AtomicInteger(((RetryContext) ATTRIBUTES_HOLDER.get()).getRetryCount() + 1);
+				headersAcceptor.accept(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
+			}
+			else if (KafkaMessageDrivenChannelAdapter.this.containerDeliveryAttemptPresent) {
+				Header header = record.headers().lastHeader(KafkaHeaders.DELIVERY_ATTEMPT);
+				headersAcceptor.accept(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT,
+						new AtomicInteger(ByteBuffer.wrap(header.value()).getInt()));
+			}
+			if (KafkaMessageDrivenChannelAdapter.this.bindSourceRecord) {
+				headersAcceptor.accept(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
+			}
+
+			Message<?> messageToReturn = messageSupplier.get();
+
 			setAttributesIfNecessary(record, messageToReturn, false);
 			return messageToReturn;
 		}
@@ -623,12 +620,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				Throwable throwable) {
 
 			ATTRIBUTES_HOLDER.remove();
-		}
-
-		@Override
-		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-			// Empty
 		}
 
 	}
