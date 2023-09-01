@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Adama Sorho
+ *
  * @since 2.2
  */
 public interface ChannelMessageStoreQueryProvider {
@@ -34,7 +36,9 @@ public interface ChannelMessageStoreQueryProvider {
 	 *
 	 * @return Sql Query
 	 */
-	String getCountAllMessagesInGroupQuery();
+	default String getCountAllMessagesInGroupQuery() {
+		return "SELECT COUNT(MESSAGE_ID) from %PREFIX%CHANNEL_MESSAGE where GROUP_KEY=? and REGION=?";
+	}
 
 	/**
 	 * Get the query used to retrieve the oldest message for a channel excluding
@@ -72,34 +76,45 @@ public interface ChannelMessageStoreQueryProvider {
 	 *
 	 * @return Sql Query
 	 */
-	String getMessageQuery();
+	default String getMessageQuery() {
+		return "SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE where MESSAGE_ID=? and GROUP_KEY=? and REGION=?";
+	}
 
 	/**
 	 * Query that retrieve a count of all messages for a region.
 	 *
 	 * @return Sql Query
 	 */
-	String getMessageCountForRegionQuery();
+	default String getMessageCountForRegionQuery() {
+		return "SELECT COUNT(MESSAGE_ID) from %PREFIX%CHANNEL_MESSAGE where REGION=?";
+	}
 
 	/**
 	 * Query to delete a single message from the database.
 	 *
 	 * @return Sql Query
 	 */
-	String getDeleteMessageQuery();
+	default String getDeleteMessageQuery() {
+		return "DELETE from %PREFIX%CHANNEL_MESSAGE where MESSAGE_ID=? and GROUP_KEY=? and REGION=?";
+	}
 
 	/**
 	 * Query to add a single message to the database.
 	 *
 	 * @return Sql Query
 	 */
-	String getCreateMessageQuery();
+	default String getCreateMessageQuery() {
+		return "INSERT into %PREFIX%CHANNEL_MESSAGE(MESSAGE_ID, GROUP_KEY, REGION, CREATED_DATE, MESSAGE_PRIORITY, MESSAGE_BYTES)"
+				+ " values (?, ?, ?, ?, ?, ?)";
+	}
 
 	/**
 	 * Query to delete all messages that belong to a specific channel.
 	 *
 	 * @return Sql Query
 	 */
-	String getDeleteMessageGroupQuery();
+	default String getDeleteMessageGroupQuery() {
+		return "DELETE from %PREFIX%CHANNEL_MESSAGE where GROUP_KEY=? and REGION=?";
+	}
 
 }

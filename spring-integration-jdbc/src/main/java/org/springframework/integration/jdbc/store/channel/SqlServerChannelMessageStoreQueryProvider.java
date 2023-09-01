@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@ package org.springframework.integration.jdbc.store.channel;
 /**
  * Channel message store query provider for Microsoft SQL Server / Azure SQL database.
  * @author Sundara Balaji
+ * @author Adama Sorho
  * @since 5.1
  */
-public class SqlServerChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
+public class SqlServerChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
 
 	private static final String SELECT_COMMON =
 			"SELECT TOP 1 %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES "

@@ -77,7 +77,7 @@ Spring Integration provides support for the following relational databases:
 * Sybase
 * DB2
 
-If your database is not listed, you can extend the `AbstractChannelMessageStoreQueryProvider` class and provide your own custom queries.
+If your database is not listed, you can implement the `ChannelMessageStoreQueryProvider` interface and provide your own custom queries.
 
 Version 4.0 added the `MESSAGE_SEQUENCE` column to the table to ensure first-in-first-out (FIFO) queueing even when messages are stored in the same millisecond.
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ package org.springframework.integration.jdbc.store.channel;
  *
  * @since 2.2
  */
-public class OracleChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
+public class OracleChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
 
 	private static final String SELECT_COMMON =
 			"SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES "

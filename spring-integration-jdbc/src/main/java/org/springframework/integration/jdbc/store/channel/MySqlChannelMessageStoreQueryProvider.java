@@ -23,7 +23,7 @@ package org.springframework.integration.jdbc.store.channel;
  *
  * @since 2.2
  */
-public class MySqlChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
+public class MySqlChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
 
 	private static final String SELECT_COMMON =
 			"SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES "
