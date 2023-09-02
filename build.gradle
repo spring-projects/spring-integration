@@ -930,6 +930,8 @@ project('spring-integration-sftp') {
 
         testImplementation project(':spring-integration-event')
         testImplementation project(':spring-integration-file').sourceSets.test.output
+
+        testRuntimeOnly 'net.i2p.crypto:eddsa:0.3.0'
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,37 +18,38 @@ package org.springframework.integration.file.filters;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.time.Instant;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Adama Sorho
+ *
  * @since 4.2
  *
  */
 public class LastModifiedFileListFilterTests {
 
-	@Rule
-	public TemporaryFolder folder = new TemporaryFolder();
+	@TempDir
+	public File folder;
 
 	@Test
 	public void testAge() throws Exception {
 		LastModifiedFileListFilter filter = new LastModifiedFileListFilter();
-		filter.setAge(60, TimeUnit.SECONDS);
-		File foo = this.folder.newFile();
+		filter.setAge(60);
+		File foo = new File(folder, "test.tmp");
 		FileOutputStream fileOutputStream = new FileOutputStream(foo);
 		fileOutputStream.write("x".getBytes());
 		fileOutputStream.close();
 		assertThat(filter.filterFiles(new File[] {foo})).hasSize(0);
 		assertThat(filter.accept(foo)).isFalse();
-		// Make a file as of yesterday's
-		foo.setLastModified(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
+		foo.setLastModified(Instant.now().minus(Duration.ofDays(1)).toEpochMilli());
 		assertThat(filter.filterFiles(new File[] {foo})).hasSize(1);
 		assertThat(filter.accept(foo)).isTrue();
 	}

@@ -66,3 +66,9 @@ See xref:jdbc/message-store.adoc#jdbc-db-init[Initializing the Database] for mor
 
 A new option `setCreateIndexes(boolean)` has been introduced in `AbstractConfigurableMongoDbMessageStore` to disable the auto indexes creation.
 See xref:mongodb.adoc#mongodb-message-store[MongoDB Message Store] for an example.
+
+[[x6.2-remote-files]]
+=== Remote Files Support Changes
+
+`FtpLastModifiedFileListFilter`, `SftpLastModifiedFileListFilter` and `SmbLastModifiedFileListFilter` have been introduced to allow files filtering based on a last-modified strategy respectively for `FTP`, `SFTP` and `SMB`.
+See xref:ftp/inbound.adoc#ftp-inbound[FTP Inbound Channel Adapter], xref:sftp/inbound.adoc#sftp-inbound[SFTP Inbound Channel Adapter], and xref:smb.adoc#smb-inbound[SMB Inbound Channel Adapter] for more information.
