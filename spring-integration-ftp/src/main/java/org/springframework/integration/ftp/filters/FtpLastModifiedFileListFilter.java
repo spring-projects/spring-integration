@@ -14,97 +14,104 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.smb.filters;
+package org.springframework.integration.ftp.filters;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import jcifs.smb.SmbFile;
+import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.filters.DiscardAwareFileListFilter;
 import org.springframework.lang.Nullable;
 
 /**
  * The {@link org.springframework.integration.file.filters.FileListFilter} implementation to filter those files which
- * {@link SmbFile#getLastModified()} is less than the {@link #age} in comparison
- * with the current time.
- * <p>
- *     The resolution is done in seconds.
- * </p>
+ * {@link FTPFile#getTimestampInstant()} is less than the {@link #age} in comparison
+ * with the {@link Instant#now()}.
  * When {@link #discardCallback} is provided, it called for all the rejected files.
  *
  * @author Adama Sorho
  *
  * @since 6.2
  */
-public class LastModifiedSmbFileListFilter implements DiscardAwareFileListFilter<SmbFile> {
+public class FtpLastModifiedFileListFilter implements DiscardAwareFileListFilter<FTPFile> {
 
-	private static final long ONE_SECOND = 1000;
 	private static final long DEFAULT_AGE = 60;
-	private volatile long age = DEFAULT_AGE;
+
+	private Duration age = Duration.ofSeconds(DEFAULT_AGE);
 
 	@Nullable
-	private Consumer<SmbFile> discardCallback;
+	private Consumer<FTPFile> discardCallback;
 
-	public LastModifiedSmbFileListFilter() {
+	public FtpLastModifiedFileListFilter() {
 	}
 
 	/**
-	 * Construct a {@link LastModifiedSmbFileListFilter} instance with provided {@link #age}.
+	 * Construct a {@link FtpLastModifiedFileListFilter} instance with provided {@link #age}.
 	 * Defaults to 60 seconds.
 	 * @param age the age in seconds.
 	 */
-	public LastModifiedSmbFileListFilter(long age) {
+	public FtpLastModifiedFileListFilter(long age) {
+		this(Duration.ofSeconds(age));
+	}
+
+	/**
+	 * Construct a {@link FtpLastModifiedFileListFilter} instance with provided {@link #age}.
+	 * Defaults to 60 seconds.
+	 * @param age the Duration
+	 */
+	public FtpLastModifiedFileListFilter(Duration age) {
 		this.age = age;
 	}
 
 	/**
 	 * Set the age that the files have to be before being passed by this filter.
-	 * If {@link SmbFile#getLastModified()} plus age is greater than the current time, the file
-	 * is filtered. The resolution is seconds.
+	 * If {@link FTPFile#getTimestampInstant()} plus {@link #age} is before the {@link Instant#now()}, the file
+	 * is filtered.
 	 * Defaults to 60 seconds.
 	 * @param age the age in seconds.
 	 * @param unit the timeUnit.
 	 */
 	public void setAge(long age, TimeUnit unit) {
-		this.age = unit.toSeconds(age);
+		setAge(Duration.ofSeconds(unit.toSeconds(age)));
 	}
 
 	/**
-	 * Set the age that the files have to be before being passed by this filter.
-	 * If {@link SmbFile#getLastModified()} plus age is greater than the current time, the file
-	 * is filtered. The resolution is seconds.
+	 * Set the age that files have to be before being passed by this filter.
+	 * If {@link FTPFile#getTimestampInstant()} plus {@link #age} is before the {@link Instant#now()}, the file
+	 * is filtered.
 	 * Defaults to 60 seconds.
-	 * @param age the age in seconds.
+	 * @param age the Duration.
 	 */
 	public void setAge(Duration age) {
-		setAge(age.getSeconds());
+		this.age = age;
 	}
 
 	/**
-	 * Set the age that the files have to be before being passed by this filter.
-	 * If {@link SmbFile#getLastModified()} plus age is greater than the current time, the file
-	 * is filtered. The resolution is seconds.
+	 * Set the age that files have to be before being passed by this filter.
+	 * If {@link FTPFile#getTimestampInstant()} plus {@link #age} is before the {@link Instant#now()}, the file
+	 * is filtered.
 	 * Defaults to 60 seconds.
 	 * @param age the age in seconds.
 	 */
 	public void setAge(long age) {
-		setAge(age, TimeUnit.SECONDS);
+		setAge(Duration.ofSeconds(age));
 	}
 
 	@Override
-	public void addDiscardCallback(@Nullable Consumer<SmbFile> discardCallback) {
+	public void addDiscardCallback(@Nullable Consumer<FTPFile> discardCallback) {
 		this.discardCallback = discardCallback;
 	}
 
 	@Override
-	public List<SmbFile> filterFiles(SmbFile[] files) {
-		List<SmbFile> list = new ArrayList<>();
-		long now = System.currentTimeMillis() / ONE_SECOND;
-		for (SmbFile file: files) {
+	public List<FTPFile> filterFiles(FTPFile[] files) {
+		List<FTPFile> list = new ArrayList<>();
+		Instant now = Instant.now();
+		for (FTPFile file: files) {
 			if (fileIsAged(file, now)) {
 				list.add(file);
 			}
@@ -117,8 +124,8 @@ public class LastModifiedSmbFileListFilter implements DiscardAwareFileListFilter
 	}
 
 	@Override
-	public boolean accept(SmbFile file) {
-		if (fileIsAged(file, System.currentTimeMillis() / ONE_SECOND)) {
+	public boolean accept(FTPFile file) {
+		if (fileIsAged(file, Instant.now())) {
 			return true;
 		}
 		else if (this.discardCallback != null) {
@@ -128,12 +135,13 @@ public class LastModifiedSmbFileListFilter implements DiscardAwareFileListFilter
 		return false;
 	}
 
-	private boolean fileIsAged(SmbFile file, long now) {
-		return file.getLastModified() / ONE_SECOND + this.age <= now;
+	private boolean fileIsAged(FTPFile file, Instant now) {
+		return file.getTimestampInstant().plus(this.age).isBefore(now);
 	}
 
 	@Override
 	public boolean supportsSingleFileFiltering() {
 		return true;
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.filters;
+package org.springframework.integration.smb.filters;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -22,14 +22,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import org.apache.sshd.sftp.client.SftpClient;
+import jcifs.smb.SmbFile;
 
 import org.springframework.integration.file.filters.DiscardAwareFileListFilter;
 import org.springframework.lang.Nullable;
 
 /**
  * The {@link org.springframework.integration.file.filters.FileListFilter} implementation to filter those files which
- * {@link SftpClient.Attributes#getModifyTime()} is less than the {@link #age} in comparison
+ * {@link SmbFile#getLastModified()} is less than the {@link #age} in comparison
  * with the current time.
  * <p>
  *     The resolution is done in seconds.
@@ -40,29 +40,32 @@ import org.springframework.lang.Nullable;
  *
  * @since 6.2
  */
-public class LastModifiedSftpFileListFilter implements DiscardAwareFileListFilter<SftpClient.DirEntry> {
+public class SmbLastModifiedFileListFilter implements DiscardAwareFileListFilter<SmbFile> {
+
 	private static final long ONE_SECOND = 1000;
+
 	private static final long DEFAULT_AGE = 60;
-	private volatile long age = DEFAULT_AGE;
+
+	private long age = DEFAULT_AGE;
 
 	@Nullable
-	private Consumer<SftpClient.DirEntry> discardCallback;
+	private Consumer<SmbFile> discardCallback;
 
-	public LastModifiedSftpFileListFilter() {
+	public SmbLastModifiedFileListFilter() {
 	}
 
 	/**
-	 * Construct a {@link LastModifiedSftpFileListFilter} instance with provided {@link #age}.
+	 * Construct a {@link SmbLastModifiedFileListFilter} instance with provided {@link #age}.
 	 * Defaults to 60 seconds.
 	 * @param age the age in seconds.
 	 */
-	public LastModifiedSftpFileListFilter(long age) {
+	public SmbLastModifiedFileListFilter(long age) {
 		this.age = age;
 	}
 
 	/**
 	 * Set the age that the files have to be before being passed by this filter.
-	 * If {@link SftpClient.Attributes#getModifyTime()} plus age is greater than the current time, the file
+	 * If {@link SmbFile#getLastModified()} plus age is greater than the current time, the file
 	 * is filtered. The resolution is seconds.
 	 * Defaults to 60 seconds.
 	 * @param age the age in seconds.
@@ -74,7 +77,7 @@ public class LastModifiedSftpFileListFilter implements DiscardAwareFileListFilte
 
 	/**
 	 * Set the age that the files have to be before being passed by this filter.
-	 * If {@link SftpClient.Attributes#getModifyTime()} plus age is greater than the current time, the file
+	 * If {@link SmbFile#getLastModified()} plus age is greater than the current time, the file
 	 * is filtered. The resolution is seconds.
 	 * Defaults to 60 seconds.
 	 * @param age the age in seconds.
@@ -85,7 +88,7 @@ public class LastModifiedSftpFileListFilter implements DiscardAwareFileListFilte
 
 	/**
 	 * Set the age that the files have to be before being passed by this filter.
-	 * If {@link SftpClient.Attributes#getModifyTime()} plus age is greater than the current time, the file
+	 * If {@link SmbFile#getLastModified()} plus age is greater than the current time, the file
 	 * is filtered. The resolution is seconds.
 	 * Defaults to 60 seconds.
 	 * @param age the age in seconds.
@@ -95,15 +98,15 @@ public class LastModifiedSftpFileListFilter implements DiscardAwareFileListFilte
 	}
 
 	@Override
-	public void addDiscardCallback(@Nullable Consumer<SftpClient.DirEntry> discardCallback) {
+	public void addDiscardCallback(@Nullable Consumer<SmbFile> discardCallback) {
 		this.discardCallback = discardCallback;
 	}
 
 	@Override
-	public List<SftpClient.DirEntry> filterFiles(SftpClient.DirEntry[] files) {
-		List<SftpClient.DirEntry> list = new ArrayList<>();
+	public List<SmbFile> filterFiles(SmbFile[] files) {
+		List<SmbFile> list = new ArrayList<>();
 		long now = System.currentTimeMillis() / ONE_SECOND;
-		for (SftpClient.DirEntry file: files) {
+		for (SmbFile file: files) {
 			if (fileIsAged(file, now)) {
 				list.add(file);
 			}
@@ -116,7 +119,7 @@ public class LastModifiedSftpFileListFilter implements DiscardAwareFileListFilte
 	}
 
 	@Override
-	public boolean accept(SftpClient.DirEntry file) {
+	public boolean accept(SmbFile file) {
 		if (fileIsAged(file, System.currentTimeMillis() / ONE_SECOND)) {
 			return true;
 		}
@@ -127,12 +130,13 @@ public class LastModifiedSftpFileListFilter implements DiscardAwareFileListFilte
 		return false;
 	}
 
-	private boolean fileIsAged(SftpClient.DirEntry file, long now) {
-		return file.getAttributes().getModifyTime().to(TimeUnit.SECONDS) + this.age <= now;
+	private boolean fileIsAged(SmbFile file, long now) {
+		return file.getLastModified() / ONE_SECOND + this.age <= now;
 	}
 
 	@Override
 	public boolean supportsSingleFileFiltering() {
 		return true;
 	}
+
 }
