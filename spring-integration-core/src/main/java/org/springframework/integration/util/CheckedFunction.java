@@ -23,6 +23,7 @@ import java.util.function.Function;
  *
  * @param <T> the input type.
  * @param <R> the output type.
+ * @param <E> the throwable type.
  *
  * @author Artem Bilan
  *
