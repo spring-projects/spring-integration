@@ -23,7 +23,7 @@ For simple Java & Annotation configuration, the Spring bean POJO method must be 
 ----
 public class SomeService {
 
-    @Transfomer(inputChannel = "transformChannel", outputChannel = "nextServiceChannel")
+    @Transformer(inputChannel = "transformChannel", outputChannel = "nextServiceChannel")
     public OutputData exampleTransformer(InputData payload) {
         ...
     }

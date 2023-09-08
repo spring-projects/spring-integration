@@ -115,7 +115,7 @@ Java::
 +
 [source, java, role="secondary"]
 ----
-@Transfomer(inputChannel = "zipChannel")
+@Transformer(inputChannel = "zipChannel")
 @Bean
 ZipTransformer zipTransformer() {
     return new ZipTransformer();
@@ -194,7 +194,7 @@ Java::
 +
 [source, java, role="secondary"]
 ----
-@Transfomer(inputChannel = "unzipChannel")
+@Transformer(inputChannel = "unzipChannel")
 @Bean
 UnZipTransformer unzipTransformer() {
     return new UnZipTransformer();
@@ -271,7 +271,7 @@ Java::
 +
 [source, java, role="secondary"]
 ----
-@Transfomer(inputChannel = "unzipChannel", outputChannel = "splitChannel")
+@Transformer(inputChannel = "unzipChannel", outputChannel = "splitChannel")
 @Bean
 UnZipTransformer unzipTransformer() {
     return new UnZipTransformer();
