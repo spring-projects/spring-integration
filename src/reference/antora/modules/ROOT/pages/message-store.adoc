@@ -27,7 +27,7 @@ The following pair of examples show how to add a reference to a message store fo
 .Aggregator
 [source,xml]
 ----
-<int:aggregator … message-store="refToMessageStore"/>
+<int:aggregator message-store="refToMessageStore"/>
 ----
 
 By default, messages are stored in-memory by using `o.s.i.store.SimpleMessageStore`, an implementation of `MessageStore`.
@@ -151,7 +151,7 @@ The `MessageGroupStore` exposes a `setGroupCondition(Object groupId, String cond
 For this purpose a `setGroupConditionSupplier(BiFunction<Message<?>, String, String>)` option has been added to the `AbstractCorrelatingMessageHandler`.
 This function is evaluated against each message after it has been added to the group as well as the existing condition of the group.
 The implementation may decide to return a new value, the existing value, or reset the target condition to `null`.
-The value for a `condition` can be a JSON, SpEL expression, number or anything what can be serialized as a string and parsed afterwards.
+The value for a `condition` can be a JSON, SpEL expression, number or anything what can be serialized as a string and parsed afterward.
 For example, the `FileMarkerReleaseStrategy` from the xref:file/aggregator.adoc[File Aggregator] component, populates a condition into a group from the `FileHeaders.LINE_COUNT` header of the `FileSplitter.FileMarker.Mark.END` message and consults with it from its `canRelease()` comparing a group size with the value in this condition.
 This way it doesn't iterate all the messages in group to find a `FileSplitter.FileMarker.Mark.END` message with the `FileHeaders.LINE_COUNT` header.
 It also allows the end marker to arrive at the aggregator before all the other records; for example when processing a file in a multi-threaded environment.

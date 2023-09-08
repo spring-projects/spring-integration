@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,42 @@
 
 package org.springframework.integration.support.locks;
 
+import java.time.Duration;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 2.1.1
  *
  */
 public class DefaultLockRegistryTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBadMask() {
-		new DefaultLockRegistry(4);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new DefaultLockRegistry(4));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBadMaskOutOfRange() { // 32bits
-		new DefaultLockRegistry(0xffffffff);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new DefaultLockRegistry(0xffffffff));
 	}
 
 	@Test
@@ -197,4 +211,70 @@ public class DefaultLockRegistryTests {
 		assertThat(moreLocks[3]).isSameAs(locks[3]);
 	}
 
+	@Test
+	public void cyclicBarrierIsBrokenWhenExecutedConcurrentlyInLock() throws Exception {
+		LockRegistry registry = new DefaultLockRegistry(1);
+
+		CyclicBarrier cyclicBarrier = new CyclicBarrier(2);
+		CountDownLatch brokenBarrierLatch = new CountDownLatch(2);
+
+		Runnable runnableLocked = () -> {
+			try {
+				registry.executeLocked("lockKey",
+						() -> {
+							try {
+								cyclicBarrier.await(1, TimeUnit.SECONDS);
+							}
+							catch (BrokenBarrierException | TimeoutException e) {
+								brokenBarrierLatch.countDown();
+							}
+						});
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		};
+
+		ExecutorService executorService = Executors.newCachedThreadPool();
+
+		executorService.execute(runnableLocked);
+		executorService.execute(runnableLocked);
+
+		assertThat(brokenBarrierLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	public void executeLockedIsTimedOutInOtherThread() throws Exception {
+		LockRegistry registry = new DefaultLockRegistry(1);
+
+		String lockKey = "lockKey";
+		Duration waitLockDuration = Duration.ofMillis(100);
+
+		CountDownLatch timeoutExceptionLatch = new CountDownLatch(1);
+		AtomicReference<TimeoutException> exceptionAtomicReference = new AtomicReference<>();
+
+		Runnable runnable = () -> {
+			try {
+				registry.executeLocked(lockKey, waitLockDuration, () -> Thread.sleep(200));
+			}
+			catch (TimeoutException e) {
+				exceptionAtomicReference.set(e);
+				timeoutExceptionLatch.countDown();
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		};
+
+		ExecutorService executorService = Executors.newCachedThreadPool();
+
+		executorService.execute(runnable);
+		executorService.execute(runnable);
+
+		assertThat(timeoutExceptionLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(exceptionAtomicReference.get())
+				.hasMessage("The lock [%s] was not acquired in time: %s".formatted(lockKey, waitLockDuration));
+	}
+
 }
+

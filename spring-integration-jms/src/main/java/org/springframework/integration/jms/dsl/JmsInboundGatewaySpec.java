@@ -19,6 +19,7 @@ package org.springframework.integration.jms.dsl;
 import java.util.function.Consumer;
 
 import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 
 import org.springframework.expression.Expression;
@@ -162,7 +163,7 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 	 * @since 6.1
 	 * @see ChannelPublishingJmsMessageListener#setReplyToExpression(Expression)
 	 */
-	public S replyToFunction(CheckedFunction<Message, ?> replyToFunction) {
+	public S replyToFunction(CheckedFunction<Message, ?, JMSException> replyToFunction) {
 		return replyToExpression(new FunctionExpression<>(replyToFunction.unchecked()));
 	}
 
