@@ -44,7 +44,7 @@ public interface LockRegistry {
 	Lock obtain(Object lockKey);
 
 	/**
-	 * Perform a provided task when lock for the key is locked.
+	 * Perform the provided task when the lock for the key is locked.
 	 * @param lockKey the lock key to use
 	 * @param runnable the {@link CheckedRunnable} to execute within a lock
 	 * @param <E> type of exception runnable throws
@@ -62,7 +62,7 @@ public interface LockRegistry {
 	}
 
 	/**
-	 * Perform a provided task when lock for the key is locked.
+	 * Perform the provided task when the lock for the key is locked.
 	 * @param lockKey the lock key to use
 	 * @param callable the {@link CheckedCallable} to execute within a lock
 	 * @param <T> type of callable result
@@ -85,7 +85,7 @@ public interface LockRegistry {
 	}
 
 	/**
-	 * Perform a provided task when lock for the key is locked.
+	 * Perform the provided task when the lock for the key is locked.
 	 * @param lockKey the lock key to use
 	 * @param waitLockDuration the {@link Duration} for {@link Lock#tryLock(long, TimeUnit)}
 	 * @param runnable the {@link CheckedRunnable} to execute within a lock
@@ -105,7 +105,7 @@ public interface LockRegistry {
 	}
 
 	/**
-	 * Perform a provided task when lock for the key is locked.
+	 * Perform the provided task when the lock for the key is locked.
 	 * @param lockKey the lock key to use
 	 * @param waitLockDuration the {@link Duration} for {@link Lock#tryLock(long, TimeUnit)}
 	 * @param callable the {@link CheckedCallable} to execute within a lock

@@ -17,7 +17,8 @@
 package org.springframework.integration.util;
 
 /**
- * A Callable-like interface which allows throwing Error.
+ * A Callable-like interface which allows throwing any Throwable.
+ * Checked exceptions are wrapped in an IllegalStateException.
  *
  * @param <T> the output type.
  * @param <E> the throwable type.

@@ -2,16 +2,16 @@
 = Distributed Locks
 
 In many situations the action against some context (or even single message) has to be performed in an exclusive manner.
-One of the example is an aggregator component where we have to check the message group state for the current message to device whether we can release group or just add that message for future consideration.
-For this purpose Java provides a good API with `java.util.concurrent.locks.Lock` implementations.
-However, the problem becomes more complex when our system is distributed and/or run in the cluster.
-The locking in this case is challenging and requires some shared and its specific approach to achieve an exclusivity requirement.
+One example is an aggregator component where we have to check the message group state for the current message to determine whether we can release the group or just add that message for future consideration.
+For this purpose Java provides an API with `java.util.concurrent.locks.Lock` implementations.
+However, the problem becomes more complex when an application is distributed and/or run in the cluster.
+The locking in this case is challenging and requires some shared state and its specific approach to achieve the exclusivity requirement.
 
-Spring Integration suggests a `LockRegistrty` abstraction with an in-memory `DefaultLockRegistry` implementation based on the `ReentrantLock` API.
-The `obtain(Object)` method of `LockRegistrty` requires some `lock key` for specific context.
+Spring Integration provides a `LockRegistrty` abstraction with an in-memory `DefaultLockRegistry` implementation based on the `ReentrantLock` API.
+The `obtain(Object)` method of the `LockRegistrty` requires a `lock key` for specific context.
 For example, an aggregator uses a `correlationKey` to lock operations around its group.
 This way different locks can be used concurrently.
-This `obtain(Object)` method returns a `java.util.concurrent.locks.Lock` instance (depending on the `LockRegistrty` implementation), therefore the rest of the logic is the same as standard Java Concurrency algorithm.
+This `obtain(Object)` method returns a `java.util.concurrent.locks.Lock` instance (depending on the `LockRegistry` implementation), therefore the rest of the logic is the same as standard Java Concurrency algorithm.
 
 Starting with version 6.2, the `LockRegistry` provides an `executeLocked()` API (`default` methods in this interface) to perform some task while locked.
 The behavior of this API is similar to well-known `JdbcTemplate`, `JmsTemplate` or `RestTemplate`.
