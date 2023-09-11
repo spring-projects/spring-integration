@@ -15,7 +15,7 @@ If you need to persist metadata between application context restarts, the framew
 
 * `PropertiesPersistingMetadataStore`
 * xref:hazelcast.adoc#hazelcast-metadata-store[Hazelcast Metadata Store]
-* xref:jdbc.adoc#jdbc-metadata-store[JDBC Metadata Store]
+* xref:jdbc/metadata-store.adoc[JDBC Metadata Store]
 * xref:mongodb.adoc#mongodb-metadata-store[MongoDB Metadata Store]
 * xref:redis.adoc#redis-metadata-store[Redis Metadata Store]
 * xref:zookeeper.adoc#zk-metadata-store[Zookeeper Metadata Store]

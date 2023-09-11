@@ -94,6 +94,7 @@
 ** xref:message-history.adoc[]
 ** xref:message-store.adoc[]
 ** xref:meta-data-store.adoc[]
+** xref:distributed-locks.adoc[]
 ** xref:control-bus.adoc[]
 ** xref:shutdown.adoc[]
 ** xref:graph.adoc[]

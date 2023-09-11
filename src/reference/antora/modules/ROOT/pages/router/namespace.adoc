@@ -4,8 +4,7 @@
 Spring Integration provides a generic router.
 You can use it for general-purpose routing (as opposed to the other routers provided by Spring Integration, each of which has some form of specialization).
 
-[[configuring-a-content-based-router-with-xml]]
-== Configuring a Content-based Router with XML
+The following section explains a router configuration with an XML components.
 
 The `router` element provides a way to connect a router to an input channel and also accepts the optional `default-output-channel` attribute.
 The `ref` attribute references the bean name of a custom router implementation (which must extend `AbstractMessageRouter`).

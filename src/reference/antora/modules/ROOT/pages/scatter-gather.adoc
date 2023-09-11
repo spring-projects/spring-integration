@@ -108,7 +108,7 @@ The following example shows how to configure the `<scatter-gather>` endpoint by 
 <1> The id of the endpoint.
 The `ScatterGatherHandler` bean is registered with an alias of `id + '.handler'`.
 The `RecipientListRouter` bean is registered with an alias of `id + '.scatterer'`.
-The `AggregatingMessageHandler`bean is registered with an alias of `id + '.gatherer'`.
+The `AggregatingMessageHandler` bean is registered with an alias of `id + '.gatherer'`.
 Optional.
 (The `BeanFactory` generates a default `id` value.)
 <2> Lifecycle attribute signaling whether the endpoint should be started during application context initialization.
@@ -171,7 +171,7 @@ This way all other sub-flows will work for nothing and their replies are going t
 This might be an expected behavior sometimes, but in most cases it would be better to handle the error in the particular sub-flow without impacting all others and the expectations in the gatherer.
 
 Starting with version 5.1.3, the `ScatterGatherHandler` is supplied with the `errorChannelName` option.
-It is populated to the `errorChannel` header of the scatter message and is used in the  when async error happens or can be used in the regular synchronous sub-flow for directly sending an error message.
+It is populated to the `errorChannel` header of the scatter message and is used when an async error happens or can be used in the regular synchronous sub-flow for directly sending an error message.
 
 The sample configuration below demonstrates async error handling by returning a compensation message:
 

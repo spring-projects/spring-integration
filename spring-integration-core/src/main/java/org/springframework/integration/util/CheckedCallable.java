@@ -16,28 +16,26 @@
 
 package org.springframework.integration.util;
 
-import java.util.function.Function;
-
 /**
- * A Function-like interface which allows throwing Error.
+ * A Callable-like interface which allows throwing any Throwable.
+ * Checked exceptions are wrapped in an IllegalStateException.
  *
- * @param <T> the input type.
- * @param <R> the output type.
+ * @param <T> the output type.
  * @param <E> the throwable type.
  *
  * @author Artem Bilan
  *
- * @since 6.1
+ * @since 6.2
  */
 @FunctionalInterface
-public interface CheckedFunction<T, R, E extends Throwable> {
+public interface CheckedCallable<T, E extends Throwable> {
 
-	R apply(T t) throws E;
+	T call() throws E;
 
-	default Function<T, R> unchecked() {
-		return t1 -> {
+	default Runnable unchecked() {
+		return () -> {
 			try {
-				return apply(t1);
+				call();
 			}
 			catch (Throwable t) { // NOSONAR
 				if (t instanceof RuntimeException runtimeException) { // NOSONAR

@@ -19,6 +19,7 @@ package org.springframework.integration.file;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -61,9 +62,9 @@ import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.locks.PassThruLockRegistry;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.integration.util.WhileLockedProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
@@ -644,28 +645,29 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				FileExistsMode.APPEND.equals(this.fileExistsMode)
 						|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
 
+		File fileToCleanUpAfterCopy = tempFile;
+
 		if (append) {
-			final File fileToWriteTo = determineFileToWrite(resultFile, tempFile);
+			File fileToWriteTo = determineFileToWrite(resultFile, tempFile);
 
-			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
-					fileToWriteTo.getAbsolutePath()) {
+			try {
+				this.lockRegistry.executeLocked(fileToWriteTo.getAbsolutePath(),
+						() -> {
+							if (this.newFileCallback != null && !fileToWriteTo.exists()) {
+								this.newFileCallback.accept(fileToWriteTo, requestMessage);
+							}
 
-				@Override
-				protected void whileLocked() throws IOException {
-					if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists()) {
-						FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
-					}
+							appendStreamToFile(fileToWriteTo, sourceFileInputStream);
+						});
+			}
+			catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				throw new MessagingException(requestMessage, "Thread was interrupted while performing task", ex);
+			}
 
-					appendStreamToFile(fileToWriteTo, sourceFileInputStream);
-				}
-
-			};
-			whileLockedProcessor.doWhileLocked();
-			cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
-			return resultFile;
+			fileToCleanUpAfterCopy = fileToWriteTo;
 		}
 		else {
-
 			try (InputStream inputStream = sourceFileInputStream; OutputStream outputStream =
 					new BufferedOutputStream(new FileOutputStream(tempFile), this.bufferSize)) {
 
@@ -679,9 +681,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 				outputStream.flush();
 			}
-			cleanUpAfterCopy(tempFile, resultFile, originalFile);
-			return resultFile;
 		}
+
+		cleanUpAfterCopy(fileToCleanUpAfterCopy, resultFile, originalFile);
+		return resultFile;
 	}
 
 	private void appendStreamToFile(File fileToWriteTo, InputStream sourceFileInputStream) throws IOException {
@@ -694,24 +697,28 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			while ((bytesRead = inputStream.read(buffer)) != -1) { // NOSONAR
 				bos.write(buffer, 0, bytesRead);
 			}
-			if (FileWritingMessageHandler.this.appendNewLine) {
+			if (this.appendNewLine) {
 				bos.write(System.lineSeparator().getBytes());
 			}
 		}
 		finally {
-			try {
-				if (state == null || FileWritingMessageHandler.this.flushTask == null) {
-					if (bos != null) {
-						bos.close();
-					}
-					clearState(fileToWriteTo, state);
+			cleanUpFileState(fileToWriteTo, state, bos);
+		}
+	}
+
+	private void cleanUpFileState(File fileToWriteTo, FileState state, Closeable closeable) {
+		try {
+			if (state == null || this.flushTask == null) {
+				if (closeable != null) {
+					closeable.close();
 				}
-				else {
-					state.lastWrite = System.currentTimeMillis();
-				}
+				clearState(fileToWriteTo, state);
 			}
-			catch (IOException ex) {
+			else {
+				state.lastWrite = System.currentTimeMillis();
 			}
+		}
+		catch (IOException ex) {
 		}
 	}
 
@@ -723,20 +730,21 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode)
 				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
 
-		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
-				fileToWriteTo.getAbsolutePath()) {
+		try {
+			this.lockRegistry.executeLocked(fileToWriteTo.getAbsolutePath(),
+					() -> {
+						if (append && this.newFileCallback != null && !fileToWriteTo.exists()) {
+							this.newFileCallback.accept(fileToWriteTo, requestMessage);
+						}
 
-			@Override
-			protected void whileLocked() throws IOException {
-				if (append && FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists()) {
-					FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
-				}
+						writeBytesToFile(fileToWriteTo, append, bytes);
+					});
+		}
+		catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			throw new MessagingException(requestMessage, "Thread was interrupted while performing task", ex);
+		}
 
-				writeBytesToFile(fileToWriteTo, append, bytes);
-			}
-
-		};
-		whileLockedProcessor.doWhileLocked();
 		cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 		return resultFile;
 	}
@@ -752,19 +760,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 		finally {
-			try {
-				if (state == null || this.flushTask == null) {
-					if (bos != null) {
-						bos.close();
-					}
-					clearState(fileToWriteTo, state);
-				}
-				else {
-					state.lastWrite = System.currentTimeMillis();
-				}
-			}
-			catch (IOException ex) {
-			}
+			cleanUpFileState(fileToWriteTo, state, bos);
 		}
 	}
 
@@ -776,20 +772,21 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode)
 				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
 
-		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
-				fileToWriteTo.getAbsolutePath()) {
 
-			@Override
-			protected void whileLocked() throws IOException {
-				if (append && FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists()) {
-					FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
-				}
+		try {
+			this.lockRegistry.executeLocked(fileToWriteTo.getAbsolutePath(),
+					() -> {
+						if (append && this.newFileCallback != null && !fileToWriteTo.exists()) {
+							this.newFileCallback.accept(fileToWriteTo, requestMessage);
+						}
 
-				writeStringToFile(fileToWriteTo, append, content);
-			}
-
-		};
-		whileLockedProcessor.doWhileLocked();
+						writeStringToFile(fileToWriteTo, append, content);
+					});
+		}
+		catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			throw new MessagingException(requestMessage, "Thread was interrupted while performing task", ex);
+		}
 
 		cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 		return resultFile;
@@ -806,19 +803,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 		finally {
-			try {
-				if (state == null || FileWritingMessageHandler.this.flushTask == null) {
-					if (writer != null) {
-						writer.close();
-					}
-					clearState(fileToWriteTo, state);
-				}
-				else {
-					state.lastWrite = System.currentTimeMillis();
-				}
-			}
-			catch (IOException ex) {
-			}
+			cleanUpFileState(fileToWriteTo, state, writer);
 		}
 	}
 

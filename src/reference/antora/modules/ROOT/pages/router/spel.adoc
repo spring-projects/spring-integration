@@ -4,7 +4,7 @@
 Sometimes, the routing logic may be simple, and writing a separate class for it and configuring it as a bean may seem like overkill.
 As of Spring Integration 2.0, we offer an alternative that lets you use SpEL to implement simple computations that previously required a custom POJO router.
 
-NOTE: For more information about the Spring Expression Language, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[relevant chapter in the Spring Framework Reference Guide].
+NOTE: For more information about the Spring Expression Language, see the https://docs.spring.io/spring-framework/reference/core/expressions.html[relevant chapter in the Spring Framework Reference Guide].
 
 Generally, a SpEL expression is evaluated and its result is mapped to a channel, as the following example shows:
 
@@ -69,6 +69,6 @@ In the above configuration, if the message includes a header with a name of 'cha
 You may also find collection projection and collection selection expressions useful when you need to select multiple channels.
 For further information, see:
 
-* https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions-collection-projection[Collection Projection]
-* https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions-collection-selection[Collection Selection]
+* https://docs.spring.io/spring-framework/reference/core/expressions/language-ref/collection-projection.html[Collection Projection]
+* https://docs.spring.io/spring-framework/reference/core/expressions/language-ref/collection-selection.html[Collection Selection]
 
