@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.apache.sshd.sftp.client.SftpClient;
@@ -62,18 +61,6 @@ public class SftpLastModifiedFileListFilter implements DiscardAwareFileListFilte
 
 	public SftpLastModifiedFileListFilter(Duration age) {
 		this.age = age;
-	}
-
-	/**
-	 * Set the age that the files have to be before being passed by this filter.
-	 * If {@link FileTime#toInstant()} plus {@link #age} is before the {@link Instant#now()}, the file
-	 * is filtered.
-	 * Defaults to 60 seconds.
-	 * @param age the age in seconds.
-	 * @param unit the timeUnit.
-	 */
-	public void setAge(long age, TimeUnit unit) {
-		setAge(Duration.ofSeconds(unit.toSeconds(age)));
 	}
 
 	/**

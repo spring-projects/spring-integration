@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class SmbLastModifiedFileListFilterTests {
 	@Test
 	public void testAge() {
 		SmbLastModifiedFileListFilter filter = new SmbLastModifiedFileListFilter();
-		filter.setAge(60, TimeUnit.SECONDS);
+		filter.setAge(80, TimeUnit.SECONDS);
 		SmbFile smbFile1 = mock(SmbFile.class);
 		when(smbFile1.getLastModified()).thenReturn(System.currentTimeMillis());
 		SmbFile smbFile2 = mock(SmbFile.class);

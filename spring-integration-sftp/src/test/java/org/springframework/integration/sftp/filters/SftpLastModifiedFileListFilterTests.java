@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ public class SftpLastModifiedFileListFilterTests {
 	@Test
 	public void testAge() {
 		SftpLastModifiedFileListFilter filter = new SftpLastModifiedFileListFilter();
-		filter.setAge(60);
 		SftpClient.Attributes attributes1 = new SftpClient.Attributes();
 		attributes1.setModifyTime(FileTime.from(Instant.now()));
 		SftpClient.Attributes attributes2 = new SftpClient.Attributes();
