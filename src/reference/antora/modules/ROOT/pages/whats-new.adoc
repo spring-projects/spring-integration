@@ -62,7 +62,7 @@ The `JdbcMessageStore`, `JdbcChannelMessageStore`, `JdbcMetadataStore`, and `Def
 See xref:jdbc/message-store.adoc#jdbc-db-init[Initializing the Database] for more information.
 
 [[x6.2-mongodb]]
-=== MongoDB support change
+=== MongoDB Support Changes
 
 A new option `setCreateIndexes(boolean)` has been introduced in `AbstractConfigurableMongoDbMessageStore` to disable the auto indexes creation.
 See xref:mongodb.adoc#mongodb-message-store[MongoDB Message Store] for an example.
