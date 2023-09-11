@@ -98,6 +98,23 @@ You should also understand that the FTP inbound channel adapter is a polling con
 Therefore, you must configure a poller (by using either a global default or a local sub-element).
 Once a file has been transferred, a message with a `java.io.File` as its payload is generated and sent to the channel identified by the `channel` attribute.
 
+Starting with version 6.2, you can filter FTP files based on last-modified strategy using `FtpLastModifiedFileListFilter`.
+This filter can be configured with an `age` property so that only files older than this value are passed by the filter.
+The age defaults to 60 seconds, but you should choose an age that is large enough to avoid picking up a file early (due to, say, network glitches).
+The following example shows how to configure a `FtpLastModifiedFileListFilter`:
+
+[source, java]
+----
+@Bean
+public FtpLastModifiedFileListFilter ftpLastModifiedFileListFilter() {
+	FtpLastModifiedFileListFilter filter = new FtpLastModifiedFileListFilter();
+
+	filter.setAge(Duration.ofSeconds(180));
+
+	return filter;
+}
+----
+
 [[more-on-file-filtering-and-incomplete-files]]
 == More on File Filtering and Incomplete Files
 
