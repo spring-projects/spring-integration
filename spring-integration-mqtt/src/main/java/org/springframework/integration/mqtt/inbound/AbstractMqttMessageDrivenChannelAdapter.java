@@ -280,16 +280,16 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	/**
 	 * Add a topic (or topics) to the subscribed list (qos=1).
-	 * @param topic The topics.
-	 * @throws MessagingException if the topic is already in the list.
+	 * @param topics The topics.
+	 * @throws MessagingException if the topics is already in the list.
 	 * @since 4.1
 	 */
 	@ManagedOperation
-	public void addTopic(String... topic) {
-		validateTopics(topic);
+	public void addTopic(String... topics) {
+		validateTopics(topics);
 		this.topicLock.lock();
 		try {
-			for (String t : topic) {
+			for (String t : topics) {
 				addTopic(t, 1);
 			}
 		}
@@ -300,24 +300,24 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	/**
 	 * Add topics to the subscribed list.
-	 * @param topic The topics.
+	 * @param topics The topics.
 	 * @param qos The qos for each topic.
-	 * @throws MessagingException if a topic is already in the list.
+	 * @throws MessagingException if a topics is already in the list.
 	 * @since 4.1
 	 */
 	@ManagedOperation
-	public void addTopics(String[] topic, int[] qos) {
-		validateTopics(topic);
-		Assert.isTrue(topic.length == qos.length, "topic and qos arrays must the be the same length.");
+	public void addTopics(String[] topics, int[] qos) {
+		validateTopics(topics);
+		Assert.isTrue(topics.length == qos.length, "topics and qos arrays must the be the same length.");
 		this.topicLock.lock();
 		try {
-			for (String newTopic : topic) {
+			for (String newTopic : topics) {
 				if (this.topics.containsKey(newTopic)) {
 					throw new MessagingException("Topic '" + newTopic + "' is already subscribed.");
 				}
 			}
-			for (int i = 0; i < topic.length; i++) {
-				addTopic(topic[i], qos[i]);
+			for (int i = 0; i < topics.length; i++) {
+				addTopic(topics[i], qos[i]);
 			}
 		}
 		finally {
