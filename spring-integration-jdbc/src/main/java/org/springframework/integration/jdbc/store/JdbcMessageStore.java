@@ -199,7 +199,12 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 		DELETE_MESSAGES_FROM_GROUP("""
 				DELETE from %PREFIX%MESSAGE
-				where MESSAGE_ID in (SELECT MESSAGE_ID from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY = ? and REGION = ?)
+				where MESSAGE_ID in (
+								SELECT MESSAGE_ID from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY = ? and REGION = ?
+												and MESSAGE_ID not in (
+																SELECT MESSAGE_ID from %PREFIX%GROUP_TO_MESSAGE
+																			where GROUP_KEY != ? and REGION = ?)
+								)
 					and REGION = ?
 				"""),
 
@@ -593,7 +598,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	public void removeMessageGroup(Object groupId) {
 		String groupKey = getKey(groupId);
 
-		this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGES_FROM_GROUP), groupKey, this.region, this.region);
+		this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGES_FROM_GROUP),
+				groupKey, this.region, groupKey, this.region, this.region);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("Removing relationships for the group with group key=" + groupKey);
