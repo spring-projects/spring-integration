@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,9 +78,19 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		Assert.noNullElements(topic, "'topics' cannot have null elements");
 		this.url = url;
 		this.clientId = clientId;
+		validateTopics(topic);
 		this.topics = new LinkedHashSet<>();
 		for (String t : topic) {
 			this.topics.add(new Topic(t, 1));
+		}
+	}
+
+	private static void validateTopics(String[] topics) {
+		Assert.notNull(topics, "'topics' cannot be null");
+		Assert.noNullElements(topics, "'topics' cannot have null elements");
+
+		for (String topic : topics) {
+			Assert.hasText(topic, "The topic to subscribe cannot be empty string");
 		}
 	}
 
@@ -207,6 +217,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	 */
 	@ManagedOperation
 	public void addTopic(String topic, int qos) {
+		validateTopics(new String[] {topic});
 		this.topicLock.lock();
 		try {
 			Topic topik = new Topic(topic, qos);
@@ -223,16 +234,16 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 
 	/**
 	 * Add a topic (or topics) to the subscribed list (qos=1).
-	 * @param topic The topics.
-	 * @throws MessagingException if the topic is already in the list.
+	 * @param topics The topics.
+	 * @throws MessagingException if the topics is already in the list.
 	 * @since 4.1
 	 */
 	@ManagedOperation
-	public void addTopic(String... topic) {
-		Assert.notNull(topic, "'topic' cannot be null");
+	public void addTopic(String... topics) {
+		validateTopics(topics);
 		this.topicLock.lock();
 		try {
-			for (String t : topic) {
+			for (String t : topics) {
 				addTopic(t, 1);
 			}
 		}
@@ -243,25 +254,24 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 
 	/**
 	 * Add topics to the subscribed list.
-	 * @param topic The topics.
+	 * @param topics The topics.
 	 * @param qos The qos for each topic.
-	 * @throws MessagingException if a topic is already in the list.
+	 * @throws MessagingException if a topics is already in the list.
 	 * @since 4.1
 	 */
 	@ManagedOperation
-	public void addTopics(String[] topic, int[] qos) {
-		Assert.notNull(topic, "'topic' cannot be null.");
-		Assert.noNullElements(topic, "'topic' cannot contain any null elements.");
-		Assert.isTrue(topic.length == qos.length, "topic and qos arrays must the be the same length.");
+	public void addTopics(String[] topics, int[] qos) {
+		validateTopics(topics);
+		Assert.isTrue(topics.length == qos.length, "topics and qos arrays must the be the same length.");
 		this.topicLock.lock();
 		try {
-			for (String topik : topic) {
-				if (this.topics.contains(new Topic(topik, 0))) {
-					throw new MessagingException("Topic '" + topik + "' is already subscribed.");
+			for (String topic : topics) {
+				if (this.topics.contains(new Topic(topic, 0))) {
+					throw new MessagingException("Topic '" + topic + "' is already subscribed.");
 				}
 			}
-			for (int i = 0; i < topic.length; i++) {
-				addTopic(topic[i], qos[i]);
+			for (int i = 0; i < topics.length; i++) {
+				addTopic(topics[i], qos[i]);
 			}
 		}
 		finally {

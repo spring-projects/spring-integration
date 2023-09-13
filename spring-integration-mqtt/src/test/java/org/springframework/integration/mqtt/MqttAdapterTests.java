@@ -62,6 +62,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
+import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
@@ -83,6 +84,7 @@ import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -468,7 +470,7 @@ public class MqttAdapterTests {
 		willReturn(alwaysComplete).given(aClient).connect(any(MqttConnectOptions.class), any(), any());
 
 		IMqttToken token = mock(IMqttToken.class);
-		given(token.getGrantedQos()).willReturn(new int[]{ 0x80 });
+		given(token.getGrantedQos()).willReturn(new int[] {0x80});
 		willReturn(token).given(aClient).subscribe(any(String[].class), any(int[].class), isNull(), isNull(), any());
 
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
@@ -516,7 +518,7 @@ public class MqttAdapterTests {
 		willReturn(alwaysComplete).given(aClient).connect(any(MqttConnectOptions.class), any(), any());
 
 		IMqttToken token = mock(IMqttToken.class);
-		given(token.getGrantedQos()).willReturn(new int[]{ 2, 0 });
+		given(token.getGrantedQos()).willReturn(new int[] {2, 0});
 		willReturn(token).given(aClient).subscribe(any(String[].class), any(int[].class), isNull(), isNull(), any());
 
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
@@ -541,6 +543,19 @@ public class MqttAdapterTests {
 		new DirectFieldAccessor(adapter).setPropertyValue("running", Boolean.TRUE);
 		adapter.stop();
 		verify(client).disconnectForcibly(5_000L);
+	}
+
+	@Test
+	public void emptyTopicNotAllowed() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() ->
+						new MqttPahoMessageDrivenChannelAdapter("client_id", mock(MqttPahoClientFactory.class), ""))
+				.withMessage("The topic to subscribe cannot be empty string");
+
+		var adapter = new MqttPahoMessageDrivenChannelAdapter("client_id", mock(MqttPahoClientFactory.class), "topic1");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> adapter.addTopic(""))
+				.withMessage("The topic to subscribe cannot be empty string");
 	}
 
 	@Test
@@ -597,7 +612,7 @@ public class MqttAdapterTests {
 
 		};
 		MqttConnectOptions connectOptions = new MqttConnectOptions();
-		connectOptions.setServerURIs(new String[]{ "tcp://localhost:1883" });
+		connectOptions.setServerURIs(new String[] {"tcp://localhost:1883"});
 		if (cleanSession != null) {
 			connectOptions.setCleanSession(cleanSession);
 		}
@@ -621,7 +636,7 @@ public class MqttAdapterTests {
 
 		};
 		MqttConnectOptions connectOptions = new MqttConnectOptions();
-		connectOptions.setServerURIs(new String[]{ "tcp://localhost:1883" });
+		connectOptions.setServerURIs(new String[] {"tcp://localhost:1883"});
 		factory.setConnectionOptions(connectOptions);
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("client", factory);
 		adapter.setDefaultTopic("foo");
