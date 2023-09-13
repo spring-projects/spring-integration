@@ -18,39 +18,30 @@ package org.springframework.integration.ftp.filters;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.commons.net.ftp.FTPFile;
 
-import org.springframework.integration.file.filters.DiscardAwareFileListFilter;
-import org.springframework.lang.Nullable;
+import org.springframework.integration.file.filters.AbstractLastModifiedFileListFilter;
 
 /**
  * The {@link org.springframework.integration.file.filters.FileListFilter} implementation to filter those files which
- * {@link FTPFile#getTimestampInstant()} is less than the {@link #age} in comparison
+ * {@link FTPFile#getTimestampInstant()} is less than the age in comparison
  * with the {@link Instant#now()}.
- * When {@link #discardCallback} is provided, it called for all the rejected files.
+ * When discardCallback {@link #addDiscardCallback(Consumer)} is provided, it called for all the rejected files.
  *
  * @author Adama Sorho
  *
  * @since 6.2
  */
-public class FtpLastModifiedFileListFilter implements DiscardAwareFileListFilter<FTPFile> {
-
-	private static final long DEFAULT_AGE = 60;
-
-	private Duration age = Duration.ofSeconds(DEFAULT_AGE);
-
-	@Nullable
-	private Consumer<FTPFile> discardCallback;
+public class FtpLastModifiedFileListFilter extends AbstractLastModifiedFileListFilter<FTPFile> {
 
 	public FtpLastModifiedFileListFilter() {
+		super();
 	}
 
 	/**
-	 * Construct a {@link FtpLastModifiedFileListFilter} instance with provided {@link #age}.
+	 * Construct a {@link FtpLastModifiedFileListFilter} instance with provided age.
 	 * Defaults to 60 seconds.
 	 * @param age the age in seconds.
 	 */
@@ -59,76 +50,17 @@ public class FtpLastModifiedFileListFilter implements DiscardAwareFileListFilter
 	}
 
 	/**
-	 * Construct a {@link FtpLastModifiedFileListFilter} instance with provided {@link #age}.
+	 * Construct a {@link FtpLastModifiedFileListFilter} instance with provided age.
 	 * Defaults to 60 seconds.
 	 * @param age the Duration
 	 */
 	public FtpLastModifiedFileListFilter(Duration age) {
-		this.age = age;
-	}
-
-	/**
-	 * Set the age that files have to be before being passed by this filter.
-	 * If {@link FTPFile#getTimestampInstant()} plus {@link #age} is before the {@link Instant#now()}, the file
-	 * is filtered.
-	 * Defaults to 60 seconds.
-	 * @param age the Duration.
-	 */
-	public void setAge(Duration age) {
-		this.age = age;
-	}
-
-	/**
-	 * Set the age that files have to be before being passed by this filter.
-	 * If {@link FTPFile#getTimestampInstant()} plus {@link #age} is before the {@link Instant#now()}, the file
-	 * is filtered.
-	 * Defaults to 60 seconds.
-	 * @param age the age in seconds.
-	 */
-	public void setAge(long age) {
-		setAge(Duration.ofSeconds(age));
+		super(age);
 	}
 
 	@Override
-	public void addDiscardCallback(@Nullable Consumer<FTPFile> discardCallback) {
-		this.discardCallback = discardCallback;
-	}
-
-	@Override
-	public List<FTPFile> filterFiles(FTPFile[] files) {
-		List<FTPFile> list = new ArrayList<>();
-		Instant now = Instant.now();
-		for (FTPFile file: files) {
-			if (fileIsAged(file, now)) {
-				list.add(file);
-			}
-			else if (this.discardCallback != null) {
-				this.discardCallback.accept(file);
-			}
-		}
-
-		return list;
-	}
-
-	@Override
-	public boolean accept(FTPFile file) {
-		if (fileIsAged(file, Instant.now())) {
-			return true;
-		}
-		else if (this.discardCallback != null) {
-			this.discardCallback.accept(file);
-		}
-
-		return false;
-	}
-
-	private boolean fileIsAged(FTPFile file, Instant now) {
-		return file.getTimestampInstant().plus(this.age).isBefore(now);
-	}
-
-	@Override
-	public boolean supportsSingleFileFiltering() {
-		return true;
+	protected Instant getLastModified(FTPFile remoteFile) {
+		return remoteFile.getTimestampInstant();
 	}
 
 }

@@ -98,19 +98,7 @@ Once the file has been transferred to a local directory, a message with `java.io
 Starting with version 6.2, you can filter SFTP files based on last-modified strategy using `SftpLastModifiedFileListFilter`.
 This filter can be configured with an `age` property so that only files older than this value are passed by the filter.
 The age defaults to 60 seconds, but you should choose an age that is large enough to avoid picking up a file early (due to, say, network glitches).
-The following example shows how to configure a `SftpLastModifiedFileListFilter`:
-
-[source, java]
-----
-@Bean
-public SftpLastModifiedFileListFilter sftpLastModifiedFileListFilter() {
-	SftpLastModifiedFileListFilter filter = new SftpLastModifiedFileListFilter();
-
-	filter.setAge(Duration.ofSeconds(180));
-
-	return filter;
-}
-----
+Please, look into its Javadoc for more info.
 
 [[more-on-file-filtering-and-large-files]]
 == More on File Filtering and Large Files

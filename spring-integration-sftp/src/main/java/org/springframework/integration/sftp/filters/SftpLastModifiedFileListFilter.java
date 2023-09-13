@@ -19,39 +19,30 @@ package org.springframework.integration.sftp.filters;
 import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.sshd.sftp.client.SftpClient;
 
-import org.springframework.integration.file.filters.DiscardAwareFileListFilter;
-import org.springframework.lang.Nullable;
+import org.springframework.integration.file.filters.AbstractLastModifiedFileListFilter;
 
 /**
  * The {@link org.springframework.integration.file.filters.FileListFilter} implementation to filter those files which
- * {@link FileTime#toInstant()} is less than the {@link #age} in comparison
+ * {@link FileTime#toInstant()} is less than the age in comparison
  * with the {@link Instant#now()}.
- * When {@link #discardCallback} is provided, it called for all the rejected files.
+ * When discardCallback {@link #addDiscardCallback(Consumer)} is provided, it called for all the rejected files.
  *
  * @author Adama Sorho
  *
  * @since 6.2
  */
-public class SftpLastModifiedFileListFilter implements DiscardAwareFileListFilter<SftpClient.DirEntry> {
-
-	private static final long DEFAULT_AGE = 60;
-
-	private Duration age = Duration.ofSeconds(DEFAULT_AGE);
-
-	@Nullable
-	private Consumer<SftpClient.DirEntry> discardCallback;
+public class SftpLastModifiedFileListFilter extends AbstractLastModifiedFileListFilter<SftpClient.DirEntry> {
 
 	public SftpLastModifiedFileListFilter() {
+		super();
 	}
 
 	/**
-	 * Construct a {@link SftpLastModifiedFileListFilter} instance with provided {@link #age}.
+	 * Construct a {@link SftpLastModifiedFileListFilter} instance with provided age.
 	 * Defaults to 60 seconds.
 	 * @param age the age in seconds.
 	 */
@@ -59,72 +50,18 @@ public class SftpLastModifiedFileListFilter implements DiscardAwareFileListFilte
 		this(Duration.ofSeconds(age));
 	}
 
+	/**
+	 * Construct a {@link SftpLastModifiedFileListFilter} instance with provided age.
+	 * Defaults to 60 seconds.
+	 * @param age the Duration
+	 */
 	public SftpLastModifiedFileListFilter(Duration age) {
-		this.age = age;
-	}
-
-	/**
-	 * Set the age that the files have to be before being passed by this filter.
-	 * If {@link FileTime#toInstant()} plus {@link #age} is before the {@link Instant#now()}, the file
-	 * is filtered.
-	 * Defaults to 60 seconds.
-	 * @param age The Duration.
-	 */
-	public void setAge(Duration age) {
-		this.age = age;
-	}
-
-	/**
-	 * Set the age that the files have to be before being passed by this filter.
-	 * If {@link FileTime#toInstant()} plus {@link #age} is before the {@link Instant#now()}, the file
-	 * is filtered.
-	 * Defaults to 60 seconds.
-	 * @param age the age in seconds.
-	 */
-	public void setAge(long age) {
-		setAge(Duration.ofSeconds(age));
+		super(age);
 	}
 
 	@Override
-	public void addDiscardCallback(@Nullable Consumer<SftpClient.DirEntry> discardCallback) {
-		this.discardCallback = discardCallback;
-	}
-
-	@Override
-	public List<SftpClient.DirEntry> filterFiles(SftpClient.DirEntry[] files) {
-		List<SftpClient.DirEntry> list = new ArrayList<>();
-		Instant now = Instant.now();
-		for (SftpClient.DirEntry file: files) {
-			if (fileIsAged(file, now)) {
-				list.add(file);
-			}
-			else if (this.discardCallback != null) {
-				this.discardCallback.accept(file);
-			}
-		}
-
-		return list;
-	}
-
-	@Override
-	public boolean accept(SftpClient.DirEntry file) {
-		if (fileIsAged(file, Instant.now())) {
-			return true;
-		}
-		else if (this.discardCallback != null) {
-			this.discardCallback.accept(file);
-		}
-
-		return false;
-	}
-
-	private boolean fileIsAged(SftpClient.DirEntry file, Instant now) {
-		return file.getAttributes().getModifyTime().toInstant().plus(this.age).isBefore(now);
-	}
-
-	@Override
-	public boolean supportsSingleFileFiltering() {
-		return true;
+	protected Instant getLastModified(SftpClient.DirEntry remoteFile) {
+		return remoteFile.getAttributes().getModifyTime().toInstant();
 	}
 
 }

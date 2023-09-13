@@ -142,20 +142,8 @@ For XML configuration the `<int-smb:inbound-channel-adapter>` component is provi
 
 Starting with version 6.2, you can filter SMB files based on last-modified strategy using `SmbLastModifiedFileListFilter`.
 This filter can be configured with an `age` property so that only files older than this value are passed by the filter.
-The age defaults to 60 seconds, but you should choose an age that is large enough to avoid picking up a file early (due to, say, network glitches).
-The following example shows how to configure a `SmbLastModifiedFileListFilter`:
-
-[source, java]
-----
-@Bean
-public SmbLastModifiedFileListFilter smbLastModifiedFileListFilter() {
-	SmbLastModifiedFileListFilter filter = new SmbLastModifiedFileListFilter();
-
-	filter.setAge(180);
-
-	return filter;
-}
-----
+The age defaults to 60 seconds, but you should choose an age that is large enough to avoid picking up a file early (due to, say, network glitches.
+Please, look into its Javadoc for more info.
 
 [[configuring-with-the-java-dsl]]
 === Configuring with the Java DSL

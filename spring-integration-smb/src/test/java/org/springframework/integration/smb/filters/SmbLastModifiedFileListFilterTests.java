@@ -16,8 +16,6 @@
 
 package org.springframework.integration.smb.filters;
 
-import java.util.concurrent.TimeUnit;
-
 import jcifs.smb.SmbFile;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +32,7 @@ public class SmbLastModifiedFileListFilterTests {
 	@Test
 	public void testAge() {
 		SmbLastModifiedFileListFilter filter = new SmbLastModifiedFileListFilter();
-		filter.setAge(80, TimeUnit.SECONDS);
+		filter.setAge(80);
 		SmbFile smbFile1 = mock(SmbFile.class);
 		when(smbFile1.getLastModified()).thenReturn(System.currentTimeMillis());
 		SmbFile smbFile2 = mock(SmbFile.class);
