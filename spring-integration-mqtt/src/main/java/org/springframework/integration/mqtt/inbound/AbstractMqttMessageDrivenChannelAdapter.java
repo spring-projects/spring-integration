@@ -94,12 +94,20 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		this.clientId = null;
 	}
 
-	private static Map<String, Integer> initTopics(String[] topic) {
-		Assert.notNull(topic, "'topics' cannot be null");
-		Assert.noNullElements(topic, "'topics' cannot have null elements");
+	private static Map<String, Integer> initTopics(String[] topics) {
+		validateTopics(topics);
 
-		return Arrays.stream(topic)
+		return Arrays.stream(topics)
 				.collect(Collectors.toMap(Function.identity(), (key) -> 1, (x, y) -> y, LinkedHashMap::new));
+	}
+
+	private static void validateTopics(String[] topics) {
+		Assert.notNull(topics, "'topics' cannot be null");
+		Assert.noNullElements(topics, "'topics' cannot have null elements");
+
+		for (String topic : topics) {
+			Assert.hasText(topic, "The topic to subscribe cannot be empty string");
+		}
 	}
 
 	public void setConverter(MqttMessageConverter converter) {
@@ -178,7 +186,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	/**
 	 * Set the completion timeout when disconnecting.
-	 * Default {@value #DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
+	 * Default {@value ClientManager#DISCONNECT_COMPLETION_TIMEOUT} milliseconds.
 	 * @param completionTimeout The timeout.
 	 * @since 5.1.10
 	 */
@@ -256,6 +264,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 	 */
 	@ManagedOperation
 	public void addTopic(String topic, int qos) {
+		validateTopics(new String[] {topic});
 		this.topicLock.lock();
 		try {
 			if (this.topics.containsKey(topic)) {
@@ -271,16 +280,16 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	/**
 	 * Add a topic (or topics) to the subscribed list (qos=1).
-	 * @param topic The topics.
-	 * @throws MessagingException if the topic is already in the list.
+	 * @param topics The topics.
+	 * @throws MessagingException if the topics is already in the list.
 	 * @since 4.1
 	 */
 	@ManagedOperation
-	public void addTopic(String... topic) {
-		Assert.notNull(topic, "'topic' cannot be null");
+	public void addTopic(String... topics) {
+		validateTopics(topics);
 		this.topicLock.lock();
 		try {
-			for (String t : topic) {
+			for (String t : topics) {
 				addTopic(t, 1);
 			}
 		}
@@ -291,25 +300,24 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 
 	/**
 	 * Add topics to the subscribed list.
-	 * @param topic The topics.
+	 * @param topics The topics.
 	 * @param qos The qos for each topic.
-	 * @throws MessagingException if a topic is already in the list.
+	 * @throws MessagingException if a topics is already in the list.
 	 * @since 4.1
 	 */
 	@ManagedOperation
-	public void addTopics(String[] topic, int[] qos) {
-		Assert.notNull(topic, "'topic' cannot be null.");
-		Assert.noNullElements(topic, "'topic' cannot contain any null elements.");
-		Assert.isTrue(topic.length == qos.length, "topic and qos arrays must the be the same length.");
+	public void addTopics(String[] topics, int[] qos) {
+		validateTopics(topics);
+		Assert.isTrue(topics.length == qos.length, "topics and qos arrays must the be the same length.");
 		this.topicLock.lock();
 		try {
-			for (String newTopic : topic) {
+			for (String newTopic : topics) {
 				if (this.topics.containsKey(newTopic)) {
 					throw new MessagingException("Topic '" + newTopic + "' is already subscribed.");
 				}
 			}
-			for (int i = 0; i < topic.length; i++) {
-				addTopic(topic[i], qos[i]);
+			for (int i = 0; i < topics.length; i++) {
+				addTopic(topics[i], qos[i]);
 			}
 		}
 		finally {
