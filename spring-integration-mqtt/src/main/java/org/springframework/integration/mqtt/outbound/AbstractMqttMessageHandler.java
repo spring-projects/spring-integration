@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.mqtt.outbound;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -122,6 +123,7 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	 * @param defaultTopic the default topic.
 	 */
 	public void setDefaultTopic(String defaultTopic) {
+		Assert.hasText(defaultTopic, "'defaultTopic' must not be empty");
 		this.defaultTopic = defaultTopic;
 	}
 
@@ -316,14 +318,17 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.topicProcessor instanceof BeanFactoryAware && getBeanFactory() != null) {
-			((BeanFactoryAware) this.topicProcessor).setBeanFactory(getBeanFactory());
-		}
-		if (this.qosProcessor instanceof BeanFactoryAware && getBeanFactory() != null) {
-			((BeanFactoryAware) this.qosProcessor).setBeanFactory(getBeanFactory());
-		}
-		if (this.retainedProcessor instanceof BeanFactoryAware && getBeanFactory() != null) {
-			((BeanFactoryAware) this.retainedProcessor).setBeanFactory(getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			if (this.topicProcessor instanceof BeanFactoryAware beanFactoryAware) {
+				beanFactoryAware.setBeanFactory(beanFactory);
+			}
+			if (this.qosProcessor instanceof BeanFactoryAware beanFactoryAware) {
+				beanFactoryAware.setBeanFactory(beanFactory);
+			}
+			if (this.retainedProcessor instanceof BeanFactoryAware beanFactoryAware) {
+				beanFactoryAware.setBeanFactory(beanFactory);
+			}
 		}
 	}
 
@@ -354,11 +359,13 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	protected void handleMessageInternal(Message<?> message) {
 		Object mqttMessage = this.converter.fromMessage(message, Object.class);
 		String topic = this.topicProcessor.processMessage(message);
-		if (topic == null && this.defaultTopic == null) {
-			throw new IllegalStateException(
-					"No topic could be determined from the message and no default topic defined");
+		if (topic == null) {
+			topic = this.defaultTopic;
 		}
-		publish(topic == null ? this.defaultTopic : topic, mqttMessage, message);
+
+		Assert.state(topic != null, "No topic could be determined from the message and no default topic defined");
+
+		publish(topic, mqttMessage, message);
 	}
 
 	protected abstract void publish(String topic, Object mqttMessage, Message<?> message);
