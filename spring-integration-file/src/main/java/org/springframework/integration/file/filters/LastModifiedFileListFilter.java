@@ -41,8 +41,6 @@ import java.util.function.Consumer;
  */
 public class LastModifiedFileListFilter extends AbstractLastModifiedFileListFilter<File> {
 
-	private static final long ONE_SECOND = 1000;
-
 	public LastModifiedFileListFilter() {
 		super();
 	}
@@ -64,13 +62,22 @@ public class LastModifiedFileListFilter extends AbstractLastModifiedFileListFilt
 	 * Defaults to 60 seconds.
 	 * @param age the age
 	 * @param unit the timeUnit.
+	 *
+	 * @deprecated since 6.2 in favor of {@link #setAge(Duration)}
 	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	public void setAge(long age, TimeUnit unit) {
 		setAge(unit.toSeconds(age));
 	}
 
+	/**
+	 * @return the age in seconds.
+	 *
+	 * @deprecated since 6.2
+	 */
+	@Deprecated(since = "6.2", forRemoval = true)
 	public long getAge() {
-		return getCurrentAge().getSeconds();
+		return getAgeDuration().getSeconds();
 	}
 
 	@Override

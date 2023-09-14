@@ -39,8 +39,6 @@ import org.springframework.integration.file.filters.AbstractLastModifiedFileList
  */
 public class SmbLastModifiedFileListFilter extends AbstractLastModifiedFileListFilter<SmbFile> {
 
-	private static final long ONE_SECOND = 1000;
-
 	public SmbLastModifiedFileListFilter() {
 		super();
 	}

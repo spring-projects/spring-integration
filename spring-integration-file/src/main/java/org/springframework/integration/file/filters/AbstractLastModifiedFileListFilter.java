@@ -38,6 +38,8 @@ import org.springframework.lang.Nullable;
  */
 public abstract class AbstractLastModifiedFileListFilter<F> implements DiscardAwareFileListFilter<F> {
 
+	protected static final long ONE_SECOND = 1000;
+
 	private static final long DEFAULT_AGE = 60;
 
 	private Duration age = Duration.ofSeconds(DEFAULT_AGE);
@@ -118,7 +120,7 @@ public abstract class AbstractLastModifiedFileListFilter<F> implements DiscardAw
 
 	protected abstract Instant getLastModified(F remoteFile);
 
-	protected Duration getCurrentAge() {
+	protected Duration getAgeDuration() {
 		return this.age;
 	}
 }
