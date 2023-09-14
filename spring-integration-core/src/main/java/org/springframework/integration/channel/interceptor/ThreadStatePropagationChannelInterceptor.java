@@ -17,6 +17,7 @@
 package org.springframework.integration.channel.interceptor;
 
 import java.util.ArrayDeque;
+import java.util.LinkedList;
 import java.util.Queue;
 
 import io.micrometer.common.lang.Nullable;
@@ -104,17 +105,15 @@ public abstract class ThreadStatePropagationChannelInterceptor<S> implements Exe
 
 		private final Queue<Object> stateQueue;
 
-		@SuppressWarnings("unchecked")
 		MessageWithThreadState(Message<?> message, Object state) {
-			this.message = (Message<Object>) message;
-			this.stateQueue = new ArrayDeque<>();
+			this(message, new LinkedList<>());
 			this.stateQueue.add(state);
 		}
 
 		@SuppressWarnings("unchecked")
 		private MessageWithThreadState(Message<?> message, Queue<Object> stateQueue) {
 			this.message = (Message<Object>) message;
-			this.stateQueue = stateQueue;
+			this.stateQueue = new LinkedList<>(stateQueue);
 		}
 
 		@Override
