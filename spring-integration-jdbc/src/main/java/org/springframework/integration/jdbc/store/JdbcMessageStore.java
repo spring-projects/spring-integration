@@ -172,6 +172,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 		DELETE_MESSAGE("""
 				DELETE from %PREFIX%MESSAGE
 				where MESSAGE_ID=? and REGION=?
+					and MESSAGE_ID not in (
+										SELECT MESSAGE_ID from %PREFIX%GROUP_TO_MESSAGE
+													where MESSAGE_ID=? and REGION = ?)
 				"""),
 
 		CREATE_MESSAGE("""
@@ -199,7 +202,12 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 		DELETE_MESSAGES_FROM_GROUP("""
 				DELETE from %PREFIX%MESSAGE
-				where MESSAGE_ID in (SELECT MESSAGE_ID from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY = ? and REGION = ?)
+				where MESSAGE_ID in (
+								SELECT MESSAGE_ID from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY = ? and REGION = ?
+												and MESSAGE_ID not in (
+																SELECT MESSAGE_ID from %PREFIX%GROUP_TO_MESSAGE
+																			where GROUP_KEY != ? and REGION = ?)
+								)
 					and REGION = ?
 				"""),
 
@@ -384,7 +392,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 		if (message == null) {
 			return null;
 		}
-		int updated = this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGE), getKey(id), this.region);
+		String key = getKey(id);
+		int updated = this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGE), key, this.region, key, this.region);
 		if (updated != 0) {
 			return message;
 		}
@@ -575,15 +584,18 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				(ps, messageToRemove) -> {
 					ps.setString(1, groupKey); // NOSONAR - magic number
 					ps.setString(2, getKey(messageToRemove.getHeaders().getId())); // NOSONAR - magic number
-					ps.setString(3, JdbcMessageStore.this.region); // NOSONAR - magic number
+					ps.setString(3, this.region); // NOSONAR - magic number
 				});
 
 		this.jdbcTemplate.batchUpdate(getQuery(Query.DELETE_MESSAGE),
 				messages,
 				getRemoveBatchSize(),
 				(ps, messageToRemove) -> {
-					ps.setString(1, getKey(messageToRemove.getHeaders().getId())); // NOSONAR - magic number
-					ps.setString(2, JdbcMessageStore.this.region); // NOSONAR - magic number
+					String key = getKey(messageToRemove.getHeaders().getId());
+					ps.setString(1, key); // NOSONAR - magic number
+					ps.setString(2, this.region); // NOSONAR - magic number
+					ps.setString(3, key); // NOSONAR - magic number
+					ps.setString(4, this.region); // NOSONAR - magic number
 				});
 
 		updateMessageGroup(groupKey);
@@ -593,7 +605,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	public void removeMessageGroup(Object groupId) {
 		String groupKey = getKey(groupId);
 
-		this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGES_FROM_GROUP), groupKey, this.region, this.region);
+		this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGES_FROM_GROUP),
+				groupKey, this.region, groupKey, this.region, this.region);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("Removing relationships for the group with group key=" + groupKey);

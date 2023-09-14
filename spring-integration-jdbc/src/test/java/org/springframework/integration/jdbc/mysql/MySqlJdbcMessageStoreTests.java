@@ -497,6 +497,36 @@ public class MySqlJdbcMessageStoreTests implements MySqlContainerTest {
 		assertThat(this.messageStore.getMessageGroup(groupId).getCondition()).isEqualTo("testCondition");
 	}
 
+	@Test
+	public void sameMessageInTwoGroupsNotRemovedByFirstGroup() {
+		GenericMessage<String> testMessage = new GenericMessage<>("test data");
+
+		messageStore.addMessageToGroup("1", testMessage);
+		messageStore.addMessageToGroup("2", testMessage);
+
+		messageStore.removeMessageGroup("1");
+
+		assertThat(messageStore.getMessageCount()).isEqualTo(1);
+
+		messageStore.removeMessageGroup("2");
+
+		assertThat(messageStore.getMessageCount()).isEqualTo(0);
+	}
+
+	@Test
+	public void removeMessagesFromGroupDontRemoveSameMessageInOtherGroup() {
+		GenericMessage<String> testMessage = new GenericMessage<>("test data");
+
+		messageStore.addMessageToGroup("1", testMessage);
+		messageStore.addMessageToGroup("2", testMessage);
+
+		messageStore.removeMessagesFromGroup("1", testMessage);
+
+		assertThat(messageStore.getMessageCount()).isEqualTo(1);
+		assertThat(messageStore.messageGroupSize("1")).isEqualTo(0);
+		assertThat(messageStore.messageGroupSize("2")).isEqualTo(1);
+	}
+
 	@Configuration
 	public static class Config {
 

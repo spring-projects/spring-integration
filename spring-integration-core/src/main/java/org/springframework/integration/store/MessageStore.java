@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,11 +62,12 @@ public interface MessageStore {
 	<T> Message<T> addMessage(Message<T> message);
 
 	/**
-	 * Remove the Message with the given id from the MessageStore, if present, and return it. If no Message with that id
-	 * is present in the store, this will return <i>null</i>.
-	 *
-	 * @param id THe message identifier.
-	 * @return The message.
+	 * Remove the Message with the given id from the MessageStore, if present, and return it.
+	 * If no Message with that id is present in the store, this will return {@code null}.
+	 * If this method is implemented on a {@link MessageGroupStore},
+	 * the message is removed from the store only if no groups holding this message.
+	 * @param id the message identifier.
+	 * @return the message (if any).
 	 */
 	Message<?> removeMessage(UUID id);
 
