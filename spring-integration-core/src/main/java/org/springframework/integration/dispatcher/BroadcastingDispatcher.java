@@ -17,7 +17,6 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.Collection;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.BeansException;
