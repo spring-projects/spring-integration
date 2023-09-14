@@ -16,6 +16,9 @@
 
 package org.springframework.integration.channel.interceptor;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
+
 import io.micrometer.common.lang.Nullable;
 
 import org.springframework.integration.support.MessageDecorator;
@@ -58,20 +61,27 @@ public abstract class ThreadStatePropagationChannelInterceptor<S> implements Exe
 	public final Message<?> preSend(Message<?> message, MessageChannel channel) {
 		S threadContext = obtainPropagatingContext(message, channel);
 		if (threadContext != null) {
-			return new MessageWithThreadState<>(message, threadContext);
+			if (message instanceof MessageWithThreadState messageWithThreadState) {
+				messageWithThreadState.stateQueue.add(threadContext);
+			}
+			else {
+				return new MessageWithThreadState(message, threadContext);
+			}
 		}
-		else {
-			return message;
-		}
+
+		return message;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public final Message<?> postReceive(Message<?> message, MessageChannel channel) {
-		if (message instanceof MessageWithThreadState) {
-			MessageWithThreadState<S> messageWithThreadState = (MessageWithThreadState<S>) message;
-			Message<?> messageToHandle = messageWithThreadState.message;
-			populatePropagatedContext(messageWithThreadState.state, messageToHandle, channel);
+		if (message instanceof MessageWithThreadState messageWithThreadState) {
+			Object threadContext = messageWithThreadState.stateQueue.poll();
+			Message<?> messageToHandle = messageWithThreadState;
+			if (messageWithThreadState.stateQueue.isEmpty()) {
+				messageToHandle = messageWithThreadState.message;
+			}
+			populatePropagatedContext((S) threadContext, messageToHandle, channel);
 			return messageToHandle;
 		}
 		return message;
@@ -88,16 +98,23 @@ public abstract class ThreadStatePropagationChannelInterceptor<S> implements Exe
 	protected abstract void populatePropagatedContext(@Nullable S state, Message<?> message, MessageChannel channel);
 
 
-	private static final class MessageWithThreadState<S> implements Message<Object>, MessageDecorator {
+	private static final class MessageWithThreadState implements Message<Object>, MessageDecorator {
 
 		private final Message<Object> message;
 
-		private final S state;
+		private final Queue<Object> stateQueue;
 
 		@SuppressWarnings("unchecked")
-		MessageWithThreadState(Message<?> message, S state) {
+		MessageWithThreadState(Message<?> message, Object state) {
 			this.message = (Message<Object>) message;
-			this.state = state;
+			this.stateQueue = new ArrayDeque<>();
+			this.stateQueue.add(state);
+		}
+
+		@SuppressWarnings("unchecked")
+		private MessageWithThreadState(Message<?> message, Queue<Object> stateQueue) {
+			this.message = (Message<Object>) message;
+			this.stateQueue = stateQueue;
 		}
 
 		@Override
@@ -112,14 +129,14 @@ public abstract class ThreadStatePropagationChannelInterceptor<S> implements Exe
 
 		@Override
 		public Message<?> decorateMessage(Message<?> message) {
-			return new MessageWithThreadState<>(message, this.state);
+			return new MessageWithThreadState(message, this.stateQueue);
 		}
 
 		@Override
 		public String toString() {
 			return "MessageWithThreadState{" +
 					"message=" + this.message +
-					", state=" + this.state +
+					", state=" + this.stateQueue +
 					'}';
 		}
 
