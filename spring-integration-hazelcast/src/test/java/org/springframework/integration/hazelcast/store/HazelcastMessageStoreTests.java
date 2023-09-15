@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import java.util.Properties;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -50,19 +50,19 @@ public class HazelcastMessageStoreTests {
 
 	private static IMap<Object, Object> map;
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() {
 		instance = Hazelcast.newHazelcastInstance();
 		map = instance.getMap("customTestsMessageStore");
 		store = new HazelcastMessageStore(map);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void destroy() {
 		instance.shutdown();
 	}
 
-	@Before
+	@BeforeEach
 	public void clean() {
 		map.clear();
 	}
@@ -143,6 +143,36 @@ public class HazelcastMessageStoreTests {
 			groupCount++;
 		}
 		assertThat(groupCount).isEqualTo(1);
+	}
+
+	@Test
+	public void sameMessageInTwoGroupsNotRemovedByFirstGroup() {
+		GenericMessage<String> testMessage = new GenericMessage<>("test data");
+
+		store.addMessageToGroup("1", testMessage);
+		store.addMessageToGroup("2", testMessage);
+
+		store.removeMessageGroup("1");
+
+		assertThat(store.getMessageCount()).isEqualTo(1);
+
+		store.removeMessageGroup("2");
+
+		assertThat(store.getMessageCount()).isEqualTo(0);
+	}
+
+	@Test
+	public void removeMessagesFromGroupDontRemoveSameMessageInOtherGroup() {
+		GenericMessage<String> testMessage = new GenericMessage<>("test data");
+
+		store.addMessageToGroup("1", testMessage);
+		store.addMessageToGroup("2", testMessage);
+
+		store.removeMessagesFromGroup("1", testMessage);
+
+		assertThat(store.getMessageCount()).isEqualTo(1);
+		assertThat(store.messageGroupSize("1")).isEqualTo(0);
+		assertThat(store.messageGroupSize("2")).isEqualTo(1);
 	}
 
 }
