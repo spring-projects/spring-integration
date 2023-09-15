@@ -65,6 +65,7 @@ import org.springframework.util.Assert;
  * @author Krzysztof Debski
  * @author Auke Zaaiman
  * @author Christian Tzolov
+ * @author Adama Sorho
  *
  * @since 2.0
  */
@@ -283,7 +284,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 			boolean freshSftpClient = false;
 			if (sftpClient == null || !sftpClient.isOpen()) {
 				sftpClient =
-						new ConcurrentSftpClient(initClientSession(), this.sftpVersionSelector,
+						createSftpClient(initClientSession(), this.sftpVersionSelector,
 								SftpErrorDataHandler.EMPTY);
 				freshSftpClient = true;
 			}
@@ -395,6 +396,11 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	public void resetSharedSession() {
 		Assert.state(this.isSharedSession, "Shared sessions are not being used");
 		this.sharedSftpClient = null;
+	}
+
+	protected SftpClient createSftpClient(ClientSession clientSession, SftpVersionSelector initialVersionSelector, SftpErrorDataHandler errorDataHandler) throws IOException {
+
+		return new ConcurrentSftpClient(clientSession, initialVersionSelector, errorDataHandler);
 	}
 
 	/**
