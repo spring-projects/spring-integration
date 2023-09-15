@@ -514,8 +514,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		public final boolean isAcquiredInThisProcess() {
-			return RedisLockRegistry.this.clientId.equals(
-					RedisLockRegistry.this.redisTemplate.boundValueOps(this.lockKey).get());
+			return this.localLock.isLocked();
 		}
 
 		@Override

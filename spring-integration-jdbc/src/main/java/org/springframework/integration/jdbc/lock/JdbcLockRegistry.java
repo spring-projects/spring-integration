@@ -326,7 +326,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 		}
 
 		public boolean isAcquiredInThisProcess() {
-			return this.mutex.isAcquired(this.path);
+			return delegate.isLocked();
 		}
 
 		public boolean renew() {
