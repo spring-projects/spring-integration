@@ -536,6 +536,28 @@ public abstract class AbstractMongoDbMessageGroupStoreTests implements MongoDbCo
 				.containsEntry("type", "channel");
 	}
 
+	@Test
+	public void removeMessageDoesntRemoveSameMessageInTheGroup() {
+		GenericMessage<String> testMessage = new GenericMessage<>("test data");
+
+		MessageGroupStore store = getMessageGroupStore();
+
+		store.addMessageToGroup("1", testMessage);
+
+		MessageStore messageStore = (MessageStore) store;
+
+		messageStore.removeMessage(testMessage.getHeaders().getId());
+
+		assertThat(messageStore.getMessageCount()).isEqualTo(0);
+		assertThat(store.getMessageCountForAllMessageGroups()).isEqualTo(1);
+		assertThat(store.messageGroupSize("1")).isEqualTo(1);
+
+		store.removeMessageGroup("1");
+
+		assertThat(store.getMessageCountForAllMessageGroups()).isEqualTo(0);
+		assertThat(store.messageGroupSize("1")).isEqualTo(0);
+	}
+
 	protected abstract MessageGroupStore getMessageGroupStore();
 
 	protected abstract MessageStore getMessageStore();

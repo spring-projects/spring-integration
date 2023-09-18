@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	@Override
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id));
+		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id)
+				.and(MessageDocumentFields.GROUP_ID).exists(false));
 		MessageDocument document = getMongoTemplate().findAndRemove(query, MessageDocument.class, this.collectionName);
 		return (document != null) ? document.getMessage() : null;
 	}
