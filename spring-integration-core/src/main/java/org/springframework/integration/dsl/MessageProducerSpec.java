@@ -17,10 +17,8 @@
 package org.springframework.integration.dsl;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
-import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverObservationConvention;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
