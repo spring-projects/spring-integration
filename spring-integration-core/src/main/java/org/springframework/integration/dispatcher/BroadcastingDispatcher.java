@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.Collection;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.BeansException;
@@ -57,13 +56,13 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 
 	private final boolean requireSubscribers;
 
-	private volatile boolean ignoreFailures;
-
-	private volatile boolean applySequence;
-
 	private final Executor executor;
 
-	private volatile int minSubscribers;
+	private boolean ignoreFailures;
+
+	private boolean applySequence;
+
+	private int minSubscribers;
 
 	private MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
 
@@ -149,24 +148,20 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		int dispatched = 0;
 		int sequenceNumber = 1;
 		Collection<MessageHandler> handlers = this.getHandlers();
-		if (this.requireSubscribers && handlers.size() == 0) {
+		if (this.requireSubscribers && handlers.isEmpty()) {
 			throw new MessageDispatchingException(message, "Dispatcher has no subscribers");
 		}
 		int sequenceSize = handlers.size();
 		Message<?> messageToSend = message;
-		UUID sequenceId = null;
-		if (this.applySequence) {
-			sequenceId = message.getHeaders().getId();
-		}
 		for (MessageHandler handler : handlers) {
 			if (this.applySequence) {
 				messageToSend = getMessageBuilderFactory()
 						.fromMessage(message)
-						.pushSequenceDetails(sequenceId, sequenceNumber++, sequenceSize)
+						.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize)
 						.build();
-				if (message instanceof MessageDecorator) {
-					messageToSend = ((MessageDecorator) message).decorateMessage(messageToSend);
-				}
+			}
+			if (message instanceof MessageDecorator messageDecorator) {
+				messageToSend = messageDecorator.decorateMessage(messageToSend);
 			}
 
 			if (this.executor != null) {
@@ -175,7 +170,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 				dispatched++;
 			}
 			else {
-				if (this.invokeHandler(handler, messageToSend)) {
+				if (invokeHandler(handler, messageToSend)) {
 					dispatched++;
 				}
 			}
@@ -222,15 +217,15 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 			handler.handleMessage(message);
 			return true;
 		}
-		catch (RuntimeException e) {
+		catch (RuntimeException ex) {
 			if (!this.ignoreFailures) {
-				if (e instanceof MessagingException && ((MessagingException) e).getFailedMessage() == null) { // NOSONAR
-					throw new MessagingException(message, "Failed to handle Message", e);
+				if (ex instanceof MessagingException exception && exception.getFailedMessage() == null) { // NOSONAR
+					throw new MessagingException(message, "Failed to handle Message", ex);
 				}
-				throw e;
+				throw ex;
 			}
-			else if (this.logger.isWarnEnabled()) {
-				logger.warn("Suppressing Exception since 'ignoreFailures' is set to TRUE.", e);
+			else {
+				logger.warn("Suppressing Exception since 'ignoreFailures' is set to TRUE.", ex);
 			}
 			return false;
 		}
