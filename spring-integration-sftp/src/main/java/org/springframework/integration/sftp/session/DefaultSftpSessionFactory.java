@@ -53,6 +53,11 @@ import org.springframework.util.Assert;
 
 /**
  * Factory for creating {@link SftpSession} instances.
+ * <p>
+ *     The {@link #createSftpClient(ClientSession, SftpVersionSelector, SftpErrorDataHandler)} can be overridden
+ *     to provide a custom {@link SftpClient}.
+ * </p>
+ * The {@link ConcurrentSftpClient} is used by default.
  *
  * @author Josh Long
  * @author Mario Gray
@@ -398,7 +403,21 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 		this.sharedSftpClient = null;
 	}
 
-	protected SftpClient createSftpClient(ClientSession clientSession, SftpVersionSelector initialVersionSelector, SftpErrorDataHandler errorDataHandler) throws IOException {
+	/**
+	 * This method allows the end-user to provide a custom {@link SftpClient}
+	 * to {@link #getSession()}.
+	 * @param clientSession the {@link ClientSession}
+	 * @param initialVersionSelector the initial {@link SftpVersionSelector}
+	 * @param errorDataHandler the {@link SftpErrorDataHandler} to handle incoming data
+	 *                         through the error stream.
+	 * @return {@link SftpClient}
+	 * @throws IOException if failed to initialize
+	 *
+	 * @since 6.2
+	 */
+	protected SftpClient createSftpClient(
+			ClientSession clientSession, SftpVersionSelector initialVersionSelector,
+			SftpErrorDataHandler errorDataHandler) throws IOException {
 
 		return new ConcurrentSftpClient(clientSession, initialVersionSelector, errorDataHandler);
 	}
@@ -407,11 +426,11 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	 * The {@link DefaultSftpClient} extension to lock the {@link #send(int, Buffer)}
 	 * for concurrent interaction.
 	 */
-	private static class ConcurrentSftpClient extends DefaultSftpClient {
+	protected static class ConcurrentSftpClient extends DefaultSftpClient {
 
 		private final Lock sendLock = new ReentrantLock();
 
-		ConcurrentSftpClient(ClientSession clientSession, SftpVersionSelector initialVersionSelector,
+		protected ConcurrentSftpClient(ClientSession clientSession, SftpVersionSelector initialVersionSelector,
 				SftpErrorDataHandler errorDataHandler) throws IOException {
 
 			super(clientSession, initialVersionSelector, errorDataHandler);

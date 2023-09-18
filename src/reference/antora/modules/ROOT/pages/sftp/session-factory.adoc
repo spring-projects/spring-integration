@@ -45,6 +45,21 @@ Now all you need to do is inject this SFTP session factory into your adapters.
 
 NOTE: A more practical way to provide values for the SFTP session factory is to use Spring's https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-placeholderconfigurer[property placeholder support].
 
+Starting with version 6.2, spring integration introduces a `createSftpClient(...)` to support a custom `SftpClient`.
+See a sample below of how to override `createSftpChannelSubsystem()` method in your custom `SftpClient` to add, for example, some custom RequestHandler for SFTP sub-system requests and replies:
+
+[source, java]
+----
+@Override
+protected ChannelSubsystem createSftpChannelSubsystem(ClientSession clientSession) {
+    ChannelSubsystem sftpChannelSubsystem = super.createSftpChannelSubsystem(clientSession);
+    sftpChannelSubsystem.addRequestHandler((channel, request, wantReply, buffer) -> ...);
+    return sftpChannelSubsystem;
+}
+----
+
+NOTE: `createSftpClient(...)` can be overridden to create your custom `SftpClient` which will be used by `getSession()`.
+
 [[sftp-session-factory-properties]]
 == Configuration Properties
 
