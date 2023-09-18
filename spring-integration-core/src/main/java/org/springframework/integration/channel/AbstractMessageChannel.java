@@ -17,6 +17,7 @@
 package org.springframework.integration.channel;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -161,8 +162,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 */
 	@Override
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
-		interceptors.sort(this.orderComparator);
-		this.interceptors.set(interceptors);
+		List<ChannelInterceptor> interceptorsToUse = new ArrayList<>(interceptors);
+		interceptorsToUse.sort(this.orderComparator);
+		this.interceptors.set(interceptorsToUse);
 	}
 
 	/**
