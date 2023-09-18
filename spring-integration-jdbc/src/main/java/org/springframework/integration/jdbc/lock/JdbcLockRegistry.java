@@ -65,7 +65,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 	private static final int DEFAULT_CAPACITY = 100_000;
 
 	private final Map<String, JdbcLock> locks =
-			new LinkedHashMap<String, JdbcLock>(16, 0.75F, true) {
+			new LinkedHashMap<>(16, 0.75F, true) {
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, JdbcLock> eldest) {
@@ -311,7 +311,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 		}
 
 		public boolean isAcquiredInThisProcess() {
-			return delegate.isLocked();
+			return this.delegate.isLocked();
 		}
 
 		public boolean renew() {
