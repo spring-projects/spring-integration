@@ -84,6 +84,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Anton Gabov
  * @author Christian Tzolov
  * @author Eddie Cho
+ * @author Myeonghyeon Lee
  *
  * @since 4.0
  *
@@ -514,8 +515,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		public final boolean isAcquiredInThisProcess() {
-			return RedisLockRegistry.this.clientId.equals(
-					RedisLockRegistry.this.redisTemplate.boundValueOps(this.lockKey).get());
+			return this.localLock.isLocked();
 		}
 
 		@Override

@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
  * @author Fran Aranda
  * @author Unseok Kim
  * @author Christian Tzolov
+ * @author Myeonghyeon Lee
  *
  * @since 4.3
  */
@@ -326,7 +327,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 		}
 
 		public boolean isAcquiredInThisProcess() {
-			return this.mutex.isAcquired(this.path);
+			return delegate.isLocked();
 		}
 
 		public boolean renew() {
