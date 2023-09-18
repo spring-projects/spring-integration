@@ -56,12 +56,16 @@ import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.support.management.IntegrationInboundManagement;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.management.metrics.TimerFacade;
+import org.springframework.integration.support.management.observation.DefaultMessageReceiverObservationConvention;
 import org.springframework.integration.support.management.observation.DefaultMessageRequestReplyReceiverObservationConvention;
 import org.springframework.integration.support.management.observation.IntegrationObservation;
+import org.springframework.integration.support.management.observation.MessageReceiverContext;
+import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverContext;
 import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverObservationConvention;
 import org.springframework.lang.Nullable;
@@ -91,7 +95,7 @@ import org.springframework.util.Assert;
  */
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
-		implements org.springframework.integration.support.management.TrackableComponent,
+		implements TrackableComponent,
 		IntegrationInboundManagement, IntegrationPattern {
 
 	protected final ConvertingMessagingTemplate messagingTemplate; // NOSONAR
@@ -143,6 +147,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	@Nullable
 	private MessageRequestReplyReceiverObservationConvention observationConvention;
+
+	private MessageReceiverObservationConvention receiverObservationConvention;
 
 	private volatile AbstractEndpoint replyMessageCorrelator;
 
@@ -384,6 +390,10 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		this.observationConvention = observationConvention;
 	}
 
+	public void setReceiverObservationConvention(MessageReceiverObservationConvention receiverObservationConvention) {
+		this.receiverObservationConvention = receiverObservationConvention;
+	}
+
 	@Override
 	protected void onInit() {
 		Assert.state(!(this.requestChannelName != null && this.requestChannel != null),
@@ -468,27 +478,62 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		MessageChannel channel = getRequestChannel();
 		Assert.state(channel != null,
 				"send is not supported, because no request channel has been configured");
-		SampleFacade sample = null;
-		if (this.metricsCaptor != null) {
-			sample = this.metricsCaptor.start();
+
+		Message<?> requestMessage = this.messagingTemplate.doConvert(object, null, this.historyWritingPostProcessor);
+
+		if (!ObservationRegistry.NOOP.equals(this.observationRegistry)) {
+			sendWithObservation(channel, requestMessage);
 		}
+		else if (this.metricsCaptor != null) {
+			sendWithMetrics(channel, requestMessage);
+		}
+		else {
+			doSend(channel, requestMessage);
+		}
+	}
+
+	private void sendWithObservation(MessageChannel channel, Message<?> message) {
 		try {
-			this.messagingTemplate.convertAndSend(channel, object, this.historyWritingPostProcessor);
-			if (sample != null) {
-				sample.stop(sendTimer());
-			}
+			IntegrationObservation.HANDLER.observation(
+							this.receiverObservationConvention,
+							DefaultMessageReceiverObservationConvention.INSTANCE,
+							() -> new MessageReceiverContext(message, getComponentName()),
+							this.observationRegistry)
+					.observe(() -> this.messagingTemplate.send(channel, message));
 		}
-		catch (Exception e) {
-			if (sample != null) {
-				sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
-			}
-			MessageChannel errorChan = getErrorChannel();
-			if (errorChan != null) {
-				this.messagingTemplate.send(errorChan, new ErrorMessage(e));
-			}
-			else {
-				rethrow(e, "failed to send message");
-			}
+		catch (Exception ex) {
+			sendErrorMessage(ex, message);
+		}
+	}
+
+	private void sendWithMetrics(MessageChannel channel, Message<?> message) {
+		SampleFacade sample = this.metricsCaptor.start();
+		try {
+			this.messagingTemplate.send(channel, message);
+			sample.stop(sendTimer());
+		}
+		catch (Exception ex) {
+			sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
+			sendErrorMessage(ex, message);
+		}
+	}
+
+	private void doSend(MessageChannel channel, Message<?> message) {
+		try {
+			this.messagingTemplate.send(channel, message);
+		}
+		catch (Exception ex) {
+			sendErrorMessage(ex, message);
+		}
+	}
+
+	private void sendErrorMessage(Exception exception, Message<?> failedMessage) {
+		MessageChannel errorChan = getErrorChannel();
+		if (errorChan != null) {
+			this.messagingTemplate.send(errorChan, buildErrorMessage(failedMessage, exception));
+		}
+		else {
+			rethrow(exception, "failed to send message");
 		}
 	}
 

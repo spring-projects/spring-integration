@@ -766,6 +766,7 @@ project('spring-integration-jms') {
         testImplementation "org.apache.activemq:artemis-jakarta-client:$artemisVersion"
         testImplementation 'org.springframework:spring-oxm'
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'io.micrometer:micrometer-observation-test'
     }
 }
 
