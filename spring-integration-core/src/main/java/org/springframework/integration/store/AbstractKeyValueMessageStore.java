@@ -46,7 +46,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	protected static final String MESSAGE_KEY_PREFIX = "MESSAGE_";
 
-	protected static final String MESSAGE_GROUP_KEY_PREFIX = "GROUP_OF_MESSAGES_";
+	protected static final String MESSAGE_GROUP_KEY_PREFIX = "MESSAGE_GROUP_";
 
 	private final String messagePrefix;
 
@@ -77,7 +77,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 * @return the prefix for keys
 	 * @since 4.3.12
 	 */
-	protected String getMessagePrefix() {
+	public String getMessagePrefix() {
 		return this.messagePrefix;
 	}
 
@@ -167,10 +167,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
-		Collection<?> messageIds = doListKeys(this.messagePrefix + '*');
+		Collection<?> messageIds = doListKeys(this.messagePrefix + "[^GROUP_]*");
 		return (messageIds != null) ? messageIds.size() : 0;
 	}
-
 
 	// MessageGroupStore methods
 

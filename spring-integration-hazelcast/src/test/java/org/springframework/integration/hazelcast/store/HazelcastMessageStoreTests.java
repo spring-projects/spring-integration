@@ -69,7 +69,6 @@ public class HazelcastMessageStoreTests {
 
 	@Test
 	public void testWithMessageHistory() {
-
 		Message<?> message = new GenericMessage<>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
@@ -107,7 +106,6 @@ public class HazelcastMessageStoreTests {
 
 	@Test
 	public void addAndGetMessage() {
-
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		store.addMessage(message);
 		Message<?> retrieved = store.getMessage(message.getHeaders().getId());

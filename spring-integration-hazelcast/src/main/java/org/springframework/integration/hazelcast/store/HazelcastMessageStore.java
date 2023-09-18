@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,8 +76,8 @@ public class HazelcastMessageStore extends AbstractKeyValueMessageStore {
 	@Override
 	protected Collection<?> doListKeys(String keyPattern) {
 		Assert.hasText(keyPattern, "'keyPattern' must not be empty");
-		return this.map.keySet(Predicates.like(QueryConstants.KEY_ATTRIBUTE_NAME.value(),
-				keyPattern.replaceAll("\\*", "%")));
+		return this.map.keySet(Predicates.regex(QueryConstants.KEY_ATTRIBUTE_NAME.value(),
+				keyPattern.replaceAll("\\*", ".+")));
 	}
 
 }
