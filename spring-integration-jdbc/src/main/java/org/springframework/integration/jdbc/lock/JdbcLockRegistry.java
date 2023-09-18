@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Olivier Hubaut
  * @author Fran Aranda
  * @author Unseok Kim
+ * @author Myeonghyeon Lee
  *
  * @since 4.3
  */
@@ -310,7 +311,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 		}
 
 		public boolean isAcquiredInThisProcess() {
-			return this.mutex.isAcquired(this.path);
+			return delegate.isLocked();
 		}
 
 		public boolean renew() {
