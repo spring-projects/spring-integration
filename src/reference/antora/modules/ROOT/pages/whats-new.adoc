@@ -72,3 +72,9 @@ See xref:mongodb.adoc#mongodb-message-store[MongoDB Message Store] for an exampl
 
 `FtpLastModifiedFileListFilter`, `SftpLastModifiedFileListFilter` and `SmbLastModifiedFileListFilter` have been introduced to allow files filtering based on a last-modified strategy respectively for `FTP`, `SFTP` and `SMB`.
 See xref:ftp/inbound.adoc#ftp-inbound[FTP Inbound Channel Adapter], xref:sftp/inbound.adoc#sftp-inbound[SFTP Inbound Channel Adapter], and xref:smb.adoc#smb-inbound[SMB Inbound Channel Adapter] for more information.
+
+[[x6.2-sftp-changes]]
+=== SFTP Support Changes
+
+A new `DefaultSftpSessionFactory.createSftpClient(...)` method has been introduced to support a custom `SftpClient` when overridden.
+See xref:sftp/session-factory.adoc#sftp-session-factory[SFTP Session Factory] for more information.

@@ -53,6 +53,10 @@ import org.springframework.util.Assert;
 
 /**
  * Factory for creating {@link SftpSession} instances.
+ * <p>
+ * The {@link #createSftpClient(ClientSession, SftpVersionSelector, SftpErrorDataHandler)}
+ * can be overridden to provide a custom {@link SftpClient}.
+ * The {@link ConcurrentSftpClient} is used by default.
  *
  * @author Josh Long
  * @author Mario Gray
@@ -65,6 +69,7 @@ import org.springframework.util.Assert;
  * @author Krzysztof Debski
  * @author Auke Zaaiman
  * @author Christian Tzolov
+ * @author Adama Sorho
  *
  * @since 2.0
  */
@@ -282,9 +287,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 		try {
 			boolean freshSftpClient = false;
 			if (sftpClient == null || !sftpClient.isOpen()) {
-				sftpClient =
-						new ConcurrentSftpClient(initClientSession(), this.sftpVersionSelector,
-								SftpErrorDataHandler.EMPTY);
+				sftpClient = createSftpClient(initClientSession(), this.sftpVersionSelector, SftpErrorDataHandler.EMPTY);
 				freshSftpClient = true;
 			}
 			sftpSession = new SftpSession(sftpClient);
@@ -293,8 +296,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 				this.sharedSftpClient = sftpClient;
 			}
 		}
-		catch (Exception e) {
-			throw new IllegalStateException("failed to create SFTP Session", e);
+		catch (Exception ex) {
+			throw new IllegalStateException("failed to create SFTP Session", ex);
 		}
 		finally {
 			if (this.sharedSessionLock != null) {
@@ -398,14 +401,31 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	}
 
 	/**
+	 * Can be overridden to provide a custom {@link SftpClient} to {@link #getSession()}.
+	 * @param clientSession the {@link ClientSession}
+	 * @param initialVersionSelector the initial {@link SftpVersionSelector}
+	 * @param errorDataHandler the {@link SftpErrorDataHandler} to handle incoming data
+	 *                         through the error stream.
+	 * @return {@link SftpClient}
+	 * @throws IOException if failed to initialize
+	 * @since 6.1.3
+	 */
+	protected SftpClient createSftpClient(
+			ClientSession clientSession, SftpVersionSelector initialVersionSelector,
+			SftpErrorDataHandler errorDataHandler) throws IOException {
+
+		return new ConcurrentSftpClient(clientSession, initialVersionSelector, errorDataHandler);
+	}
+
+	/**
 	 * The {@link DefaultSftpClient} extension to lock the {@link #send(int, Buffer)}
 	 * for concurrent interaction.
 	 */
-	private static class ConcurrentSftpClient extends DefaultSftpClient {
+	protected static class ConcurrentSftpClient extends DefaultSftpClient {
 
 		private final Lock sendLock = new ReentrantLock();
 
-		ConcurrentSftpClient(ClientSession clientSession, SftpVersionSelector initialVersionSelector,
+		protected ConcurrentSftpClient(ClientSession clientSession, SftpVersionSelector initialVersionSelector,
 				SftpErrorDataHandler errorDataHandler) throws IOException {
 
 			super(clientSession, initialVersionSelector, errorDataHandler);

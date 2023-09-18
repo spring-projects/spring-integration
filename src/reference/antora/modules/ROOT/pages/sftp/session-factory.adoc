@@ -38,12 +38,25 @@ When using this feature, you must wrap the session factory in a caching session 
 
 If the cache is reset, the session is disconnected only when the last channel is closed.
 
-The connection is refreshed if it is found to be disconnected when a new operation obtains a session.
+The connection is refreshed if it to be disconnected when a new operation obtains a session.
 =====
 
 Now all you need to do is inject this SFTP session factory into your adapters.
 
 NOTE: A more practical way to provide values for the SFTP session factory is to use Spring's https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-placeholderconfigurer[property placeholder support].
+
+Starting with version 6.1.3, the `DefaultSftpSessionFactory` introduces a `createSftpClient(...)` to support a custom `SftpClient`.
+See a sample below of how to override `createSftpChannelSubsystem()` method in your custom `SftpClient` to add, for example, some custom `RequestHandler` for SFTP sub-system requests and replies:
+
+[source, java]
+----
+@Override
+protected ChannelSubsystem createSftpChannelSubsystem(ClientSession clientSession) {
+    ChannelSubsystem sftpChannelSubsystem = super.createSftpChannelSubsystem(clientSession);
+    sftpChannelSubsystem.addRequestHandler((channel, request, wantReply, buffer) -> ...);
+    return sftpChannelSubsystem;
+}
+----
 
 [[sftp-session-factory-properties]]
 == Configuration Properties
