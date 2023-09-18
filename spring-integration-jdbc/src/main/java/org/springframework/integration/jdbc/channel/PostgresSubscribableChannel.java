@@ -67,6 +67,8 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	private Executor executor = new SimpleAsyncTaskExecutor();
 
+	private volatile boolean hasHandlers;
+
 	/**
 	 * Create a subscribable channel for a Postgres database.
 	 * @param jdbcChannelMessageStore The message store to use for the relevant region.
@@ -120,6 +122,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 		boolean subscribed = super.subscribe(handler);
 		if (this.dispatcher.getHandlerCount() == 1) {
 			this.messageTableSubscriber.subscribe(this);
+			this.hasHandlers = true;
 			notifyUpdate();
 		}
 		return subscribed;
@@ -130,6 +133,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 		boolean unsubscribed = super.unsubscribe(handle);
 		if (this.dispatcher.getHandlerCount() == 0) {
 			this.messageTableSubscriber.unsubscribe(this);
+			this.hasHandlers = false;
 		}
 		return unsubscribed;
 	}
@@ -151,24 +155,27 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 			try {
 				Optional<Message<?>> dispatchedMessage;
 				do {
-					if (this.transactionTemplate != null) {
-						dispatchedMessage =
-								this.retryTemplate.execute(context ->
-										this.transactionTemplate.execute(status ->
-												pollMessage()
-														.map(this::dispatch)));
-					}
-					else {
-						dispatchedMessage =
-								pollMessage()
-										.map(message -> this.retryTemplate.execute(context -> dispatch(message)));
-					}
+					dispatchedMessage = askForMessage();
 				} while (dispatchedMessage.isPresent());
 			}
 			catch (Exception ex) {
 				LOGGER.error(ex, "Exception during message dispatch");
 			}
 		});
+	}
+
+	private Optional<Message<?>> askForMessage() {
+		if (this.hasHandlers) {
+			if (this.transactionTemplate != null) {
+				return this.retryTemplate.execute(context ->
+						this.transactionTemplate.execute(status -> pollMessage().map(this::dispatch)));
+			}
+			else {
+				return pollMessage()
+						.map(message -> this.retryTemplate.execute(context -> dispatch(message)));
+			}
+		}
+		return Optional.empty();
 	}
 
 	private Optional<Message<?>> pollMessage() {

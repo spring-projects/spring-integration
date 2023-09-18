@@ -45,6 +45,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
@@ -169,19 +170,25 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		postgresSubscribableChannel.setTransactionManager(transactionManager);
 
 		postgresChannelMessageTableSubscriber.start();
-		postgresSubscribableChannel.subscribe(message -> {
+		MessageHandler messageHandler =
+				message -> {
 			try {
 				throw new RuntimeException("An error has occurred");
 			}
 			finally {
 				latch.countDown();
 			}
-		});
+		};
+		postgresSubscribableChannel.subscribe(messageHandler);
 
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
 
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		// Stop subscriber to unlock records from TX for the next verification
+		postgresChannelMessageTableSubscriber.stop();
+		postgresSubscribableChannel.unsubscribe(messageHandler);
 
 		assertThat(messageStore.messageGroupSize(groupId)).isEqualTo(2);
 		assertThat(messageStore.pollMessageFromGroup(groupId).getPayload()).isEqualTo("1");
