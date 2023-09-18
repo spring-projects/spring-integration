@@ -404,7 +404,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	}
 
 	/**
-	 * This method allows the end-user to provide a custom {@link SftpClient}
+	 * Can be overridden to provide a custom {@link SftpClient}
 	 * to {@link #getSession()}.
 	 * @param clientSession the {@link ClientSession}
 	 * @param initialVersionSelector the initial {@link SftpVersionSelector}
@@ -412,7 +412,6 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	 *                         through the error stream.
 	 * @return {@link SftpClient}
 	 * @throws IOException if failed to initialize
-	 *
 	 * @since 6.2
 	 */
 	protected SftpClient createSftpClient(
