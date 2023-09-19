@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2022 the original author or authors.
+ * Copyright 2007-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.fail;
 
 /**
@@ -65,6 +66,7 @@ import static org.assertj.core.api.Assertions.fail;
  * @author Artem Vozhdayenko
  */
 class RedisMessageGroupStoreTests implements RedisContainerTest {
+
 	private static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
@@ -74,17 +76,18 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	private final UUID groupId = UUID.randomUUID();
 
+	RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
+
 	@BeforeEach
 	@AfterEach
 	void setUpTearDown() {
 		StringRedisTemplate template = RedisContainerTest.createStringRedisTemplate(redisConnectionFactory);
-		template.delete(template.keys("MESSAGE_GROUP_*"));
+		template.delete(template.keys("MESSAGE_*"));
+		template.delete(template.keys("GROUP_OF_MESSAGES_*"));
 	}
 
 	@Test
 	void testNonExistingEmptyMessageGroup() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		assertThat(messageGroup).isNotNull();
 		assertThat(messageGroup).isInstanceOf(SimpleMessageGroup.class);
@@ -93,8 +96,6 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testMessageGroupUpdatedDateChangesWithEachAddedMessage() throws Exception {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-
 		Message<?> message = new GenericMessage<>("Hello");
 		MessageGroup messageGroup = store.addMessageToGroup(this.groupId, message);
 		assertThat(messageGroup.size()).isEqualTo(1);
@@ -117,8 +118,6 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testMessageGroupWithAddedMessage() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-
 		Message<?> message = new GenericMessage<>("Hello");
 		MessageGroup messageGroup = store.addMessageToGroup(this.groupId, message);
 		assertThat(messageGroup.size()).isEqualTo(1);
@@ -132,8 +131,6 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testRemoveMessageGroup() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		Message<?> message = new GenericMessage<>("Hello");
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
@@ -157,8 +154,6 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testCompleteMessageGroup() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		Message<?> message = new GenericMessage<>("Hello");
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
@@ -169,8 +164,6 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testLastReleasedSequenceNumber() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		Message<?> message = new GenericMessage<>("Hello");
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
@@ -181,8 +174,6 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testRemoveMessageFromTheGroup() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		Message<?> message = new GenericMessage<>("2");
 		store.addMessagesToGroup(messageGroup.getGroupId(), new GenericMessage<>("1"), message);
@@ -202,8 +193,6 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testWithMessageHistory() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-
 		Message<?> message = new GenericMessage<>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
@@ -227,17 +216,16 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testRemoveNonExistingMessageFromTheGroup() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		store.addMessagesToGroup(messageGroup.getGroupId(), new GenericMessage<>("1"));
-		store.removeMessagesFromGroup(this.groupId, new GenericMessage<>("2"));
+		assertThatNoException()
+				.isThrownBy(() -> store.removeMessagesFromGroup(this.groupId, new GenericMessage<>("2")));
 	}
 
 	@Test
 	void testRemoveNonExistingMessageFromNonExistingTheGroup() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-		store.removeMessagesFromGroup(this.groupId, new GenericMessage<>("2"));
+		assertThatNoException()
+				.isThrownBy(() -> store.removeMessagesFromGroup(this.groupId, new GenericMessage<>("2")));
 	}
 
 
@@ -283,14 +271,9 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 		while (messageGroups.hasNext()) {
 			MessageGroup group = messageGroups.next();
 			String groupId = (String) group.getGroupId();
-			if (groupId.equals("1")) {
-				assertThat(group.getMessages().size()).isEqualTo(1);
-			}
-			else if (groupId.equals("2")) {
-				assertThat(group.getMessages().size()).isEqualTo(1);
-			}
-			else if (groupId.equals("3")) {
-				assertThat(group.getMessages().size()).isEqualTo(2);
+			switch (groupId) {
+				case "1", "2" -> assertThat(group.getMessages().size()).isEqualTo(1);
+				case "3" -> assertThat(group.getMessages().size()).isEqualTo(2);
 			}
 			counter++;
 		}
@@ -390,25 +373,22 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 
 	@Test
 	void testAddAndRemoveMessagesFromMessageGroup() {
-		RedisMessageStore messageStore = new RedisMessageStore(redisConnectionFactory);
-		List<Message<?>> messages = new ArrayList<Message<?>>();
+		List<Message<?>> messages = new ArrayList<>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(this.groupId).build();
-			messageStore.addMessagesToGroup(this.groupId, message);
+			store.addMessagesToGroup(this.groupId, message);
 			messages.add(message);
 		}
-		MessageGroup group = messageStore.getMessageGroup(this.groupId);
+		MessageGroup group = store.getMessageGroup(this.groupId);
 		assertThat(group.size()).isEqualTo(25);
-		messageStore.removeMessagesFromGroup(this.groupId, messages);
-		group = messageStore.getMessageGroup(this.groupId);
+		store.removeMessagesFromGroup(this.groupId, messages);
+		group = store.getMessageGroup(this.groupId);
 		assertThat(group.size()).isZero();
-		messageStore.removeMessageGroup(this.groupId);
+		store.removeMessageGroup(this.groupId);
 	}
 
 	@Test
 	void testJsonSerialization() {
-		RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
-
 		ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
@@ -474,6 +454,36 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 		messageGroup = store.addMessageToGroup(this.groupId, fooMessage);
 		assertThat(messageGroup.size()).isEqualTo(1);
 		assertThat(messageGroup.getMessages().iterator().next()).isEqualTo(fooMessage);
+	}
+
+	@Test
+	public void sameMessageInTwoGroupsNotRemovedByFirstGroup() {
+		GenericMessage<String> testMessage = new GenericMessage<>("test data");
+
+		store.addMessageToGroup("1", testMessage);
+		store.addMessageToGroup("2", testMessage);
+
+		store.removeMessageGroup("1");
+
+		assertThat(store.getMessageCount()).isEqualTo(1);
+
+		store.removeMessageGroup("2");
+
+		assertThat(store.getMessageCount()).isEqualTo(0);
+	}
+
+	@Test
+	public void removeMessagesFromGroupDontRemoveSameMessageInOtherGroup() {
+		GenericMessage<String> testMessage = new GenericMessage<>("test data");
+
+		store.addMessageToGroup("1", testMessage);
+		store.addMessageToGroup("2", testMessage);
+
+		store.removeMessagesFromGroup("1", testMessage);
+
+		assertThat(store.getMessageCount()).isEqualTo(1);
+		assertThat(store.messageGroupSize("1")).isEqualTo(0);
+		assertThat(store.messageGroupSize("2")).isEqualTo(1);
 	}
 
 	private static class Foo {

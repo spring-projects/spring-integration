@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -45,7 +46,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	protected static final String MESSAGE_KEY_PREFIX = "MESSAGE_";
 
-	protected static final String MESSAGE_GROUP_KEY_PREFIX = "MESSAGE_GROUP_";
+	protected static final String MESSAGE_GROUP_KEY_PREFIX = "GROUP_OF_MESSAGES_";
 
 	private final String messagePrefix;
 
@@ -57,9 +58,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	/**
 	 * Construct an instance based on the provided prefix for keys to distinguish between
-	 * different store instances in the same target key-value data base. Defaults to an
+	 * different store instances in the same target key-value database. Defaults to an
 	 * empty string - no prefix. The actual prefix for messages is
-	 * {@code prefix + MESSAGE_}; for message groups - {@code prefix + MESSAGE_GROUP_}
+	 * {@code prefix + MESSAGE_}; for message groups - {@code prefix + GROUP_OF_MESSAGES_}
 	 * @param prefix the prefix to use
 	 * @since 4.3.12
 	 */
@@ -71,18 +72,18 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	/**
 	 * Return the configured prefix for message keys to distinguish between different
-	 * store instances in the same target key-value data base. Defaults to the
+	 * store instances in the same target key-value database. Defaults to the
 	 * {@value MESSAGE_KEY_PREFIX} - without a custom prefix.
 	 * @return the prefix for keys
 	 * @since 4.3.12
 	 */
-	protected String getMessagePrefix() {
+	public String getMessagePrefix() {
 		return this.messagePrefix;
 	}
 
 	/**
 	 * Return the configured prefix for message group keys to distinguish between
-	 * different store instances in the same target key-value data base. Defaults to the
+	 * different store instances in the same target key-value database. Defaults to the
 	 * {@value MESSAGE_GROUP_KEY_PREFIX} - without custom prefix.
 	 * @return the prefix for keys
 	 * @since 4.3.12
@@ -140,10 +141,15 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	protected void doAddMessage(Message<?> message) {
+		doAddMessage(message, null);
+	}
+
+	protected void doAddMessage(Message<?> message, @Nullable Object groupId) {
 		Assert.notNull(message, "'message' must not be null");
 		UUID messageId = message.getHeaders().getId();
 		Assert.notNull(messageId, "Cannot store messages without an ID header");
-		doStoreIfAbsent(this.messagePrefix + messageId, new MessageHolder(message));
+		String messageKey = this.messagePrefix + (groupId != null ? groupId.toString() + '_' : "") + messageId;
+		doStoreIfAbsent(messageKey, new MessageHolder(message));
 	}
 
 	@Override
@@ -164,7 +170,6 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Collection<?> messageIds = doListKeys(this.messagePrefix + '*');
 		return (messageIds != null) ? messageIds.size() : 0;
 	}
-
 
 	// MessageGroupStore methods
 
@@ -211,7 +216,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		}
 
 		for (Message<?> message : messages) {
-			doAddMessage(message);
+			doAddMessage(message, groupId);
 			if (metadata != null) {
 				metadata.add(message.getHeaders().getId());
 			}
@@ -253,7 +258,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 			List<Object> messageIds = new ArrayList<>();
 			for (UUID id : ids) {
-				messageIds.add(this.messagePrefix + id);
+				messageIds.add(this.messagePrefix + groupId + '_' + id);
 			}
 
 			doRemoveAll(messageIds);
@@ -288,7 +293,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			List<Object> messageIds =
 					messageGroupMetadata.getMessageIds()
 							.stream()
-							.map(id -> this.messagePrefix + id)
+							.map(id -> this.messagePrefix + groupId + '_' + id)
 							.collect(Collectors.toList());
 
 			doRemoveAll(messageIds);
@@ -326,10 +331,21 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 				groupMetadata.remove(firstId);
 				groupMetadata.setLastModified(System.currentTimeMillis());
 				doStore(this.groupPrefix + groupId, groupMetadata);
-				return removeMessage(firstId);
+				return removeMessageFromGroup(firstId, groupId);
 			}
 		}
 		return null;
+	}
+
+	private Message<?> removeMessageFromGroup(UUID id, Object groupId) {
+		Assert.notNull(id, "'id' must not be null");
+		Object object = doRemove(this.messagePrefix + groupId + '_' + id);
+		if (object != null) {
+			return extractMessage(object);
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -338,10 +354,22 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		if (groupMetadata != null) {
 			UUID messageId = groupMetadata.firstId();
 			if (messageId != null) {
-				return getMessage(messageId);
+				return getMessageFromGroup(messageId, groupId);
 			}
 		}
 		return null;
+	}
+
+	@Nullable
+	private Message<?> getMessageFromGroup(UUID messageId, Object groupId) {
+		Assert.notNull(messageId, "'messageId' must not be null");
+		Object object = doRetrieve(this.messagePrefix + groupId + '_' + messageId);
+		if (object != null) {
+			return extractMessage(object);
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -351,7 +379,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		if (groupMetadata != null) {
 			Iterator<UUID> messageIds = groupMetadata.messageIdIterator();
 			while (messageIds.hasNext()) {
-				messages.add(getMessage(messageIds.next()));
+				messages.add(getMessageFromGroup(messageIds.next(), groupId));
 			}
 		}
 		return messages;
@@ -362,7 +390,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return getGroupMetadata(groupId)
 				.getMessageIds()
 				.stream()
-				.map(this::getMessage);
+				.map((messageId) -> getMessageFromGroup(messageId, groupId));
 	}
 
 	@Override
@@ -376,8 +404,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	private Collection<String> normalizeKeys(Collection<String> keys) {
 		Set<String> normalizedKeys = new HashSet<>();
-		for (Object key : keys) {
-			String strKey = (String) key;
+		for (String key : keys) {
+			String strKey = key;
 			if (strKey.startsWith(this.groupPrefix)) {
 				strKey = strKey.replace(this.groupPrefix, "");
 			}
