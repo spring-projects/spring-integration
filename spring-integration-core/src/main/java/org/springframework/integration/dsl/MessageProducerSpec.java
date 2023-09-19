@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.dsl;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -148,6 +149,18 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	 */
 	public S errorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
 		this.target.setErrorMessageStrategy(errorMessageStrategy);
+		return _this();
+	}
+
+	/**
+	 * Provide a custom {@link MessageReceiverObservationConvention}.
+	 * @param observationConvention the observation convention to use.
+	 * @return the spec.
+	 * @since 6.0.8
+	 * @see MessageProducerSupport#setObservationConvention(MessageReceiverObservationConvention)
+	 */
+	public S observationConvention(MessageReceiverObservationConvention observationConvention) {
+		this.target.setObservationConvention(observationConvention);
 		return _this();
 	}
 

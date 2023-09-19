@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.jms;
 
 import java.util.Map;
 
+import io.micrometer.observation.ObservationRegistry;
 import jakarta.jms.DeliveryMode;
 import jakarta.jms.Destination;
 import jakarta.jms.InvalidDestinationException;
@@ -35,6 +36,9 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
+import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
+import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverObservationConvention;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.JmsUtils;
@@ -42,6 +46,7 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -302,6 +307,26 @@ public class ChannelPublishingJmsMessageListener
 	 */
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
+	}
+
+	public void setMetricsCaptor(MetricsCaptor captor) {
+		this.gatewayDelegate.registerMetricsCaptor(captor);
+	}
+
+	public void setObservationRegistry(ObservationRegistry observationRegistry) {
+		this.gatewayDelegate.registerObservationRegistry(observationRegistry);
+	}
+
+	public void setRequestReplyObservationConvention(
+			@Nullable MessageRequestReplyReceiverObservationConvention observationConvention) {
+
+		this.gatewayDelegate.setObservationConvention(observationConvention);
+	}
+
+	public void setReceiverObservationConvention(
+			@Nullable MessageReceiverObservationConvention observationConvention) {
+
+		this.gatewayDelegate.setReceiverObservationConvention(observationConvention);
 	}
 
 	@Override

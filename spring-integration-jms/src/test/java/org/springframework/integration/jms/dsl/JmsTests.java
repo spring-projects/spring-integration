@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.micrometer.observation.tck.TestObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -39,6 +41,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -51,6 +54,7 @@ import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.JmsDestinationPollingSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.management.observation.IntegrationObservation;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -137,6 +141,12 @@ public class JmsTests extends ActiveMQMultiContextTests {
 	@Autowired
 	private CountDownLatch redeliveryLatch;
 
+	@Autowired
+	JmsTemplate jmsTemplate;
+
+	@Autowired
+	TestObservationRegistry observationRegistry;
+
 	@Test
 	public void testPollingFlow() {
 		this.controlBus.send("@'integerMessageSource.inboundChannelAdapter'.start()");
@@ -197,6 +207,14 @@ public class JmsTests extends ActiveMQMultiContextTests {
 				.isEqualTo("foo");
 
 		assertThat(this.jmsOutboundFlowTemplate).isNotNull();
+
+		TestObservationRegistryAssert.assertThat(this.observationRegistry)
+				.hasObservationWithNameEqualTo("spring.integration.handler")
+				.that()
+				.hasLowCardinalityKeyValue(IntegrationObservation.HandlerTags.COMPONENT_NAME.asString(),
+						"observedJmsMessageDrivenChannelAdapter")
+				.hasBeenStarted()
+				.hasBeenStopped();
 	}
 
 	@Test
@@ -232,6 +250,14 @@ public class JmsTests extends ActiveMQMultiContextTests {
 				.isNotNull()
 				.extracting(Message::getPayload)
 				.isEqualTo("error: junk is not convertible");
+
+		TestObservationRegistryAssert.assertThat(this.observationRegistry)
+				.hasObservationWithNameEqualTo("spring.integration.gateway")
+				.that()
+				.hasLowCardinalityKeyValue(IntegrationObservation.GatewayTags.COMPONENT_NAME.asString(),
+						"observedJmsInboundGateway")
+				.hasBeenStarted()
+				.hasBeenStopped();
 	}
 
 	@Test
@@ -274,7 +300,13 @@ public class JmsTests extends ActiveMQMultiContextTests {
 	@Configuration
 	@EnableIntegration
 	@IntegrationComponentScan
+	@EnableIntegrationManagement(observationPatterns = "observedJms*")
 	public static class ContextConfiguration {
+
+		@Bean
+		TestObservationRegistry observationRegistry() {
+			return TestObservationRegistry.create();
+		}
 
 		@Bean
 		public JmsTemplate jmsTemplate() {
@@ -386,10 +418,10 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		public IntegrationFlow jmsMessageDrivenFlowWithContainer() {
 			return IntegrationFlow
 					.from(Jms.messageDrivenChannelAdapter(
-							Jms.container(amqFactory, "containerSpecDestination")
-									.pubSubDomain(false)
-									.taskExecutor(Executors.newCachedThreadPool())
-									.get()))
+									Jms.container(amqFactory, "containerSpecDestination")
+											.pubSubDomain(false)
+											.taskExecutor(Executors.newCachedThreadPool()))
+							.id("observedJmsMessageDrivenChannelAdapter"))
 					.transform(String::trim)
 					.channel(jmsOutboundInboundReplyChannel())
 					.get();
@@ -408,6 +440,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		public IntegrationFlow jmsInboundGatewayFlow() {
 			return IntegrationFlow.from(
 							Jms.inboundGateway(amqFactory)
+									.id("observedJmsInboundGateway")
 									.requestChannel(jmsInboundGatewayInputChannel())
 									.replyTimeout(1)
 									.errorOnTimeout(true)
