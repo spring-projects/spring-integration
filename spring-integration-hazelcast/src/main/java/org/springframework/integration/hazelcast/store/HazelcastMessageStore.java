@@ -76,8 +76,8 @@ public class HazelcastMessageStore extends AbstractKeyValueMessageStore {
 	@Override
 	protected Collection<?> doListKeys(String keyPattern) {
 		Assert.hasText(keyPattern, "'keyPattern' must not be empty");
-		return this.map.keySet(Predicates.regex(QueryConstants.KEY_ATTRIBUTE_NAME.value(),
-				keyPattern.replaceAll("\\*", ".+")));
+		return this.map.keySet(Predicates.like(QueryConstants.KEY_ATTRIBUTE_NAME.value(),
+				keyPattern.replaceAll("\\*", "%")));
 	}
 
 }

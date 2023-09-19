@@ -83,6 +83,7 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 	void setUpTearDown() {
 		StringRedisTemplate template = RedisContainerTest.createStringRedisTemplate(redisConnectionFactory);
 		template.delete(template.keys("MESSAGE_*"));
+		template.delete(template.keys("GROUP_OF_MESSAGES_*"));
 	}
 
 	@Test
