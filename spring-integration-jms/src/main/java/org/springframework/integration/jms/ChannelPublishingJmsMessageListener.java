@@ -18,6 +18,7 @@ package org.springframework.integration.jms;
 
 import java.util.Map;
 
+import io.micrometer.observation.ObservationRegistry;
 import jakarta.jms.DeliveryMode;
 import jakarta.jms.Destination;
 import jakarta.jms.InvalidDestinationException;
@@ -38,6 +39,9 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
+import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
+import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverObservationConvention;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.JmsUtils;
@@ -321,6 +325,26 @@ public class ChannelPublishingJmsMessageListener
 	 */
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
+	}
+
+	public void setMetricsCaptor(MetricsCaptor captor) {
+		this.gatewayDelegate.registerMetricsCaptor(captor);
+	}
+
+	public void setObservationRegistry(ObservationRegistry observationRegistry) {
+		this.gatewayDelegate.registerObservationRegistry(observationRegistry);
+	}
+
+	public void setRequestReplyObservationConvention(
+			@Nullable MessageRequestReplyReceiverObservationConvention observationConvention) {
+
+		this.gatewayDelegate.setObservationConvention(observationConvention);
+	}
+
+	public void setReceiverObservationConvention(
+			@Nullable MessageReceiverObservationConvention observationConvention) {
+
+		this.gatewayDelegate.setReceiverObservationConvention(observationConvention);
 	}
 
 	@Override

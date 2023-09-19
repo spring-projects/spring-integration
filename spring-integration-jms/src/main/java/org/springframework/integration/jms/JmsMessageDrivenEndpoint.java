@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.springframework.integration.jms;
 
+import io.micrometer.observation.ObservationRegistry;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
+import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.messaging.MessageChannel;
@@ -91,7 +95,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	 * container setting even if an external container is provided. Defaults to null
 	 * (won't change container) if an external container is provided or `transacted` when
 	 * the framework creates an implicit {@link DefaultMessageListenerContainer}.
-	 * @param sessionAcknowledgeMode the acknowledge mode.
+	 * @param sessionAcknowledgeMode the acknowledgement mode.
 	 */
 	public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
 		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
@@ -134,9 +138,9 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	}
 
 	/**
-	 * Set to false to prevent listener container shutdown when the endpoint is stopped.
+	 * Set to {@code false} to prevent listener container shutdown when the endpoint is stopped.
 	 * Then, if so configured, any cached consumer(s) in the container will remain.
-	 * Otherwise the shared connection and will be closed and the listener invokers shut
+	 * Otherwise, the shared connection and will be closed and the listener invokers shut
 	 * down; this behavior is new starting with version 5.1. Default: true.
 	 * @param shutdownContainerOnStop false to not shutdown.
 	 * @since 5.1
@@ -147,6 +151,24 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 
 	public ChannelPublishingJmsMessageListener getListener() {
 		return this.listener;
+	}
+
+	@Override
+	public void registerMetricsCaptor(MetricsCaptor captor) {
+		super.registerMetricsCaptor(captor);
+		this.listener.setMetricsCaptor(captor);
+	}
+
+	@Override
+	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
+		super.registerObservationRegistry(observationRegistry);
+		this.listener.setObservationRegistry(observationRegistry);
+	}
+
+	@Override
+	public void setObservationConvention(MessageReceiverObservationConvention observationConvention) {
+		super.setObservationConvention(observationConvention);
+		this.listener.setReceiverObservationConvention(observationConvention);
 	}
 
 	@Override
