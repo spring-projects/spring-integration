@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ public class JpaOutboundChannelAdapterTests {
 
 	@Test
 	public void saveEntityWithMerge() {
-
 		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
 		assertThat(results1).isNotNull();
 		assertThat(results1.size() == 3).isTrue();
@@ -101,16 +100,13 @@ public class JpaOutboundChannelAdapterTests {
 		});
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
-		assertThat(results2).isNotNull();
-		assertThat(results2.size() == 4).isTrue();
+		assertThat(results2).hasSize(4);
 
-		assertThat(testStudent.getRollNumber()).isNull();
-
+		assertThat(testStudent.getRollNumber()).isNotNull();
 	}
 
 	@Test
-	public void saveEntityWithMergeWithoutSpecifyingEntityClass() throws InterruptedException {
-
+	public void saveEntityWithMergeWithoutSpecifyingEntityClass() {
 		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
 		assertThat(results1).isNotNull();
 		assertThat(results1.size() == 3).isTrue();
@@ -136,16 +132,13 @@ public class JpaOutboundChannelAdapterTests {
 		});
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
-		assertThat(results2).isNotNull();
-		assertThat(results2.size() == 4).isTrue();
+		assertThat(results2).hasSize(4);
 
-		assertThat(testStudent.getRollNumber()).isNull();
-
+		assertThat(testStudent.getRollNumber()).isNotNull();
 	}
 
 	@Test
-	public void saveEntityWithPersist() throws InterruptedException {
-
+	public void saveEntityWithPersist() {
 		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
 		assertThat(results1).isNotNull();
 		assertThat(results1.size() == 3).isTrue();
@@ -185,9 +178,8 @@ public class JpaOutboundChannelAdapterTests {
 		assertThat(testStudent.getRollNumber()).isNotNull();
 	}
 
-	@Test //INT-2557
-	public void saveEntityWithPersistWithinChain() throws InterruptedException {
-
+	@Test
+	public void saveEntityWithPersistWithinChain() {
 		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
 		assertThat(results1).isNotNull();
 		assertThat(results1.size() == 3).isTrue();

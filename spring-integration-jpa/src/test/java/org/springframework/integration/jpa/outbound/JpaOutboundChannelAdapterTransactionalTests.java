@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,7 +31,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.2
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class JpaOutboundChannelAdapterTransactionalTests {
 
@@ -60,8 +59,8 @@ public class JpaOutboundChannelAdapterTransactionalTests {
 		List<?> results1 =
 				new JdbcTemplate(this.dataSource)
 						.queryForList("Select * from Student");
-		assertThat(results1).isNotNull();
-		assertThat(results1.size()).isEqualTo(3);
+
+		assertThat(results1).hasSize(3);
 
 		StudentDomain testStudent = JpaTestUtils.getTestStudent();
 		Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
@@ -71,10 +70,9 @@ public class JpaOutboundChannelAdapterTransactionalTests {
 		List<?> results2 =
 				new JdbcTemplate(this.dataSource)
 						.queryForList("Select * from Student");
-		assertThat(results2).isNotNull();
-		assertThat(results2.size()).isEqualTo(4);
 
-		assertThat(testStudent.getRollNumber()).isNull();
+		assertThat(results2).hasSize(4);
+		assertThat(testStudent.getRollNumber()).isNotNull();
 	}
 
 }
