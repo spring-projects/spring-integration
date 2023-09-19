@@ -237,7 +237,7 @@ public class MqttJavaApplication {
     public IntegrationFlow mqttInbound() {
         return IntegrationFlow.from(
                          new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883",
-                                        "testClient", "topic1", "topic2");)
+                                        "testClient", "topic1", "topic2"))
                 .handle(m -> System.out.println(m.getPayload()))
                 .get();
     }
