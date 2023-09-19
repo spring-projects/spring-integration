@@ -481,7 +481,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 		Message<?> requestMessage = this.messagingTemplate.doConvert(object, null, this.historyWritingPostProcessor);
 
-		if (!ObservationRegistry.NOOP.equals(this.observationRegistry)) {
+		if (!ObservationRegistry.NOOP.equals(this.observationRegistry)
+				&& this.observationRegistry.getCurrentObservation() == null) {
+
 			sendWithObservation(channel, requestMessage);
 		}
 		else if (this.metricsCaptor != null) {
