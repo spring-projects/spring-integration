@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -482,7 +483,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		Message<?> requestMessage = this.messagingTemplate.doConvert(object, null, this.historyWritingPostProcessor);
 
 		if (!ObservationRegistry.NOOP.equals(this.observationRegistry)
-				&& this.observationRegistry.getCurrentObservation() == null) {
+				&& (this.observationRegistry.getCurrentObservation() == null
+				|| Observation.NOOP.equals(this.observationRegistry.getCurrentObservation()))) {
 
 			sendWithObservation(channel, requestMessage);
 		}
