@@ -19,6 +19,7 @@ package org.springframework.integration.dsl;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverObservationConvention;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
@@ -202,6 +203,18 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	 */
 	public S shouldTrack(boolean shouldTrack) {
 		this.target.setShouldTrack(shouldTrack);
+		return _this();
+	}
+
+	/**
+	 * Provide a custom {@link MessageRequestReplyReceiverObservationConvention}.
+	 * @param observationConvention the observation convention to use.
+	 * @return the spec.
+	 * @since 6.0.8
+	 * @see MessagingGatewaySupport#setObservationConvention(MessageRequestReplyReceiverObservationConvention)
+	 */
+	public S observationConvention(MessageRequestReplyReceiverObservationConvention observationConvention) {
+		this.target.setObservationConvention(observationConvention);
 		return _this();
 	}
 

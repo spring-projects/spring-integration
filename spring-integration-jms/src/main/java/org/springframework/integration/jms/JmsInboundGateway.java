@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package org.springframework.integration.jms;
 
+import io.micrometer.observation.ObservationRegistry;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
+import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverObservationConvention;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.messaging.MessageChannel;
 
@@ -114,6 +118,23 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Orderl
 		this.endpoint.setShutdownContainerOnStop(shutdownContainerOnStop);
 	}
 
+	@Override
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptorToRegister) {
+		super.registerMetricsCaptor(metricsCaptorToRegister);
+		this.endpoint.registerMetricsCaptor(metricsCaptorToRegister);
+	}
+
+	@Override
+	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
+		super.registerObservationRegistry(observationRegistry);
+		this.endpoint.registerObservationRegistry(observationRegistry);
+	}
+
+	@Override
+	public void setObservationConvention(MessageRequestReplyReceiverObservationConvention observationConvention) {
+		super.setObservationConvention(observationConvention);
+		this.endpoint.getListener().setRequestReplyObservationConvention(observationConvention);
+	}
 
 	@Override
 	public String getComponentType() {
@@ -121,21 +142,14 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Orderl
 	}
 
 	@Override
-	public void setComponentName(String componentName) {
-		super.setComponentName(componentName);
-		this.endpoint.setComponentName(getComponentName());
-	}
-
-	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		super.setApplicationContext(applicationContext);
 		this.endpoint.setApplicationContext(applicationContext);
-		this.endpoint.setBeanFactory(applicationContext);
-		this.endpoint.getListener().setBeanFactory(applicationContext);
 	}
 
 	@Override
 	protected void onInit() {
+		this.endpoint.setComponentName(getComponentName());
 		this.endpoint.afterPropertiesSet();
 	}
 
