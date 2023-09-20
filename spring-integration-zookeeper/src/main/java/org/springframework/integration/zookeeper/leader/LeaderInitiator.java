@@ -344,7 +344,7 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	}
 
-	private class NullCuratorContext extends CuratorContext {
+	private final class NullCuratorContext extends CuratorContext {
 
 		@Override
 		public boolean isLeader() {

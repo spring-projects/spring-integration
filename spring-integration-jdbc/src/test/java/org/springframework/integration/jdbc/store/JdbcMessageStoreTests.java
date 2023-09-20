@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -552,7 +553,7 @@ public class JdbcMessageStoreTests {
 		PoolableConnectionFactory poolFactory = new PoolableConnectionFactory(connFactory, null);
 		GenericObjectPoolConfig<PoolableConnection> config = new GenericObjectPoolConfig<>();
 		config.setMaxTotal(2);
-		config.setMaxWaitMillis(500);
+		config.setMaxWait(Duration.ofMillis(500));
 		ObjectPool<PoolableConnection> connPool = new GenericObjectPool<>(poolFactory, config);
 		poolFactory.setPool(connPool);
 		PoolingDataSource<PoolableConnection> poolingDataSource = new PoolingDataSource<>(connPool);

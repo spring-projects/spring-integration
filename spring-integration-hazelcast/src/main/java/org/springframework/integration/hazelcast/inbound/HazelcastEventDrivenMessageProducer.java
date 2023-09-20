@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.hazelcast.collection.ItemListener;
 import com.hazelcast.core.DistributedObject;
 import com.hazelcast.instance.EndpointQualifier;
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.listener.MapListener;
 import com.hazelcast.multimap.MultiMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import com.hazelcast.topic.ITopic;
@@ -67,7 +66,7 @@ public class HazelcastEventDrivenMessageProducer extends AbstractHazelcastMessag
 	protected void doStart() {
 		if (this.distributedObject instanceof IMap) {
 			setHazelcastRegisteredEventListenerId(((IMap<?, ?>) this.distributedObject)
-					.addEntryListener((MapListener) new HazelcastEntryListener(), true));
+					.addEntryListener(new HazelcastEntryListener(), true));
 		}
 		else if (this.distributedObject instanceof MultiMap) {
 			setHazelcastRegisteredEventListenerId(((MultiMap<?, ?>) this.distributedObject)
@@ -125,7 +124,7 @@ public class HazelcastEventDrivenMessageProducer extends AbstractHazelcastMessag
 		return "hazelcast:inbound-channel-adapter";
 	}
 
-	private class HazelcastItemListener<E> extends AbstractHazelcastEventListener<ItemEvent<E>>
+	private final class HazelcastItemListener<E> extends AbstractHazelcastEventListener<ItemEvent<E>>
 			implements ItemListener<E> {
 
 		@Override
@@ -145,9 +144,7 @@ public class HazelcastEventDrivenMessageProducer extends AbstractHazelcastMessag
 						event.getMember().getSocketAddress(EndpointQualifier.MEMBER), getCacheListeningPolicy());
 			}
 
-			if (logger.isDebugEnabled()) {
-				logger.debug("Received ItemEvent : " + event);
-			}
+			logger.debug(() -> "Received ItemEvent : " + event);
 		}
 
 		@Override
@@ -161,7 +158,7 @@ public class HazelcastEventDrivenMessageProducer extends AbstractHazelcastMessag
 
 	}
 
-	private class HazelcastMessageListener<E> extends AbstractHazelcastEventListener<Message<E>>
+	private final class HazelcastMessageListener<E> extends AbstractHazelcastEventListener<Message<E>>
 			implements MessageListener<E> {
 
 		@Override
@@ -174,9 +171,7 @@ public class HazelcastEventDrivenMessageProducer extends AbstractHazelcastMessag
 			sendMessage(event,
 					event.getPublishingMember().getSocketAddress(EndpointQualifier.MEMBER), getCacheListeningPolicy());
 
-			if (logger.isDebugEnabled()) {
-				logger.debug("Received Message : " + event);
-			}
+			logger.debug(() -> "Received Message : " + event);
 		}
 
 		@Override

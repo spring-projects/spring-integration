@@ -133,7 +133,7 @@ class MessageSourceIntegrationTests {
 		assertThat(messageHistory.toString()).isEqualTo("myNullChannel");
 		received = source.receive();
 		assertThat(received).isNull();
-		assertThat(KafkaTestUtils.getPropertyValue(source, "consumer.fetcher.minBytes")).isEqualTo(2);
+		assertThat(KafkaTestUtils.getPropertyValue(source, "consumer.fetcher.fetchConfig.minBytes")).isEqualTo(2);
 		source.destroy();
 		template.destroy();
 	}

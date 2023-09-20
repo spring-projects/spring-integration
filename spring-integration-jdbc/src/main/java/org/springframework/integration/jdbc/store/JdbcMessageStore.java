@@ -750,7 +750,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	 * Convenience class to be used to unpack a message from a result set row. Uses column named in the result set to
 	 * extract the required data, so that select clause ordering is unimportant.
 	 */
-	private class MessageMapper implements RowMapper<Message<?>> {
+	private final class MessageMapper implements RowMapper<Message<?>> {
 
 		@Override
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {

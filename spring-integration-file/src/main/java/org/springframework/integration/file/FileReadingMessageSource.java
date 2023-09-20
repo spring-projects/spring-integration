@@ -435,7 +435,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 
 	}
 
-	private class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implements ManageableLifecycle {
+	private final class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implements ManageableLifecycle {
 
 		private final ConcurrentMap<Path, WatchKey> pathKeys = new ConcurrentHashMap<>();
 

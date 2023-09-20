@@ -73,7 +73,6 @@ import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
-import org.springframework.integration.util.CoroutinesUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -597,6 +596,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 		int paramCount = method.getParameterTypes().length;
 		Object response;
 		boolean hasPayloadExpression = findPayloadExpression(method);
+
 		if (paramCount == 0 && !hasPayloadExpression) {
 			response = receive(gateway, method, !oneWay, shouldReturnMessage);
 		}
@@ -604,28 +604,20 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 			response = sendOrSendAndReceive(invocation, gateway, shouldReturnMessage, !oneWay);
 		}
 
-		Object continuation = null;
 		if (gateway.isSuspendingFunction) {
-			for (Object argument : invocation.getArguments()) {
-				if (argument != null && CoroutinesUtils.isContinuation(argument)) {
-					continuation = argument;
-					break;
-				}
-			}
+			return response;
 		}
 
-		return response(gateway.returnType, shouldReturnMessage, response, continuation);
+		return response(gateway.returnType, shouldReturnMessage, response);
 	}
 
 	@Nullable
-	private Object response(Class<?> returnType, boolean shouldReturnMessage,
-			@Nullable Object response, @Nullable Object continuation) {
-
+	private Object response(Class<?> returnType, boolean shouldReturnMessage, @Nullable Object response) {
 		if (shouldReturnMessage) {
 			return response;
 		}
 		else {
-			return response != null ? convert(response, returnType, continuation) : null;
+			return response != null ? convert(response, returnType) : null;
 		}
 	}
 
@@ -1041,23 +1033,19 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 
 	@Nullable
 	@SuppressWarnings("unchecked")
-	private <T> T convert(Object source, Class<T> expectedReturnType, @Nullable Object continuation) {
-		if (continuation != null) {
-			return CoroutinesUtils.monoAwaitSingleOrNull((Mono<T>) source, continuation);
-		}
+	private <P> P convert(Object source, Class<P> expectedReturnType) {
 		if (Future.class.isAssignableFrom(expectedReturnType)) {
-			return (T) source;
+			return (P) source;
 		}
 		if (Mono.class.isAssignableFrom(expectedReturnType)) {
-			return (T) source;
+			return (P) source;
 		}
-
 
 		return doConvert(source, expectedReturnType);
 	}
 
 	@Nullable
-	private <T> T doConvert(Object source, Class<T> expectedReturnType) {
+	private <P> P doConvert(Object source, Class<P> expectedReturnType) {
 		ConversionService conversionService = getConversionService();
 		if (conversionService != null) {
 			return conversionService.convert(source, expectedReturnType);
