@@ -105,6 +105,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -417,11 +418,14 @@ public class EnableIntegrationTests {
 
 		assertThat(this.counterChannel.receive(10)).isNull();
 
-		SmartLifecycle countSA = this.context.getBean("annotationTestService.count.inboundChannelAdapter",
-				SmartLifecycle.class);
+		SourcePollingChannelAdapter countSA =
+				this.context.getBean("annotationTestService.count.inboundChannelAdapter",
+						SourcePollingChannelAdapter.class);
 		assertThat(countSA.isAutoStartup()).isFalse();
 		assertThat(countSA.getPhase()).isEqualTo(23);
 		countSA.start();
+
+		assertThat(countSA.getMaxMessagesPerPoll()).isEqualTo(1);
 
 		for (int i = 0; i < 10; i++) {
 			Message<?> message = this.counterChannel.receive(10_000);
