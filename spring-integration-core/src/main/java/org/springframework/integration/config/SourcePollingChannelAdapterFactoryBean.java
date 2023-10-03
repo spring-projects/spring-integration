@@ -186,7 +186,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 				Assert.notNull(this.pollerMetadata, () -> "No poller has been defined for channel-adapter '"
 						+ this.beanName + "', and no default poller is available within the context.");
 			}
-			long maxMessagesPerPoll = pollerMetadata.getMaxMessagesPerPoll();
+			long maxMessagesPerPoll = this.pollerMetadata.getMaxMessagesPerPoll();
 			if (maxMessagesPerPoll == PollerMetadata.MAX_MESSAGES_UNBOUNDED) {
 				// the default is 1 since a source might return
 				// a non-null and non-interruptible value every time it is invoked
