@@ -688,7 +688,14 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		pollingEndpoint.setTaskExecutor(pollerMetadata.getTaskExecutor());
 		pollingEndpoint.setTrigger(pollerMetadata.getTrigger());
 		pollingEndpoint.setAdviceChain(pollerMetadata.getAdviceChain());
-		pollingEndpoint.setMaxMessagesPerPoll(pollerMetadata.getMaxMessagesPerPoll());
+		long maxMessagesPerPoll = pollerMetadata.getMaxMessagesPerPoll();
+		if (maxMessagesPerPoll == PollerMetadata.MAX_MESSAGES_UNBOUNDED &&
+				pollingEndpoint instanceof SourcePollingChannelAdapter) {
+			// the default is 1 since a source might return
+			// a non-null and non-interruptible value every time it is invoked
+			maxMessagesPerPoll = 1;
+		}
+		pollingEndpoint.setMaxMessagesPerPoll(maxMessagesPerPoll);
 		pollingEndpoint.setErrorHandler(pollerMetadata.getErrorHandler());
 		if (pollingEndpoint instanceof PollingConsumer) {
 			((PollingConsumer) pollingEndpoint).setReceiveTimeout(pollerMetadata.getReceiveTimeout());
