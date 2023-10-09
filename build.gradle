@@ -95,6 +95,7 @@ ext {
     mockitoVersion = '5.5.0'
     mongoDriverVersion = '4.10.2'
     mysqlVersion = '8.0.33'
+    oracleVersion = '23.3.0.23.09'
     pahoMqttClientVersion = '1.2.5'
     postgresVersion = '42.6.0'
     protobufVersion = '3.24.3'
@@ -748,8 +749,10 @@ project('spring-integration-jdbc') {
         }
         testImplementation 'org.testcontainers:mysql'
         testImplementation 'org.testcontainers:postgresql'
+        testImplementation 'org.testcontainers:oracle-xe'
 
         testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
+        testRuntimeOnly "com.oracle.database.jdbc:ojdbc11:$oracleVersion"
     }
 }
 
