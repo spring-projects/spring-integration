@@ -87,7 +87,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	/**
 	 * A default polling period for {@link PeriodicTrigger}.
 	 */
-	public static final long DEFAULT_POLLING_PERIOD = 10;
+	public static final long DEFAULT_POLLING_PERIOD = 1000;
 
 	private final Collection<Advice> appliedAdvices = new HashSet<>();
 
