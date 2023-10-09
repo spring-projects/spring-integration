@@ -1,10 +1,6 @@
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
 
-tasks.withType(GenerateModuleMetadata) {
-	enabled = false
-}
-
 publishing {
 	publications {
 		mavenJava(MavenPublication) {

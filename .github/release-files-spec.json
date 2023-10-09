@@ -22,6 +22,11 @@
                   "name": {
                     "$match": "*.jar"
                   }
+                },
+                {
+                  "name": {
+                    "$match": "*.module"
+                  }
                 }
               ]
             }
