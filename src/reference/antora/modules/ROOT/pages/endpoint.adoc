@@ -111,7 +111,7 @@ CronTrigger trigger = new CronTrigger("*/10 * * * * MON-FRI");
 
 The result of the trigger defined in the previous example is a trigger that triggers every ten seconds, Monday through Friday.
 
-NOTE: The default trigger for polling endpoint is a `PeriodicTrigger` instance of 1-second fixed delay period.
+NOTE: The default trigger for polling endpoint is a `PeriodicTrigger` instance with a 1 second fixed delay period.
 
 In addition to the trigger, you can specify two other polling-related configuration properties: `maxMessagesPerPoll` and `receiveTimeout`.
 The following example shows how to set these two properties:
