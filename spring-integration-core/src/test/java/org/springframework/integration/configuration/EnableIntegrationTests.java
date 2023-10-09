@@ -667,12 +667,15 @@ public class EnableIntegrationTests {
 		assertThat(testMessage).isSameAs(receive);
 		assertThat(this.bridgeOutput.receive(10)).isNull();
 
+		PollingConsumer pollableBridge = this.context.getBean("pollableBridge", PollingConsumer.class);
+		PeriodicTrigger periodicTrigger = TestUtils.getPropertyValue(pollableBridge, "trigger", PeriodicTrigger.class);
+		assertThat(periodicTrigger.getPeriodDuration()).isEqualTo(Duration.ofSeconds(1));
+
 		this.pollableBridgeInput.send(testMessage);
 		receive = this.pollableBridgeOutput.receive(10_000);
 		assertThat(receive).isNotNull();
 		assertThat(testMessage).isSameAs(receive);
 		assertThat(this.pollableBridgeOutput.receive(10)).isNull();
-
 
 		assertThatExceptionOfType(MessageDeliveryException.class)
 				.isThrownBy(() -> this.metaBridgeInput.send(testMessage))
@@ -948,7 +951,8 @@ public class EnableIntegrationTests {
 
 
 		@Bean
-		@BridgeFrom(value = "pollableBridgeInput", poller = @Poller(fixedDelay = "1000"))
+		@BridgeFrom(value = "pollableBridgeInput", poller = @Poller)
+		@EndpointId("pollableBridge")
 		public QueueChannel pollableBridgeOutput() {
 			return new QueueChannel();
 		}

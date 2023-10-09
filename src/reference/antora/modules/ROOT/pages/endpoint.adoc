@@ -79,7 +79,6 @@ PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);
 NOTE: For more information regarding polling consumers, see xref:overview.adoc#overview-endpoints-channeladapter[Channel Adapter] and xref:channel-adapter.adoc#channel-adapter[Channel Adapter].
 
 There are many other configuration options for the polling consumer.
-For example, the trigger is a required property.
 The following example shows how to set the trigger:
 
 [source,java]
@@ -111,6 +110,8 @@ CronTrigger trigger = new CronTrigger("*/10 * * * * MON-FRI");
 ----
 
 The result of the trigger defined in the previous example is a trigger that triggers every ten seconds, Monday through Friday.
+
+NOTE: The default trigger for polling endpoint is a `PeriodicTrigger` instance with a 1 second fixed delay period.
 
 In addition to the trigger, you can specify two other polling-related configuration properties: `maxMessagesPerPoll` and `receiveTimeout`.
 The following example shows how to set these two properties:

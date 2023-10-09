@@ -42,6 +42,9 @@ See xref:gateway.adoc#gateway-no-response[Gateway Behavior When No response Arri
 - The `LockRegistry` provides template-like API to execute provided task while locked.
 See xref:distributed-locks.adoc[Distributed Locks] for more information.
 
+- The default trigger for polling endpoint is now a `PeriodicTrigger` instance with a 1 second fixed delay period; previously, the default was 10 milliseconds.
+See xref:endpoint.adoc#endpoint-pollingconsumer[Polling Consumer] for more information.
+
 [[x6.2-websockets]]
 === WebSockets Changes
 
