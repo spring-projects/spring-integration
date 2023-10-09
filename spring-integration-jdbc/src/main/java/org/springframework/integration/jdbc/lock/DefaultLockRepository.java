@@ -103,7 +103,7 @@ public class DefaultLockRepository
 
 	private TransactionTemplate readOnlyTransactionTemplate;
 
-	private TransactionTemplate serializableTransactionTemplate;
+	private TransactionTemplate readCommittedTransactionTemplate;
 
 	/**
 	 * Constructor that initializes the client id that will be associated for
@@ -206,9 +206,9 @@ public class DefaultLockRepository
 		this.readOnlyTransactionTemplate = new TransactionTemplate(this.transactionManager, transactionDefinition);
 
 		transactionDefinition.setReadOnly(false);
-		transactionDefinition.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
+		transactionDefinition.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
 
-		this.serializableTransactionTemplate = new TransactionTemplate(this.transactionManager, transactionDefinition);
+		this.readCommittedTransactionTemplate = new TransactionTemplate(this.transactionManager, transactionDefinition);
 	}
 
 	@Override
@@ -226,7 +226,7 @@ public class DefaultLockRepository
 	@Override
 	public boolean acquire(String lock) {
 		Boolean result =
-				this.serializableTransactionTemplate.execute(
+				this.readCommittedTransactionTemplate.execute(
 						transactionStatus -> {
 							if (this.template.update(this.updateQuery, this.id, LocalDateTime.now(ZoneOffset.UTC),
 									this.region, lock, this.id,
