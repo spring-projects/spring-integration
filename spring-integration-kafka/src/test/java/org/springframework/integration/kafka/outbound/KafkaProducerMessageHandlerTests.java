@@ -76,6 +76,7 @@ import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.EmbeddedKafkaKraftBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.kafka.transaction.KafkaTransactionManager;
 import org.springframework.lang.Nullable;
@@ -139,8 +140,7 @@ class KafkaProducerMessageHandlerTests {
 
 	@BeforeAll
 	static void setup() {
-		embeddedKafka = new EmbeddedKafkaBroker(1, true,
-				topic1, topic2, topic3, topic4, topic5, topic6);
+		embeddedKafka = new EmbeddedKafkaKraftBroker(1, 2, topic1, topic2, topic3, topic4, topic5, topic6);
 		embeddedKafka.afterPropertiesSet();
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testOut", "true", embeddedKafka);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");

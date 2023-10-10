@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
@@ -77,6 +78,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	 */
 	protected AbstractSubscribableAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate) {
+
 		this(channelName, container, amqpTemplate, false);
 	}
 
@@ -93,6 +95,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	 */
 	protected AbstractSubscribableAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
+
 		this(channelName, container, amqpTemplate, false, outboundMapper, inboundMapper);
 	}
 
@@ -108,6 +111,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	protected AbstractSubscribableAmqpChannel(String channelName,
 			AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, boolean isPubSub) {
+
 		this(channelName, container, amqpTemplate, isPubSub,
 				DefaultAmqpHeaderMapper.outboundMapper(), DefaultAmqpHeaderMapper.inboundMapper());
 	}
@@ -128,14 +132,16 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 			AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, boolean isPubSub,
 			AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
+
 		super(amqpTemplate, outboundMapper, inboundMapper);
 		Assert.notNull(container, "container must not be null");
 		Assert.hasText(channelName, "channel name must not be empty");
 		this.channelName = channelName;
 		this.container = container;
 		this.isPubSub = isPubSub;
-		setConnectionFactory(container.getConnectionFactory());
-		setAdmin(new RabbitAdmin(getConnectionFactory()));
+		ConnectionFactory connectionFactory = container.getConnectionFactory();
+		setConnectionFactory(connectionFactory);
+		setAdmin(new RabbitAdmin(connectionFactory));
 	}
 
 	/**
@@ -173,11 +179,13 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 		setMaxSubscribers(this.maxSubscribers);
 		String queue = obtainQueueName(this.channelName);
 		this.container.setQueueNames(queue);
-		MessageConverter converter = (this.getAmqpTemplate() instanceof RabbitTemplate)
-				? ((RabbitTemplate) this.getAmqpTemplate()).getMessageConverter()
+		MessageConverter converter =
+				(getAmqpTemplate() instanceof RabbitTemplate rabbitTemplate)
+				? rabbitTemplate.getMessageConverter()
 				: new SimpleMessageConverter();
-		MessageListener listener = new DispatchingMessageListener(converter,
-				this.dispatcher, this, this.isPubSub,
+
+		MessageListener listener =
+				new DispatchingMessageListener(converter, this.dispatcher, this, this.isPubSub,
 				getMessageBuilderFactory(), getInboundHeaderMapper());
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
@@ -256,7 +264,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 
 	private static final class DispatchingMessageListener implements MessageListener {
 
-		private final Log logger = LogFactory.getLog(this.getClass());
+		private final Log logger = LogFactory.getLog(DispatchingMessageListener.class);
 
 		private final MessageDispatcher dispatcher;
 
@@ -273,6 +281,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 		private DispatchingMessageListener(MessageConverter converter,
 				MessageDispatcher dispatcher, AbstractSubscribableAmqpChannel channel, boolean isPubSub,
 				MessageBuilderFactory messageBuilderFactory, AmqpHeaderMapper inboundHeaderMapper) {
+
 			Assert.notNull(converter, "MessageConverter must not be null");
 			Assert.notNull(dispatcher, "MessageDispatcher must not be null");
 			this.converter = converter;
@@ -308,7 +317,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 			}
 		}
 
-		protected Message<Object> buildMessage(org.springframework.amqp.core.Message message, Object converted) {
+		private Message<Object> buildMessage(org.springframework.amqp.core.Message message, Object converted) {
 			AbstractIntegrationMessageBuilder<Object> messageBuilder =
 					this.messageBuilderFactory.withPayload(converted);
 			if (this.channel.isExtractPayload()) {

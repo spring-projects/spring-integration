@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,20 @@ import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.AllowedListDeserializingMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.MappingUtils;
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.message.AdviceMessage;
+import org.springframework.integration.support.MutableMessage;
+import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -87,6 +96,19 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 		this.amqpTemplate = amqpTemplate;
 		if (amqpTemplate instanceof RabbitTemplate) {
 			this.rabbitTemplate = (RabbitTemplate) amqpTemplate;
+			MessageConverter converter = this.rabbitTemplate.getMessageConverter();
+			if (converter instanceof AllowedListDeserializingMessageConverter allowedListMessageConverter) {
+				allowedListMessageConverter.addAllowedListPatterns(
+						"java.util*",
+						"java.lang*",
+						GenericMessage.class.getName(),
+						ErrorMessage.class.getName(),
+						AdviceMessage.class.getName(),
+						MutableMessage.class.getName(),
+						MessageHeaders.class.getName(),
+						MutableMessageHeaders.class.getName(),
+						MessageHistory.class.getName());
+			}
 		}
 		else {
 			this.rabbitTemplate = null;
@@ -143,7 +165,7 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 
 	/**
 	 * When mapping headers for the outbound message, determine whether the headers are
-	 * mapped before the message is converted, or afterwards. This only affects headers
+	 * mapped before the message is converted, or afterward. This only affects headers
 	 * that might be added by the message converter. When false, the converter's headers
 	 * win; when true, any headers added by the converter will be overridden (if the
 	 * source message has a header that maps to those headers). You might wish to set this
@@ -240,10 +262,6 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 	@Override
 	public void onCreate(Connection connection) {
 		doDeclares();
-	}
-
-	@Override
-	public void onClose(Connection connection) {
 	}
 
 	protected abstract void doDeclares();

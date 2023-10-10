@@ -76,6 +76,7 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.value;
  *
  */
 @EmbeddedKafka(controlledShutdown = true,
+		kraft = false,
 		topics = {InboundGatewayTests.topic1,
 				InboundGatewayTests.topic2,
 				InboundGatewayTests.topic3,
