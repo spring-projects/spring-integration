@@ -21,6 +21,7 @@ import java.util.Map;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
