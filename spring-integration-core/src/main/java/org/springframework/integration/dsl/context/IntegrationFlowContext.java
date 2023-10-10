@@ -69,6 +69,7 @@ public interface IntegrationFlowContext {
 	 * @param flowId the bean name to obtain
 	 * @return the IntegrationFlowRegistration for provided {@code id} or {@code null}
 	 */
+	@Nullable
 	IntegrationFlowRegistration getRegistrationById(String flowId);
 
 	/**
