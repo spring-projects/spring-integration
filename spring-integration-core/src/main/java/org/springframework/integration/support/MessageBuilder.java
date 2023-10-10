@@ -241,13 +241,13 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	}
 
 	@Override
-	public MessageBuilder<T> setExpirationDate(Long expirationDate) {
+	public MessageBuilder<T> setExpirationDate(@Nullable Long expirationDate) {
 		super.setExpirationDate(expirationDate);
 		return this;
 	}
 
 	@Override
-	public MessageBuilder<T> setExpirationDate(Date expirationDate) {
+	public MessageBuilder<T> setExpirationDate(@Nullable Date expirationDate) {
 		super.setExpirationDate(expirationDate);
 		return this;
 	}

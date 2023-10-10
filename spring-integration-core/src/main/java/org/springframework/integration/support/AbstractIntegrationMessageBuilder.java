@@ -44,7 +44,7 @@ import org.springframework.util.PatternMatchUtils;
  */
 public abstract class AbstractIntegrationMessageBuilder<T> {
 
-	public AbstractIntegrationMessageBuilder<T> setExpirationDate(Long expirationDate) {
+	public AbstractIntegrationMessageBuilder<T> setExpirationDate(@Nullable Long expirationDate) {
 		return setHeader(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate);
 	}
 
