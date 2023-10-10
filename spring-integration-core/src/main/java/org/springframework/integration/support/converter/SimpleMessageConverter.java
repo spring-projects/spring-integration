@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,51 +42,50 @@ import org.springframework.messaging.converter.MessageConverter;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SimpleMessageConverter implements MessageConverter, BeanFactoryAware {
 
-	private volatile InboundMessageMapper inboundMessageMapper;
+	private InboundMessageMapper inboundMessageMapper = new DefaultInboundMessageMapper();
 
-	private volatile OutboundMessageMapper outboundMessageMapper;
+	private OutboundMessageMapper outboundMessageMapper = new DefaultOutboundMessageMapper();
 
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
-	private volatile boolean messageBuilderFactorySet;
+	private boolean messageBuilderFactorySet;
 
 	private BeanFactory beanFactory;
 
-	public SimpleMessageConverter() {
-		this(null, null);
-	}
+	public SimpleMessageConverter() { }
 
 	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper) {
-		this(inboundMessageMapper,
-				(inboundMessageMapper instanceof OutboundMessageMapper
-						? (OutboundMessageMapper<?>) inboundMessageMapper
-						: null));
+		setInboundMessageMapper(inboundMessageMapper);
+		if (inboundMessageMapper instanceof OutboundMessageMapper<?> messageMapper) {
+			setOutboundMessageMapper(messageMapper);
+		}
 	}
 
 	public SimpleMessageConverter(OutboundMessageMapper<?> outboundMessageMapper) {
-		this(outboundMessageMapper instanceof InboundMessageMapper
-						? (InboundMessageMapper<?>) outboundMessageMapper
-						: null,
-				outboundMessageMapper);
+		if (outboundMessageMapper instanceof InboundMessageMapper<?> messageMapper) {
+			setInboundMessageMapper(messageMapper);
+		}
+		setOutboundMessageMapper(outboundMessageMapper);
 	}
 
 	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper,
 			OutboundMessageMapper<?> outboundMessageMapper) {
-		this.setInboundMessageMapper(inboundMessageMapper);
-		this.setOutboundMessageMapper(outboundMessageMapper);
+
+		setInboundMessageMapper(inboundMessageMapper);
+		setOutboundMessageMapper(outboundMessageMapper);
 	}
 
 
-	public final void setInboundMessageMapper(InboundMessageMapper<?> inboundMessageMapper) {
-		this.inboundMessageMapper = (inboundMessageMapper != null)
-				? inboundMessageMapper
-				: new DefaultInboundMessageMapper();
+	public final void setInboundMessageMapper(@Nullable InboundMessageMapper<?> inboundMessageMapper) {
+		if (inboundMessageMapper != null) {
+			this.inboundMessageMapper = inboundMessageMapper;
+		}
 	}
 
-	public final void setOutboundMessageMapper(OutboundMessageMapper<?> outboundMessageMapper) {
-		this.outboundMessageMapper = (outboundMessageMapper != null
-				? outboundMessageMapper
-				: new DefaultOutboundMessageMapper());
+	public final void setOutboundMessageMapper(@Nullable OutboundMessageMapper<?> outboundMessageMapper) {
+		if (outboundMessageMapper != null) {
+			this.outboundMessageMapper = outboundMessageMapper;
+		}
 	}
 
 	@Override
@@ -110,8 +109,8 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		try {
 			return this.inboundMessageMapper.toMessage(object, headers);
 		}
-		catch (Exception e) {
-			throw new MessageConversionException("failed to convert object to Message", e);
+		catch (Exception ex) {
+			throw new MessageConversionException("failed to convert object to Message", ex);
 		}
 	}
 
@@ -121,8 +120,8 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		try {
 			return this.outboundMessageMapper.fromMessage(message);
 		}
-		catch (Exception e) {
-			throw new MessageConversionException(message, "failed to convert Message to object", e);
+		catch (Exception ex) {
+			throw new MessageConversionException(message, "failed to convert Message to object", ex);
 		}
 	}
 

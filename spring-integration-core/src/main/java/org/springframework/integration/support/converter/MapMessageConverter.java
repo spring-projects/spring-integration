@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Converts to/from a Map with 2 keys ('headers' and 'payload').
@@ -43,15 +44,15 @@ import org.springframework.util.Assert;
  */
 public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 
-	private volatile String[] headerNames;
+	private String[] headerNames = {};
 
-	private volatile boolean filterHeadersInToMessage;
+	private boolean filterHeadersInToMessage;
 
-	private volatile BeanFactory beanFactory;
+	private BeanFactory beanFactory;
 
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
-	private volatile boolean messageBuilderFactorySet;
+	private boolean messageBuilderFactorySet;
 
 
 	@Override
@@ -77,16 +78,19 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 	 * @param headerNames The header names.
 	 */
 	public void setHeaderNames(String... headerNames) {
-		Assert.notEmpty(headerNames, "at least one header name is required");
-		this.headerNames = Arrays.copyOf(headerNames, headerNames.length);
+		if (ObjectUtils.isEmpty(headerNames)) {
+			this.headerNames = new String[] {};
+		}
+		else {
+			this.headerNames = Arrays.copyOf(headerNames, headerNames.length);
+		}
 	}
 
 	/**
-	 * By default all headers on Map passed to {@link #toMessage(Object, MessageHeaders)}
+	 * By default, all headers on Map passed to {@link #toMessage(Object, MessageHeaders)}
 	 * will be mapped. Set this property
-	 * to 'true' if you wish to limit the inbound headers to those in
-	 * the #headerNames.
-	 *
+	 * to 'true' if you wish to limit the inbound headers to those
+	 * in the {@link #headerNames}.
 	 * @param filterHeadersInToMessage true if the headers should be filtered.
 	 */
 	public void setFilterHeadersInToMessage(boolean filterHeadersInToMessage) {

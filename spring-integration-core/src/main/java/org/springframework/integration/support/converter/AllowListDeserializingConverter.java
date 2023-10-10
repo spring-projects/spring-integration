@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.support.SerializationFailedException;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 
@@ -55,6 +56,7 @@ public class AllowListDeserializingConverter implements Converter<byte[], Object
 
 	private final Deserializer<Object> deserializer;
 
+	@Nullable
 	private final ClassLoader defaultDeserializerClassLoader;
 
 	private final boolean usingDefaultDeserializer;

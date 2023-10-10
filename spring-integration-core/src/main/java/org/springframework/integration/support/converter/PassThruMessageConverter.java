@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.springframework.integration.support.converter;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.Assert;
 
 /**
  * The simple {@link MessageConverter} implementation which contract is to return
@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * operates only with {@link Message}s, e.g. Spring Integration Adapters.
  *
  * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class PassThruMessageConverter implements MessageConverter {
@@ -41,9 +42,13 @@ public class PassThruMessageConverter implements MessageConverter {
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers) {
-		Assert.isInstanceOf(byte[].class, payload, "'payload' must be of 'byte[]' type.");
-		return MessageBuilder.createMessage(payload, headers);
+	public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
+		if (payload instanceof byte[]) {
+			return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		}
+		else {
+			return null;
+		}
 	}
 
 }
