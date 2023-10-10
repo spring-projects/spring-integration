@@ -45,10 +45,9 @@ ext {
     linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
     linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
 
-    modifiedFiles =
-            providers.provider {
-                files(grgit.status().unstaged.modified).filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
-            }
+    modifiedFiles = !isCI
+            ? files(grgit.status().unstaged.modified).filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
+            : files()
 
     apacheSshdVersion = '2.10.0'
     artemisVersion = '2.30.0'
@@ -293,7 +292,7 @@ configure(javaProjects) { subproject ->
 
     tasks.register('updateCopyrights') {
         onlyIf { !isCI }
-        inputs.files(modifiedFiles.map(files -> files.filter { f -> f.path.contains(subproject.name) }))
+        inputs.files(modifiedFiles.filter { f -> f.path.contains(subproject.name) })
         outputs.dir('build/classes')
 
         doLast {
