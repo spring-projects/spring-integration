@@ -451,25 +451,40 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			}
 			return callback.doInSession(session);
 		}
-		catch (Exception e) {
-			if (session != null) {
+		catch (Exception ex) {
+			if (session != null && shouldMarkSessionAsDirty(ex)) {
 				session.dirty();
 			}
-			if (e instanceof MessagingException) { // NOSONAR
-				throw (MessagingException) e;
+			if (ex instanceof MessagingException messagingException) { // NOSONAR
+				throw messagingException;
 			}
-			throw new MessagingException("Failed to execute on session", e);
+			throw new MessagingException("Failed to execute on session", ex);
 		}
 		finally {
 			if (!invokeScope && session != null) {
 				try {
 					session.close();
 				}
-				catch (Exception ignored) {
-					this.logger.debug("failed to close Session", ignored);
+				catch (Exception ex) {
+					this.logger.debug("failed to close Session", ex);
 				}
 			}
 		}
+	}
+
+	/**
+	 * Determine whether {@link Session#dirty()} should be called
+	 * in the {@link #execute(SessionCallback)} when exception is thrown from the callback.
+	 * By default, this method returns {@code true}.
+	 * Remote file protocol extensions can override this method to provide
+	 * a specific strategy against thrown exception, e.g. {@code file not found} error
+	 * is not a signal that session is broken.
+	 * @param ex the exception to check if {@link Session} must be marked as dirty.
+	 * @return true if {@link Session#dirty()} should be called.
+	 * @since 6.0.8
+	 */
+	protected boolean shouldMarkSessionAsDirty(Exception ex) {
+		return true;
 	}
 
 	@Override
@@ -503,8 +518,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	private StreamHolder payloadToInputStream(Message<?> message) throws MessageDeliveryException {
 		Object payload = message.getPayload();
 		try {
-			if (payload instanceof File) {
-				File inputFile = (File) payload;
+			if (payload instanceof File inputFile) {
 				if (inputFile.exists()) {
 					return new StreamHolder(
 							new BufferedInputStream(new FileInputStream(inputFile)), inputFile.getAbsolutePath());
@@ -526,8 +540,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			else if (payload instanceof InputStream) {
 				return new StreamHolder((InputStream) payload, "InputStream payload");
 			}
-			else if (payload instanceof Resource) {
-				Resource resource = (Resource) payload;
+			else if (payload instanceof Resource resource) {
 				String filename = resource.getFilename();
 				return new StreamHolder(resource.getInputStream(), filename != null ? filename : "Resource payload");
 			}
@@ -619,16 +632,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 	}
 
-	private static final class StreamHolder {
-
-		private final InputStream stream;
-
-		private final String name;
-
-		StreamHolder(InputStream stream, String name) {
-			this.stream = stream;
-			this.name = name;
-		}
+	private record StreamHolder(InputStream stream, String name) {
 
 	}
 
