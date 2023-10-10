@@ -178,6 +178,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	 * @return the IntegrationFlowRegistration for provided {@code id} or {@code null}
 	 */
 	@Override
+	@Nullable
 	public IntegrationFlowRegistration getRegistrationById(String flowId) {
 		return this.registry.get(flowId);
 	}
