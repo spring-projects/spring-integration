@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,8 +153,11 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 				.withRootCauseInstanceOf(IOException.class)
 				.withStackTraceContaining("553 : No such file or directory");
 
-		assertThat(TestUtils.getPropertyValue(this.sessionFactory.getSession(), "targetSession"))
+		Session<FTPFile> newSession = this.sessionFactory.getSession();
+		assertThat(TestUtils.getPropertyValue(newSession, "targetSession"))
 				.isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
+
+		newSession.close();
 	}
 
 	@Configuration

@@ -176,8 +176,11 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 				.withRootCauseInstanceOf(SftpException.class)
 				.withStackTraceContaining("(SSH_FX_NO_SUCH_FILE): No such file or directory");
 
-		assertThat(TestUtils.getPropertyValue(this.sessionFactory.getSession(), "targetSession"))
+		Session<SftpClient.DirEntry> newSession = this.sessionFactory.getSession();
+		assertThat(TestUtils.getPropertyValue(newSession, "targetSession"))
 				.isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
+
+		newSession.close();
 	}
 
 	@Configuration

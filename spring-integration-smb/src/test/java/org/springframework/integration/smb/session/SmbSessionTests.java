@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,8 +103,11 @@ public class SmbSessionTests extends SmbTestSupport {
 				.withRootCauseInstanceOf(IOException.class)
 				.withStackTraceContaining("The system cannot find the file specified");
 
-		assertThat(TestUtils.getPropertyValue(cachingSessionFactory.getSession(), "targetSession"))
+		Session<SmbFile> newSession = cachingSessionFactory.getSession();
+		assertThat(TestUtils.getPropertyValue(newSession, "targetSession"))
 				.isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
+
+		newSession.close();
 	}
 
 }
