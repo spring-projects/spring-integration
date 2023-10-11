@@ -20,10 +20,12 @@ import java.io.IOException;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPReply;
 
 import org.springframework.integration.file.remote.ClientCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -34,6 +36,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.1
  *
  */
@@ -82,27 +85,48 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 	public boolean exists(final String path) {
 		return doExecuteWithClient(client -> {
 			try {
-				switch (FtpRemoteFileTemplate.this.existsMode) {
-
-					case STAT:
-						return client.getStatus(path) != null;
-
-					case NLST:
-						String[] names = client.listNames(path);
-						return !ObjectUtils.isEmpty(names);
-
-					case NLST_AND_DIRS:
-						return FtpRemoteFileTemplate.super.exists(path);
-
-					default:
-						throw new IllegalStateException("Unsupported 'existsMode': " +
-								FtpRemoteFileTemplate.this.existsMode);
-				}
+				return switch (FtpRemoteFileTemplate.this.existsMode) {
+					case STAT -> client.getStatus(path) != null;
+					case NLST -> !ObjectUtils.isEmpty(client.listNames(path));
+					case NLST_AND_DIRS -> FtpRemoteFileTemplate.super.exists(path);
+				};
 			}
 			catch (IOException e) {
 				throw new MessagingException("Failed to check the remote path for " + path, e);
 			}
 		});
+	}
+
+	@Override
+	protected boolean shouldMarkSessionAsDirty(Exception ex) {
+		IOException ftpException = findIoException(ex);
+		if (ftpException != null) {
+			return isStatusDirty(ftpException.getMessage());
+		}
+		else {
+			return super.shouldMarkSessionAsDirty(ex);
+		}
+	}
+
+	/**
+	 * Check if {@link IOException#getMessage()} is treated as fatal.
+	 * @param ftpErrorMessage the value from {@link IOException#getMessage()}.
+	 * @return true if {@link IOException#getMessage()} is treated as fatal.
+	 * @since 6.0.8
+	 */
+	protected boolean isStatusDirty(String ftpErrorMessage) {
+		return !ftpErrorMessage.contains("" + FTPReply.FILE_UNAVAILABLE)
+				&& !ftpErrorMessage.contains("" + FTPReply.FILE_NAME_NOT_ALLOWED);
+	}
+
+	@Nullable
+	private static IOException findIoException(Throwable ex) {
+		if (ex == null || ex instanceof IOException) {
+			return (IOException) ex;
+		}
+		else {
+			return findIoException(ex.getCause());
+		}
 	}
 
 	/**

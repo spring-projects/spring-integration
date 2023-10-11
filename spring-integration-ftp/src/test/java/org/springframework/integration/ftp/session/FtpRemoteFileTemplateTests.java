@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
+import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.FtpTestSupport;
@@ -53,9 +54,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
- *
  * @since 4.1
- *
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -140,6 +139,25 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 
 		SimplePool<?> pool = TestUtils.getPropertyValue(this.sessionFactory, "pool", SimplePool.class);
 		assertThat(pool.getActiveCount()).isEqualTo(0);
+	}
+
+	@Test
+	public void sessionIsNotDirtyOnNoSuchFileError() {
+		Session<FTPFile> session = this.sessionFactory.getSession();
+		session.close();
+
+		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(this.sessionFactory);
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> template.rename("No_such_file1", "No_such_file2"))
+				.withRootCauseInstanceOf(IOException.class)
+				.withStackTraceContaining("553 : No such file or directory");
+
+		Session<FTPFile> newSession = this.sessionFactory.getSession();
+		assertThat(TestUtils.getPropertyValue(newSession, "targetSession"))
+				.isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
+
+		newSession.close();
 	}
 
 	@Configuration
