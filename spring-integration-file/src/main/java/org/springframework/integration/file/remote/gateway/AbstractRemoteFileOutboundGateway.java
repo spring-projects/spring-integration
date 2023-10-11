@@ -55,12 +55,13 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.MutableMessage;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.PartialSuccessException;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -867,7 +868,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		if (payload instanceof Collection<?> files) {
 			return files.stream()
-					.map(p -> doMput(new MutableMessage<>(p, requestMessage.getHeaders())))
+					.map((filePayload) -> mputItemMessage(filePayload, requestMessage.getHeaders()))
+					.map(this::doMput)
 					.collect(Collectors.toList());
 		}
 		else if (!file.isDirectory()) {
@@ -877,6 +879,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			File localDir = file;
 			return this.remoteFileTemplate.invoke(t -> mPut(requestMessage, t.getSession(), localDir));
 		}
+	}
+
+	private static Message<?> mputItemMessage(Object payload, MessageHeaders requestHeaders) {
+		return MutableMessageBuilder.withPayload(payload)
+				.copyHeaders(requestHeaders)
+				.removeHeader(FileHeaders.FILENAME)
+				.build();
 	}
 
 	/**
@@ -899,7 +908,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		try {
 			for (File filteredFile : filteredFiles) {
 				if (!filteredFile.isDirectory()) {
-					String path = doPut(new MutableMessage<>(filteredFile, requestMessage.getHeaders()), subDirectory);
+					String path = doPut(mputItemMessage(filteredFile, requestMessage.getHeaders()), subDirectory);
 					if (path != null) {
 						replies.add(path);
 					}
