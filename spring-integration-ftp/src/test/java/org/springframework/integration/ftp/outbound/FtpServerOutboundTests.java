@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -303,8 +303,8 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		ByteArrayOutputStream localContents = new ByteArrayOutputStream();
 		FileUtils.copyFile(secondRemote, remoteContents);
 		FileUtils.copyFile(secondTarget, localContents);
-		String localAsString = new String(localContents.toByteArray());
-		assertThat(localAsString).isEqualTo(new String(remoteContents.toByteArray()));
+		String localAsString = localContents.toString();
+		assertThat(localAsString).isEqualTo(remoteContents.toString());
 		long oldLastModified = secondRemote.lastModified();
 		FileUtils.copyInputStreamToFile(new ByteArrayInputStream("junk".getBytes()), secondRemote);
 		long newLastModified = secondRemote.lastModified();
@@ -313,13 +313,13 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		this.output.receive(0);
 		localContents = new ByteArrayOutputStream();
 		FileUtils.copyFile(secondTarget, localContents);
-		assertThat(new String(localContents.toByteArray())).isEqualTo(localAsString);
+		assertThat(localContents.toString()).isEqualTo(localAsString);
 		secondRemote.setLastModified(newLastModified);
 		this.inboundMGetRecursive.send(new GenericMessage<Object>("*"));
 		this.output.receive(0);
 		localContents = new ByteArrayOutputStream();
 		FileUtils.copyFile(secondTarget, localContents);
-		assertThat(new String(localContents.toByteArray())).isEqualTo("junk");
+		assertThat(localContents.toString()).isEqualTo("junk");
 		// restore the remote file contents
 		FileUtils.copyInputStreamToFile(new ByteArrayInputStream(localAsString.getBytes()), secondRemote);
 	}
@@ -364,12 +364,12 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		FileCopyUtils.copy(session.readRaw("ftpSource/ ftpSource1.txt"), baos);
 		assertThat(session.finalizeRaw()).isTrue();
-		assertThat(new String(baos.toByteArray())).isEqualTo("source1");
+		assertThat(baos.toString()).isEqualTo("source1");
 
 		baos = new ByteArrayOutputStream();
 		FileCopyUtils.copy(session.readRaw("ftpSource/ftpSource2.txt"), baos);
 		assertThat(session.finalizeRaw()).isTrue();
-		assertThat(new String(baos.toByteArray())).isEqualTo("source2");
+		assertThat(baos.toString()).isEqualTo("source2");
 
 		session.close();
 	}
@@ -383,12 +383,12 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		final ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
 		assertThat(template.get(new GenericMessage<>("ftpSource/ ftpSource1.txt"),
 				stream -> FileCopyUtils.copy(stream, baos1))).isTrue();
-		assertThat(new String(baos1.toByteArray())).isEqualTo("source1");
+		assertThat(baos1.toString()).isEqualTo("source1");
 
 		final ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
 		assertThat(template.get(new GenericMessage<>("ftpSource/ftpSource2.txt"),
 				stream -> FileCopyUtils.copy(stream, baos2))).isTrue();
-		assertThat(new String(baos2.toByteArray())).isEqualTo("source2");
+		assertThat(baos2.toString()).isEqualTo("source2");
 	}
 
 	@Test
@@ -817,7 +817,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		@EventListener
 		public void handleEvent(ApacheMinaFtpEvent event) {
 			if (this.latch != null) {
-				if (this.events.size() > 0 || event instanceof SessionOpenedEvent) {
+				if (!this.events.isEmpty() || event instanceof SessionOpenedEvent) {
 					if (event instanceof SessionOpenedEvent) {
 						this.clientAddress = event.getSession().getClientAddress();
 						this.events.add(event);

@@ -151,8 +151,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
-	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
-	 * etc), and an expression to determine the filename.
+	 * Construct an instance with the supplied session factory,
+	 * a command ('ls', 'get' etc.), and an expression to determine the filename.
 	 * @param sessionFactory the session factory.
 	 * @param command the command.
 	 * @param expression the filename expression.
@@ -164,8 +164,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
-	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
-	 * etc), and an expression to determine the filename.
+	 * Construct an instance with the supplied session factory,
+	 * a command ('ls', 'get' etc.), and an expression to determine the filename.
 	 * @param sessionFactory the session factory.
 	 * @param command the command.
 	 * @param expression the filename expression.
@@ -178,8 +178,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
-	 * Construct an instance with the supplied remote file template, a command ('ls',
-	 * 'get' etc), and an expression to determine the filename.
+	 * Construct an instance with the supplied remote file template,
+	 * a command ('ls', 'get' etc.), and an expression to determine the filename.
 	 * @param remoteFileTemplate the remote file template.
 	 * @param command the command.
 	 * @param expression the filename expression.
@@ -191,8 +191,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
-	 * Construct an instance with the supplied remote file template, a command ('ls',
-	 * 'get' etc), and an expression to determine the filename.
+	 * Construct an instance with the supplied remote file template,
+	 * a command ('ls', 'get' etc.), and an expression to determine the filename.
 	 * @param remoteFileTemplate the remote file template.
 	 * @param command the command.
 	 * @param expressionArg the filename expression.
@@ -823,7 +823,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * The session argument isn't used in the default implementation.
 	 * @param message the request message related to this put command
 	 * @param session the remote protocol session related to this invocation context
-	 * @param subDirectory the target sub directory to put
+	 * @param subDirectory the target sub-directory to put
 	 * @return The remote path, or null if no local file was found.
 	 * @since 5.0
 	 */
@@ -854,19 +854,19 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private Object doMput(Message<?> requestMessage) {
 		File file = null;
 		Object payload = requestMessage.getPayload();
-		if (payload instanceof File) {
-			file = (File) payload;
+		if (payload instanceof File filePayload) {
+			file = filePayload;
 		}
-		else if (payload instanceof String) {
-			file = new File((String) payload);
+		else if (payload instanceof String fileName) {
+			file = new File(fileName);
 		}
 		else if (!(payload instanceof Collection)) {
 			throw new IllegalArgumentException(
 					"Only File or String payloads (or Collection of File/String) allowed for 'mput', received: "
 							+ payload.getClass());
 		}
-		if ((payload instanceof Collection)) {
-			return ((Collection<?>) payload).stream()
+		if (payload instanceof Collection<?> files) {
+			return files.stream()
 					.map(p -> doMput(new MutableMessage<>(p, requestMessage.getHeaders())))
 					.collect(Collectors.toList());
 		}
@@ -926,7 +926,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private RuntimeException handlePutException(Message<?> requestMessage, String subDirectory,
 			List<File> filteredFiles, List<String> replies, RuntimeException ex) {
 
-		if (replies.size() > 0 || ex instanceof PartialSuccessException) {
+		if (!replies.isEmpty() || ex instanceof PartialSuccessException) {
 			return new PartialSuccessException(requestMessage,
 					"Partially successful 'mput' operation" +
 							(subDirectory == null ? "" : (" on " + subDirectory)), ex, replies, filteredFiles);
@@ -1124,7 +1124,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				session.read(remoteFilePath, outputStream);
 			}
 			catch (Exception ex) {
-				/* Some operation systems acquire exclusive file-lock during file processing
+				/* Some operational systems acquire exclusive file-lock during file processing
 				   and the file can't be deleted without closing streams before.
 				*/
 				outputStream.close();
@@ -1223,17 +1223,17 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private RuntimeException processMgetException(Message<?> message, String remoteDirectory, List<File> files,
 			List<AbstractFileInfo<F>> remoteFiles, Exception ex) {
 
-		if (files.size() > 0) {
+		if (!files.isEmpty()) {
 			return new PartialSuccessException(message,
 					"Partially successful recursive 'mget' operation on "
 							+ (remoteDirectory != null ? remoteDirectory : "Client Working Directory"),
 					ex, files, remoteFiles);
 		}
-		else if (ex instanceof MessagingException) {
-			return (MessagingException) ex;
+		else if (ex instanceof MessagingException messagingException) {
+			return messagingException;
 		}
-		else if (ex instanceof IOException) {
-			throw new UncheckedIOException((IOException) ex);
+		else if (ex instanceof IOException ioException) {
+			throw new UncheckedIOException(ioException);
 		}
 		else {
 			return new MessagingException("Failed to process MGET", ex);
@@ -1265,7 +1265,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 		@SuppressWarnings("unchecked")
 		List<AbstractFileInfo<F>> remoteFiles = (List<AbstractFileInfo<F>>) ls(message, session, remotePath);
-		if (remoteFiles.size() == 0 && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
+		if (remoteFiles.isEmpty() && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
 			throw new MessagingException("No files found at "
 					+ (remoteDirectory != null ? remoteDirectory : "Client Working Directory")
 					+ " with pattern " + remoteFilename);
@@ -1291,7 +1291,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private String getRemoteDirectory(String remoteFilePath, String remoteFilename) {
 		String remoteDir = remoteFilePath.substring(0, remoteFilePath.lastIndexOf(remoteFilename));
-		if (remoteDir.length() == 0) {
+		if (remoteDir.isEmpty()) {
 			return null;
 		}
 		return remoteDir;
