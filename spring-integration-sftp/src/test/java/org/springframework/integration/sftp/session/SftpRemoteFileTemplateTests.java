@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.client.SftpVersionSelector;
+import org.apache.sshd.sftp.common.SftpException;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -38,6 +39,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
@@ -52,9 +54,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Artem Bilan
- *
  * @since 4.1
- *
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -63,7 +63,7 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 	@Autowired
 	private CachingSessionFactory<SftpClient.DirEntry> sessionFactory;
 
-	@LogLevels(level = "trace", categories = { "org.apache.sshd", "org.springframework.integration.sftp" })
+	@LogLevels(level = "trace", categories = {"org.apache.sshd", "org.springframework.integration.sftp"})
 	@Test
 	public void testINT3412AppendStatRmdir() {
 		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(sessionFactory);
@@ -162,6 +162,25 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 								"sftpSource/subSftpSource/subSftpSource1.txt"));
 
 		oldVersionSession.close();
+	}
+
+	@Test
+	public void sessionIsNotDirtyOnNoSuchFileError() {
+		Session<SftpClient.DirEntry> session = this.sessionFactory.getSession();
+		session.close();
+
+		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(this.sessionFactory);
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> template.list("No_such_dir"))
+				.withRootCauseInstanceOf(SftpException.class)
+				.withStackTraceContaining("(SSH_FX_NO_SUCH_FILE): No such file or directory");
+
+		Session<SftpClient.DirEntry> newSession = this.sessionFactory.getSession();
+		assertThat(TestUtils.getPropertyValue(newSession, "targetSession"))
+				.isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
+
+		newSession.close();
 	}
 
 	@Configuration
