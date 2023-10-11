@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,14 @@ import java.io.IOException;
 import jcifs.smb.SmbFile;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.smb.SmbTestSupport;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessagingException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  *
@@ -83,6 +88,26 @@ public class SmbSessionTests extends SmbTestSupport {
 			SmbFile smbFile = smbSession.createSmbFileObject("..\\anotherShare");
 			assertThat(smbServerUrl() + "/anotherShare").isEqualTo(smbFile.getPath());
 		}
+	}
+
+	@Test
+	public void sessionIsNotDirtyOnNoSuchFileError() {
+		CachingSessionFactory<SmbFile> cachingSessionFactory = new CachingSessionFactory<>(smbSessionFactory);
+		Session<SmbFile> session = cachingSessionFactory.getSession();
+		session.close();
+
+		SmbRemoteFileTemplate template = new SmbRemoteFileTemplate(cachingSessionFactory);
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> template.rename("No_such_file1", "No_such_file2"))
+				.withRootCauseInstanceOf(IOException.class)
+				.withStackTraceContaining("The system cannot find the file specified");
+
+		Session<SmbFile> newSession = cachingSessionFactory.getSession();
+		assertThat(TestUtils.getPropertyValue(newSession, "targetSession"))
+				.isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
+
+		newSession.close();
 	}
 
 }
