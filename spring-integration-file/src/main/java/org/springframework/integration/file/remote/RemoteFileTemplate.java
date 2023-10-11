@@ -474,10 +474,10 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	/**
 	 * Determine whether {@link Session#dirty()} should be called
-	 * in the {@link #execute(SessionCallback)} when exception is thrown from the callback.
+	 * in the {@link #execute(SessionCallback)} when an exception is thrown from the callback.
 	 * By default, this method returns {@code true}.
 	 * Remote file protocol extensions can override this method to provide
-	 * a specific strategy against thrown exception, e.g. {@code file not found} error
+	 * a specific strategy against the thrown exception, e.g. {@code file not found} error
 	 * is not a signal that session is broken.
 	 * @param ex the exception to check if {@link Session} must be marked as dirty.
 	 * @return true if {@link Session#dirty()} should be called.

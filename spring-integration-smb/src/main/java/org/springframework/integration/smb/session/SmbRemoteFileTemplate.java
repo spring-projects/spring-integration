@@ -35,7 +35,7 @@ import org.springframework.lang.Nullable;
  */
 public class SmbRemoteFileTemplate extends RemoteFileTemplate<SmbFile> {
 
-	protected static final List<Integer> NOT_DIRTY_STATUSES =
+	protected static final List<Integer> NOT_DIRTY_STATUSES = // NOSONAR
 			List.of(
 					NtStatus.NT_STATUS_INVALID_HANDLE,
 					NtStatus.NT_STATUS_END_OF_FILE,
@@ -49,7 +49,8 @@ public class SmbRemoteFileTemplate extends RemoteFileTemplate<SmbFile> {
 					NtStatus.NT_STATUS_OBJECT_NAME_NOT_FOUND,
 					NtStatus.NT_STATUS_OBJECT_PATH_INVALID,
 					NtStatus.NT_STATUS_OBJECT_PATH_NOT_FOUND,
-					NtStatus.NT_STATUS_OBJECT_PATH_SYNTAX_BAD
+					NtStatus.NT_STATUS_OBJECT_PATH_SYNTAX_BAD,
+					NtStatus.NT_STATUS_CANNOT_DELETE
 			);
 
 	/**

@@ -39,7 +39,7 @@ import org.springframework.lang.Nullable;
  */
 public class SftpRemoteFileTemplate extends RemoteFileTemplate<SftpClient.DirEntry> {
 
-	protected static final List<Integer> NOT_DIRTY_STATUSES =
+	protected static final List<Integer> NOT_DIRTY_STATUSES = // NOSONAR
 			List.of(
 					SftpConstants.SSH_FX_NO_SUCH_FILE,
 					SftpConstants.SSH_FX_NO_SUCH_PATH,
@@ -49,8 +49,9 @@ public class SftpRemoteFileTemplate extends RemoteFileTemplate<SftpClient.DirEnt
 					SftpConstants.SSH_FX_DIR_NOT_EMPTY,
 					SftpConstants.SSH_FX_NOT_A_DIRECTORY,
 					SftpConstants.SSH_FX_EOF,
-					SftpConstants.SSH_FX_INVALID_FILENAME,
-					SftpConstants.SSH_FX_INVALID_FILENAME
+					SftpConstants.SSH_FX_CANNOT_DELETE,
+					SftpConstants.SSH_FX_FILE_IS_A_DIRECTORY,
+					SftpConstants.SSH_FX_FILE_CORRUPT
 			);
 
 	public SftpRemoteFileTemplate(SessionFactory<SftpClient.DirEntry> sessionFactory) {
