@@ -25,6 +25,7 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Adama Sorho
+ * @author Johannes Edmeier
  *
  * @since 2.2
  */
@@ -33,7 +34,7 @@ public interface ChannelMessageStoreQueryProvider {
 	String SELECT_COMMON = """
 				SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES
 				from %PREFIX%CHANNEL_MESSAGE
-				where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region\s
+				where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region
 			""";
 
 	/**
@@ -124,5 +125,15 @@ public interface ChannelMessageStoreQueryProvider {
 	 * @return query string
 	 */
 	String getPriorityPollFromGroupQuery();
+
+	/**
+	 * Indicate if the queries for polling are using a single statement (e.g. DELETE ... RETURNING) to
+	 * retrieve and delete the message from the channel store.
+	 * @return true if a single statement is used, false if a select and delete is required.
+	 * @since 6.2
+	 */
+	default boolean isSingleStatementForPoll() {
+		return false;
+	}
 
 }

@@ -81,6 +81,9 @@ If your database is not listed, you can implement the `ChannelMessageStoreQueryP
 
 Version 4.0 added the `MESSAGE_SEQUENCE` column to the table to ensure first-in-first-out (FIFO) queueing even when messages are stored in the same millisecond.
 
+Starting with version 6.2, `ChannelMessageStoreQueryProvider` exposes a `isSingleStatementForPoll` flag, where the  `PostgresChannelMessageStoreQueryProvider` returns `true` and its queries for polls are now based on a single `DELETE...RETURNING` statement.
+The `JdbcChannelMessageStore` consults with the `isSingleStatementForPoll` option and skips a separate `DELETE` statement if only single poll statement is supported.
+
 [[custom-message-insertion]]
 === Custom Message Insertion
 

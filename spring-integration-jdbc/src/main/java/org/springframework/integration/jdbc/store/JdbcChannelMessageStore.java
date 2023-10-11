@@ -65,7 +65,7 @@ import org.springframework.util.StringUtils;
  * Channel-specific implementation of
  * {@link org.springframework.integration.store.BasicMessageGroupStore} using a relational
  * database via JDBC.
- *
+ * <p>
  * This message store shall be used for message channels only.
  * <p>
  * As such, the {@link JdbcChannelMessageStore} uses database specific SQL queries.
@@ -86,6 +86,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Meherzad Lahewala
  * @author Trung Pham
+ * @author Johannes Edmeier
  *
  * @since 2.2
  */
@@ -554,10 +555,14 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		String key = getKey(groupId);
 		Message<?> polledMessage = doPollForMessage(key);
-		if (polledMessage != null && !doRemoveMessageFromGroup(groupId, polledMessage)) {
+		if (polledMessage != null && !isSingleStatementForPoll() && !doRemoveMessageFromGroup(groupId, polledMessage)) {
 			return null;
 		}
 		return polledMessage;
+	}
+
+	private boolean isSingleStatementForPoll() {
+		return this.channelMessageStoreQueryProvider.isSingleStatementForPoll();
 	}
 
 	/**
