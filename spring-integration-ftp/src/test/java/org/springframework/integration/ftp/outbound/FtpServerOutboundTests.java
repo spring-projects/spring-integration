@@ -398,7 +398,13 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		session = TestUtils.getPropertyValue(session, "targetSession", Session.class);
 		FTPClient client = spy(TestUtils.getPropertyValue(session, "client", FTPClient.class));
 		new DirectFieldAccessor(session).setPropertyValue("client", client);
-		this.inboundMPut.send(new GenericMessage<>(getSourceLocalDirectory()));
+		// The FileHeaders.FILENAME is removed by the AbstractRemoteFileOutboundGateway
+		// when MPUT item is prepared for its specific PUT
+		Message<File> mputRequestMessage =
+				MessageBuilder.withPayload(getSourceLocalDirectory())
+						.setHeader(FileHeaders.FILENAME, "inbound_file_name")
+						.build();
+		this.inboundMPut.send(mputRequestMessage);
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
 		assertThat(out).isNotNull();
