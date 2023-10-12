@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * Depending on the selected {@link OutboundGatewayType}, the outbound gateway
  * will use either the {@link JpaExecutor}'s poll method or its
  * executeOutboundJpaOperation method.
- *
+ * <p>
  * In order to initialize the adapter, you must provide a {@link JpaExecutor} as
  * constructor.
  *
@@ -65,12 +65,7 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	@Override
 	public String getComponentType() {
-		return "jpa:outbound-gateway";
-	}
-
-	@Override
-	protected void doInit() {
-		this.jpaExecutor.setBeanFactory(this.getBeanFactory());
+		return "jpa:outbound-" + (this.producesReply ? "gateway" : "channel-adapter");
 	}
 
 	@Override

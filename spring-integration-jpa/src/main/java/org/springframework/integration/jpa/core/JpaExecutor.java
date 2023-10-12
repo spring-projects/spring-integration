@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -300,7 +300,6 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 *
 	 * This parameter indicates that only one result object shall be returned as
 	 * a result from the executed JPA operation. If set to <code>true</code> and
 	 * the result list from the JPA operations contains only 1 element, then that
@@ -373,7 +372,6 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 						new ExpressionEvaluatingParameterSourceFactory(this.beanFactory);
 				expressionSourceFactory.setParameters(this.jpaParameters);
 				this.parameterSourceFactory = expressionSourceFactory;
-
 			}
 			else {
 				throw new IllegalStateException("The 'jpaParameters' and 'parameterSourceFactory' " +
@@ -384,14 +382,11 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			if (this.usePayloadAsParameterSource == null) {
 				this.usePayloadAsParameterSource = false;
 			}
-
 		}
 		else {
-
 			if (this.parameterSourceFactory == null) {
 				this.parameterSourceFactory = new BeanPropertyParameterSourceFactory();
 			}
-
 			if (this.usePayloadAsParameterSource == null) {
 				this.usePayloadAsParameterSource = true;
 			}
@@ -441,12 +436,14 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	private Object executeOutboundJpaOperationOnPersistentMode(Message<?> message) {
 		Object payload = message.getPayload();
 		switch (this.persistMode) {
-			case PERSIST:
+			case PERSIST -> {
 				this.jpaOperations.persist(payload, this.flushSize, this.clearOnFlush);
 				return payload;
-			case MERGE:
+			}
+			case MERGE -> {
 				return this.jpaOperations.merge(payload, this.flushSize, this.clearOnFlush); // NOSONAR
-			case DELETE:
+			}
+			case DELETE -> {
 				if (payload instanceof Iterable) {
 					this.jpaOperations.deleteInBatch((Iterable<?>) payload);
 				}
@@ -457,8 +454,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 					this.jpaOperations.flush();
 				}
 				return payload;
-			default:
-				throw new IllegalStateException("Unsupported PersistMode: " + this.persistMode.name());
+			}
+			default -> throw new IllegalStateException("Unsupported PersistMode: " + this.persistMode.name());
 		}
 	}
 

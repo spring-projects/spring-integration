@@ -62,7 +62,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractSimpleMessageHandlerF
 	}
 
 	/**
-	 * Specifies the time the gateway will wait to send the result to the reply channel.
+	 * Specify the time the gateway will wait to send the result to the reply channel.
 	 * Only applies when the reply channel itself might block the 'send' operation
 	 * (for example a bounded QueueChannel that is currently full).
 	 * @param replyTimeout The timeout in milliseconds

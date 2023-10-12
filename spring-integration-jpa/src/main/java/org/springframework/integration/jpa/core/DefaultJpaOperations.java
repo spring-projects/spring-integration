@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -314,7 +314,6 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 					final Object paramValue;
 
 					if (position != null) {
-
 						if (source instanceof PositionSupportingParameterSource) {
 							paramValue = ((PositionSupportingParameterSource) source).getValueByPosition(position);
 							query.setParameter(position, paramValue);
@@ -323,10 +322,8 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 							throw new JpaOperationFailedException("Positional Parameters are only support "
 									+ "for PositionSupportingParameterSources.", queryString);
 						}
-
 					}
 					else {
-
 						if (StringUtils.hasText(paramName)) {
 							paramValue = source.getValue(paramName);
 							query.setParameter(paramName, paramValue);
@@ -337,13 +334,11 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 											"Additionally it is not a positional parameter, neither.", queryString);
 						}
 					}
-
 				}
 			}
 			else {
 				throw new IllegalArgumentException("Query has parameters but no parameter source provided");
 			}
-
 		}
 	}
 
