@@ -45,9 +45,13 @@ ext {
     linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
     linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
 
-    modifiedFiles = !isCI
-            ? files(grgit.status().unstaged.modified).filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
-            : files()
+    modifiedFiles =
+            files()
+                    .from {
+                        files(grgit.status().unstaged.modified)
+                                .filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
+                    }
+    modifiedFiles.finalizeValueOnRead()
 
     apacheSshdVersion = '2.10.0'
     artemisVersion = '2.30.0'
@@ -92,7 +96,7 @@ ext {
     micrometerTracingVersion = '1.2.0-SNAPSHOT'
     micrometerVersion = '1.12.0-SNAPSHOT'
     mockitoVersion = '5.5.0'
-    mongoDriverVersion = '4.10.2'
+    mongoDriverVersion = '4.11.0'
     mysqlVersion = '8.0.33'
     oracleVersion = '23.3.0.23.09'
     pahoMqttClientVersion = '1.2.5'
