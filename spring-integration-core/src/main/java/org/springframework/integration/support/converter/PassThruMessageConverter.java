@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.converter;
 
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
@@ -41,7 +42,7 @@ public class PassThruMessageConverter implements MessageConverter {
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers) {
+	public Message<?> toMessage(Object payload, @NonNull MessageHeaders headers) {
 		Assert.isInstanceOf(byte[].class, payload, "'payload' must be of 'byte[]' type.");
 		return MessageBuilder.createMessage(payload, headers);
 	}

@@ -43,10 +43,12 @@ import org.springframework.util.Assert;
  */
 public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 
-	private volatile String[] headerNames;
+	// TODO is initializing with an empty array correct or should toMessage() return 'null' if never set?
+	private volatile String[] headerNames = {};
 
 	private volatile boolean filterHeadersInToMessage;
 
+	@Nullable
 	private volatile BeanFactory beanFactory;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
@@ -82,7 +84,7 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 	}
 
 	/**
-	 * By default all headers on Map passed to {@link #toMessage(Object, MessageHeaders)}
+	 * By default, all headers on Map passed to {@link #toMessage(Object, MessageHeaders)}
 	 * will be mapped. Set this property
 	 * to 'true' if you wish to limit the inbound headers to those in
 	 * the #headerNames.

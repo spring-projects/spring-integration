@@ -18,6 +18,7 @@ package org.springframework.integration.support.converter;
 
 import java.nio.charset.Charset;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.StringMessageConverter;
 
@@ -50,7 +51,7 @@ public class ObjectStringMessageConverter extends StringMessageConverter {
 
 
 	@Override
-	protected Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
+	protected Object convertFromInternal(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint) {
 		Object payload = message.getPayload();
 		if (payload instanceof String || payload instanceof byte[]) {
 			return super.convertFromInternal(message, targetClass, conversionHint);

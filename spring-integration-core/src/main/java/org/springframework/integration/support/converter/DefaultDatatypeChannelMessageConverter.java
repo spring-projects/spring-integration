@@ -22,6 +22,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
@@ -58,7 +59,7 @@ public class DefaultDatatypeChannelMessageConverter implements MessageConverter,
 	}
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+	public void setBeanFactory(@Nullable BeanFactory beanFactory) throws BeansException {
 		if (!this.conversionServiceSet && beanFactory != null) {
 			ConversionService integrationConversionService = IntegrationUtils.getConversionService(beanFactory);
 			if (integrationConversionService != null) {
@@ -81,7 +82,7 @@ public class DefaultDatatypeChannelMessageConverter implements MessageConverter,
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders header) {
+	public Message<?> toMessage(Object payload, @Nullable MessageHeaders header) {
 		throw new UnsupportedOperationException("This converter does not support this method");
 	}
 
