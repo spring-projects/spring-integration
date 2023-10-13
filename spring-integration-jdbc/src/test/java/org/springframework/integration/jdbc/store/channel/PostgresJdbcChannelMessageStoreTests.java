@@ -17,13 +17,10 @@
 package org.springframework.integration.jdbc.store.channel;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.jdbc.channel.PostgresContainerTest;
-import org.springframework.integration.jdbc.store.PostgresJdbcChannelMessageStore;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -38,18 +35,8 @@ import javax.sql.DataSource;
  */
 @ContextConfiguration
 public class PostgresJdbcChannelMessageStoreTests extends AbstractJdbcChannelMessageStoreTests implements PostgresContainerTest {
-	@BeforeEach
-	@Override
-	public void init() {
-		messageStore = new PostgresJdbcChannelMessageStore(dataSource);
-		messageStore.setRegion(REGION);
-		messageStore.setChannelMessageStoreQueryProvider(queryProvider);
-		messageStore.afterPropertiesSet();
-		messageStore.removeMessageGroup("AbstractJdbcChannelMessageStoreTests");
-	}
 
 	@Configuration
-	@EnableIntegration
 	public static class Config {
 
 		@Bean
@@ -66,8 +53,7 @@ public class PostgresJdbcChannelMessageStoreTests extends AbstractJdbcChannelMes
 			DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
 			dataSourceInitializer.setDataSource(dataSource);
 			ResourceDatabasePopulator databasePopulator =
-					new ResourceDatabasePopulator(new ClassPathResource("org/springframework/integration/jdbc/schema-drop-postgresql.sql"),
-							new ClassPathResource("org/springframework/integration/jdbc/schema-postgresql.sql"));
+					new ResourceDatabasePopulator(new ClassPathResource("org/springframework/integration/jdbc/schema-postgresql.sql"));
 			databasePopulator.setSeparator(ScriptUtils.EOF_STATEMENT_SEPARATOR);
 			dataSourceInitializer.setDatabasePopulator(
 					databasePopulator);

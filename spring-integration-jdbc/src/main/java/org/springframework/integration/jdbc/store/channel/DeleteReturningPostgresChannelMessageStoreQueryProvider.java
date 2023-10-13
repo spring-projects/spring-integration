@@ -69,4 +69,8 @@ public class DeleteReturningPostgresChannelMessageStoreQueryProvider extends Pos
 				""";
 	}
 
+	@Override
+	public boolean isUsingSingleStatementForPoll() {
+		return true;
+	}
 }

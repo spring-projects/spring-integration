@@ -486,7 +486,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param input Parameter may be null
 	 * @return Returns null when the input is null otherwise the UUID as String.
 	 */
-	protected String getKey(Object input) {
+	private String getKey(Object input) {
 		return input == null ? null : UUIDConverter.getUUID(input).toString();
 	}
 
@@ -633,6 +633,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	private boolean doRemoveMessageFromGroup(Object groupId, Message<?> messageToRemove) {
+		if (this.channelMessageStoreQueryProvider.isUsingSingleStatementForPoll()) {
+			return true;
+		}
+
 		UUID id = messageToRemove.getHeaders().getId();
 		int updated = this.jdbcTemplate.update(
 				getQuery(Query.DELETE_MESSAGE, () -> this.channelMessageStoreQueryProvider.getDeleteMessageQuery()),

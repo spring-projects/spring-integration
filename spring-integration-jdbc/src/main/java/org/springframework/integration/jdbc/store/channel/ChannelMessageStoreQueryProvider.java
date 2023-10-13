@@ -25,6 +25,7 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Adama Sorho
+ * @author Johannes Edmeier
  *
  * @since 2.2
  */
@@ -124,5 +125,16 @@ public interface ChannelMessageStoreQueryProvider {
 	 * @return query string
 	 */
 	String getPriorityPollFromGroupQuery();
+
+	/**
+	 * Specifies if the returned query for polling is using a single statement (e.g. DELETE ... RETURNING) to
+	 * retrieve and delete the message from the channel store.
+	 *
+	 * @return false if a select and delete statement is required, true if otherwise.
+	 * @since 6.2
+	 */
+	default boolean isUsingSingleStatementForPoll() {
+		return false;
+	}
 
 }
