@@ -160,10 +160,11 @@ public class JmsListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>,
 	}
 
 	/**
+	 * Configure an {@link ObservationRegistry} to use in the target listener container.
 	 * @param observationRegistry the observationRegistry.
 	 * @return the spec.
-	 * @see AbstractMessageListenerContainer#setObservationRegistry(ObservationRegistry)
 	 * @since 6.2
+	 * @see AbstractMessageListenerContainer#setObservationRegistry(ObservationRegistry)
 	 */
 	public S observationRegistry(ObservationRegistry observationRegistry) {
 		this.target.setObservationRegistry(observationRegistry);
