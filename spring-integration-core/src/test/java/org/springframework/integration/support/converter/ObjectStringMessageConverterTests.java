@@ -20,6 +20,7 @@ package org.springframework.integration.support.converter;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 
@@ -66,4 +67,5 @@ class ObjectStringMessageConverterTests {
 	}
 
 	private record ArbitraryPayload(Integer id, String text) { }
+
 }
