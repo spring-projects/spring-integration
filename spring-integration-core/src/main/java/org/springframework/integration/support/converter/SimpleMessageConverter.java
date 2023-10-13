@@ -42,9 +42,9 @@ import org.springframework.messaging.converter.MessageConverter;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SimpleMessageConverter implements MessageConverter, BeanFactoryAware {
 
-	private volatile InboundMessageMapper inboundMessageMapper;
+	private volatile InboundMessageMapper inboundMessageMapper = new DefaultInboundMessageMapper();
 
-	private volatile OutboundMessageMapper outboundMessageMapper;
+	private volatile OutboundMessageMapper outboundMessageMapper = new DefaultOutboundMessageMapper();
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
@@ -53,22 +53,20 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 	@Nullable
 	private BeanFactory beanFactory;
 
-	public SimpleMessageConverter() {
-		this(null, null);
-	}
+	public SimpleMessageConverter() { }
 
 	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper) {
-		this(inboundMessageMapper,
-				(inboundMessageMapper instanceof OutboundMessageMapper
-						? (OutboundMessageMapper<?>) inboundMessageMapper
-						: null));
+		this.setInboundMessageMapper(inboundMessageMapper);
+		if (inboundMessageMapper instanceof OutboundMessageMapper<?> messageMapper) {
+			setOutboundMessageMapper(messageMapper);
+		}
 	}
 
 	public SimpleMessageConverter(OutboundMessageMapper<?> outboundMessageMapper) {
-		this(outboundMessageMapper instanceof InboundMessageMapper
-						? (InboundMessageMapper<?>) outboundMessageMapper
-						: null,
-				outboundMessageMapper);
+		if (outboundMessageMapper instanceof InboundMessageMapper<?> messageMapper) {
+			setInboundMessageMapper(messageMapper);
+		}
+		this.setOutboundMessageMapper(outboundMessageMapper);
 	}
 
 	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper,
@@ -78,16 +76,16 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 	}
 
 
-	public final void setInboundMessageMapper(InboundMessageMapper<?> inboundMessageMapper) {
-		this.inboundMessageMapper = (inboundMessageMapper != null)
-				? inboundMessageMapper
-				: new DefaultInboundMessageMapper();
+	public final void setInboundMessageMapper(@Nullable InboundMessageMapper<?> inboundMessageMapper) {
+		if (inboundMessageMapper != null) {
+			this.inboundMessageMapper = inboundMessageMapper;
+		}
 	}
 
-	public final void setOutboundMessageMapper(OutboundMessageMapper<?> outboundMessageMapper) {
-		this.outboundMessageMapper = (outboundMessageMapper != null
-				? outboundMessageMapper
-				: new DefaultOutboundMessageMapper());
+	public final void setOutboundMessageMapper(@Nullable OutboundMessageMapper<?> outboundMessageMapper) {
+		if (outboundMessageMapper != null) {
+			this.outboundMessageMapper = outboundMessageMapper;
+		}
 	}
 
 	@Override
