@@ -27,11 +27,10 @@ import org.springframework.messaging.converter.StringMessageConverter;
  * Delegates to super when payload is {@code byte[]} or {@code String}.
  * Performs {@link Object#toString()} in other cases.
  * <p>
- * This class meant to be used as a fallback converter internally when deserializing messages. Therefore, only
+ * This class is intended to serve as a fallback converter for internal message deserialization purposes. Therefore, it
+ * is recommended to exclusively use the
  * {@link org.springframework.messaging.converter.AbstractMessageConverter#fromMessage(Message, Class) fromMessage}
- * method should be called with {@code String.class} as {@code targetClass}, obviously.To be explicit, using method
- * {@link org.springframework.messaging.converter.AbstractMessageConverter#toMessage(Object, org.springframework.messaging.MessageHeaders) toMessage}
- * with anything else than {@code String payload} will return {@code null}.
+ * method with {@code String.class} as the {@code targetClass}.
  *
  * @author Marius Bogoevici
  * @author Artem Bilan
