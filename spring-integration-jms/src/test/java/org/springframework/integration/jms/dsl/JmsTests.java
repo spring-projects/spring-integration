@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import jakarta.jms.JMSException;
@@ -56,6 +57,7 @@ import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.JmsDestinationPollingSource;
+import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
@@ -130,6 +132,9 @@ public class JmsTests extends ActiveMQMultiContextTests {
 	private MessageHandler jmsOutboundGatewayHandler;
 
 	@Autowired
+	JmsMessageDrivenEndpoint containerWithObservation;
+
+	@Autowired
 	private AtomicBoolean jmsMessageDrivenChannelCalled;
 
 	@Autowired
@@ -191,6 +196,9 @@ public class JmsTests extends ActiveMQMultiContextTests {
 				.isNotNull()
 				.extracting(Message::getPayload)
 				.isEqualTo("HELLO THROUGH THE JMS");
+
+		assertThat(TestUtils.getPropertyValue(this.containerWithObservation, "listenerContainer.observationRegistry"))
+				.isSameAs(this.observationRegistry);
 
 		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("hello THROUGH the JMS")
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "jmsMessageDriven")
@@ -406,13 +414,16 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		}
 
 		@Bean
-		public IntegrationFlow jmsMessageDrivenFlow() {
+		public IntegrationFlow jmsMessageDrivenFlow(ObservationRegistry observationRegistry) {
 			return IntegrationFlow
 					.from(Jms.messageDrivenChannelAdapter(amqFactory,
 									DefaultMessageListenerContainer.class)
 							.outputChannel(jmsMessageDrivenInputChannel())
 							.destination("jmsMessageDriven")
-							.configureListenerContainer(c -> c.clientId("foo")))
+							.configureListenerContainer(c -> c
+									.clientId("foo")
+									.observationRegistry(observationRegistry))
+							.id("containerWithObservation"))
 					.<String, String>transform(String::toLowerCase)
 					.channel(jmsOutboundInboundReplyChannel())
 					.get();
