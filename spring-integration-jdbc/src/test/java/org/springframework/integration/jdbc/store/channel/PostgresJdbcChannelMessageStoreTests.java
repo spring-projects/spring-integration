@@ -19,12 +19,8 @@ package org.springframework.integration.jdbc.store.channel;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.jdbc.channel.PostgresContainerTest;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.init.DataSourceInitializer;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -46,18 +42,6 @@ public class PostgresJdbcChannelMessageStoreTests extends AbstractJdbcChannelMes
 			dataSource.setUsername(PostgresContainerTest.getUsername());
 			dataSource.setPassword(PostgresContainerTest.getPassword());
 			return dataSource;
-		}
-
-		@Bean
-		DataSourceInitializer dataSourceInitializer(DataSource dataSource) {
-			DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
-			dataSourceInitializer.setDataSource(dataSource);
-			ResourceDatabasePopulator databasePopulator =
-					new ResourceDatabasePopulator(new ClassPathResource("org/springframework/integration/jdbc/schema-postgresql.sql"));
-			databasePopulator.setSeparator(ScriptUtils.EOF_STATEMENT_SEPARATOR);
-			dataSourceInitializer.setDatabasePopulator(
-					databasePopulator);
-			return dataSourceInitializer;
 		}
 
 		@Bean
