@@ -31,7 +31,6 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.GenericMessageConverter;
@@ -60,7 +59,6 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 
 	private final boolean registerDefaults;
 
-	@Nullable
 	private BeanFactory beanFactory;
 
 	/**
@@ -99,7 +97,6 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 	@Override
 	public void afterPropertiesSet() {
 		if (this.registerDefaults) {
-			// TODO how to deal with this.beanFactory == null? just use DefaultConversionService.getSharedInstance()?
 			ConversionService conversionService = IntegrationUtils.getConversionService(this.beanFactory);
 			if (conversionService == null) {
 				conversionService = DefaultConversionService.getSharedInstance();

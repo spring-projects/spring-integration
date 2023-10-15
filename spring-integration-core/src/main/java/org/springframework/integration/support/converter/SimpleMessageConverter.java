@@ -50,7 +50,6 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 
 	private volatile boolean messageBuilderFactorySet;
 
-	@Nullable
 	private BeanFactory beanFactory;
 
 	public SimpleMessageConverter() { }

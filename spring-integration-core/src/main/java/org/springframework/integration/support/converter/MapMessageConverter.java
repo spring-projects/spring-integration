@@ -48,7 +48,6 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 
 	private volatile boolean filterHeadersInToMessage;
 
-	@Nullable
 	private volatile BeanFactory beanFactory;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
