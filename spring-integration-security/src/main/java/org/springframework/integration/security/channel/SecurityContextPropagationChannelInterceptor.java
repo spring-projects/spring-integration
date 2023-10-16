@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @since 4.2
  *
  * @see ThreadStatePropagationChannelInterceptor
+ *
+ * @deprecated since 6.2 in favor of {@link org.springframework.security.messaging.context.SecurityContextPropagationChannelInterceptor}
  */
+@Deprecated(since = "6.2", forRemoval = true)
 public class SecurityContextPropagationChannelInterceptor
 		extends ThreadStatePropagationChannelInterceptor<Authentication> {
 
