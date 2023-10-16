@@ -50,8 +50,9 @@ public class PostgresJdbcChannelMessageStoreTests extends AbstractJdbcChannelMes
 		}
 
 		@Bean
-		DeleteReturningPostgresChannelMessageStoreQueryProvider queryProvider() {
-			return new DeleteReturningPostgresChannelMessageStoreQueryProvider();
+		PostgresChannelMessageStoreQueryProvider queryProvider() {
+			return new PostgresChannelMessageStoreQueryProvider();
 		}
 	}
+
 }

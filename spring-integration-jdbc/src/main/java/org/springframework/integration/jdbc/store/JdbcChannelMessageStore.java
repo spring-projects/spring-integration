@@ -633,7 +633,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	private boolean doRemoveMessageFromGroup(Object groupId, Message<?> messageToRemove) {
-		if (this.channelMessageStoreQueryProvider.isUsingSingleStatementForPoll()) {
+		if (this.channelMessageStoreQueryProvider.isSingleStatementForPoll()) {
 			return true;
 		}
 

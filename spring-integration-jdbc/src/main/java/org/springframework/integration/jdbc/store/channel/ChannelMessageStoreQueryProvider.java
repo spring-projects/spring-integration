@@ -127,13 +127,12 @@ public interface ChannelMessageStoreQueryProvider {
 	String getPriorityPollFromGroupQuery();
 
 	/**
-	 * Specifies if the returned query for polling is using a single statement (e.g. DELETE ... RETURNING) to
+	 * Indicates if the queries for polling are using a single statement (e.g. DELETE ... RETURNING) to
 	 * retrieve and delete the message from the channel store.
-	 *
-	 * @return false if a select and delete statement is required, true if otherwise.
+	 * @return true if a single statement is used, false if a select and delete is required.
 	 * @since 6.2
 	 */
-	default boolean isUsingSingleStatementForPoll() {
+	default boolean isSingleStatementForPoll() {
 		return false;
 	}
 

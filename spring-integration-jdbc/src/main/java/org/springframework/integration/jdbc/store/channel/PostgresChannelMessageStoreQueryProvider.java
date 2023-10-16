@@ -27,30 +27,69 @@ public class PostgresChannelMessageStoreQueryProvider implements ChannelMessageS
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
-		return SELECT_COMMON
-				+ "and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) "
-				+ "order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE SKIP LOCKED";
+		return """
+				delete
+				from %PREFIX%CHANNEL_MESSAGE
+				where CTID = (select CTID
+								from %PREFIX%CHANNEL_MESSAGE
+								where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key
+								and %PREFIX%CHANNEL_MESSAGE.REGION = :region
+								and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids)
+							order by CREATED_DATE, MESSAGE_SEQUENCE
+							limit 1)
+				returning MESSAGE_ID, MESSAGE_BYTES;
+				""";
 	}
 
 	@Override
 	public String getPollFromGroupQuery() {
-		return SELECT_COMMON +
-				"order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE SKIP LOCKED";
+		return """
+				delete
+				from %PREFIX%CHANNEL_MESSAGE
+				where CTID = (select CTID
+								from %PREFIX%CHANNEL_MESSAGE
+								where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key
+								and %PREFIX%CHANNEL_MESSAGE.REGION = :region
+							order by CREATED_DATE, MESSAGE_SEQUENCE
+							limit 1)
+				returning MESSAGE_ID, MESSAGE_BYTES;
+				""";
 	}
 
 	@Override
 	public String getPriorityPollFromGroupExcludeIdsQuery() {
-		return SELECT_COMMON +
-				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) " +
-				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE " +
-				"LIMIT 1 FOR UPDATE SKIP LOCKED";
+		return """
+				delete
+				from %PREFIX%CHANNEL_MESSAGE
+				where CTID = (select CTID
+								from %PREFIX%CHANNEL_MESSAGE
+								where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key
+								and %PREFIX%CHANNEL_MESSAGE.REGION = :region
+								and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids)
+							order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE
+							limit 1)
+				returning MESSAGE_ID, MESSAGE_BYTES;
+				""";
 	}
 
 	@Override
 	public String getPriorityPollFromGroupQuery() {
-		return SELECT_COMMON +
-				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE " +
-				"LIMIT 1 FOR UPDATE SKIP LOCKED";
+		return """
+				delete
+				from %PREFIX%CHANNEL_MESSAGE
+				where CTID = (select CTID
+								from %PREFIX%CHANNEL_MESSAGE
+								where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key
+								and %PREFIX%CHANNEL_MESSAGE.REGION = :region
+							order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE
+							limit 1)
+				returning MESSAGE_ID, MESSAGE_BYTES;
+				""";
+	}
+
+	@Override
+	public boolean isSingleStatementForPoll() {
+		return true;
 	}
 
 }
