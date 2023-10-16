@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms.dsl;
 
+import io.micrometer.observation.ObservationRegistry;
 import jakarta.jms.Destination;
 import jakarta.jms.ExceptionListener;
 
@@ -155,6 +156,18 @@ public class JmsListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>,
 	 */
 	public S clientId(String clientId) {
 		this.target.setClientId(clientId);
+		return _this();
+	}
+
+	/**
+	 * Configure an {@link ObservationRegistry} to use in the target listener container.
+	 * @param observationRegistry the observationRegistry.
+	 * @return the spec.
+	 * @since 6.2
+	 * @see AbstractMessageListenerContainer#setObservationRegistry(ObservationRegistry)
+	 */
+	public S observationRegistry(ObservationRegistry observationRegistry) {
+		this.target.setObservationRegistry(observationRegistry);
 		return _this();
 	}
 
