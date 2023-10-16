@@ -678,7 +678,7 @@ public class GatewayInterfaceTests {
 		}
 
 		@Bean
-		@BridgeTo(poller = @Poller(fixedDelay = "1000"))
+		@BridgeTo(value = "nullChannel", poller = @Poller(fixedDelay = "1000"))
 		public MessageChannel gatewayQueueChannel() {
 			return new QueueChannel();
 		}
