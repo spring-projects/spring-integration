@@ -36,7 +36,7 @@ import org.springframework.util.ClassUtils;
 public class UUIDConverter implements Converter<Object, UUID> {
 
 	/**
-	 * @deprecated since 6.2 as it is not used internally by the UUIDConverter. The internal implementation relies, now,
+	 * @deprecated since 6.0.8 as it is not used internally by the UUIDConverter. The internal implementation relies, now,
 	 * on StandardCharsets.UTF_8 instead.
 	 */
 	@Deprecated
