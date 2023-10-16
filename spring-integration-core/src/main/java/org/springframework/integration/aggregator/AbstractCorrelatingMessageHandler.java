@@ -863,7 +863,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	protected void expireGroup(Object correlationKey, MessageGroup group, Lock lock) {
-		this.logger.info(() -> "Expiring MessageGroup with correlationKey[" + correlationKey + "]");
+		this.logger.debug(() -> "Expiring MessageGroup with correlationKey[" + correlationKey + "]");
 		if (this.sendPartialResultOnExpiry) {
 			this.logger.debug(() -> "Prematurely releasing partially complete group with key ["
 					+ correlationKey + "] to: " + getOutputChannel());
