@@ -19,7 +19,6 @@ package org.springframework.integration.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -36,14 +35,18 @@ import org.springframework.util.ClassUtils;
  */
 public class UUIDConverter implements Converter<Object, UUID> {
 
-	public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+	/**
+	 * @deprecated since 6.2 as it is not used internally by the UUIDConverter. The internal implementation relies, now,
+	 * on StandardCharsets.UTF_8 instead.
+	 */
+	@Deprecated
+	public static final String DEFAULT_CHARSET = "UTF-8";
 
 	private static final Pattern UUID_REGEX = Pattern
 			.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
 	/**
 	 * Convert the input to a UUID using the convenience method {@link #getUUID(Object)}.
-	 *
 	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 	 */
 	@Override
@@ -62,7 +65,6 @@ public class UUIDConverter implements Converter<Object, UUID> {
 	 * <li>Serializable: returns the {@link UUID#nameUUIDFromBytes(byte[])} with the serialized bytes of the input</li>
 	 * </ul>
 	 * If none of the above applies there will be an exception trying to serialize.
-	 *
 	 * @param input an Object
 	 * @return a UUID constructed from the input
 	 */
@@ -75,15 +77,15 @@ public class UUIDConverter implements Converter<Object, UUID> {
 		}
 		if (input instanceof String) {
 			String inputText = (String) input;
-			if (isValidUuidString(inputText)) {
+			if (isValidUuidStringRepresentation(inputText)) {
 				return UUID.fromString(inputText);
 			}
 			else {
-				return UUID.nameUUIDFromBytes((inputText).getBytes(DEFAULT_CHARSET));
+				return UUID.nameUUIDFromBytes((inputText).getBytes(StandardCharsets.UTF_8));
 			}
 		}
 		if (ClassUtils.isPrimitiveOrWrapper(input.getClass())) {
-			return UUID.nameUUIDFromBytes(input.toString().getBytes(DEFAULT_CHARSET));
+			return UUID.nameUUIDFromBytes(input.toString().getBytes(StandardCharsets.UTF_8));
 		}
 		byte[] bytes = serialize(input);
 		return UUID.nameUUIDFromBytes(bytes);
@@ -103,13 +105,7 @@ public class UUIDConverter implements Converter<Object, UUID> {
 		return stream.toByteArray();
 	}
 
-	/**
-	 * Verifies if the provided UUID string complies with the standard representation.
-	 *
-	 * @param uuid UUID text to verify.
-	 * @return Returns true for string standard representation and false otherwise.
-	 */
-	private static boolean isValidUuidString(String uuid) {
+	private static boolean isValidUuidStringRepresentation(String uuid) {
 		return UUID_REGEX.matcher(uuid).matches();
 	}
 
