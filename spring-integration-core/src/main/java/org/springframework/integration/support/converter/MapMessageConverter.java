@@ -31,6 +31,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Converts to/from a Map with 2 keys ('headers' and 'payload').
@@ -43,7 +44,6 @@ import org.springframework.util.Assert;
  */
 public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 
-	// TODO is initializing with an empty array correct or should toMessage() return 'null' if never set?
 	private volatile String[] headerNames = {};
 
 	private volatile boolean filterHeadersInToMessage;
@@ -78,8 +78,12 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 	 * @param headerNames The header names.
 	 */
 	public void setHeaderNames(String... headerNames) {
-		Assert.notEmpty(headerNames, "at least one header name is required");
-		this.headerNames = Arrays.copyOf(headerNames, headerNames.length);
+		if (ObjectUtils.isEmpty(headerNames)) {
+			this.headerNames = new String[] {};
+		}
+		else {
+			this.headerNames = Arrays.copyOf(headerNames, headerNames.length);
+		}
 	}
 
 	/**
