@@ -702,14 +702,10 @@ project('spring-integration-http') {
         optionalApi "com.rometools:rome:$romeToolsVersion"
         optionalApi 'org.springframework:spring-webflux'
 
-        testImplementation project(':spring-integration-security')
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
-        testImplementation('org.springframework.security:spring-security-config') {
-            exclude group: 'org.springframework'
-        }
-        testImplementation('org.springframework.security:spring-security-test') {
-            exclude group: 'org.springframework'
-        }
+        testImplementation 'org.springframework.security:spring-security-messaging'
+        testImplementation 'org.springframework.security:spring-security-config'
+        testImplementation 'org.springframework.security:spring-security-test'
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
 
         testRuntimeOnly "com.jayway.jsonpath:json-path:$jsonpathVersion"
@@ -916,13 +912,9 @@ project('spring-integration-security') {
     description = 'Spring Integration Security Support'
     dependencies {
         api project(':spring-integration-core')
-        api('org.springframework.security:spring-security-messaging') {
-            exclude group: 'org.springframework'
-        }
+        api 'org.springframework.security:spring-security-messaging'
 
-        testImplementation('org.springframework.security:spring-security-config') {
-            exclude group: 'org.springframework'
-        }
+        testImplementation 'org.springframework.security:spring-security-config'
     }
 }
 
@@ -1017,12 +1009,8 @@ project('spring-integration-webflux') {
         testImplementation "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testImplementation 'org.springframework:spring-webmvc'
-        testImplementation('org.springframework.security:spring-security-config') {
-            exclude group: 'org.springframework'
-        }
-        testImplementation('org.springframework.security:spring-security-test') {
-            exclude group: 'org.springframework'
-        }
+        testImplementation 'org.springframework.security:spring-security-config'
+        testImplementation 'org.springframework.security:spring-security-test'
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
         testImplementation 'io.micrometer:micrometer-observation-test'
         testImplementation('io.micrometer:micrometer-tracing-integration-test') {

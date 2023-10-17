@@ -36,14 +36,18 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.DirectChannelSpec;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.dsl.QueueChannelSpec;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.multipart.UploadedMultipartFile;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.mock.web.MockPart;
@@ -56,6 +60,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.messaging.access.intercept.AuthorizationChannelInterceptor;
+import org.springframework.security.messaging.context.SecurityContextPropagationChannelInterceptor;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -330,21 +335,33 @@ public class HttpDslTests {
 					.build();
 		}
 
-		@Bean
-		public MessageChannel transformSecuredChannel() {
-			DirectChannel directChannel = new DirectChannel();
-			directChannel.addInterceptor(
-					new AuthorizationChannelInterceptor(AuthorityAuthorizationManager.hasRole("ADMIN")));
-			return directChannel;
+		@Bean(PollerMetadata.DEFAULT_POLLER)
+		PollerMetadata pollerMetadata() {
+			return new PollerMetadata();
 		}
 
 		@Bean
-		public IntegrationFlow httpInternalServiceFlow() {
+		public QueueChannelSpec securityPropagationChannel() {
+			return MessageChannels.queue()
+					.interceptor(new SecurityContextPropagationChannelInterceptor());
+		}
+
+		@Bean
+		public DirectChannelSpec transformSecuredChannel() {
+			return MessageChannels.direct()
+					.interceptor(new AuthorizationChannelInterceptor(AuthorityAuthorizationManager.hasRole("ADMIN")));
+		}
+
+		@Bean
+		public IntegrationFlow httpInternalServiceFlow(QueueChannel securityPropagationChannel,
+				DirectChannel transformSecuredChannel) {
+
 			return IntegrationFlow
 					.from(Http.inboundGateway("/service/internal")
 							.requestMapping(r -> r.params("name"))
 							.payloadExpression("#requestParams.name"))
-					.channel(transformSecuredChannel())
+					.channel(securityPropagationChannel)
+					.channel(transformSecuredChannel)
 					.<List<String>, String>transform(p -> p.get(0).toUpperCase())
 					.get();
 		}

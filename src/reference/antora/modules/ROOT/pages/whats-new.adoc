@@ -83,3 +83,9 @@ See xref:ftp/inbound.adoc#ftp-inbound[FTP Inbound Channel Adapter], xref:sftp/in
 
 A new `DefaultSftpSessionFactory.createSftpClient(...)` method has been introduced to support a custom `SftpClient` when overridden.
 See xref:sftp/session-factory.adoc#sftp-session-factory[SFTP Session Factory] for more information.
+
+[[x6.2-security-changes]]
+=== Security Support Changes
+
+The last class in `spring-integration-security` module `SecurityContextPropagationChannelInterceptor` has been deprecated in favor of similar class moved to `spring-security-messaging` module.
+See xref:security.adoc[Security in Spring Integration] for more information.
