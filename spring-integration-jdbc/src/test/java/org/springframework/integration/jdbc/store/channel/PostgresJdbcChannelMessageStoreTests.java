@@ -28,6 +28,7 @@ import javax.sql.DataSource;
 
 /**
  * @author Johannes Edmeier
+ * @since 6.2
  */
 @ContextConfiguration
 public class PostgresJdbcChannelMessageStoreTests extends AbstractJdbcChannelMessageStoreTests implements PostgresContainerTest {
