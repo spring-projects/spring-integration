@@ -176,7 +176,16 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 		if (this.hasHandlers) {
 			if (this.transactionTemplate != null) {
 				return this.retryTemplate.execute(context ->
-						this.transactionTemplate.execute(status -> pollMessage().map(this::dispatch)));
+						this.transactionTemplate.execute(status ->
+								pollMessage()
+										.filter(message -> {
+											if (!this.hasHandlers) {
+												status.setRollbackOnly();
+												return false;
+											}
+											return true;
+										})
+										.map(this::dispatch)));
 			}
 			else {
 				return pollMessage()

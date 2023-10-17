@@ -48,6 +48,7 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -95,6 +96,8 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 	private PostgresSubscribableChannel postgresSubscribableChannel;
 
+	private ThreadPoolTaskExecutor taskExecutor;
+
 	private String groupId;
 
 	@BeforeEach
@@ -107,17 +110,26 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 										POSTGRES_CONTAINER.getPassword())
 								.unwrap(PgConnection.class));
 
+
+		this.taskExecutor = new ThreadPoolTaskExecutor();
+		this.taskExecutor.setCorePoolSize(10);
+		this.taskExecutor.setWaitForTasksToCompleteOnShutdown(true);
+		this.taskExecutor.setAwaitTerminationSeconds(10);
+		this.taskExecutor.afterPropertiesSet();
+
 		this.groupId = testInfo.getDisplayName();
 
 		this.postgresSubscribableChannel =
 				new PostgresSubscribableChannel(messageStore, groupId, postgresChannelMessageTableSubscriber);
 		this.postgresSubscribableChannel.setBeanName("testPostgresChannel");
+		this.postgresSubscribableChannel.setDispatcherExecutor(this.taskExecutor);
 		this.postgresSubscribableChannel.afterPropertiesSet();
 	}
 
 	@AfterEach
 	void tearDown() {
 		this.postgresChannelMessageTableSubscriber.stop();
+		this.taskExecutor.shutdown();
 	}
 
 
@@ -160,13 +172,13 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		postgresChannelMessageTableSubscriber.start();
 		MessageHandler messageHandler =
 				message -> {
-			try {
-				throw new RuntimeException("An error has occurred");
-			}
-			finally {
-				latch.countDown();
-			}
-		};
+					try {
+						throw new RuntimeException("An error has occurred");
+					}
+					finally {
+						latch.countDown();
+					}
+				};
 		postgresSubscribableChannel.subscribe(messageHandler);
 
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
@@ -177,6 +189,7 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		// Stop subscriber to unlock records from TX for the next verification
 		postgresChannelMessageTableSubscriber.stop();
 		postgresSubscribableChannel.unsubscribe(messageHandler);
+		this.taskExecutor.shutdown();
 
 		assertThat(messageStore.messageGroupSize(groupId)).isEqualTo(2);
 		assertThat(messageStore.pollMessageFromGroup(groupId).getPayload()).isEqualTo("1");
