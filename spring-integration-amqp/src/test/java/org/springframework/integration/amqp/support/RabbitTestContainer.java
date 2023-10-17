@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.support;
 
+import java.io.IOException;
 import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -27,6 +28,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  *
  * @author Chris Bono
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @Testcontainers(disabledWithoutDocker = true)
 public interface RabbitTestContainer {
@@ -34,12 +36,12 @@ public interface RabbitTestContainer {
 	RabbitMQContainer RABBITMQ = new RabbitMQContainer("rabbitmq:management")
 			.withExposedPorts(5672, 15672, 5552)
 			.withEnv("RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS", "-rabbitmq_stream advertised_host localhost")
-			.withPluginsEnabled("rabbitmq_stream")
 			.withStartupTimeout(Duration.ofMinutes(2));
 
 	@BeforeAll
-	static void startContainer() {
+	static void startContainer() throws IOException, InterruptedException {
 		RABBITMQ.start();
+		RABBITMQ.execInContainer("rabbitmq-plugins", "enable", "rabbitmq_stream");
 	}
 
 	static int amqpPort() {
