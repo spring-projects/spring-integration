@@ -554,10 +554,14 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		String key = getKey(groupId);
 		Message<?> polledMessage = doPollForMessage(key);
-		if (polledMessage != null && !doRemoveMessageFromGroup(groupId, polledMessage)) {
+		if (polledMessage != null && !isSingleStatementForPoll() && !doRemoveMessageFromGroup(groupId, polledMessage)) {
 			return null;
 		}
 		return polledMessage;
+	}
+
+	private boolean isSingleStatementForPoll() {
+		return this.channelMessageStoreQueryProvider.isSingleStatementForPoll();
 	}
 
 	/**
@@ -633,10 +637,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	private boolean doRemoveMessageFromGroup(Object groupId, Message<?> messageToRemove) {
-		if (this.channelMessageStoreQueryProvider.isSingleStatementForPoll()) {
-			return true;
-		}
-
 		UUID id = messageToRemove.getHeaders().getId();
 		int updated = this.jdbcTemplate.update(
 				getQuery(Query.DELETE_MESSAGE, () -> this.channelMessageStoreQueryProvider.getDeleteMessageQuery()),
