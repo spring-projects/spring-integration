@@ -174,7 +174,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		this.replaceValueByKeyQuery = String.format(this.replaceValueByKeyQuery, this.tablePrefix);
 		this.removeValueQuery = String.format(this.removeValueQuery, this.tablePrefix);
 		this.putIfAbsentValueQuery = String.format(this.putIfAbsentValueQuery, this.tablePrefix, this.tablePrefix);
-		this.countQuery = String.format(this.putIfAbsentValueQuery, this.tablePrefix);
+		this.countQuery = String.format(this.countQuery, this.tablePrefix);
 	}
 
 	/**
