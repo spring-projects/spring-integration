@@ -281,6 +281,65 @@ class MessageDrivenAdapterTests {
 		pf.reset();
 	}
 
+	@Test
+	void testInboundBatchRetryInListenerWithSharedRetryTemplate() {
+		RetryTemplate retryTemplate = new RetryTemplate();
+		SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+		retryPolicy.setMaxAttempts(2);
+		retryTemplate.setRetryPolicy(retryPolicy);
+
+		Map<String, Object> props1 = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test4", "true");
+		props1.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		DefaultKafkaConsumerFactory<Integer, String> cf1 = new DefaultKafkaConsumerFactory<>(props1);
+		ContainerProperties containerProps1 = new ContainerProperties(topic4);
+		KafkaMessageListenerContainer<Integer, String> container1 =
+				new KafkaMessageListenerContainer<>(cf1, containerProps1);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter1 = new KafkaMessageDrivenChannelAdapter<>(container1);
+		adapter1.setRetryTemplate(retryTemplate);
+		adapter1.afterPropertiesSet();
+
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test2", "true");
+		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
+		ContainerProperties containerProps = new ContainerProperties(topic2);
+		containerProps.setIdleEventInterval(100L);
+		KafkaMessageListenerContainer<Integer, String> container =
+				new KafkaMessageListenerContainer<>(cf, containerProps);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container,
+				ListenerMode.batch);
+		MessageChannel out = new DirectChannel() {
+
+			@Override
+			protected boolean doSend(Message<?> message, long timeout) {
+				return retryTemplate.execute(retryContext -> {
+					throw new RuntimeException("intended");
+				});
+			}
+
+		};
+		adapter.setOutputChannel(out);
+		PollableChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+
+		adapter.afterPropertiesSet();
+		adapter.start();
+		ContainerTestUtils.waitForAssignment(container, 1);
+
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(EMBEDDED_BROKERS);
+		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
+		template.setDefaultTopic(topic2);
+
+		template.sendDefault(1, "foo");
+
+		Message<?> errorMessage = errorChannel.receive(10000);
+		assertThat(errorMessage).isNotNull();
+		List<Message<?>> sourceData = StaticMessageHeaderAccessor.getSourceData(errorMessage);
+		assertThat(sourceData).isNotNull();
+
+		adapter.stop();
+		pf.reset();
+	}
 
 	/**
 	 * the recovery callback is not mandatory, if not set and retries are exhausted the last throwable is rethrown

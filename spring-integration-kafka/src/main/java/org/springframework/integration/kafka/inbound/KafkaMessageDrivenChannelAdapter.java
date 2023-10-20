@@ -85,7 +85,7 @@ import org.springframework.util.Assert;
 public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport
 		implements KafkaInboundEndpoint, OrderlyShutdownCapable, Pausable {
 
-	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
+	private final ThreadLocal<AttributeAccessor> attributesHolder = new ThreadLocal<>();
 
 	private final AbstractMessageListenerContainer<K, V> messageListenerContainer;
 
@@ -364,14 +364,14 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * @param conversionError a conversion error occurred.
 	 */
 	private void setAttributesIfNecessary(Object record, @Nullable Message<?> message, boolean conversionError) {
-		boolean needHolder = ATTRIBUTES_HOLDER.get() == null
+		boolean needHolder = attributesHolder.get() == null
 				&& (getErrorChannel() != null && (this.retryTemplate == null || conversionError));
 		boolean needAttributes = needHolder | this.retryTemplate != null;
 		if (needHolder) {
-			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
+			attributesHolder.set(ErrorMessageUtils.getAttributeAccessor(null, null));
 		}
 		if (needAttributes) {
-			AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
+			AttributeAccessor attributes = attributesHolder.get();
 			if (attributes != null) {
 				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
 				attributes.setAttribute(KafkaHeaders.RAW_DATA, record);
@@ -381,7 +381,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	@Override
 	protected AttributeAccessor getErrorMessageAttributes(Message<?> message) {
-		AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
+		AttributeAccessor attributes = attributesHolder.get();
 		if (attributes == null) {
 			return super.getErrorMessageAttributes(message);
 		}
@@ -397,7 +397,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			}
 			finally {
 				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate == null) {
-					ATTRIBUTES_HOLDER.remove();
+					attributesHolder.remove();
 				}
 			}
 		}
@@ -493,7 +493,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
 				AtomicInteger deliveryAttempt =
-						new AtomicInteger(((RetryContext) ATTRIBUTES_HOLDER.get()).getRetryCount() + 1);
+						new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
 				headersAcceptor.accept(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
 			}
 			else if (KafkaMessageDrivenChannelAdapter.this.containerDeliveryAttemptPresent) {
@@ -514,7 +514,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		@Override
 		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
 			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-				ATTRIBUTES_HOLDER.set(context);
+				attributesHolder.set(context);
 			}
 			return true;
 		}
@@ -523,7 +523,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
 				Throwable throwable) {
 
-			ATTRIBUTES_HOLDER.remove();
+			attributesHolder.remove();
 		}
 
 		@Override
@@ -610,7 +610,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		@Override
 		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
 			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-				ATTRIBUTES_HOLDER.set(context);
+				attributesHolder.set(context);
 			}
 			return true;
 		}
@@ -619,7 +619,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
 				Throwable throwable) {
 
-			ATTRIBUTES_HOLDER.remove();
+			attributesHolder.remove();
 		}
 
 	}
