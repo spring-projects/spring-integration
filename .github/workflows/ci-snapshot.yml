@@ -2,12 +2,11 @@ name: CI SNAPSHOT
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+#  push:
+#    branches:
+#      - main
 
 jobs:
   build_snapshot:
     uses: spring-projects/spring-integration-aws/.github/workflows/ci-snapshot.yml@main
     secrets: inherit
-
