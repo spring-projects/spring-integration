@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -261,6 +262,42 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			messageGroupMetadata.setLastModified(System.currentTimeMillis());
 			doStore(this.groupPrefix + groupId, messageGroupMetadata);
 		}
+	}
+
+	@Override
+	@Nullable
+	public Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Assert.notNull(messageId, "'messageId' must not be null");
+		Object object = doRetrieve(this.messagePrefix + groupId + '_' + messageId);
+		if (object != null) {
+			return extractMessage(object);
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
+	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Assert.notNull(messageId, "'messageId' must not be null");
+		Object mgm = doRetrieve(this.groupPrefix + groupId);
+		if (mgm != null) {
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
+
+			if (messageGroupMetadata.getMessageIds().contains(messageId)) {
+				messageGroupMetadata.remove(messageId);
+				String groupToMessageId = this.messagePrefix + groupId + '_' + messageId;
+				if (doRemove(groupToMessageId) != null) {
+					messageGroupMetadata.setLastModified(System.currentTimeMillis());
+					doStore(this.groupPrefix + groupId, messageGroupMetadata);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	@Override

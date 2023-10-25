@@ -357,6 +357,25 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	@Nullable
+	public Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Assert.notNull(messageId, "'messageId' must not be null");
+		MessageWrapper messageWrapper =
+				this.template.findOne(whereMessageIdIsAndGroupIdIs(messageId, groupId),
+						MessageWrapper.class, this.collectionName);
+		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
+	}
+
+	@Override
+	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Assert.notNull(messageId, "'messageId' must not be null");
+		return this.template.remove(whereMessageIdIsAndGroupIdIs(messageId, groupId), this.collectionName)
+				.wasAcknowledged();
+	}
+
+	@Override
 	public void removeMessageGroup(Object groupId) {
 		this.template.remove(whereGroupIdIs(groupId), this.collectionName);
 	}
