@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sql.DataSource;
 
@@ -46,6 +47,7 @@ import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -212,6 +214,34 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 	@ParameterizedTest
 	@ValueSource(booleans = {true, false})
+	void errorHandlerIsCalled(boolean transactionsEnabled) throws InterruptedException {
+		if (transactionsEnabled) {
+			postgresSubscribableChannel.setTransactionManager(transactionManager);
+		}
+
+		AtomicReference<Throwable> exceptionReference = new AtomicReference<>();
+		CountDownLatch errorHandlerLatch = new CountDownLatch(1);
+		postgresSubscribableChannel.setErrorHandler(ex -> {
+			exceptionReference.set(ex);
+			errorHandlerLatch.countDown();
+		});
+
+		postgresChannelMessageTableSubscriber.start();
+
+		postgresSubscribableChannel.subscribe(message -> {
+			throw new RuntimeException("An error has occurred");
+		});
+
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+
+		assertThat(errorHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(exceptionReference.get())
+				.isInstanceOf(MessagingException.class)
+				.hasStackTraceContaining("An error has occurred");
+	}
+
+	@ParameterizedTest
+	@ValueSource(booleans = {true, false})
 	void testRetryOnErrorDuringDispatch(boolean transactionsEnabled) throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(2);
 		List<Object> payloads = new ArrayList<>();
@@ -267,8 +297,7 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 			ResourceDatabasePopulator databasePopulator =
 					new ResourceDatabasePopulator(new ByteArrayResource(INTEGRATION_DB_SCRIPTS.getBytes()));
 			databasePopulator.setSeparator(ScriptUtils.EOF_STATEMENT_SEPARATOR);
-			dataSourceInitializer.setDatabasePopulator(
-					databasePopulator);
+			dataSourceInitializer.setDatabasePopulator(databasePopulator);
 			return dataSourceInitializer;
 		}
 

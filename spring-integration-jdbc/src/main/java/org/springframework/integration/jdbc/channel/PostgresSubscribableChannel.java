@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 
 import org.springframework.core.log.LogAccessor;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.AbstractSubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -31,6 +30,8 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * An {@link AbstractSubscribableChannel} for receiving push notifications for
@@ -53,6 +54,8 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	private static final LogAccessor LOGGER = new LogAccessor(PostgresSubscribableChannel.class);
 
+	private static final Optional<?> FALLBACK_STUB = Optional.of(new Object());
+
 	private final JdbcChannelMessageStore jdbcChannelMessageStore;
 
 	private final Object groupId;
@@ -65,7 +68,9 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 
 	private RetryTemplate retryTemplate = RetryTemplate.builder().maxAttempts(1).build();
 
-	private Executor executor = new SimpleAsyncTaskExecutor();
+	private ErrorHandler errorHandler = ReflectionUtils::rethrowRuntimeException;
+
+	private Executor executor;
 
 	private volatile boolean hasHandlers;
 
@@ -77,6 +82,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 	 */
 	public PostgresSubscribableChannel(JdbcChannelMessageStore jdbcChannelMessageStore,
 			Object groupId, PostgresChannelMessageTableSubscriber messageTableSubscriber) {
+
 		Assert.notNull(jdbcChannelMessageStore, "A jdbcChannelMessageStore must be provided.");
 		Assert.notNull(groupId, "A groupId must be set.");
 		Assert.notNull(messageTableSubscriber, "A messageTableSubscriber must be set.");
@@ -117,6 +123,17 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 		this.retryTemplate = retryTemplate;
 	}
 
+	/**
+	 * Set a {@link ErrorHandler} for messages which cannot be dispatched by this channel.
+	 * Used as a recovery callback after {@link RetryTemplate} execution throws an exception.
+	 * @param errorHandler the {@link ErrorHandler} to use.
+	 * @since 6.0.9
+	 */
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		Assert.notNull(errorHandler, "'errorHandler' must not be null.");
+		this.errorHandler = errorHandler;
+	}
+
 	@Override
 	public boolean subscribe(MessageHandler handler) {
 		boolean subscribed = super.subscribe(handler);
@@ -152,19 +169,29 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 	@Override
 	public void notifyUpdate() {
 		this.executor.execute(() -> {
-			try {
-				Optional<Message<?>> dispatchedMessage;
-				do {
-					dispatchedMessage = askForMessage();
-				} while (dispatchedMessage.isPresent());
-			}
-			catch (Exception ex) {
-				LOGGER.error(ex, "Exception during message dispatch");
-			}
+			Optional<?> dispatchedMessage;
+			do {
+				dispatchedMessage = pollAndDispatchMessage();
+			} while (dispatchedMessage.isPresent());
 		});
 	}
 
-	private Optional<Message<?>> askForMessage() {
+	private Optional<?> pollAndDispatchMessage() {
+		try {
+			return doPollAndDispatchMessage();
+		}
+		catch (Exception ex) {
+			try {
+				this.errorHandler.handleError(ex);
+			}
+			catch (Exception ex1) {
+				LOGGER.error(ex, "Exception during message dispatch");
+			}
+			return FALLBACK_STUB;
+		}
+	}
+
+	private Optional<?> doPollAndDispatchMessage() {
 		if (this.hasHandlers) {
 			if (this.transactionTemplate != null) {
 				return this.retryTemplate.execute(context ->
