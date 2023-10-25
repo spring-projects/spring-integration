@@ -180,14 +180,14 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 		this.executor.execute(() -> {
 			Optional<?> dispatchedMessage;
 			do {
-				dispatchedMessage = askForMessage();
+				dispatchedMessage = pollAndDispatchMessage();
 			} while (dispatchedMessage.isPresent());
 		});
 	}
 
-	private Optional<?> askForMessage() {
+	private Optional<?> pollAndDispatchMessage() {
 		try {
-			return doAskForMessage();
+			return doPollAndDispatchMessage();
 		}
 		catch (Exception ex) {
 			try {
@@ -200,7 +200,7 @@ public class PostgresSubscribableChannel extends AbstractSubscribableChannel
 		}
 	}
 
-	private Optional<?> doAskForMessage() {
+	private Optional<?> doPollAndDispatchMessage() {
 		if (this.hasHandlers) {
 			if (this.transactionTemplate != null) {
 				return this.retryTemplate.execute(context ->
