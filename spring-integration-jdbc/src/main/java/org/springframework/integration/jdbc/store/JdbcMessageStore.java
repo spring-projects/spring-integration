@@ -54,6 +54,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -161,6 +162,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES
 				from %PREFIX%MESSAGE
 				where MESSAGE_ID=? and REGION=?
+				"""),
+
+		GET_MESSAGE_FROM_GROUP("""
+				SELECT m.MESSAGE_ID, m.CREATED_DATE, m.MESSAGE_BYTES
+				from %PREFIX%MESSAGE m
+				inner join %PREFIX%GROUP_TO_MESSAGE gm
+					on m.MESSAGE_ID = gm.MESSAGE_ID
+				where gm.MESSAGE_ID=? and gm.GROUP_KEY = ? and gm.REGION=?
 				"""),
 
 		GET_MESSAGE_COUNT("""
@@ -599,6 +608,31 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				});
 
 		updateMessageGroup(groupKey);
+	}
+
+	@Override
+	@Nullable
+	public Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
+		List<Message<?>> list =
+				this.jdbcTemplate.query(getQuery(Query.GET_MESSAGE_FROM_GROUP), this.mapper,
+						getKey(messageId), getKey(groupId), this.region);
+		if (list.isEmpty()) {
+			return null;
+		}
+		return list.get(0);
+	}
+
+	@Override
+	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
+		String groupKey = getKey(groupId);
+		String messageKey = getKey(messageId);
+		int messageToGroupRemoved =
+				this.jdbcTemplate.update(getQuery(Query.REMOVE_MESSAGE_FROM_GROUP), groupKey, messageKey, this.region);
+		if (messageToGroupRemoved > 0) {
+			return this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGE),
+					messageKey, this.region, messageKey, this.region) > 0;
+		}
+		return false;
 	}
 
 	@Override

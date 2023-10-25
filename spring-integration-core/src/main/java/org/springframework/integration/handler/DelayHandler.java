@@ -19,7 +19,6 @@ package org.springframework.integration.handler;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -45,7 +44,6 @@ import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -114,8 +112,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	private final Lock lock = new ReentrantLock();
 
 	private final ConcurrentMap<String, AtomicInteger> deliveries = new ConcurrentHashMap<>();
-
-	private final Lock removeReleasedMessageLock = new ReentrantLock();
 
 	private String messageGroupId;
 
@@ -337,9 +333,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		if (this.messageStore == null) {
 			this.messageStore = new SimpleMessageStore();
 		}
-		else {
-			Assert.isInstanceOf(MessageStore.class, this.messageStore);
-		}
+
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		this.releaseHandler = createReleaseMessageTask();
 	}
@@ -501,7 +495,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private Message<?> getMessageById(UUID messageId) {
-		Message<?> theMessage = ((MessageStore) this.messageStore).getMessage(messageId);
+		Message<?> theMessage = this.messageStore.getMessageFromGroup(this.messageGroupId, messageId);
 
 		if (theMessage == null) {
 			logger.debug(() -> "No message in the Message Store for id: " + messageId +
@@ -574,38 +568,14 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void doReleaseMessage(Message<?> message) {
-		if (removeDelayedMessageFromMessageStore(message)
+		if (this.messageStore.removeMessageFromGroupById(this.messageGroupId, message.getHeaders().getId())
 				|| this.deliveries.get(ObjectUtils.getIdentityHexString(message)).get() > 0) {
-			if (!(this.messageStore instanceof SimpleMessageStore)) {
-				this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
-			}
+
 			handleMessageInternal(message);
 		}
 		else {
 			logger.debug(() -> "No message in the Message Store to release: " + message +
 					". Likely another instance has already released it.");
-		}
-	}
-
-	private boolean removeDelayedMessageFromMessageStore(Message<?> message) {
-		if (this.messageStore instanceof SimpleMessageStore) {
-			this.removeReleasedMessageLock.lock();
-			try {
-				Collection<Message<?>> messages = this.messageStore.getMessageGroup(this.messageGroupId).getMessages();
-				if (messages.contains(message)) {
-					this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
-					return true;
-				}
-				else {
-					return false;
-				}
-			}
-			finally {
-				this.removeReleasedMessageLock.unlock();
-			}
-		}
-		else {
-			return ((MessageStore) this.messageStore).removeMessage(message.getHeaders().getId()) != null;
 		}
 	}
 
@@ -628,17 +598,17 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			try (Stream<Message<?>> messageStream = messageGroup.streamMessages()) {
 				TaskScheduler taskScheduler = getTaskScheduler();
 				messageStream.forEach((message) -> // NOSONAR
-				taskScheduler.schedule(() -> {
-					// This is fine to keep the reference to the message,
-					// because the scheduled task is performed immediately.
-					long delay = determineDelayForMessage(message);
-					if (delay > 0) {
-						releaseMessageAfterDelay(message, delay);
-					}
-					else {
-						releaseMessage(message);
-					}
-				}, Instant.now()));
+						taskScheduler.schedule(() -> {
+							// This is fine to keep the reference to the message,
+							// because the scheduled task is performed immediately.
+							long delay = determineDelayForMessage(message);
+							if (delay > 0) {
+								releaseMessageAfterDelay(message, delay);
+							}
+							else {
+								releaseMessage(message);
+							}
+						}, Instant.now()));
 			}
 		}
 		finally {

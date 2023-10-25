@@ -22,7 +22,7 @@
 
 	<delayer
 			id="#{T (org.springframework.integration.mongodb.store.DelayerHandlerRescheduleIntegrationTests).DELAYER_ID}"
-			input-channel="input" output-channel="output" default-delay="10000"
+			input-channel="input" output-channel="output" default-delay="1000"
 			message-store="messageStore"/>
 
 </beans:beans>
