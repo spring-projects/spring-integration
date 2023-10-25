@@ -28,6 +28,7 @@ import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UpperBound;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -379,6 +380,52 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
+		}
+	}
+
+	@Override
+	@Nullable
+	public Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
+		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
+		Assert.notNull(group,
+				() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' does not exists");
+		for (Message<?> message : group.getMessages()) {
+			if (messageId.equals(message.getHeaders().getId())) {
+				return message;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
+		Lock lock = this.lockRegistry.obtain(groupId);
+		try {
+			lock.lockInterruptibly();
+			try {
+				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
+				Assert.notNull(group,
+						() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
+								"can not be located while attempting to remove Message from the MessageGroup");
+				UpperBound upperBound = this.groupToUpperBound.get(groupId);
+				Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
+				for (Message<?> message : group.getMessages()) {
+					if (messageId.equals(message.getHeaders().getId())) {
+						group.remove(message);
+						upperBound.release();
+						group.setLastModified(System.currentTimeMillis());
+						return true;
+					}
+				}
+				return false;
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+		catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, ex);
 		}
 	}
 

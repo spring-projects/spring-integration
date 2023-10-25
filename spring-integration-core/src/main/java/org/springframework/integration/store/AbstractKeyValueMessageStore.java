@@ -269,6 +269,42 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
+	@Nullable
+	public Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Assert.notNull(messageId, "'messageId' must not be null");
+		Object object = doRetrieve(this.messagePrefix + groupId + '_' + messageId);
+		if (object != null) {
+			return extractMessage(object);
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
+	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Assert.notNull(messageId, "'messageId' must not be null");
+		Object mgm = doRetrieve(this.groupPrefix + groupId);
+		if (mgm != null) {
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
+
+			if (messageGroupMetadata.getMessageIds().contains(messageId)) {
+				messageGroupMetadata.remove(messageId);
+				String groupToMessageId = this.messagePrefix + groupId + '_' + messageId;
+				if (doRemove(groupToMessageId) != null) {
+					messageGroupMetadata.setLastModified(System.currentTimeMillis());
+					doStore(this.groupPrefix + groupId, messageGroupMetadata);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	@Override
 	public void completeGroup(Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		MessageGroupMetadata metadata = getGroupMetadata(groupId);

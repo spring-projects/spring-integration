@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package org.springframework.integration.store;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -72,6 +74,30 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	void removeMessagesFromGroup(Object key, Message<?>... messages);
 
 	/**
+	 * Retrieve a {@link Message} from a group by id.
+	 * Return {@code null} if message does not belong to the requested group.
+	 * @param groupId The groupId for the group containing the message.
+	 * @param messageId The message id.
+	 * @return message by id if it belongs to requested group.
+	 * @since 6.1.5
+	 */
+	@Nullable
+	default Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
+		throw new UnsupportedOperationException("Not supported for this store");
+	}
+
+	/**
+	 * Deletion the message from the group.
+	 * @param groupId The groupId for the group containing the message.
+	 * @param messageId The message id to be removed.
+	 * @return true if message has been removed.
+	 * @since 6.1.5
+	 */
+	default boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
+		throw new UnsupportedOperationException("Not supported for this store");
+	}
+
+	/**
 	 * Register a callback for when a message group is expired through {@link #expireMessageGroups(long)}.
 	 * @param callback A callback to execute when a message group is cleaned up.
 	 */
@@ -114,7 +140,7 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 
 	/**
 	 * Completes this MessageGroup. Completion of the MessageGroup generally means
-	 * that this group should not be allowing any more mutating operation to be performed on it.
+	 * that this group should not be allowing anymore mutating operation to be performed on it.
 	 * For example any attempt to add/remove new Message form the group should not be allowed.
 	 * @param groupId The group identifier.
 	 */

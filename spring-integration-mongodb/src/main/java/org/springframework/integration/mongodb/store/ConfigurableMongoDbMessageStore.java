@@ -38,6 +38,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -199,6 +200,32 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 			removeMessages(groupId, ids);
 		}
 		updateGroup(groupId, lastModifiedUpdate());
+	}
+
+	@Override
+	@Nullable
+	public Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Assert.notNull(messageId, "'messageId' must not be null");
+		Query query =
+				Query.query(
+						Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageId)
+								.and(MessageDocumentFields.GROUP_ID).is(groupId));
+		MessageDocument document = getMongoTemplate().findOne(query, MessageDocument.class, this.collectionName);
+		return document != null ? document.getMessage() : null;
+	}
+
+	@Override
+	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
+		Assert.notNull(messageId, "'messageId' must not be null");
+		Query query =
+				Query.query(
+						Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageId)
+								.and(MessageDocumentFields.GROUP_ID).is(groupId));
+		return getMongoTemplate()
+				.remove(query, this.collectionName)
+				.wasAcknowledged();
 	}
 
 	private void removeMessages(Object groupId, Collection<UUID> ids) {

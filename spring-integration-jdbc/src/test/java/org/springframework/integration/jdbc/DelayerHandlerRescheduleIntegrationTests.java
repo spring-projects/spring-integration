@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
@@ -47,13 +46,12 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
  */
-@LongRunningTest
 public class DelayerHandlerRescheduleIntegrationTests {
 
 	public static final String DELAYER_ID = "delayerWithJdbcMS";
@@ -98,15 +96,9 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
 		context.close();
 
-		try {
-			context.getBean("input", MessageChannel.class);
-			fail("IllegalStateException expected");
-		}
-		catch (Exception e) {
-			assertThat(e instanceof IllegalStateException).isTrue();
-			assertThat(e.getMessage().contains("BeanFactory not initialized or already closed - call 'refresh'"))
-					.isTrue();
-		}
+		assertThatIllegalStateException()
+				.isThrownBy(() -> context.getBean("input", MessageChannel.class))
+				.withMessageContaining("BeanFactory not initialized or already closed - call 'refresh'");
 
 		String delayerMessageGroupId = UUIDConverter.getUUID(DELAYER_ID + ".messageGroupId").toString();
 
