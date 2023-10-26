@@ -374,7 +374,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests implements MongoDbCo
 		Message<?> message = new GenericMessage<>("1");
 		store2.addMessagesToGroup("1", message);
 		store1.addMessagesToGroup("2", new GenericMessage<>("2"));
-		store2.addMessagesToGroup("3", new GenericMessage<>("3"));
+		store2.addMessagesToGroup(UUID.randomUUID(), new GenericMessage<>("3"));
 
 		MessageGroupStore store3 = this.getMessageGroupStore();
 		Iterator<MessageGroup> iterator = store3.iterator();
