@@ -239,8 +239,9 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	@Override
 	public Iterator<MessageGroup> iterator() {
 		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
-		Iterable<String> groupIds = getMongoTemplate().getCollection(collectionName)
-				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject(), String.class);
+		Iterable<Object> groupIds =
+				getMongoTemplate()
+						.findDistinct(query, MessageDocumentFields.GROUP_ID, this.collectionName, Object.class);
 
 		return StreamSupport.stream(groupIds.spliterator(), false)
 				.map(this::getMessageGroup)
