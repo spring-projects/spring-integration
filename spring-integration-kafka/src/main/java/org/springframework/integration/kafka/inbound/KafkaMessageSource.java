@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -95,6 +97,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Norkin
  * @author Artem Bilan
  * @author Anshul Mehra
+ * @author Christian Tzolov
  *
  * @since 5.4
  *
@@ -111,11 +114,13 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 */
 	public static final String REMAINING_RECORDS = KafkaHeaders.PREFIX + "remainingRecords";
 
+	private final Lock lock = new ReentrantLock();
+
 	private final ConsumerFactory<K, V> consumerFactory;
 
 	private final KafkaAckCallbackFactory<K, V> ackCallbackFactory;
 
-	private final Object consumerMonitor = new Object();
+	private final Lock consumerMonitor = new ReentrantLock();
 
 	private final Map<TopicPartition, Set<KafkaAckInfo<K, V>>> inflightRecords = new ConcurrentHashMap<>();
 
@@ -385,31 +390,61 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	}
 
 	@Override
-	public synchronized boolean isRunning() {
-		return this.running;
+	public boolean isRunning() {
+		this.lock.lock();
+		try {
+			return this.running;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override
-	public synchronized void start() {
-		this.running = true;
-		this.stopped = false;
+	public void start() {
+		this.lock.lock();
+		try {
+			this.running = true;
+			this.stopped = false;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override
-	public synchronized void stop() {
-		stopConsumer();
-		this.running = false;
-		this.stopped = true;
+	public void stop() {
+		this.lock.lock();
+		try {
+			stopConsumer();
+			this.running = false;
+			this.stopped = true;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override
-	public synchronized void pause() {
-		this.pausing = true;
+	public void pause() {
+		this.lock.lock();
+		try {
+			this.pausing = true;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override
-	public synchronized void resume() {
-		this.pausing = false;
+	public void resume() {
+		this.lock.lock();
+		try {
+			this.pausing = false;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	@Override
@@ -418,35 +453,43 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	}
 
 	@Override // NOSONAR - not so complex
-	protected synchronized Object doReceive() {
-		if (this.stopped) {
-			this.logger.debug("Message source is stopped; no records will be returned");
-			return null;
-		}
-		if (this.consumer == null) {
-			createConsumer();
-			this.running = true;
-		}
-		if (this.pausing && !this.paused && this.assignedPartitions.size() > 0) {
-			this.consumer.pause(this.assignedPartitions);
-			this.paused = true;
-		}
-		else if (this.paused && !this.pausing) {
-			this.consumer.resume(this.assignedPartitions);
-			this.paused = false;
-		}
-		if (this.paused && this.recordsIterator == null) {
-			this.logger.debug("Consumer is paused; no records will be returned");
-		}
-		ConsumerRecord<K, V> record = pollRecord();
+	protected Object doReceive() {
+		this.lock.lock();
+		try {
 
-		return record != null
-				? recordToMessage(record)
-				: null;
+			if (this.stopped) {
+				this.logger.debug("Message source is stopped; no records will be returned");
+				return null;
+			}
+			if (this.consumer == null) {
+				createConsumer();
+				this.running = true;
+			}
+			if (this.pausing && !this.paused && !this.assignedPartitions.isEmpty()) {
+				this.consumer.pause(this.assignedPartitions);
+				this.paused = true;
+			}
+			else if (this.paused && !this.pausing) {
+				this.consumer.resume(this.assignedPartitions);
+				this.paused = false;
+			}
+			if (this.paused && this.recordsIterator == null) {
+				this.logger.debug("Consumer is paused; no records will be returned");
+			}
+			ConsumerRecord<K, V> record = pollRecord();
+
+			return record != null
+					? recordToMessage(record)
+					: null;
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	protected void createConsumer() {
-		synchronized (this.consumerMonitor) {
+		this.consumerMonitor.lock();
+		try {
 			this.consumer = this.consumerFactory.createConsumer(this.consumerProperties.getGroupId(),
 					this.consumerProperties.getClientId(), null, this.consumerProperties.getKafkaConsumerProperties());
 
@@ -465,6 +508,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 				this.consumer.subscribe(Arrays.asList(this.consumerProperties.getTopics()), // NOSONAR
 						rebalanceCallback);
 			}
+		}
+		finally {
+			this.consumerMonitor.unlock();
 		}
 	}
 
@@ -522,7 +568,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 			return nextRecord();
 		}
 		else {
-			synchronized (this.consumerMonitor) {
+			this.consumerMonitor.lock();
+			try {
 				try {
 					ConsumerRecords<K, V> records = this.consumer
 							.poll(this.assignedPartitions.isEmpty() ? this.assignTimeout : this.pollTimeout);
@@ -544,6 +591,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 					}
 					return null;
 				}
+			}
+			finally {
+				this.consumerMonitor.unlock();
 			}
 		}
 	}
@@ -590,17 +640,27 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	}
 
 	@Override
-	public synchronized void destroy() {
-		stopConsumer();
+	public void destroy() {
+		this.lock.lock();
+		try {
+			stopConsumer();
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	private void stopConsumer() {
-		synchronized (this.consumerMonitor) {
+		this.consumerMonitor.lock();
+		try {
 			if (this.consumer != null) {
 				this.consumer.close(this.closeTimeout);
 				this.consumer = null;
 				this.assignedPartitions.clear();
 			}
+		}
+		finally {
+			this.consumerMonitor.unlock();
 		}
 	}
 
