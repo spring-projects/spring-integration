@@ -415,15 +415,17 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	@Override
 	public void start() {
-		this.running.set(true);
-		this.stopped.set(false);
+		if (this.running.compareAndSet(false, true)) {
+			this.stopped.set(false);
+		}
 	}
 
 	@Override
 	public void stop() {
-		stopConsumer();
-		this.running.set(false);
-		this.stopped.set(true);
+		if (this.running.compareAndSet(true, false)) {
+			stopConsumer();
+			this.stopped.set(true);
+		}
 	}
 
 	@Override
