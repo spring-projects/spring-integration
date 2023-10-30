@@ -258,7 +258,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	private void setAttributesIfNecessary(Object record, @Nullable Message<?> message, boolean conversionError) {
 		boolean needHolder = ATTRIBUTES_HOLDER.get() == null
 				&& (getErrorChannel() != null && (this.retryTemplate == null || conversionError));
-		boolean needAttributes = needHolder | this.retryTemplate != null;
+		boolean needAttributes = needHolder || this.retryTemplate != null;
 		if (needHolder) {
 			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
 		}
@@ -328,9 +328,8 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 			RetryTemplate template = KafkaInboundGateway.this.retryTemplate;
 			if (template != null) {
 				doWithRetry(template, KafkaInboundGateway.this.recoveryCallback, record, acknowledgment, consumer,
-						() -> {
-							doSendAndReceive(enhanceHeadersAndSaveAttributes(message, record));
-						});
+						() -> doSendAndReceive(enhanceHeadersAndSaveAttributes(message, record))
+				);
 			}
 			else {
 				doSendAndReceive(enhanceHeadersAndSaveAttributes(message, record));

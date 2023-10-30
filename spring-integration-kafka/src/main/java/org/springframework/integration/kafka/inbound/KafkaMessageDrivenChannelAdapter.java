@@ -363,7 +363,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	private void setAttributesIfNecessary(Object record, @Nullable Message<?> message, boolean conversionError) {
 		boolean needHolder = ATTRIBUTES_HOLDER.get() == null
 				&& (getErrorChannel() != null && (this.retryTemplate == null || conversionError));
-		boolean needAttributes = needHolder | this.retryTemplate != null;
+		boolean needAttributes = needHolder || this.retryTemplate != null;
 		if (needHolder) {
 			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
 		}
@@ -514,10 +514,10 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	}
 
-	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V> implements KafkaInboundEndpoint {
+	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationBatchMessageListener() {
-			super(null, null); // NOSONAR - out if use
+			super(null, null); // NOSONAR - out of use
 		}
 
 		@Override
@@ -536,31 +536,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				message = toMessage(records, acknowledgment, consumer);
 			}
 			if (message != null) {
-				RetryTemplate template = KafkaMessageDrivenChannelAdapter.this.retryTemplate;
-				if (template != null) {
-					doWIthRetry(records, acknowledgment, consumer, message, template);
-				}
-				else {
-					sendMessageIfAny(message, records);
-				}
+				sendMessageIfAny(message, records);
 			}
-		}
-
-		private void doWIthRetry(List<ConsumerRecord<K, V>> records, Acknowledgment acknowledgment,
-				Consumer<?, ?> consumer, Message<?> message, RetryTemplate template) {
-
-			doWithRetry(template, KafkaMessageDrivenChannelAdapter.this.recoveryCallback, records, acknowledgment,
-					consumer, () -> {
-						if (KafkaMessageDrivenChannelAdapter.this.filterInRetry) {
-							List<ConsumerRecord<K, V>> filtered =
-									KafkaMessageDrivenChannelAdapter.this.recordFilterStrategy.filterBatch(records);
-							Message<?> toSend = message;
-							if (filtered.size() != records.size()) {
-								toSend = toMessage(filtered, acknowledgment, consumer);
-							}
-							sendMessageIfAny(toSend, filtered);
-						}
-					});
 		}
 
 		@Nullable
@@ -584,11 +561,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				}
 			}
 			return message;
-		}
-
-		@Override
-		public ThreadLocal<AttributeAccessor> getAttributesHolder() {
-			return ATTRIBUTES_HOLDER;
 		}
 
 	}
