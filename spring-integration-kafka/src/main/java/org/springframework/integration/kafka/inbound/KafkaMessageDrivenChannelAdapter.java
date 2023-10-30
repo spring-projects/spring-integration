@@ -63,9 +63,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryListener;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
@@ -85,7 +83,7 @@ import org.springframework.util.Assert;
 public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport
 		implements KafkaInboundEndpoint, OrderlyShutdownCapable, Pausable {
 
-	private final ThreadLocal<AttributeAccessor> attributesHolder = new ThreadLocal<>();
+	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
 	private final AbstractMessageListenerContainer<K, V> messageListenerContainer;
 
@@ -298,7 +296,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				if (this.recoveryCallback != null && errorChannel != null) {
 					this.recoveryCallback = new ErrorMessageSendingRecoverer(errorChannel, getErrorMessageStrategy());
 				}
-				this.retryTemplate.registerListener(this.recordListener);
 			}
 			if (!doFilterInRetry && this.recordFilterStrategy != null) {
 				listener = new FilteringMessageListenerAdapter<>(listener, this.recordFilterStrategy,
@@ -364,14 +361,14 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * @param conversionError a conversion error occurred.
 	 */
 	private void setAttributesIfNecessary(Object record, @Nullable Message<?> message, boolean conversionError) {
-		boolean needHolder = attributesHolder.get() == null
+		boolean needHolder = ATTRIBUTES_HOLDER.get() == null
 				&& (getErrorChannel() != null && (this.retryTemplate == null || conversionError));
 		boolean needAttributes = needHolder | this.retryTemplate != null;
 		if (needHolder) {
-			attributesHolder.set(ErrorMessageUtils.getAttributeAccessor(null, null));
+			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
 		}
 		if (needAttributes) {
-			AttributeAccessor attributes = attributesHolder.get();
+			AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
 			if (attributes != null) {
 				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
 				attributes.setAttribute(KafkaHeaders.RAW_DATA, record);
@@ -381,7 +378,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	@Override
 	protected AttributeAccessor getErrorMessageAttributes(Message<?> message) {
-		AttributeAccessor attributes = attributesHolder.get();
+		AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
 		if (attributes == null) {
 			return super.getErrorMessageAttributes(message);
 		}
@@ -397,7 +394,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			}
 			finally {
 				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate == null) {
-					attributesHolder.remove();
+					ATTRIBUTES_HOLDER.remove();
 				}
 			}
 		}
@@ -405,6 +402,11 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			KafkaMessageDrivenChannelAdapter.this.logger.debug(() -> "Converter returned a null message for: "
 					+ kafkaConsumedObject);
 		}
+	}
+
+	@Override
+	public ThreadLocal<AttributeAccessor> getAttributesHolder() {
+		return ATTRIBUTES_HOLDER;
 	}
 
 	/**
@@ -424,8 +426,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		batch
 	}
 
-	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V>
-			implements RetryListener {
+	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationRecordMessageListener() {
 			super(null, null); // NOSONAR - out of use
@@ -493,7 +494,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
 				AtomicInteger deliveryAttempt =
-						new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
+						new AtomicInteger(((RetryContext) ATTRIBUTES_HOLDER.get()).getRetryCount() + 1);
 				headersAcceptor.accept(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
 			}
 			else if (KafkaMessageDrivenChannelAdapter.this.containerDeliveryAttemptPresent) {
@@ -511,31 +512,9 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			return messageToReturn;
 		}
 
-		@Override
-		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-				attributesHolder.set(context);
-			}
-			return true;
-		}
-
-		@Override
-		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-
-			attributesHolder.remove();
-		}
-
-		@Override
-		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-			// Empty
-		}
-
 	}
 
-	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V>
-			implements RetryListener {
+	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationBatchMessageListener() {
 			super(null, null); // NOSONAR - out if use
@@ -605,21 +584,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				}
 			}
 			return message;
-		}
-
-		@Override
-		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-				attributesHolder.set(context);
-			}
-			return true;
-		}
-
-		@Override
-		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-
-			attributesHolder.remove();
 		}
 
 	}

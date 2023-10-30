@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.inbound;
 
 import org.apache.kafka.clients.consumer.Consumer;
 
+import org.springframework.core.AttributeAccessor;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.retry.RecoveryCallback;
@@ -64,16 +65,23 @@ public interface KafkaInboundEndpoint {
 
 		try {
 			template.execute(context -> {
-				context.setAttribute(CONTEXT_RECORD, data);
-				context.setAttribute(CONTEXT_ACKNOWLEDGMENT, acknowledgment);
-				context.setAttribute(CONTEXT_CONSUMER, consumer);
+				if (context.getRetryCount() == 0) {
+					context.setAttribute(CONTEXT_RECORD, data);
+					context.setAttribute(CONTEXT_ACKNOWLEDGMENT, acknowledgment);
+					context.setAttribute(CONTEXT_CONSUMER, consumer);
+					getAttributesHolder().set(context);
+				}
 				runnable.run();
 				return null;
 			}, callback);
 		}
 		catch (Exception ex) {
 			throw new KafkaException("Failed to execute runnable", ex);
+		} finally {
+			getAttributesHolder().remove();
 		}
 	}
+
+	ThreadLocal<AttributeAccessor> getAttributesHolder();
 
 }

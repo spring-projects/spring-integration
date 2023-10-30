@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,9 +55,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryListener;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
@@ -195,7 +193,6 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	protected void onInit() {
 		super.onInit();
 		if (this.retryTemplate != null) {
-			this.retryTemplate.registerListener(this.listener);
 			MessageChannel errorChannel = getErrorChannel();
 			if (this.recoveryCallback != null && errorChannel != null) {
 				this.recoveryCallback = new ErrorMessageSendingRecoverer(errorChannel, getErrorMessageStrategy());
@@ -285,8 +282,12 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		}
 	}
 
-	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V>
-			implements RetryListener {
+	@Override
+	public ThreadLocal<AttributeAccessor> getAttributesHolder() {
+		return ATTRIBUTES_HOLDER;
+	}
+
+	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationRecordMessageListener() {
 			super(null, null); // NOSONAR - out of use
@@ -425,27 +426,6 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 				return builder.build();
 			}
 			return reply;
-		}
-
-		@Override
-		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-			if (KafkaInboundGateway.this.retryTemplate != null) {
-				ATTRIBUTES_HOLDER.set(context);
-			}
-			return true;
-		}
-
-		@Override
-		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-
-			ATTRIBUTES_HOLDER.remove();
-		}
-
-		@Override
-		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-			// Empty
 		}
 
 	}
