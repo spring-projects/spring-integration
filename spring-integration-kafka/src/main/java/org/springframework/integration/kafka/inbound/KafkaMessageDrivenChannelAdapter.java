@@ -81,7 +81,7 @@ import org.springframework.util.Assert;
  * @since 5.4
  */
 public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport
-		implements KafkaInboundEndpoint, OrderlyShutdownCapable, Pausable {
+		implements OrderlyShutdownCapable, Pausable {
 
 	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
@@ -404,11 +404,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		}
 	}
 
-	@Override
-	public ThreadLocal<AttributeAccessor> getAttributesHolder() {
-		return ATTRIBUTES_HOLDER;
-	}
-
 	/**
 	 * The listener mode for the container, record or batch.
 	 */
@@ -426,7 +421,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		batch
 	}
 
-	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
+	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> implements KafkaInboundEndpoint {
 
 		IntegrationRecordMessageListener() {
 			super(null, null); // NOSONAR - out of use
@@ -512,9 +507,14 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			return messageToReturn;
 		}
 
+		@Override
+		public ThreadLocal<AttributeAccessor> getAttributesHolder() {
+			return ATTRIBUTES_HOLDER;
+		}
+
 	}
 
-	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V> {
+	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V> implements KafkaInboundEndpoint {
 
 		IntegrationBatchMessageListener() {
 			super(null, null); // NOSONAR - out if use
@@ -584,6 +584,11 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				}
 			}
 			return message;
+		}
+
+		@Override
+		public ThreadLocal<AttributeAccessor> getAttributesHolder() {
+			return ATTRIBUTES_HOLDER;
 		}
 
 	}

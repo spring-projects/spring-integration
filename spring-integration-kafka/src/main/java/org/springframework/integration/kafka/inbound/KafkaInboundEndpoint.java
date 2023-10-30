@@ -77,7 +77,8 @@ public interface KafkaInboundEndpoint {
 		}
 		catch (Exception ex) {
 			throw new KafkaException("Failed to execute runnable", ex);
-		} finally {
+		}
+		finally {
 			getAttributesHolder().remove();
 		}
 	}
