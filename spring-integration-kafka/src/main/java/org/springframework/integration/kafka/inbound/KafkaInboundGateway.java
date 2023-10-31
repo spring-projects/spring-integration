@@ -74,7 +74,7 @@ import org.springframework.util.Assert;
  *
  */
 public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
-		implements Pausable, OrderlyShutdownCapable {
+		implements KafkaInboundEndpoint, Pausable, OrderlyShutdownCapable {
 
 	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
@@ -246,6 +246,11 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		return getPhase();
 	}
 
+	@Override
+	public ThreadLocal<AttributeAccessor> getAttributesHolder() {
+		return ATTRIBUTES_HOLDER;
+	}
+
 	/**
 	 * If there's a retry template, it will set the attributes holder via the listener. If
 	 * there's no retry template, but there's an error channel, we create a new attributes
@@ -282,7 +287,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		}
 	}
 
-	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> implements KafkaInboundEndpoint {
+	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationRecordMessageListener() {
 			super(null, null); // NOSONAR - out of use
@@ -420,11 +425,6 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 				return builder.build();
 			}
 			return reply;
-		}
-
-		@Override
-		public ThreadLocal<AttributeAccessor> getAttributesHolder() {
-			return ATTRIBUTES_HOLDER;
 		}
 
 	}
