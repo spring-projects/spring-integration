@@ -74,7 +74,7 @@ import org.springframework.util.Assert;
  *
  */
 public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
-		implements KafkaInboundEndpoint<K, V>, Pausable, OrderlyShutdownCapable {
+		implements KafkaInboundEndpoint, Pausable, OrderlyShutdownCapable {
 
 	private final IntegrationRecordMessageListener listener = new IntegrationRecordMessageListener();
 

@@ -33,7 +33,7 @@ import org.springframework.retry.support.RetryTemplate;
  * @since 6.0
  *
  */
-public interface KafkaInboundEndpoint<K, V> {
+public interface KafkaInboundEndpoint {
 
 	/**
 	 * {@link org.springframework.retry.RetryContext} attribute key for an acknowledgment
@@ -63,7 +63,7 @@ public interface KafkaInboundEndpoint<K, V> {
 	 * @param consumer the consumer.
 	 * @param runnable the runnable.
 	 */
-	default void doWithRetry(RetryTemplate template, RecoveryCallback<?> callback, ConsumerRecord<K, V> record,
+	default void doWithRetry(RetryTemplate template, RecoveryCallback<?> callback, ConsumerRecord<?, ?> record,
 			Acknowledgment acknowledgment, Consumer<?, ?> consumer, Runnable runnable) {
 
 		try {

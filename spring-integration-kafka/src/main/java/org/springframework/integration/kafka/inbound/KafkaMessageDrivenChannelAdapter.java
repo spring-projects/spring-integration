@@ -81,7 +81,7 @@ import org.springframework.util.Assert;
  * @since 5.4
  */
 public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport
-		implements KafkaInboundEndpoint<K,V>, OrderlyShutdownCapable, Pausable {
+		implements KafkaInboundEndpoint, OrderlyShutdownCapable, Pausable {
 
 	private final AbstractMessageListenerContainer<K, V> messageListenerContainer;
 
