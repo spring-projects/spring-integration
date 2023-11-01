@@ -81,9 +81,7 @@ import org.springframework.util.Assert;
  * @since 5.4
  */
 public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport
-		implements KafkaInboundEndpoint, OrderlyShutdownCapable, Pausable {
-
-	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
+		implements KafkaInboundEndpoint<K,V>, OrderlyShutdownCapable, Pausable {
 
 	private final AbstractMessageListenerContainer<K, V> messageListenerContainer;
 
@@ -351,11 +349,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		return getPhase();
 	}
 
-	@Override
-	public ThreadLocal<AttributeAccessor> getAttributesHolder() {
-		return ATTRIBUTES_HOLDER;
-	}
-
 	/**
 	 * If there's a retry template, it will set the attributes holder via the listener. If
 	 * there's no retry template, but there's an error channel, we create a new attributes
@@ -536,31 +529,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				message = toMessage(records, acknowledgment, consumer);
 			}
 			if (message != null) {
-				RetryTemplate template = KafkaMessageDrivenChannelAdapter.this.retryTemplate;
-				if (template != null) {
-					doWIthRetry(records, acknowledgment, consumer, message, template);
-				}
-				else {
-					sendMessageIfAny(message, records);
-				}
+				sendMessageIfAny(message, records);
 			}
-		}
-
-		private void doWIthRetry(List<ConsumerRecord<K, V>> records, Acknowledgment acknowledgment,
-				Consumer<?, ?> consumer, Message<?> message, RetryTemplate template) {
-
-			doWithRetry(template, KafkaMessageDrivenChannelAdapter.this.recoveryCallback, records, acknowledgment,
-					consumer, () -> {
-						if (KafkaMessageDrivenChannelAdapter.this.filterInRetry) {
-							List<ConsumerRecord<K, V>> filtered =
-									KafkaMessageDrivenChannelAdapter.this.recordFilterStrategy.filterBatch(records);
-							Message<?> toSend = message;
-							if (filtered.size() != records.size()) {
-								toSend = toMessage(filtered, acknowledgment, consumer);
-							}
-							sendMessageIfAny(toSend, filtered);
-						}
-					});
 		}
 
 		@Nullable

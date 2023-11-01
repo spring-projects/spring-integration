@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.inbound;
 
 import org.apache.kafka.clients.consumer.Consumer;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.core.AttributeAccessor;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.support.Acknowledgment;
@@ -32,7 +33,7 @@ import org.springframework.retry.support.RetryTemplate;
  * @since 6.0
  *
  */
-public interface KafkaInboundEndpoint {
+public interface KafkaInboundEndpoint<K, V> {
 
 	/**
 	 * {@link org.springframework.retry.RetryContext} attribute key for an acknowledgment
@@ -51,6 +52,8 @@ public interface KafkaInboundEndpoint {
 	 */
 	String CONTEXT_RECORD = "record";
 
+	ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
+
 	/**
 	 * Execute the runnable with the retry template and recovery callback.
 	 * @param template the template.
@@ -60,16 +63,16 @@ public interface KafkaInboundEndpoint {
 	 * @param consumer the consumer.
 	 * @param runnable the runnable.
 	 */
-	default void doWithRetry(RetryTemplate template, RecoveryCallback<?> callback, Object data,
+	default void doWithRetry(RetryTemplate template, RecoveryCallback<?> callback, ConsumerRecord<K, V> record,
 			Acknowledgment acknowledgment, Consumer<?, ?> consumer, Runnable runnable) {
 
 		try {
 			template.execute(context -> {
 				if (context.getRetryCount() == 0) {
-					context.setAttribute(CONTEXT_RECORD, data);
+					context.setAttribute(CONTEXT_RECORD, record);
 					context.setAttribute(CONTEXT_ACKNOWLEDGMENT, acknowledgment);
 					context.setAttribute(CONTEXT_CONSUMER, consumer);
-					getAttributesHolder().set(context);
+					ATTRIBUTES_HOLDER.set(context);
 				}
 				runnable.run();
 				return null;
@@ -79,10 +82,8 @@ public interface KafkaInboundEndpoint {
 			throw new KafkaException("Failed to execute runnable", ex);
 		}
 		finally {
-			getAttributesHolder().remove();
+			ATTRIBUTES_HOLDER.remove();
 		}
 	}
-
-	ThreadLocal<AttributeAccessor> getAttributesHolder();
 
 }

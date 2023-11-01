@@ -74,9 +74,7 @@ import org.springframework.util.Assert;
  *
  */
 public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
-		implements KafkaInboundEndpoint, Pausable, OrderlyShutdownCapable {
-
-	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
+		implements KafkaInboundEndpoint<K, V>, Pausable, OrderlyShutdownCapable {
 
 	private final IntegrationRecordMessageListener listener = new IntegrationRecordMessageListener();
 
@@ -244,11 +242,6 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	@Override
 	public int afterShutdown() {
 		return getPhase();
-	}
-
-	@Override
-	public ThreadLocal<AttributeAccessor> getAttributesHolder() {
-		return ATTRIBUTES_HOLDER;
 	}
 
 	/**
