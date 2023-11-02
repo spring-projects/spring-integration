@@ -63,9 +63,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryListener;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
@@ -84,8 +82,6 @@ import org.springframework.util.Assert;
  */
 public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport
 		implements KafkaInboundEndpoint, OrderlyShutdownCapable, Pausable {
-
-	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
 	private final AbstractMessageListenerContainer<K, V> messageListenerContainer;
 
@@ -298,7 +294,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				if (this.recoveryCallback != null && errorChannel != null) {
 					this.recoveryCallback = new ErrorMessageSendingRecoverer(errorChannel, getErrorMessageStrategy());
 				}
-				this.retryTemplate.registerListener(this.recordListener);
 			}
 			if (!doFilterInRetry && this.recordFilterStrategy != null) {
 				listener = new FilteringMessageListenerAdapter<>(listener, this.recordFilterStrategy,
@@ -366,7 +361,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	private void setAttributesIfNecessary(Object record, @Nullable Message<?> message, boolean conversionError) {
 		boolean needHolder = ATTRIBUTES_HOLDER.get() == null
 				&& (getErrorChannel() != null && (this.retryTemplate == null || conversionError));
-		boolean needAttributes = needHolder | this.retryTemplate != null;
+		boolean needAttributes = needHolder || this.retryTemplate != null;
 		if (needHolder) {
 			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
 		}
@@ -424,8 +419,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		batch
 	}
 
-	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V>
-			implements RetryListener {
+	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationRecordMessageListener() {
 			super(null, null); // NOSONAR - out of use
@@ -511,34 +505,12 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			return messageToReturn;
 		}
 
-		@Override
-		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-				ATTRIBUTES_HOLDER.set(context);
-			}
-			return true;
-		}
-
-		@Override
-		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-
-			ATTRIBUTES_HOLDER.remove();
-		}
-
-		@Override
-		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-			// Empty
-		}
-
 	}
 
-	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V>
-			implements RetryListener {
+	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationBatchMessageListener() {
-			super(null, null); // NOSONAR - out if use
+			super(null, null); // NOSONAR - out of use
 		}
 
 		@Override
@@ -557,31 +529,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				message = toMessage(records, acknowledgment, consumer);
 			}
 			if (message != null) {
-				RetryTemplate template = KafkaMessageDrivenChannelAdapter.this.retryTemplate;
-				if (template != null) {
-					doWIthRetry(records, acknowledgment, consumer, message, template);
-				}
-				else {
-					sendMessageIfAny(message, records);
-				}
+				sendMessageIfAny(message, records);
 			}
-		}
-
-		private void doWIthRetry(List<ConsumerRecord<K, V>> records, Acknowledgment acknowledgment,
-				Consumer<?, ?> consumer, Message<?> message, RetryTemplate template) {
-
-			doWithRetry(template, KafkaMessageDrivenChannelAdapter.this.recoveryCallback, records, acknowledgment,
-					consumer, () -> {
-						if (KafkaMessageDrivenChannelAdapter.this.filterInRetry) {
-							List<ConsumerRecord<K, V>> filtered =
-									KafkaMessageDrivenChannelAdapter.this.recordFilterStrategy.filterBatch(records);
-							Message<?> toSend = message;
-							if (filtered.size() != records.size()) {
-								toSend = toMessage(filtered, acknowledgment, consumer);
-							}
-							sendMessageIfAny(toSend, filtered);
-						}
-					});
 		}
 
 		@Nullable
@@ -605,21 +554,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				}
 			}
 			return message;
-		}
-
-		@Override
-		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-			if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-				ATTRIBUTES_HOLDER.set(context);
-			}
-			return true;
-		}
-
-		@Override
-		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-
-			ATTRIBUTES_HOLDER.remove();
 		}
 
 	}
