@@ -189,6 +189,19 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 			this.openConnectionException = null;
 			this.connectionLatch = new CountDownLatch(1);
 			this.connectionManager.start();
+			try {
+				this.connectionLatch.await(this.connectionTimeout, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException ex) {
+				logger.error("'clientSession' has not been established during 'openConnection'");
+			}
+
+			if (this.openConnectionException != null) {
+				// The next 'this.connectionManager.stop()' call resets 'this.openConnectionException' to null
+				IllegalStateException exceptionToRethrow = new IllegalStateException(this.openConnectionException);
+				this.connectionManager.stop();
+				throw exceptionToRethrow;
+			}
 		}
 	}
 
