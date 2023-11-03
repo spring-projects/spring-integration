@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,6 +110,10 @@ public class FtpSession implements Session<FTPFile> {
 	public boolean finalizeRaw() throws IOException {
 		if (!this.readingRaw.compareAndSet(true, false)) {
 			throw new IOException("Raw read is not in process");
+		}
+		if (FTPReply.isNegativePermanent(this.client.getReplyCode())) {
+			// The 'readRaw()' has failed - nothing to complete.
+			return true;
 		}
 		if (this.client.completePendingCommand()) {
 			int replyCode = this.client.getReplyCode();
