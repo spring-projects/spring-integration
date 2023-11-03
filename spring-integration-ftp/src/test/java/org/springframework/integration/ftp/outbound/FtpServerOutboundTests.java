@@ -752,6 +752,22 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		this.config.latch = null;
 	}
 
+	@Test
+	void finalizeRawIsOkEvenIfReadRawIsNot() throws IOException {
+		Session<FTPFile> session = this.sessionFactory.getSession();
+		IOException expectedException = null;
+		try (InputStream stream = session.readRaw("no_such_file")) {
+			stream.read(); // Just to avoid empty 'try' block
+		}
+		catch (IOException ex) {
+			expectedException = ex;
+		}
+		finally {
+			assertThat(session.finalizeRaw()).isTrue();
+		}
+		assertThat(expectedException).hasMessage("Failed to obtain InputStream for remote file no_such_file: 550");
+	}
+
 	private void resetSessionCache() {
 		((CachingSessionFactory<?>) this.sessionFactory).resetCache();
 	}
