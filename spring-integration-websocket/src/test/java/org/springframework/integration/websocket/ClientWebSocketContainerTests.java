@@ -28,6 +28,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import jakarta.websocket.DeploymentException;
 import org.apache.tomcat.websocket.Constants;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -126,10 +127,8 @@ public class ClientWebSocketContainerTests {
 
 		failure.set(true);
 
-		container.start();
-
 		assertThatIllegalStateException()
-				.isThrownBy(() -> container.getSession(null))
+				.isThrownBy(container::start)
 				.withCauseInstanceOf(CancellationException.class);
 
 		failure.set(false);
@@ -168,6 +167,20 @@ public class ClientWebSocketContainerTests {
 		assertThat(messageListener.sendBufferSizeLimit).isEqualTo(12345);
 		assertThat(messageListener.sendBufferOverflowStrategy)
 				.isEqualTo(ConcurrentWebSocketSessionDecorator.OverflowStrategy.DROP);
+	}
+
+	@Test
+	public void webSocketContainerFailsOnStartForInvalidUrl() {
+		StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
+
+		ClientWebSocketContainer container =
+				new ClientWebSocketContainer(webSocketClient, server.getWsBaseUrl() + "/no_such_endpoint");
+
+		assertThatIllegalStateException()
+				.isThrownBy(container::start)
+				.withCauseExactlyInstanceOf(DeploymentException.class)
+				.withStackTraceContaining(
+						"The HTTP response from the server [404] did not permit the HTTP upgrade to WebSocket");
 	}
 
 	private static class TestWebSocketListener implements WebSocketListener {
