@@ -269,13 +269,19 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	public Message<?> getMessageFromGroup(Object groupId, UUID messageId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messageId, "'messageId' must not be null");
-		Object object = doRetrieve(this.messagePrefix + groupId + '_' + messageId);
-		if (object != null) {
-			return extractMessage(object);
+
+		Object mgm = doRetrieve(this.groupPrefix + groupId);
+		if (mgm != null) {
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
+
+			for (UUID id : messageGroupMetadata.getMessageIds()) {
+				if (id.equals(messageId)) {
+					return getMessage(messageId);
+				}
+			}
 		}
-		else {
-			return null;
-		}
+		return null;
 	}
 
 	@Override
@@ -289,8 +295,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 			if (messageGroupMetadata.getMessageIds().contains(messageId)) {
 				messageGroupMetadata.remove(messageId);
-				String groupToMessageId = this.messagePrefix + groupId + '_' + messageId;
-				if (doRemove(groupToMessageId) != null) {
+				if (removeMessage(messageId) != null) {
 					messageGroupMetadata.setLastModified(System.currentTimeMillis());
 					doStore(this.groupPrefix + groupId, messageGroupMetadata);
 					return true;
