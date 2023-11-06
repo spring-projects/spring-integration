@@ -643,7 +643,7 @@ For more information about commands, their arguments and result type, see https:
 == Redis Queue Outbound Gateway
 
 Spring Integration introduced the Redis queue outbound gateway to perform request and reply scenarios.
-It pushes a conversation `UUID` to the provided `queue`, pushes the value with that `UUID` as its key to a Redis list, and waits for the reply from a Redis list with a key of `UUID' plus '.reply`.
+It pushes a conversation `UUID` to the provided `queue`, pushes the value with that `UUID` as its key to a Redis list, and waits for the reply from a Redis list with a key of `UUID` plus `.reply`.
 A different UUID is used for each interaction.
 The following listing shows the available attributes for a Redis outbound gateway:
 
@@ -844,10 +844,10 @@ You should set the expiry at a large enough value to prevent this condition, but
 
 Starting with version 5.0, the `RedisLockRegistry` implements `ExpirableLockRegistry`, which removes locks last acquired more than `age` ago and that are not currently locked.
 
-String with version 5.5.6, the `RedisLockRegistry` is support automatically clean up cache for redisLocks in `RedisLockRegistry.locks` via `RedisLockRegistry.setCacheCapacity()`.
+Starting with version 5.5.6, the `RedisLockRegistry` is support automatically clean up cache for redisLocks in `RedisLockRegistry.locks` via `RedisLockRegistry.setCacheCapacity()`.
 See its JavaDocs for more information.
 
-String with version 5.5.13, the `RedisLockRegistry` exposes a `setRedisLockType(RedisLockType)` option to determine in which mode a Redis lock acquisition should happen:
+Starting with version 5.5.13, the `RedisLockRegistry` exposes a `setRedisLockType(RedisLockType)` option to determine in which mode a Redis lock acquisition should happen:
 
 - `RedisLockType.SPIN_LOCK` - the lock is acquired by periodic loop (100ms) checking whether the lock can be acquired.
 Default.
