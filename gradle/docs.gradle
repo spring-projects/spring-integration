@@ -1,5 +1,5 @@
 ext {
-	micrometerDocsVersion='1.0.1'
+	micrometerDocsVersion='1.0.2'
 }
 
 
@@ -16,7 +16,7 @@ antora {
 			'@antora/atlas-extension': '1.0.0-alpha.2',
 			'@antora/collector-extension': '1.0.0-alpha.3',
 			'@asciidoctor/tabs': '1.0.0-beta.6',
-			'@springio/antora-extensions': '1.5.0',
+			'@springio/antora-extensions': '1.8.0',
 			'@springio/asciidoctor-extensions': '1.0.0-alpha.9',
 	]
 }

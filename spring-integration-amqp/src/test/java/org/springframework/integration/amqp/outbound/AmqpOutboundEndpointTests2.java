@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ public class AmqpOutboundEndpointTests2 {
 	void testWithReject(@Autowired IntegrationFlow flow, @Autowired RabbitAdmin admin,
 			@Autowired RabbitTemplate template) {
 
-		Queue queue = QueueBuilder.nonDurable().autoDelete().maxLength(1).overflow(Overflow.rejectPublish).build();
+		Queue queue = QueueBuilder.nonDurable().autoDelete().maxLength(1L).overflow(Overflow.rejectPublish).build();
 		admin.declareQueue(queue);
 		flow.getInputChannel().send(new GenericMessage<>("test", Collections.singletonMap("rk", queue.getName())));
 		assertThatThrownBy(() -> flow.getInputChannel()
