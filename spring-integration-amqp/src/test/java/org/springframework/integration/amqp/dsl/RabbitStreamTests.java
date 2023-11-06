@@ -16,7 +16,6 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import com.rabbitmq.stream.Address;
 import com.rabbitmq.stream.Environment;
 import org.junit.jupiter.api.Test;
 
@@ -103,7 +102,7 @@ public class RabbitStreamTests implements RabbitTestContainer {
 		@Bean
 		Environment rabbitStreamEnvironment() {
 			return Environment.builder()
-					.addressResolver(add -> new Address("localhost", RabbitTestContainer.streamPort()))
+					.port(RabbitTestContainer.streamPort())
 					.build();
 		}
 

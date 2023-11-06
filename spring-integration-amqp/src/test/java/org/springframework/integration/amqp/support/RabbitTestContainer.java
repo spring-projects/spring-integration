@@ -35,7 +35,6 @@ public interface RabbitTestContainer {
 
 	RabbitMQContainer RABBITMQ = new RabbitMQContainer("rabbitmq:management")
 			.withExposedPorts(5672, 15672, 5552)
-			.withEnv("RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS", "-rabbitmq_stream advertised_host localhost")
 			.withStartupTimeout(Duration.ofMinutes(2));
 
 	@BeforeAll

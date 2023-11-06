@@ -20,7 +20,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.rabbitmq.stream.Address;
 import com.rabbitmq.stream.Consumer;
 import com.rabbitmq.stream.Environment;
 import com.rabbitmq.stream.OffsetSpecification;
@@ -46,7 +45,7 @@ public class RabbitStreamMessageHandlerTests implements RabbitTestContainer {
 	void convertAndSend() throws InterruptedException {
 		Environment env = Environment.builder()
 				.lazyInitialization(true)
-				.addressResolver(add -> new Address("localhost", RabbitTestContainer.streamPort()))
+				.port(RabbitTestContainer.streamPort())
 				.build();
 		try {
 			env.deleteStream("stream.stream");
@@ -83,7 +82,7 @@ public class RabbitStreamMessageHandlerTests implements RabbitTestContainer {
 	@Test
 	void sendNative() throws InterruptedException {
 		Environment env = Environment.builder()
-				.addressResolver(add -> new Address("localhost", RabbitTestContainer.streamPort()))
+				.port(RabbitTestContainer.streamPort())
 				.lazyInitialization(true)
 				.build();
 		try {
