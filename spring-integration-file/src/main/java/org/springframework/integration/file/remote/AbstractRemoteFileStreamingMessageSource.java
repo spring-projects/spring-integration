@@ -297,12 +297,12 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		if (!ObjectUtils.isEmpty(files)) {
 			List<AbstractFileInfo<F>> fileInfoList;
 			if (this.filter != null && !this.filter.supportsSingleFileFiltering()) {
-				int maxFetchSize = getMaxFetchSize();
+				int toFetchSize = getMaxFetchSize() - this.fetched.get();
 				List<F> filteredFiles = this.filter.filterFiles(files);
-				if (maxFetchSize > 0 && filteredFiles.size() > maxFetchSize) {
-					rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
-					List<F> newList = new ArrayList<>(maxFetchSize);
-					for (int i = 0; i < maxFetchSize; i++) {
+				if (toFetchSize > 0 && filteredFiles.size() > toFetchSize) {
+					rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(toFetchSize));
+					List<F> newList = new ArrayList<>(toFetchSize);
+					for (int i = 0; i < toFetchSize; i++) {
 						newList.add(filteredFiles.get(i));
 					}
 					filteredFiles = newList;
