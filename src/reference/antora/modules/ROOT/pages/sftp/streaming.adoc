@@ -94,7 +94,7 @@ public class SftpJavaApplication {
     public ExpressionEvaluatingRequestHandlerAdvice after() {
         ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
         advice.setOnSuccessExpression(
-                "@template.remove(headers['file_remoteDirectory'] + headers['file_remoteFile'])");
+                "@template.remove(headers['file_remoteDirectory'] + '/' +  headers['file_remoteFile'])");
         advice.setPropagateEvaluationFailures(true);
         return advice;
     }
