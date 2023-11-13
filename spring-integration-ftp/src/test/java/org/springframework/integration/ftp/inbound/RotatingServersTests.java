@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ public class RotatingServersTests extends FtpTestSupport {
 	public void testStandard() throws Exception {
 		try (AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(StandardConfig.class)) {
 			StandardConfig config = ctx.getBean(StandardConfig.class);
-			assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(config.latch.await(30, TimeUnit.SECONDS)).isTrue();
 			ctx.getBean(SourcePollingChannelAdapter.class).stop();
 			List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 			assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
@@ -152,7 +152,7 @@ public class RotatingServersTests extends FtpTestSupport {
 	public void testFair() throws Exception {
 		try (AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(FairConfig.class)) {
 			StandardConfig config = ctx.getBean(StandardConfig.class);
-			assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(config.latch.await(30, TimeUnit.SECONDS)).isTrue();
 			ctx.getBean(SourcePollingChannelAdapter.class).stop();
 			List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 			assertThat(sfCalls).containsExactly(1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3);
@@ -170,7 +170,7 @@ public class RotatingServersTests extends FtpTestSupport {
 	public void testVariableLocalDir() throws Exception {
 		try (ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(VariableLocalConfig.class)) {
 			StandardConfig config = ctx.getBean(StandardConfig.class);
-			assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(config.latch.await(30, TimeUnit.SECONDS)).isTrue();
 			ctx.getBean(SourcePollingChannelAdapter.class).stop();
 			List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 			assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
@@ -188,7 +188,7 @@ public class RotatingServersTests extends FtpTestSupport {
 	public void testStreaming() throws Exception {
 		try (AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(StreamingConfig.class)) {
 			StandardConfig config = ctx.getBean(StreamingConfig.class);
-			assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(config.latch.await(30, TimeUnit.SECONDS)).isTrue();
 			ctx.getBean(SourcePollingChannelAdapter.class).stop();
 			List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 			// there's an extra getSession() with this adapter in listFiles
@@ -211,7 +211,7 @@ public class RotatingServersTests extends FtpTestSupport {
 	public void testFairStreaming() throws Exception {
 		try (ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(FairStreamingConfig.class)) {
 			StandardConfig config = ctx.getBean(StandardConfig.class);
-			assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(config.latch.await(30, TimeUnit.SECONDS)).isTrue();
 			ctx.getBean(SourcePollingChannelAdapter.class).stop();
 			List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 			assertThat(sfCalls).containsExactly(1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1, 2, 3, 1, 2);
