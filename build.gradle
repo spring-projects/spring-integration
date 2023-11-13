@@ -260,7 +260,7 @@ configure(javaProjects) { subproject ->
             }
         }
 
-        if (!(subproject.name !in ['spring-integration-test-support', 'spring-integration-core'])) {
+        if (subproject.name !in ['spring-integration-test-support', 'spring-integration-core']) {
             api project(':spring-integration-core')
         }
 
