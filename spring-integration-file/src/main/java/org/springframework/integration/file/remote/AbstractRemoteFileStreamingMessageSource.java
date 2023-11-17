@@ -215,7 +215,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 			if (this.filter != null && this.filter.supportsSingleFileFiltering()
 					&& !this.filter.accept(file.getFileInfo())) {
 
-				if (this.toBeReceived.size() > 0) { // don't re-fetch already filtered files
+				if (!this.toBeReceived.isEmpty()) { // don't re-fetch already filtered files
 					file = poll();
 					continue;
 				}
@@ -267,7 +267,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	}
 
 	protected AbstractFileInfo<F> poll() {
-		if (this.toBeReceived.size() == 0) {
+		if (this.toBeReceived.isEmpty()) {
 			listFiles();
 		}
 		return this.toBeReceived.poll();
@@ -297,7 +297,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		if (!ObjectUtils.isEmpty(files)) {
 			List<AbstractFileInfo<F>> fileInfoList;
 			if (this.filter != null && !this.filter.supportsSingleFileFiltering()) {
-				int maxFetchSize = getMaxFetchSize();
+				int maxFetchSize = getMaxFetchSize() - this.fetched.get();
 				List<F> filteredFiles = this.filter.filterFiles(files);
 				if (maxFetchSize > 0 && filteredFiles.size() > maxFetchSize) {
 					rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
