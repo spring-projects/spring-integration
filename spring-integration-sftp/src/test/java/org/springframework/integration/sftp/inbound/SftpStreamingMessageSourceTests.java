@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@
 
 package org.springframework.integration.sftp.inbound;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.junit.jupiter.api.Test;
 
@@ -39,11 +43,14 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AcceptAllFileListFilter;
+import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
+import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
+import org.springframework.integration.sftp.filters.SftpSystemMarkerFilePresentFileListFilter;
 import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.transformer.StreamTransformer;
@@ -166,6 +173,69 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 
 		received.getPayload().close();
 		StaticMessageHeaderAccessor.getCloseableResource(received).close();
+	}
+
+
+	@Test
+	public void maxFetchIsAdjustedWhenNoSupportsSingleFileFiltering() throws Exception {
+		SftpStreamingMessageSource messageSource = buildSource();
+		ChainFileListFilter<SftpClient.DirEntry> chainFileListFilter = new ChainFileListFilter<>();
+		SftpSystemMarkerFilePresentFileListFilter sftpSystemMarkerFilePresentFileListFilter =
+				new SftpSystemMarkerFilePresentFileListFilter(
+						new SftpSimplePatternFileListFilter("*"), ".trg");
+		SftpPersistentAcceptOnceFileListFilter sftpPersistentAcceptOnceFileListFilter =
+				new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "prefix");
+		chainFileListFilter.addFilter(sftpSystemMarkerFilePresentFileListFilter);
+		chainFileListFilter.addFilter(sftpPersistentAcceptOnceFileListFilter);
+		messageSource.setFilter(chainFileListFilter);
+		messageSource.setMaxFetchSize(5);
+		messageSource.afterPropertiesSet();
+		messageSource.start();
+
+		addFileAndTrigger("file001");
+		addFileAndTrigger("file002");
+
+		Message<InputStream> received = messageSource.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("file001");
+
+		received = messageSource.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("file002");
+
+		addFileAndTrigger("file003");
+		addFileAndTrigger("file004");
+		addFileAndTrigger("file005");
+		addFileAndTrigger("file006");
+		addFileAndTrigger("file007");
+
+		received = messageSource.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("file003");
+
+		received = messageSource.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("file004");
+
+		received = messageSource.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("file005");
+
+		received = messageSource.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("file006");
+
+		received = messageSource.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("file007");
+	}
+
+	private void addFileAndTrigger(String filename) throws IOException {
+		File file = new File(this.sourceRemoteDirectory, filename);
+		FileUtils.writeStringToFile(file, "source1", StandardCharsets.UTF_8);
+
+		file = new File(this.sourceRemoteDirectory, filename + ".trg");
+		file.createNewFile();
 	}
 
 	private SftpStreamingMessageSource buildSource() {
