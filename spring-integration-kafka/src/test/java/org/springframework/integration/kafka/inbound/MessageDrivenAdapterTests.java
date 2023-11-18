@@ -579,7 +579,7 @@ class MessageDrivenAdapterTests {
 	void testPauseResume() throws Exception {
 		ConsumerFactory<Integer, String> cf = mock(ConsumerFactory.class);
 		Consumer<Integer, String> consumer = mock(Consumer.class);
-		given(cf.createConsumer(isNull(), eq("clientId"), isNull(), any())).willReturn(consumer);
+		given(cf.createConsumer(eq("testPauseResumeGroup"), eq("clientId"), isNull(), any())).willReturn(consumer);
 		final Map<TopicPartition, List<ConsumerRecord<Integer, String>>> records = new HashMap<>();
 		records.put(new TopicPartition("foo", 0), Arrays.asList(
 				new ConsumerRecord<>("foo", 0, 0L, 1, "foo"),
@@ -602,6 +602,7 @@ class MessageDrivenAdapterTests {
 		ContainerProperties containerProps = new ContainerProperties(topicPartition);
 		containerProps.setAckMode(ContainerProperties.AckMode.RECORD);
 		containerProps.setClientId("clientId");
+		containerProps.setGroupId("testPauseResumeGroup");
 		containerProps.setIdleEventInterval(100L);
 		BlockingQueue<KafkaEvent> containerEvents = new LinkedBlockingQueue<>();
 		KafkaMessageListenerContainer<Integer, String> container =
