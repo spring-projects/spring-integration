@@ -48,7 +48,7 @@ ext {
     modifiedFiles =
             files(grgit.status().unstaged.modified).filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-    apacheSshdVersion = '2.9.3'
+    apacheSshdVersion = '2.9.2'
     artemisVersion = '2.27.1'
     aspectjVersion = '1.9.20.1'
     assertjVersion = '3.24.2'
