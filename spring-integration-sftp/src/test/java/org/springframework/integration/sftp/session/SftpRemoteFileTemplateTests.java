@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,8 +77,8 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		template.afterPropertiesSet();
 
 		template.execute(session -> {
-			session.mkdir("/foo/");
-			return session.mkdir("/foo/bar/");
+			session.mkdir("/foo");
+			return session.mkdir("/foo/bar");
 		});
 		template.append(new GenericMessage<>("foo"));
 		template.append(new GenericMessage<>("bar"));
@@ -93,7 +93,7 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 			}
 		});
 		template.execute((SessionCallbackWithoutResult<SftpClient.DirEntry>) session -> {
-			SftpClient.DirEntry[] files = session.list("/foo/");
+			SftpClient.DirEntry[] files = session.list("/foo");
 			assertThat(files.length).isEqualTo(4);
 			assertThat(session.remove("/foo/foobar.txt")).isTrue();
 			assertThat(session.rmdir("/foo/bar/")).isTrue();
