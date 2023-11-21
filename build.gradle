@@ -17,8 +17,8 @@ plugins {
 	id 'org.sonarqube' version '2.8'
 	id 'io.spring.nohttp' version '0.0.11' apply false
 	id 'org.ajoberstar.grgit' version '4.1.1'
-	id 'io.spring.dependency-management' version '1.1.3'
-	id 'com.jfrog.artifactory' version '5.1.6' apply false
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'com.jfrog.artifactory' version '5.1.10' apply false
 	id 'org.jetbrains.dokka' version '1.5.30'
 	id 'org.asciidoctor.jvm.pdf' version '3.3.2'
 	id 'org.asciidoctor.jvm.gems' version '3.3.2'
@@ -48,7 +48,7 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.17.5'
+	activeMqVersion = '5.17.6'
 	apacheSshdVersion = '2.7.0'
 	aspectjVersion = '1.9.20.1'
 	assertjVersion = '3.23.1'
@@ -72,7 +72,7 @@ ext {
 	jacksonVersion = '2.12.7'
 	javaxActivationVersion = '1.2.0'
 	jaxbVersion = '2.3.4'
-	jeroMqVersion = '0.5.3'
+	jeroMqVersion = '0.5.4'
 	jmsApiVersion = '2.0.1'
 	jpaApiVersion = '2.7.7'
 	jrubyVersion = '9.2.20.1'
@@ -88,14 +88,14 @@ ext {
 	micrometerVersion = '1.7.12'
 	mockitoVersion = '3.12.4'
 	mongoDriverVersion = '4.3.4'
-	mysqlVersion = '8.0.29'
+	mysqlVersion = '8.0.33'
 	pahoMqttClientVersion = '1.2.5'
-	postgresVersion = '42.2.23'
+	postgresVersion = '42.2.27'
 	r2dbch2Version='0.8.5.RELEASE'
-	reactorVersion = '2020.0.36'
+	reactorVersion = '2020.0.38'
 	resilience4jVersion = '1.7.1'
 	romeToolsVersion = '1.16.0'
-	rsocketVersion = '1.1.3'
+	rsocketVersion = '1.1.4'
 	saajVersion = '1.5.2'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.5'
@@ -103,14 +103,14 @@ ext {
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.3.16'
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : '2021.0.11'
 	springKafkaVersion = '2.7.14'
-	springRetryVersion = '1.3.3'
+	springRetryVersion = '1.3.4'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.5.8'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.30'
-	springWsVersion = '3.1.6'
-	testcontainersVersion = '1.19.0'
-	tomcatVersion = '9.0.80'
-	xmlUnitVersion = '2.8.2'
-	xstreamVersion = '1.4.19'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.3.31'
+	springWsVersion = '3.1.8'
+	testcontainersVersion = '1.19.2'
+	tomcatVersion = '9.0.83'
+	xmlUnitVersion = '2.8.4'
+	xstreamVersion = '1.4.20'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }
