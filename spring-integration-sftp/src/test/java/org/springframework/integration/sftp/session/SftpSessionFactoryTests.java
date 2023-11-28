@@ -28,11 +28,13 @@ import java.util.stream.IntStream;
 
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.auth.password.PasswordIdentityProvider;
+import org.apache.sshd.client.channel.ClientChannel;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.sftp.client.SftpClient;
+import org.apache.sshd.sftp.client.impl.AbstractSftpClient;
 import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +50,7 @@ import static org.awaitility.Awaitility.await;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Auke Zaaiman
+ *
  * @since 3.0.2
  */
 public class SftpSessionFactoryTests {
@@ -189,6 +192,29 @@ public class SftpSessionFactoryTests {
 							.toList();
 
 			assertThat(dirEntries).hasSize(10);
+		}
+	}
+
+	@Test
+	void customTimeoutIsApplied() throws IOException {
+		try (SshServer server = SshServer.setUpDefaultServer()) {
+			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
+			server.setPort(0);
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
+			server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
+			server.start();
+
+			DefaultSftpSessionFactory sftpSessionFactory = new DefaultSftpSessionFactory();
+			sftpSessionFactory.setHost("localhost");
+			sftpSessionFactory.setPort(server.getPort());
+			sftpSessionFactory.setUser("user");
+			sftpSessionFactory.setPassword("pass");
+			sftpSessionFactory.setAllowUnknownKeys(true);
+			sftpSessionFactory.setTimeout(15_000);
+
+			ClientChannel clientChannel = sftpSessionFactory.getSession().getClientInstance().getClientChannel();
+
+			assertThat(AbstractSftpClient.SFTP_CLIENT_CMD_TIMEOUT.getRequired(clientChannel)).hasSeconds(15);
 		}
 	}
 
