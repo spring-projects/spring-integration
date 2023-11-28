@@ -28,11 +28,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.auth.keyboard.UserInteraction;
 import org.apache.sshd.client.auth.password.PasswordIdentityProvider;
+import org.apache.sshd.client.channel.ChannelSubsystem;
 import org.apache.sshd.client.config.hosts.HostConfigEntry;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
 import org.apache.sshd.client.keyverifier.RejectAllServerKeyVerifier;
 import org.apache.sshd.client.keyverifier.ServerKeyVerifier;
 import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.common.PropertyResolverUtils;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.config.keys.FilePasswordProvider;
 import org.apache.sshd.common.keyprovider.KeyIdentityProvider;
@@ -44,9 +46,11 @@ import org.apache.sshd.common.util.security.SecurityUtils;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.client.SftpErrorDataHandler;
 import org.apache.sshd.sftp.client.SftpVersionSelector;
+import org.apache.sshd.sftp.client.impl.AbstractSftpClient;
 import org.apache.sshd.sftp.client.impl.DefaultSftpClient;
 
 import org.springframework.core.io.Resource;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.session.SharedSessionCapable;
 import org.springframework.util.Assert;
@@ -107,7 +111,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 
 	private boolean allowUnknownKeys = false;
 
-	private Integer timeout;
+	private Integer timeout = (int) IntegrationContextUtils.DEFAULT_TIMEOUT;
 
 	private SftpVersionSelector sftpVersionSelector = SftpVersionSelector.CURRENT;
 
@@ -263,9 +267,9 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 
 	/**
 	 * The timeout property is used as the socket timeout parameter, as well as
-	 * the default connection timeout. Defaults to <code>0</code>, which means,
-	 * that no timeout will occur.
-	 * @param timeout The timeout.
+	 * the default connection timeout. Defaults to {@code 30 seconds}.
+	 * Setting to {@code 0} means no timeout; to {@code null} - infinite wait.
+	 * @param timeout the timeout.
 	 * @see org.apache.sshd.client.future.ConnectFuture#verify(Duration, org.apache.sshd.common.future.CancelOption...)
 	 */
 	public void setTimeout(Integer timeout) {
@@ -420,8 +424,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	/**
 	 * The {@link DefaultSftpClient} extension to lock the {@link #send(int, Buffer)}
 	 * for concurrent interaction.
+	 * <p>
+	 * Also sets the provided {@link #timeout} as a {@link AbstractSftpClient#SFTP_CLIENT_CMD_TIMEOUT} property.
 	 */
-	protected static class ConcurrentSftpClient extends DefaultSftpClient {
+	protected class ConcurrentSftpClient extends DefaultSftpClient {
 
 		private final Lock sendLock = new ReentrantLock();
 
@@ -440,6 +446,14 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 			finally {
 				this.sendLock.unlock();
 			}
+		}
+
+		@Override
+		protected ChannelSubsystem createSftpChannelSubsystem(ClientSession clientSession) {
+			ChannelSubsystem sftpChannelSubsystem = super.createSftpChannelSubsystem(clientSession);
+			PropertyResolverUtils.updateProperty(sftpChannelSubsystem,
+					AbstractSftpClient.SFTP_CLIENT_CMD_TIMEOUT.getName(), DefaultSftpSessionFactory.this.timeout);
+			return sftpChannelSubsystem;
 		}
 
 	}

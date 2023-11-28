@@ -97,7 +97,8 @@ The passphrase is obtained from that object.
 Optional.
 
 `timeout`::The timeout property is used as the socket timeout parameter, as well as the default connection timeout.
-Defaults to `0`, which means, that no timeout will occur.
+Defaults to `30 seconds`.
+Setting to `0` means no timeout; to `null` - infinite wait.
 
 [[sftp-unk-keys]]
 `allowUnknownKeys`::Set to `true` to allow connections to hosts with unknown (or changed) keys.
