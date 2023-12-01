@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: spring-projects/spring-integration-samples
+          ref: ${{ github.ref_name }}
           show-progress: false
 
       - name: Set up JDK
