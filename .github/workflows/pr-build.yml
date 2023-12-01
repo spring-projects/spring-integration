@@ -1,0 +1,10 @@
+name: Pull Request Build
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-pull-request:
+    uses: artembilan/spring-github-workflows/.github/workflows/spring-gradle-pull-request-build.yml@main

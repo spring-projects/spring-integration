@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlinVersion = '1.8.10'
-    ext.isCI = System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')
+    ext.isCI = System.getenv('GITHUB_ACTION')
     repositories {
         gradlePluginPortal()
         mavenCentral()
@@ -15,11 +15,10 @@ buildscript {
 }
 
 plugins {
-    id 'org.sonarqube' version '4.4.1.3373'
+    id 'base'
     id 'io.spring.nohttp' version '0.0.11' apply false
     id 'org.ajoberstar.grgit' version '4.1.1'
     id 'io.spring.dependency-management' version '1.1.4'
-    id 'com.jfrog.artifactory' version '5.1.10' apply false
     id 'org.jetbrains.dokka' version "$kotlinVersion"
     id 'org.asciidoctor.jvm.pdf' version '3.3.2'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
@@ -183,7 +182,6 @@ configure(javaProjects) { subproject ->
     apply plugin: 'java-library'
     apply plugin: 'eclipse'
     apply plugin: 'idea'
-    apply plugin: 'jacoco'
     apply plugin: 'checkstyle'
     apply plugin: 'kotlin'
     apply plugin: 'kotlin-spring'
@@ -240,10 +238,6 @@ configure(javaProjects) { subproject ->
         project {
             natures += 'org.springframework.ide.eclipse.core.springnature'
         }
-    }
-
-    jacoco {
-        toolVersion = '0.8.10'
     }
 
     // dependencies that are common across all java projects
@@ -319,23 +313,9 @@ configure(javaProjects) { subproject ->
 
     compileKotlin.dependsOn updateCopyrights
 
-    jacocoTestReport {
-        onlyIf { System.properties['sonar.host.url'] }
-        dependsOn test
-        reports {
-            xml.required = true
-            html.required = false
-        }
-    }
-
-    rootProject.tasks['sonarqube'].dependsOn jacocoTestReport
-
     test {
         maxHeapSize = '2g'
         jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
-        jacoco {
-            destinationFile = file("$buildDir/jacoco.exec")
-        }
     }
 
     task testAll(type: Test, dependsOn: [':checkAsciidocLinks', 'check'])
@@ -1142,20 +1122,6 @@ project('spring-integration-bom') {
                 from components.javaPlatform
             }
         }
-    }
-
-    sonar {
-        skipProject = true
-    }
-}
-
-sonar {
-    properties {
-        property 'sonar.links.homepage', linkHomepage
-        property 'sonar.links.ci', linkCi
-        property 'sonar.links.issue', linkIssue
-        property 'sonar.links.scm', linkScmUrl
-        property 'sonar.links.scm_dev', linkScmDevConnection
     }
 }
 
