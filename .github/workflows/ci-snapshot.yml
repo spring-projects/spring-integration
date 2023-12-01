@@ -2,11 +2,16 @@ name: CI SNAPSHOT
 
 on:
   workflow_dispatch:
-#  push:
-#    branches:
-#      - main
+  push:
+    branches:
+      - main
+      - 6.1.x
 
 jobs:
-  build_snapshot:
-    uses: spring-projects/spring-integration-aws/.github/workflows/ci-snapshot.yml@main
-    secrets: inherit
+  build-snapshot:
+    uses: artembilan/spring-github-workflows/.github/workflows/spring-artifactory-gradle-snapshot.yml@main
+    secrets:
+      GRADLE_ENTERPRISE_CACHE_USER: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
+      GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
+      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+      JF_ARTIFACTORY_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}

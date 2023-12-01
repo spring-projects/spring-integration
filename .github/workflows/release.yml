@@ -1,0 +1,26 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+run-name: Release current version for branch ${{ github.ref_name }}
+
+jobs:
+  release:
+    permissions:
+      actions: write
+
+    uses: artembilan/spring-github-workflows/.github/workflows/spring-artifactory-gradle-release.yml@main
+    secrets:
+      GH_ACTIONS_REPO_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+      GRADLE_ENTERPRISE_CACHE_USER: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
+      GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
+      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+      JF_ARTIFACTORY_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+      OSSRH_URL: ${{ secrets.OSSRH_URL }}
+      OSSRH_S01_TOKEN_USERNAME: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
+      OSSRH_S01_TOKEN_PASSWORD: ${{ secrets.OSSRH_S01_TOKEN_PASSWORD }}
+      OSSRH_STAGING_PROFILE_NAME: ${{ secrets.OSSRH_STAGING_PROFILE_NAME }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      SPRING_RELEASE_SLACK_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_SLACK_WEBHOOK_URL }}
