@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.smb.outbound;
 
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -145,13 +143,14 @@ public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFil
 	}
 
 	@Override
-	protected String getFilename(SmbFile file) {
-		return file.getName();
+	protected String getFilename(AbstractFileInfo<SmbFile> file) {
+		return getFilename(file.getFileInfo());
 	}
 
 	@Override
-	protected String getFilename(AbstractFileInfo<SmbFile> file) {
-		return file.getFilename();
+	protected String getFilename(SmbFile file) {
+		String name = file.getName();
+		return name.endsWith("/") ? name.substring(0, name.length() - 1) : name;
 	}
 
 	@Override
@@ -170,14 +169,12 @@ public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFil
 
 	@Override
 	protected SmbFile enhanceNameWithSubDirectory(SmbFile file, String directory) {
-		try {
-			file.renameTo(new SmbFile(file, directory), true);
-			return file;
-		}
-		catch (SmbException | MalformedURLException | UnknownHostException e) {
-			logger.error("Unable to enhance file name with a sub directory path", e);
-			return null;
-		}
+		return file;
+	}
+
+	@Override
+	protected String getFullFileName(String remoteDirectory, SmbFile smbFile) {
+		return smbFile.getLocator().getURLPath().substring(1).replaceFirst(smbFile.getShare() + "/?", "");
 	}
 
 }

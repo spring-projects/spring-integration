@@ -1045,6 +1045,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			return;
 		}
 		String fileName = getFilename(fileToAdd);
+		// Some remote file protocols don't include sub-dir into file name.
+		if (StringUtils.hasText(subDirectory) && !fileName.startsWith(subDirectory)) {
+			fileName = subDirectory + fileName;
+		}
 		final boolean isDirectory = isDirectory(file);
 		boolean isDots = hasDots(fileName);
 		if ((this.options.contains(Option.SUBDIRS) || !isDirectory)
@@ -1285,10 +1289,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private File getRemoteFileForMget(Message<?> message, Session<F> session, String remoteDirectory,
 			AbstractFileInfo<F> lsEntry) throws IOException {
 
-		String fullFileName =
-				remoteDirectory != null
-						? remoteDirectory + getFilename(lsEntry)
-						: getFilename(lsEntry);
+		String fullFileName = getFullFileName(remoteDirectory, lsEntry.getFileInfo());
 		/*
 		 * With recursion, the filename might contain subdirectory information
 		 * normalize each file separately.
@@ -1296,6 +1297,20 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		String fileName = getRemoteFilename(fullFileName);
 		String actualRemoteDirectory = getRemoteDirectory(fullFileName, fileName);
 		return get(message, session, actualRemoteDirectory, fullFileName, fileName, lsEntry.getFileInfo());
+	}
+
+	/**
+	 * By default, this method contacts the remote directory with the remote file name
+	 * to build a full remote file path.
+	 * The remote file protocol-specific implementation may override this method for other approach.
+	 * @param remoteDirectory the directory remote file belongs.
+	 * @param remoteFile the remote file to take a name and adjust its path according provided remote directory.
+	 * @return the full path for the remote file
+	 */
+	protected String getFullFileName(String remoteDirectory, F remoteFile) {
+		return remoteDirectory != null
+						? remoteDirectory + getFilename(remoteFile)
+						: getFilename(remoteFile);
 	}
 
 	private String getRemoteDirectory(String remoteFilePath, String remoteFilename) {

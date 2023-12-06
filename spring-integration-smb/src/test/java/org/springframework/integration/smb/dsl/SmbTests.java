@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -291,15 +291,14 @@ public class SmbTests extends SmbTestSupport {
 						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
 								.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
 								.fileExistsMode(FileExistsMode.IGNORE)
-								.filterExpression("name matches 'subSmbSource|.*.txt'")
+								.filterExpression("name matches 'smbSource/|subSmbSource/|subSmbSource\\d\\.txt'")
 								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
-								.localFilenameExpression("#remoteFileName.replaceFirst('smbSource', 'localTarget')")
+								.localFilenameExpression("#remoteFileName.replaceFirst('subSmbSource', 'localTarget')")
 								.charset(StandardCharsets.UTF_8.name())
 								.useTemporaryFileName(true))
 				.channel(out);
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
-		String dir = "smbSource/subSmbSource/";
-		registration.getInputChannel().send(new GenericMessage<>(dir + "*"));
+		registration.getInputChannel().send(new GenericMessage<>("*"));
 		Message<?> result = out.receive(10_000);
 		assertThat(result).isNotNull();
 
@@ -307,11 +306,9 @@ public class SmbTests extends SmbTestSupport {
 		assertThat(localFiles).as("unexpected local files " + localFiles).hasSize(2);
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+					.matches(".*smbSource/subSmbSource/localTarget\\d.txt");
 		}
-
-		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
-				.contains(dir + "subSmbSource");
 
 		registration.destroy();
 	}
