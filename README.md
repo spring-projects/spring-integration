@@ -2,7 +2,8 @@
 
 # Spring Integration
 
-[<img src="https://build.spring.io/plugins/servlet/wittified/build-status/INT-MAIN">](https://build.spring.io/browse/INT-MAIN) [![Revved up by Gradle Enterprise](https://img.shields.io/badge/Revved%20up%20by-Gradle%20Enterprise-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.spring.io/scans?search.rootProjectNames=spring-integration)
+[![Build Status](https://github.com/spring-projects/spring-integration/actions/workflows/ci-snapshot.yml/badge.svg)](https://github.com/spring-projects/spring-integration/actions/workflows/ci-snapshot.yml)
+[![Revved up by Gradle Enterprise](https://img.shields.io/badge/Revved%20up%20by-Gradle%20Enterprise-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.spring.io/scans?search.rootProjectNames=spring-integration)
 
 Extends the Spring programming model to support the well-known Enterprise Integration Patterns. 
 Spring Integration enables lightweight messaging within Spring-based applications and supports integration with external systems via declarative adapters. 
@@ -106,7 +107,7 @@ If you have the BuildShip plugin installed,
 
 # Using Eclipse or Spring Tool Suite (when the BuildShip Plugin is not installed)
 
-To generate Eclipse metadata (.classpath and .project files, etc), do the following:
+To generate Eclipse metadata (.classpath and .project files, etc.), do the following:
 
     ./gradlew eclipse
 
@@ -129,5 +130,4 @@ See also [Contributor Guidelines](https://github.com/spring-projects/spring-inte
 
 # Resources
 
-For more information, please visit the Spring Integration website at:
-[https://spring.io/projects/spring-integration](https://spring.io/projects/spring-integration/)
+For more information, please visit the Spring Integration website at: [https://spring.io/projects/spring-integration](https://spring.io/projects/spring-integration/)
