@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,17 +188,15 @@ public class FileTailingMessageProducerTests {
 		file.delete();
 	}
 
-	private void testGuts(FileTailingMessageProducerSupport adapter, String field)
-			throws Exception {
+	private void testGuts(FileTailingMessageProducerSupport adapter, String field) throws Exception {
 		this.adapter = adapter;
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		adapter.setTaskScheduler(taskScheduler);
-		final List<FileTailingEvent> events = new ArrayList<>();
+		CountDownLatch tailEventLatch = new CountDownLatch(1);
 		adapter.setApplicationEventPublisher(event -> {
-			FileTailingEvent tailEvent = (FileTailingEvent) event;
 			logger.debug(event);
-			events.add(tailEvent);
+			tailEventLatch.countDown();
 		});
 		adapter.setFile(new File(testDir, "foo"));
 		QueueChannel outputChannel = new QueueChannel();
@@ -242,7 +240,7 @@ public class FileTailingMessageProducerTests {
 			assertThat(message.getHeaders().get(FileHeaders.FILENAME)).isEqualTo(file.getName());
 		}
 
-		assertThat(events.size()).isGreaterThanOrEqualTo(1);
+		assertThat(tailEventLatch.await(20, TimeUnit.SECONDS)).isTrue();
 
 		taskScheduler.destroy();
 	}
