@@ -31,12 +31,14 @@ jobs:
 
       - uses: jfrog/setup-jfrog-cli@v3
 
-      - name: Verify Spring Integration Samples against staged release
+      - name: Prepare Samples project against Staging
         run: |
           echo 'allprojects {
                   repositories {
                     maven { url "https://repo.spring.io/libs-staging-local" }
                   }
                 }' > staging-repo-init.gradle
-          sed -i "1,/springIntegrationVersion.*/s/springIntegrationVersion.*/springIntegrationVersion='${{ inputs.releaseVersion }}'/" build.gradle
-          gradle check --init-script staging-repo-init.gradle
+          sed -i "1,/springIntegrationVersion.*/s/springIntegrationVersion.*/springIntegrationVersion='${{ inputs.releaseVersion }}'/" build.gradle  
+
+      - name: Verify Spring Integration Samples against staged release
+        run: jf gradle check --init-script staging-repo-init.gradle
