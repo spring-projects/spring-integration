@@ -13,6 +13,7 @@ env:
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
 
 jobs:
   verify-staged-with-samples:
@@ -35,11 +36,17 @@ jobs:
         run: |
           jf gradlec --repo-resolve libs-staging-local
           
-          echo 'allprojects {
+          printf "allprojects {
                   repositories {
-                    maven { url "https://repo.spring.io/libs-staging-local" }
+                    maven { 
+                      url 'https://repo.spring.io/libs-staging-local'
+                      credentials {
+                        username 'spring-builds'
+                        password '$GITHUB_TOKEN'
+                      }
+                    }
                   }
-                }' > staging-repo-init.gradle
+                }" > staging-repo-init.gradle
           
           sed -i "1,/springIntegrationVersion.*/s/springIntegrationVersion.*/springIntegrationVersion='${{ inputs.releaseVersion }}'/" build.gradle  
 
