@@ -12,7 +12,8 @@ env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
-  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
 jobs:
   verify-staged-with-samples:
@@ -36,8 +37,8 @@ jobs:
                     maven { 
                       url 'https://repo.spring.io/libs-staging-local'
                       credentials {
-                        username = 'spring-builds'
-                        password = '$GITHUB_TOKEN'
+                        username = '$ARTIFACTORY_USERNAME'
+                        password = '$ARTIFACTORY_PASSWORD'
                       }
                     }
                   }
