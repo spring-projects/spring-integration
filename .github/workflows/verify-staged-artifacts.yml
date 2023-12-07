@@ -12,6 +12,7 @@ env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
 
 jobs:
   verify-staged-with-samples:
@@ -27,6 +28,8 @@ jobs:
 
       - name: Set up Gradle
         uses: spring-io/spring-gradle-build-action@v2
+
+      - uses: jfrog/setup-jfrog-cli@v3
 
       - name: Verify Spring Integration Samples against staged release
         run: |
