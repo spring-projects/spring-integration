@@ -12,7 +12,6 @@ env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
-  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
 
 jobs:
   verify-staged-with-samples:
@@ -26,19 +25,15 @@ jobs:
           ref: ${{ github.ref_name }}
           show-progress: false
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: 'gradle'
-
-      - uses: jfrog/setup-jfrog-cli@v3
-
-      - name: Configure JFrog Cli
-        run: jf gradlec --repo-resolve libs-staging-local
+      - name: Set up Gradle
+        uses: spring-io/spring-gradle-build-action@v2
 
       - name: Verify Spring Integration Samples against staged release
         run: |
+          echo 'allprojects {
+                  repositories {
+                    maven { url "https://repo.spring.io/libs-staging-local" }
+                  }
+                }' > staging-repo-init.gradle
           sed -i "1,/springIntegrationVersion.*/s/springIntegrationVersion.*/springIntegrationVersion='${{ inputs.releaseVersion }}'/" build.gradle
-          jf gradle check
+          jf gradle check --init-script staging-repo-init.gradle
