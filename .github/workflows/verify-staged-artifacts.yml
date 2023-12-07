@@ -36,4 +36,4 @@ jobs:
                   }
                 }' > staging-repo-init.gradle
           sed -i "1,/springIntegrationVersion.*/s/springIntegrationVersion.*/springIntegrationVersion='${{ inputs.releaseVersion }}'/" build.gradle
-          jf gradle check --init-script staging-repo-init.gradle
+          gradle check --init-script staging-repo-init.gradle
