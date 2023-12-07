@@ -33,11 +33,14 @@ jobs:
 
       - name: Prepare Samples project against Staging
         run: |
+          jf gradlec --repo-resolve libs-staging-local
+          
           echo 'allprojects {
                   repositories {
                     maven { url "https://repo.spring.io/libs-staging-local" }
                   }
                 }' > staging-repo-init.gradle
+          
           sed -i "1,/springIntegrationVersion.*/s/springIntegrationVersion.*/springIntegrationVersion='${{ inputs.releaseVersion }}'/" build.gradle  
 
       - name: Verify Spring Integration Samples against staged release
