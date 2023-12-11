@@ -85,6 +85,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Christian Tzolov
  * @author Eddie Cho
  * @author Myeonghyeon Lee
+ * @author Roman Zabaluev
  *
  * @since 4.0
  *
@@ -432,11 +433,14 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private boolean tryRedisLock(long time) throws ExecutionException, InterruptedException {
-			final boolean result = tryRedisLockInner(time);
-			if (result) {
+			final boolean acquired = tryRedisLockInner(time);
+			if (acquired) {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Acquired lock; " + this);
+				}
 				this.lockedAt = System.currentTimeMillis();
 			}
-			return result;
+			return acquired;
 		}
 
 		protected final Boolean obtainLock() {
