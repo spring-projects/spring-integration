@@ -14,12 +14,12 @@ The easiest way to do this is to use Spring's https://docs.spring.io/spring/docs
 ----
 
 Notice that the servlet name matches the bean name.
-For more information on using the `HttpRequestHandlerServlet`, see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/remoting.html[Remoting and web services using Spring], which is part of the Spring Framework Reference documentation.
+For more information see the `HttpRequestHandlerServlet` Javadocs.
 
 If you are running within a Spring MVC application, then the aforementioned explicit servlet definition is not necessary.
 In that case, the bean name for your gateway can be matched against the URL path as you would for a Spring MVC Controller bean.
 For more information, see
-https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc[Web MVC framework], which is part of the Spring Framework Reference documentation.
+https://docs.spring.io/spring-framework/reference/web/webmvc.html[Web MVC framework], which is part of the Spring Framework Reference documentation.
 
 TIP: For a sample application and the corresponding configuration, see the https://github.com/spring-projects/spring-integration-samples[Spring Integration Samples] repository.
 It contains the https://github.com/spring-projects/spring-integration-samples/tree/main/basic/http[HTTP sample] application, which demonstrates Spring Integration's HTTP support.
@@ -52,7 +52,7 @@ If the request has been wrapped as a `MultipartHttpServletRequest`, when you use
 NOTE: The HTTP inbound endpoint locates a `MultipartResolver` in the context if one has a bean name of `multipartResolver` (the same name expected by Spring's `DispatcherServlet`).
 If it does locate that bean, the support for multipart files is enabled on the inbound request mapper.
 Otherwise, it fails when it tries to map a multipart file request to a Spring Integration `Message`.
-For more on Spring's support for `MultipartResolver`, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-multipart[Spring Reference Manual].
+For more on Spring's support for `MultipartResolver`, see the https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-servlet/multipart.html[Spring Reference Manual].
 
 [NOTE]
 ====
@@ -113,6 +113,6 @@ By default, the key for that map entry is 'reply', but you can override this def
 == Payload Validation
 
 Starting with version 5.2, the HTTP inbound endpoints can be supplied with a `Validator` to check a payload before sending into the channel.
-This payload is already a result of conversion and extraction after `payloadExpression` to narrow a validation scope in regards to the valuable data.
-The validation failure handling is fully the same what we have in Spring MVC https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-exceptionhandlers[Error Handling].
+This payload is already a result of conversion and extraction after `payloadExpression` to narrow a validation scope in regard to the valuable data.
+The validation failure handling is fully the same what we have in Spring MVC https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-servlet/exceptionhandlers.html[Error Handling].
 

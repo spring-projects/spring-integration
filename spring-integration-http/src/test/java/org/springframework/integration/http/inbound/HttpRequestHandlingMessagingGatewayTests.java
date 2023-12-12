@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload().getClass()).isEqualTo(LinkedMultiValueMap.class);
 		LinkedMultiValueMap<String, String> map = (LinkedMultiValueMap<String, String>) message.getPayload();
-		assertThat(map.get("foo").size()).isEqualTo(1);
+		assertThat(map.get("foo")).hasSize(1);
 		assertThat(map.getFirst("foo")).isEqualTo("bar");
 	}
 
@@ -193,6 +193,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 			protected boolean doSend(Message<?> message, long timeout) {
 				throw new RuntimeException("Planned");
 			}
+
 		};
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
@@ -234,11 +235,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		LinkedMultiValueMap<String, String> map = (LinkedMultiValueMap<String, String>) message.getPayload();
 		List<String> fooValues = map.get("foo");
 		List<String> barValues = map.get("bar");
-		assertThat(fooValues.size()).isEqualTo(1);
-		assertThat(fooValues.get(0)).isEqualTo("123");
-		assertThat(barValues.size()).isEqualTo(2);
-		assertThat(barValues.get(0)).isEqualTo("456");
-		assertThat(barValues.get(1)).isEqualTo("789");
+		assertThat(fooValues).containsExactly("123");
+		assertThat(barValues).containsExactly("456", "789");
 	}
 
 	@Test
@@ -281,8 +279,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		ParameterizedTypeReference<List<TestBean>> parameterizedTypeReference =
-				new ParameterizedTypeReference<List<TestBean>>() {
-
+				new ParameterizedTypeReference<>() {
 				};
 		gateway.setRequestPayloadType(ResolvableType.forType(parameterizedTypeReference));
 		gateway.setRequestChannel(channel);
@@ -314,14 +311,12 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 					assertThat(bean).extracting(TestBean::getName).isEqualTo("T. Bean");
 					assertThat(bean).extracting(TestBean::getAge).isEqualTo(42);
 				});
-
 	}
 
 
 	@Test
 	public void INT2680DuplicateContentTypeHeader() throws Exception {
-
-		final DirectChannel requestChannel = new DirectChannel();
+		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
 
 			@Override
@@ -478,7 +473,35 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		verify(multipartResolver).isMultipart(any(HttpServletRequest.class));
 	}
 
-	private class ContentTypeCheckingMockHttpServletResponse extends MockHttpServletResponse {
+	@Test
+	public void deleteRequestBodyIgnored() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setRequestChannel(channel);
+		gateway.afterPropertiesSet();
+		gateway.start();
+
+		MockHttpServletRequest request = new MockHttpServletRequest("DELETE", "/delete");
+		request.setContent("This content is ignored for DELETE".getBytes());
+		request.setParameter("one", "1");
+		request.addParameter("two", "2");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		Message<?> message = channel.receive(0);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
+		assertThat(message.getPayload().getClass()).isEqualTo(LinkedMultiValueMap.class);
+		@SuppressWarnings("unchecked")
+		LinkedMultiValueMap<String, String> map = (LinkedMultiValueMap<String, String>) message.getPayload();
+		List<String> oneValues = map.get("one");
+		List<String> twoValues = map.get("two");
+		assertThat(oneValues).containsExactly("1");
+		assertThat(twoValues).containsExactly("2");
+	}
+
+
+	private static class ContentTypeCheckingMockHttpServletResponse extends MockHttpServletResponse {
 
 		private final List<String> contentTypeList = new ArrayList<>();
 
