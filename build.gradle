@@ -55,7 +55,7 @@ ext {
     artemisVersion = '2.31.2'
     aspectjVersion = '1.9.20.1'
     assertjVersion = '3.24.2'
-    assertkVersion = '0.27.0'
+    assertkVersion = '0.28.0'
     avroVersion = '1.11.3'
     awaitilityVersion = '4.2.0'
     camelVersion = '4.2.0'
