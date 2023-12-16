@@ -60,7 +60,7 @@ ext {
     awaitilityVersion = '4.2.0'
     camelVersion = '4.2.0'
     commonsDbcp2Version = '2.11.0'
-    commonsIoVersion = '2.15.0'
+    commonsIoVersion = '2.15.1'
     commonsNetVersion = '3.10.0'
     curatorVersion = '5.5.0'
     debeziumVersion = '2.4.1.Final'
