@@ -106,7 +106,7 @@ ext {
     romeToolsVersion = '2.1.0'
     rsocketVersion = '1.1.4'
     servletApiVersion = '6.0.0'
-    smackVersion = '4.4.6'
+    smackVersion = '4.4.7'
     springAmqpVersion = '3.1.0'
     springDataVersion = '2023.1.0'
     springGraphqlVersion = '1.2.4'
