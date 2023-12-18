@@ -9,6 +9,8 @@ jobs:
   release:
     permissions:
       actions: write
+      contents: write
+      issues: write
 
     uses: artembilan/spring-github-workflows/.github/workflows/spring-artifactory-gradle-release.yml@main
     secrets:

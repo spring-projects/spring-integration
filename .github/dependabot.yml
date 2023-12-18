@@ -4,3 +4,37 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "sunday"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    open-pull-requests-limit: 10
+    labels: ["type: dependency-upgrade"]
+    groups:
+      development-dependencies:
+        update-types: ["patch"]
+        patterns:
+          - "com.gradle.enterprise"
+          - "io.spring.*"
+          - "org.ajoberstar.grgit"
+          - "org.antora"
+          - "io.micrometer:micrometer-docs-generator"
+          - "com.willowtreeapps.assertk:assertk-jvm"
+          - "org.jetbrains.dokka"
+          - "org.apache.activemq*"
+          - "org.aspectj*"
+          - "org.awaitility:awaitility"
+          - "com.google.code.findbugs:jsr305"
+          - "org.apache.commons:commons-dbcp2"
+          - "org.apache.derby"
+          - "com.icegreen:greenmail"
+          - "org.hibernate.orm*"
+          - "org.testcontainers"
+          - "org.hsqldb:hsqldb"
+          - "com.h2database:h2"
+          - "org.postgresql:postgresql"
+          - "mysql:mysql-connector-java"
+          - "com.oracle.database.jdbc:ojdbc11"
+          - "org.apache.tomcat.embed:tomcat-embed-websocket"
+          - "org.xmlunit:xmlunit-assertj3"
+          - "com.thoughtworks.xstream:xstream"
