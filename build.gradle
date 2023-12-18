@@ -17,7 +17,7 @@ buildscript {
 plugins {
     id 'base'
     id 'io.spring.nohttp' version '0.0.11' apply false
-    id 'org.ajoberstar.grgit' version '4.1.1'
+    id 'org.ajoberstar.grgit' version '5.2.1'
     id 'io.spring.dependency-management' version '1.1.4'
     id 'org.jetbrains.dokka' version "$kotlinVersion"
     id 'org.antora' version '1.0.0'
