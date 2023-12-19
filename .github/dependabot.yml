@@ -7,8 +7,9 @@ updates:
       day: "sunday"
     ignore:
       - dependency-name: "*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     open-pull-requests-limit: 10
-    labels: ["type: task"]
+    labels: ["type: dependency-upgrade"]
     groups:
       development-dependencies:
         update-types: ["patch"]
@@ -37,14 +38,3 @@ updates:
           - "org.apache.tomcat.embed:tomcat-embed-websocket"
           - "org.xmlunit:xmlunit-assertj3"
           - "com.thoughtworks.xstream:xstream"
-
-  - package-ecosystem: "gradle"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
-    open-pull-requests-limit: 10
-    labels: ["type: dependency-upgrade"]
