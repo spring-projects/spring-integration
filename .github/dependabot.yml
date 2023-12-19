@@ -30,7 +30,7 @@ updates:
           - "org.apache.derby"
           - "com.icegreen:greenmail"
           - "org.hibernate.orm*"
-          - "org.testcontainers"
+          - "org.testcontainers*"
           - "org.hsqldb:hsqldb"
           - "com.h2database:h2"
           - "org.postgresql:postgresql"

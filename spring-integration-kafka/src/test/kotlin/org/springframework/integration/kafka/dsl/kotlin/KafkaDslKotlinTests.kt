@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ class KafkaDslKotlinTests {
 	fun testKafkaAdapters() {
 		this.sendToKafkaFlowInput.send(GenericMessage("foo", hashMapOf<String, Any>("foo" to "bar")))
 
-		assertThat(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameAs(this.mapper)
+		assertThat(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameInstanceAs(this.mapper)
 
 		for (i in 0..99) {
 			val receive = this.listeningFromKafkaResults1.receive(20000)
