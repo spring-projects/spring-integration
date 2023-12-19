@@ -94,7 +94,7 @@ class KotlinFileAggregatorTests {
 
 		assertThat(receive.payload)
 			.isInstanceOf(MutableList::class.java)
-			.containsAll("SECOND LINE", "LAST LINE", "FIRST LINE")
+			.containsOnly("SECOND LINE", "LAST LINE", "FIRST LINE")
 	}
 
 	@Configuration
