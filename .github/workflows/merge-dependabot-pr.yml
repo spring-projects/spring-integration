@@ -9,9 +9,6 @@ run-name: Merge Dependabot PR ${{ github.ref_name }}
 
 jobs:
   merge-dependabot-pr:
-    permissions:
-      actions: write
-      issues: write
-      pull-requests: write
+    permissions: write-all
 
     uses: artembilan/spring-github-workflows/.github/workflows/spring-merge-dependabot-pr.yml@main
