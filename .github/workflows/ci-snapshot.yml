@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 6.1.x
+      - '*.x'
 
 jobs:
   build-snapshot:
