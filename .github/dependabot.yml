@@ -6,6 +6,7 @@ updates:
       interval: "weekly"
       day: "sunday"
     ignore:
+      - dependency-name: "com.google.code.findbugs:annotations"
       - dependency-name: "*"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
     open-pull-requests-limit: 10
