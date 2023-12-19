@@ -11,7 +11,7 @@ jobs:
   merge-dependabot-pr:
     permissions:
       actions: write
-      contents: write
       issues: write
+      pull-requests: write
 
     uses: artembilan/spring-github-workflows/.github/workflows/spring-merge-dependabot-pr.yml@main
