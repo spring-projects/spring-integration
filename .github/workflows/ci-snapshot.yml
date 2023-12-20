@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-snapshot:
-    uses: artembilan/spring-github-workflows/.github/workflows/spring-artifactory-gradle-snapshot.yml@main
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-artifactory-gradle-snapshot.yml@v1
     secrets:
       GRADLE_ENTERPRISE_CACHE_USER: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
       GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
