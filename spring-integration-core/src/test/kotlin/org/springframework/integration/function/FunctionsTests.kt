@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ class FunctionsTests {
 		val gateways = this.monoFunctionGateway.gateways
 		assertThat(gateways).size().isEqualTo(3)
 		val methodNames = gateways.keys.stream().map { it.name }.collect(Collectors.toList())
-		assertThat(methodNames).containsAll("apply", "andThen", "compose")
+		assertThat(methodNames).containsAtLeast("apply", "andThen", "compose")
 	}
 
 	@Autowired

@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlinVersion = '1.9.10'
+    ext.kotlinVersion = '1.9.22'
     ext.isCI = System.getenv('GITHUB_ACTION')
     repositories {
         gradlePluginPortal()
@@ -19,9 +19,10 @@ plugins {
     id 'io.spring.nohttp' version '0.0.11' apply false
     id 'org.ajoberstar.grgit' version '5.2.1'
     id 'io.spring.dependency-management' version '1.1.4'
-    id 'org.jetbrains.dokka' version "$kotlinVersion"
+    id 'org.jetbrains.dokka' version '1.9.10'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
+    id 'com.github.spotbugs' version '6.0.4'
 }
 
 if (isCI) {
@@ -58,24 +59,23 @@ ext {
     assertkVersion = '0.28.0'
     avroVersion = '1.11.3'
     awaitilityVersion = '4.2.0'
-    camelVersion = '4.2.0'
+    camelVersion = '4.3.0'
     commonsDbcp2Version = '2.11.0'
     commonsIoVersion = '2.15.1'
     commonsNetVersion = '3.10.0'
     curatorVersion = '5.5.0'
-    debeziumVersion = '2.4.2.Final'
+    debeziumVersion = '2.5.0.CR1'
     derbyVersion = '10.16.1.1'
-    findbugsVersion = '3.0.1'
     ftpServerVersion = '1.2.0'
-    graalvmVersion = '23.0.2'
+    graalvmVersion = '23.1.1'
     greenmailVersion = '2.1.0-alpha-3'
-    groovyVersion = '4.0.16'
+    groovyVersion = '5.0.0-alpha-3'
     hamcrestVersion = '2.2'
     hazelcastVersion = '5.3.6'
     hibernateVersion = '6.4.1.Final'
     hsqldbVersion = '2.7.2'
     h2Version = '2.2.224'
-    jacksonVersion = '2.15.3'
+    jacksonVersion = '2.16.0'
     jaxbVersion = '4.0.4'
     jcifsVersion = '2.1.37'
     jeroMqVersion = '0.5.4'
@@ -89,30 +89,30 @@ ext {
     kotlinCoroutinesVersion = '1.7.3'
     kryoVersion = '5.5.0'
     lettuceVersion = '6.3.0.RELEASE'
-    log4jVersion = '2.21.1'
+    log4jVersion = '2.22.0'
     mailVersion = '2.0.2'
-    micrometerTracingVersion = '1.2.1'
-    micrometerVersion = '1.12.1'
-    mockitoVersion = '5.7.0'
+    micrometerTracingVersion = '1.3.0-SNAPSHOT'
+    micrometerVersion = '1.13.0-SNAPSHOT'
+    mockitoVersion = '5.8.0'
     mongoDriverVersion = '4.11.1'
-    mysqlVersion = '8.0.33'
+    mysqlVersion = '8.2.0'
     oracleVersion = '23.3.0.23.09'
     pahoMqttClientVersion = '1.2.5'
-    postgresVersion = '42.6.0'
-    protobufVersion = '3.25.1'
+    postgresVersion = '42.7.1'
+    protobufVersion = '4.0.0-rc-2'
     r2dbch2Version = '1.0.0.RELEASE'
     reactorVersion = '2023.0.1'
-    resilience4jVersion = '2.1.0'
+    resilience4jVersion = '2.2.0'
     romeToolsVersion = '2.1.0'
     rsocketVersion = '1.1.4'
     servletApiVersion = '6.0.0'
-    smackVersion = '4.4.7'
-    springAmqpVersion = '3.1.1'
-    springDataVersion = '2023.1.1'
-    springGraphqlVersion = '1.2.4'
-    springKafkaVersion = '3.1.1'
+    smackVersion = '4.5.0-alpha2'
+    springAmqpVersion = '3.1.2-SNAPSHOT'
+    springDataVersion = '2023.2.0-SNAPSHOT'
+    springGraphqlVersion = '1.2.5-SNAPSHOT'
+    springKafkaVersion = '3.1.2-SNAPSHOT'
     springRetryVersion = '2.0.5'
-    springSecurityVersion = '6.2.1'
+    springSecurityVersion = '6.3.0-SNAPSHOT'
     springVersion = '6.1.2'
     springWsVersion = '4.0.9'
     testcontainersVersion = '1.19.3'
@@ -256,9 +256,8 @@ configure(javaProjects) { subproject ->
             api project(':spring-integration-core')
         }
 
-        // JSR-305 only used for non-required meta-annotations
-        compileOnly "com.google.code.findbugs:annotations:$findbugsVersion"
-        testImplementation "com.google.code.findbugs:annotations:$findbugsVersion"
+        compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
+
         testImplementation("org.awaitility:awaitility:$awaitilityVersion") {
             exclude group: 'org.hamcrest'
         }
@@ -703,7 +702,7 @@ project('spring-integration-jdbc') {
         testImplementation "org.apache.derby:derbytools:$derbyVersion"
         testImplementation "org.apache.derby:derbyclient:$derbyVersion"
         testImplementation "org.postgresql:postgresql:$postgresVersion"
-        testImplementation "mysql:mysql-connector-java:$mysqlVersion"
+        testImplementation "com.mysql:mysql-connector-j:$mysqlVersion"
         testImplementation("org.apache.commons:commons-dbcp2:$commonsDbcp2Version") {
             exclude group: 'commons-logging'
         }
@@ -833,7 +832,7 @@ project('spring-integration-scripting') {
     dependencies {
         optionalApi 'org.jetbrains.kotlin:kotlin-scripting-jsr223'
         providedImplementation "org.graalvm.sdk:graal-sdk:$graalvmVersion"
-        providedImplementation "org.graalvm.js:js:$graalvmVersion"
+        providedImplementation "org.graalvm.polyglot:js:$graalvmVersion"
 
         testImplementation "org.jruby:jruby-complete:$jrubyVersion"
         testImplementation 'org.apache.groovy:groovy-jsr223'
@@ -845,13 +844,6 @@ project('spring-integration-scripting') {
                 '--add-opens', 'java.base/java.io=ALL-UNNAMED',
                 '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
                 '--add-opens', 'java.base/java.util=ALL-UNNAMED'
-    }
-}
-
-project('spring-integration-security') {
-    description = 'Spring Integration Security Support'
-    dependencies {
-        api 'org.springframework.security:spring-security-messaging'
     }
 }
 

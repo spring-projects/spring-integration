@@ -60,7 +60,7 @@ public class DebeziumStreamTests implements DebeziumMySqlTestContainer {
 			assertThat(message).isNotNull();
 
 			if (message.getHeaders().size() > 5) {
-				assertThat(message.getHeaders()).containsKeys("__name", "__db", "__op", "__table");
+				assertThat(message.getHeaders()).containsKeys("__name", "__db", "__table");
 				foundDebeziumHeaders = true;
 			}
 		}

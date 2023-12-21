@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import java.util.Map;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.filter.StanzaFilter;
-import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Stanza;
+import org.jivesoftware.smack.packet.XmlElement;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -133,15 +133,16 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 				if (ChatMessageListeningEndpoint.this.payloadExpression != null) {
 					EvaluationContext evaluationContextToUse = ChatMessageListeningEndpoint.this.evaluationContext;
 
-					List<ExtensionElement> extensions = xmppMessage.getExtensions();
+					List<XmlElement> extensions = xmppMessage.getExtensions();
 					if (extensions.size() == 1) {
-						ExtensionElement extension = extensions.get(0);
+						XmlElement extension = extensions.get(0);
 						evaluationContextToUse = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 						evaluationContextToUse.setVariable("extension", extension);
 					}
 
-					messageBody = ChatMessageListeningEndpoint.this.payloadExpression
-							.getValue(evaluationContextToUse, xmppMessage);
+					messageBody =
+							ChatMessageListeningEndpoint.this.payloadExpression
+									.getValue(evaluationContextToUse, xmppMessage);
 				}
 
 				if (messageBody != null) {

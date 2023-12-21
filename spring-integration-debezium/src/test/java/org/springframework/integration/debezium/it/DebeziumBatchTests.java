@@ -18,7 +18,6 @@ package org.springframework.integration.debezium.it;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
@@ -58,6 +57,7 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 	@Autowired
 	@Qualifier("queueChannel")
 	private QueueChannel queueChannel;
+
 	private int batchCount = 0;
 
 	@Test
@@ -73,11 +73,11 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 			List<String> headerKeys = changeEvent.headers()
 					.stream()
 					.map(Header::getKey)
-					.collect(Collectors.toList());
+					.toList();
 
 			assertThat(changeEvent.destination()).startsWith("my-topic");
 			if (i < 16) {
-				assertThat(headerKeys).isEmpty();
+				assertThat(headerKeys).hasSize(3).contains("__name", "__db", "__table");
 			}
 			else {
 				assertThat(changeEvent.destination()).contains(".inventory");

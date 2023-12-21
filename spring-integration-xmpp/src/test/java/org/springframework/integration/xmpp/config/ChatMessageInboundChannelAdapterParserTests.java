@@ -82,7 +82,7 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(adapter, "payloadExpression.expression")).isEqualTo("#root");
 		adapter.start();
 		Map asyncRecvListeners = TestUtils.getPropertyValue(connection, "asyncRecvListeners", Map.class);
-		assertThat(asyncRecvListeners.size()).isEqualTo(5);
+		assertThat(asyncRecvListeners.size()).isEqualTo(6);
 		Object lastListener = asyncRecvListeners.values().stream().reduce((first, second) -> second).get();
 		assertThat(TestUtils.getPropertyValue(lastListener, "packetFilter")).isSameAs(stanzaFilter);
 		adapter.stop();

@@ -177,9 +177,9 @@ You can also set the header by using the XMPP header-enricher support, as the fo
 ----
 
 Starting with version 4.3, the packet extension support has been added to the `ChatMessageSendingMessageHandler` (the `<int-xmpp:outbound-channel-adapter>` in XML configuration).
-Along with the regular `String` and `org.jivesoftware.smack.packet.Message` payload, now you can send a message with a payload of `org.jivesoftware.smack.packet.ExtensionElement` (which is populated to the `org.jivesoftware.smack.packet.Message.addExtension()`) instead of `setBody()`.
+Along with the regular `String` and `org.jivesoftware.smack.packet.Message` payload, now you can send a message with a payload of `org.jivesoftware.smack.packet.XmlElement` (which is populated to the `org.jivesoftware.smack.packet.Message.addExtension()`) instead of `setBody()`.
 For convenience, we added an `extension-provider` option for the `ChatMessageSendingMessageHandler`.
-It lets you inject `org.jivesoftware.smack.provider.ExtensionElementProvider`, which builds an `ExtensionElement` against the payload at runtime.
+It lets you inject `org.jivesoftware.smack.provider.ExtensionElementProvider`, which builds an `XmlElement` against the payload at runtime.
 For this case, the payload must be a string in JSON or XML format, depending on the XEP protocol.
 
 [[xmpp-presence]]

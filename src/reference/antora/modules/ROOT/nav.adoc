@@ -254,6 +254,7 @@
 * xref:samples.adoc[]
 * xref:resources.adoc[]
 * xref:history.adoc[]
+** xref:changes-6.1-6.2.adoc[]
 ** xref:changes-6.0-6.1.adoc[]
 ** xref:changes-5.5-6.0.adoc[]
 ** xref:changes-5.4-5.5.adoc[]

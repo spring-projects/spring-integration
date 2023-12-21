@@ -2,90 +2,25 @@
 = What's New?
 
 [[spring-integration-intro-new]]
-For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 6.2.
+For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 6.3.
 
 If you are interested in the changes and features that were introduced in earlier versions, see the xref:history.adoc[Change History].
 
-[[whats-new]]
+[[what-s-new-in-spring-integration-6-3]]
+== What's New in Spring Integration 6.3?
 
-[[what-s-new-in-spring-integration-6-2]]
-== What's New in Spring Integration 6.2?
-
-If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 6.2 development process.
+If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 6.3 development process.
 
 In general the project has been moved to the latest dependency versions.
 
-[[x6.2-new-components]]
+[[x6.3-new-components]]
 === New Components
 
-[[x6.2-debezium]]
-==== Debezium Inbound Channel Adapter
-
-The Debezium Engine based Change Data Capture (CDC) channel adapter, that allows capturing database change events, converting them into Messages and streaming those to the outbound channels.
-See xref:debezium.adoc[Debezium Support] for more information.
-
-[[x6.2-general]]
+[[x6.3-general]]
 === General Changes
 
-- The XML configuration for `<poller>` and `@Poller` annotation now support ISO 8601 duration format for `fixed-delay`, `fixed-rate` and `initial-delay` options.
-See xref:endpoint.adoc#endpoint-pollingconsumer[Polling Consumer] for more information.
-
-- Java, Groovy and Kotlin DSLs have now context-specific methods in the `IntegrationFlowDefinition` with a single `Consumer` argument to configure an endpoint and its handler with one builder and readable options.
-See, for example, `transformWith()`, `splitWith()` in xref:dsl.adoc#java-dsl[Java DSL Chapter].
-
-- A new `spring.integration.endpoints.defaultTimeout` global property has been introduced to override the default 30 seconds timeout for all the endpoints in the application.
-See xref:configuration/global-properties.adoc[Global Properties] for more information.
-
-- The `@MessagingGateway` and `GatewayEndpointSpec` provided by the Java DSL now expose the `errorOnTimeout` property of the internal `MethodInvocationGateway` extension of the `MessagingGatewaySupport`.
-See xref:gateway.adoc#gateway-no-response[Gateway Behavior When No response Arrives] for more information.
-
-- The `LockRegistry` provides template-like API to execute provided task while locked.
-See xref:distributed-locks.adoc[Distributed Locks] for more information.
-
-- The default trigger for polling endpoint is now a `PeriodicTrigger` instance with a 1 second fixed delay period; previously, the default was 10 milliseconds.
-See xref:endpoint.adoc#endpoint-pollingconsumer[Polling Consumer] for more information.
-
-[[x6.2-websockets]]
-=== WebSockets Changes
-
-- For the server and client WebSocket containers, the send buffer overflow strategy is now configurable in `IntegrationWebSocketContainer` and in XML via `send-buffer-overflow-strategy`.
-This strategy determines the behavior when a session's outbound message buffer has reached the configured limit.
-See xref:web-sockets.adoc#websocket-client-container-attributes[WebSockets Support] for more information.
-
-[[x6.2-kafka]]
-=== Apache Kafka Support Changes
-
-The `KafkaMessageSource` now extracts an `ErrorHandlingDeserializer` configuration from the consumer properties and re-throws `DeserializationException` extracted from failed record headers.
-See xref:kafka.adoc#kafka-inbound-pollable[Kafka Inbound Channel Adapter] for more information.
-
-[[x6.2-jdbc]]
-=== JDBC Support Changes
-
-The `JdbcMessageStore`, `JdbcChannelMessageStore`, `JdbcMetadataStore`, and `DefaultLockRepository` implement `SmartLifecycle` and perform a `SELECT COUNT` query, on their respective tables, in the `start()` method to ensure that the required table (according to the provided prefix) is present in the target database.
-The `PostgresChannelMessageStoreQueryProvider` now provides single `DELETE...RETURNING` statement for polling queries.
-For this purpose the `ChannelMessageStoreQueryProvider` exposes `isSingleStatementForPoll` option which is consulted from the `JdbcChannelMessageStore`.
-See xref:jdbc/message-store.adoc[JDBC Message Store] for more information.
-
-[[x6.2-mongodb]]
-=== MongoDB Support Changes
-
-A new option `setCreateIndexes(boolean)` has been introduced in `AbstractConfigurableMongoDbMessageStore` to disable the auto indexes creation.
-See xref:mongodb.adoc#mongodb-message-store[MongoDB Message Store] for an example.
-
-[[x6.2-remote-files]]
-=== Remote Files Support Changes
-
-`FtpLastModifiedFileListFilter`, `SftpLastModifiedFileListFilter` and `SmbLastModifiedFileListFilter` have been introduced to allow files filtering based on a last-modified strategy respectively for `FTP`, `SFTP` and `SMB`.
-See xref:ftp/inbound.adoc#ftp-inbound[FTP Inbound Channel Adapter], xref:sftp/inbound.adoc#sftp-inbound[SFTP Inbound Channel Adapter], and xref:smb.adoc#smb-inbound[SMB Inbound Channel Adapter] for more information.
-
-[[x6.2-sftp-changes]]
-=== SFTP Support Changes
-
-A new `DefaultSftpSessionFactory.createSftpClient(...)` method has been introduced to support a custom `SftpClient` when overridden.
-See xref:sftp/session-factory.adoc#sftp-session-factory[SFTP Session Factory] for more information.
-
-[[x6.2-security-changes]]
+[[x6.3-security-changes]]
 === Security Support Changes
 
-The last class in `spring-integration-security` module `SecurityContextPropagationChannelInterceptor` has been deprecated in favor of similar class moved to `spring-security-messaging` module.
+The `spring-integration-security` module is completely removed (being deprecated previously) in favor of API from `spring-security-messaging` module.
 See xref:security.adoc[Security in Spring Integration] for more information.

@@ -67,7 +67,7 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 		config.headerKeys.forEach(keys -> {
 			assertThat(keys).contains("debezium_destination", "id", "contentType", "debezium_key", "timestamp");
 			if (keys.size() > 5) {
-				assertThat(keys).contains("__name", "__db", "__table", "__op");
+				assertThat(keys).contains("__name", "__db", "__table");
 			}
 		});
 	}
@@ -86,7 +86,7 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 		config.batchHeaderKeys.stream()
 				.filter(headerNames -> !CollectionUtils.isEmpty(headerNames))
 				.forEach(headerNames -> {
-					assertThat(headerNames).contains("__name", "__db", "__table", "__op");
+					assertThat(headerNames).contains("__name", "__db", "__table");
 				});
 	}
 
