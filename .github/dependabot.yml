@@ -16,6 +16,7 @@ updates:
         update-types: ["patch"]
         patterns:
           - "com.gradle.enterprise"
+          - "com.github.spotbugs"
           - "io.spring.*"
           - "org.ajoberstar.grgit"
           - "org.antora"

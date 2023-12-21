@@ -256,7 +256,9 @@ configure(javaProjects) { subproject ->
             api project(':spring-integration-core')
         }
 
-        compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
+        def spotbugsAnnotations = "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
+        compileOnly spotbugsAnnotations
+        testCompileOnly spotbugsAnnotations
 
         testImplementation("org.awaitility:awaitility:$awaitilityVersion") {
             exclude group: 'org.hamcrest'
