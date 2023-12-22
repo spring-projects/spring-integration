@@ -40,3 +40,4 @@ updates:
           - "org.apache.tomcat.embed:tomcat-embed-websocket"
           - "org.xmlunit:xmlunit-assertj3"
           - "com.thoughtworks.xstream:xstream"
+          - "org.springframework.security*"
