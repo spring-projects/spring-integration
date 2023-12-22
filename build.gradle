@@ -380,7 +380,7 @@ configure(javaProjects) { subproject ->
     }
 
     tasks.register('checkClasspathForConflicts') {
-        onlyIf { isCI }
+        onlyIf { false }
         inputs.files(configurations.runtimeClasspath)
 
         def ignored = ['module-info.class']
