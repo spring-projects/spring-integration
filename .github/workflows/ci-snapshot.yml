@@ -2,14 +2,24 @@ name: CI SNAPSHOT
 
 on:
   workflow_dispatch:
+  
   push:
     branches:
       - main
       - '*.x'
 
+  schedule:
+    - cron: '0 5 * * *'
+
+concurrency:
+  group: group-snapshot-for-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-snapshot:
     uses: spring-io/spring-github-workflows/.github/workflows/spring-artifactory-gradle-snapshot.yml@v1
+    with:
+      gradleTasks: ${{ github.event_name == 'schedule' && '--rerun-tasks' || '' }}
     secrets:
       GRADLE_ENTERPRISE_CACHE_USER: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
       GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
