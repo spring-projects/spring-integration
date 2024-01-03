@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,7 +205,7 @@ public class ObservationPropagationChannelInterceptorTests {
 	}
 
 	@Test
-	void observationContextPropagatedOverExecutorChannel() {
+	void observationContextPropagatedOverExecutorChannel() throws InterruptedException {
 		BridgeHandler handler = new BridgeHandler();
 		handler.registerObservationRegistry(this.observationRegistry);
 		handler.setBeanName("testBridge");
@@ -227,6 +227,9 @@ public class ObservationPropagationChannelInterceptorTests {
 				.asInstanceOf(InstanceOfAssertFactories.MAP)
 				.containsEntry("foo", "some foo value")
 				.containsEntry("bar", "some bar value");
+
+		// Give the observation registry a chance to close all the observations
+		Thread.sleep(100);
 
 		TestObservationRegistryAssert.assertThat(this.observationRegistry)
 				.doesNotHaveAnyRemainingCurrentObservation();
