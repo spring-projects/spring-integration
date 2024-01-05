@@ -1,8 +1,7 @@
 = Spring Integration Contributor Guidelines
 
 Have something you'd like to contribute to **Spring Integration**?
-We welcome pull requests, but ask that you carefully read this document first to understand how best to submit them;
-what kind of changes are likely to be accepted; and what to expect from the Spring team when evaluating your submission.
+We welcome pull requests, but ask that you carefully read this document first to understand how best to submit them; what kind of changes are likely to be accepted; and what to expect from the Spring team when evaluating your submission.
 
 Please refer back to this document as a checklist before issuing any pull request; this will save time for everyone!
 
@@ -19,10 +18,10 @@ Please see our https://github.com/spring-projects/spring-integration/security/po
 Not sure what a *pull request* is, or how to submit one?
 Take a look at GitHub's excellent documentation: https://help.github.com/articles/using-pull-requests/[Using Pull Requests] first.
 
-== Search GitHub (or JIRA) issues first; create one if necessary
+== Search GitHub issues first; create one if necessary
 
 Is there already an issue that addresses your concern?
-Search the https://github.com/spring-projects/spring-integration/issues[GitHub issue tracker] (or https://jira.springsource.org/browse/INT[JIRA issue tracker]) to see if you can find something similar.
+Search the https://github.com/spring-projects/spring-integration/issues[GitHub issue tracker] to see if you can find something similar.
 If not, please create a new issue in GitHub before submitting a pull request unless the change is truly trivial, e.g. typo fixes, removing compiler warnings, etc.
 
 == Sign the contributor license agreement
@@ -35,7 +34,7 @@ Signing the CLA does not grant anyone commit rights to the main repository, but 
 == Fork the Repository
 
 1. Go to https://github.com/spring-projects/spring-integration[https://github.com/spring-projects/spring-integration]
-2. Hit the "fork" button and choose your own github account as the target
+2. Hit the "fork" button and choose your own GitHub account as the target
 3. For more detail see https://help.github.com/fork-a-repo/[Fork A Repo].
 
 == Setup your Local Development Environment
@@ -43,7 +42,7 @@ Signing the CLA does not grant anyone commit rights to the main repository, but 
 1. `git clone --recursive git@github.com:<your-github-username>/spring-integration.git`
 2. `cd spring-integration`
 3. `git remote show`
-_you should see only 'origin' - which is the fork you created for your own github account_
+_you should see only 'origin' - which is the fork you created for your own GitHub account_
 4. `git remote add upstream git@github.com:spring-projects/spring-integration.git`
 5. `git remote show`
 _you should now see 'upstream' in addition to 'origin' where 'upstream' is the Spring repository from which releases are built_
@@ -54,40 +53,30 @@ _you should see branches on origin as well as upstream, including 'main'_
 == Build from Source
 
 The build system for the project is https://gradle.org/[Gradle].
-It is recommended to rely on the `wrapper` provided in the project code based and use a `gradlew` script from command line for the target operation system.
+It is recommended to rely on the `wrapper` provided in the project code based and use a `gradlew` script from command line for the target operating system.
 The current Gradle version in use you can obtain from the `/gradle/gradle-wrapper.properties` file in the source tree.
 It is also recommended to use a Gradle import feature of your IDE for the best contribution experience.
 
-The minimum JDK version at the moment is `11` (mostly for tests - production code is still `1.8`).
+The minimum JDK version at the moment is `17`.
 You always can find the currently required Java version in the `build.gradle`.
 For example, for the current project version:
 
 ----
 compileJava {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    options.release = 17
 }
 
 compileTestJava {
-    sourceCompatibility = 11
-}
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = '11'
-    }
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    options.encoding = 'UTF-8'
 }
 ----
 
 To build and install jars into your local Maven cache:
 
 ----
-./gradlew publishToMavenLocal
+./gradlew build publishToMavenLocal
 ----
 
 To build api Javadoc (results will be in `build/api`):
@@ -228,7 +217,7 @@ It is also acceptable to submit test cases on a per GH issue basis.
 
 Use `git rebase --interactive`, `git add --patch` and other tools to "squash" multiple commits into atomic changes.
 In addition to the man pages for git, there are many resources online to help you understand how these tools work.
-However we do recommend to do this only for the first commit in the PR.
+However, we do recommend to do this only for the first commit in the PR.
 All the subsequent commits added after review should preserve the history for better context of the previous and current changes.
 
 == Use your real name in git commits
@@ -267,7 +256,7 @@ Add a GitHub issue link to your first commit comment of the pull request on the 
 ----
     GH-1639: Add <spel-function> support
 
-    Fixes spring-projects/spring-integration#1639
+    Fixes: gh-1639
 
     * add `<spel-function>` XSD element
     * add `SpelFunctionParser`
@@ -277,4 +266,4 @@ Add a GitHub issue link to your first commit comment of the pull request on the 
     * polishing some failed tests after this change
 ----
 
-Please, follow Chris Beams' recommendations in regards to the good commit message: https://chris.beams.io/posts/git-commit[How to Write a Git Commit Message].
+Please, follow Chris Beams' recommendations in regard to the good commit message: https://chris.beams.io/posts/git-commit[How to Write a Git Commit Message].

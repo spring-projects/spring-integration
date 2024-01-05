@@ -85,7 +85,7 @@ Add `--continue` to the command to perform a complete build, even if there are f
 
 To build and install jars into your local Maven cache:
 
-    ./gradlew publishToMavenLocal
+    ./gradlew build publishToMavenLocal
 
 To build api Javadoc (results will be in `build/api`):
 
