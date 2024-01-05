@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
@@ -100,8 +101,7 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	 * @return the current Spec
 	 */
 	public S remoteDirectory(String remoteDirectory) {
-		this.target.setRemoteDirectoryExpression(new LiteralExpression(remoteDirectory));
-		return _this();
+		return remoteDirectoryExpression(new LiteralExpression(remoteDirectory));
 	}
 
 	/**
@@ -110,8 +110,7 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	 * @return the current Spec
 	 */
 	public S remoteDirectoryExpression(String remoteDirectoryExpression) {
-		this.target.setRemoteDirectoryExpression(PARSER.parseExpression(remoteDirectoryExpression));
-		return _this();
+		return remoteDirectoryExpression(PARSER.parseExpression(remoteDirectoryExpression));
 	}
 
 	/**
@@ -121,7 +120,17 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	 * @return the current Spec
 	 */
 	public <P> S remoteDirectory(Function<Message<P>, String> remoteDirectoryFunction) {
-		this.target.setRemoteDirectoryExpression(new FunctionExpression<>(remoteDirectoryFunction));
+		return remoteDirectoryExpression(new FunctionExpression<>(remoteDirectoryFunction));
+	}
+
+	/**
+	 * Specify a remote directory path SpEL expression.
+	 * @param remoteDirectoryExpression the remote directory expression
+	 * @return the current Spec
+	 * @since 6.3
+	 */
+	public S remoteDirectoryExpression(Expression remoteDirectoryExpression) {
+		this.target.setRemoteDirectoryExpression(remoteDirectoryExpression);
 		return _this();
 	}
 
@@ -131,8 +140,7 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	 * @return the current Spec
 	 */
 	public S temporaryRemoteDirectory(String temporaryRemoteDirectory) {
-		this.target.setTemporaryRemoteDirectoryExpression(new LiteralExpression(temporaryRemoteDirectory));
-		return _this();
+		return temporaryRemoteDirectoryExpression(new LiteralExpression(temporaryRemoteDirectory));
 	}
 
 	/**
@@ -141,8 +149,7 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	 * @return the current Spec
 	 */
 	public S temporaryRemoteDirectoryExpression(String temporaryRemoteDirectoryExpression) {
-		this.target.setTemporaryRemoteDirectoryExpression(PARSER.parseExpression(temporaryRemoteDirectoryExpression));
-		return _this();
+		return temporaryRemoteDirectoryExpression(PARSER.parseExpression(temporaryRemoteDirectoryExpression));
 	}
 
 	/**
@@ -152,7 +159,17 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	 * @return the current Spec
 	 */
 	public <P> S temporaryRemoteDirectory(Function<Message<P>, String> temporaryRemoteDirectoryFunction) {
-		this.target.setTemporaryRemoteDirectoryExpression(new FunctionExpression<>(temporaryRemoteDirectoryFunction));
+		return temporaryRemoteDirectoryExpression(new FunctionExpression<>(temporaryRemoteDirectoryFunction));
+	}
+
+	/**
+	 * Specify a remote directory path SpEL expression.
+	 * @param temporaryRemoteDirectoryExpression the temporary remote directory path SpEL expression
+	 * @return the current Spec
+	 * @since 6.3
+	 */
+	public S temporaryRemoteDirectoryExpression(Expression temporaryRemoteDirectoryExpression) {
+		this.target.setTemporaryRemoteDirectoryExpression(temporaryRemoteDirectoryExpression);
 		return _this();
 	}
 
@@ -198,9 +215,9 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	 * @param charset the charset.
 	 * @return the current Spec
 	 */
-	public S charset(String charset) {
-		this.target.setCharset(charset);
-		return _this();
+	public S charset(Charset charset) {
+		Assert.notNull(charset, "'charset' must not be null.");
+		return charset(charset.name());
 	}
 
 	/**
@@ -209,9 +226,9 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	 * @param charset the charset.
 	 * @return the current Spec
 	 */
-	public S charset(Charset charset) {
-		Assert.notNull(charset, "'charset' must not be null.");
-		return charset(charset.name());
+	public S charset(String charset) {
+		this.target.setCharset(charset);
+		return _this();
 	}
 
 	/**
