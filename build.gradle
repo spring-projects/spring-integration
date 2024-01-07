@@ -22,7 +22,7 @@ plugins {
     id 'org.jetbrains.dokka' version '1.9.10'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
-    id 'com.github.spotbugs' version '6.0.4'
+    id 'com.github.spotbugs' version '6.0.5'
 }
 
 if (isCI) {
