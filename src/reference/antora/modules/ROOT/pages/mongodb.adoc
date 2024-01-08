@@ -31,7 +31,7 @@ To download, install, and run MongoDB, see the https://www.mongodb.org/downloads
 [[mongodb-connection]]
 == Connecting to MongoDb
 
-[[blocking-or-reactive?]]
+[[blocking-or-reactive]]
 === Blocking or Reactive?
 
 Beginning with version 5.3, Spring Integration provides support for reactive MongoDB drivers to enable non-blocking I/O when accessing MongoDB.
@@ -316,7 +316,7 @@ If not supplied, a `com.mongodb.DBObject` is returned.
 * `collection-name` or `collection-name-expression`: Identifies the name of the MongoDB collection to use.
 * `mongodb-factory`: Reference to an instance of `o.s.data.mongodb.MongoDbFactory`
 * `mongo-template`: Reference to an instance of `o.s.data.mongodb.core.MongoTemplate`
-* Other attributes that are common across all other inbound adapters (such as 'channel').
+* Other attributes that are common across all others inbound adapters (such as 'channel').
 
 NOTE: You cannot set both `mongo-template` and `mongodb-factory`.
 
@@ -357,8 +357,7 @@ The following example shows the `DocumentCleaner` referenced in the preceding ex
 ----
 public class DocumentCleaner {
     public void remove(MongoOperations mongoOperations, Object target, String collectionName) {
-        if (target instanceof List<?>){
-            List<?> documents = (List<?>) target;
+        if (target instanceof List<?> documents){
             for (Object document : documents) {
                 mongoOperations.remove(new BasicQuery(JSON.serialize(document)), collectionName);
             }
@@ -503,10 +502,10 @@ class MongoDbKotlinApplication {
     fun main(args: Array<String>) = runApplication<MongoDbKotlinApplication>(*args)
 
     @Autowired
-    lateinit var mongoDbFactory: MongoDatabaseFactory;
+    lateinit var mongoDbFactory: MongoDatabaseFactory
 
     @Autowired
-    lateinit var mongoConverter: MongoConverter;
+    lateinit var mongoConverter: MongoConverter
 
     @Bean
     fun gatewaySingleQueryFlow() =
