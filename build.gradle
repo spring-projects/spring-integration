@@ -307,7 +307,7 @@ configure(javaProjects) { subproject ->
                             def beginningYear = matcher[0][1]
                             if (now != beginningYear && now != matcher[0][2]) {
                                 def years = "$beginningYear-$now"
-                                def sourceCode = file.text
+                                def sourceCode = file.getText('UTF-8')
                                 sourceCode = sourceCode.replaceFirst(/20\d\d(-20\d\d)?/, years)
                                 file.text = sourceCode
                                 println "Copyright updated for file: $file"
