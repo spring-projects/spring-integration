@@ -29,7 +29,8 @@
 	<service-activator input-channel="serviceChannel1" expression="T(java.lang.Math).random() * 10"/>
 
 	<!--Distribution scenario-->
-	<scatter-gather input-channel="inputDistribution" output-channel="output" gather-channel="gatherChannel">
+	<scatter-gather input-channel="inputDistribution" output-channel="output" gather-channel="gatherChannel"
+					gather-timeout="1000">
 		<scatterer>
 			<recipient channel="distribution1Channel"/>
 			<recipient channel="distribution2Channel"/>
