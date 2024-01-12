@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,7 +149,7 @@ public class ApplicationContextMessageBusTests {
 		this.context.registerEndpoint("testEndpoint2", endpoint2);
 		this.context.refresh();
 		inputChannel.send(new GenericMessage<>("testing"));
-		Message<?> message1 = outputChannel1.receive(10000);
+		Message<?> message1 = outputChannel1.receive(100);
 		Message<?> message2 = outputChannel2.receive(0);
 		assertThat(message1 == null ^ message2 == null).as("exactly one message should be null").isTrue();
 	}
@@ -187,8 +187,7 @@ public class ApplicationContextMessageBusTests {
 		this.context.registerEndpoint("testEndpoint2", endpoint2);
 		this.context.refresh();
 		inputChannel.send(new GenericMessage<>("testing"));
-		latch.await(500, TimeUnit.MILLISECONDS);
-		assertThat(latch.getCount()).as("both handlers should have been invoked").isEqualTo(0);
+		assertThat(latch.await(500, TimeUnit.MILLISECONDS)).isTrue();
 		Message<?> message1 = outputChannel1.receive(500);
 		Message<?> message2 = outputChannel2.receive(500);
 		assertThat(message1).as("both handlers should have replied to the message").isNotNull();
@@ -208,9 +207,9 @@ public class ApplicationContextMessageBusTests {
 		channelAdapter.setOutputChannel(outputChannel);
 		this.context.registerEndpoint("testChannel", channelAdapter);
 		this.context.refresh();
-		latch.await(2000, TimeUnit.MILLISECONDS);
+		assertThat(latch.await(2, TimeUnit.SECONDS)).isTrue();
 		Message<?> message = errorChannel.receive(5000);
-		assertThat(outputChannel.receive(100)).isNull();
+		assertThat(outputChannel.receive(10)).isNull();
 		assertThat(message).as("message should not be null").isNotNull();
 		assertThat(message instanceof ErrorMessage).isTrue();
 		Throwable exception = ((ErrorMessage) message).getPayload();
@@ -235,8 +234,7 @@ public class ApplicationContextMessageBusTests {
 		this.context.registerEndpoint("testEndpoint", endpoint);
 		this.context.refresh();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		assertThat(latch.getCount()).as("handler should have received error message").isEqualTo(0);
+		assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
 	}
 
 

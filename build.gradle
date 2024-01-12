@@ -322,11 +322,6 @@ configure(javaProjects) { subproject ->
 
     compileKotlin.dependsOn updateCopyrights
 
-    test {
-        maxHeapSize = '2g'
-        jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
-    }
-
     tasks.register('testAll', Test) { dependsOn['check'] }
 
     gradle.taskGraph.whenReady { graph ->
@@ -335,7 +330,7 @@ configure(javaProjects) { subproject ->
         }
     }
 
-    tasks.withType(Test).all {
+    tasks.withType(Test).configureEach {
         // suppress all console output during testing unless running `gradle -i`
         logging.captureStandardOutput(LogLevel.INFO)
 
@@ -347,7 +342,11 @@ configure(javaProjects) { subproject ->
 
         useJUnitPlatform()
 
+        reports.junitXml.required = false
+
         enableAssertions = false
+
+        forkEvery = 1000
     }
 
     checkstyle {
@@ -542,7 +541,7 @@ project('spring-integration-core') {
                 classpath.from(sourceSets['main'].runtimeClasspath)
                 externalDocumentationLink {
                     url.set(new URL("https://docs.spring.io/spring-integration/docs/$version/api/"))
-                    packageListUrl.set(file("$buildDir/docs/javadoc/element-list").toURI().toURL())
+                    packageListUrl.set(file('build/docs/javadoc/element-list').toURI().toURL())
                 }
                 externalDocumentationLink {
                     url.set(new URL('https://projectreactor.io/docs/core/release/api/'))
