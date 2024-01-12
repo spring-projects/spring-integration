@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.scattergather.config;
 
-import java.util.List;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -28,8 +26,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,8 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 4.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class ScatterGatherTests {
 
@@ -66,8 +62,7 @@ public class ScatterGatherTests {
 		assertThat(bestQuoteMessage)
 				.isNotNull()
 				.extracting(Message::getPayload)
-				.isInstanceOf(List.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.hasSizeGreaterThanOrEqualTo(1);
 	}
 
@@ -78,8 +73,7 @@ public class ScatterGatherTests {
 		assertThat(bestQuoteMessage)
 				.isNotNull()
 				.extracting(Message::getPayload)
-				.isInstanceOf(List.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.hasSizeGreaterThanOrEqualTo(1);
 	}
 
@@ -89,16 +83,14 @@ public class ScatterGatherTests {
 		assertThat(bestQuoteMessage)
 				.isNotNull()
 				.extracting(Message::getPayload)
-				.isInstanceOf(List.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.hasSizeGreaterThanOrEqualTo(1);
 
 		bestQuoteMessage = this.gateway.exchange(new GenericMessage<>("bar"));
 		assertThat(bestQuoteMessage)
 				.isNotNull()
 				.extracting(Message::getPayload)
-				.isInstanceOf(List.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.hasSizeGreaterThanOrEqualTo(1);
 	}
 

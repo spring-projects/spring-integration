@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -53,16 +53,17 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class CorrelationHandlerTests {
 
@@ -167,7 +168,7 @@ public class CorrelationHandlerTests {
 				.isInstanceOf(ArrayNode.class)
 				.extracting(new String[] {"_children"})
 				.element(0)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.hasSize(0);
 	}
 
@@ -207,7 +208,7 @@ public class CorrelationHandlerTests {
 	public static class ContextConfiguration {
 
 		@Bean
-		public TestSplitterPojo testSplitterData() {
+		TestSplitterPojo testSplitterData() {
 			List<String> first = new ArrayList<>();
 			first.add("1,2,3");
 			first.add("4,5,6");
@@ -324,26 +325,7 @@ public class CorrelationHandlerTests {
 
 	}
 
-	private static final class TestSplitterPojo {
-
-		final List<String> first;
-
-		final List<String> second;
-
-		TestSplitterPojo(List<String> first, List<String> second) {
-			this.first = first;
-			this.second = second;
-		}
-
-		@SuppressWarnings("unused")
-		public List<String> getFirst() {
-			return first;
-		}
-
-		@SuppressWarnings("unused")
-		public List<String> getSecond() {
-			return second;
-		}
+	record TestSplitterPojo(List<String> first, List<String> second) {
 
 		@SuppressWarnings("unused")
 		public List<List<String>> buildList() {

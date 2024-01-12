@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -133,7 +134,7 @@ public class PartitionedChannelTests {
 
 		assertThat(receive).isNotNull()
 				.extracting(Message::getPayload)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.hasSize(5);
 
 		@SuppressWarnings("unchecked")

@@ -345,8 +345,6 @@ configure(javaProjects) { subproject ->
         reports.junitXml.required = false
 
         enableAssertions = false
-
-        forkEvery = 1000
     }
 
     checkstyle {

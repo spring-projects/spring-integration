@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import reactor.core.publisher.Flux;
@@ -132,8 +133,7 @@ class FluxAggregatorMessageHandlerTests {
 
 		Object payload = result.getPayload();
 		assertThat(payload)
-				.isInstanceOf(List.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.containsExactly(
 						IntStream.iterate(0, i -> i + 2)
 								.limit(10)
@@ -145,8 +145,7 @@ class FluxAggregatorMessageHandlerTests {
 
 		payload = result.getPayload();
 		assertThat(payload)
-				.isInstanceOf(List.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.containsExactly(
 						IntStream.iterate(1, i -> i + 2)
 								.limit(10)

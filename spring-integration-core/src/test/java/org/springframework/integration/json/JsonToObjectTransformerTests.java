@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -49,13 +50,24 @@ public class JsonToObjectTransformerTests {
 		// Since DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES is disabled by default
 		// (see Jackson2JsonObjectMapper)
 		// the extra "foo" property is ignored.
-		String jsonString = "[{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42," +
-				"\"address\":{\"number\":123,\"street\":\"Main Street\"}, \"foo\":\"bar\"}]";
+		// language=JSON
+		String jsonString = """
+				[
+					{
+						"firstName": "John",
+						"lastName": "Doe",
+						"age": 42,
+						"address": {
+							"number": 123,
+							"street": "Main Street"
+						},
+						"foo": "bar"
+					}
+				]""";
 		Message<?> message = transformer.transform(new GenericMessage<>(jsonString));
 		assertThat(message)
 				.extracting(Message::getPayload)
-				.isInstanceOf(List.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.hasSize(1)
 				.element(0)
 				.isInstanceOf(TestPerson.class)
@@ -75,7 +87,17 @@ public class JsonToObjectTransformerTests {
 		customMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, Boolean.TRUE);
 		JsonToObjectTransformer transformer = new JsonToObjectTransformer(new Jackson2JsonObjectMapper(customMapper));
 		transformer.setValueTypeExpression(new ValueExpression<>(ResolvableType.forClass(TestPerson.class)));
-		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";
+		// language=JSON
+		String jsonString = """
+				{
+					"firstName": "John",
+					"lastName": "Doe",
+					"age": 42,
+					"address": {
+						"number": 123,
+						"street": "Main Street"
+					}
+				}""";
 		Message<?> message = transformer.transform(new GenericMessage<>(jsonString));
 		TestPerson person = (TestPerson) message.getPayload();
 		assertThat(person.getFirstName()).isEqualTo("John");

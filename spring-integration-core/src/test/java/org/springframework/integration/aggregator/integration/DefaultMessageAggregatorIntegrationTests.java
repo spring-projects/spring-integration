@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.springframework.integration.aggregator.integration;
 
 import java.util.Arrays;
-import java.util.List;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +56,8 @@ public class DefaultMessageAggregatorIntegrationTests {
 			this.input.send(prepareSequenceMessage(i, 5, 1));
 		}
 		Object payload = this.output.receive(20_000).getPayload();
-		assertThat(payload).isInstanceOf(List.class)
-				.asList()
+		assertThat(payload)
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.containsAll(Arrays.asList(0, 1, 2, 3, 4));
 	}
 
