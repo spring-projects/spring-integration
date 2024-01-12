@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.Ordered;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.ChannelUtils;
@@ -276,6 +277,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 									IntegrationProperties.TASK_SCHEDULER_POOL_SIZE))
 							.addPropertyValue("threadNamePrefix", "task-scheduler-")
 							.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy())
+							.addPropertyValue("phase", SmartLifecycle.DEFAULT_PHASE / 2)
 							.addPropertyReference("errorHandler",
 									ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)
 							.getBeanDefinition();
