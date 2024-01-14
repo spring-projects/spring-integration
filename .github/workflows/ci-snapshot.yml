@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build-snapshot:
-    uses: spring-io/spring-github-workflows/.github/workflows/spring-artifactory-gradle-snapshot.yml@v1
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-artifactory-gradle-snapshot.yml@v2
     with:
       gradleTasks: ${{ github.event_name == 'schedule' && '--rerun-tasks' || '' }}
     secrets:

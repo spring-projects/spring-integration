@@ -12,7 +12,7 @@ jobs:
       contents: write
       issues: write
 
-    uses: spring-io/spring-github-workflows/.github/workflows/spring-artifactory-gradle-release.yml@v1
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-artifactory-gradle-release.yml@v2
     secrets:
       GH_ACTIONS_REPO_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
       GRADLE_ENTERPRISE_CACHE_USER: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
