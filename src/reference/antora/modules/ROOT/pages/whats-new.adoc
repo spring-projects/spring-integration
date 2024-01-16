@@ -24,3 +24,9 @@ In general the project has been moved to the latest dependency versions.
 
 The `spring-integration-security` module is completely removed (being deprecated previously) in favor of API from `spring-security-messaging` module.
 See xref:security.adoc[Security in Spring Integration] for more information.
+
+[[x6.3-mqtt]]
+=== MQTT Support Changes
+
+The fine-grained configuration based on `MqttSubscription` API is exposed on the `Mqttv5PahoMessageDrivenChannelAdapter`.
+See xref:mqtt.adoc[MQTT Support] for more information.

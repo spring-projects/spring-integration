@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.paho.mqttv5.common.MqttSubscription;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -76,13 +77,15 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 
 	@Test //GH-3732
 	public void testNoNpeIsNotThrownInCaseDoInitIsNotInvokedBeforeTopicAddition() {
-		Mqttv5PahoMessageDrivenChannelAdapter channelAdapter = new Mqttv5PahoMessageDrivenChannelAdapter("tcp://mock-url.com:8091", "mock-client-id", "123");
+		Mqttv5PahoMessageDrivenChannelAdapter channelAdapter =
+				new Mqttv5PahoMessageDrivenChannelAdapter("tcp://mock-url.com:8091", "mock-client-id", "123");
 		Assertions.assertDoesNotThrow(() -> channelAdapter.addTopic("abc", 1));
 	}
 
 	@Test //GH-3732
 	public void testNoNpeIsNotThrownInCaseDoInitIsNotInvokedBeforeTopicRemoval() {
-		Mqttv5PahoMessageDrivenChannelAdapter channelAdapter = new Mqttv5PahoMessageDrivenChannelAdapter("tcp://mock-url.com:8091", "mock-client-id", "123");
+		Mqttv5PahoMessageDrivenChannelAdapter channelAdapter =
+				new Mqttv5PahoMessageDrivenChannelAdapter("tcp://mock-url.com:8091", "mock-client-id", "123");
 		Assertions.assertDoesNotThrow(() -> channelAdapter.removeTopic("abc"));
 	}
 
@@ -171,8 +174,12 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 
 		@Bean
 		public IntegrationFlow mqttInFlow() {
+			MqttSubscription mqttSubscription = new MqttSubscription("siTest", 2);
+			mqttSubscription.setNoLocal(true);
+			mqttSubscription.setRetainAsPublished(true);
 			Mqttv5PahoMessageDrivenChannelAdapter messageProducer =
-					new Mqttv5PahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "mqttv5SIin", "siTest");
+					new Mqttv5PahoMessageDrivenChannelAdapter(MosquittoContainerTest.mqttUrl(), "mqttv5SIin",
+							mqttSubscription);
 			messageProducer.setPayloadType(String.class);
 			messageProducer.setMessageConverter(mqttStringToBytesConverter());
 			messageProducer.setManualAcks(true);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 the original author or authors.
+ * Copyright 2021-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -56,6 +57,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * The {@link AbstractMqttMessageDrivenChannelAdapter} implementation for MQTT v5.
@@ -83,9 +86,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectionOptions>
 		implements MqttCallback, MqttComponent<MqttConnectionOptions> {
 
-	private final Lock lock =  new ReentrantLock();
+	private final Lock lock = new ReentrantLock();
 
 	private final MqttConnectionOptions connectionOptions;
+
+	private List<MqttSubscription> subscriptions;
 
 	private IMqttAsyncClient mqttClient;
 
@@ -100,12 +105,39 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	private volatile boolean readyToSubscribeOnStart;
 
+	/**
+	 * Create an instance based on the MQTT url, client id and subscriptions.
+	 * @param url the MQTT url to connect.
+	 * @param clientId the unique client id.
+	 * @param mqttSubscriptions the MQTT subscriptions.
+	 * @since 6.3
+	 */
+	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, MqttSubscription... mqttSubscriptions) {
+		this(url, clientId, Arrays.stream(mqttSubscriptions).map(MqttSubscription::getTopic).toArray(String[]::new));
+		this.subscriptions = Arrays.asList(mqttSubscriptions);
+	}
+
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		super(url, clientId, topic);
 		Assert.hasText(url, "'url' cannot be null or empty");
 		this.connectionOptions = new MqttConnectionOptions();
 		this.connectionOptions.setServerURIs(new String[] {url});
 		this.connectionOptions.setAutomaticReconnect(true);
+	}
+
+	/**
+	 * Create an instance based on the MQTT connection options, client id and subscriptions.
+	 * @param connectionOptions the MQTT connection options.
+	 * @param clientId the unique client id.
+	 * @param mqttSubscriptions the MQTT subscriptions.
+	 * @since 6.3
+	 */
+	public Mqttv5PahoMessageDrivenChannelAdapter(MqttConnectionOptions connectionOptions, String clientId,
+			MqttSubscription... mqttSubscriptions) {
+
+		this(connectionOptions, clientId,
+				Arrays.stream(mqttSubscriptions).map(MqttSubscription::getTopic).toArray(String[]::new));
+		this.subscriptions = List.of(mqttSubscriptions);
 	}
 
 	public Mqttv5PahoMessageDrivenChannelAdapter(MqttConnectionOptions connectionOptions, String clientId,
@@ -118,6 +150,19 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 					"Otherwise the current channel adapter restart should be used explicitly, " +
 					"e.g. via handling 'MqttConnectionFailedEvent' on client disconnection.");
 		}
+	}
+
+	/**
+	 * Create an instance based on the client manager and subscriptions.
+	 * @param clientManager The client manager.
+	 * @param mqttSubscriptions the MQTT subscriptions.
+	 * @since 6.3
+	 */
+	public Mqttv5PahoMessageDrivenChannelAdapter(ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager,
+			MqttSubscription... mqttSubscriptions) {
+
+		this(clientManager, Arrays.stream(mqttSubscriptions).map(MqttSubscription::getTopic).toArray(String[]::new));
+		this.subscriptions = List.of(mqttSubscriptions);
 	}
 
 	/**
@@ -271,12 +316,22 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	}
 
 	@Override
+	public void setQos(int... qos) {
+		Assert.isNull(this.subscriptions, "The 'qos' must be provided with the 'MqttSubscription'.");
+		super.setQos(qos);
+	}
+
+	@Override
 	public void addTopic(String topic, int qos) {
 		this.topicLock.lock();
 		try {
 			super.addTopic(topic, qos);
+			MqttSubscription subscription = new MqttSubscription(topic, qos);
+			if (this.subscriptions != null) {
+				this.subscriptions.add(subscription);
+			}
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
-				this.mqttClient.subscribe(new MqttSubscription(topic, qos), this::messageArrived)
+				this.mqttClient.subscribe(subscription, this::messageArrived)
 						.waitForCompletion(getCompletionTimeout());
 			}
 		}
@@ -296,6 +351,9 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 				this.mqttClient.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
 			}
 			super.removeTopic(topic);
+			if (!CollectionUtils.isEmpty(this.subscriptions)) {
+				this.subscriptions.removeIf((sub) -> ObjectUtils.containsElement(topic, sub.getTopic()));
+			}
 		}
 		catch (MqttException ex) {
 			throw new MessagingException("Failed to unsubscribe from topic(s) " + Arrays.toString(topic), ex);
@@ -392,25 +450,20 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			this.mqttClient = clientManager.getClient();
 		}
 
-		String[] topics = getTopic();
+		MqttSubscription[] mqttSubscriptions = obtainSubscriptions();
+		if (ObjectUtils.isEmpty(mqttSubscriptions)) {
+			return;
+		}
 		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 		this.topicLock.lock();
 		try {
-			if (topics.length == 0) {
-				return;
-			}
-
-			int[] requestedQos = getQos();
-			MqttSubscription[] subscriptions = IntStream.range(0, topics.length)
-					.mapToObj(i -> new MqttSubscription(topics[i], requestedQos[i]))
-					.toArray(MqttSubscription[]::new);
 			IMqttMessageListener listener = this::messageArrived;
-			IMqttMessageListener[] listeners = IntStream.range(0, topics.length)
+			IMqttMessageListener[] listeners = IntStream.range(0, mqttSubscriptions.length)
 					.mapToObj(t -> listener)
 					.toArray(IMqttMessageListener[]::new);
-			this.mqttClient.subscribe(subscriptions, null, null, listeners, null)
+			this.mqttClient.subscribe(mqttSubscriptions, null, null, listeners, null)
 					.waitForCompletion(getCompletionTimeout());
-			String message = "Connected and subscribed to " + Arrays.toString(topics);
+			String message = "Connected and subscribed to " + Arrays.toString(mqttSubscriptions);
 			logger.debug(message);
 			if (applicationEventPublisher != null) {
 				applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
@@ -420,10 +473,26 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			if (applicationEventPublisher != null) {
 				applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, ex));
 			}
-			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(topics));
+			logger.error(ex, () -> "Error subscribing to " + Arrays.toString(mqttSubscriptions));
 		}
 		finally {
 			this.topicLock.unlock();
+		}
+	}
+
+	private MqttSubscription[] obtainSubscriptions() {
+		if (this.subscriptions != null) {
+			return this.subscriptions.toArray(new MqttSubscription[0]);
+		}
+		else {
+			String[] topics = getTopic();
+			if (topics.length == 0) {
+				return null;
+			}
+			int[] requestedQos = getQos();
+			return IntStream.range(0, topics.length)
+					.mapToObj(i -> new MqttSubscription(topics[i], requestedQos[i]))
+					.toArray(MqttSubscription[]::new);
 		}
 	}
 

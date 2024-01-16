@@ -465,6 +465,9 @@ The `HeaderMapper<MqttProperties>` is used to map `PUBLISH` frame properties (in
 Standard `MqttMessage` properties, such as `qos`, `id`, `dup`, `retained`, plus received topic are always mapped to headers.
 See `MqttHeaders` for more information.
 
+Starting with version 6.3, the `Mqttv5PahoMessageDrivenChannelAdapter` provides constructors based on the `MqttSubscription` for fine-grained configuration instead of plain topic names.
+When these subscriptions are provided, the `qos` option of the channel adapter cannot be used, since such a `qos` mode is a part of `MqttSubscription` API.
+
 The following Java DSL configuration sample demonstrates how to use this channel adapter in the integration flow:
 
 [source, java]
