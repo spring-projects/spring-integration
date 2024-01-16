@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:task="http://www.springframework.org/schema/task"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xsi:schemaLocation="http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd">
 
@@ -23,7 +23,10 @@
 		<task:scheduled ref="reaper3" method="run" fixed-rate="100"/>
 	</task:scheduled-tasks>
 
-	<task:scheduler id="scheduler"/>
+	<bean id="scheduler"
+		  class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+		<property name="phase" value="1073741823"/>
+	</bean>
 
 	<bean id="messageStore2" class="org.springframework.integration.store.SimpleMessageStore">
 		<property name="expiryCallbacks" ref="expiryCallback2"/>
@@ -35,21 +38,21 @@
 		<property name="messageGroupStore" ref="messageStore2"/>
 	</bean>
 
-	<bean id="messageStore3" class="org.springframework.integration.store.SimpleMessageStore" />
+	<bean id="messageStore3" class="org.springframework.integration.store.SimpleMessageStore"/>
 
 	<bean id="reaper3" class="org.springframework.integration.store.MessageGroupStoreReaper">
 		<property name="messageGroupStore" ref="messageStore3"/>
-		<property name="timeout" value="50" />
+		<property name="timeout" value="50"/>
 	</bean>
 
 	<int:aggregator input-channel="aggChannel"
-		discard-channel="discards"
-		message-store="messageStore3" />
+					discard-channel="discards"
+					message-store="messageStore3"/>
 
-	<int:channel id="aggChannel" />
+	<int:channel id="aggChannel"/>
 
 	<int:channel id="discards">
-		<int:queue />
+		<int:queue/>
 	</int:channel>
 
 </beans>

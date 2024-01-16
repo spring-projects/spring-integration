@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,8 @@ public class StompServerIntegrationTests {
 
 	private static final EmbeddedActiveMQ broker = new EmbeddedActiveMQ();
 
+	private static final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+
 	private static ReactorNettyTcpStompClient stompClient;
 
 	@BeforeAll
@@ -89,7 +91,6 @@ public class StompServerIntegrationTests {
 
 		stompClient = new ReactorNettyTcpStompClient("127.0.0.1", TransportConstants.DEFAULT_STOMP_PORT);
 		stompClient.setMessageConverter(new PassThruMessageConverter());
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		stompClient.setTaskScheduler(taskScheduler);
 		stompClient.setReceiptTimeLimit(5000);
@@ -99,6 +100,7 @@ public class StompServerIntegrationTests {
 	public static void teardown() throws Exception {
 		stompClient.shutdown();
 		broker.stop();
+		taskScheduler.destroy();
 	}
 
 	@Test

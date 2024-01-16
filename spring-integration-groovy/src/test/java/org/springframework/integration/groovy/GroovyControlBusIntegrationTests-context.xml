@@ -19,7 +19,10 @@
 
 	<groovy:control-bus input-channel="controlBus" output-channel="controlBusOutput"/>
 
-	<task:scheduler id="scheduler"/>
+	<beans:bean id="scheduler"
+		  class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+		<beans:property name="phase" value="1073741823"/>
+	</beans:bean>
 
 	<delayer id="testDelayer" input-channel="delayerInput" output-channel="output"
 			 default-delay="1000"

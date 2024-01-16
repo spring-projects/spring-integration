@@ -25,7 +25,10 @@
 
 	<bean id="activeChannel" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$ActiveChannelImpl" />
 
-	<task:scheduler id="someScheduler" />
+	<bean id="someScheduler"
+		  class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+		<property name="phase" value="1073741823"/>
+	</bean>
 
 	<task:executor id="someExecutor" />
 

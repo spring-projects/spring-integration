@@ -21,6 +21,7 @@
 
 	<beans:bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
 		<beans:property name="daemon" value="true" />
+		<beans:property name="phase" value="1073741823" />
 	</beans:bean>
 
 </beans:beans>

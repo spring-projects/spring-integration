@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,8 +144,7 @@ public class FileTailingMessageProducerTests {
 			if (event instanceof FileTailingIdleEvent) {
 				idleCountDownLatch.countDown();
 			}
-			if (event instanceof FileTailingEvent) {
-				FileTailingEvent fileTailingEvent = (FileTailingEvent) event;
+			if (event instanceof FileTailingEvent fileTailingEvent) {
 				if (fileTailingEvent.getMessage().contains("File not found")) {
 					fileExistCountDownLatch.countDown();
 				}
@@ -184,6 +183,7 @@ public class FileTailingMessageProducerTests {
 		assertThat(eventRaised).as("idle event did not emit").isTrue();
 		adapter.stop();
 		file.delete();
+		taskScheduler.destroy();
 	}
 
 	private void testGuts(FileTailingMessageProducerSupport adapter, String field) throws Exception {

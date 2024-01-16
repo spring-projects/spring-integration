@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -236,7 +236,7 @@ public class ParserUnitTests {
 	TcpInboundGateway inGatewayClientMode;
 
 	@Autowired
-	TaskScheduler sched;
+	TaskScheduler scheduler;
 
 	@Autowired
 	@Qualifier("tcpOutClientMode.handler")
@@ -624,7 +624,7 @@ public class ParserUnitTests {
 		assertThat(dfa.getPropertyValue("clientConnectionFactory")).isSameAs(cfC3);
 		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isNull();
 		assertThat(dfa.getPropertyValue("isClientMode")).isEqualTo(Boolean.TRUE);
-		assertThat(dfa.getPropertyValue("taskScheduler")).isSameAs(sched);
+		assertThat(dfa.getPropertyValue("taskScheduler")).isSameAs(scheduler);
 		assertThat(dfa.getPropertyValue("retryInterval")).isEqualTo(123000L);
 	}
 
@@ -634,7 +634,7 @@ public class ParserUnitTests {
 		assertThat(dfa.getPropertyValue("clientConnectionFactory")).isSameAs(cfC4);
 		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isNull();
 		assertThat(dfa.getPropertyValue("isClientMode")).isEqualTo(Boolean.TRUE);
-		assertThat(dfa.getPropertyValue("taskScheduler")).isSameAs(sched);
+		assertThat(dfa.getPropertyValue("taskScheduler")).isSameAs(scheduler);
 		assertThat(dfa.getPropertyValue("retryInterval")).isEqualTo(124000L);
 	}
 
@@ -644,7 +644,7 @@ public class ParserUnitTests {
 		assertThat(dfa.getPropertyValue("clientConnectionFactory")).isSameAs(cfC5);
 		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isNull();
 		assertThat(dfa.getPropertyValue("isClientMode")).isEqualTo(Boolean.TRUE);
-		assertThat(dfa.getPropertyValue("taskScheduler")).isSameAs(sched);
+		assertThat(dfa.getPropertyValue("taskScheduler")).isSameAs(scheduler);
 		assertThat(dfa.getPropertyValue("retryInterval")).isEqualTo(125000L);
 	}
 

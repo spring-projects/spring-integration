@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -217,11 +217,12 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		adapter.stop();
 		ccf.stop();
 		serverSocket.get().close();
+		taskScheduler.destroy();
 	}
 
 	@Test
 	public void testNioCrLf() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		this.executor.execute(() -> {
