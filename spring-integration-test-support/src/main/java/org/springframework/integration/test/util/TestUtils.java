@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.apache.logging.log4j.core.config.LoggerConfig;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.lang.Nullable;
@@ -60,6 +61,27 @@ import org.springframework.util.StringUtils;
 public abstract class TestUtils {
 
 	private static final Log LOGGER = LogFactory.getLog(TestUtils.class);
+
+	/**
+	 * Obtain a value for the property from the provide object
+	 * and try to cast it to the provided type.
+	 * Supports nested properties via period delimiter.
+	 * @param root the object to obtain the property value
+	 * @param propertyPath the property name to obtain a value.
+	 * @param type the expected value type.
+	 * @param <T> the expected value type.
+	 * Can be nested path defined by the period.
+	 * @return the value of the property or null
+	 * @see DirectFieldAccessor
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T getPropertyValue(Object root, String propertyPath, Class<T> type) {
+		Object value = getPropertyValue(root, propertyPath);
+		if (value != null) {
+			Assert.isAssignable(type, value.getClass());
+		}
+		return (T) value;
+	}
 
 	/**
 	 * Obtain a value for the property from the provide object.
@@ -91,27 +113,6 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Obtain a value for the property from the provide object
-	 * and try to cast it to the provided type.
-	 * Supports nested properties via period delimiter.
-	 * @param root the object to obtain the property value
-	 * @param propertyPath the property name to obtain a value.
-	 * @param type the expected value type.
-	 * @param <T> the expected value type.
-	 * Can be nested path defined by the period.
-	 * @return the value of the property or null
-	 * @see DirectFieldAccessor
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> T getPropertyValue(Object root, String propertyPath, Class<T> type) {
-		Object value = getPropertyValue(root, propertyPath);
-		if (value != null) {
-			Assert.isAssignable(type, value.getClass());
-		}
-		return (T) value;
-	}
-
-	/**
 	 * Create a {@link TestApplicationContext} instance
 	 * supplied with the basic Spring Integration infrastructure.
 	 * @return the {@link TestApplicationContext} instance
@@ -140,6 +141,7 @@ public abstract class TestUtils {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.setPoolSize(poolSize);
 		scheduler.setRejectedExecutionHandler(new CallerRunsPolicy());
+		scheduler.setPhase(SmartLifecycle.DEFAULT_PHASE / 2);
 		scheduler.afterPropertiesSet();
 		return scheduler;
 	}
@@ -216,6 +218,7 @@ public abstract class TestUtils {
 	 */
 	public static Properties locateComponentInHistory(List<Properties> history, String componentName,
 			int startingIndex) {
+
 		Assert.notNull(history, "'history' must not be null");
 		Assert.isTrue(StringUtils.hasText(componentName), "'componentName' must be provided");
 		Assert.isTrue(startingIndex < history.size(), "'startingIndex' can not be greater then size of history");

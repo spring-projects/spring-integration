@@ -399,7 +399,7 @@
 		client-mode="true"
 		retry-interval="123000"
 		auto-startup="false"
-		scheduler="sched" />
+		scheduler="scheduler" />
 
 	<ip:tcp-connection-factory id="cfC4"
 		type="client"
@@ -414,7 +414,7 @@
 		connection-factory="cfC4"
 		client-mode="true"
 		retry-interval="124000"
-		scheduler="sched"
+		scheduler="scheduler"
 		auto-startup="false" />
 
 	<ip:tcp-connection-factory id="cfC5"
@@ -432,11 +432,14 @@
 		reply-timeout="456"
 		client-mode="true"
 		retry-interval="125000"
-		scheduler="sched"
+		scheduler="scheduler"
 		auto-startup="false"
 		/>
 
-	<task:scheduler id="sched"/>
+	<bean id="scheduler"
+				class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+		<property name="phase" value="1073741823"/>
+	</bean>
 
 	<ip:tcp-inbound-channel-adapter id="tcpAutoChannel" />
 

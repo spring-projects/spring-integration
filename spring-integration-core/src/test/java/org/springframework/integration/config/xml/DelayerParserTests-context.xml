@@ -75,6 +75,7 @@
 
 	<beans:bean id="testScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler"
 				p:poolSize="7"
+				p:phase="1073741823"
 				p:waitForTasksToCompleteOnShutdown="true"/>
 
 	<beans:bean id="testMessageStore" class="org.springframework.integration.store.SimpleMessageStore"/>

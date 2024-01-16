@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -543,6 +543,7 @@ public class FileWritingMessageHandlerTests {
 		}
 		assertThat(flushes.get()).isGreaterThanOrEqualTo(2);
 		handler.stop();
+		taskScheduler.destroy();
 	}
 
 	@Test
@@ -586,6 +587,7 @@ public class FileWritingMessageHandlerTests {
 		verify(out).write(any(byte[].class), anyInt(), anyInt());
 		assertThat(closeWhileWriting.get()).isFalse();
 		handler.stop();
+		taskScheduler.destroy();
 	}
 
 	@Test

@@ -24,10 +24,14 @@
 			 default-request-channel="requestChannel"
 			 proxy-default-methods="true"/>
 
+	<channel id="receiveChannel">
+		<queue />
+	</channel>
+
 	<gateway id="solicitResponse"
 			 service-interface="org.springframework.integration.gateway.TestService"
-			 default-reply-channel="replyChannel"
-			 default-reply-timeout="3000"/>
+			 default-reply-channel="receiveChannel"
+			 default-reply-timeout="5000"/>
 
 	<gateway id="requestReply"
 			 service-interface="org.springframework.integration.gateway.TestService"

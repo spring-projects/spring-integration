@@ -49,6 +49,7 @@
 
 	<beans:bean id="multiThreadScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler"
 				p:poolSize="5"
+				p:phase="1073741823"
 				p:waitForTasksToCompleteOnShutdown="true"/>
 
 	<service-activator input-channel="outputB" output-channel="outputB1" method="processMessage" ref="sampleHandler"/>

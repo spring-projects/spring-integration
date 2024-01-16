@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class FileTailInboundChannelAdapterParserTests {
 	private TaskExecutor exec;
 
 	@Autowired
-	private TaskScheduler sched;
+	private TaskScheduler scheduler;
 
 	@Autowired
 	private MessageChannel tailErrorChannel;
@@ -95,7 +95,7 @@ public class FileTailInboundChannelAdapterParserTests {
 		assertThat(normalizedName).isEqualTo("/tmp/foo");
 		assertThat(TestUtils.getPropertyValue(nativeAdapter, "command")).isEqualTo("tail -F -n 6 " + fileName);
 		assertThat(TestUtils.getPropertyValue(nativeAdapter, "taskExecutor")).isSameAs(exec);
-		assertThat(TestUtils.getPropertyValue(nativeAdapter, "taskScheduler")).isSameAs(sched);
+		assertThat(TestUtils.getPropertyValue(nativeAdapter, "taskScheduler")).isSameAs(scheduler);
 		assertThat(TestUtils.getPropertyValue(nativeAdapter, "autoStartup", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(nativeAdapter, "enableStatusReader", Boolean.class)).isFalse();
 		assertThat(TestUtils.getPropertyValue(nativeAdapter, "phase")).isEqualTo(123);
