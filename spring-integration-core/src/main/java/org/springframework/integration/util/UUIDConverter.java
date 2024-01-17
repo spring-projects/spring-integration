@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,13 +35,6 @@ import org.springframework.util.ClassUtils;
  * @author Artem Bilan
  */
 public class UUIDConverter implements Converter<Object, UUID> {
-
-	/**
-	 * @deprecated since 6.0.8 as it is not used internally by the UUIDConverter.
-	 * The internal implementation relies on {@link StandardCharsets#UTF_8} instead.
-	 */
-	@Deprecated
-	public static final String DEFAULT_CHARSET = "UTF-8";
 
 	private static final Pattern UUID_REGEX =
 			Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");

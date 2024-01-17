@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,7 @@ import org.apache.commons.io.input.TailerListenerAdapter;
  * @since 3.0
  *
  */
-public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageProducerSupport
-		implements TailerListener {
+public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageProducerSupport {
 
 	private final TailerListener tailerListener = new IntegrationTailerListener();
 
@@ -104,46 +103,6 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	protected void doStop() {
 		super.doStop();
 		this.tailer.close();
-	}
-
-	@Deprecated(since = "6.2", forRemoval = true)
-	@Override
-	public void init(Tailer tailer) {
-		tailerListenerIsDeprecatedError();
-	}
-
-	@Deprecated(since = "6.2", forRemoval = true)
-	@Override
-	public void fileNotFound() {
-		tailerListenerIsDeprecatedError();
-		this.tailerListener.fileNotFound();
-	}
-
-	@Deprecated(since = "6.2", forRemoval = true)
-	@Override
-	public void fileRotated() {
-		tailerListenerIsDeprecatedError();
-		this.tailerListener.fileRotated();
-	}
-
-	@Deprecated(since = "6.2", forRemoval = true)
-	@Override
-	public void handle(String line) {
-		tailerListenerIsDeprecatedError();
-		this.tailerListener.handle(line);
-	}
-
-	@Deprecated(since = "6.2", forRemoval = true)
-	@Override
-	public void handle(Exception ex) {
-		tailerListenerIsDeprecatedError();
-		this.tailerListener.handle(ex);
-	}
-
-	private void tailerListenerIsDeprecatedError() {
-		ApacheCommonsFileTailingMessageProducer.this.logger.error(
-				"The 'TailerListener' implementation on the 'ApacheCommonsFileTailingMessageProducer' " +
-						"is deprecated (in favor of an internal instance) for removal in the next version.");
 	}
 
 	private class IntegrationTailerListener extends TailerListenerAdapter {

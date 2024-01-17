@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.router.MethodInvokingRouter;
-import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 
 /**
@@ -65,32 +64,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer) {
 		return transformWith((transformerSpec) -> transformerSpec.transformer(genericTransformer));
-	}
-
-
-	/**
-	 * Populate the {@link MessageTransformingHandler} instance for the provided
-	 * {@link GenericTransformer}. In addition, accept options for the integration endpoint
-	 * using {@link GenericEndpointSpec}. Use
-	 * {@code .transform((transformerSpec) -> transformerSpec.function(genericTransformer).expectedType(Message.class))}
-	 * if you need to access the entire message.
-	 * @param genericTransformer the {@link GenericTransformer} to populate.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint
-	 * options.
-	 * @param <S> the source type - 'transform from'.
-	 * @param <T> the target type - 'transform to'.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #transformWith(Consumer)}
-	 * @see org.springframework.integration.transformer.MethodInvokingTransformer
-	 * @see org.springframework.integration.handler.LambdaMessageProcessor
-	 * @see GenericEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@SuppressWarnings("removal")
-	public <S, T> B transform(GenericTransformer<S, T> genericTransformer,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-
-		return transform(null, genericTransformer, endpointConfigurer);
 	}
 
 	/**
@@ -181,38 +154,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 
 		return handle(null, handler, endpointConfigurer);
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
-	 * {@link Function} at runtime.
-	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
-	 * <pre class="code">
-	 * {@code
-	 *  .<String>split(p ->
-	 *        jdbcTemplate.execute("SELECT * from FOO",
-	 *            (PreparedStatement ps) ->
-	 *                 new ResultSetIterator<Foo>(ps.executeQuery(),
-	 *                     (rs, rowNum) ->
-	 *                           new Foo(rs.getInt(1), rs.getString(2))))
-	 *       , e -> e.applySequence(false))
-	 * }
-	 * </pre>
-	 * @param splitter the splitter {@link Function}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <P> the payload type.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
-	 * @see org.springframework.integration.handler.LambdaMessageProcessor
-	 * @see SplitterEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@SuppressWarnings("removal")
-	public <P> B split(Function<P, ?> splitter,
-			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
-
-		return split(null, splitter, endpointConfigurer);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.file.filters;
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -53,29 +52,6 @@ public class LastModifiedFileListFilter extends AbstractLastModifiedFileListFilt
 	 */
 	public LastModifiedFileListFilter(long age) {
 		super(Duration.ofSeconds(age));
-	}
-
-	/**
-	 * Set the age that files have to be before being passed by this filter.
-	 * If {@link File#lastModified()} plus age is greater than the current time, the file
-	 * is filtered. The resolution is seconds.
-	 * Defaults to 60 seconds.
-	 * @param age the age
-	 * @param unit the timeUnit.
-	 * @deprecated since 6.2 in favor of {@link #setAge(Duration)}
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public void setAge(long age, TimeUnit unit) {
-		setAge(unit.toSeconds(age));
-	}
-
-	/**
-	 * @return the age in seconds.
-	 * @deprecated since 6.2 in favor of {@link #getAgeDuration()}
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public long getAge() {
-		return getAgeDuration().getSeconds();
 	}
 
 	@Override

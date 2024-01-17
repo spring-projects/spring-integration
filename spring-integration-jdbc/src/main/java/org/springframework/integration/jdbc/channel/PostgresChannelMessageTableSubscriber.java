@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -36,7 +35,6 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.lang.Nullable;
@@ -106,24 +104,6 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		Assert.notNull(tablePrefix, "A table prefix must be set.");
 		this.connectionSupplier = connectionSupplier;
 		this.tablePrefix = tablePrefix;
-	}
-
-	/**
-	 * Define an executor to use for listening for new messages. Note that the Postgres SQL driver implements
-	 * listening for notifications as a blocking operation which will permanently block a thread of this executor
-	 * while running.
-	 * @param executor The executor to use or {@code null} if an executor should be created by this class.
-	 * @deprecated since 6.2 in favor of {@link #setTaskExecutor(AsyncTaskExecutor)}
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public void setExecutor(ExecutorService executor) {
-		this.lock.lock();
-		try {
-			setTaskExecutor(new TaskExecutorAdapter(executor));
-		}
-		finally {
-			this.lock.unlock();
-		}
 	}
 
 	/**

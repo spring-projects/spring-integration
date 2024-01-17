@@ -48,7 +48,7 @@ ext {
             files()
                     .from {
                         files(grgit.status().unstaged.modified)
-                                .filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
+                                .filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') || f.name.endsWith('.groovy') }
                     }
     modifiedFiles.finalizeValueOnRead()
 

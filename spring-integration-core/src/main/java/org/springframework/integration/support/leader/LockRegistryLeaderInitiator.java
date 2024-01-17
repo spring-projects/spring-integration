@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.support.leader;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -30,7 +29,6 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
@@ -179,18 +177,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		Assert.notNull(candidate, "'candidate' must not be null");
 		this.locks = locks;
 		this.candidate = candidate;
-	}
-
-	/**
-	 * Set the {@link ExecutorService}, where is not provided then a default of
-	 * single thread Executor will be used.
-	 * @param executorService the executor service
-	 * @since 5.0.2
-	 * @deprecated since 6.2 in favor of {@link #setTaskExecutor(AsyncTaskExecutor)}
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public void setExecutorService(ExecutorService executorService) {
-		setTaskExecutor(new TaskExecutorAdapter(executorService));
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,7 @@ import org.springframework.util.Assert;
  *
  * @since 2.2
  */
-public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
-		implements RetryListener {
+public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 
 	private static final IntegrationRetryListener INTEGRATION_RETRY_LISTENER = new IntegrationRetryListener();
 
@@ -96,23 +95,6 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		catch (Exception ex) {
 			throw new ThrowableHolderException(ex);
 		}
-	}
-
-	/**
-	 * Set a {@link ErrorMessageUtils#FAILED_MESSAGE_CONTEXT_KEY} attribute into context.
-	 * @param context the current {@link RetryContext}.
-	 * @param callback the current {@link RetryCallback}.
-	 * @param <T> the type of object returned by the callback
-	 * @param <E> the type of exception it declares may be thrown
-	 * @return the open state.
-	 * @deprecated since 6.2 in favor of an internal {@link RetryListener} implementation.
-	 * The {@link RequestHandlerRetryAdvice} must not be used as a listener for external {@link RetryTemplate}
-	 * instances.
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@Override
-	public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-		return INTEGRATION_RETRY_LISTENER.open(context, callback);
 	}
 
 	private static class IntegrationRetryListener implements RetryListener {

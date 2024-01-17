@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.springframework.integration.channel.BroadcastCapableChannel
 import org.springframework.integration.channel.interceptor.WireTap
 import org.springframework.integration.core.GenericHandler
 import org.springframework.integration.core.GenericSelector
-import org.springframework.integration.core.GenericTransformer
 import org.springframework.integration.dsl.AggregatorSpec
 import org.springframework.integration.dsl.BarrierSpec
 import org.springframework.integration.dsl.BroadcastPublishSubscribeSpec
@@ -46,7 +45,6 @@ import org.springframework.integration.dsl.RecipientListRouterSpec
 import org.springframework.integration.dsl.ResequencerSpec
 import org.springframework.integration.dsl.RouterSpec
 import org.springframework.integration.dsl.ScatterGatherSpec
-import org.springframework.integration.dsl.SplitterEndpointSpec
 import org.springframework.integration.dsl.SplitterSpec
 import org.springframework.integration.dsl.TransformerEndpointSpec
 import org.springframework.integration.dsl.WireTapSpec
@@ -61,12 +59,8 @@ import org.springframework.integration.router.ErrorMessageExceptionTypeRouter
 import org.springframework.integration.router.ExpressionEvaluatingRouter
 import org.springframework.integration.router.MethodInvokingRouter
 import org.springframework.integration.scattergather.ScatterGatherHandler
-import org.springframework.integration.splitter.AbstractMessageSplitter
 import org.springframework.integration.splitter.DefaultMessageSplitter
-import org.springframework.integration.splitter.ExpressionEvaluatingSplitter
-import org.springframework.integration.splitter.MethodInvokingSplitter
 import org.springframework.integration.store.MessageStore
-import org.springframework.integration.transformer.ExpressionEvaluatingTransformer
 import org.springframework.integration.transformer.HeaderFilter
 import org.springframework.integration.transformer.MessageTransformingHandler
 import org.springframework.integration.transformer.MethodInvokingTransformer
@@ -74,7 +68,6 @@ import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHandler
 import org.springframework.messaging.support.ChannelInterceptor
-import org.springframework.util.StringUtils
 import reactor.core.publisher.Flux
 
 import java.util.concurrent.Executor
@@ -287,66 +280,6 @@ class GroovyIntegrationFlowDefinition {
 	}
 
 	/**
-	 * Populate the {@code Transformer} EI Pattern specific {@link MessageHandler} implementation
-	 * for the SpEL {@link org.springframework.expression.Expression}.
-	 * @param expression the {@code Transformer} {@link org.springframework.expression.Expression}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @see org.springframework.integration.transformer.ExpressionEvaluatingTransformer
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	GroovyIntegrationFlowDefinition transform(
-			String expression,
-			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.transform expression, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the {@code MessageTransformingHandler} for the
-	 * {@link org.springframework.integration.transformer.MethodInvokingTransformer}
-	 * to invoke the service method at runtime.
-	 * @param service the service to use.
-	 * @param methodName the method to invoke.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @deprecated since 6.2 in favor of {@link #transform(Closure)}
-	 * @see ExpressionEvaluatingTransformer
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	GroovyIntegrationFlowDefinition transform(
-			Object service, String methodName = null,
-			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.transform service, methodName, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the {@link MessageTransformingHandler} instance for the
-	 * {@link org.springframework.integration.handler.MessageProcessor} from provided {@link MessageProcessorSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @deprecated since 6.2 in favor of {@link #transform(Closure)}
-	 * @see MethodInvokingTransformer
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	GroovyIntegrationFlowDefinition transform(
-			MessageProcessorSpec<?> messageProcessorSpec,
-			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.transform messageProcessorSpec, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the
 	 * {@link org.springframework.integration.handler.MessageProcessor} from provided {@link MessageProcessorSpec}.
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
@@ -379,57 +312,6 @@ class GroovyIntegrationFlowDefinition {
 					Closure<?> endpointConfigurer = null) {
 
 		this.delegate.convert payloadType, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}
-	 * for the specific {@code expectedType} to convert at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param expectedType the {@link Class} for expected payload type. It can also be
-	 * {@code Message.class} if you wish to access the entire message in the transformer.
-	 * Conversion to this type will be attempted, if necessary.
-	 * @param genericTransformer the {@link GenericTransformer} to populate.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param < P >                                                  the payload type - 'transform from', or {@code Message.class}.
-	 * @param < T >                                                  the target type - 'transform to'.
-	 * @deprecated since 6.2 in favor of {@link #transform(Closure)}
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	<P, T> GroovyIntegrationFlowDefinition transform(
-			GenericTransformer<P, T> genericTransformer,
-			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.transform genericTransformer, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}
-	 * for the specific {@code expectedType} to convert at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param expectedType the {@link Class} for expected payload type. It can also be
-	 * {@code Message.class} if you wish to access the entire message in the transformer.
-	 * Conversion to this type will be attempted, if necessary.
-	 * @param genericTransformer the {@link GenericTransformer} to populate.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param < P >                                                  the payload type - 'transform from', or {@code Message.class}.
-	 * @param < T >                                                  the target type - 'transform to'.
-	 * @deprecated since 6.2 in favor of {@link #transform(Closure)}
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	<P, T> GroovyIntegrationFlowDefinition transform(
-			Class<P> expectedType,
-			GenericTransformer<P, T> genericTransformer,
-			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		GenericTransformer<P, T> lambdaWrapper = payload -> genericTransformer(payload)
-
-		this.delegate.transform expectedType, lambdaWrapper, createConfigurerIfAny(endpointConfigurer)
 		this
 	}
 
@@ -644,25 +526,6 @@ class GroovyIntegrationFlowDefinition {
 
 	/**
 	 * Populate a {@link org.springframework.integration.handler.DelayHandler} to the current integration flow position.
-	 * @param groupId the {@code groupId} for delayed messages in the
-	 * {@link org.springframework.integration.store.MessageGroupStore}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @see org.springframework.integration.dsl.DelayerEndpointSpec
-	 * @deprecated since 6.2 in favor of {@link #delay(groovy.lang.Closure)}
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	GroovyIntegrationFlowDefinition delay(
-			String groupId,
-			@DelegatesTo(value = DelayerEndpointSpec, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.DelayerEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.delay groupId, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate a {@link org.springframework.integration.handler.DelayHandler} to the current integration flow position.
 	 * The {@link DelayerEndpointSpec#messageGroupId(String)} is required option.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @since 6.2
@@ -734,204 +597,6 @@ class GroovyIntegrationFlowDefinition {
 					Closure<?> splitConfigurer) {
 
 		this.delegate.splitWith createConfigurerIfAny(splitConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the {@link DefaultMessageSplitter} with provided options
-	 * to the current integration flow position.
-	 * Used with a Closure expression.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link DefaultMessageSplitter}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
-	 * @see SplitterEndpointSpec
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	@SuppressWarnings(['removal', 'deprecation'])
-	GroovyIntegrationFlowDefinition split(
-			@DelegatesTo(value = SplitterEndpointSpec<DefaultMessageSplitter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterEndpointSpec')
-					Closure<?> endpointConfigurer) {
-
-		this.delegate.split createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the {@link ExpressionEvaluatingSplitter} with provided
-	 * SpEL expression.
-	 * @param expression the splitter SpEL expression.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link ExpressionEvaluatingSplitter}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	@SuppressWarnings(['removal', 'deprecation'])
-	GroovyIntegrationFlowDefinition split(
-			String expression,
-			@DelegatesTo(value = SplitterEndpointSpec<ExpressionEvaluatingSplitter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.split expression, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
-	 * {@code method} of the {@code bean} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param service the service to use.
-	 * @param methodName the method to invoke.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link MethodInvokingSplitter}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	@SuppressWarnings(['removal', 'deprecation'])
-	GroovyIntegrationFlowDefinition split(
-			Object service, String methodName = null,
-			@DelegatesTo(value = SplitterEndpointSpec<MethodInvokingSplitter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.split service, methodName, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
-	 * {@code method} of the {@code bean} at runtime.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param beanName the bean name to use.
-	 * @param methodName the method to invoke at runtime.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link MethodInvokingSplitter}.
-	 * @see org.springframework.integration.dsl.SplitterEndpointSpec
-	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	@SuppressWarnings(['removal', 'deprecation'])
-	GroovyIntegrationFlowDefinition split(
-			String beanName, String methodName,
-			@DelegatesTo(value = SplitterEndpointSpec<MethodInvokingSplitter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.split beanName, methodName, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the
-	 * {@link MessageProcessor} at runtime
-	 * from provided {@link MessageProcessorSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param messageProcessorSpec the splitter {@link MessageProcessorSpec}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link MethodInvokingSplitter}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	@SuppressWarnings(['removal', 'deprecation'])
-	GroovyIntegrationFlowDefinition split(
-			MessageProcessorSpec<?> messageProcessorSpec,
-			@DelegatesTo(value = SplitterEndpointSpec<MethodInvokingSplitter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.split messageProcessorSpec, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
-	 * {@link Function} at runtime.
-	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param expectedType the {@link Class} for expected payload type. It can also be
-	 * {@code Message.class} if you wish to access the entire message in the splitter.
-	 * Conversion to this type will be attempted, if necessary.
-	 * @param splitter the splitter {@link Function}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <P> the payload type or {@code Message.class}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	@SuppressWarnings(['removal', 'deprecation'])
-	<P> GroovyIntegrationFlowDefinition split(
-			Class<P> expectedType, Function<P, ?> splitter,
-			@DelegatesTo(value = SplitterEndpointSpec<MethodInvokingSplitter>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		Function<P, ?> lambdaWrapper = payload -> splitter(payload)
-
-		this.delegate.split expectedType, lambdaWrapper, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
-	 * flow position.
-	 * @param splitterMessageHandlerSpec the {@link MessageHandlerSpec} to populate.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <S> the {@link AbstractMessageSplitter}
-	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
-	 * @see org.springframework.integration.dsl.SplitterEndpointSpec
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	@SuppressWarnings(['removal', 'deprecation'])
-	<S extends AbstractMessageSplitter> GroovyIntegrationFlowDefinition split(
-			MessageHandlerSpec<?, S> splitterMessageHandlerSpec,
-			@DelegatesTo(value = SplitterEndpointSpec<S>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.split splitterMessageHandlerSpec, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
-	 * flow position.
-	 * @param splitter the {@link AbstractMessageSplitter} to populate.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <S> the {@link AbstractMessageSplitter}
-	 * @deprecated since 6.2 in favor of {@link #splitWith(groovy.lang.Closure)}
-	 * @see org.springframework.integration.dsl.SplitterEndpointSpec
-	 */
-	@Deprecated(since = '6.2', forRemoval = true)
-	@SuppressWarnings(['removal', 'deprecation'])
-	<S extends AbstractMessageSplitter> GroovyIntegrationFlowDefinition split(
-			S splitter,
-			@DelegatesTo(value = SplitterEndpointSpec<S>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.SplitterEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		this.delegate.split splitter, createConfigurerIfAny(endpointConfigurer)
-		this
-	}
-
-	/**
-	 * Populate the provided {@link MessageTransformingHandler} for the provided
-	 * {@link HeaderFilter}.
-	 * @param headerFilter the {@link HeaderFilter} to use.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @deprecated since 6.2 in favor of {@link #headerFilter(groovy.lang.Closure)}
-	 * @see GenericEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	GroovyIntegrationFlowDefinition headerFilter(
-			String headersToRemove,
-			boolean patternMatch = true,
-			@DelegatesTo(value = GenericEndpointSpec<MessageTransformingHandler>, strategy = Closure.DELEGATE_FIRST)
-			@ClosureParams(value = SimpleType.class, options = 'org.springframework.integration.dsl.GenericEndpointSpec')
-					Closure<?> endpointConfigurer = null) {
-
-		def headerFilter = new HeaderFilter(StringUtils.delimitedListToStringArray(headersToRemove, ',', ' '))
-		headerFilter.patternMatch = patternMatch
-
-		this.delegate.headerFilter headerFilter, createConfigurerIfAny(endpointConfigurer)
 		this
 	}
 

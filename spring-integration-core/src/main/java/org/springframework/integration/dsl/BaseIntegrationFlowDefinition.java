@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 the original author or authors.
+ * Copyright 2019-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -553,25 +553,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
-	 * Populate the {@code Transformer} EI Pattern specific {@link MessageHandler} implementation
-	 * for the SpEL {@link Expression}.
-	 * @param expression the {@code Transformer} {@link Expression}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #transformWith(Consumer)}.
-	 * @see ExpressionEvaluatingTransformer
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public B transform(String expression,
-			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-
-		Assert.hasText(expression, "'expression' must not be empty");
-		return transform(null,
-				new ExpressionEvaluatingTransformer(PARSER.parseExpression(expression)),
-				endpointConfigurer);
-	}
-
-	/**
 	 * Populate the {@code MessageTransformingHandler} for the {@link MethodInvokingTransformer}
 	 * to invoke the discovered service method at runtime.
 	 * Shortcut for:
@@ -624,31 +605,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
-	 * Populate the {@code MessageTransformingHandler} for the {@link MethodInvokingTransformer}
-	 * to invoke the service method at runtime.
-	 * @param service the service to use.
-	 * @param methodName the method to invoke.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #transformWith(Consumer)}.
-	 * @see MethodInvokingTransformer
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public B transform(Object service, @Nullable String methodName,
-			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-
-		MethodInvokingTransformer transformer;
-		if (StringUtils.hasText(methodName)) {
-			transformer = new MethodInvokingTransformer(service, methodName);
-		}
-		else {
-			transformer = new MethodInvokingTransformer(service);
-		}
-
-		return transform(null, transformer, endpointConfigurer);
-	}
-
-	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the
 	 * {@link MessageProcessor} from provided {@link MessageProcessorSpec}.
 	 * <pre class="code">
@@ -668,32 +624,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec) {
 		return transformWith((transformerSpec) -> transformerSpec.processor(messageProcessorSpec));
-	}
-
-	/**
-	 * Populate the {@link MessageTransformingHandler} instance for the
-	 * {@link MessageProcessor} from provided {@link MessageProcessorSpec}.
-	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * <pre class="code">
-	 * {@code
-	 *  .transform(Scripts.script("classpath:myScript.py").variable("foo", bar()),
-	 *           e -> e.autoStartup(false))
-	 * }
-	 * </pre>
-	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #transformWith(Consumer)}.
-	 * @see MethodInvokingTransformer
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public B transform(MessageProcessorSpec<?> messageProcessorSpec,
-			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-
-		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
-		MessageProcessor<?> processor = messageProcessorSpec.getObject();
-		return addComponent(processor)
-				.transform(null, new MethodInvokingTransformer(processor), endpointConfigurer);
 	}
 
 	/**
@@ -762,13 +692,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param <P> the payload type - 'transform from', or {@code Message.class}.
 	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #transformWith(Consumer)}
 	 * @see MethodInvokingTransformer
 	 * @see LambdaMessageProcessor
 	 * @see GenericEndpointSpec
 	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public <P, T> B transform(@Nullable Class<P> expectedType, GenericTransformer<P, T> genericTransformer,
+	private  <P, T> B transform(@Nullable Class<P> expectedType, GenericTransformer<P, T> genericTransformer,
 			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
 		Assert.notNull(genericTransformer, "'genericTransformer' must not be null");
@@ -1254,20 +1182,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	/**
 	 * Populate a {@link DelayHandler} to the current integration flow position.
-	 * @param groupId the {@code groupId} for delayed messages in the
-	 * {@link org.springframework.integration.store.MessageGroupStore}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #delay(Consumer)}
-	 * @see DelayerEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public B delay(String groupId, @Nullable Consumer<DelayerEndpointSpec> endpointConfigurer) {
-		return register(new DelayerEndpointSpec(new DelayHandler(groupId)), endpointConfigurer);
-	}
-
-	/**
-	 * Populate a {@link DelayHandler} to the current integration flow position.
 	 * The {@link DelayerEndpointSpec#messageGroupId(String)} is required option.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
@@ -1409,28 +1323,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
-	 * Populate the {@link DefaultMessageSplitter} with provided options
-	 * to the current integration flow position.
-	 * Typically, used with a Lambda expression:
-	 * <pre class="code">
-	 * {@code
-	 *  .split(s -> s.applySequence(false).delimiters(","))
-	 * }
-	 * </pre>
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link DefaultMessageSplitter}.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
-	 * @see SplitterEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@SuppressWarnings("removal")
-	public B split(@Nullable Consumer<SplitterEndpointSpec<DefaultMessageSplitter>> endpointConfigurer) {
-		return split(new DefaultMessageSplitter(), endpointConfigurer);
-	}
-
-
-	/**
 	 * Populate the splitter with provided options to the current integration flow position:
 	 * <pre class="code">
 	 * {@code
@@ -1464,24 +1356,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
-	 * Populate the {@link ExpressionEvaluatingSplitter} with provided SpEL expression.
-	 * @param expression the splitter SpEL expression.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link ExpressionEvaluatingSplitter}.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
-	 * @see SplitterEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@SuppressWarnings("removal")
-	public B split(String expression,
-			@Nullable Consumer<SplitterEndpointSpec<ExpressionEvaluatingSplitter>> endpointConfigurer) {
-
-		Assert.hasText(expression, "'expression' must not be empty");
-		return split(new ExpressionEvaluatingSplitter(PARSER.parseExpression(expression)), endpointConfigurer);
-	}
-
-	/**
 	 * Populate the {@link MethodInvokingSplitter} to evaluate the discovered
 	 * {@code method} of the {@code service} at runtime.
 	 * @param service the service to use.
@@ -1507,61 +1381,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
 	 * {@code method} of the {@code bean} at runtime.
-	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param service the service to use.
-	 * @param methodName the method to invoke.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link MethodInvokingSplitter}.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
-	 * @see SplitterEndpointSpec
-	 * @see MethodInvokingSplitter
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@SuppressWarnings("removal")
-	public B split(Object service, @Nullable String methodName,
-			@Nullable Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
-
-		MethodInvokingSplitter splitter;
-		if (StringUtils.hasText(methodName)) {
-			splitter = new MethodInvokingSplitter(service, methodName);
-		}
-		else {
-			splitter = new MethodInvokingSplitter(service);
-		}
-		return split(splitter, endpointConfigurer);
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
-	 * {@code method} of the {@code bean} at runtime.
 	 * @param beanName the bean name to use.
 	 * @param methodName the method to invoke at runtime.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B split(String beanName, @Nullable String methodName) {
 		return splitWith((splitterSpec) -> splitterSpec.refName(beanName).method(methodName));
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
-	 * {@code method} of the {@code bean} at runtime.
-	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param beanName the bean name to use.
-	 * @param methodName the method to invoke at runtime.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link MethodInvokingSplitter}.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
-	 * @see SplitterEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@SuppressWarnings("removal")
-	public B split(String beanName, @Nullable String methodName,
-			@Nullable Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
-
-		return split(new MethodInvokingSplitter(new BeanNameMessageProcessor<>(beanName, methodName)),
-				endpointConfigurer);
 	}
 
 	/**
@@ -1579,35 +1404,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public B split(MessageProcessorSpec<?> messageProcessorSpec) {
 		return splitWith((splitterSpec) -> splitterSpec.ref(messageProcessorSpec));
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the
-	 * {@link MessageProcessor} at runtime
-	 * from provided {@link MessageProcessorSpec}.
-	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * <pre class="code">
-	 * {@code
-	 *  .split(Scripts.script(myScriptResource).lang("groovy").refreshCheckDelay(1000),
-	 *  			, e -> e.applySequence(false))
-	 * }
-	 * </pre>
-	 * @param messageProcessorSpec the splitter {@link MessageProcessorSpec}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link MethodInvokingSplitter}.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
-	 * @see SplitterEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@SuppressWarnings("removal")
-	public B split(MessageProcessorSpec<?> messageProcessorSpec,
-			@Nullable Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
-
-		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
-		MessageProcessor<?> processor = messageProcessorSpec.getObject();
-		return addComponent(processor)
-				.split(new MethodInvokingSplitter(processor), endpointConfigurer);
 	}
 
 	/**
@@ -1637,45 +1433,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	}
 
 	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
-	 * {@link Function} at runtime.
-	 * In addition, accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically, used with a Lambda expression:
-	 * <pre class="code">
-	 * {@code
-	 *  .split(String.class, p ->
-	 *        jdbcTemplate.execute("SELECT * from FOO",
-	 *            (PreparedStatement ps) ->
-	 *                 new ResultSetIterator<Foo>(ps.executeQuery(),
-	 *                     (rs, rowNum) ->
-	 *                           new Foo(rs.getInt(1), rs.getString(2))))
-	 *       , e -> e.applySequence(false))
-	 * }
-	 * </pre>
-	 * @param expectedType the {@link Class} for expected payload type. It can also be
-	 * {@code Message.class} if you wish to access the entire message in the splitter.
-	 * Conversion to this type will be attempted, if necessary.
-	 * @param splitter the splitter {@link Function}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <P> the payload type or {@code Message.class}.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
-	 * @see LambdaMessageProcessor
-	 * @see SplitterEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@SuppressWarnings("removal")
-	public <P> B split(@Nullable Class<P> expectedType, Function<P, ?> splitter,
-			@Nullable Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
-
-		MethodInvokingSplitter split =
-				ClassUtils.isLambda(splitter.getClass())
-						? new MethodInvokingSplitter(new LambdaMessageProcessor(splitter, expectedType))
-						: new MethodInvokingSplitter(splitter, ClassUtils.FUNCTION_APPLY_METHOD);
-		return split(split, endpointConfigurer);
-	}
-
-	/**
 	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
 	 * flow position.
 	 * @param splitterMessageHandlerSpec the {@link MessageHandlerSpec} to populate.
@@ -1690,50 +1447,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	/**
 	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
 	 * flow position.
-	 * @param splitterMessageHandlerSpec the {@link MessageHandlerSpec} to populate.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <S> the {@link AbstractMessageSplitter}
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
-	 * @see SplitterEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@SuppressWarnings("removal")
-	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec,
-			@Nullable Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
-
-		Assert.notNull(splitterMessageHandlerSpec, "'splitterMessageHandlerSpec' must not be null");
-		return split(splitterMessageHandlerSpec.getObject(), endpointConfigurer);
-	}
-
-	/**
-	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
-	 * flow position.
 	 * @param splitter the {@link AbstractMessageSplitter} to populate.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see SplitterSpec
 	 */
 	public B split(AbstractMessageSplitter splitter) {
 		return splitWith((splitterSpec) -> splitterSpec.ref(splitter));
-	}
-
-	/**
-	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
-	 * flow position.
-	 * @param splitter the {@link AbstractMessageSplitter} to populate.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <S> the {@link AbstractMessageSplitter}
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #splitWith(Consumer)}.
-	 * @see SplitterEndpointSpec
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	@SuppressWarnings("removal")
-	public <S extends AbstractMessageSplitter> B split(S splitter,
-			@Nullable Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
-
-		Assert.notNull(splitter, "'splitter' must not be null");
-		return register(new SplitterEndpointSpec<>(splitter), endpointConfigurer);
 	}
 
 	/**
@@ -1744,22 +1463,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public B headerFilter(String... headersToRemove) {
 		return headerFilter(new HeaderFilter(headersToRemove), null);
-	}
-
-	/**
-	 * Provide the {@link HeaderFilter} to the current {@link StandardIntegrationFlow}.
-	 * @param headersToRemove the comma separated headers (or patterns) to remove from
-	 * {@link org.springframework.messaging.MessageHeaders}.
-	 * @param patternMatch the {@code boolean} flag to indicate if {@code headersToRemove}
-	 * should be interpreted as patterns or direct header names.
-	 * @return this {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated since 6.2 in favor of {@link #headerFilter(Consumer)}
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public B headerFilter(String headersToRemove, boolean patternMatch) {
-		return headerFilter((headerFilterSpec) -> headerFilterSpec
-				.headersToRemove(StringUtils.delimitedListToStringArray(headersToRemove, ",", " "))
-				.patternMatch(patternMatch));
 	}
 
 	/**
