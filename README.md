@@ -3,7 +3,7 @@
 # Spring Integration
 
 [![Build Status](https://github.com/spring-projects/spring-integration/actions/workflows/ci-snapshot.yml/badge.svg)](https://github.com/spring-projects/spring-integration/actions/workflows/ci-snapshot.yml)
-[![Revved up by Gradle Enterprise](https://img.shields.io/badge/Revved%20up%20by-Gradle%20Enterprise-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.spring.io/scans?search.rootProjectNames=spring-integration)
+[![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.spring.io/scans?search.rootProjectNames=spring-integration)
 
 Extends the Spring programming model to support the well-known Enterprise Integration Patterns. 
 Spring Integration enables lightweight messaging within Spring-based applications and supports integration with external systems via declarative adapters. 
