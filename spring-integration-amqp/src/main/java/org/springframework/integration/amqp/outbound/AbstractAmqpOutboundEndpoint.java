@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	private Expression delayExpression;
 
-	private ExpressionEvaluatingMessageProcessor<Integer> delayGenerator;
+	private ExpressionEvaluatingMessageProcessor<Long> delayGenerator;
 
 	private boolean headersMappedLast;
 
@@ -483,7 +483,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	private void configureDelayGenerator(BeanFactory beanFactory) {
 		if (this.delayExpression != null) {
-			this.delayGenerator = new ExpressionEvaluatingMessageProcessor<>(this.delayExpression, Integer.class);
+			this.delayGenerator = new ExpressionEvaluatingMessageProcessor<>(this.delayExpression, Long.class);
 			if (beanFactory != null) {
 				this.delayGenerator.setBeanFactory(beanFactory);
 			}
@@ -622,7 +622,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	protected void addDelayProperty(Message<?> message, org.springframework.amqp.core.Message amqpMessage) {
 		if (this.delayGenerator != null) {
-			amqpMessage.getMessageProperties().setDelay(this.delayGenerator.processMessage(message));
+			amqpMessage.getMessageProperties().setDelayLong(this.delayGenerator.processMessage(message));
 		}
 	}
 

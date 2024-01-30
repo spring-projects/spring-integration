@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMap.put(AmqpHeaders.CONTENT_TYPE, "test.contentType");
 		String testCorrelationId = "foo";
 		headerMap.put(AmqpHeaders.CORRELATION_ID, testCorrelationId);
-		headerMap.put(AmqpHeaders.DELAY, 1234);
+		headerMap.put(AmqpHeaders.DELAY, 1234L);
 		headerMap.put(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.NON_PERSISTENT);
 		headerMap.put(AmqpHeaders.DELIVERY_TAG, 1234L);
 		headerMap.put(AmqpHeaders.EXPIRATION, "test.expiration");
@@ -111,7 +111,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertThat(amqpProperties.getContentLength()).isEqualTo(99L);
 		assertThat(amqpProperties.getContentType()).isEqualTo("test.contentType");
 		assertThat(amqpProperties.getCorrelationId()).isEqualTo(testCorrelationId);
-		assertThat(amqpProperties.getDelay()).isEqualTo(Integer.valueOf(1234));
+		assertThat(amqpProperties.getDelayLong()).isEqualTo(1234L);
 		assertThat(amqpProperties.getDeliveryMode()).isEqualTo(MessageDeliveryMode.NON_PERSISTENT);
 		assertThat(amqpProperties.getDeliveryTag()).isEqualTo(1234L);
 		assertThat(amqpProperties.getExpiration()).isEqualTo("test.expiration");
@@ -183,7 +183,7 @@ public class DefaultAmqpHeaderMapperTests {
 		amqpProperties.setMessageCount(42);
 		amqpProperties.setMessageId("test.messageId");
 		amqpProperties.setPriority(22);
-		amqpProperties.setReceivedDelay(4567);
+		amqpProperties.setReceivedDelayLong(4567L);
 		amqpProperties.setReceivedExchange("test.receivedExchange");
 		amqpProperties.setReceivedRoutingKey("test.receivedRoutingKey");
 		amqpProperties.setRedelivered(true);
@@ -206,7 +206,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertThat(headerMap.get(AmqpHeaders.EXPIRATION)).isEqualTo("test.expiration");
 		assertThat(headerMap.get(AmqpHeaders.MESSAGE_COUNT)).isEqualTo(42);
 		assertThat(headerMap.get(AmqpHeaders.MESSAGE_ID)).isEqualTo("test.messageId");
-		assertThat(headerMap.get(AmqpHeaders.RECEIVED_DELAY)).isEqualTo(4567);
+		assertThat(headerMap.get(AmqpHeaders.RECEIVED_DELAY)).isEqualTo(4567L);
 		assertThat(headerMap.get(AmqpHeaders.RECEIVED_EXCHANGE)).isEqualTo("test.receivedExchange");
 		assertThat(headerMap.get(AmqpHeaders.RECEIVED_ROUTING_KEY)).isEqualTo("test.receivedRoutingKey");
 		assertThat(headerMap.get(AmqpHeaders.REPLY_TO)).isEqualTo("test.replyTo");

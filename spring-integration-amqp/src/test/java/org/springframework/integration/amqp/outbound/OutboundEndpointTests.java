@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,19 +79,19 @@ public class OutboundEndpointTests {
 		endpoint.handleMessage(new GenericMessage<>("foo"));
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
 		verify(amqpTemplate).send(eq("foo"), eq("bar"), captor.capture(), isNull());
-		assertThat(captor.getValue().getMessageProperties().getDelay()).isEqualTo(42);
+		assertThat(captor.getValue().getMessageProperties().getDelayLong()).isEqualTo(42);
 		endpoint.setExpectReply(true);
 		endpoint.setOutputChannel(new NullChannel());
 		endpoint.handleMessage(new GenericMessage<>("foo"));
 		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("bar"), captor.capture(), isNull());
-		assertThat(captor.getValue().getMessageProperties().getDelay()).isEqualTo(42);
+		assertThat(captor.getValue().getMessageProperties().getDelayLong()).isEqualTo(42);
 
 		endpoint.setDelay(23);
 		endpoint.setRoutingKey("baz");
 		endpoint.afterPropertiesSet();
 		endpoint.handleMessage(new GenericMessage<>("foo"));
 		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("baz"), captor.capture(), isNull());
-		assertThat(captor.getValue().getMessageProperties().getDelay()).isEqualTo(23);
+		assertThat(captor.getValue().getMessageProperties().getDelayLong()).isEqualTo(23);
 	}
 
 	@Test
@@ -114,7 +114,7 @@ public class OutboundEndpointTests {
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
 		gateway.handleMessage(new GenericMessage<>("foo"));
 		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("bar"), captor.capture());
-		assertThat(captor.getValue().getMessageProperties().getDelay()).isEqualTo(42);
+		assertThat(captor.getValue().getMessageProperties().getDelayLong()).isEqualTo(42);
 	}
 
 	@Test
