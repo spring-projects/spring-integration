@@ -16,7 +16,9 @@
 
 package org.springframework.integration.mqtt.inbound;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -114,7 +116,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	 */
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, MqttSubscription... mqttSubscriptions) {
 		this(url, clientId, Arrays.stream(mqttSubscriptions).map(MqttSubscription::getTopic).toArray(String[]::new));
-		this.subscriptions = Arrays.asList(mqttSubscriptions);
+		this.subscriptions = new ArrayList<>();
+		Collections.addAll(this.subscriptions, mqttSubscriptions);
 	}
 
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
@@ -137,7 +140,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 		this(connectionOptions, clientId,
 				Arrays.stream(mqttSubscriptions).map(MqttSubscription::getTopic).toArray(String[]::new));
-		this.subscriptions = List.of(mqttSubscriptions);
+		this.subscriptions = new ArrayList<>();
+		Collections.addAll(this.subscriptions, mqttSubscriptions);
 	}
 
 	public Mqttv5PahoMessageDrivenChannelAdapter(MqttConnectionOptions connectionOptions, String clientId,
@@ -162,7 +166,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			MqttSubscription... mqttSubscriptions) {
 
 		this(clientManager, Arrays.stream(mqttSubscriptions).map(MqttSubscription::getTopic).toArray(String[]::new));
-		this.subscriptions = List.of(mqttSubscriptions);
+		this.subscriptions = new ArrayList<>();
+		Collections.addAll(this.subscriptions, mqttSubscriptions);
 	}
 
 	/**
