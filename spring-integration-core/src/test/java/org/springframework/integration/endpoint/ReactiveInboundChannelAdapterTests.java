@@ -61,6 +61,10 @@ public class ReactiveInboundChannelAdapterTests {
 	@Qualifier("counterEndpoint")
 	private AbstractPollingEndpoint abstractPollingEndpoint;
 
+	@Autowired
+	@Qualifier("timeEndpoint")
+	private AbstractPollingEndpoint timeEndpoint;
+
 	@Test
 	public void testReactiveInboundChannelAdapter() {
 		Flux<Integer> testFlux =
@@ -71,10 +75,12 @@ public class ReactiveInboundChannelAdapterTests {
 		StepVerifier.create(testFlux)
 				.expectSubscription()
 				.expectNoEvent(Duration.ofSeconds(1))
-				.then(() -> abstractPollingEndpoint.setMaxMessagesPerPoll(-1))
+				.then(() -> this.abstractPollingEndpoint.setMaxMessagesPerPoll(-1))
 				.expectNext(2, 4, 6, 8, 10, 12, 14, 16)
 				.thenCancel()
 				.verify(Duration.ofSeconds(10));
+
+		this.abstractPollingEndpoint.stop();
 	}
 
 	@Autowired
@@ -91,6 +97,8 @@ public class ReactiveInboundChannelAdapterTests {
 		List<Long> dates = new ArrayList<>();
 
 		StepVerifier.create(testFlux)
+				.expectSubscription()
+				.then(() -> this.timeEndpoint.start())
 				.consumeNextWith(dates::add)
 				.consumeNextWith(dates::add)
 				.consumeNextWith(dates::add)
@@ -99,6 +107,8 @@ public class ReactiveInboundChannelAdapterTests {
 
 		assertThat(dates.get(1) - dates.get(0)).isGreaterThanOrEqualTo(1000);
 		assertThat(dates.get(2) - dates.get(1)).isGreaterThanOrEqualTo(1000);
+
+		this.timeEndpoint.stop();
 	}
 
 	@Configuration
@@ -132,7 +142,8 @@ public class ReactiveInboundChannelAdapterTests {
 		}
 
 		@Bean
-		@InboundChannelAdapter(value = "fluxChannel2", poller = @Poller(fixedDelay = "1000"))
+		@InboundChannelAdapter(value = "fluxChannel2", autoStartup = "false", poller = @Poller(fixedDelay = "1000"))
+		@EndpointId("timeEndpoint")
 		public Supplier<Date> timeSupplier() {
 			return Date::new;
 		}
