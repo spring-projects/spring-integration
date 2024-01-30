@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatRuntimeException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -87,20 +90,13 @@ public class AdvisedMessageHandlerTests {
 	@Test
 	public void circuitBreakerExceptionText() {
 		GenericMessage<String> message = new GenericMessage<>("foo");
-		try {
-			input.send(message);
-			fail("expected exception");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getCause()).isInstanceOf(ArithmeticException.class);
-		}
-		try {
-			input.send(message);
-			fail("expected exception");
-		}
-		catch (RuntimeException e) {
-			assertThat(e.getMessage()).contains("Circuit Breaker is Open for");
-		}
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> input.send(message))
+				.withCauseInstanceOf(ArithmeticException.class);
+
+		assertThatRuntimeException()
+				.isThrownBy(() -> input.send(message))
+				.withMessageContaining("Circuit Breaker is Open for");
 	}
 
 	@Test
@@ -137,7 +133,7 @@ public class AdvisedMessageHandlerTests {
 		advice.setOnSuccessExpressionString("'foo'");
 		advice.setOnFailureExpressionString("'bar:' + #exception.message");
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		final AtomicReference<String> compName = new AtomicReference<>();
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
@@ -169,13 +165,9 @@ public class AdvisedMessageHandlerTests {
 
 		// advice with failure, not trapped
 		doFail.set(true);
-		try {
-			handler.handleMessage(message);
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("qux");
-		}
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("qux");
 
 		Message<?> failure = failureChannel.receive(1000);
 		assertThat(failure).isNotNull();
@@ -237,7 +229,7 @@ public class AdvisedMessageHandlerTests {
 		advice.setOnSuccessExpressionString("1/0");
 		advice.setOnFailureExpressionString("1/0");
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -257,13 +249,10 @@ public class AdvisedMessageHandlerTests {
 
 		// propagate failing advice with success
 		advice.setPropagateEvaluationFailures(true);
-		try {
-			handler.handleMessage(message);
-			fail("Expected Exception");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("/ by zero");
-		}
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("/ by zero");
+
 		reply = replies.receive(1);
 		assertThat(reply).isNull();
 
@@ -301,20 +290,17 @@ public class AdvisedMessageHandlerTests {
 		advice.setOnSuccessExpressionString("1/0");
 		advice.setOnFailureExpressionString("1/0");
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		// failing advice with failure
-		try {
-			handler.handleMessage(message);
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("qux");
-		}
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("qux");
+
 		Message<?> reply = replies.receive(1);
 		assertThat(reply).isNull();
 
@@ -327,13 +313,10 @@ public class AdvisedMessageHandlerTests {
 
 		// propagate failing advice with failure; expect original exception
 		advice.setPropagateEvaluationFailures(true);
-		try {
-			handler.handleMessage(message);
-			fail("Expected Exception");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("qux");
-		}
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("qux");
+
 		reply = replies.receive(1);
 		assertThat(reply).isNull();
 
@@ -380,28 +363,18 @@ public class AdvisedMessageHandlerTests {
 
 		doFail.set(true);
 		Message<String> message = new GenericMessage<>("Hello, world!");
-		try {
-			handler.handleMessage(message);
-			fail("Expected failure");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("foo");
-		}
-		try {
-			handler.handleMessage(message);
-			fail("Expected failure");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("foo");
-		}
-		try {
-			handler.handleMessage(message);
-			fail("Expected failure");
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for bean 'baz'");
-			assertThat(((MessagingException) e).getFailedMessage()).isSameAs(message);
-		}
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("foo");
+
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("foo");
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withMessage("Circuit Breaker is Open for bean 'baz'")
+				.extracting("failedMessage").isSameAs(message);
 
 		Map metadataMap = TestUtils.getPropertyValue(advice, "metadataMap", Map.class);
 		Object metadata = metadataMap.values().iterator().next();
@@ -411,20 +384,13 @@ public class AdvisedMessageHandlerTests {
 		// Simulate some timeout in between requests
 		metadataDfa.setPropertyValue("lastFailure", System.currentTimeMillis() - 10000);
 
-		try {
-			handler.handleMessage(message);
-			fail("Expected failure");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("foo");
-		}
-		try {
-			handler.handleMessage(message);
-			fail("Expected failure");
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for bean 'baz'");
-		}
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("foo");
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withMessage("Circuit Breaker is Open for bean 'baz'");
 
 		// Simulate some timeout in between requests
 		metadataDfa.setPropertyValue("lastFailure", System.currentTimeMillis() - 10000);
@@ -432,27 +398,18 @@ public class AdvisedMessageHandlerTests {
 		doFail.set(false);
 		handler.handleMessage(message);
 		doFail.set(true);
-		try {
-			handler.handleMessage(message);
-			fail("Expected failure");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("foo");
-		}
-		try {
-			handler.handleMessage(message);
-			fail("Expected failure");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("foo");
-		}
-		try {
-			handler.handleMessage(message);
-			fail("Expected failure");
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for bean 'baz'");
-		}
+
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("foo");
+
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("foo");
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withMessage("Circuit Breaker is Open for bean 'baz'");
 	}
 
 	@Test
@@ -484,7 +441,6 @@ public class AdvisedMessageHandlerTests {
 		Message<?> reply = replies.receive(10000);
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("bar");
-
 	}
 
 	@Test
@@ -525,7 +481,6 @@ public class AdvisedMessageHandlerTests {
 		Message<?> reply = replies.receive(10000);
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("bar");
-
 	}
 
 	@Test
@@ -548,7 +503,6 @@ public class AdvisedMessageHandlerTests {
 		advice.setRetryStateGenerator(message -> new DefaultRetryState(message.getHeaders().getId()));
 
 		defaultStatefulRetryRecoverAfterThirdTryGuts(counter, handler, replies, advice);
-
 	}
 
 	@Test
@@ -571,11 +525,11 @@ public class AdvisedMessageHandlerTests {
 		advice.setRetryStateGenerator(new SpelExpressionRetryStateGenerator("headers['id']"));
 
 		defaultStatefulRetryRecoverAfterThirdTryGuts(counter, handler, replies, advice);
-
 	}
 
 	private void defaultStatefulRetryRecoverAfterThirdTryGuts(final AtomicInteger counter,
 			AbstractReplyProducingMessageHandler handler, QueueChannel replies, RequestHandlerRetryAdvice advice) {
+
 		advice.setRecoveryCallback(context -> "baz");
 
 		List<Advice> adviceChain = new ArrayList<>();
@@ -623,7 +577,6 @@ public class AdvisedMessageHandlerTests {
 		Message<?> error = errors.receive(10000);
 		assertThat(error).isNotNull();
 		assertThat(((Exception) error.getPayload()).getCause().getMessage()).isEqualTo("fooException");
-
 	}
 
 	@Test
@@ -693,14 +646,10 @@ public class AdvisedMessageHandlerTests {
 		handler.setAdviceChain(adviceChain);
 		handler.afterPropertiesSet();
 
-		try {
-			handler.handleMessage(new GenericMessage<>("test"));
-		}
-		catch (Exception e) {
-			Throwable cause = e.getCause();
-			assertThat(cause.getClass()).isEqualTo(RuntimeException.class);
-			assertThat(cause.getMessage()).isEqualTo("intentional");
-		}
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test")))
+				.withCauseInstanceOf(RuntimeException.class)
+				.withStackTraceContaining("intentional");
 
 		assertThat(counter.get() == 0).isTrue();
 	}
@@ -785,12 +734,9 @@ public class AdvisedMessageHandlerTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		try {
-			handler.handleMessage(new GenericMessage<>("test"));
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional: 3");
-		}
+		assertThatException()
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test")))
+				.withStackTraceContaining("intentional: 3");
 
 		for (int i = 1; i <= 3; i++) {
 			Message<?> receive = errors.receive(10000);
@@ -800,7 +746,6 @@ public class AdvisedMessageHandlerTests {
 		}
 
 		assertThat(errors.receive(1)).isNull();
-
 	}
 
 	/**
@@ -865,16 +810,13 @@ public class AdvisedMessageHandlerTests {
 
 		Bar fooHandler = (Bar) proxyFactory.getProxy();
 
-		try {
-			fooHandler.handleRequestMessage(new GenericMessage<>("foo"));
-			fail("Expected throwable");
-		}
-		catch (Throwable t) {
-			assertThat(t).isSameAs(theThrowable);
-			ErrorMessage error = (ErrorMessage) errors.receive(10000);
-			assertThat(error).isNotNull();
-			assertThat(error.getPayload().getCause()).isSameAs(theThrowable);
-		}
+		assertThatExceptionOfType(Throwable.class)
+				.isThrownBy(() -> fooHandler.handleRequestMessage(new GenericMessage<>("foo")))
+				.isSameAs(theThrowable);
+
+		ErrorMessage error = (ErrorMessage) errors.receive(10000);
+		assertThat(error).isNotNull();
+		assertThat(error.getPayload().getCause()).isSameAs(theThrowable);
 	}
 
 	@Test
@@ -922,6 +864,7 @@ public class AdvisedMessageHandlerTests {
 		exec.shutdownNow();
 	}
 
+	@Test
 	public void filterDiscardNoAdvice() {
 		MessageFilter filter = new MessageFilter(message -> false);
 		QueueChannel discardChannel = new QueueChannel();
@@ -936,7 +879,7 @@ public class AdvisedMessageHandlerTests {
 		final QueueChannel discardChannel = new QueueChannel();
 		filter.setDiscardChannel(discardChannel);
 		List<Advice> adviceChain = new ArrayList<>();
-		final AtomicReference<Message<?>> discardedWithinAdvice = new AtomicReference<Message<?>>();
+		final AtomicReference<Message<?>> discardedWithinAdvice = new AtomicReference<>();
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
 
 			@Override
@@ -960,7 +903,7 @@ public class AdvisedMessageHandlerTests {
 		final QueueChannel discardChannel = new QueueChannel();
 		filter.setDiscardChannel(discardChannel);
 		List<Advice> adviceChain = new ArrayList<>();
-		final AtomicReference<Message<?>> discardedWithinAdvice = new AtomicReference<Message<?>>();
+		final AtomicReference<Message<?>> discardedWithinAdvice = new AtomicReference<>();
 		final AtomicBoolean adviceCalled = new AtomicBoolean();
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
 
@@ -1029,14 +972,9 @@ public class AdvisedMessageHandlerTests {
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
-		try {
-			handler.handleMessage(message);
-			fail("MessagingException expected.");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessagingException.class);
-			assertThat(e.getCause()).isInstanceOf(MyException.class);
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withCauseInstanceOf(MyException.class);
 
 		assertThat(counter.get()).isEqualTo(expected);
 	}

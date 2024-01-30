@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -363,6 +363,8 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message1);
 		Message<?> out3 = discardChannel.receive(0);
 		assertThat(out3).isNotNull();
+
+		taskScheduler.destroy();
 	}
 
 	@Test
@@ -393,6 +395,8 @@ public class ResequencerTests {
 		assertThat(out3).isNull();
 		out3 = discardChannel.receive(10_000);
 		assertThat(out3).isNotNull();
+
+		taskScheduler.destroy();
 	}
 
 	private static Message<?> createMessage(String payload, Object correlationId, int sequenceSize, int sequenceNumber,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 3.0
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class IntegrationContextTests {
 
 	@Autowired
