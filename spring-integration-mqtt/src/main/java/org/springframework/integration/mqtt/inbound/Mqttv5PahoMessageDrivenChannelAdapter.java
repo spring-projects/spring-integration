@@ -266,7 +266,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		try {
 			super.addTopic(topic, qos);
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
-				this.mqttClient.subscribe(new MqttSubscription(topic, qos), this::messageArrived)
+				this.mqttClient.subscribe(new MqttSubscription[] { new MqttSubscription(topic, qos) },
+								null, null, new IMqttMessageListener[] { this::messageArrived }, new MqttProperties())
 						.waitForCompletion(getCompletionTimeout());
 			}
 		}
@@ -398,7 +399,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			IMqttMessageListener[] listeners = IntStream.range(0, topics.length)
 					.mapToObj(t -> listener)
 					.toArray(IMqttMessageListener[]::new);
-			this.mqttClient.subscribe(subscriptions, null, null, listeners, null)
+			this.mqttClient.subscribe(subscriptions, null, null, listeners, new MqttProperties())
 					.waitForCompletion(getCompletionTimeout());
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			logger.debug(message);
