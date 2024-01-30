@@ -75,6 +75,9 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 	@Autowired
 	private Config config;
 
+	@Autowired
+	private Mqttv5PahoMessageDrivenChannelAdapter mqttv5MessageDrivenChannelAdapter;
+
 	@Test //GH-3732
 	public void testNoNpeIsNotThrownInCaseDoInitIsNotInvokedBeforeTopicAddition() {
 		Mqttv5PahoMessageDrivenChannelAdapter channelAdapter =
@@ -118,6 +121,20 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 				.hasAtLeastOneElementOfType(MqttMessageSentEvent.class)
 				.hasAtLeastOneElementOfType(MqttMessageDeliveredEvent.class)
 				.hasAtLeastOneElementOfType(MqttSubscribedEvent.class);
+
+		this.mqttv5MessageDrivenChannelAdapter.addTopic("anotherTopic");
+
+		testPayload = "another payload";
+
+		this.mqttOutFlowInput.send(
+				MessageBuilder.withPayload(testPayload)
+						.setHeader(MqttHeaders.TOPIC, "anotherTopic")
+						.build());
+
+		receive = this.fromMqttChannel.receive(10_000);
+
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(testPayload);
 	}
 
 
