@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.IntStream;
@@ -106,6 +107,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	private HeaderMapper<MqttProperties> headerMapper = new MqttHeaderMapper();
 
 	private volatile boolean readyToSubscribeOnStart;
+
+	private final AtomicInteger subIdCounter = new AtomicInteger(0);
 
 	/**
 	 * Create an instance based on the MQTT url, client id and subscriptions.
@@ -336,8 +339,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 				this.subscriptions.add(subscription);
 			}
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
+				MqttProperties subsProperties = new MqttProperties();
+				subsProperties.setSubscriptionIdentifier(this.subIdCounter.incrementAndGet());
 				this.mqttClient.subscribe(new MqttSubscription[] { subscription },
-								null, null, new IMqttMessageListener[] { this::messageArrived }, new MqttProperties())
+								null, null, new IMqttMessageListener[] { this::messageArrived }, subsProperties)
 						.waitForCompletion(getCompletionTimeout());
 			}
 		}
@@ -467,7 +472,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			IMqttMessageListener[] listeners = IntStream.range(0, mqttSubscriptions.length)
 					.mapToObj(t -> listener)
 					.toArray(IMqttMessageListener[]::new);
-			this.mqttClient.subscribe(mqttSubscriptions, null, null, listeners, new MqttProperties())
+			MqttProperties subsProperties = new MqttProperties();
+			subsProperties.setSubscriptionIdentifiers(IntStream.range(0, mqttSubscriptions.length)
+					.mapToObj(i -> this.subIdCounter.incrementAndGet())
+					.toList());
+			this.mqttClient.subscribe(mqttSubscriptions, null, null, listeners, subsProperties)
 					.waitForCompletion(getCompletionTimeout());
 			String message = "Connected and subscribed to " + Arrays.toString(mqttSubscriptions);
 			logger.debug(message);
