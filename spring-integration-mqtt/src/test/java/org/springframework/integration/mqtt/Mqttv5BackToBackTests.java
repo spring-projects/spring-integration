@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,6 +129,22 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 						.build());
 
 		receive = this.fromMqttChannel.receive(10_000);
+
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(testPayload);
+	}
+
+	@Test
+	public void testSharedTopicMqttv5Interaction() {
+		this.mqttv5MessageDrivenChannelAdapter.addTopic("$share/group/testTopic");
+
+		String testPayload = "shared topic payload";
+		this.mqttOutFlowInput.send(
+				MessageBuilder.withPayload(testPayload)
+						.setHeader(MqttHeaders.TOPIC, "testTopic")
+						.build());
+
+		Message<?> receive = this.fromMqttChannel.receive(10_000);
 
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo(testPayload);
