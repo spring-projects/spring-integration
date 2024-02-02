@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 the original author or authors.
+ * Copyright 2021-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
@@ -95,6 +96,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 	private HeaderMapper<MqttProperties> headerMapper = new MqttHeaderMapper();
 
 	private volatile boolean readyToSubscribeOnStart;
+
+	private final AtomicInteger subscriptionIdentifierCounter = new AtomicInteger(0);
 
 	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		super(url, clientId, topic);
@@ -266,8 +269,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		try {
 			super.addTopic(topic, qos);
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
+				MqttProperties subscriptionProperties = new MqttProperties();
+				subscriptionProperties.setSubscriptionIdentifier(this.subscriptionIdentifierCounter.incrementAndGet());
 				this.mqttClient.subscribe(new MqttSubscription[] { new MqttSubscription(topic, qos) },
-								null, null, new IMqttMessageListener[] { this::messageArrived }, new MqttProperties())
+								null, null, new IMqttMessageListener[] { this::messageArrived }, subscriptionProperties)
 						.waitForCompletion(getCompletionTimeout());
 			}
 		}
@@ -399,6 +404,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			IMqttMessageListener[] listeners = IntStream.range(0, topics.length)
 					.mapToObj(t -> listener)
 					.toArray(IMqttMessageListener[]::new);
+			MqttProperties subscriptionProperties = new MqttProperties();
+			subscriptionProperties.setSubscriptionIdentifiers(IntStream.range(0, topics.length)
+					.mapToObj(i -> this.subscriptionIdentifierCounter.incrementAndGet())
+					.toList());
 			this.mqttClient.subscribe(subscriptions, null, null, listeners, new MqttProperties())
 					.waitForCompletion(getCompletionTimeout());
 			String message = "Connected and subscribed to " + Arrays.toString(topics);

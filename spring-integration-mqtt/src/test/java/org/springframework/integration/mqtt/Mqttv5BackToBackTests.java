@@ -134,6 +134,22 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 		assertThat(receive.getPayload()).isEqualTo(testPayload);
 	}
 
+	@Test
+	public void testSharedTopicMqttv5Interaction() {
+		this.mqttv5MessageDrivenChannelAdapter.addTopic("$share/group/testTopic");
+
+		String testPayload = "shared topic payload";
+		this.mqttOutFlowInput.send(
+				MessageBuilder.withPayload(testPayload)
+						.setHeader(MqttHeaders.TOPIC, "testTopic")
+						.build());
+
+		Message<?> receive = this.fromMqttChannel.receive(10_000);
+
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(testPayload);
+	}
+
 
 	@Configuration
 	@EnableIntegration
