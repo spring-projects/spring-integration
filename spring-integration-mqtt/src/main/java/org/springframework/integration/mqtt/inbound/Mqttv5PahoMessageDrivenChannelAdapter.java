@@ -339,10 +339,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 				this.subscriptions.add(subscription);
 			}
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
-				MqttProperties subsProperties = new MqttProperties();
-				subsProperties.setSubscriptionIdentifier(this.subIdCounter.incrementAndGet());
+				MqttProperties subscriptionProperties = new MqttProperties();
+				subscriptionProperties.setSubscriptionIdentifier(this.subIdCounter.incrementAndGet());
 				this.mqttClient.subscribe(new MqttSubscription[] { subscription },
-								null, null, new IMqttMessageListener[] { this::messageArrived }, subsProperties)
+								null, null, new IMqttMessageListener[] { this::messageArrived }, subscriptionProperties)
 						.waitForCompletion(getCompletionTimeout());
 			}
 		}
@@ -472,11 +472,11 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			IMqttMessageListener[] listeners = IntStream.range(0, mqttSubscriptions.length)
 					.mapToObj(t -> listener)
 					.toArray(IMqttMessageListener[]::new);
-			MqttProperties subsProperties = new MqttProperties();
-			subsProperties.setSubscriptionIdentifiers(IntStream.range(0, mqttSubscriptions.length)
+			MqttProperties subscriptionProperties = new MqttProperties();
+			subscriptionProperties.setSubscriptionIdentifiers(IntStream.range(0, mqttSubscriptions.length)
 					.mapToObj(i -> this.subIdCounter.incrementAndGet())
 					.toList());
-			this.mqttClient.subscribe(mqttSubscriptions, null, null, listeners, subsProperties)
+			this.mqttClient.subscribe(mqttSubscriptions, null, null, listeners, subscriptionProperties)
 					.waitForCompletion(getCompletionTimeout());
 			String message = "Connected and subscribed to " + Arrays.toString(mqttSubscriptions);
 			logger.debug(message);
