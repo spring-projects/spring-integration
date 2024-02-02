@@ -108,7 +108,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	private volatile boolean readyToSubscribeOnStart;
 
-	private final AtomicInteger subIdCounter = new AtomicInteger(0);
+	private final AtomicInteger subscriptionIdentifierCounter = new AtomicInteger(0);
 
 	/**
 	 * Create an instance based on the MQTT url, client id and subscriptions.
@@ -340,7 +340,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			}
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				MqttProperties subscriptionProperties = new MqttProperties();
-				subscriptionProperties.setSubscriptionIdentifier(this.subIdCounter.incrementAndGet());
+				subscriptionProperties.setSubscriptionIdentifier(this.subscriptionIdentifierCounter.incrementAndGet());
 				this.mqttClient.subscribe(new MqttSubscription[] { subscription },
 								null, null, new IMqttMessageListener[] { this::messageArrived }, subscriptionProperties)
 						.waitForCompletion(getCompletionTimeout());
@@ -474,7 +474,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 					.toArray(IMqttMessageListener[]::new);
 			MqttProperties subscriptionProperties = new MqttProperties();
 			subscriptionProperties.setSubscriptionIdentifiers(IntStream.range(0, mqttSubscriptions.length)
-					.mapToObj(i -> this.subIdCounter.incrementAndGet())
+					.mapToObj(i -> this.subscriptionIdentifierCounter.incrementAndGet())
 					.toList());
 			this.mqttClient.subscribe(mqttSubscriptions, null, null, listeners, subscriptionProperties)
 					.waitForCompletion(getCompletionTimeout());
