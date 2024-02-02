@@ -82,7 +82,7 @@ ext {
     jmsApiVersion = '3.1.0'
     jpaApiVersion = '3.1.0'
     jrubyVersion = '9.4.5.0'
-    jsonpathVersion = '2.8.0'
+    jsonpathVersion = '2.9.0'
     junit4Version = '4.13.2'
     junitJupiterVersion = '5.10.1'
     jythonVersion = '2.7.3'
