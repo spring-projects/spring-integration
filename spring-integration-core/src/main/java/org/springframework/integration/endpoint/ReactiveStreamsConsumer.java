@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.endpoint;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import io.micrometer.context.ContextSnapshotFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -26,13 +27,16 @@ import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
+import reactor.util.context.ContextView;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.router.MessageRouter;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.util.IntegrationReactiveUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -40,6 +44,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ErrorHandler;
 
 
@@ -53,6 +58,9 @@ import org.springframework.util.ErrorHandler;
  * @since 5.0
  */
 public class ReactiveStreamsConsumer extends AbstractEndpoint implements IntegrationConsumer {
+
+	private static final boolean isContextPropagationPresent = ClassUtils.isPresent(
+			"io.micrometer.context.ContextSnapshot", ReactiveStreamsConsumer.class.getClassLoader());
 
 	private final MessageChannel inputChannel;
 
@@ -289,10 +297,33 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 			this.delegate.onSubscribe(subscription);
 		}
 
+		@SuppressWarnings("try")
 		@Override
-		protected void hookOnNext(Message<?> value) {
+		protected void hookOnNext(Message<?> message) {
+			Message<?> messageToDeliver = message;
+
+			if (isContextPropagationPresent) {
+				ContextView reactorContext = message.getHeaders()
+						.get(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, ContextView.class);
+
+				if (reactorContext != null) {
+					messageToDeliver =
+							MutableMessageBuilder.fromMessage(message)
+									.removeHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT)
+									.build();
+
+					try (AutoCloseable scope = ContextSnapshotHelper.setContext(reactorContext)) {
+						this.delegate.onNext(messageToDeliver);
+					}
+					catch (Exception ex) {
+						this.errorHandler.handleError(ex);
+					}
+					return;
+				}
+			}
+
 			try {
-				this.delegate.onNext(value);
+				this.delegate.onNext(messageToDeliver);
 			}
 			catch (Exception ex) {
 				this.errorHandler.handleError(ex);
@@ -302,6 +333,16 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		@Override
 		protected void hookOnComplete() {
 			this.delegate.onComplete();
+		}
+
+	}
+
+	private static final class ContextSnapshotHelper {
+
+		private static final ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY = ContextSnapshotFactory.builder().build();
+
+		static AutoCloseable setContext(ContextView context) {
+			return CONTEXT_SNAPSHOT_FACTORY.setThreadLocalsFrom(context);
 		}
 
 	}
