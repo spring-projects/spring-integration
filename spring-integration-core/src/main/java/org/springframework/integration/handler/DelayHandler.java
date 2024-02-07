@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -455,7 +455,14 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 					.withPayload(messageWrapper)
 					.copyHeaders(message.getHeaders())
 					.build();
-			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
+
+			this.lock.lock();
+			try {
+				this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
+			}
+			finally {
+				this.lock.unlock();
+			}
 		}
 
 		Runnable releaseTask = releaseTaskForMessage(delayedMessage);
@@ -495,15 +502,21 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private Message<?> getMessageById(UUID messageId) {
-		Message<?> theMessage = this.messageStore.getMessageFromGroup(this.messageGroupId, messageId);
+		this.lock.lock();
+		try {
+			Message<?> theMessage = this.messageStore.getMessageFromGroup(this.messageGroupId, messageId);
 
-		if (theMessage == null) {
-			logger.debug(() -> "No message in the Message Store for id: " + messageId +
-					". Likely another instance has already released it.");
-			return null;
+			if (theMessage == null) {
+				logger.debug(() -> "No message in the Message Store for id: " + messageId +
+						". Likely another instance has already released it.");
+				return null;
+			}
+			else {
+				return theMessage;
+			}
 		}
-		else {
-			return theMessage;
+		finally {
+			this.lock.unlock();
 		}
 	}
 
@@ -568,9 +581,16 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void doReleaseMessage(Message<?> message) {
-		if (this.messageStore.removeMessageFromGroupById(this.messageGroupId, message.getHeaders().getId())
-				|| this.deliveries.get(ObjectUtils.getIdentityHexString(message)).get() > 0) {
+		boolean removed;
+		this.lock.lock();
+		try {
+			removed = this.messageStore.removeMessageFromGroupById(this.messageGroupId, message.getHeaders().getId());
+		}
+		finally {
+			this.lock.unlock();
+		}
 
+		if (removed || this.deliveries.get(ObjectUtils.getIdentityHexString(message)).get() > 0) {
 			handleMessageInternal(message);
 		}
 		else {
@@ -581,7 +601,13 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	@Override
 	public int getDelayedMessageCount() {
-		return this.messageStore.messageGroupSize(this.messageGroupId);
+		this.lock.lock();
+		try {
+			return this.messageStore.messageGroupSize(this.messageGroupId);
+		}
+		finally {
+			this.lock.unlock();
+		}
 	}
 
 	/**
