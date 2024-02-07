@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,8 +77,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	private EvaluationContext evaluationContext;
 
 	/**
-	 * Set the expression to evaluate against the message after a successful
-	 * handler invocation.
+	 * Set the expression to evaluate against the message after a successful handler invocation.
 	 * Defaults to {@code payload}, if {@code successChannel} is configured.
 	 * @param onSuccessExpression the SpEL expression.
 	 * @since 4.3.7
@@ -88,8 +87,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	/**
-	 * Set the expression to evaluate against the message after a successful
-	 * handler invocation.
+	 * Set the expression to evaluate against the message after a successful handler invocation.
 	 * Defaults to {@code payload}, if {@code successChannel} is configured.
 	 * @param onSuccessExpression the SpEL expression.
 	 * @since 5.0
@@ -228,7 +226,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			}
 			if (!this.trapException) {
 				if (e instanceof ThrowableHolderException) { // NOSONAR
-					throw (ThrowableHolderException) e;
+					throw e;
 				}
 				else {
 					throw new ThrowableHolderException(actualException); // NOSONAR lost stack trace
@@ -276,7 +274,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			MessagingException messagingException =
 					new MessageHandlingExpressionEvaluatingAdviceException(message, "Handler Failed",
 							unwrapThrowableIfNecessary(exception), evalResult);
-			ErrorMessage errorMessage = new ErrorMessage(messagingException);
+			ErrorMessage errorMessage = new ErrorMessage(messagingException, message.getHeaders());
 			this.messagingTemplate.send(this.failureChannel, errorMessage);
 		}
 		return evalResult;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.handler.advice;
+
+import java.util.Map;
 
 import org.aopalliance.aop.Advice;
 import org.junit.jupiter.api.Test;
@@ -55,13 +57,15 @@ public class ExpressionEvaluatingRequestHandlerAdviceTests {
 	@Test
 	public void test() {
 		this.in.send(new GenericMessage<>("good"));
-		this.in.send(new GenericMessage<>("junk"));
+		this.in.send(new GenericMessage<>("junk", Map.of("some_request_header_key", "some_request_header_value")));
 		assertThat(config.successful).isInstanceOf(AdviceMessage.class);
 		assertThat(config.successful.getPayload()).isEqualTo("good was successful");
+
 		assertThat(config.failed).isInstanceOf(ErrorMessage.class);
 		Object evaluationResult = ((MessageHandlingExpressionEvaluatingAdviceException) config.failed.getPayload())
 				.getEvaluationResult();
 		assertThat((String) evaluationResult).startsWith("junk was bad, with reason:");
+		assertThat(config.failed.getHeaders()).containsEntry("some_request_header_key", "some_request_header_value");
 	}
 
 	@Configuration
