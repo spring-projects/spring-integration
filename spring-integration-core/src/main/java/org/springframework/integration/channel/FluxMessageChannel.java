@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
+import io.micrometer.context.ContextSnapshotFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactor.core.Disposable;
@@ -30,14 +31,17 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.context.Context;
+import reactor.util.context.ContextView;
 
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * The {@link AbstractMessageChannel} implementation for the
@@ -51,6 +55,9 @@ import org.springframework.util.Assert;
  */
 public class FluxMessageChannel extends AbstractMessageChannel
 		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
+
+	private static final boolean isContextPropagationPresent = ClassUtils.isPresent(
+			"io.micrometer.context.ContextSnapshot", FluxMessageChannel.class.getClassLoader());
 
 	private final Scheduler scheduler = Schedulers.boundedElastic();
 
@@ -83,7 +90,16 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	}
 
 	private boolean tryEmitMessage(Message<?> message) {
-		return switch (this.sink.tryEmitNext(message)) {
+		Message<?> messageToEmit = message;
+		if (isContextPropagationPresent) {
+			ContextView contextView = ContextSnapshotHelper.captureContext();
+			if (!contextView.isEmpty()) {
+				messageToEmit = MutableMessageBuilder.fromMessage(message)
+						.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, contextView)
+						.build();
+			}
+		}
+		return switch (this.sink.tryEmitNext(messageToEmit)) {
 			case OK -> true;
 			case FAIL_NON_SERIALIZED, FAIL_OVERFLOW -> false;
 			case FAIL_ZERO_SUBSCRIBER ->
@@ -154,7 +170,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		// We have just restored Reactor context, so no need in a header anymore.
 		if (messageToSend.getHeaders().containsKey(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT)) {
 			messageToSend =
-					MessageBuilder.fromMessage(message)
+					MutableMessageBuilder.fromMessage(message)
 							.removeHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT)
 							.build();
 		}
@@ -178,6 +194,16 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		this.sink.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
 		this.scheduler.dispose();
 		super.destroy();
+	}
+
+	private static final class ContextSnapshotHelper {
+
+		private static final ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY = ContextSnapshotFactory.builder().build();
+
+		static ContextView captureContext() {
+			return CONTEXT_SNAPSHOT_FACTORY.captureAll().updateContext(Context.empty());
+		}
+
 	}
 
 }
