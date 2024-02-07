@@ -128,7 +128,7 @@ public class MqttHeaderMapper implements HeaderMapper<MqttProperties> {
 				}
 			}
 		}
-		LOGGER.debug(LogMessage.format("headerName=[{0}] WILL NOT be mapped", headerName));
+		LOGGER.debug(LogMessage.format("headerName=[%s] WILL NOT be mapped", headerName));
 		return false;
 	}
 
