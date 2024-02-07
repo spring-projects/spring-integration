@@ -122,13 +122,13 @@ public class MqttHeaderMapper implements HeaderMapper<MqttProperties> {
 		if (patterns != null && patterns.length > 0) {
 			for (String pattern : patterns) {
 				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
-					LOGGER.debug(LogMessage.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
+					LOGGER.debug(LogMessage.format("headerName=[%s] WILL be mapped, matched pattern=%s",
 							headerName, pattern));
 					return true;
 				}
 			}
 		}
-		LOGGER.debug(LogMessage.format("headerName=[{0}] WILL NOT be mapped", headerName));
+		LOGGER.debug(LogMessage.format("headerName=[%s] WILL NOT be mapped", headerName));
 		return false;
 	}
 
