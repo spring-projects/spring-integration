@@ -83,7 +83,7 @@ The following example shows how to set an expression-based parameter:
 ----
 
 Value-based Parameters::
-The following example shows how to set an value-based parameter:
+The following example shows how to set a value-based parameter:
 +
 [source,xml]
 ----
@@ -143,7 +143,7 @@ You can also configure this JPA operation to run as a new transaction, as the fo
 ----
 
 In the preceding example, the transactional element of the outbound gateway or adapter specifies the transaction attributes.
-It is optional to define this child element if you have `DirectChannel` as an input channel to the adapter and you want the adapter to execute the operations in the same transaction context as the caller.
+It is optional to define this child element if you have `DirectChannel` as an input channel to the adapter, and you want the adapter to execute the operations in the same transaction context as the caller.
 If, however, you use an `ExecutorChannel`, you must have the `transactional` element, because the invoking client's transaction context is not propagated.
 
 NOTE: Unlike the `transactional` element of the poller, which is defined in Spring Integration's namespace, the `transactional` element for the outbound gateway or adapter is defined in the JPA namespace.

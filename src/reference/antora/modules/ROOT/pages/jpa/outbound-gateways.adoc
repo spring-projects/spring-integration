@@ -317,8 +317,8 @@ All other attributes are disallowed if you use `id-expression`.
 Optional.
 <2> A boolean flag indicating whether the select operation is expected to return a single result or a `List` of results.
 If this flag is set to `true`, a single entity is sent as the payload of the message.
-If multiple entities are returned, an exception is thrown.
-If `false`, the `List` of entities is sent as the payload of the message.
+If multiple entities are returned, an exception thrown.
+If `false`, the `List` of entities sent as the payload of the message.
 It defaults to `false`.
 Optional.
 <3> This non-zero, non-negative integer value tells the adapter not to select more than the specified number of rows on execution of the select operation.

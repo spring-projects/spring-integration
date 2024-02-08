@@ -249,7 +249,7 @@ The default value is set to `0`, which means "'no flush'".
 This attribute is geared towards messages with `Iterable` payloads.
 For instance, if `flush-size` is set to `3`, then `entityManager.flush()` is called after every third entity.
 Furthermore, `entityManager.flush()` is called once more after the entire loop.
-If the 'flush-size' attribute is specified with a value greater than '0', you need not configure the `flush` attribute.
+If the 'flush-size' attribute specified with a value greater than '0', you need not configure the `flush` attribute.
 <15> Set this value to 'true' if you want to clear the persistence context immediately after each flush operation.
 The attribute's value is applied only if the `flush` attribute is set to `true` or if the `flush-size` attribute is set to a value greater than `0`.
 <16> If set to `true`, the payload of the message is used as a source for parameters.
