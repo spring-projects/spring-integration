@@ -5,7 +5,7 @@ Welcome to the Spring Integration reference documentation!
 
 [horizontal]
 xref:preface.adoc#preface[Preface] :: General project info, conventions
-xref:whats-new.adoc#whats-new[What's New] :: Features and changes made in the current version
+xref:whats-new.adoc#whats-new-part[What's New] :: Features and changes made in the current version
 xref:overview.adoc[Overview] :: Introduction to EIP and its implementation in the project
 xref:core.adoc[Core Messaging] :: Main project abstractions and components
 xref:overview.adoc#overview-components-message[Message] :: Details about the message abstraction implementations
