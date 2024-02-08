@@ -106,7 +106,7 @@ You can similarly point to a Groovy script, as the following example shows:
 [[spel-support]]
 === SpEL Support
 
-In Spring Integration 2.0, we introduced the convenience of the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[Spring Expression Language (SpEL)] to help configure many different components.
+In Spring Integration 2.0, we introduced the convenience of the https://docs.spring.io/spring-framework/reference/core/expressions.html[Spring Expression Language (SpEL)] to help configure many different components.
 The header enricher is one of them.
 Look again at the POJO example shown earlier.
 You can see that the computation logic to determine the header value is pretty simple.
@@ -182,7 +182,7 @@ Starting with Spring Integration 3.0, a new sub-element `<int:header-channels-to
 It has no attributes.
 This new sub-element converts existing `replyChannel` and `errorChannel` headers (when they are a `MessageChannel`) to a `String` and stores the channels in a registry for later resolution, when it is time to send a reply or handle an error.
 This is useful for cases where the headers might be lost -- for example, when serializing a message into a message store or when transporting the message over JMS.
-If the header does not already exist or it is not a `MessageChannel`, no changes are made.
+If the header does not already exist, or it is not a `MessageChannel`, no changes are made.
 
 Using this functionality requires the presence of a `HeaderChannelRegistry` bean.
 By default, the framework creates a `DefaultHeaderChannelRegistry` with the default expiry (60 seconds).
@@ -365,7 +365,7 @@ The enricher's `request-channel` attribute is configured to pass the `User` to t
 
 Through the implicitly set `reply-channel`, a `User` object is returned and, by using the `property` sub-element, properties from the reply are extracted and used to enrich the original payload.
 
-[[how-do-i-pass-only-a-subset-of-data-to-the-request-channel?]]
+[[how-do-i-pass-only-a-subset-of-data-to-the-request-channel]]
 === How Do I Pass Only a Subset of Data to the Request Channel?
 
 When using a `request-payload-expression` attribute, a single property of the payload instead of the full message can be passed on to the request channel.
@@ -384,7 +384,7 @@ In the following example, the username property is passed on to the request chan
 
 Keep in mind that, although only the username is passed, the resulting message to the request channel contains the full set of `MessageHeaders`.
 
-[[how-can-i-enrich-payloads-that-consist-of-collection-data?]]
+[[how-can-i-enrich-payloads-that-consist-of-collection-data]]
 ==== How Can I Enrich Payloads that Consist of Collection Data?
 
 In the following example, instead of a `User` object, a `Map` is passed in:
@@ -403,7 +403,7 @@ The `Map` contains the username under the `username` map key.
 Only the `username` is passed on to the request channel.
 The reply contains a full `User` object, which is ultimately added to the `Map` under the `user` key.
 
-[[how-can-i-enrich-payloads-with-static-information-without-using-a-request-channel?]]
+[[how-can-i-enrich-payloads-with-static-information-without-using-a-request-channel]]
 === How Can I Enrich Payloads with Static Information without Using a Request Channel?
 
 The following example does not use a request channel at all but solely enriches the message's payload with static values:
