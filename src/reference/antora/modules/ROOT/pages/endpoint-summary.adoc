@@ -119,8 +119,8 @@ The following table summarizes the various endpoints with quick links to the app
 | xref:jdbc/outbound-gateway.adoc[Outbound Gateway] and xref:jdbc/stored-procedures.adoc#stored-procedure-outbound-gateway[Stored Procedure Outbound Gateway]
 
 | *JMS*
-| xref:changes-3.0-4.0.adoc#x4.0-jms-ib[Inbound Channel Adapter] and xref:changes-2.2-3.0.adoc#x3.0-jms-mdca-te[Message-driven Channel Adapter]
-| xref:changes-3.0-4.0.adoc#x4.0-jms-ob[Outbound Channel Adapter]
+| xref:jms.adoc#jms-inbound-channel-adapter[Inbound Channel Adapter] and xref:jms.adoc#jms-message-driven-channel-adapter[Message-driven Channel Adapter]
+| xref:jms.adoc#jms-outbound-channel-adapter[Outbound Channel Adapter]
 | xref:jms.adoc#jms-inbound-gateway[Inbound Gateway]
 | xref:jms.adoc#jms-outbound-gateway[Outbound Gateway]
 
