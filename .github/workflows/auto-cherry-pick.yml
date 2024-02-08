@@ -1,4 +1,4 @@
-name: Backport Issue
+name: Automatically cherry-pick pushed commit
 
 on:
   push:
