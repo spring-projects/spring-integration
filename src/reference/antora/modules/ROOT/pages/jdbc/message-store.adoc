@@ -21,7 +21,7 @@ Before starting to use JDBC message store components, you should provision a tar
 Spring Integration ships with some sample scripts that can be used to initialize a database.
 In the `spring-integration-jdbc` JAR file, you can find scripts in the `org.springframework.integration.jdbc` package.
 It provides an example create and an example drop script for a range of common database platforms.
-A common way to use these scripts is to reference them in a https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource[Spring JDBC data source initializer].
+A common way to use these scripts is to reference them in a https://docs.spring.io/spring-framework/reference/data-access/jdbc/initializing-datasource.html[Spring JDBC data source initializer].
 Note that the scripts are provided as samples and as specifications of the required table and column names.
 You may find that you need to enhance them for production use (for, example, by adding index declarations).
 
@@ -126,7 +126,7 @@ When polling a message channel, you have the option to configure the associated 
 
 [IMPORTANT]
 ====
-Keep in mind, though, that if you use a JDBC backed message channel and you plan to poll the channel and consequently the message store transactionally with multiple threads, you should ensure that you use a relational database that supports https://en.wikipedia.org/wiki/Multiversion_concurrency_control[Multiversion Concurrency Control] (MVCC).
+Keep in mind, though, that if you use a JDBC backed message channel, and you plan to poll the channel and consequently the message store transactional with multiple threads, you should ensure that you use a relational database that supports https://en.wikipedia.org/wiki/Multiversion_concurrency_control[Multiversion Concurrency Control] (MVCC).
 Otherwise, locking may be an issue and the performance, when using multiple threads, may not materialize as expected.
 For example, Apache Derby is problematic in that regard.
 

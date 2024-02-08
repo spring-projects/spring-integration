@@ -35,7 +35,7 @@ If you want to execute stored functions instead, the following databases are ful
 =====
 Even though your particular database may not be fully supported, chances are that you can use the stored procedure Spring Integration components quite successfully anyway, provided your RDBMS supports stored procedures or stored functions.
 
-As a matter of fact, some provided integration tests use the https://www.h2database.com/[H2 database].
+As a matter of fact, some provided integration tests use the https://www.h2database.com[H2 database].
 Nevertheless, it is very important to thoroughly test those usage scenarios.
 =====
 
@@ -105,7 +105,7 @@ This means that, by using a default `BeanPropertySqlParameterSourceFactory`, the
 However, if procedure parameters are passed in, this property (by default) evaluates to `false`.
 `ProcedureParameter` lets SpEL Expressions be provided.
 Therefore, it is highly beneficial to have access to the entire `Message`.
-The property is set on the underlying `StoredProcExecutor`.
+The property set on the underlying `StoredProcExecutor`.
 Optional.
 
 [[sp-common-config-subelements]]

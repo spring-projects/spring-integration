@@ -62,7 +62,7 @@ The `value` in each parameter expression can be any valid SpEL expression.
 The `#root` object for the expression evaluation is the constructor argument defined on the `parameterSource` bean.
 It is static for all evaluations (in the preceding example, an empty `String`).
 
-Starting with version 5.0, you ca supply `ExpressionEvaluatingSqlParameterSourceFactory` with `sqlParameterTypes` to specify the target SQL type for the particular parameter.
+Starting with version 5.0, you can supply `ExpressionEvaluatingSqlParameterSourceFactory` with `sqlParameterTypes` to specify the target SQL type for the particular parameter.
 
 The following example provides SQL types for the parameters being used in the query:
 

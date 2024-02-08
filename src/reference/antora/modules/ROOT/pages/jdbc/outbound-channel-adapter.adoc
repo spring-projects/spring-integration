@@ -7,7 +7,7 @@ By default, the message payload and headers are available as input parameters to
 [source,xml]
 ----
 <int-jdbc:outbound-channel-adapter
-    query="insert into foos (id, status, name) values (:headers[id], 0, :payload[something])"
+    query="insert into items (id, status, name) values (:headers[id], 0, :payload[something])"
     data-source="dataSource"
     channel="input"/>
 ----
