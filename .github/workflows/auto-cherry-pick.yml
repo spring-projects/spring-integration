@@ -1,4 +1,4 @@
-name: Automatically cherry-pick pushed commit
+name: Auto Cherry-Pick
 
 on:
   push:
