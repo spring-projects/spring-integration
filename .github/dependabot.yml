@@ -41,3 +41,14 @@ updates:
           - "org.xmlunit:xmlunit-assertj3"
           - "com.thoughtworks.xstream:xstream"
           - "org.springframework.security*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+    labels: ["type: task"]
+    groups:
+      development-dependencies:
+        patterns:
+          - "*"
