@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.expression.Expression;
@@ -32,6 +32,8 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Mark Fisher
@@ -104,10 +106,11 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		assertThat(payloadExpression).isEqualTo("#method");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void voidReturnWithInvalidPayloadExpression() {
 		Method method = getMethod("methodWithVoidReturnAndReturnValueAsPayload");
-		source.getExpressionForPayload(method);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> source.getExpressionForPayload(method));
 	}
 
 	@Test
@@ -117,22 +120,25 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		assertThat(payloadExpression).isEqualTo("#args[0]");
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void voidReturnAndParameterPayloadAnnotationWithExpression() {
 		Method method = getMethod("methodWithVoidReturnAndParameterPayloadAnnotationWithExpression", String.class);
-		source.getExpressionForPayload(method).getExpressionString();
+		assertThatIllegalStateException()
+				.isThrownBy(() -> source.getExpressionForPayload(method).getExpressionString());
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void voidReturnAndParameterPayloadAnnotationWithValue() {
 		Method method = getMethod("methodWithVoidReturnAndParameterPayloadAnnotationWithValue", String.class);
-		source.getExpressionForPayload(method).getExpressionString();
+		assertThatIllegalStateException()
+				.isThrownBy(() -> source.getExpressionForPayload(method).getExpressionString());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void voidReturnAndNoPayloadAnnotation() {
 		Method method = getMethod("methodWithVoidReturnAndNoPayloadAnnotation", String.class);
-		source.getExpressionForPayload(method);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> source.getExpressionForPayload(method));
 	}
 
 	@Test

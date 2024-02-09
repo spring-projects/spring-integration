@@ -31,7 +31,9 @@
 				<property name="headerExpressionMap">
 					<map>
 						<entry key="setName">
-							<map><entry key="foo" value="'bar'"/></map>
+							<map>
+								<entry key="foo" value="'bar'"/>
+							</map>
 						</entry>
 					</map>
 				</property>
@@ -42,16 +44,6 @@
 				</property>
 			</bean>
 		</constructor-arg>
-		<property name="channelResolver">
-			<bean
-				class="org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver">
-<!--				<property name="channelMap">-->
-<!--					<map>-->
-<!--						<entry key="channel" value-ref="messagePublishingInterceptorUsageTestChannel" />-->
-<!--					</map>-->
-<!--				</property>-->
-			</bean>
-		</property>
 	</bean>
 
 </beans>

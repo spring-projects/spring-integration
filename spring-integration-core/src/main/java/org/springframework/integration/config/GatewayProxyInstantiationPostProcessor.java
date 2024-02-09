@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
 import org.springframework.beans.factory.aot.BeanRegistrationAotContribution;
@@ -44,7 +45,7 @@ import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean
  * @see AnnotationGatewayProxyFactoryBean
  */
 class GatewayProxyInstantiationPostProcessor implements
-		InstantiationAwareBeanPostProcessor, BeanRegistrationAotProcessor, ApplicationContextAware {
+		InstantiationAwareBeanPostProcessor, BeanRegistrationAotProcessor, ApplicationContextAware, AopInfrastructureBean {
 
 	private final BeanDefinitionRegistry registry;
 

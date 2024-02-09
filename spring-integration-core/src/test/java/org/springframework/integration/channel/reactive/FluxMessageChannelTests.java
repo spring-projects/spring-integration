@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,7 +164,7 @@ public class FluxMessageChannelTests {
 
 		Disposable.Composite upstreamSubscriptions =
 				TestUtils.getPropertyValue(messageChannel, "upstreamSubscriptions", Disposable.Composite.class);
-		assertThat(upstreamSubscriptions.size()).isEqualTo(0);
+		await().untilAsserted(() -> assertThat(upstreamSubscriptions.size()).isEqualTo(0));
 	}
 
 	@Configuration

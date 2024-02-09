@@ -29,6 +29,7 @@ import reactor.core.publisher.Flux;
 import reactor.util.function.Tuple2;
 
 import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
@@ -2750,7 +2751,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		}
 	}
 
-	public static final class ReplyProducerCleaner implements DestructionAwareBeanPostProcessor {
+	public static final class ReplyProducerCleaner implements DestructionAwareBeanPostProcessor, AopInfrastructureBean {
 
 		@Override
 		public boolean requiresDestruction(Object bean) {
