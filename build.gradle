@@ -84,7 +84,7 @@ ext {
     jrubyVersion = '9.4.5.0'
     jsonpathVersion = '2.9.0'
     junit4Version = '4.13.2'
-    junitJupiterVersion = '5.10.1'
+    junitJupiterVersion = '5.10.2'
     jythonVersion = '2.7.3'
     kotlinCoroutinesVersion = '1.7.3'
     kryoVersion = '5.5.0'
