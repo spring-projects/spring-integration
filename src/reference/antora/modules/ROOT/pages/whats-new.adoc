@@ -18,3 +18,9 @@ In general the project has been moved to the latest dependency versions.
 
 [[x6.4-general]]
 === General Changes
+
+[[x6.4-remote-files-changes]]
+=== Remote File Adapters Changes
+
+The `AbstractRemoteFileStreamingMessageSource` has now a convenient `clearFetchedCache()` API to remove references from cache for not processed remote files.
+The references stay in cache because polling configuration does not allow to process all the fetched in one cycle, and the target `SessionFactory` might be changed between polling cycles, e.g. via `RotatingServerAdvice`.

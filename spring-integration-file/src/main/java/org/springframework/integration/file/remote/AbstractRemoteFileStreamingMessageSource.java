@@ -183,16 +183,27 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	@Override
 	public void stop() {
 		if (this.running.compareAndSet(true, false)) {
-			if (this.filter == null || this.filter.supportsSingleFileFiltering()) {
-				this.toBeReceived.clear();
-			}
-			else {
-				// remove unprocessed files from the queue (and filter)
-				AbstractFileInfo<F> file = this.toBeReceived.poll();
-				while (file != null) {
-					resetFilterIfNecessary(file);
-					file = this.toBeReceived.poll();
-				}
+			clearFetchedCache();
+		}
+	}
+
+	/**
+	 * Clear internal queue of fetched remote files.
+	 * This functionality might be useful in combination with a
+	 * {@link org.springframework.integration.file.remote.aop.RotatingServerAdvice},
+	 * when not all fetched files are processed in between rotations.
+	 * @since 6.4
+	 */
+	public void clearFetchedCache() {
+		if (this.filter == null || this.filter.supportsSingleFileFiltering()) {
+			this.toBeReceived.clear();
+		}
+		else {
+			// remove unprocessed files from the queue (and filter)
+			AbstractFileInfo<F> file = this.toBeReceived.poll();
+			while (file != null) {
+				resetFilterIfNecessary(file);
+				file = this.toBeReceived.poll();
 			}
 		}
 	}

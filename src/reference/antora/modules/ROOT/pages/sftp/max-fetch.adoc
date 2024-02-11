@@ -25,5 +25,7 @@ If the poller is active when the property is changed, the change takes effect on
 Starting with version 5.1, the synchronizer can be provided with a `Comparator<?>`.
 This is useful when restricting the number of files fetched with `maxFetchSize`.
 
-Also see general xref:sftp/inbound.adoc[SFTP Inbound Channel Adapter] chapter for information about `FileListFilter` configuration.
+Starting with version 6.4, the `AbstractRemoteFileStreamingMessageSource` has now a convenient `clearFetchedCache()` API to remove references from cache for not processed remote files.
+The references stay in cache because polling configuration does not allow to process all of them in one cycle, and the target `SessionFactory` might be changed between polling cycles, e.g. via `RotatingServerAdvice`.
 
+Also see general xref:sftp/inbound.adoc[SFTP Inbound Channel Adapter] chapter for information about `FileListFilter` configuration.

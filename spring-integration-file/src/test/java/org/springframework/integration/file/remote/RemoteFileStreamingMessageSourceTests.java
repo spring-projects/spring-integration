@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.file.remote;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Comparator;
@@ -26,7 +25,6 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
@@ -37,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -49,39 +49,65 @@ import static org.mockito.Mockito.when;
 public class RemoteFileStreamingMessageSourceTests {
 
 	@Test
-	@SuppressWarnings("unchecked")
-	public void filterOutFilesNotAcceptedByFilter() throws IOException {
-		RemoteFileTemplate<String> remoteFileTemplate = mock(RemoteFileTemplate.class);
+	public void fetchFilesFromRemoteAfterClearingFetchedCache() throws IOException {
+		RemoteFileTemplate<String> remoteFileTemplate = mock();
 		when(remoteFileTemplate.list("remoteDirectory")).thenReturn(new String[] {"file1", "file2"});
-		Session<String> session = mock(Session.class);
-		when(session.readRaw(anyString())).thenReturn(mock(InputStream.class));
+		Session<String> session = mock();
+		when(session.readRaw(anyString())).thenReturn(mock());
 		when(remoteFileTemplate.getSession()).thenReturn(session);
 
-		FileListFilter<String> fileListFilter = mock(FileListFilter.class);
+		Comparator<String> comparator = mock();
+		TestRemoteFileStreamingMessageSource testRemoteFileStreamingMessageSource =
+				new TestRemoteFileStreamingMessageSource(remoteFileTemplate, comparator);
+
+		testRemoteFileStreamingMessageSource.setRemoteDirectory("remoteDirectory");
+		testRemoteFileStreamingMessageSource.setBeanFactory(mock());
+		testRemoteFileStreamingMessageSource.start();
+
+		assertThat(testRemoteFileStreamingMessageSource.doReceive(2))
+				.isNotNull();
+
+		testRemoteFileStreamingMessageSource.clearFetchedCache();
+
+		assertThat(testRemoteFileStreamingMessageSource.doReceive(2))
+				.isNotNull();
+
+		verify(remoteFileTemplate, times(2)).list("remoteDirectory");
+
+	}
+
+	@Test
+	public void filterOutFilesNotAcceptedByFilter() throws IOException {
+		RemoteFileTemplate<String> remoteFileTemplate = mock();
+		when(remoteFileTemplate.list("remoteDirectory")).thenReturn(new String[] {"file1", "file2"});
+		Session<String> session = mock();
+		when(session.readRaw(anyString())).thenReturn(mock());
+		when(remoteFileTemplate.getSession()).thenReturn(session);
+
+		FileListFilter<String> fileListFilter = mock();
 		when(fileListFilter.supportsSingleFileFiltering()).thenReturn(true);
 		when(fileListFilter.accept("file1")).thenReturn(false);
 		when(fileListFilter.accept("file2")).thenReturn(false);
 
-		Comparator<String> comparator = mock(Comparator.class);
+		Comparator<String> comparator = mock();
 		TestRemoteFileStreamingMessageSource testRemoteFileStreamingMessageSource =
 				new TestRemoteFileStreamingMessageSource(remoteFileTemplate, comparator);
 
 		testRemoteFileStreamingMessageSource.setFilter(fileListFilter);
 		testRemoteFileStreamingMessageSource.setRemoteDirectory("remoteDirectory");
-		testRemoteFileStreamingMessageSource.setBeanFactory(mock(BeanFactory.class));
+		testRemoteFileStreamingMessageSource.setBeanFactory(mock());
 		testRemoteFileStreamingMessageSource.start();
 
 		assertThat(testRemoteFileStreamingMessageSource.doReceive(-1)).isNull();
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void sessionReturnedToCacheProperlyOnDoReceive() throws IOException {
-		Session<String> session = mock(Session.class);
+		Session<String> session = mock();
 		when(session.readRaw(anyString())).thenThrow(IOException.class);
 		when(session.list("remoteDirectory")).thenReturn(new String[] {"file1"});
 
-		SessionFactory<String> sessionFactory = mock(SessionFactory.class);
+		SessionFactory<String> sessionFactory = mock();
 		when(sessionFactory.getSession()).thenReturn(session);
 
 		CachingSessionFactory<String> cachingSessionFactory = new CachingSessionFactory<>(sessionFactory, 1);
@@ -91,7 +117,7 @@ public class RemoteFileStreamingMessageSourceTests {
 				new TestRemoteFileStreamingMessageSource(remoteFileTemplate, null);
 
 		testRemoteFileStreamingMessageSource.setRemoteDirectory("remoteDirectory");
-		testRemoteFileStreamingMessageSource.setBeanFactory(mock(BeanFactory.class));
+		testRemoteFileStreamingMessageSource.setBeanFactory(mock());
 		testRemoteFileStreamingMessageSource.start();
 
 		assertThatExceptionOfType(UncheckedIOException.class)

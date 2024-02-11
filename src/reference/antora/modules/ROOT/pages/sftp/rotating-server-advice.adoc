@@ -83,3 +83,4 @@ public IntegrationFlow flow() {
 
 IMPORTANT: Do not configure a `TaskExecutor` on the poller when using this advice; see xref:changes-4.1-4.2.adoc#x4.2-conditional-pollers[Conditional Pollers for Message Sources] for more information.
 
+Also see a convenient `AbstractRemoteFileStreamingMessageSource.clearFetchedCache()` API when not all fetched files are processed withing a single polling cycle, but `SessionFactory` might be rotated to different one.
