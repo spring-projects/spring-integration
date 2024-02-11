@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,14 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Lukas Gemela
@@ -47,6 +48,41 @@ import static org.mockito.Mockito.when;
  *
  */
 public class RemoteFileStreamingMessageSourceTests {
+
+
+	private static Message apply(Object builder) {
+		return ((AbstractIntegrationMessageBuilder) builder).build();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void fetchFilesFromRemoteAfterClearingUnprocessedFiles() throws IOException {
+		RemoteFileTemplate<String> remoteFileTemplate = mock(RemoteFileTemplate.class);
+		when(remoteFileTemplate.list("remoteDirectory")).thenReturn(new String[] {"file1", "file2"});
+		Session<String> session = mock(Session.class);
+		when(session.readRaw(anyString())).thenReturn(mock(InputStream.class));
+		when(remoteFileTemplate.getSession()).thenReturn(session);
+
+
+		Comparator<String> comparator = mock(Comparator.class);
+		TestRemoteFileStreamingMessageSource testRemoteFileStreamingMessageSource =
+				new TestRemoteFileStreamingMessageSource(remoteFileTemplate, comparator);
+
+		testRemoteFileStreamingMessageSource.setRemoteDirectory("remoteDirectory");
+		testRemoteFileStreamingMessageSource.setBeanFactory(mock(BeanFactory.class));
+		testRemoteFileStreamingMessageSource.start();
+
+		assertThat(testRemoteFileStreamingMessageSource.doReceive(2))
+				.isNotNull();
+
+		testRemoteFileStreamingMessageSource.clearUnprocessedFilesQueue();
+
+		assertThat(testRemoteFileStreamingMessageSource.doReceive(2))
+				.isNotNull();
+
+		verify(remoteFileTemplate, times(2)).list("remoteDirectory");
+
+	}
 
 	@Test
 	@SuppressWarnings("unchecked")
