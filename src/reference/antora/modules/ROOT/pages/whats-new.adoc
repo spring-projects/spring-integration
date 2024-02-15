@@ -30,3 +30,9 @@ See xref:security.adoc[Security in Spring Integration] for more information.
 
 The fine-grained configuration based on `MqttSubscription` API is exposed on the `Mqttv5PahoMessageDrivenChannelAdapter`.
 See xref:mqtt.adoc[MQTT Support] for more information.
+
+[[x6.3-testing]]
+=== Testing Support Changes
+
+The `MockIntegrationContext.substituteTriggerFor()` API has been introduced.
+See xref:testing.adoc[Testing Support] for more information.

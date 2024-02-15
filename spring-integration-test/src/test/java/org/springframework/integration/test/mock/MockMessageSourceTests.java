@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext.Integr
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.context.MockIntegrationContext;
 import org.springframework.integration.test.context.SpringIntegrationTest;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -94,7 +95,16 @@ public class MockMessageSourceTests {
 			assertThat(receive.getPayload()).isEqualTo("BAZ");
 		}
 
-		this.applicationContext.getBean("mySourceEndpoint", Lifecycle.class).stop();
+		this.mockIntegrationContext.resetBeans("mySourceEndpoint");
+
+		this.mockIntegrationContext.substituteTriggerFor("mySourceEndpoint", new OnlyOnceTrigger());
+
+		receive = this.results.receive(10_000);
+		assertThat(receive).isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("MYDATA");
+
+		assertThat(this.results.receive(10)).isNull();
 	}
 
 	@Test

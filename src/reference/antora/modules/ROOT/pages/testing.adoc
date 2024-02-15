@@ -235,6 +235,12 @@ public void tearDown() {
 }
 ----
 
+Starting with version 6.3, the `MockIntegrationContext.substituteTriggerFor()` API has been introduced.
+This can be used to replace the real `Trigger` in the `AbstractPollingEndpoint`.
+For example the production configuration may rely on daily (or even weekly) cron schedule.
+Any custom `Trigger` can be injected into the target endpoint to mitigate the time span.
+For example, the mentioned above <<using-onlyoncetrigger, `OnlyOnceTrigger`>> suggests a behavior to schedule polling task immediately and do that only once.
+
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/test/context/MockIntegrationContext.html[Javadoc] for more information.
 
 [[testing-mocks]]

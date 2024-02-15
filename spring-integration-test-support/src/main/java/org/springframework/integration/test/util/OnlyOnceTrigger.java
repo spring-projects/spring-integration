@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,12 @@ import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 
 /**
+ * The {@link Trigger} implementation which returns the current time
+ * to schedule the task immediately and does that only once.
+ * <p>
+ * The {@link #reset()} method can be called to reuse this trigger from scratch.
+ * <p>
+ * The {@link #await()} method can be used for synchronization barriers.
  *
  * @author Gunnar Hillert
  * @author Gary Russell
