@@ -22,6 +22,7 @@ plugins {
     id 'org.jetbrains.dokka' version "$kotlinVersion"
     id 'org.asciidoctor.jvm.pdf' version '3.3.2'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'com.github.spotbugs' version '6.0.7'
 }
 
 if (isCI) {
@@ -59,7 +60,6 @@ ext {
     commonsNetVersion = '3.9.0'
     curatorVersion = '5.5.0'
     derbyVersion = '10.16.1.1'
-    findbugsVersion = '3.0.1'
     ftpServerVersion = '1.2.0'
     graalvmVersion = '22.3.4'
     greenmailVersion = '2.0.0'
@@ -248,9 +248,10 @@ configure(javaProjects) { subproject ->
             }
         }
 
-        // JSR-305 only used for non-required meta-annotations
-        compileOnly "com.google.code.findbugs:annotations:$findbugsVersion"
-        testImplementation "com.google.code.findbugs:annotations:$findbugsVersion"
+        def spotbugsAnnotations = "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
+        compileOnly spotbugsAnnotations
+        testCompileOnly spotbugsAnnotations
+
         testImplementation("org.awaitility:awaitility:$awaitilityVersion") {
             exclude group: 'org.hamcrest'
         }
