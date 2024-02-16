@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - '*.x'
 
 run-name: Merge Dependabot PR ${{ github.ref_name }}
 
