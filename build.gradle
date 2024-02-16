@@ -22,6 +22,7 @@ plugins {
     id 'org.jetbrains.dokka' version "$kotlinVersion"
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
+    id 'com.github.spotbugs' version '6.0.7'
 }
 
 if (isCI) {
@@ -65,7 +66,6 @@ ext {
     curatorVersion = '5.5.0'
     debeziumVersion = '2.4.2.Final'
     derbyVersion = '10.16.1.1'
-    findbugsVersion = '3.0.1'
     ftpServerVersion = '1.2.0'
     graalvmVersion = '23.0.2'
     greenmailVersion = '2.1.0-alpha-3'
@@ -256,9 +256,10 @@ configure(javaProjects) { subproject ->
             api project(':spring-integration-core')
         }
 
-        // JSR-305 only used for non-required meta-annotations
-        compileOnly "com.google.code.findbugs:annotations:$findbugsVersion"
-        testImplementation "com.google.code.findbugs:annotations:$findbugsVersion"
+        def spotbugsAnnotations = "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
+        compileOnly spotbugsAnnotations
+        testCompileOnly spotbugsAnnotations
+
         testImplementation("org.awaitility:awaitility:$awaitilityVersion") {
             exclude group: 'org.hamcrest'
         }
