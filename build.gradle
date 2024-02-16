@@ -61,7 +61,7 @@ ext {
     curatorVersion = '5.5.0'
     derbyVersion = '10.16.1.1'
     ftpServerVersion = '1.2.0'
-    graalvmVersion = '22.3.4'
+    graalvmVersion = '22.3.5'
     greenmailVersion = '2.0.0'
     groovyVersion = '4.0.15'
     hamcrestVersion = '2.2'
