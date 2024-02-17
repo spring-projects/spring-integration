@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlinVersion = '1.8.10'
+    ext.kotlinVersion = '1.8.20'
     ext.isCI = System.getenv('GITHUB_ACTION')
     repositories {
         gradlePluginPortal()
@@ -852,18 +852,13 @@ project('spring-integration-scripting') {
     description = 'Spring Integration Scripting Support'
     dependencies {
         api project(':spring-integration-core')
-        optionalApi ('org.jetbrains.kotlin:kotlin-script-util') {
-            exclude group: 'org.jetbrains.kotlin', module: 'kotlin-daemon-client'
-        }
-        optionalApi 'org.jetbrains.kotlin:kotlin-compiler-embeddable'
+        optionalApi 'org.jetbrains.kotlin:kotlin-scripting-jsr223'
         providedImplementation "org.graalvm.sdk:graal-sdk:$graalvmVersion"
         providedImplementation "org.graalvm.js:js:$graalvmVersion"
 
         testImplementation "org.jruby:jruby-complete:$jrubyVersion"
         testImplementation 'org.apache.groovy:groovy-jsr223'
         testImplementation "org.python:jython-standalone:$jythonVersion"
-
-        testRuntimeOnly 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable'
     }
 
     tasks.withType(JavaForkOptions) {

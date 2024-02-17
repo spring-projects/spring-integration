@@ -27,7 +27,7 @@ compile "org.springframework.integration:spring-integration-scripting:{project-v
 In addition, you need to add a script engine implementation, e.g. JRuby, Jython.
 
 Starting with version 5.2, Spring Integration provides a Kotlin Jsr223 support.
-You need to add these dependencies into your project to make it working:
+You need to add this dependency into your project to make it working:
 
 ====
 [source, xml, subs="normal", role="primary"]
@@ -35,30 +35,16 @@ You need to add these dependencies into your project to make it working:
 ----
 <dependency>
     <groupId>org.jetbrains.kotlin</groupId>
-    <artifactId>kotlin-script-util</artifactId>
-    <scope>runtime</scope>
-</dependency>
-<dependency>
-    <groupId>org.jetbrains.kotlin</groupId>
-    <artifactId>kotlin-compiler-embeddable</artifactId>
-    <scope>runtime</scope>
-</dependency>
-<dependency>
-    <groupId>org.jetbrains.kotlin</groupId>
-    <artifactId>kotlin-scripting-compiler-embeddable</artifactId>
+    <artifactId>kotlin-scripting-jsr223</artifactId>
     <scope>runtime</scope>
 </dependency>
 ----
 [source, groovy, subs="normal", role="secondary"]
 .Gradle
 ----
-runtime 'org.jetbrains.kotlin:kotlin-script-util'
-runtime 'org.jetbrains.kotlin:kotlin-compiler-embeddable'
-runtime 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable'
+runtime 'org.jetbrains.kotlin:kotlin-scripting-jsr223'
 ----
 ====
-
-The `KotlinScriptExecutor` is selected by the provided `kotlin` language indicator or script file comes with the `.kts` extension.
 
 In order to use a JVM scripting language, a JSR223 implementation for that language must be included in your class path.
 The https://groovy-lang.org/[Groovy] and https://www.jruby.org[JRuby] projects provide JSR233 support in their standard distributions.
