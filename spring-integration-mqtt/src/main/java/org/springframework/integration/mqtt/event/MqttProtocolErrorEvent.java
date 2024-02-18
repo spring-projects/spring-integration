@@ -19,7 +19,7 @@ package org.springframework.integration.mqtt.event;
 import org.eclipse.paho.mqttv5.common.MqttException;
 
 /**
- * The even representing an MQTT error occured during client interaction.
+ * The even representing an MQTT error occurred during client interaction.
  *
  * @author Artem Bilan
  *
