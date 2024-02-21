@@ -349,7 +349,7 @@ configure(javaProjects) { subproject ->
 
     checkstyle {
         configDirectory.set(rootProject.file('src/checkstyle'))
-        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '10.13.0'
+        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '10.12.5'
     }
 
     jar {
