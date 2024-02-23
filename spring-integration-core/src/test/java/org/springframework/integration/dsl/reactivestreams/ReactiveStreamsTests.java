@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,8 +46,11 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.endpoint.ReactiveMessageSourceProducer;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -240,6 +244,27 @@ public class ReactiveStreamsTests {
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
+	@Autowired
+	MessageProducerSupport testMessageProducer;
+
+	@Autowired
+	Publisher<Message<String>> messageProducerFlow;
+
+	@Test
+	void messageProducerIsNotStartedAutomatically() {
+		assertThat(this.testMessageProducer.isRunning()).isFalse();
+
+		Flux<String> flux =
+				Flux.from(this.messageProducerFlow)
+						.map(Message::getPayload);
+
+		StepVerifier.create(flux)
+				.expectNext("test")
+				.expectNext("test")
+				.thenCancel()
+				.verify(Duration.ofSeconds(10));
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -283,6 +308,26 @@ public class ReactiveStreamsTests {
 					.from("fixedSubscriberChannel", true)
 					.log()
 					.toReactivePublisher();
+		}
+
+		@Bean
+		public Publisher<Message<String>> messageProducerFlow() {
+			TestMessageProducerSpec testMessageProducerSpec =
+					new TestMessageProducerSpec(new ReactiveMessageSourceProducer(() -> new GenericMessage<>("test")))
+							.id("testMessageProducer");
+
+			return IntegrationFlow
+					.from(testMessageProducerSpec)
+					.toReactivePublisher(true);
+		}
+
+	}
+
+	private static class TestMessageProducerSpec
+			extends MessageProducerSpec<TestMessageProducerSpec, ReactiveMessageSourceProducer> {
+
+		TestMessageProducerSpec(ReactiveMessageSourceProducer producer) {
+			super(producer);
 		}
 
 	}
