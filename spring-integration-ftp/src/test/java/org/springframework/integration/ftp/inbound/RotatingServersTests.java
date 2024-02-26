@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -405,8 +405,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		public IntegrationFlow flow() {
 			return IntegrationFlow.from(Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sf()))
 									.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
-									.remoteDirectory(".")
-									.maxFetchSize(1),
+									.remoteDirectory("."),
 							e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
