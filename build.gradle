@@ -182,6 +182,15 @@ allprojects {
 
     }
 
+    // TODO until https://github.com/Kotlin/dokka/issues/3472
+    configurations.matching { it.name.startsWith('dokka') }.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group.startsWith('com.fasterxml.jackson')) {
+                useVersion('2.15.3')
+            }
+        }
+    }
+
 }
 
 configure(javaProjects) { subproject ->
@@ -491,15 +500,6 @@ project('spring-integration-core') {
     description = 'Spring Integration Core'
 
     apply plugin: 'org.jetbrains.dokka'
-
-    // TODO until https://github.com/Kotlin/dokka/issues/3472
-    configurations.matching { it.name.startsWith('dokka') }.configureEach {
-        resolutionStrategy.eachDependency {
-            if (requested.group.startsWith('com.fasterxml.jackson')) {
-                useVersion('2.15.3')
-            }
-        }
-    }
 
     dependencies {
         api 'org.springframework:spring-aop'
@@ -1109,7 +1109,7 @@ tasks.register('api', Javadoc) {
 dokkaHtmlMultiModule {
     dependsOn 'api'
     moduleName.set('spring-integration')
-    outputDirectory.set(file("$buildDir/kdoc"))
+    outputDirectory.set(file('build/kdoc'))
 }
 
 apply from: "${rootDir}/gradle/docs.gradle"
