@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package org.springframework.integration.scripting.jsr223;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.python.core.PyTuple;
 
 import org.springframework.core.io.ClassPathResource;
@@ -41,7 +42,7 @@ public class PythonScriptExecutorTests {
 
 	private ScriptExecutor executor;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		this.executor = new PythonScriptExecutor();
 	}
@@ -77,7 +78,7 @@ public class PythonScriptExecutorTests {
 		assertThat(obj)
 				.isNotNull()
 				.isInstanceOf(PyTuple.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.element(0)
 				.isEqualTo(1);
 	}
@@ -93,7 +94,7 @@ public class PythonScriptExecutorTests {
 		assertThat(obj)
 				.isNotNull()
 				.isInstanceOf(PyTuple.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.element(0)
 				.isEqualTo(1);
 	}

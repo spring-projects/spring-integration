@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 the original author or authors.
+ * Copyright 2021-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -114,8 +114,7 @@ public class FileAggregatorTests {
 				.doesNotContainKey(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 
 		assertThat(receive.getPayload())
-				.isInstanceOf(List.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.contains("SECOND LINE", "LAST LINE", "FIRST LINE");
 	}
 
@@ -133,8 +132,7 @@ public class FileAggregatorTests {
 				.doesNotContainKey(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 
 		assertThat(receive.getPayload())
-				.isInstanceOf(List.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.isEmpty();
 	}
 

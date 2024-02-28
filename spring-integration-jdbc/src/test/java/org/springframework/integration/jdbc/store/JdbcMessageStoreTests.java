@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.apache.commons.dbcp2.PoolingDataSource;
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.hsqldb.HsqlException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -576,7 +577,10 @@ public class JdbcMessageStoreTests {
 					collectionArgumentResolver.resolveArgument(methodParameter,
 							new GenericMessage<>(pooledMessageStore.getMessageGroup(groupId).getMessages()));
 
-			assertThat(result).isInstanceOf(Collection.class).asList().hasSize(1).contains("test data");
+			assertThat(result)
+					.asInstanceOf(InstanceOfAssertFactories.LIST)
+					.hasSize(1)
+					.contains("test data");
 		}
 
 		pooledMessageStore.removeMessageGroup(groupId);

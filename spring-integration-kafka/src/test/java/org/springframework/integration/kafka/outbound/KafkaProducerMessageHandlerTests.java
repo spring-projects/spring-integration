@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
@@ -558,10 +557,10 @@ class KafkaProducerMessageHandlerTests {
 		ProducerFactory pf = mock(ProducerFactory.class);
 		given(pf.transactionCapable()).willReturn(true);
 		willReturn(producer).given(pf).createProducer(isNull());
-		PlatformTransactionManager ptm = new KafkaTransactionManager(pf);
+		KafkaTransactionManager ptm = new KafkaTransactionManager(pf);
 		ContainerProperties props = new ContainerProperties("foo");
 		props.setGroupId("group");
-		props.setTransactionManager(ptm);
+		props.setKafkaAwareTransactionManager(ptm);
 		props.setAssignmentCommitOption(AssignmentCommitOption.ALWAYS);
 		final KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaMessageListenerContainer container = new KafkaMessageListenerContainer<>(cf, props);
@@ -705,7 +704,7 @@ class KafkaProducerMessageHandlerTests {
 		tm.setTransactionIdPrefix("tm.tx.id.");
 		ContainerProperties props = new ContainerProperties("foo");
 		props.setGroupId("group");
-		props.setTransactionManager(tm);
+		props.setKafkaAwareTransactionManager(tm);
 		props.setAssignmentCommitOption(AssignmentCommitOption.ALWAYS);
 		final KafkaTemplate template = new KafkaTemplate(pf);
 		template.setTransactionIdPrefix("template.tx.id.");

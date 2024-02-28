@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.mongodb.store;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.bson.Document;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -87,7 +88,7 @@ class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGr
 
 			assertThat(receive)
 					.extracting("payload")
-					.asList()
+					.asInstanceOf(InstanceOfAssertFactories.LIST)
 					.hasSize(1);
 		}
 	}

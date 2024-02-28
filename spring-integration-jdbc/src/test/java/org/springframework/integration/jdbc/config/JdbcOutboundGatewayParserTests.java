@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package org.springframework.integration.jdbc.config;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -281,8 +281,7 @@ public class JdbcOutboundGatewayParserTests {
 		assertThat(reply)
 				.isNotNull()
 				.extracting(Message::getPayload)
-				.isInstanceOf(List.class)
-				.asList()
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
 				.hasSize(1)
 				.element(0)
 				.isInstanceOf(Map.class)

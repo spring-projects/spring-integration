@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -194,7 +195,7 @@ public class HttpDslTests {
 						assertThat((Map<String, ?>) payload)
 								.hasSize(1)
 								.extracting((map) -> map.get("a1"))
-								.asList()
+								.asInstanceOf(InstanceOfAssertFactories.LIST)
 								.hasSize(2)
 								.satisfies((list) -> {
 									assertThat(list)
