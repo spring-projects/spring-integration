@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.util.FunctionIterator;
@@ -276,10 +277,14 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			Object correlationId, int sequenceNumber, int sequenceSize) {
 
 		AbstractIntegrationMessageBuilder<?> builder = messageBuilderForReply(item);
-		builder.copyHeadersIfAbsent(headers);
+		builder.setHeader(MessageHistory.HEADER_NAME, headers.get(MessageHistory.HEADER_NAME))
+				.copyHeadersIfAbsent(headers)
+				.cloneMessageHistoryIfAny();
+
 		if (this.applySequence) {
 			builder.pushSequenceDetails(correlationId, sequenceNumber, sequenceSize);
 		}
+
 		return builder;
 	}
 

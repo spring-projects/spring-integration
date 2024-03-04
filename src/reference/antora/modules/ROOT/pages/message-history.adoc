@@ -129,7 +129,9 @@ The MBean's object name is `<domain>:name=messageHistoryConfigurer,type=MessageH
 IMPORTANT: Only one `@EnableMessageHistory` (or `<message-history/>`) must be declared in the application context as single source for components tracking configuration.
 Do not use a generic bean definition for the `MessageHistoryConfigurer`.
 
-NOTE: By definition, the message history header is immutable (you cannot re-write history).
-Therefore, when writing message history values, the components either create new messages (when the component is an origin) or they copy the history from a request message, modifying it and setting the new list on a reply message.
-In either case, the values can be appended even if the message itself is crossing thread boundaries.
-That means that the history values can greatly simplify debugging in an asynchronous message flow.
+NOTE: Prior to version 6.3, the message history header was immutable (you cannot re-write history): every single track created not only new instance of the `MessageHistory`, but a fully new message copy.
+Now it works in append-only mode: the first track creates a new message with a new `MessageHistory` container.
+All the rest `MessageHistory.write()` calls add new entries to existing header - and no new message created.
+This significantly improves an application performance.
+All the components in the framework, where same message can be sent to several consumers (`PublishSubscribeChannel`, `AbstractMessageRouter`, `WireTap` etc.) (or splitter produces several outputs based on input message), are now cloning an existing `MessageHistory` header into those new messages.
+For any other multi-producing use-cases, outside the framework scope, the `AbstractIntegrationMessageBuilder.cloneMessageHistoryIfAny()` API is recommended to ensure that parallel downstream sub-flows contribute their own message history traces.

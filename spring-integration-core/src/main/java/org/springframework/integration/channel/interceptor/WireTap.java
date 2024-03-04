@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,11 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.management.ManageableLifecycle;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -56,6 +59,8 @@ public class WireTap implements ChannelInterceptor, ManageableLifecycle, VetoCap
 	private long timeout = 0;
 
 	private BeanFactory beanFactory;
+
+	private MessageBuilderFactory messageBuilderFactory;
 
 	private volatile boolean running = true;
 
@@ -162,9 +167,19 @@ public class WireTap implements ChannelInterceptor, ManageableLifecycle, VetoCap
 			return message;
 		}
 		if (this.running && (this.selector == null || this.selector.accept(message))) {
-			boolean sent = (this.timeout >= 0)
-					? wireTapChannel.send(message, this.timeout)
-					: wireTapChannel.send(message);
+			Message<?> messageToSend = message;
+			if (message.getHeaders().containsKey(MessageHistory.HEADER_NAME)) {
+				messageToSend =
+						getMessageBuilderFactory()
+								.fromMessage(message)
+								.cloneMessageHistoryIfAny()
+								.build();
+			}
+			boolean sent =
+					(this.timeout >= 0)
+							? wireTapChannel.send(messageToSend, this.timeout)
+							: wireTapChannel.send(messageToSend);
+
 			if (!sent && LOGGER.isWarnEnabled()) {
 				LOGGER.warn("failed to send message to WireTap channel '" + wireTapChannel + "'");
 			}
@@ -174,7 +189,6 @@ public class WireTap implements ChannelInterceptor, ManageableLifecycle, VetoCap
 
 	@Override
 	public boolean shouldIntercept(String beanName, InterceptableChannel channel) {
-
 		return !getChannel().equals(channel);
 	}
 
@@ -187,6 +201,13 @@ public class WireTap implements ChannelInterceptor, ManageableLifecycle, VetoCap
 			this.channelName = null;
 		}
 		return this.channel;
+	}
+
+	private MessageBuilderFactory getMessageBuilderFactory() {
+		if (this.messageBuilderFactory == null) {
+			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+		}
+		return this.messageBuilderFactory;
 	}
 
 }

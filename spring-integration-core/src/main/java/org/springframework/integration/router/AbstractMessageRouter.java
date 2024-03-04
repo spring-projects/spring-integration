@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
@@ -193,19 +195,23 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 		if (results != null) {
 			int sequenceSize = results.size();
 			int sequenceNumber = 1;
+			Message<?> messageToSend = message;
+			UUID correlationKey = message.getHeaders().getId();
+			boolean hasMessageHistory = message.getHeaders().containsKey(MessageHistory.HEADER_NAME);
 			for (MessageChannel channel : results) {
-				final Message<?> messageToSend;
-				if (!this.applySequence) {
-					messageToSend = message;
+				if (this.applySequence || hasMessageHistory) {
+					AbstractIntegrationMessageBuilder<?> builder =
+							getMessageBuilderFactory()
+									.fromMessage(message);
+
+					if (this.applySequence) {
+						builder.pushSequenceDetails(correlationKey == null ? generateId() : correlationKey,
+								sequenceNumber++, sequenceSize);
+					}
+
+					messageToSend = builder.cloneMessageHistoryIfAny().build();
 				}
-				else {
-					UUID id = message.getHeaders().getId();
-					messageToSend = getMessageBuilderFactory()
-							.fromMessage(message)
-							.pushSequenceDetails(id == null ? generateId() : id,
-									sequenceNumber++, sequenceSize)
-							.build();
-				}
+
 				if (channel != null) {
 					sent |= doSend(channel, messageToSend);
 				}
