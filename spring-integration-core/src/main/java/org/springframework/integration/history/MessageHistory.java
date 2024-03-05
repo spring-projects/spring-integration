@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.history;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,8 +53,9 @@ import org.springframework.util.Assert;
  *
  * @since 2.0
  */
-public final class MessageHistory implements List<Properties>, Serializable {
+public final class MessageHistory implements List<Properties>, Serializable, Cloneable {
 
+	@Serial
 	private static final long serialVersionUID = -2340400235574314134L;
 
 	private static final Log LOGGER = LogFactory.getLog(MessageHistory.class);
@@ -94,51 +96,52 @@ public final class MessageHistory implements List<Properties>, Serializable {
 		Assert.notNull(component, "Component must not be null");
 		Properties metadata = extractMetadata(component);
 		if (!metadata.isEmpty()) {
-			MessageHistory previousHistory = message.getHeaders().get(HEADER_NAME, MessageHistory.class);
-			List<Properties> components =
-					previousHistory != null
-							? new ArrayList<>(previousHistory)
-							: new ArrayList<>();
-			components.add(metadata);
-			MessageHistory history = new MessageHistory(components);
-
-			if (message instanceof MutableMessage) {
-				message.getHeaders().put(HEADER_NAME, history);
-			}
-			else if (message instanceof ErrorMessage) {
-				ErrorMessage errorMessage = (ErrorMessage) message;
-				IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
-				headerAccessor.setHeader(HEADER_NAME, history);
-				Throwable payload = errorMessage.getPayload();
-				Message<?> originalMessage = errorMessage.getOriginalMessage();
-				if (originalMessage != null) {
-					errorMessage = new ErrorMessage(payload, headerAccessor.toMessageHeaders(), originalMessage);
-				}
-				else {
-					errorMessage = new ErrorMessage(payload, headerAccessor.toMessageHeaders());
-				}
-				message = (Message<T>) errorMessage;
-			}
-			else if (message instanceof AdviceMessage) {
-				IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
-				headerAccessor.setHeader(HEADER_NAME, history);
-				message = new AdviceMessage<T>(message.getPayload(), headerAccessor.toMessageHeaders(),
-						((AdviceMessage<?>) message).getInputMessage());
+			MessageHistory messageHistory = message.getHeaders().get(HEADER_NAME, MessageHistory.class);
+			if (messageHistory != null) {
+				messageHistory.components.add(metadata);
 			}
 			else {
-				if (!(message instanceof GenericMessage) &&
-						(messageBuilderFactory instanceof DefaultMessageBuilderFactory ||
-								messageBuilderFactory instanceof MutableMessageBuilderFactory)
-						&& LOGGER.isWarnEnabled()) {
+				List<Properties> components = new ArrayList<>();
+				components.add(metadata);
+				messageHistory = new MessageHistory(components);
 
-					LOGGER.warn("MessageHistory rebuilds the message and produces the result of the [" +
-							messageBuilderFactory + "], not an instance of the provided type [" +
-							message.getClass() + "]. Consider to supply a custom MessageBuilderFactory " +
-							"to retain custom messages during MessageHistory tracking.");
+				if (message instanceof MutableMessage) {
+					message.getHeaders().put(HEADER_NAME, messageHistory);
 				}
-				message = messageBuilderFactory.fromMessage(message)
-						.setHeader(HEADER_NAME, history)
-						.build();
+				else if (message instanceof ErrorMessage errorMessage) {
+					IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
+					headerAccessor.setHeader(HEADER_NAME, messageHistory);
+					Throwable payload = errorMessage.getPayload();
+					Message<?> originalMessage = errorMessage.getOriginalMessage();
+					if (originalMessage != null) {
+						errorMessage = new ErrorMessage(payload, headerAccessor.toMessageHeaders(), originalMessage);
+					}
+					else {
+						errorMessage = new ErrorMessage(payload, headerAccessor.toMessageHeaders());
+					}
+					message = (Message<T>) errorMessage;
+				}
+				else if (message instanceof AdviceMessage<?> adviceMessage) {
+					IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
+					headerAccessor.setHeader(HEADER_NAME, messageHistory);
+					message = new AdviceMessage<>(message.getPayload(), headerAccessor.toMessageHeaders(),
+							adviceMessage.getInputMessage());
+				}
+				else {
+					if (!(message instanceof GenericMessage) &&
+							(messageBuilderFactory instanceof DefaultMessageBuilderFactory ||
+									messageBuilderFactory instanceof MutableMessageBuilderFactory)
+							&& LOGGER.isWarnEnabled()) {
+
+						LOGGER.warn("MessageHistory rebuilds the message and produces the result of the [" +
+								messageBuilderFactory + "], not an instance of the provided type [" +
+								message.getClass() + "]. Consider to supply a custom MessageBuilderFactory " +
+								"to retain custom messages during MessageHistory tracking.");
+					}
+					message = messageBuilderFactory.fromMessage(message)
+							.setHeader(HEADER_NAME, messageHistory)
+							.build();
+				}
 			}
 		}
 		return message;
@@ -217,14 +220,18 @@ public final class MessageHistory implements List<Properties>, Serializable {
 	}
 
 	@Override
+	public Object clone() {
+		return new MessageHistory(new ArrayList<>(this.components));
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof MessageHistory)) {
+		if (!(o instanceof MessageHistory that)) {
 			return false;
 		}
-		MessageHistory that = (MessageHistory) o;
 		return this.components.equals(that.components);
 	}
 
@@ -318,6 +325,7 @@ public final class MessageHistory implements List<Properties>, Serializable {
 	 */
 	public static class Entry extends Properties {
 
+		@Serial
 		private static final long serialVersionUID = -8225834391885601079L;
 
 		public String getName() {

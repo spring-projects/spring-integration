@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,23 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.MessageDispatchingException;
+import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MessageDecorator;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.MessageHandlingRunnable;
 import org.springframework.util.Assert;
@@ -153,13 +158,28 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		}
 		int sequenceSize = handlers.size();
 		Message<?> messageToSend = message;
+		MessageHeaders messageHeaders = message.getHeaders();
+		UUID correlationKey = messageHeaders.getId();
+		boolean hasMessageHistory = messageHeaders.containsKey(MessageHistory.HEADER_NAME) && sequenceSize > 1;
 		for (MessageHandler handler : handlers) {
-			if (this.applySequence) {
-				messageToSend = getMessageBuilderFactory()
-						.fromMessage(message)
-						.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize)
-						.build();
+			if (this.applySequence || hasMessageHistory) {
+				AbstractIntegrationMessageBuilder<?> builder =
+						getMessageBuilderFactory()
+								.fromMessage(message);
+
+				if (this.applySequence) {
+					builder.pushSequenceDetails(
+							correlationKey == null ? IntegrationObjectSupport.generateId() : correlationKey,
+							sequenceNumber++, sequenceSize);
+				}
+
+				if (hasMessageHistory) {
+					builder.cloneMessageHistoryIfAny();
+				}
+
+				messageToSend = builder.build();
 			}
+
 			if (message instanceof MessageDecorator messageDecorator) {
 				messageToSend = messageDecorator.decorateMessage(messageToSend);
 			}

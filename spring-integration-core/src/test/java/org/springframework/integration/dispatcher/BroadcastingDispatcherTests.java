@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.core.task.TaskExecutor;
@@ -35,10 +35,12 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -52,26 +54,27 @@ public class BroadcastingDispatcherTests {
 
 	private BroadcastingDispatcher dispatcher;
 
-	private final TaskExecutor taskExecutorMock = Mockito.mock(TaskExecutor.class);
+	private final TaskExecutor taskExecutorMock = Mockito.mock();
 
-	private final Message<?> messageMock = Mockito.mock(Message.class);
+	private final Message<?> messageMock = Mockito.mock();
 
-	private final MessageHandler targetMock1 = Mockito.mock(MessageHandler.class);
+	private final MessageHandler targetMock1 = Mockito.mock();
 
-	private final MessageHandler targetMock2 = Mockito.mock(MessageHandler.class);
+	private final MessageHandler targetMock2 = Mockito.mock();
 
-	private final MessageHandler targetMock3 = Mockito.mock(MessageHandler.class);
+	private final MessageHandler targetMock3 = Mockito.mock();
 
 
-	@Before
+	@BeforeEach
 	public void init() {
 		Mockito.reset(taskExecutorMock, messageMock, taskExecutorMock, targetMock1, targetMock2, targetMock3);
+		given(messageMock.getHeaders()).willReturn(mock());
 		defaultTaskExecutorMock();
 	}
 
 
 	@Test
-	public void singleTargetWithoutTaskExecutor() throws Exception {
+	public void singleTargetWithoutTaskExecutor() {
 		dispatcher = new BroadcastingDispatcher();
 		dispatcher.addHandler(targetMock1);
 		dispatcher.dispatch(messageMock);
@@ -79,7 +82,7 @@ public class BroadcastingDispatcherTests {
 	}
 
 	@Test
-	public void singleTargetWithTaskExecutor() throws Exception {
+	public void singleTargetWithTaskExecutor() {
 		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.dispatch(messageMock);
@@ -202,12 +205,12 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void applySequenceDisabledByDefault() {
 		BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
-		final List<Message<?>> messages = Collections.synchronizedList(new ArrayList<Message<?>>());
+		final List<Message<?>> messages = Collections.synchronizedList(new ArrayList<>());
 		MessageHandler target1 = new MessageStoringTestEndpoint(messages);
 		MessageHandler target2 = new MessageStoringTestEndpoint(messages);
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
-		dispatcher.dispatch(new GenericMessage<String>("test"));
+		dispatcher.dispatch(new GenericMessage<>("test"));
 		assertThat(messages.size()).isEqualTo(2);
 		assertThat(new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber()).isEqualTo(0);
 		assertThat(new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize()).isEqualTo(0);
@@ -219,14 +222,14 @@ public class BroadcastingDispatcherTests {
 	public void applySequenceEnabled() {
 		BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
 		dispatcher.setApplySequence(true);
-		final List<Message<?>> messages = Collections.synchronizedList(new ArrayList<Message<?>>());
+		final List<Message<?>> messages = Collections.synchronizedList(new ArrayList<>());
 		MessageHandler target1 = new MessageStoringTestEndpoint(messages);
 		MessageHandler target2 = new MessageStoringTestEndpoint(messages);
 		MessageHandler target3 = new MessageStoringTestEndpoint(messages);
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
-		Message<?> inputMessage = new GenericMessage<String>("test");
+		Message<?> inputMessage = new GenericMessage<>("test");
 		Object originalId = inputMessage.getHeaders().getId();
 		dispatcher.dispatch(inputMessage);
 		assertThat(messages.size()).isEqualTo(3);
@@ -251,13 +254,11 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock1);
 		doThrow(new MessagingException("Mock Exception"))
 				.when(targetMock1).handleMessage(eq(messageMock));
-		try {
-			dispatcher.dispatch(messageMock);
-			fail("Expected Exception");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getFailedMessage()).isEqualTo(messageMock);
-		}
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> dispatcher.dispatch(messageMock))
+				.extracting(MessagingException::getFailedMessage)
+				.isEqualTo(messageMock);
 	}
 
 	/**
@@ -272,13 +273,11 @@ public class BroadcastingDispatcherTests {
 		Message<String> dontReplaceThisMessage = MessageBuilder.withPayload("x").build();
 		doThrow(new MessagingException(dontReplaceThisMessage, "Mock Exception"))
 				.when(targetMock1).handleMessage(eq(messageMock));
-		try {
-			dispatcher.dispatch(messageMock);
-			fail("Expected Exception");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getFailedMessage()).isEqualTo(dontReplaceThisMessage);
-		}
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> dispatcher.dispatch(messageMock))
+				.extracting(MessagingException::getFailedMessage)
+				.isEqualTo(dontReplaceThisMessage);
 	}
 
 	/**
@@ -306,13 +305,10 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void testNoHandlerWithRequiredSubscriber() {
 		dispatcher = new BroadcastingDispatcher(true);
-		try {
-			dispatcher.dispatch(messageMock);
-			fail("Expected Exception");
-		}
-		catch (MessageDispatchingException exception) {
-			assertThat(exception.getFailedMessage()).isEqualTo(messageMock);
-		}
+		assertThatExceptionOfType(MessageDispatchingException.class)
+				.isThrownBy(() -> dispatcher.dispatch(messageMock))
+				.extracting(MessagingException::getFailedMessage)
+				.isEqualTo(messageMock);
 	}
 
 	/**
@@ -322,13 +318,10 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void testNoHandlerWithExecutorWithRequiredSubscriber() {
 		dispatcher = new BroadcastingDispatcher(taskExecutorMock, true);
-		try {
-			dispatcher.dispatch(messageMock);
-			fail("Expected Exception");
-		}
-		catch (MessageDispatchingException exception) {
-			assertThat(exception.getFailedMessage()).isEqualTo(messageMock);
-		}
+		assertThatExceptionOfType(MessageDispatchingException.class)
+				.isThrownBy(() -> dispatcher.dispatch(messageMock))
+				.extracting(MessagingException::getFailedMessage)
+				.isEqualTo(messageMock);
 	}
 
 	private void defaultTaskExecutorMock() {

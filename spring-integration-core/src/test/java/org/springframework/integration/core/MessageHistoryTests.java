@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ public class MessageHistoryTests {
 		Message<Throwable> result2 = MessageHistory.write(result1, new TestComponent(2));
 		assertThat(result2).isInstanceOf(ErrorMessage.class);
 		assertThat(result2).isNotSameAs(original);
-		assertThat(result2).isNotSameAs(result1);
+		assertThat(result2).isSameAs(result1);
 		assertThat(result2.getPayload()).isSameAs(original.getPayload());
 		assertThat(result1).extracting("originalMessage").isSameAs(originalMessage);
 		MessageHistory history2 = MessageHistory.read(result2);
@@ -122,20 +122,14 @@ public class MessageHistoryTests {
 		assertThat(result2).isNotSameAs(original);
 		assertThat(result2.getPayload()).isSameAs(original.getPayload());
 		assertThat(((AdviceMessage<?>) result2).getInputMessage()).isSameAs(original.getInputMessage());
-		assertThat(result2).isNotSameAs(result1);
+		assertThat(result2).isSameAs(result1);
 		MessageHistory history2 = MessageHistory.read(result2);
 		assertThat(history2).isNotNull();
 		assertThat(history2.toString()).isEqualTo("testComponent-1,testComponent-2");
 	}
 
 
-	private static class TestComponent implements NamedComponent {
-
-		private final int id;
-
-		TestComponent(int id) {
-			this.id = id;
-		}
+	private record TestComponent(int id) implements NamedComponent {
 
 		@Override
 		public String getComponentName() {

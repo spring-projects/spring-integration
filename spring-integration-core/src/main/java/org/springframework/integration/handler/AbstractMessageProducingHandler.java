@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -465,6 +466,13 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 		else {
 			builder = getMessageBuilderFactory().withPayload(output);
+			// Assuming that message in the payload collection is a copy of request message.
+			if (output instanceof Iterable<?> iterable) {
+				Iterator<?> iterator = iterable.iterator();
+				if (iterator.hasNext() && iterator.next() instanceof Message<?>) {
+					builder = builder.cloneMessageHistoryIfAny();
+				}
+			}
 		}
 		if (!this.noHeadersPropagation &&
 				(shouldCopyRequestHeaders() ||
