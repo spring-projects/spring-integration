@@ -160,7 +160,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		Message<?> messageToSend = message;
 		MessageHeaders messageHeaders = message.getHeaders();
 		UUID correlationKey = messageHeaders.getId();
-		boolean hasMessageHistory = messageHeaders.containsKey(MessageHistory.HEADER_NAME);
+		boolean hasMessageHistory = messageHeaders.containsKey(MessageHistory.HEADER_NAME) && sequenceSize > 1;
 		for (MessageHandler handler : handlers) {
 			if (this.applySequence || hasMessageHistory) {
 				AbstractIntegrationMessageBuilder<?> builder =
@@ -173,7 +173,11 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 							sequenceNumber++, sequenceSize);
 				}
 
-				messageToSend = builder.cloneMessageHistoryIfAny().build();
+				if (hasMessageHistory) {
+					builder.cloneMessageHistoryIfAny();
+				}
+
+				messageToSend = builder.build();
 			}
 
 			if (message instanceof MessageDecorator messageDecorator) {

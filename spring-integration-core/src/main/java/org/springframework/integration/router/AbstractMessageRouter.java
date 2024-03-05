@@ -197,7 +197,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 			int sequenceNumber = 1;
 			Message<?> messageToSend = message;
 			UUID correlationKey = message.getHeaders().getId();
-			boolean hasMessageHistory = message.getHeaders().containsKey(MessageHistory.HEADER_NAME);
+			boolean hasMessageHistory = message.getHeaders().containsKey(MessageHistory.HEADER_NAME) && sequenceSize > 1;
 			for (MessageChannel channel : results) {
 				if (this.applySequence || hasMessageHistory) {
 					AbstractIntegrationMessageBuilder<?> builder =
@@ -209,7 +209,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 								sequenceNumber++, sequenceSize);
 					}
 
-					messageToSend = builder.cloneMessageHistoryIfAny().build();
+					if (hasMessageHistory) {
+						builder.cloneMessageHistoryIfAny();
+					}
+
+					messageToSend = builder.build();
 				}
 
 				if (channel != null) {
