@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.dsl;
+
+import java.util.function.Predicate;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
@@ -34,7 +36,7 @@ public abstract class LoadBalancingChannelSpec<S extends MessageChannelSpec<S, C
 
 	protected LoadBalancingStrategy loadBalancingStrategy = new RoundRobinLoadBalancingStrategy(); // NOSONAR
 
-	protected Boolean failover; // NOSONAR
+	protected Predicate<Exception> failoverStrategy; // NOSONAR
 
 	protected Integer maxSubscribers; // NOSONAR
 
@@ -46,8 +48,20 @@ public abstract class LoadBalancingChannelSpec<S extends MessageChannelSpec<S, C
 		return _this();
 	}
 
-	public S failover(Boolean failoverToSet) {
-		this.failover = failoverToSet;
+	public S failover(boolean failoverToSet) {
+		return failoverStrategy((exception) -> failoverToSet);
+	}
+
+	/**
+	 * Configure a strategy whether the channel's dispatcher should have failover enabled
+	 * for the exception thrown.
+	 * Overrides {@link #failover(boolean)} option.
+	 * In other words: or this, or that option has to be set.
+	 * @param failoverStrategy The failover boolean.
+	 * @since 6.3
+	 */
+	public S failoverStrategy(Predicate<Exception> failoverStrategy) {
+		this.failoverStrategy = failoverStrategy;
 		return _this();
 	}
 

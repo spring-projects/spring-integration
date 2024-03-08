@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.lang.Nullable;
@@ -67,7 +68,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 
 	private ThreadFactory threadFactory = new CustomizableThreadFactory("partition-thread-");
 
-	private boolean failover = true;
+	private Predicate<Exception> failoverStrategy = (exception) -> true;
 
 	@Nullable
 	private LoadBalancingStrategy loadBalancingStrategy;
@@ -108,7 +109,20 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 	 * @param failover The failover boolean.
 	 */
 	public void setFailover(boolean failover) {
-		this.failover = failover;
+		setFailoverStrategy((exception) -> failover);
+	}
+
+	/**
+	 * Configure a strategy whether the channel's dispatcher should have failover enabled
+	 * for the exception thrown.
+	 * Overrides {@link #setFailover(boolean)} option.
+	 * In other words: or this, or that option has to be set.
+	 * @param failoverStrategy The failover boolean.
+	 * @since 6.3
+	 */
+	public void setFailoverStrategy(Predicate<Exception> failoverStrategy) {
+		Assert.notNull(failoverStrategy, "'failoverStrategy' must not be null");
+		this.failoverStrategy = failoverStrategy;
 	}
 
 	/**
@@ -179,7 +193,7 @@ public class PartitionedDispatcher extends AbstractDispatcher {
 		this.executors.add(executor);
 		DelegateDispatcher delegateDispatcher =
 				new DelegateDispatcher(new ErrorHandlingTaskExecutor(executor, this.errorHandler));
-		delegateDispatcher.setFailover(this.failover);
+		delegateDispatcher.setFailoverStrategy(this.failoverStrategy);
 		delegateDispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
 		delegateDispatcher.setMessageHandlingTaskDecorator(this.messageHandlingTaskDecorator);
 		return delegateDispatcher;

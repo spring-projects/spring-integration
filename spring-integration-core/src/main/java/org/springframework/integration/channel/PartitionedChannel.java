@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
@@ -97,6 +98,18 @@ public class PartitionedChannel extends AbstractExecutorChannel {
 	 */
 	public void setFailover(boolean failover) {
 		getDispatcher().setFailover(failover);
+	}
+
+	/**
+	 * Configure a strategy whether the channel's dispatcher should have failover enabled
+	 * for the exception thrown.
+	 * Overrides {@link #setFailover(boolean)} option.
+	 * In other words: or this, or that option has to be set.
+	 * @param failoverStrategy The failover boolean.
+	 * @since 6.3
+	 */
+	public void setFailoverStrategy(Predicate<Exception> failoverStrategy) {
+		getDispatcher().setFailoverStrategy(failoverStrategy);
 	}
 
 	/**

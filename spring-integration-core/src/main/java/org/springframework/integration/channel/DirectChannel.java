@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.channel;
+
+import java.util.function.Predicate;
 
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
@@ -60,10 +62,24 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	/**
 	 * Specify whether the channel's dispatcher should have failover enabled.
 	 * By default, it will. Set this value to 'false' to disable it.
+	 * Overrides {@link #setFailoverStrategy(Predicate)} option.
+	 * In other words: or this, or that option has to be set.
 	 * @param failover The failover boolean.
 	 */
 	public void setFailover(boolean failover) {
 		this.dispatcher.setFailover(failover);
+	}
+
+	/**
+	 * Configure a strategy whether the channel's dispatcher should have failover enabled
+	 * for the exception thrown.
+	 * Overrides {@link #setFailover(boolean)} option.
+	 * In other words: or this, or that option has to be set.
+	 * @param failoverStrategy The failover boolean.
+	 * @since 6.3
+	 */
+	public void setFailoverStrategy(Predicate<Exception> failoverStrategy) {
+		this.dispatcher.setFailoverStrategy(failoverStrategy);
 	}
 
 	/**

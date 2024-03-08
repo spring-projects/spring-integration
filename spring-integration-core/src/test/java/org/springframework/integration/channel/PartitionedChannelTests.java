@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.IntStream;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -76,7 +78,16 @@ public class PartitionedChannelTests {
 
 		MultiValueMap<String, Message<?>> partitionedMessages = new LinkedMultiValueMap<>();
 
-		partitionedChannel.subscribe((message) -> partitionedMessages.add(Thread.currentThread().getName(), message));
+		Lock partitionsLock = new ReentrantLock();
+		partitionedChannel.subscribe((message) -> {
+			partitionsLock.lock();
+			try {
+				partitionedMessages.add(Thread.currentThread().getName(), message);
+			}
+			finally {
+				partitionsLock.unlock();
+			}
+		});
 
 		partitionedChannel.send(MessageBuilder.withPayload("test1").setHeader("partitionKey", "1").build());
 		partitionedChannel.send(MessageBuilder.withPayload("test2").setHeader("partitionKey", "2").build());
