@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mongodb.store;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,7 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,6 +36,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.Binary;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -342,7 +343,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				ids.clear();
 			}
 		}
-		if (ids.size() > 0) {
+		if (!ids.isEmpty()) {
 			bulkRemove(groupId, ids);
 		}
 		updateGroup(groupId, lastModifiedUpdate());
@@ -573,6 +574,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		public void afterPropertiesSet() {
 			List<Object> converters = new ArrayList<>();
 			converters.add(new MessageHistoryToDocumentConverter());
+			converters.add(new DocumentToMessageHistoryConverter());
 			converters.add(new DocumentToGenericMessageConverter());
 			converters.add(new DocumentToMutableMessageConverter());
 			DocumentToErrorMessageConverter docToErrorMessageConverter = new DocumentToErrorMessageConverter();
@@ -720,30 +722,55 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 
 	@WritingConverter
-	private static class MessageHistoryToDocumentConverter implements Converter<MessageHistory, Document> {
+	private static final class MessageHistoryToDocumentConverter implements Converter<MessageHistory, Document> {
 
 		MessageHistoryToDocumentConverter() {
 		}
 
 		@Override
 		public Document convert(MessageHistory source) {
-			BasicDBList dbList = new BasicDBList();
-			for (Properties properties : source) {
-				Document historyProperty = new Document()
-						.append(MessageHistory.NAME_PROPERTY, properties.getProperty(MessageHistory.NAME_PROPERTY))
-						.append(MessageHistory.TYPE_PROPERTY, properties.getProperty(MessageHistory.TYPE_PROPERTY))
-						.append(MessageHistory.TIMESTAMP_PROPERTY,
-								properties.getProperty(MessageHistory.TIMESTAMP_PROPERTY));
-				dbList.add(historyProperty);
-			}
-			return new Document("components", dbList)
+			return new Document("components", source)
 					.append("_class", MessageHistory.class.getName());
 		}
 
 	}
 
 	@ReadingConverter
-	private class DocumentToGenericMessageConverter implements Converter<Document, GenericMessage<?>> {
+	private static final class DocumentToMessageHistoryConverter implements Converter<Document, MessageHistory> {
+
+		private static final Constructor<MessageHistory> MESSAGE_HISTORY_CONSTRUCTOR;
+
+		static {
+			try {
+				MESSAGE_HISTORY_CONSTRUCTOR = MessageHistory.class.getDeclaredConstructor(List.class);
+			}
+			catch (NoSuchMethodException ex) {
+				throw new IllegalStateException(ex);
+			}
+		}
+
+		DocumentToMessageHistoryConverter() {
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public MessageHistory convert(Document source) {
+			List<Document> components = (List<Document>) source.get("components");
+			List<MessageHistory.Entry> historyEntries = new ArrayList<>(components.size());
+			for (Document component : components) {
+				MessageHistory.Entry entry = new MessageHistory.Entry();
+				for (Entry<String, Object> componentEntry : component.entrySet()) {
+					entry.setProperty(componentEntry.getKey(), componentEntry.getValue().toString());
+				}
+				historyEntries.add(entry);
+			}
+			return BeanUtils.instantiateClass(MESSAGE_HISTORY_CONSTRUCTOR, historyEntries);
+		}
+
+	}
+
+	@ReadingConverter
+	private final class DocumentToGenericMessageConverter implements Converter<Document, GenericMessage<?>> {
 
 		DocumentToGenericMessageConverter() {
 		}
@@ -783,7 +810,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@ReadingConverter
-	private class DocumentToAdviceMessageConverter implements Converter<Document, AdviceMessage<?>> {
+	private final class DocumentToAdviceMessageConverter implements Converter<Document, AdviceMessage<?>> {
 
 		DocumentToAdviceMessageConverter() {
 		}
@@ -820,7 +847,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@ReadingConverter
-	private class DocumentToErrorMessageConverter implements Converter<Document, ErrorMessage> {
+	private final class DocumentToErrorMessageConverter implements Converter<Document, ErrorMessage> {
 
 		private final AllowListDeserializingConverter deserializingConverter = new AllowListDeserializingConverter();
 
@@ -843,7 +870,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@WritingConverter
-	private static class ThrowableToBytesConverter implements Converter<Throwable, byte[]> {
+	private static final class ThrowableToBytesConverter implements Converter<Throwable, byte[]> {
 
 		private final Converter<Object, byte[]> serializingConverter = new SerializingConverter();
 
