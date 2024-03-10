@@ -19,7 +19,7 @@ plugins {
     id 'io.spring.nohttp' version '0.0.11' apply false
     id 'org.ajoberstar.grgit' version '5.2.2'
     id 'io.spring.dependency-management' version '1.1.4'
-    id 'org.jetbrains.dokka' version '1.9.10'
+    id 'org.jetbrains.dokka' version '1.9.20'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.github.spotbugs' version '6.0.8'
@@ -115,7 +115,7 @@ ext {
     springSecurityVersion = '6.2.2'
     springVersion = '6.1.4'
     springWsVersion = '4.0.10'
-    testcontainersVersion = '1.19.6'
+    testcontainersVersion = '1.19.7'
     tomcatVersion = '10.1.19'
     xmlUnitVersion = '2.9.1'
     xstreamVersion = '1.4.20'
