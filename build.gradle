@@ -9,7 +9,7 @@ antora {
 	environment = [
 		'ALGOLIA_API_KEY': '9d489079e5ec46dbb238909fee5c9c29',
 		'ALGOLIA_APP_ID': 'WB1FQYI187',
-		'ALGOLIA_INDEX_NAME': 'springintegration',
+		'ALGOLIA_INDEX_NAME': 'springdocs',
 	]
 	dependencies = [
 		'@antora/atlas-extension': '1.0.0-alpha.2',
