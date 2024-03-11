@@ -26,6 +26,8 @@ content:
 asciidoc:
   attributes:
     page-stackoverflow-url: https://stackoverflow.com/tags/spring-integration
+    page-related-doc-categories: security
+    page-related-doc-projects: batch,framework,integration
     page-pagination: ''
     hide-uri-scheme: '@'
     tabs-sync-option: '@'
