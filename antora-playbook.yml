@@ -8,6 +8,7 @@ antora:
   - '@antora/collector-extension'
   - require: '@springio/antora-extensions/root-component-extension'
     root_component_name: 'integration'
+  - '@springio/antora-extensions/static-page-extension'
 site:
   title: Spring Integration
   url: https://docs.spring.io/spring-integration/reference
