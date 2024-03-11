@@ -8,6 +8,7 @@ antora:
   - '@antora/collector-extension'
   - require: '@springio/antora-extensions/root-component-extension'
     root_component_name: 'integration'
+  - '@springio/antora-extensions/static-page-extension'
 site:
   title: Spring Integration
   url: https://docs.spring.io/spring-integration/reference
@@ -25,6 +26,8 @@ content:
 asciidoc:
   attributes:
     page-stackoverflow-url: https://stackoverflow.com/tags/spring-integration
+    page-related-doc-categories: security
+    page-related-doc-projects: batch,framework,integration
     page-pagination: ''
     hide-uri-scheme: '@'
     tabs-sync-option: '@'
@@ -37,7 +40,7 @@ urls:
   redirect_facility: httpd
 ui:
   bundle:
-    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.4.7/ui-bundle.zip
+    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.4.11/ui-bundle.zip
     snapshot: true
 runtime:
   log:
