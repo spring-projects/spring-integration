@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.MessageRejectedException;
@@ -32,6 +32,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -69,12 +70,8 @@ public class FailOverDispatcherTests {
 		MessageHandler target = new CountingTestEndpoint(counter, false);
 		dispatcher.addHandler(target);
 		dispatcher.addHandler(target);
-		try {
-			dispatcher.dispatch(new GenericMessage<>("test"));
-		}
-		catch (Exception e) {
-			// ignore
-		}
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> dispatcher.dispatch(new GenericMessage<>("test")));
 		assertThat(counter.get()).as("target should not have duplicate subscriptions").isEqualTo(1);
 	}
 
@@ -89,12 +86,8 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
 		dispatcher.removeHandler(target2);
-		try {
-			dispatcher.dispatch(new GenericMessage<>("test"));
-		}
-		catch (Exception e) {
-			// ignore
-		}
+		assertThatExceptionOfType(AggregateMessageDeliveryException.class)
+				.isThrownBy(() -> dispatcher.dispatch(new GenericMessage<>("test")));
 		assertThat(counter.get()).isEqualTo(2);
 	}
 
@@ -108,46 +101,31 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
-		try {
-			dispatcher.dispatch(new GenericMessage<>("test1"));
-		}
-		catch (Exception e) {
-			// ignore
-		}
+		assertThatExceptionOfType(AggregateMessageDeliveryException.class)
+				.isThrownBy(() -> dispatcher.dispatch(new GenericMessage<>("test1")));
 		assertThat(counter.get()).isEqualTo(3);
 		dispatcher.removeHandler(target2);
-		try {
-			dispatcher.dispatch(new GenericMessage<>("test2"));
-		}
-		catch (Exception e) {
-			// ignore
-		}
+		assertThatExceptionOfType(AggregateMessageDeliveryException.class)
+				.isThrownBy(() -> dispatcher.dispatch(new GenericMessage<>("test2")));
 		assertThat(counter.get()).isEqualTo(5);
 		dispatcher.removeHandler(target1);
-		try {
-			dispatcher.dispatch(new GenericMessage<>("test3"));
-		}
-		catch (Exception e) {
-			// ignore
-		}
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> dispatcher.dispatch(new GenericMessage<>("test3")));
 		assertThat(counter.get()).isEqualTo(6);
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void removeConsumerLastTargetCausesDeliveryException() {
 		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageHandler target = new CountingTestEndpoint(counter, false);
 		dispatcher.addHandler(target);
-		try {
-			dispatcher.dispatch(new GenericMessage<>("test1"));
-		}
-		catch (Exception e) {
-			// ignore
-		}
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> dispatcher.dispatch(new GenericMessage<>("test1")));
 		assertThat(counter.get()).isEqualTo(1);
 		dispatcher.removeHandler(target);
-		dispatcher.dispatch(new GenericMessage<>("test2"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> dispatcher.dispatch(new GenericMessage<>("test2")));
 	}
 
 	@Test
@@ -188,15 +166,26 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
-		try {
-			assertThat(dispatcher.dispatch(new GenericMessage<>("test"))).isFalse();
-		}
-		catch (Exception e) {
-			// ignore
-		}
+		assertThatExceptionOfType(AggregateMessageDeliveryException.class)
+				.isThrownBy(() -> dispatcher.dispatch(new GenericMessage<>("test")));
 		assertThat(counter.get()).as("each target should have been invoked").isEqualTo(3);
 	}
 
+	@Test
+	public void failoverStrategyRejects() {
+		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
+		dispatcher.setFailoverStrategy((exception) -> !(exception instanceof MessageRejectedException));
+		AtomicInteger counter = new AtomicInteger();
+		MessageHandler target1 = new CountingTestEndpoint(counter, false);
+		MessageHandler target2 = new CountingTestEndpoint(counter, true);
+		MessageHandler target3 = new CountingTestEndpoint(counter, true);
+		dispatcher.addHandler(target1);
+		dispatcher.addHandler(target2);
+		dispatcher.addHandler(target3);
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> dispatcher.dispatch(new GenericMessage<>("test")));
+		assertThat(counter.get()).as("only first should have been invoked").isEqualTo(1);
+	}
 
 	private static ServiceActivatingHandler createConsumer(Object object) {
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(object);

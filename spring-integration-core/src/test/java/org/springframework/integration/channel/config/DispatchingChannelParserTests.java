@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.springframework.integration.channel.config;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Predicate;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,18 +37,20 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 1.0.3
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 public class DispatchingChannelParserTests {
 
 	@Autowired
@@ -60,50 +62,60 @@ public class DispatchingChannelParserTests {
 	@Test
 	public void taskExecutorOnly() {
 		MessageChannel channel = channels.get("taskExecutorOnly");
-		assertThat(channel.getClass()).isEqualTo(ExecutorChannel.class);
+		assertThat(channel).isInstanceOf(ExecutorChannel.class);
 		Object executor = getDispatcherProperty("executor", channel);
-		assertThat(executor.getClass()).isEqualTo(ErrorHandlingTaskExecutor.class);
+		assertThat(executor).isInstanceOf(ErrorHandlingTaskExecutor.class);
 		assertThat(new DirectFieldAccessor(executor).getPropertyValue("executor"))
 				.isSameAs(context.getBean("taskExecutor"));
-		assertThat((Boolean) getDispatcherProperty("failover", channel)).isTrue();
-		assertThat(getDispatcherProperty("loadBalancingStrategy", channel).getClass())
-				.isEqualTo(RoundRobinLoadBalancingStrategy.class);
+		@SuppressWarnings("unchecked")
+		Predicate<Exception> failoverStrategy = (Predicate<Exception>) getDispatcherProperty("failoverStrategy", channel);
+		assertThat(failoverStrategy.test(mock())).isTrue();
+		assertThat(getDispatcherProperty("loadBalancingStrategy", channel))
+				.isInstanceOf(RoundRobinLoadBalancingStrategy.class);
 	}
 
 	@Test
 	public void failoverFalse() {
 		MessageChannel channel = channels.get("failoverFalse");
-		assertThat(channel.getClass()).isEqualTo(DirectChannel.class);
-		assertThat((Boolean) getDispatcherProperty("failover", channel)).isFalse();
-		assertThat(getDispatcherProperty("loadBalancingStrategy", channel).getClass())
-				.isEqualTo(RoundRobinLoadBalancingStrategy.class);
+		assertThat(channel).isInstanceOf(DirectChannel.class);
+		@SuppressWarnings("unchecked")
+		Predicate<Exception> failoverStrategy = (Predicate<Exception>) getDispatcherProperty("failoverStrategy", channel);
+		assertThat(failoverStrategy.test(mock())).isFalse();
+		assertThat(getDispatcherProperty("loadBalancingStrategy", channel))
+				.isInstanceOf(RoundRobinLoadBalancingStrategy.class);
 	}
 
 	@Test
 	public void failoverTrue() {
 		MessageChannel channel = channels.get("failoverTrue");
-		assertThat(channel.getClass()).isEqualTo(DirectChannel.class);
-		assertThat((Boolean) getDispatcherProperty("failover", channel)).isTrue();
-		assertThat(getDispatcherProperty("loadBalancingStrategy", channel).getClass())
-				.isEqualTo(RoundRobinLoadBalancingStrategy.class);
+		assertThat(channel).isInstanceOf(DirectChannel.class);
+		@SuppressWarnings("unchecked")
+		Predicate<Exception> failoverStrategy = (Predicate<Exception>) getDispatcherProperty("failoverStrategy", channel);
+		assertThat(failoverStrategy.test(mock())).isTrue();
+		assertThat(getDispatcherProperty("loadBalancingStrategy", channel))
+				.isInstanceOf(RoundRobinLoadBalancingStrategy.class);
 	}
 
 	@Test
 	public void loadBalancerDisabled() {
 		MessageChannel channel = channels.get("loadBalancerDisabled");
-		assertThat(channel.getClass()).isEqualTo(DirectChannel.class);
-		assertThat((Boolean) getDispatcherProperty("failover", channel)).isTrue();
+		assertThat(channel).isInstanceOf(DirectChannel.class);
+		@SuppressWarnings("unchecked")
+		Predicate<Exception> failoverStrategy = (Predicate<Exception>) getDispatcherProperty("failoverStrategy", channel);
+		assertThat(failoverStrategy.test(mock())).isTrue();
 		assertThat(getDispatcherProperty("loadBalancingStrategy", channel)).isNull();
 	}
 
 	@Test
 	public void loadBalancerDisabledAndTaskExecutor() {
 		MessageChannel channel = channels.get("loadBalancerDisabledAndTaskExecutor");
-		assertThat(channel.getClass()).isEqualTo(ExecutorChannel.class);
-		assertThat((Boolean) getDispatcherProperty("failover", channel)).isTrue();
+		assertThat(channel).isInstanceOf(ExecutorChannel.class);
+		@SuppressWarnings("unchecked")
+		Predicate<Exception> failoverStrategy = (Predicate<Exception>) getDispatcherProperty("failoverStrategy", channel);
+		assertThat(failoverStrategy.test(mock())).isTrue();
 		assertThat(getDispatcherProperty("loadBalancingStrategy", channel)).isNull();
 		Object executor = getDispatcherProperty("executor", channel);
-		assertThat(executor.getClass()).isEqualTo(ErrorHandlingTaskExecutor.class);
+		assertThat(executor).isInstanceOf(ErrorHandlingTaskExecutor.class);
 		assertThat(new DirectFieldAccessor(executor).getPropertyValue("executor"))
 				.isSameAs(context.getBean("taskExecutor"));
 	}
@@ -111,12 +123,14 @@ public class DispatchingChannelParserTests {
 	@Test
 	public void roundRobinLoadBalancerAndTaskExecutor() {
 		MessageChannel channel = channels.get("roundRobinLoadBalancerAndTaskExecutor");
-		assertThat(channel.getClass()).isEqualTo(ExecutorChannel.class);
-		assertThat((Boolean) getDispatcherProperty("failover", channel)).isTrue();
-		assertThat(getDispatcherProperty("loadBalancingStrategy", channel).getClass())
-				.isEqualTo(RoundRobinLoadBalancingStrategy.class);
+		assertThat(channel).isInstanceOf(ExecutorChannel.class);
+		@SuppressWarnings("unchecked")
+		Predicate<Exception> failoverStrategy = (Predicate<Exception>) getDispatcherProperty("failoverStrategy", channel);
+		assertThat(failoverStrategy.test(mock())).isTrue();
+		assertThat(getDispatcherProperty("loadBalancingStrategy", channel))
+				.isInstanceOf(RoundRobinLoadBalancingStrategy.class);
 		Object executor = getDispatcherProperty("executor", channel);
-		assertThat(executor.getClass()).isEqualTo(ErrorHandlingTaskExecutor.class);
+		assertThat(executor).isInstanceOf(ErrorHandlingTaskExecutor.class);
 		assertThat(new DirectFieldAccessor(executor).getPropertyValue("executor"))
 				.isSameAs(context.getBean("taskExecutor"));
 	}
@@ -126,19 +140,15 @@ public class DispatchingChannelParserTests {
 		MessageChannel channel = channels.get("lbRefChannel");
 		LoadBalancingStrategy lbStrategy = TestUtils.getPropertyValue(channel, "dispatcher.loadBalancingStrategy",
 				LoadBalancingStrategy.class);
-		assertThat(lbStrategy instanceof SampleLoadBalancingStrategy).isTrue();
+		assertThat(lbStrategy).isInstanceOf(SampleLoadBalancingStrategy.class);
 	}
 
 	@Test
 	public void loadBalancerRefFailWithLoadBalancer() {
-
-		try {
-			new ClassPathXmlApplicationContext("ChannelWithLoadBalancerRef-fail-config.xml", this.getClass()).close();
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage()).contains("'load-balancer' and 'load-balancer-ref' are mutually exclusive");
-		}
-
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("ChannelWithLoadBalancerRef-fail-config.xml",
+						getClass()))
+				.withMessageContaining("'load-balancer' and 'load-balancer-ref' are mutually exclusive");
 	}
 
 	private static Object getDispatcherProperty(String propertyName, MessageChannel channel) {
@@ -153,5 +163,7 @@ public class DispatchingChannelParserTests {
 		public Iterator<MessageHandler> getHandlerIterator(Message<?> message, Collection<MessageHandler> handlers) {
 			return handlers.iterator();
 		}
+
 	}
+
 }

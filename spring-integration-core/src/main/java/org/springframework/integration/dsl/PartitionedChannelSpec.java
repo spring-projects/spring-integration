@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,8 +63,8 @@ public class PartitionedChannelSpec extends LoadBalancingChannelSpec<Partitioned
 			this.channel = new PartitionedChannel(this.partitionCount);
 		}
 		this.channel.setLoadBalancingStrategy(this.loadBalancingStrategy);
-		if (this.failover != null) {
-			this.channel.setFailover(this.failover);
+		if (this.failoverStrategy != null) {
+			this.channel.setFailoverStrategy(this.failoverStrategy);
 		}
 		if (this.maxSubscribers != null) {
 			this.channel.setMaxSubscribers(this.maxSubscribers);

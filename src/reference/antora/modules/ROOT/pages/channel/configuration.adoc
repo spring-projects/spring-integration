@@ -112,6 +112,10 @@ XML::
 ----
 ======
 
+Starting with version 6.3, all the `MessageChannel` implementations based on the `UnicastingDispatcher` can be configured with a `Predicate<Exception> failoverStrategy` instead of plain `failover` option.
+This predicate makes a decision to failover or not to the next `MessageHandler` based on an exception thrown from the current one.
+The more complex error analysis should be done using xref:router/implementations.adoc#router-implementations-exception-router[`ErrorMessageExceptionTypeRouter`].
+
 [[channel-datatype-channel]]
 == Datatype Channel Configuration
 
