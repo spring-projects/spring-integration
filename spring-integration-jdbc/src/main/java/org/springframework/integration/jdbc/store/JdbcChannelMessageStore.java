@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import org.springframework.core.log.LogMessage;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStorePreparedStatementSetter;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
@@ -473,7 +473,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 					ps -> this.preparedStatementSetter.setValues(ps, message, groupId, this.region,
 							this.priorityEnabled));
 		}
-		catch (@SuppressWarnings("unused") DuplicateKeyException e) {
+		catch (@SuppressWarnings("unused") DataIntegrityViolationException ex) {
 			LOGGER.debug(() ->
 					"The Message with id [" + getKey(message.getHeaders().getId()) + "] already exists.\n" +
 							"Ignoring INSERT...");

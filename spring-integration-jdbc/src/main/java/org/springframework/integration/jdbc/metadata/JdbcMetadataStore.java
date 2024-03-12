@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -247,7 +247,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 						ps.setString(5, this.region); // NOSONAR magic number
 					});
 		}
-		catch (DuplicateKeyException ex) {
+		catch (DataIntegrityViolationException ex) {
 			return 0;
 		}
 	}

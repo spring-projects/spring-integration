@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -237,7 +237,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		try {
 			this.mongoTemplate.insert(document, this.collectionName);
 		}
-		catch (DuplicateKeyException e) {
+		catch (DataIntegrityViolationException e) {
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("The Message with id [" + document.getMessageId() + "] already exists.\n" +
 						"Ignoring INSERT and SELECT existing...");
