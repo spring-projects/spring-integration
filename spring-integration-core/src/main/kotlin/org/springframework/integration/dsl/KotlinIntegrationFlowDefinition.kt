@@ -93,8 +93,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate a transformer endpoint.
 	 * @since 6.2
 	 */
-	fun transformWith(configurer: KotlinTransformerEndpointSpec.() -> Unit) {
-		this.delegate.register(KotlinTransformerEndpointSpec(), configurer)
+	fun transformWith(transformerConfigurer: KotlinTransformerEndpointSpec.() -> Unit) {
+		this.delegate.transformWith { transformerConfigurer(KotlinTransformerEndpointSpec(it)) }
 	}
 
 	/**
@@ -109,8 +109,8 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * Populate a splitter endpoint.
 	 * @since 6.2
 	 */
-	fun splitWith(configurer: KotlinSplitterSpec.() -> Unit) {
-		this.delegate.register(KotlinSplitterSpec(), configurer)
+	fun splitWith(splitterConfigurer: KotlinSplitterSpec.() -> Unit) {
+		this.delegate.splitWith { splitterConfigurer(KotlinSplitterSpec(it)) }
 	}
 
 	/**

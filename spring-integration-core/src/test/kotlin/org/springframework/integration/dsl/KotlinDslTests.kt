@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -214,7 +214,6 @@ class KotlinDslTests {
 				.build()
 		this.scatterGatherFlowInput.send(request)
 		val bestQuoteMessage = replyChannel.receive(10000)
-		assertThat(bestQuoteMessage).isNotNull()
 		val payload = bestQuoteMessage!!.payload
 		assertThat(payload).isInstanceOf(List::class.java).size().isGreaterThanOrEqualTo(1)
 	}

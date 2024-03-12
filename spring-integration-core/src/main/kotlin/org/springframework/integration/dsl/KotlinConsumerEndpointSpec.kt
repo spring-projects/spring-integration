@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,75 +37,74 @@ import reactor.core.publisher.Mono
  *
  * @since 5.5.19
  */
-abstract class KotlinConsumerEndpointSpec<S : ConsumerEndpointSpec<S, H>, H : MessageHandler>(open val delegate: S)
-	: ConsumerEndpointSpec<S, H>(delegate.handler) {
+abstract class KotlinConsumerEndpointSpec<S : ConsumerEndpointSpec<S, H>, H : MessageHandler>(open val delegate: S) {
 
-	override fun phase(phase: Int): S {
-		return this.delegate.phase(phase)
+	fun phase(phase: Int) {
+		this.delegate.phase(phase)
 	}
 
-	override fun autoStartup(autoStartup: Boolean): S {
-		return this.delegate.autoStartup(autoStartup)
+	fun autoStartup(autoStartup: Boolean) {
+		this.delegate.autoStartup(autoStartup)
 	}
 
-	override fun poller(pollerMetadata: PollerMetadata): S {
-		return this.delegate.poller(pollerMetadata)
+	fun poller(pollerMetadata: PollerMetadata) {
+		this.delegate.poller(pollerMetadata)
 	}
 
-	override fun reactive(): S {
-		return this.delegate.reactive()
+	fun reactive() {
+		this.delegate.reactive()
 	}
 
 	fun reactive(reactiveCustomizer: (Flux<Message<*>>) -> Publisher<Message<*>>) {
 		this.delegate.reactive(reactiveCustomizer)
 	}
 
-	override fun role(role: String): S {
-		return this.delegate.role(role)
+	fun role(role: String) {
+		this.delegate.role(role)
 	}
 
-	override fun taskScheduler(taskScheduler: TaskScheduler): S {
-		return this.delegate.taskScheduler(taskScheduler)
+	fun taskScheduler(taskScheduler: TaskScheduler) {
+		this.delegate.taskScheduler(taskScheduler)
 	}
 
-	override fun handleMessageAdvice(vararg interceptors: MethodInterceptor?): S {
-		return this.delegate.handleMessageAdvice(*interceptors)
+	fun handleMessageAdvice(vararg interceptors: MethodInterceptor?) {
+		this.delegate.handleMessageAdvice(*interceptors)
 	}
 
-	override fun advice(vararg advice: Advice?): S {
-		return this.delegate.advice(*advice)
+	fun advice(vararg advice: Advice?) {
+		this.delegate.advice(*advice)
 	}
 
-	override fun transactional(transactionManager: TransactionManager): S {
-		return this.delegate.transactional(transactionManager)
+	fun transactional(transactionManager: TransactionManager) {
+		this.delegate.transactional(transactionManager)
 	}
 
-	override fun transactional(transactionManager: TransactionManager, handleMessageAdvice: Boolean): S {
-		return this.delegate.transactional(transactionManager, handleMessageAdvice)
+	fun transactional(transactionManager: TransactionManager, handleMessageAdvice: Boolean) {
+		this.delegate.transactional(transactionManager, handleMessageAdvice)
 	}
 
-	override fun transactional(transactionInterceptor: TransactionInterceptor): S {
-		return this.delegate.transactional(transactionInterceptor)
+	fun transactional(transactionInterceptor: TransactionInterceptor) {
+		this.delegate.transactional(transactionInterceptor)
 	}
 
-	override fun transactional(): S {
-		return this.delegate.transactional()
+	fun transactional() {
+		this.delegate.transactional()
 	}
 
-	override fun transactional(handleMessageAdvice: Boolean): S {
-		return this.delegate.transactional(handleMessageAdvice)
+	fun transactional(handleMessageAdvice: Boolean) {
+		this.delegate.transactional(handleMessageAdvice)
 	}
 
 	fun <T : Any?, V : Any?> customizeMonoReply(replyCustomizer: (Message<*>, Mono<T>) -> Publisher<V>) {
 		this.delegate.customizeMonoReply(replyCustomizer)
 	}
 
-	override fun id(id: String?): S {
-		return this.delegate.id(id)
+	fun id(id: String?) {
+		this.delegate.id(id)
 	}
 
-	override fun poller(pollerMetadataSpec: PollerSpec): S {
-		return this.delegate.poller(pollerMetadataSpec)
+	fun poller(pollerMetadataSpec: PollerSpec) {
+		this.delegate.poller(pollerMetadataSpec)
 	}
 
 	fun poller(pollers: (PollerFactory) -> PollerSpec) {
