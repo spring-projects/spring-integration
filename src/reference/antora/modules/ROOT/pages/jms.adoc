@@ -150,7 +150,7 @@ If you want the entire flow to be transactional (for example, if there is a down
 Alternatively, consider using a `jms-message-driven-channel-adapter` with `acknowledge` set to `transacted` (the default).
 
 [[jms-message-driven-channel-adapter]]
-== Message-driven Channel Adapter
+== Message Driven Channel Adapter
 
 The `message-driven-channel-adapter` requires a reference to either an instance of a Spring `MessageListener` container (any subclass of `AbstractMessageListenerContainer`) or both `ConnectionFactory` and `Destination` (a 'destinationName' can be provided in place of the 'destination' reference).
 The following example defines a message-driven channel adapter with a `Destination` reference:
@@ -268,6 +268,9 @@ Use `subscription-name` to name the subscription.
 Starting with version 5.1, when the endpoint is stopped while the application remains running, the underlying listener container is shut down, closing its shared connection and consumers.
 Previously, the connection and consumers remained open.
 To revert to the previous behavior, set the `shutdownContainerOnStop` on the `JmsMessageDrivenEndpoint` to `false`.
+
+Starting with version 6.3, the `ChannelPublishingJmsMessageListener`  can now be supplied with a `RetryTemplate` and `RecoveryCallback<Message<?>>` for retries on the downstream send and send-and-receive operations.
+These options are also exposed into a `JmsMessageDrivenChannelAdapterSpec` for Java DSL.
 
 [[jms-md-conversion-errors]]
 === Inbound Conversion Errors
@@ -468,6 +471,8 @@ public IntegrationFlow jmsInboundGatewayFlow(ConnectionFactory connectionFactory
             .get();
 }
 ----
+
+Starting with version 6.3, the `Jms.inboundGateway()` API exposes a `retryTemplate()` and `recoveryCallback()` options for retrying internal send-and-receive operations.
 
 [[jms-outbound-gateway]]
 == Outbound Gateway

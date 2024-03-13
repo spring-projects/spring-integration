@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageTimeoutException;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
@@ -74,6 +76,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.InterceptableChannel;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -223,6 +226,8 @@ public class JmsTests extends ActiveMQMultiContextTests {
 				.isNotNull()
 				.extracting(Message::getPayload)
 				.isEqualTo("foo");
+
+		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(receive).get()).isEqualTo(3);
 
 		assertThat(this.jmsOutboundFlowTemplate).isNotNull();
 
@@ -456,7 +461,14 @@ public class JmsTests extends ActiveMQMultiContextTests {
 									Jms.container(amqFactory, "containerSpecDestination")
 											.pubSubDomain(false)
 											.taskExecutor(Executors.newCachedThreadPool()))
-							.id("observedJmsMessageDrivenChannelAdapter"))
+							.id("observedJmsMessageDrivenChannelAdapter")
+							.retryTemplate(new RetryTemplate()))
+					.handle((p, h) -> {
+						if (h.get(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, AtomicInteger.class).get() < 3) {
+							throw new RuntimeException("intentional for retry");
+						}
+						return p;
+					})
 					.transform(String::trim)
 					.channel(jmsOutboundInboundReplyChannel())
 					.get();

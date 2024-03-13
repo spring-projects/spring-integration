@@ -32,6 +32,8 @@ import org.springframework.integration.util.CheckedFunction;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -221,9 +223,35 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 	}
 
 	/**
-	 * Set to false to prevent listener container shutdown when the endpoint is stopped.
+	 * Set a {@link RetryTemplate} to use for retrying a message delivery within the
+	 * adapter. Unlike adding retry at the container level, this can be used with an
+	 * {@code ErrorMessageSendingRecoverer} {@link RecoveryCallback} to publish to the
+	 * error channel after retries are exhausted. You generally should not configure an
+	 * error channel when using retry here, use a {@link RecoveryCallback} instead.
+	 * @param retryTemplate the template.
+	 * @since 6.3
+	 * @see #recoveryCallback(RecoveryCallback)
+	 */
+	public S retryTemplate(RetryTemplate retryTemplate) {
+		this.target.getListener().setRetryTemplate(retryTemplate);
+		return _this();
+	}
+
+	/**
+	 * Set a {@link RecoveryCallback} when using retry within the adapter.
+	 * @param recoveryCallback the callback.
+	 * @since 6.3
+	 * @see #retryTemplate(RetryTemplate)
+	 */
+	public S recoveryCallback(RecoveryCallback<org.springframework.messaging.Message<?>> recoveryCallback) {
+		this.target.getListener().setRecoveryCallback(recoveryCallback);
+		return _this();
+	}
+
+	/**
+	 * Set to {@code false} to prevent listener container shutdown when the endpoint is stopped.
 	 * Then, if so configured, any cached consumer(s) in the container will remain.
-	 * Otherwise the shared connection and will be closed and the listener invokers shut
+	 * Otherwise, the shared connection and will be closed and the listener invokers shut
 	 * down; this behavior is new starting with version 5.1. Default: true.
 	 * @param shutdown false to not shutdown.
 	 * @return the spec.

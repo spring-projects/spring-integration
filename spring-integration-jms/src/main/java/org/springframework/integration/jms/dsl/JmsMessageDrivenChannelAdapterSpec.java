@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ import org.springframework.integration.jms.JmsHeaderMapper;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -90,6 +93,32 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 	 */
 	public S shutdownContainerOnStop(boolean shutdown) {
 		this.target.setShutdownContainerOnStop(shutdown);
+		return _this();
+	}
+
+	/**
+	 * Set a {@link RetryTemplate} to use for retrying a message delivery within the
+	 * adapter. Unlike adding retry at the container level, this can be used with an
+	 * {@code ErrorMessageSendingRecoverer} {@link RecoveryCallback} to publish to the
+	 * error channel after retries are exhausted. You generally should not configure an
+	 * error channel when using retry here, use a {@link RecoveryCallback} instead.
+	 * @param retryTemplate the template.
+	 * @since 6.3
+	 * @see #recoveryCallback(RecoveryCallback)
+	 */
+	public S retryTemplate(RetryTemplate retryTemplate) {
+		this.target.getListener().setRetryTemplate(retryTemplate);
+		return _this();
+	}
+
+	/**
+	 * Set a {@link RecoveryCallback} when using retry within the adapter.
+	 * @param recoveryCallback the callback.
+	 * @since 6.3
+	 * @see #retryTemplate(RetryTemplate)
+	 */
+	public S recoveryCallback(RecoveryCallback<Message<?>> recoveryCallback) {
+		this.target.getListener().setRecoveryCallback(recoveryCallback);
 		return _this();
 	}
 

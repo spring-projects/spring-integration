@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jms;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.micrometer.observation.ObservationRegistry;
 import jakarta.jms.DeliveryMode;
@@ -30,13 +31,18 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.AttributeAccessor;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.jms.support.JmsMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
@@ -54,6 +60,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.RetryOperations;
+import org.springframework.retry.support.RetrySynchronizationManager;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -347,6 +357,30 @@ public class ChannelPublishingJmsMessageListener
 		this.gatewayDelegate.setReceiverObservationConvention(observationConvention);
 	}
 
+	/**
+	 * Set a {@link RetryTemplate} to use for retrying a message delivery within the
+	 * adapter. Unlike adding retry at the container level, this can be used with an
+	 * {@code ErrorMessageSendingRecoverer} {@link RecoveryCallback} to publish to the
+	 * error channel after retries are exhausted. You generally should not configure an
+	 * error channel when using retry here, use a {@link RecoveryCallback} instead.
+	 * @param retryTemplate the template.
+	 * @since 6.3
+	 * @see #setRecoveryCallback(RecoveryCallback)
+	 */
+	public void setRetryTemplate(RetryTemplate retryTemplate) {
+		this.gatewayDelegate.retryTemplate = retryTemplate;
+	}
+
+	/**
+	 * Set a {@link RecoveryCallback} when using retry within the adapter.
+	 * @param recoveryCallback the callback.
+	 * @since 6.3
+	 * @see #setRetryTemplate(RetryTemplate)
+	 */
+	public void setRecoveryCallback(RecoveryCallback<Message<?>> recoveryCallback) {
+		this.gatewayDelegate.recoveryCallback = recoveryCallback;
+	}
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
@@ -367,6 +401,9 @@ public class ChannelPublishingJmsMessageListener
 			}
 
 			Map<String, Object> headers = this.headerMapper.toHeaders(jmsMessage);
+			if (this.gatewayDelegate.retryTemplate != null) {
+				headers.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, new AtomicInteger());
+			}
 			requestMessage =
 					(result instanceof Message<?>) ?
 							this.messageBuilderFactory.fromMessage((Message<?>) result).copyHeaders(headers).build() :
@@ -385,10 +422,10 @@ public class ChannelPublishingJmsMessageListener
 		}
 
 		if (!this.expectReply) {
-			this.gatewayDelegate.send(requestMessage);
+			this.gatewayDelegate.send(jmsMessage, requestMessage);
 		}
 		else {
-			Message<?> replyMessage = this.gatewayDelegate.sendAndReceiveMessage(requestMessage);
+			Message<?> replyMessage = this.gatewayDelegate.sendAndReceiveMessage(jmsMessage, requestMessage);
 			if (replyMessage != null) {
 				Destination destination = getReplyDestination(jmsMessage, session);
 				this.logger.debug(() -> "Reply destination: " + destination);
@@ -424,6 +461,12 @@ public class ChannelPublishingJmsMessageListener
 			this.gatewayDelegate.setBeanFactory(this.beanFactory);
 		}
 		this.gatewayDelegate.afterPropertiesSet();
+		if (this.gatewayDelegate.retryTemplate != null) {
+			Assert.state(this.gatewayDelegate.getErrorChannel() == null,
+					"Cannot have an 'errorChannel' property when a 'RetryTemplate' is "
+							+ "provided; use an 'ErrorMessageSendingRecoverer' in the 'recoveryCallback' property to "
+							+ "send an error message when retries are exhausted");
+		}
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
@@ -551,21 +594,65 @@ public class ChannelPublishingJmsMessageListener
 
 	private class GatewayDelegate extends MessagingGatewaySupport {
 
+		private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
+
+		@Nullable
+		private RetryOperations retryTemplate;
+
+		@Nullable
+		private RecoveryCallback<Message<?>> recoveryCallback;
+
 		GatewayDelegate() {
+			setErrorMessageStrategy(new JmsMessageHeaderErrorMessageStrategy());
 		}
 
-		@Override
-		protected void send(Object request) { // NOSONAR - not useless, increases visibility
-			super.send(request);
+		private void send(jakarta.jms.Message jmsMessage, Message<?> requestMessage) {
+			try {
+				if (this.retryTemplate == null) {
+					setAttributesIfNecessary(jmsMessage, requestMessage);
+					send(requestMessage);
+				}
+				else {
+					this.retryTemplate.execute(
+							context -> {
+								StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage).incrementAndGet();
+								setAttributesIfNecessary(jmsMessage, requestMessage);
+								send(requestMessage);
+								return null;
+							}, this.recoveryCallback);
+				}
+			}
+			finally {
+				if (this.retryTemplate == null) {
+					ATTRIBUTES_HOLDER.remove();
+				}
+			}
 		}
 
-		@Override
-		protected Message<?> sendAndReceiveMessage(Object request) { // NOSONAR - not useless, increases visibility
-			return super.sendAndReceiveMessage(request);
+		private Message<?> sendAndReceiveMessage(jakarta.jms.Message jmsMessage, Message<?> requestMessage) {
+			try {
+				if (this.retryTemplate == null) {
+					setAttributesIfNecessary(jmsMessage, requestMessage);
+					return sendAndReceiveMessage(requestMessage);
+				}
+				else {
+					return this.retryTemplate.execute(
+							context -> {
+								StaticMessageHeaderAccessor.getDeliveryAttempt(requestMessage).incrementAndGet();
+								setAttributesIfNecessary(jmsMessage, requestMessage);
+								return sendAndReceiveMessage(requestMessage);
+							}, this.recoveryCallback);
+				}
+			}
+			finally {
+				if (this.retryTemplate == null) {
+					ATTRIBUTES_HOLDER.remove();
+				}
+			}
 		}
 
 		protected ErrorMessage buildErrorMessage(Throwable throwable) {
-			return super.buildErrorMessage(null, throwable);
+			return buildErrorMessage(null, throwable);
 		}
 
 		protected MessagingTemplate getMessagingTemplate() {
@@ -582,6 +669,29 @@ public class ChannelPublishingJmsMessageListener
 			}
 		}
 
+		@Override
+		protected AttributeAccessor getErrorMessageAttributes(@Nullable Message<?> message) {
+			AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
+			return (attributes != null) ? attributes : super.getErrorMessageAttributes(message);
+		}
+
+		private void setAttributesIfNecessary(Object jmsMessage, Message<?> message) {
+			boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
+			boolean needAttributes = needHolder || this.retryTemplate != null;
+			if (needHolder) {
+				ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
+			}
+			if (needAttributes) {
+				AttributeAccessor attributes =
+						this.retryTemplate != null
+								? RetrySynchronizationManager.getContext()
+								: ATTRIBUTES_HOLDER.get();
+				if (attributes != null) {
+					attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
+					attributes.setAttribute(JmsMessageHeaderErrorMessageStrategy.JMS_RAW_MESSAGE, jmsMessage);
+				}
+			}
+		}
 	}
 
 }

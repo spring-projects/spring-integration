@@ -43,3 +43,9 @@ See xref:mqtt.adoc[MQTT Support] for more information.
 
 The `MockIntegrationContext.substituteTriggerFor()` API has been introduced.
 See xref:testing.adoc[Testing Support] for more information.
+
+[[x6.3-jms]]
+=== JMS Support Changes
+
+The `ChannelPublishingJmsMessageListener` can now be supplied with a `RetryTemplate` and `RecoveryCallback<Message<?>>` for retries on the downstream send operations.
+See xref:jms.adoc#jms-message-driven-channel-adapter[Message Driven Channel Adapter] for more information.
