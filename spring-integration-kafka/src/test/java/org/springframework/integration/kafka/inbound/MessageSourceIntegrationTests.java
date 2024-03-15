@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,13 +133,13 @@ class MessageSourceIntegrationTests {
 		assertThat(messageHistory.toString()).isEqualTo("myNullChannel");
 		received = source.receive();
 		assertThat(received).isNull();
-		assertThat(KafkaTestUtils.getPropertyValue(source, "consumer.fetcher.fetchConfig.minBytes")).isEqualTo(2);
+		assertThat(KafkaTestUtils.getPropertyValue(source, "consumer.delegate.fetcher.fetchConfig.minBytes")).isEqualTo(2);
 		source.destroy();
 		template.destroy();
 	}
 
 	@Test
-	void deserializationErrorIsThrownFromSource() throws Exception {
+	void deserializationErrorIsThrownFromSource() {
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(brokers, "testErrorChannelSource", "false");
 		consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
 		consumerProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, FailingDeserializer.class);
