@@ -32,11 +32,22 @@ import org.springframework.util.Assert;
  * implementation responsible for an {@link Observation} propagation from one message
  * flow's thread to another through the {@link MessageChannel}s involved in the flow.
  * Opens a new {@link Observation.Scope} on another thread and cleans up it in the end.
+ * <p>
+ * NOTE: This interceptor is proven to be wrong since an existing observation usually is closed
+ * on the sender side before the message is consumed on the receiver side.
+ * Therefore, it is better to have a {@code sender} observation on this channel,
+ * and then {@code receiver} observation on a subscriber for this channel.
+ * This way a tracing information is stored into message headers passing this channel.
+ * Such an approach also eliminate a problem with persistent message channels where
+ * an {@link Observation} is not serializable to be stored into database as a part of the message.
  *
  * @author Artem Bilan
  *
  * @since 6.0
+ *
+ * @deprecated since 6.1.7 for removal in 6.4 in favor of enabling observation on the channel and its consumer.
  */
+@Deprecated(since = "6.1.7", forRemoval = true)
 public class ObservationPropagationChannelInterceptor extends ThreadStatePropagationChannelInterceptor<Observation> {
 
 	private final ThreadLocal<Observation.Scope> scopes = new ThreadLocal<>();
