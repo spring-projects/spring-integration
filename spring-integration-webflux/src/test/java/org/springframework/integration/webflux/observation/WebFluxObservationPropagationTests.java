@@ -23,7 +23,6 @@ import brave.propagation.ThreadLocalCurrentTraceContext;
 import brave.test.TestSpanHandler;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
-import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
@@ -44,15 +43,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.integration.channel.FluxMessageChannel;
-import org.springframework.integration.channel.interceptor.ObservationPropagationChannelInterceptor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
-import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.webflux.dsl.WebFlux;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -100,12 +96,8 @@ public class WebFluxObservationPropagationTests {
 				.extracting(Message::getPayload)
 				.isEqualTo("Received data: " + testData);
 
-		TestObservationRegistryAssert.assertThat(this.observationRegistry)
-				.hasRemainingCurrentObservation();
-
-		this.observationRegistry.getCurrentObservation().stop();
-
-		assertThat(SPANS.spans()).hasSize(6);
+		// There is a race condition when we already have a reply, but the span in the last channel is not closed yet.
+		await().untilAsserted(() -> assertThat(SPANS.spans()).hasSize(6));
 		SpansAssert.assertThat(SPANS.spans().stream().map(BraveFinishedSpan::fromBrave).collect(Collectors.toList()))
 				.haveSameTraceId();
 	}
@@ -173,12 +165,6 @@ public class WebFluxObservationPropagationTests {
 		@Bean
 		ServerHttpObservationFilter webfluxObservationFilter(ObservationRegistry registry) {
 			return new ServerHttpObservationFilter(registry);
-		}
-
-		@Bean
-		@GlobalChannelInterceptor
-		public ChannelInterceptor observationPropagationInterceptor(ObservationRegistry observationRegistry) {
-			return new ObservationPropagationChannelInterceptor(observationRegistry);
 		}
 
 		@Bean

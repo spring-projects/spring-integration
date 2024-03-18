@@ -167,7 +167,7 @@ It uses the `IntegrationObservation.GATEWAY` API;
 * An `AbstractMessageChannel.send()` operation is the only Spring Integration API where it produces messages.
 So, it is treated as a `PRODUCER` span type and uses the `IntegrationObservation.PRODCUER` API.
 This makes more sense when a channel is a distributed implementation (e.g. `PublishSubscribeKafkaChannel` or `ZeroMqChannel`) and trace information has to be added to the message.
-So, the `IntegrationObservation.PRODUCER` observation is based on a `MessageSenderContext` where Spring Integration supplies a `MutableMessage` to allow a subsequent tracing `Propagator` to add headers so they are available to the consumer;
+So, the `IntegrationObservation.PRODUCER` observation is based on a `MessageSenderContext` where Spring Integration supplies a `MutableMessage` to allow a subsequent tracing `Propagator` to add headers, so they are available to the consumer;
 * An `AbstractMessageHandler` is a `CONSUMER` span type and uses the `IntegrationObservation.HANDLER` API.
 
 An observation production on the `IntegrationManagement` components can be customized via `ObservationConvention` configuration.
@@ -183,10 +183,10 @@ include::./generated/conventions.adoc[leveloffset=+2]
 
 ==== Observation Propagation
 
-To supply a connected chain of spans in one trace, independently of the nature of the messaging flow, Spring Integration provides an `ObservationPropagationChannelInterceptor` implementation.
-This can be configured on `MessageChannnel` beans individually or as a `@GlobalChannelInterceptor` with respective `MessageChannnel` bean names pattern matching.
-The goal of this interceptor is to propagate an `Observation` from the producer thread to the consumer one independently of the `MessageChannnel` implementation and nature.
-A `DirectChannel`, though, is ignored since its consumer is executed directly on the producer thread.
+To supply a connected chain of spans in one trace, independently of the nature of the messaging flow, even if a `MessageChannel` is persistent and distributed, the observation must be enabled on this channel and on consumers (subscribers) for this channel.
+This way, the tracing information is stored in the message headers before it is propagated to a consumer thread or persisted into the database.
+This is done via mentioned above `MessageSenderContext`.
+The consumer (a `MessageHandler`) side restores tracing information from those headers using a `MessageReceiverContext` and starts a new child `Observation`.
 
 ==== Spring Integration JMX Support
 
