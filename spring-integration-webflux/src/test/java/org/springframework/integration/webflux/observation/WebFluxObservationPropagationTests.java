@@ -56,6 +56,7 @@ import org.springframework.web.filter.reactive.ServerHttpObservationFilter;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
