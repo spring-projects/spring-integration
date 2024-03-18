@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
@@ -35,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Jeremy Grelle
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class JsonOutboundMessageMapperTests {
@@ -45,39 +47,39 @@ public class JsonOutboundMessageMapperTests {
 
 
 	@Test
-	public void testFromMessageWithHeadersAndStringPayload() throws Exception {
+	public void testFromMessageWithHeadersAndStringPayload() {
 		Message<String> testMessage = MessageBuilder.withPayload("myPayloadStuff").build();
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
-		assertThat(result.contains("\"headers\":{")).isTrue();
-		assertThat(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp())).isTrue();
-		assertThat(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\"")).isTrue();
-		assertThat(result.contains("\"payload\":\"myPayloadStuff\"")).isTrue();
+		assertThat(result).contains("\"headers\":{");
+		assertThat(result).contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp());
+		assertThat(result).contains("\"id\":\"" + testMessage.getHeaders().getId() + "\"");
+		assertThat(result).contains("\"payload\":\"myPayloadStuff\"");
 	}
 
 	@Test
-	public void testFromMessageWithMessageHistory() throws Exception {
+	public void testFromMessageWithMessageHistory() {
 		Message<String> testMessage = MessageBuilder.withPayload("myPayloadStuff").build();
 		testMessage = MessageHistory.write(testMessage, new TestNamedComponent(1));
 		testMessage = MessageHistory.write(testMessage, new TestNamedComponent(2));
 		testMessage = MessageHistory.write(testMessage, new TestNamedComponent(3));
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
-		assertThat(result.contains("\"headers\":{")).isTrue();
-		assertThat(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp())).isTrue();
-		assertThat(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\"")).isTrue();
-		assertThat(result.contains("\"payload\":\"myPayloadStuff\"")).isTrue();
-		assertThat(result.contains("\"history\":")).isTrue();
-		assertThat(result.contains("testName-1")).isTrue();
-		assertThat(result.contains("testType-1")).isTrue();
-		assertThat(result.contains("testName-2")).isTrue();
-		assertThat(result.contains("testType-2")).isTrue();
-		assertThat(result.contains("testName-3")).isTrue();
-		assertThat(result.contains("testType-3")).isTrue();
+		assertThat(result).contains("\"headers\":{");
+		assertThat(result).contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp());
+		assertThat(result).contains("\"id\":\"" + testMessage.getHeaders().getId() + "\"");
+		assertThat(result).contains("\"payload\":\"myPayloadStuff\"");
+		assertThat(result).contains("\"history\":");
+		assertThat(result).contains("testName-1");
+		assertThat(result).contains("testType-1");
+		assertThat(result).contains("testName-2");
+		assertThat(result).contains("testType-2");
+		assertThat(result).contains("testName-3");
+		assertThat(result).contains("testType-3");
 	}
 
 	@Test
-	public void testFromMessageExtractStringPayload() throws Exception {
+	public void testFromMessageExtractStringPayload() {
 		Message<String> testMessage = MessageBuilder.withPayload("myPayloadStuff").build();
 		String expected = "\"myPayloadStuff\"";
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
@@ -92,9 +94,9 @@ public class JsonOutboundMessageMapperTests {
 		Message<TestBean> testMessage = MessageBuilder.withPayload(payload).build();
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
-		assertThat(result.contains("\"headers\":{")).isTrue();
-		assertThat(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp())).isTrue();
-		assertThat(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\"")).isTrue();
+		assertThat(result).contains("\"headers\":{");
+		assertThat(result).contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp());
+		assertThat(result).contains("\"id\":\"" + testMessage.getHeaders().getId() + "\"");
 		TestBean parsedPayload = extractJsonPayloadToTestBean(result);
 		assertThat(parsedPayload).isEqualTo(payload);
 	}
@@ -106,7 +108,7 @@ public class JsonOutboundMessageMapperTests {
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		mapper.setShouldExtractPayload(true);
 		String result = mapper.fromMessage(testMessage);
-		assertThat(!result.contains("headers")).isTrue();
+		assertThat(result).doesNotContain("headers");
 		TestBean parsedPayload = objectMapper.readValue(result, TestBean.class);
 		assertThat(parsedPayload).isEqualTo(payload);
 	}
@@ -115,19 +117,13 @@ public class JsonOutboundMessageMapperTests {
 		JsonParser parser = jsonFactory.createParser(json);
 		do {
 			parser.nextToken();
-		} while (parser.getCurrentToken() != JsonToken.FIELD_NAME || !parser.getCurrentName().equals("payload"));
+		} while (parser.getCurrentToken() != JsonToken.FIELD_NAME || !parser.currentName().equals("payload"));
 		parser.nextToken();
 		return objectMapper.readValue(parser, TestBean.class);
 	}
 
 
-	private static class TestNamedComponent implements NamedComponent {
-
-		private final int id;
-
-		TestNamedComponent(int id) {
-			this.id = id;
-		}
+	private record TestNamedComponent(int id) implements NamedComponent {
 
 		@Override
 		public String getComponentName() {
