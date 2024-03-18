@@ -35,17 +35,14 @@ import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.interceptor.ObservationPropagationChannelInterceptor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
-import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -135,12 +132,6 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 	public static class ObservationIntegrationTestConfiguration {
 
 		CountDownLatch observedHandlerLatch = new CountDownLatch(1);
-
-		@Bean
-		@GlobalChannelInterceptor
-		public ChannelInterceptor observationPropagationInterceptor(ObservationRegistry observationRegistry) {
-			return new ObservationPropagationChannelInterceptor(observationRegistry);
-		}
 
 		@Bean
 		TestMessagingGatewaySupport testInboundGateway(@Qualifier("queueChannel") PollableChannel queueChannel) {
