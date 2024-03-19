@@ -23,6 +23,7 @@ updates:
           - io.spring.*
           - org.ajoberstar.grgit
           - org.antora
+          - com.google.protobuf
           - io.micrometer:micrometer-docs-generator
           - com.willowtreeapps.assertk:assertk-jvm
           - org.jetbrains.dokka
