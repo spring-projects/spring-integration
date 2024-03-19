@@ -1,0 +1,34 @@
+services:
+  na_1:
+    image: harbor-emea.1dc.com/nats/nats:2.9.16-linux
+    restart: on-failure
+    command: -c /etc/nats/tls-compose.conf --name na_1 -p 4222
+    volumes:
+      - ./tls-docker-compose.conf:/etc/nats/tls-compose.conf
+      - ./certs/cluster/server-dev.pem:/etc/nats/server-dev.pem
+      - ./certs/cluster/server-dev-key.pem:/etc/nats/server-dev-key.pem
+      - ./certs/cluster/intermediate_ca.pem:/etc/nats/intermediate_ca.pem
+    ports:
+      - 4222:4222
+  na_2:
+    image: harbor-emea.1dc.com/nats/nats:2.9.16-linux
+    restart: on-failure
+    command: -c /etc/nats/tls-compose.conf --name na_2 -p 4223
+    volumes:
+      - ./tls-docker-compose.conf:/etc/nats/tls-compose.conf
+      - ./certs/cluster/server-dev.pem:/etc/nats/server-dev.pem
+      - ./certs/cluster/server-dev-key.pem:/etc/nats/server-dev-key.pem
+      - ./certs/cluster/intermediate_ca.pem:/etc/nats/intermediate_ca.pem
+    ports:
+      - 4223:4223
+  na_3:
+    image: harbor-emea.1dc.com/nats/nats:2.9.16-linux
+    restart: on-failure
+    command: -c /etc/nats/tls-compose.conf --name na_3 -p 4224
+    volumes:
+      - ./tls-docker-compose.conf:/etc/nats/tls-compose.conf
+      - ./certs/cluster/server-dev.pem:/etc/nats/server-dev.pem
+      - ./certs/cluster/server-dev-key.pem:/etc/nats/server-dev-key.pem
+      - ./certs/cluster/intermediate_ca.pem:/etc/nats/intermediate_ca.pem
+    ports:
+      - 4224:4224
