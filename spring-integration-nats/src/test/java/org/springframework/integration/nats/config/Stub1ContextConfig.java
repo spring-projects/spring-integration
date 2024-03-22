@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.nats.config;
 
 import org.springframework.context.annotation.Bean;
@@ -27,16 +28,15 @@ import org.springframework.stereotype.Repository;
 /**
  * Configuration class to setup Beans required to initialize NATS Message producers and consumers
  * using NATS integration classes
- */
-
-/**
- * @author Viktor Rohlenko - lead and architect
- * @author Vennila Pazhamalai - maintainer
- * @author Vivek Duraisamy - maintainer
- * @see <a
- *     href="https://rohlenko.github.io/spring-integration-nats-site/gws-spring-integration-nats/index.html#stakeholders">See
- *     all stakeholders and contact</a>
+*
+ * @author Viktor Rohlenko
+ * @author Vennila Pazhamalai
+ * @author Vivek Duraisamy
  * @since 6.4.x
+ *
+ * @see <a
+ * href="https://rohlenko.github.io/spring-integration-nats-site/gws-spring-integration-nats/index.html#stakeholders">See
+ * all stakeholders and contact</a>
  */
 @Configuration
 @EnableIntegration
@@ -44,19 +44,19 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class Stub1ContextConfig extends GeneralContextConfig {
 
-  @Bean
-  public static MessageConverter<TestDTOStubV1> messageConvertorOfDTOStub() {
-    return new MessageConverter<>(TestDTOStubV1.class);
-  }
+	@Bean
+	public static MessageConverter<TestDTOStubV1> messageConvertorOfDTOStub() {
+		return new MessageConverter<>(TestDTOStubV1.class);
+	}
 
-  @Bean
-  public NatsMessageDrivenChannelAdapter testAdapter() {
-    final NatsMessageDrivenChannelAdapter adapter =
-        new NatsMessageDrivenChannelAdapter(testContainer(), messageConvertorOfDTOStub());
-    adapter.setBeanName("testAdapter");
-    adapter.setOutputChannel(consumerChannel());
-    adapter.setErrorChannel(consumerErrorChannel());
-    adapter.setAutoStartup(false);
-    return adapter;
-  }
+	@Bean
+	public NatsMessageDrivenChannelAdapter testAdapter() {
+		final NatsMessageDrivenChannelAdapter adapter =
+				new NatsMessageDrivenChannelAdapter(testContainer(), messageConvertorOfDTOStub());
+		adapter.setBeanName("testAdapter");
+		adapter.setOutputChannel(consumerChannel());
+		adapter.setErrorChannel(consumerErrorChannel());
+		adapter.setAutoStartup(false);
+		return adapter;
+	}
 }

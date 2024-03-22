@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.nats;
 
-import static org.junit.Assert.assertTrue;
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.Options;
 import io.nats.client.impl.NatsImpl;
 import io.nats.spring.boot.autoconfigure.NatsConnectionProperties;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import javax.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,115 +55,119 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author Viktor Rohlenko - lead and architect
- * @author Vennila Pazhamalai - maintainer
- * @author Vivek Duraisamy - maintainer
- * @see <a
- *     href="https://rohlenko.github.io/spring-integration-nats-site/gws-spring-integration-nats/index.html#stakeholders">See
- *     all stakeholders and contact</a>
+ * @author Viktor Rohlenko
+ * @author Vennila Pazhamalai
+ * @author Vivek Duraisamy
  * @since 6.4.x
+ *
+ * @see <a
+ * href="https://rohlenko.github.io/spring-integration-nats-site/gws-spring-integration-nats/index.html#stakeholders">See
+ * all stakeholders and contact</a>
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {NatsTestConfig.class, NatsOutputQueueTest.ContextConfig.class})
 public class NatsOutputQueueTest extends AbstractNatsIntegrationTestSupport {
 
-  private static final Log LOG = LogFactory.getLog(NatsOutputQueueTest.class);
+	private static final Log LOG = LogFactory.getLog(NatsOutputQueueTest.class);
 
-  private static final String TEST_SUBJECT = "test-subject";
+	private static final String TEST_SUBJECT = "test-subject";
 
-  private static final String TEST_STREAM = "test-stream";
+	private static final String TEST_STREAM = "test-stream";
 
-  @Autowired
-  @Qualifier("producerChannelOutputQueueFullFlow")
-  private DirectChannel producerChannelOutputQueueFullFlow;
+	@Autowired
+	@Qualifier("producerChannelOutputQueueFullFlow")
+	private DirectChannel producerChannelOutputQueueFullFlow;
 
-  /**
-   * This is to test the behavior of NATS clients output message queue {@link
-   * io.nats.client.impl.MessageQueue}
-   *
-   * <p>Test scenario: To produce more messages than the configured output queue capacity {@link
-   * ContextConfig#natsTestConnection(NatsConnectionProperties)} Result expected: The NATS client
-   * should throw java.lang.IllegalStateException: Output queue is full
-   *
-   * @throws InterruptedException if any thread has interrupted the current thread. The interrupted
-   *     status of the current thread is cleared when this exception is thrown.
-   */
-  @Test
-  public void testOutputQueueOverflow() throws InterruptedException {
-    // stopping nats server
-    stopNatsServer();
-    // sleep 10 seconds to let the nats server shutdown
-    Thread.sleep(10000);
-    LOG.info("NATS server stopped.");
-    // trying to produce more messages(200) than output queue capacity(100)
-    try {
-      for (int i = 1; i <= 200; i++) {
-        this.producerChannelOutputQueueFullFlow.send(
-            MessageBuilder.withPayload("Hello " + i).build());
-      }
-      Assert.fail();
-    } catch (Exception ex) {
-      // This is the expected behavior of NATS client when internal output queue overflows
-      assertTrue(ex.getMessage().contains("Output queue is full"));
-    }
-  }
+	/**
+	 * This is to test the behavior of NATS clients output message queue {@link
+	 * io.nats.client.impl.MessageQueue}
+	 *
+	 * <p>Test scenario: To produce more messages than the configured output queue capacity {@link
+	 * ContextConfig#natsTestConnection(NatsConnectionProperties)} Result expected: The NATS client
+	 * should throw java.lang.IllegalStateException: Output queue is full
+	 *
+	 * @throws InterruptedException if any thread has interrupted the current thread. The interrupted
+	 *                              status of the current thread is cleared when this exception is thrown.
+	 */
+	@Test
+	public void testOutputQueueOverflow() throws InterruptedException {
+		// stopping nats server
+		stopNatsServer();
+		// sleep 10 seconds to let the nats server shutdown
+		Thread.sleep(10000);
+		LOG.info("NATS server stopped.");
+		// trying to produce more messages(200) than output queue capacity(100)
+		try {
+			for (int i = 1; i <= 200; i++) {
+				this.producerChannelOutputQueueFullFlow.send(
+						MessageBuilder.withPayload("Hello " + i).build());
+			}
+			Assert.fail();
+		}
+		catch (Exception ex) {
+			// This is the expected behavior of NATS client when internal output queue overflows
+			assertTrue(ex.getMessage().contains("Output queue is full"));
+		}
+	}
 
-  /**
-   * Configuration class to setup Beans required to initialize NATS Message producers using NATS dsl
-   * classes
-   */
-  @Configuration
-  @EnableIntegration
-  @IntegrationComponentScan
-  public static class ContextConfig {
+	/**
+	 * Configuration class to setup Beans required to initialize NATS Message producers using NATS dsl
+	 * classes
+	 */
+	@Configuration
+	@EnableIntegration
+	@IntegrationComponentScan
+	public static class ContextConfig {
 
-    @Value("${org.springframework.integration.nats.credentials}")
-    private Resource natsCredentials;
+		@Value("${org.springframework.integration.nats.credentials}")
+		private Resource natsCredentials;
 
-    @Autowired
-    private @Qualifier("natsTestConnection") Connection natsTestConnection;
+		@Autowired
+		private @Qualifier("natsTestConnection")
+		Connection natsTestConnection;
 
-    @Bean
-    public Connection natsTestConnection(
-        @NonNull final NatsConnectionProperties natsEncryptedConnectionProperties)
-        throws GeneralSecurityException, IOException, InterruptedException {
-      try {
-        Options.Builder builder = natsEncryptedConnectionProperties.toOptionsBuilder();
-        builder.authHandler(NatsImpl.credentials(natsCredentials.getFilename()));
-        builder.maxMessagesInOutgoingQueue(100);
-        return io.nats.client.Nats.connect(builder.build());
-      } catch (final GeneralSecurityException | IOException | InterruptedException e) {
-        LOG.error("error connecting to nats", e);
-        throw e;
-      }
-    }
+		@Bean
+		public Connection natsTestConnection(
+				@NonNull final NatsConnectionProperties natsEncryptedConnectionProperties)
+				throws GeneralSecurityException, IOException, InterruptedException {
+			try {
+				Options.Builder builder = natsEncryptedConnectionProperties.toOptionsBuilder();
+				builder.authHandler(NatsImpl.credentials(natsCredentials.getFilename()));
+				builder.maxMessagesInOutgoingQueue(100);
+				return io.nats.client.Nats.connect(builder.build());
+			}
+			catch (final GeneralSecurityException | IOException | InterruptedException e) {
+				LOG.error("error connecting to nats", e);
+				throw e;
+			}
+		}
 
-    @Bean
-    public NatsTemplate natsTemplate() {
-      return new NatsTemplate(this.natsTestConnection, TEST_SUBJECT, messageConvertor());
-    }
+		@Bean
+		public NatsTemplate natsTemplate() {
+			return new NatsTemplate(this.natsTestConnection, TEST_SUBJECT, messageConvertor());
+		}
 
-    @Bean
-    public MessageChannel producerChannelOutputQueueFullFlow() {
-      return MessageChannels.direct().getObject();
-    }
+		@Bean
+		public MessageChannel producerChannelOutputQueueFullFlow() {
+			return MessageChannels.direct().getObject();
+		}
 
-    @Bean
-    public IntegrationFlow outboundOutputQueueFullFlow() {
-      return IntegrationFlow.from(producerChannelOutputQueueFullFlow())
-          .log(LoggingHandler.Level.INFO)
-          .handle(Nats.outboundAsyncProducingHandler(natsTemplate()))
-          .get();
-    }
+		@Bean
+		public IntegrationFlow outboundOutputQueueFullFlow() {
+			return IntegrationFlow.from(producerChannelOutputQueueFullFlow())
+					.log(LoggingHandler.Level.INFO)
+					.handle(Nats.outboundAsyncProducingHandler(natsTemplate()))
+					.get();
+		}
 
-    @Bean
-    public MessageConverter<String> messageConvertor() {
-      return new MessageConverter<>(String.class);
-    }
+		@Bean
+		public MessageConverter<String> messageConvertor() {
+			return new MessageConverter<>(String.class);
+		}
 
-    @PostConstruct
-    public void streamSetup() throws IOException, JetStreamApiException {
-      createStreamConfig(this.natsTestConnection, TEST_STREAM, TEST_SUBJECT);
-    }
-  }
+		@PostConstruct
+		public void streamSetup() throws IOException, JetStreamApiException {
+			createStreamConfig(this.natsTestConnection, TEST_STREAM, TEST_SUBJECT);
+		}
+	}
 }

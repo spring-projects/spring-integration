@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,28 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.nats.exception;
 
-/** MessageConversion Exception while oncverting data from/to bytes for NATS messaging */
-
 /**
- * @author Viktor Rohlenko - lead and architect
- * @author Vennila Pazhamalai - maintainer
- * @author Vivek Duraisamy - maintainer
+ * MessageConversion Exception while oncverting data from/to bytes for NATS messaging
+ *
+ * @author Viktor Rohlenko
+ * @author Vennila Pazhamalai
+ * @author Vivek Duraisamy
+ * @since 6.4.x
+ *
  * @see <a
  *     href="https://rohlenko.github.io/spring-integration-nats-site/gws-spring-integration-nats/index.html#stakeholders">See
  *     all stakeholders and contact</a>
- * @since 6.4.x
  */
 public class MessageConversionException extends NatsException {
 
-  private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-  public MessageConversionException(final String msg) {
-    super(msg);
-  }
+	public MessageConversionException(final String msg) {
+		super(msg);
+	}
 
-  public MessageConversionException(final String msg, final Throwable cause) {
-    super(msg, cause);
-  }
+	public MessageConversionException(final String msg, final Throwable cause) {
+		super(msg, cause);
+	}
 }
