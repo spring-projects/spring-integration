@@ -22,7 +22,7 @@ plugins {
     id 'org.jetbrains.dokka' version "$kotlinVersion"
     id 'org.asciidoctor.jvm.pdf' version '3.3.2'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
-    id 'com.github.spotbugs' version '6.0.8'
+    id 'com.github.spotbugs' version '6.0.9'
 }
 
 if (isCI) {
@@ -49,7 +49,7 @@ ext {
 
     apacheSshdVersion = '2.9.3'
     artemisVersion = '2.28.0'
-    aspectjVersion = '1.9.21.2'
+    aspectjVersion = '1.9.22'
     assertjVersion = '3.24.2'
     assertkVersion = '0.26.1'
     avroVersion = '1.11.3'
