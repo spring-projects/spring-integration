@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -184,17 +184,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	@Override
 	public void stop() {
 		if (this.running.compareAndSet(true, false)) {
-			if (this.filter == null || this.filter.supportsSingleFileFiltering()) {
-				this.toBeReceived.clear();
-			}
-			else {
-				// remove unprocessed files from the queue (and filter)
-				AbstractFileInfo<F> file = this.toBeReceived.poll();
-				while (file != null) {
-					resetFilterIfNecessary(file);
-					file = this.toBeReceived.poll();
-				}
-			}
+			clearUnprocessedFilesQueue();
 		}
 	}
 
@@ -327,5 +317,22 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	protected abstract List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
 
 	protected abstract boolean isDirectory(F file);
+
+	/**
+	 * Clear internal queue of listed files..
+	 */
+	public void clearUnprocessedFilesQueue() {
+		if (this.filter == null || this.filter.supportsSingleFileFiltering()) {
+			this.toBeReceived.clear();
+		}
+		else {
+			// remove unprocessed files from the queue (and filter)
+			AbstractFileInfo<F> file = this.toBeReceived.poll();
+			while (file != null) {
+				resetFilterIfNecessary(file);
+				file = this.toBeReceived.poll();
+			}
+		}
+	}
 
 }
