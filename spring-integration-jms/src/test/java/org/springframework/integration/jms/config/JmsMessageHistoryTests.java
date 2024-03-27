@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,6 @@ public class JmsMessageHistoryTests extends ActiveMQMultiContextTests {
 		assertThat(event2.getProperty(MessageHistory.NAME_PROPERTY)).isEqualTo("jmsInputChannel");
 	}
 
-
 	public interface SampleGateway {
 
 		void send(String value);
@@ -81,7 +80,6 @@ public class JmsMessageHistoryTests extends ActiveMQMultiContextTests {
 
 	}
 
-
 	public static class SampleService {
 
 		public Message<?> echoMessage(String value) {
@@ -89,7 +87,6 @@ public class JmsMessageHistoryTests extends ActiveMQMultiContextTests {
 		}
 
 	}
-
 
 	public static class SampleHeaderMapper extends DefaultJmsHeaderMapper {
 
@@ -126,7 +123,6 @@ public class JmsMessageHistoryTests extends ActiveMQMultiContextTests {
 		}
 
 	}
-
 
 	public static class SampleComponent implements NamedComponent {
 

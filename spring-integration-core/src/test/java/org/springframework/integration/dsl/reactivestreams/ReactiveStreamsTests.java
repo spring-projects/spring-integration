@@ -60,7 +60,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 /**
  * @author Artem Bilan
  * @author Gary Russell

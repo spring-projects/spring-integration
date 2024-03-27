@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDire
 
 	private Pattern pattern;
 
-
 	public AbstractRegexPatternFileListFilter(String pattern) {
 		this(Pattern.compile(pattern));
 	}
@@ -45,7 +44,6 @@ public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDire
 		Assert.notNull(pattern, "'pattern' must not be null!");
 		this.pattern = pattern;
 	}
-
 
 	public void setPattern(String pattern) {
 		Assert.notNull(pattern, "'pattern' must not be null!");

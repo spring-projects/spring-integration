@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,7 +219,6 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		doSetRemoteDirectoryExpression(EXPRESSION_PARSER.parseExpression(remoteDirectoryExpression));
 	}
 
-
 	protected final void doSetRemoteDirectoryExpression(Expression expression) {
 		Assert.notNull(expression, "'remoteDirectoryExpression' must not be null");
 		this.remoteDirectoryExpression = expression;
@@ -274,7 +273,6 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		this.metadataStorePrefix = metadataStorePrefix;
 	}
 
-
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
@@ -296,7 +294,6 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 		doInit();
 	}
-
 
 	/**
 	 * Subclasses can override to perform initialization - called from

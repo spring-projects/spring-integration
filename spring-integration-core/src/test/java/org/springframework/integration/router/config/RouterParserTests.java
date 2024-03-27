@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -236,7 +236,6 @@ public class RouterParserTests {
 		new ClassPathXmlApplicationContext("rfb-fix-config.xml", this.getClass()).close();
 	}
 
-
 	public static class NonExistingChannelRouter {
 
 		public String route(String payload) {
@@ -253,14 +252,12 @@ public class RouterParserTests {
 			this.channel = channel;
 		}
 
-
 		@Override
 		protected List<Object> getChannelKeys(Message<?> message) {
 			return Collections.singletonList((Object) this.channel);
 		}
 
 	}
-
 
 	public static class AnnotatedTestRouterBean {
 
@@ -285,7 +282,6 @@ public class RouterParserTests {
 		}
 
 	}
-
 
 	static class TestChannelResolver implements DestinationResolver<MessageChannel> {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,7 +179,6 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 				.isSameAs(this.messageBuilderFactory);
 	}
 
-
 	@Test
 	public void topicNameChannel() {
 		assertThat(topicNameChannel.getClass()).isEqualTo(SubscribableJmsChannel.class);
@@ -320,7 +319,6 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 		assertThat(container.getDestinationName()).isEqualTo("custom.container.queue");
 	}
 
-
 	static class TestDestinationResolver implements DestinationResolver {
 
 		@Autowired
@@ -339,7 +337,6 @@ public class JmsChannelParserTests extends ActiveMQMultiContextTests {
 		}
 
 	}
-
 
 	static class TestInterceptor implements ChannelInterceptor {
 

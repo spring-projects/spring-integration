@@ -228,7 +228,8 @@ public class PollingLifecycleTests {
 		var context = new AnnotationConfigApplicationContext();
 		context.register(TestDefaultAnnotationConfiguration.class);
 
-		PollingConsumer consumer = new PollingConsumer(new QueueChannel(), (m) -> { });
+		PollingConsumer consumer = new PollingConsumer(new QueueChannel(), (m) -> {
+		});
 		consumer.setTrigger(new PeriodicTrigger(Duration.ofSeconds(10)));
 		consumer.setReceiveTimeout(30_000);
 

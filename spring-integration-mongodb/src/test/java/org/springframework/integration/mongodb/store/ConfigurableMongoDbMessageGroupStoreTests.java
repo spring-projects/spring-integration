@@ -212,7 +212,6 @@ class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGr
 		context.close();
 	}
 
-
 	public interface TestGateway {
 
 		String service(String payload);

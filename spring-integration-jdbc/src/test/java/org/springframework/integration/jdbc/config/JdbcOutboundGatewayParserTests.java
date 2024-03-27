@@ -171,7 +171,6 @@ public class JdbcOutboundGatewayParserTests {
 
 		new DirectFieldAccessor(pollerJdbcTemplate).setPropertyValue("logger", logger);
 
-
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 
 		this.channel.send(message);
@@ -277,7 +276,6 @@ public class JdbcOutboundGatewayParserTests {
 		PollableChannel outbound = this.context.getBean("replyChannel", PollableChannel.class);
 		Message<?> reply = outbound.receive(10000);
 
-
 		assertThat(reply)
 				.isNotNull()
 				.extracting(Message::getPayload)
@@ -288,7 +286,6 @@ public class JdbcOutboundGatewayParserTests {
 				.satisfies(map -> assertThat((Map<String, String>) map)
 						.containsEntry("name", "bar"));
 	}
-
 
 	@AfterEach
 	public void tearDown() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ public class DefaultScriptVariableGenerator implements ScriptVariableGenerator {
 
 	private final Map<String, Object> variableMap;
 
-
 	public DefaultScriptVariableGenerator() {
 		this.variableMap = Collections.<String, Object>emptyMap();
 	}
@@ -44,7 +43,6 @@ public class DefaultScriptVariableGenerator implements ScriptVariableGenerator {
 	public DefaultScriptVariableGenerator(Map<String, Object> variableMap) {
 		this.variableMap = variableMap;
 	}
-
 
 	public Map<String, Object> generateScriptVariables(Message<?> message) {
 		Map<String, Object> scriptVariables = new HashMap<String, Object>();

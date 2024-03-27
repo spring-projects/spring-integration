@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,6 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 				new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
 		RequestReplyExchanger gateway = context.getBean("explicitCorrelationKeyGatewayC", RequestReplyExchanger.class);
 
-
 		for (int i = 0; i < 3; i++) {
 			try {
 				gateway.exchange(MessageBuilder.withPayload("hello").build());
@@ -96,7 +95,6 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 		assertThat(gateway.exchange(MessageBuilder.withPayload("foo").build()).getPayload()).isEqualTo("foo");
 		context.close();
 	}
-
 
 	public static class DelayedService {
 

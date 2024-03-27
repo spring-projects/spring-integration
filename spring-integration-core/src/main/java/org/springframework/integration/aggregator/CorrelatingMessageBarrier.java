@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,6 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 	private ReleaseStrategy releaseStrategy;
 
-
 	public CorrelatingMessageBarrier() {
 		this(new SimpleMessageStore(0));
 	}
@@ -70,7 +69,6 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 	public CorrelatingMessageBarrier(MessageGroupStore store) {
 		this.store = store;
 	}
-
 
 	/**
 	 * Set the CorrelationStrategy to be used to determine the correlation key for incoming messages.
@@ -102,7 +100,6 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		Object existingLock = this.correlationLocks.putIfAbsent(correlationKey, correlationKey);
 		return existingLock == null ? correlationKey : existingLock;
 	}
-
 
 	@SuppressWarnings("unchecked")
 	@Override

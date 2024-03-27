@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,16 +207,11 @@ public class IpIntegrationTests {
 				.get();
 		CountDownLatch latch = new CountDownLatch(1);
 		AtomicInteger port = new AtomicInteger();
-		class Listener implements ApplicationListener<TcpConnectionServerListeningEvent> {
-
-			@Override
-			public void onApplicationEvent(TcpConnectionServerListeningEvent event) {
-				port.set(event.getPort());
-				latch.countDown();
-			}
-
-		}
-		this.applicationContext.addApplicationListener(new Listener());
+		this.applicationContext.addApplicationListener(
+				(ApplicationListener<TcpConnectionServerListeningEvent>) event -> {
+					port.set(event.getPort());
+					latch.countDown();
+				});
 		this.flowContext.registration(server)
 				.id("streamCloseServer")
 				.register();

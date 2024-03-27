@@ -254,7 +254,6 @@ class FluxAggregatorMessageHandlerTests {
 		fluxAggregatorMessageHandler.stop();
 	}
 
-
 	@Test
 	void testCustomWindow() {
 		QueueChannel resultChannel = new QueueChannel();

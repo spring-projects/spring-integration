@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,6 @@ public class ResultToStringTransformer implements ResultTransformer {
 
 	private Properties outputProperties;
 
-
 	public ResultToStringTransformer() {
 		this.transformerFactory = TransformerFactoryUtils.newInstance();
 	}
@@ -64,7 +63,6 @@ public class ResultToStringTransformer implements ResultTransformer {
 		Assert.notNull(transformerFactory, "'transformerFactory' must not be null.");
 		this.transformerFactory = transformerFactory;
 	}
-
 
 	public void setOutputProperties(Properties outputProperties) {
 		this.outputProperties = outputProperties;

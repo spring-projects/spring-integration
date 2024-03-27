@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 	private final SubscribableChannel inputChannel;
 
 	private final MessageHandler handler;
-
 
 	public EventDrivenConsumer(SubscribableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");

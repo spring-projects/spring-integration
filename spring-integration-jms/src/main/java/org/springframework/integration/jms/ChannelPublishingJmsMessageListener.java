@@ -692,6 +692,7 @@ public class ChannelPublishingJmsMessageListener
 				}
 			}
 		}
+
 	}
 
 }

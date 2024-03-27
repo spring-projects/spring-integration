@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,6 @@ import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
-
 
 /**
  * @author Mark Fisher
@@ -886,7 +885,6 @@ public class MethodInvokingMessageProcessorTests {
 		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
 	}
 
-
 	@Test
 	public void testNoSpElFallbackWhenUserException() {
 		class A {
@@ -966,7 +964,6 @@ public class MethodInvokingMessageProcessorTests {
 			return i.proceed();
 		});
 		service = (MyHandler) proxyFactory.getProxy(getClass().getClassLoader());
-
 
 		GenericMessage<String> testMessage = new GenericMessage<>("foo");
 
@@ -1125,7 +1122,6 @@ public class MethodInvokingMessageProcessorTests {
 
 		assertThat(result).isEqualTo("FOO");
 	}
-
 
 	@Test
 	@Disabled("Jackson does not understand a generic argument value")

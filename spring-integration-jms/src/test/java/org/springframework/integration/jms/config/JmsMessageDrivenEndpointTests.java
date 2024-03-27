@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,6 @@ public class JmsMessageDrivenEndpointTests extends ActiveMQMultiContextTests {
 				.withMessage("The listenerContainer provided to a JMS Inbound Endpoint must not have " +
 						"a MessageListener configured since the endpoint configures its own listener implementation.");
 	}
-
 
 	@Test
 	public void testStopStart(@Autowired JmsTemplate template,

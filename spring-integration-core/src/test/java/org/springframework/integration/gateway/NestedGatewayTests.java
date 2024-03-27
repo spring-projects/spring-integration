@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,17 +38,20 @@ public class NestedGatewayTests {
 		DirectChannel innerChannel = new DirectChannel();
 		DirectChannel outerChannel = new DirectChannel();
 		innerChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
 		final MessagingGatewaySupport innerGateway = new MessagingGatewaySupport() {
+
 		};
 		innerGateway.setRequestChannel(innerChannel);
 		innerGateway.setBeanFactory(mock(BeanFactory.class));
 		innerGateway.afterPropertiesSet();
 		outerChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return innerGateway.sendAndReceiveMessage(
@@ -56,6 +59,7 @@ public class NestedGatewayTests {
 			}
 		});
 		MessagingGatewaySupport outerGateway = new MessagingGatewaySupport() {
+
 		};
 		outerGateway.setRequestChannel(outerChannel);
 		outerGateway.setBeanFactory(mock(BeanFactory.class));
@@ -69,12 +73,14 @@ public class NestedGatewayTests {
 		DirectChannel requestChannel = new DirectChannel();
 		DirectChannel replyChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
 		MessagingGatewaySupport gateway = new MessagingGatewaySupport() {
+
 		};
 		gateway.setRequestChannel(requestChannel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
@@ -91,12 +97,14 @@ public class NestedGatewayTests {
 		DirectChannel requestChannel = new DirectChannel();
 		DirectChannel errorChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
 		MessagingGatewaySupport gateway = new MessagingGatewaySupport() {
+
 		};
 		gateway.setRequestChannel(requestChannel);
 		gateway.setBeanFactory(mock(BeanFactory.class));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ public class TestChannelInterceptor implements ChannelInterceptor {
 	private final AtomicInteger sentCount = new AtomicInteger();
 
 	private final AtomicInteger receivedCount = new AtomicInteger();
-
 
 	public int getSentCount() {
 		return this.sentCount.get();

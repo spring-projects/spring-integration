@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,7 +221,6 @@ public class DefaultSoapHeaderMapperTests {
 		transformer.transform(message.getEnvelope().getSource(), stringResult);
 		System. out. println(stringResult.toString());*/
 	}
-
 
 	@Test
 	public void testDoNotOverriderSoapAction() throws Exception {

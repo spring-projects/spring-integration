@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionFailedException;
@@ -32,6 +32,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -63,12 +66,13 @@ public class MethodInvokingReleaseStrategyTests {
 
 			@SuppressWarnings("unused")
 			public boolean checkCompletenessOnNonParameterizedListOfMessages(List<Message<?>> messages) {
-				assertThat(messages.size() > 0).isTrue();
+				assertThat(!messages.isEmpty()).isTrue();
 				return messages.size() >
 						new IntegrationMessageHeaderAccessor(messages.iterator().next()).getSequenceSize();
 			}
 
 		}
+
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"checkCompletenessOnNonParameterizedListOfMessages");
 		adapter.setBeanFactory(mock(BeanFactory.class));
@@ -82,12 +86,13 @@ public class MethodInvokingReleaseStrategyTests {
 
 			@SuppressWarnings("unused")
 			public boolean checkCompletenessOnListOfMessagesParametrizedWithWildcard(List<Message<?>> messages) {
-				assertThat(messages.size() > 0).isTrue();
+				assertThat(!messages.isEmpty()).isTrue();
 				return messages.size() >
 						new IntegrationMessageHeaderAccessor(messages.iterator().next()).getSequenceSize();
 			}
 
 		}
+
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"checkCompletenessOnListOfMessagesParametrizedWithWildcard");
 		adapter.setBeanFactory(mock(BeanFactory.class));
@@ -101,12 +106,13 @@ public class MethodInvokingReleaseStrategyTests {
 
 			@SuppressWarnings("unused")
 			public boolean checkCompletenessOnListOfMessagesParametrizedWithString(List<Message<String>> messages) {
-				assertThat(messages.size() > 0).isTrue();
+				assertThat(!messages.isEmpty()).isTrue();
 				return messages.size() > new IntegrationMessageHeaderAccessor(messages.iterator().next())
 						.getSequenceSize();
 			}
 
 		}
+
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"checkCompletenessOnListOfMessagesParametrizedWithString");
 		adapter.setBeanFactory(mock(BeanFactory.class));
@@ -130,6 +136,7 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 
 		}
+
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"checkCompletenessOnListOfStrings");
 		adapter.setBeanFactory(mock(BeanFactory.class));
@@ -153,6 +160,7 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 
 		}
+
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"checkCompletenessOnListOfStrings");
 		adapter.setBeanFactory(mock(BeanFactory.class));
@@ -160,15 +168,18 @@ public class MethodInvokingReleaseStrategyTests {
 		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testAdapterWithWrongMethodName() {
 		class TestReleaseStrategy {
 
 		}
-		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "methodThatDoesNotExist");
+
+		assertThatIllegalStateException()
+				.isThrownBy(() ->
+						new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "methodThatDoesNotExist"));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testInvalidParameterTypeUsingMethodName() {
 		class TestReleaseStrategy {
 
@@ -178,14 +189,15 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 
 		}
+
 		MethodInvokingReleaseStrategy adapter =
 				new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "invalidParameterType");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertThat(adapter.canRelease(messages)).isTrue();
+		assertThatIllegalStateException().isThrownBy(() -> adapter.canRelease(messages));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testTooManyParametersUsingMethodName() {
 		class TestReleaseStrategy {
 
@@ -195,7 +207,9 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 
 		}
-		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "tooManyParameters");
+
+		assertThatIllegalStateException()
+				.isThrownBy(() -> new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "tooManyParameters"));
 	}
 
 	@Test
@@ -208,6 +222,7 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 
 		}
+
 		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "notEnoughParameters");
 	}
 
@@ -221,6 +236,7 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 
 		}
+
 		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), TestReleaseStrategy.class.getMethod(
 				"notEnoughParameters"));
 	}
@@ -235,6 +251,7 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 
 		}
+
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"listSubclassParameter");
 		adapter.setBeanFactory(mock(BeanFactory.class));
@@ -242,7 +259,7 @@ public class MethodInvokingReleaseStrategyTests {
 		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
-	@Test(expected = ConversionFailedException.class)
+	@Test
 	public void testWrongReturnType() throws SecurityException, NoSuchMethodError {
 		class TestReleaseStrategy {
 
@@ -252,15 +269,17 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 
 		}
+
 		MethodInvokingReleaseStrategy adapter =
 				new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "wrongReturnType");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertThat(adapter.canRelease(messages)).isTrue();
+		assertThatExceptionOfType(ConversionFailedException.class)
+				.isThrownBy(() -> adapter.canRelease(messages));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testTooManyParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
+	@Test
+	public void testTooManyParametersUsingMethodObject() throws SecurityException {
 		class TestReleaseStrategy {
 
 			@SuppressWarnings("unused")
@@ -269,8 +288,10 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 
 		}
-		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), TestReleaseStrategy.class.getMethod(
-				"tooManyParameters", List.class, List.class));
+
+		assertThatIllegalArgumentException().isThrownBy(() ->
+				new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
+						TestReleaseStrategy.class.getMethod("tooManyParameters", List.class, List.class)));
 	}
 
 	@Test
@@ -283,6 +304,7 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 
 		}
+
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				TestReleaseStrategy.class.getMethod("listSubclassParameter", LinkedList.class));
 		adapter.setBeanFactory(mock(BeanFactory.class));
@@ -290,7 +312,7 @@ public class MethodInvokingReleaseStrategyTests {
 		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testWrongReturnTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		class TestReleaseStrategy {
 
@@ -305,7 +327,9 @@ public class MethodInvokingReleaseStrategyTests {
 				new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), TestReleaseStrategy.class.getMethod(
 						"wrongReturnType", List.class));
 		wrongReturnType.setBeanFactory(mock(BeanFactory.class));
-		wrongReturnType.canRelease(mock(MessageGroup.class));
+
+		assertThatIllegalStateException()
+				.isThrownBy(() -> wrongReturnType.canRelease(mock(MessageGroup.class)));
 	}
 
 	private static MessageGroup createListOfMessages(int size) {

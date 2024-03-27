@@ -73,7 +73,6 @@ public class CorrelationHandlerTests {
 	@Qualifier("splitResequenceFlow.input")
 	private MessageChannel splitInput;
 
-
 	@Autowired
 	private MessageChannel splitAggregateInput;
 
@@ -145,7 +144,6 @@ public class CorrelationHandlerTests {
 		assertThat(receive.getPayload()).isEqualTo("Hello World!");
 		assertThat(receive.getHeaders().get("foo")).isEqualTo("bar");
 	}
-
 
 	@Test
 	public void testBarrier() {
@@ -249,7 +247,6 @@ public class CorrelationHandlerTests {
 					.resequence(r -> r.releasePartialSequences(true).correlationExpression("'foo'"))
 					.headerFilter(headerFilterSpec -> headerFilterSpec.headersToRemove("foo").patternMatch(false));
 		}
-
 
 		@Bean
 		public IntegrationFlow splitAggregateFlow() {

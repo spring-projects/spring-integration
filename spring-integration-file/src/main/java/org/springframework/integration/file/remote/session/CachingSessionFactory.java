@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 				"'sessionFactory' cannot be a 'DelegatingSessionFactory'; cache each delegate instead");
 		this.sessionFactory = sessionFactory;
 		this.pool = new SimplePool<>(sessionCacheSize, new SimplePool.PoolItemCallback<Session<F>>() {
+
 			@Override
 			public Session<F> createForPool() {
 				return CachingSessionFactory.this.sessionFactory.getSession();
@@ -102,7 +103,6 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		});
 		this.isSharedSessionCapable = sessionFactory instanceof SharedSessionCapable;
 	}
-
 
 	/**
 	 * Sets the limit of how long to wait for a session to become available.

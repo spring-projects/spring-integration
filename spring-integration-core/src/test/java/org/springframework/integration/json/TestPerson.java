@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ public class TestPerson {
 		this.lastName = lastName;
 		this.age = age;
 	}
-
 
 	public String getFirstName() {
 		return this.firstName;
@@ -113,4 +112,5 @@ public class TestPerson {
 		return "name=" + this.firstName + " " + this.lastName
 				+ ", age=" + this.age + ", address=" + this.address;
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,6 @@ public class ServiceActivatorMethodResolutionTests {
 		MultiplePublicMethodTestBean testBean = new MultiplePublicMethodTestBean();
 		new ServiceActivatingHandler(testBean);
 	}
-
 
 	@Test
 	public void testRequestReplyExchanger() {
@@ -258,7 +257,6 @@ public class ServiceActivatorMethodResolutionTests {
 		assertThat(result.getPayload()).isEqualTo("gotNull");
 	}
 
-
 	@SuppressWarnings("unused")
 	private static class SingleAnnotationTestBean {
 
@@ -276,7 +274,6 @@ public class ServiceActivatorMethodResolutionTests {
 		}
 
 	}
-
 
 	private static class MultipleAnnotationTestBean {
 
@@ -296,7 +293,6 @@ public class ServiceActivatorMethodResolutionTests {
 
 	}
 
-
 	@SuppressWarnings("unused")
 	private static class SinglePublicMethodTestBean {
 
@@ -314,7 +310,6 @@ public class ServiceActivatorMethodResolutionTests {
 
 	}
 
-
 	@SuppressWarnings("unused")
 	private static class MultiplePublicMethodTestBean {
 
@@ -331,7 +326,6 @@ public class ServiceActivatorMethodResolutionTests {
 		}
 
 	}
-
 
 	@SuppressWarnings("unused")
 	private static class NullOkTestBean {

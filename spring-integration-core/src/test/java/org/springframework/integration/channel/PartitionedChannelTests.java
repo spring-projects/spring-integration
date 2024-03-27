@@ -104,7 +104,6 @@ public class PartitionedChannelTests {
 							.isEqualTo(messagesInPartition.get(1).getHeaders().get("partitionKey"));
 				});
 
-
 		HashSet<String> allocatedPartitions = new HashSet<>(partitionedMessages.keySet());
 		partitionedMessages.clear();
 

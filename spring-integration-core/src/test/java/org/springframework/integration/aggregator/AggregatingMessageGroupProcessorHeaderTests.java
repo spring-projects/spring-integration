@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		this.defaultProcessor.setBeanFactory(mock(BeanFactory.class));
 		this.methodInvokingProcessor.setBeanFactory(mock(BeanFactory.class));
 	}
-
 
 	@Test
 	public void singleMessageUsingDefaultProcessor() {
@@ -156,7 +155,6 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		assertThat(resultMessage.getHeaders().get("k1")).isNull();
 		assertThat(resultMessage.getHeaders().get("k2")).isNull();
 	}
-
 
 	private void singleMessage(MessageGroupProcessor processor) {
 		Map<String, Object> headers = new HashMap<>();
@@ -278,7 +276,6 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 				.copyHeadersIfAbsent(headers)
 				.build();
 	}
-
 
 	private static class TestAggregatorBean {
 

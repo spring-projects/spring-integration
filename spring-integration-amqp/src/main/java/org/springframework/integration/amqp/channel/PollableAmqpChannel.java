@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,6 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		Assert.hasText(channelName, "channel name must not be empty");
 		this.channelName = channelName;
 	}
-
 
 	/**
 	 * Provide an explicitly configured queue name. If this is not provided, then a Queue will be created
@@ -285,7 +284,6 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		this.meters.add(counterFacade);
 		return counterFacade;
 	}
-
 
 	@Override
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {

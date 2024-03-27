@@ -611,7 +611,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 			this.idCacheReadLock.unlock();
 		}
 
-
 		Assert.state(messages.size() < 2,
 				() -> "The query must return zero or 1 row; got " + messages.size() + " rows");
 		if (messages.size() > 0) {

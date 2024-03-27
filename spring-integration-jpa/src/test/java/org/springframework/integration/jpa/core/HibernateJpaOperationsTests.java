@@ -397,7 +397,6 @@ public class HibernateJpaOperationsTests {
 		assertThat(studentsFromDb).isNotNull();
 		assertThat(studentsFromDb.size() == 3).isTrue();
 
-
 		final StudentDomain student = jpaOperations.find(StudentDomain.class, 1001L);
 
 		assertThat(student).isNotNull();

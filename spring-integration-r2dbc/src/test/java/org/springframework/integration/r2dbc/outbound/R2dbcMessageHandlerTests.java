@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,7 +277,6 @@ public class R2dbcMessageHandlerTests {
 
 	}
 
-
 	private Person createPerson(String bob, Integer age) {
 		return new Person(bob, age);
 	}
@@ -285,7 +284,6 @@ public class R2dbcMessageHandlerTests {
 	private static <T> T waitFor(Mono<T> mono) {
 		return mono.block(Duration.ofSeconds(10));
 	}
-
 
 	@Configuration
 	@Import(R2dbcDatabaseConfiguration.class)

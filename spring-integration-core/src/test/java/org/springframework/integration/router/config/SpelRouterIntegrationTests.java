@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ public class SpelRouterIntegrationTests {
 	@Autowired
 	private TestBean testBean;
 
-
 	@Test
 	public void simpleExpressionBasedRouter() {
 		TestBean testBean1 = new TestBean(1);
@@ -91,7 +90,6 @@ public class SpelRouterIntegrationTests {
 		assertThat(testBean.remainders.receive(0).getPayload()).isEqualTo(34);
 		assertThat(testBean.remainders.receive(0)).isNull();
 	}
-
 
 	static class TestBean {
 

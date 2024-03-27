@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ public class SftpFileInfo extends AbstractFileInfo<SftpClient.DirEntry> {
 	private final SftpClient.DirEntry lsEntry;
 
 	private final SftpClient.Attributes attrs;
-
 
 	public SftpFileInfo(SftpClient.DirEntry lsEntry) {
 		Assert.notNull(lsEntry, "'lsEntry' must not be null");

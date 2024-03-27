@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,7 +197,6 @@ public class WatchServiceDirectoryScannerTests {
 		assertThat(files).contains(baz2);
 
 		baz2.delete();
-
 
 		n = 0;
 		while (n++ < 300 && removeFileLatch.getCount() > 0) {

@@ -16,7 +16,6 @@
 
 package org.springframework.integration.aop;
 
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +52,6 @@ public class MessagePublishingInterceptorUsageTests {
 		assertThat(message.getPayload()).isEqualTo("John Doe");
 		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
-
 
 	public static class TestBean {
 

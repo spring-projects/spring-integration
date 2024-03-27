@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,7 +127,6 @@ public class PriorityChannelTests {
 		Message<?> message6 = MessageBuilder.withPayload(6).setHeader("foo", 3).build();
 		Message<?> message7 = MessageBuilder.withPayload(7).setHeader("foo", 4).build();
 		Message<?> message8 = MessageBuilder.withPayload(8).setHeader("foo", 4).build();
-
 
 		channel.send(message1);
 		channel.send(message2);
@@ -284,11 +283,9 @@ public class PriorityChannelTests {
 		assertThat(message2.getPayload()).isEqualTo("test-2");
 	}
 
-
 	private static Message<String> createPriorityMessage(int priority) {
 		return MessageBuilder.withPayload("test:" + priority).setPriority(priority).build();
 	}
-
 
 	public static class StringPayloadComparator implements Comparator<Message<?>> {
 

@@ -44,7 +44,6 @@ public class PublisherExpressionTests {
 
 	private final StaticApplicationContext context = new StaticApplicationContext();
 
-
 	@BeforeEach
 	public void setup() throws Exception {
 		this.context.registerSingleton("testChannel", QueueChannel.class);
@@ -78,13 +77,11 @@ public class PublisherExpressionTests {
 		assertThat(message.getHeaders().get("foo")).isEqualTo("123");
 	}
 
-
 	interface TestBean {
 
 		String test(String sku);
 
 	}
-
 
 	static class TestBeanImpl implements TestBean {
 

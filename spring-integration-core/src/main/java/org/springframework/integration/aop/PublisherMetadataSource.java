@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ interface PublisherMetadataSource {
 
 	Expression RETURN_VALUE_EXPRESSION =
 			EXPRESSION_PARSER.parseExpression("#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME);
-
 
 	/**
 	 * Returns the channel name to which Messages should be published

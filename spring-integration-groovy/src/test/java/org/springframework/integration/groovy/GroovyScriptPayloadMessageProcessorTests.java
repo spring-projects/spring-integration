@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import groovy.lang.Binding;
 import groovy.lang.MissingPropertyException;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.test.annotation.Repeat;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -43,15 +41,11 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class GroovyScriptPayloadMessageProcessorTests {
 
-	@Rule
-	public RepeatProcessor repeater = new RepeatProcessor(4);
-
-	private AtomicInteger countHolder = new AtomicInteger();
+	private final AtomicInteger countHolder = new AtomicInteger();
 
 	private GroovyCommandMessageProcessor processor;
 
 	@Test
-	@Repeat(20)
 	public void testSimpleExecution() {
 		int count = countHolder.getAndIncrement();
 		Message<?> message = MessageBuilder.withPayload("headers.foo" + count).setHeader("foo" + count, "bar").build();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ public class CorrelatingMessageHandlerIntegrationTests {
 		defaultHandler.setBeanFactory(mock(BeanFactory.class));
 		defaultHandler.afterPropertiesSet();
 	}
-
 
 	@Test
 	public void completesSingleMessage() throws Exception {
@@ -125,7 +124,6 @@ public class CorrelatingMessageHandlerIntegrationTests {
 		verify(outputChannel).send(message1);
 		verify(outputChannel).send(message2);
 	}
-
 
 	private Message<?> correlatedMessage(Object correlationId, Integer sequenceSize, Integer sequenceNumber) {
 		return MessageBuilder.withPayload("test")

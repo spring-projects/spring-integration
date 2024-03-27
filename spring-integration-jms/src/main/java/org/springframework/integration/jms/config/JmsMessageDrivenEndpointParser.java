@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 
 	private static final String EXPLICIT_QOS_ENABLED_FOR_REPLIES = "explicit-qos-enabled-for-replies";
 
-
 	private static final String[] CONTAINER_ATTRIBUTES =
 			{
 					JmsParserUtils.CONNECTION_FACTORY_PROPERTY,
@@ -74,14 +73,11 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 					"client-id", "task-executor"
 			};
 
-
 	private final boolean expectReply;
-
 
 	public JmsMessageDrivenEndpointParser(boolean expectReply) {
 		this.expectReply = expectReply;
 	}
-
 
 	@Override
 	protected String getBeanClassName(Element element) {
@@ -196,7 +192,6 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		}
 		return element.getAttribute("container");
 	}
-
 
 	private boolean hasExternalContainer(Element element) {
 		return element.hasAttribute("container");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,7 +158,6 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 						: mapper;
 	}
 
-
 	public void setPayloadExpression(Expression expressionString) {
 		this.payloadExpression = expressionString;
 	}
@@ -218,7 +217,6 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				this.parameterPayloadExpressions.computeIfAbsent(expressionString, PARSER::parseExpression);
 		return expression.getValue(this.evaluationContext, argumentValue);
 	}
-
 
 	private void copyHeaders(Map<?, ?> argumentValue, Map<String, Object> headers) {
 		for (Entry<?, ?> entry : argumentValue.entrySet()) {

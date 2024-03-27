@@ -267,7 +267,6 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		taskScheduler.destroy();
 	}
 
-
 	private static class LifecycleMessageSource implements MessageSource<Boolean>, Lifecycle {
 
 		private volatile boolean running;

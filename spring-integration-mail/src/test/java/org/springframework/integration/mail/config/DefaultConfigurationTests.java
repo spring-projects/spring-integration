@@ -47,7 +47,6 @@ public class DefaultConfigurationTests {
 	@Autowired
 	private ApplicationContext context;
 
-
 	@Test
 	public void verifyErrorChannel() {
 		Object errorChannel = context.getBean("errorChannel");

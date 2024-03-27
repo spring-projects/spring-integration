@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ public class TestHandler {
 
 	private String replyMessageText = null;
 
-
 	public TestHandler() {
 		this(1);
 	}
@@ -41,7 +40,6 @@ public class TestHandler {
 	public TestHandler(int countdown) {
 		this.latch = new CountDownLatch(countdown);
 	}
-
 
 	public void setReplyMessageText(String replyMessageText) {
 		this.replyMessageText = replyMessageText;

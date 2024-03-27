@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,6 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 	private static final List<Class<?>> SUPPORTED_PROPERTY_TYPES =
 			Arrays.asList(Boolean.class, Byte.class, Double.class, Float.class, Integer.class, Long.class, Short.class,
 					String.class, byte[].class);
-
 
 	private static final Log LOGGER = LogFactory.getLog(DefaultJmsHeaderMapper.class);
 

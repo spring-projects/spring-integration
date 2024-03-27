@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,14 +38,12 @@ public class DynamicExpression implements Expression {
 
 	private final ExpressionSource expressionSource;
 
-
 	public DynamicExpression(String key, ExpressionSource expressionSource) {
 		Assert.notNull(key, "key must not be null");
 		Assert.notNull(expressionSource, "expressionSource must not be null");
 		this.key = key;
 		this.expressionSource = expressionSource;
 	}
-
 
 	public Object getValue() throws EvaluationException {
 		return this.resolveExpression().getValue();

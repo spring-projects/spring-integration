@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,7 +168,6 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		assertThat(metadata).isEmpty();
 	}
 
-
 	@Test
 	public void testSyncRemoteFileOnlyOnceByDefault() {
 		File localDirectory = new File("test");
@@ -184,7 +183,6 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.afterPropertiesSet();
 
 		synchronizer.synchronizeToLocalDirectory(localDirectory);
-
 
 		File[] files = localDirectory.listFiles();
 		assertThat(files.length).isEqualTo(3);
@@ -214,7 +212,6 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 			file.delete();
 		}
 	}
-
 
 	public static class TestFtpSessionFactory extends AbstractFtpSessionFactory<FTPClient> {
 

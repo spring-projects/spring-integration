@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,6 @@ public class ReactiveStreamsConsumerTests {
 		testChannel.destroy();
 	}
 
-
 	@Test
 	public void testReactiveStreamsConsumerDirectChannel() throws InterruptedException {
 		DirectChannel testChannel = new DirectChannel();
@@ -217,7 +216,6 @@ public class ReactiveStreamsConsumerTests {
 		assertThat(message).isSameAs(testMessage);
 
 		reactiveConsumer.stop();
-
 
 		testChannel.send(testMessage);
 

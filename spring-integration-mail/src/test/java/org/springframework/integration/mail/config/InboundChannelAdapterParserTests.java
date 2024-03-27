@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,6 @@ public class InboundChannelAdapterParserTests {
 		assertThat(receiverAccessor.getPropertyValue("simpleContent")).isEqualTo(Boolean.FALSE);
 	}
 
-
 	//==================== INT-1158 ====================
 	@Test
 	public void pop3ShouldDeleteTrueProperty() {
@@ -150,7 +149,6 @@ public class InboundChannelAdapterParserTests {
 		assertThat(value).isFalse();
 	}
 
-
 	//==================== INT-1159 ====================
 	@Test
 	public void pop3WithAuthenticator() {
@@ -179,12 +177,10 @@ public class InboundChannelAdapterParserTests {
 		assertThat(authenticator).isEqualTo(context.getBean("testAuthenticator"));
 	}
 
-
 	@SuppressWarnings("unused")
 	private static class TestAuthenticator extends Authenticator {
 
 	}
-
 
 	//==================== INT-1160 ====================
 	@Test
@@ -219,7 +215,6 @@ public class InboundChannelAdapterParserTests {
 		assertThat(value).isEqualTo(33);
 	}
 
-
 	//==================== INT-1161 ====================
 	@Test
 	public void pop3WithSession() {
@@ -248,7 +243,6 @@ public class InboundChannelAdapterParserTests {
 		assertThat(session).isEqualTo(context.getBean("testSession"));
 	}
 
-
 	//==================== INT-1162 ====================
 	@Test
 	public void pop3WithoutStoreUri() {
@@ -274,7 +268,6 @@ public class InboundChannelAdapterParserTests {
 		assertThat(url).isNull();
 	}
 
-
 	//==================== INT-1163 ====================
 	@Test
 	public void inboundChannelAdapterRequiresShouldDeleteMessages() {
@@ -283,7 +276,6 @@ public class InboundChannelAdapterParserTests {
 						"InboundChannelAdapterParserTests-invalidContext.xml", getClass()))
 				.withCauseInstanceOf(SAXParseException.class);
 	}
-
 
 	//==================== INT-2800 ====================
 	@Test
@@ -304,7 +296,6 @@ public class InboundChannelAdapterParserTests {
 						"InboundChannelAdapterParserTests-pop3Search-context.xml", getClass()))
 				.withStackTraceContaining("searchTermStrategy is only allowed with imap");
 	}
-
 
 	//===================== COMMON =====================
 

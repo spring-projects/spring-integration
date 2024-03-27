@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,6 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 	private Expression timeToLiveExpression;
 
 	private EvaluationContext evaluationContext;
-
 
 	public JmsSendingMessageHandler(JmsTemplate jmsTemplate) {
 		Assert.notNull(jmsTemplate, "'jmsTemplate' must not be null");
@@ -223,7 +222,6 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 			this.jmsTemplate.convertAndSend(objectToSend, messagePostProcessor);
 		}
 	}
-
 
 	private record HeaderMappingMessagePostProcessor(Message<?> integrationMessage, JmsHeaderMapper headerMapper)
 			implements MessagePostProcessor {

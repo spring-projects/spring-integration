@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,13 +45,17 @@ public class TransactionalPollerWithMixedAopConfigTests {
 	}
 
 	public static class SampleService {
+
 		public void foo(String payload) {
 		}
+
 	}
 
 	public static class Foo {
+
 		public Foo(String value) {
 		}
+
 	}
 
 //	public static class SampleAdvice implements MethodInterceptor{

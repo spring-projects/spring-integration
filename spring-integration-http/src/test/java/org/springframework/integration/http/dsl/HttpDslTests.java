@@ -121,7 +121,6 @@ public class HttpDslTests {
 						.build();
 	}
 
-
 	@Test
 	public void testHttpProxyFlow() throws Exception {
 		ClientHttpRequestFactory mockRequestFactory = new MockMvcClientHttpRequestFactory(this.mockMvc);

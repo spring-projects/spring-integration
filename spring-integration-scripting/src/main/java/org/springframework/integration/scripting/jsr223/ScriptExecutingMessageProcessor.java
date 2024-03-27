@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 
 	private final ScriptSource scriptSource;
 
-
 	/**
 	 * Create a processor for the {@link ScriptSource} using the provided
 	 * {@link ScriptExecutor} using the DefaultScriptVariableGenerator
@@ -82,7 +81,6 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 
 		this(scriptSource, new DefaultScriptVariableGenerator(variables), scriptExecutor);
 	}
-
 
 	@Override
 	protected ScriptSource getScriptSource(Message<?> message) {

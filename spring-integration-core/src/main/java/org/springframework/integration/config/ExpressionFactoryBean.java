@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,18 +39,15 @@ public class ExpressionFactoryBean extends AbstractFactoryBean<Expression> {
 
 	private ExpressionParser parser = DEFAULT_PARSER;
 
-
 	public ExpressionFactoryBean(String expressionString) {
 		Assert.hasText(expressionString, "'expressionString' must not be empty or null");
 		this.expressionString = expressionString;
 	}
 
-
 	public void setParserConfiguration(SpelParserConfiguration parserConfiguration) {
 		Assert.notNull(parserConfiguration, "'parserConfiguration' must not be null");
 		this.parser = new SpelExpressionParser(parserConfiguration);
 	}
-
 
 	@Override
 	public Class<?> getObjectType() {

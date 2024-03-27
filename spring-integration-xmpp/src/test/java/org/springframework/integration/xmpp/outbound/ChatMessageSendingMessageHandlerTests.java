@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,6 @@ public class ChatMessageSendingMessageHandlerTests {
 				.setBody("Test Message")
 				.build();
 
-
 		Message<?> message = MessageBuilder.withPayload(smackMessage).build();
 		// first Message new
 		handler.handleMessage(message);
@@ -183,7 +182,6 @@ public class ChatMessageSendingMessageHandlerTests {
 
 		verify(extensionElementProvider).from(eq(json));
 	}
-
 
 	@Test
 	public void validateFailureNoChatToUser() {

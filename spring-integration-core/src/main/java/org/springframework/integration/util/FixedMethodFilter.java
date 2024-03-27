@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,12 +38,10 @@ public class FixedMethodFilter implements MethodFilter {
 
 	private final Method method;
 
-
 	public FixedMethodFilter(Method method) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 	}
-
 
 	public List<Method> filter(List<Method> methods) {
 		if (methods != null && methods.contains(this.method)) {

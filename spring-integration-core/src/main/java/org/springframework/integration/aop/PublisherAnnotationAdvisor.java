@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,6 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 		this.pointcut = buildPointcut(publisherAnnotationTypes);
 	}
 
-
 	/**
 	 * A channel bean name to be used as default for publishing.
 	 * @param defaultChannelName the default channel name.
@@ -107,13 +106,11 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 		return result;
 	}
 
-
 	private static final class MetaAnnotationMatchingPointcut implements Pointcut {
 
 		private final ClassFilter classFilter;
 
 		private final MethodMatcher methodMatcher;
-
 
 		/**
 		 * Create a new MetaAnnotationMatchingPointcut for the given annotation type.
@@ -154,7 +151,6 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 				this.methodMatcher = MethodMatcher.TRUE;
 			}
 		}
-
 
 		@Override
 		public ClassFilter getClassFilter() {

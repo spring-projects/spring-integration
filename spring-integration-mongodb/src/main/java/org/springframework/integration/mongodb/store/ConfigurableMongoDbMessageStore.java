@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	public static final String DEFAULT_COLLECTION_NAME = "configurableStoreMessages";
 
-
 	public ConfigurableMongoDbMessageStore(MongoTemplate mongoTemplate) {
 		this(mongoTemplate, DEFAULT_COLLECTION_NAME);
 	}
@@ -114,7 +113,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 				.and(MessageDocumentFields.GROUP_ID).exists(false));
 		return getMongoTemplate().getCollection(this.collectionName).countDocuments(query.getQueryObject());
 	}
-
 
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,6 +172,7 @@ public class HeaderMapperTests {
 	@Test
 	public void customTransientHeaderNames() {
 		GenericTestHeaderMapper customMapper = new GenericTestHeaderMapper() {
+
 			@Override
 			protected Collection<String> getTransientHeaderNames() {
 				return Arrays.asList("foo", GenericTestHeaders.APP_ID);
@@ -294,7 +295,6 @@ public class HeaderMapperTests {
 		assertThat(properties.getUserDefinedHeaders().size()).isEqualTo(1);
 	}
 
-
 	@Test
 	public void fromHeadersToReplyWithStandardReplyPattern() {
 		this.mapper.setReplyHeaderNames("foo", GenericTestHeaderMapper.STANDARD_REPLY_HEADER_NAME_PATTERN);
@@ -321,7 +321,6 @@ public class HeaderMapperTests {
 
 		return new MessageHeaders(headers);
 	}
-
 
 	@Test
 	public void prefixHeaderPatternMatching() {
@@ -428,11 +427,9 @@ public class HeaderMapperTests {
 		assertMapping(strategy, "somethingElse", false);
 	}
 
-
 	protected void assertMapping(HeaderMatcher strategy, String candidate, boolean match) {
 		assertThat(strategy.matchHeader(candidate)).as("Wrong mapping result for " + candidate + "").isEqualTo(match);
 	}
-
 
 	private abstract static class GenericTestHeaders {
 
@@ -451,7 +448,6 @@ public class HeaderMapperTests {
 	}
 
 	private static class GenericTestHeaderMapper extends AbstractHeaderMapper<GenericTestProperties> {
-
 
 		GenericTestHeaderMapper() {
 			super(GenericTestHeaders.PREFIX,

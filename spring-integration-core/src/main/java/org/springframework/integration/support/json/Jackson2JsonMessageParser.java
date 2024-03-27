@@ -16,7 +16,6 @@
 
 package org.springframework.integration.support.json;
 
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.LinkedHashMap;

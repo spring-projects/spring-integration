@@ -102,13 +102,11 @@ public class MessagePublishingInterceptorTests {
 		assertThat(message.getHeaders().get("name")).isEqualTo("oleg");
 	}
 
-
 	interface TestBean {
 
 		String test();
 
 	}
-
 
 	static class TestBeanImpl implements TestBean {
 
@@ -118,7 +116,6 @@ public class MessagePublishingInterceptorTests {
 		}
 
 	}
-
 
 	private static class TestPublisherMetadataSource implements PublisherMetadataSource {
 

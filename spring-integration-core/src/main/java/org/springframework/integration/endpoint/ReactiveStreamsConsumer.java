@@ -47,7 +47,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ErrorHandler;
 
-
 /**
  * An {@link AbstractEndpoint} implementation for Reactive Streams subscription into an
  * input channel and reactive consumption of messages from that channel.
@@ -258,7 +257,6 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		public boolean isDisposed() {
 			return this.subscription == null;
 		}
-
 
 		@Override
 		public void start() {

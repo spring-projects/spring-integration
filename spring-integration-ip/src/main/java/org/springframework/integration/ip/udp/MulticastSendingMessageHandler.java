@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2023 the original author or authors.
+ * Copyright 2001-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	public MulticastSendingMessageHandler(String address, int port, boolean lengthCheck) {
 		super(address, port, lengthCheck);
 	}
-
 
 	/**
 	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port
@@ -177,7 +176,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 			this.multicastSocket = socket;
 		}
 	}
-
 
 	/**
 	 * If acknowledge = true; how many acks needed for success.

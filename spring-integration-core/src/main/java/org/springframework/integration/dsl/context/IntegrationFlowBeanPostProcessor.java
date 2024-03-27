@@ -454,7 +454,6 @@ public class IntegrationFlowBeanPostProcessor
 
 		((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(beanName, beanDefinition);
 
-
 		this.beanFactory.getBean(beanName);
 	}
 

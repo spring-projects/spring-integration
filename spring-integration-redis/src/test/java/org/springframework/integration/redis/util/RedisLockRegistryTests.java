@@ -404,7 +404,6 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		registry.destroy();
 	}
 
-
 	@ParameterizedTest
 	@EnumSource(RedisLockType.class)
 	void testEquals(RedisLockType testRedisLockType) {
@@ -529,7 +528,6 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 		//capacity limit test
 		assertThat(getRedisLockRegistryLocks(registry)).hasSize(CAPACITY_CNT);
-
 
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
@@ -755,7 +753,6 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 		assertThat(atomicInteger.get()).isEqualTo(testCnt * lockRegistryNum);
 	}
-
 
 	@ParameterizedTest
 	@EnumSource(RedisLockType.class)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,7 +190,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		return this.messageConverters;
 	}
 
-
 	/**
 	 * Flag which determines if the default converters should be available after
 	 * custom converters.
@@ -199,7 +198,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	public void setMergeWithDefaultConverters(boolean mergeWithDefaultConverters) {
 		this.mergeWithDefaultConverters = mergeWithDefaultConverters;
 	}
-
 
 	/**
 	 * Specify the {@link MultipartResolver} to use when checking requests. If no resolver is provided, the

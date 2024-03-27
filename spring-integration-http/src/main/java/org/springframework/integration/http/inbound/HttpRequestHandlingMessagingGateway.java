@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,6 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 
 	private volatile boolean convertExceptions;
 
-
 	public HttpRequestHandlingMessagingGateway() {
 		this(true);
 	}
@@ -79,7 +78,6 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	public HttpRequestHandlingMessagingGateway(boolean expectReply) {
 		super(expectReply);
 	}
-
 
 	/**
 	 * Flag to determine if conversion and writing out of message handling exceptions should be attempted (default

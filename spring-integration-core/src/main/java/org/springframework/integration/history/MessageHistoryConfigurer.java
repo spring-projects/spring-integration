@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,6 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 
 	private volatile boolean running;
 
-
 	/**
 	 * The patterns for which components will be tracked; default '*' (all trackable
 	 * components). Cannot be changed if {@link #isRunning()}; invoke {@link #stop()} first.
@@ -102,7 +101,6 @@ public class MessageHistoryConfigurer implements ManageableSmartLifecycle, BeanF
 	public String getComponentNamePatternsString() {
 		return StringUtils.arrayToCommaDelimitedString(this.componentNamePatterns);
 	}
-
 
 	/**
 	 * The patterns for which components will be tracked; default '*' (all trackable

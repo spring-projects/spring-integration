@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -236,14 +236,12 @@ public class ServiceActivatorEndpointTests {
 		assertThat(beanFactory).isSameAs(mock);
 	}
 
-
 	private ServiceActivatingHandler createEndpoint() {
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new TestBean(), "handle");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		return handler;
 	}
-
 
 	private static class TestBean {
 
@@ -253,7 +251,6 @@ public class ServiceActivatorEndpointTests {
 		}
 
 	}
-
 
 	private static class TestNullReplyBean {
 

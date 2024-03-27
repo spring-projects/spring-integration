@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,7 +178,6 @@ public class WebServiceInboundGatewayParserTests {
 	public void testReplyTimeout() {
 		assertThat(TestUtils.getPropertyValue(replyTimeoutGateway, "messagingTemplate.receiveTimeout")).isEqualTo(1234L);
 	}
-
 
 	@SuppressWarnings("unused")
 	private static class TestHeaderMapper implements SoapHeaderMapper {

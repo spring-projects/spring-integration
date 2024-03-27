@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,7 +168,6 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 	public FileReadingMessageSource(@Nullable Comparator<File> receptionOrderComparator) {
 		this.toBeReceived = new PriorityBlockingQueue<>(DEFAULT_INTERNAL_QUEUE_CAPACITY, receptionOrderComparator);
 	}
-
 
 	/**
 	 * Specify the input directory.
@@ -417,7 +416,6 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 		logger.warn(() -> "Failed to send: " + failedMessage);
 		this.toBeReceived.offer(failedMessage.getPayload());
 	}
-
 
 	public enum WatchEventType {
 

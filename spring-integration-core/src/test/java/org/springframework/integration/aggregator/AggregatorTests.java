@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,7 +107,6 @@ public class AggregatorTests {
 
 		handler.setMessageStore(store);
 
-
 		Message<?> message = new GenericMessage<String>("foo");
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.start();
@@ -153,7 +152,6 @@ public class AggregatorTests {
 		store.setMessageGroupFactory(messageGroupFactory);
 
 		handler.setMessageStore(store);
-
 
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.start();
@@ -549,7 +547,6 @@ public class AggregatorTests {
 		assertThat(reply).as("A message should be aggregated").isNotNull();
 		assertThat((reply.getPayload())).isEqualTo(105);
 	}
-
 
 	private static Message<?> createMessage(Object payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel, String predefinedId) {

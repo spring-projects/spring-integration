@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,7 +142,6 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	private int maxSubscribers = Integer.MAX_VALUE;
 
-
 	public JmsChannelFactoryBean() {
 		this(true);
 	}
@@ -150,7 +149,6 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	public JmsChannelFactoryBean(boolean messageDriven) {
 		this.messageDriven = messageDriven;
 	}
-
 
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
 		this.interceptors = interceptors;

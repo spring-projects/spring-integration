@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ public class HeaderEnricherOverwriteTests {
 
 	@Autowired
 	private ApplicationContext context;
-
 
 	@Test
 	public void replyChannelExplicitOverwriteTrue() {
@@ -312,7 +311,6 @@ public class HeaderEnricherOverwriteTests {
 		assertThat(result.getPayload()).isEqualTo("TEST");
 		assertThat(result.getHeaders().get("foo")).isEqualTo("ABC");
 	}
-
 
 	public static class TestBean {
 

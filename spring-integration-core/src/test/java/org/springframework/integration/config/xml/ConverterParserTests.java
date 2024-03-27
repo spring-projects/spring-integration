@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
@@ -64,7 +63,6 @@ public class ConverterParserTests {
 	@Autowired
 	@Qualifier("ROUTER_TARGET_CHANNEL")
 	private PollableChannel routerTargetChannel;
-
 
 	@Test
 	public void serviceActivator() {
@@ -142,7 +140,6 @@ public class ConverterParserTests {
 		assertThat(((TestBean1) result.getPayload()).text).isEqualTo("router-test");
 	}
 
-
 	@SuppressWarnings("unused")
 	public static class TestService {
 
@@ -169,7 +166,6 @@ public class ConverterParserTests {
 		}
 
 	}
-
 
 	public static class TestBean2 {
 

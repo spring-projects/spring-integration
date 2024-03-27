@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,6 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * Raw source message.
 	 */
 	public static final String REACTOR_CONTEXT = "reactorContext";
-
 
 	private static final BiFunction<String, String, String> TYPE_VERIFY_MESSAGE_FUNCTION =
 			(name, trailer) -> "The '" + name + trailer;

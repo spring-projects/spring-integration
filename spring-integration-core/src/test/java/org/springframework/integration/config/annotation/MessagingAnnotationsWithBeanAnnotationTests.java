@@ -433,7 +433,6 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			return () -> new GenericMessage<>("foo");
 		}
 
-
 		@Bean
 		@Transformer(inputChannel = "functionServiceChannel")
 		public Function<String, String> functionAsService() {

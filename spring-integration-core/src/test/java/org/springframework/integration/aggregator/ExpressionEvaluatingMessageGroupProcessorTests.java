@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 
 	private final List<Message<?>> messages = new ArrayList<>();
 
-
 	@Before
 	public void setup() {
 		messages.clear();
@@ -60,7 +59,6 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 			messages.add(MessageBuilder.withPayload(i + 1).setHeader("foo", "bar").build());
 		}
 	}
-
 
 	@Test
 	public void testProcessAndSendWithSizeExpressionEvaluated() {
@@ -130,7 +128,6 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
 		assertThat(resultMessage.getPayload()).isEqualTo(3 + 4 + 5);
 	}
-
 
 	/*
 	 * sample static method invoked by SpEL

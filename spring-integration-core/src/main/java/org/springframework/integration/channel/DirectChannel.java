@@ -58,7 +58,6 @@ public class DirectChannel extends AbstractSubscribableChannel {
 		this.dispatcher.setLoadBalancingStrategy(loadBalancingStrategy);
 	}
 
-
 	/**
 	 * Specify whether the channel's dispatcher should have failover enabled.
 	 * By default, it will. Set this value to 'false' to disable it.

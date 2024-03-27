@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	public SimpleMessageStore(int individualCapacity, int groupCapacity, LockRegistry lockRegistry) {
 		this(individualCapacity, groupCapacity, 0, lockRegistry);
 	}
-
 
 	/**
 	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity,

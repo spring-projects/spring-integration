@@ -165,7 +165,6 @@ public class DefaultAmqpHeaderMapperTests {
 		assertThat(amqpProperties.getContentType()).isEqualTo("text/html");
 	}
 
-
 	@Test
 	public void toHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
@@ -229,7 +228,6 @@ public class DefaultAmqpHeaderMapperTests {
 		Map<String, Object> headerMap = headerMapper.toHeadersFromReply(amqpProperties);
 		assertThat(headerMap.get(AmqpHeaders.CORRELATION_ID)).isEqualTo(testCorrelationId);
 	}
-
 
 	@Test
 	public void testToHeadersConsumerMetadata() {

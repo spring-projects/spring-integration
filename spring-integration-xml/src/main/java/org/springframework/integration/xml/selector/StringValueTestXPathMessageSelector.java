@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 	private final String valueToTestFor;
 
 	private volatile boolean caseSensitive = true;
-
 
 	/**
 	 * Create a selector which tests for the given value and supports multiple namespaces.
@@ -84,7 +83,6 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 		super(expression);
 		this.valueToTestFor = valueToTestFor;
 	}
-
 
 	/**
 	 * Specify whether comparison of value returned by {@link XPathExpression}

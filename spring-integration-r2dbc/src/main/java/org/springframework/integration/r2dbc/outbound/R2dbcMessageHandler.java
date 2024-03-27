@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ import org.springframework.messaging.Message;
 import org.springframework.r2dbc.core.Parameter;
 import org.springframework.r2dbc.core.PreparedOperation;
 import org.springframework.util.Assert;
-
 
 /**
  * Implementation of {@link org.springframework.messaging.ReactiveMessageHandler} which writes
@@ -82,7 +81,6 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 		this.r2dbcEntityOperations = r2dbcEntityOperations;
 		this.statementMapper = this.r2dbcEntityOperations.getDataAccessStrategy().getStatementMapper();
 	}
-
 
 	/**
 	 * Set a {@link R2dbcMessageHandler.Type} for query to execute.
@@ -134,7 +132,6 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 		this.criteriaExpression = criteriaExpression;
 	}
 
-
 	@Override
 	public String getComponentType() {
 		return "r2dbc:outbound-channel-adapter";
@@ -166,7 +163,6 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 						})
 				.then();
 	}
-
 
 	private Mono<Void> handleDelete(Message<?> message) {
 		if (this.tableNameExpression != null) {
@@ -257,7 +253,6 @@ public class R2dbcMessageHandler extends AbstractReactiveMessageHandler {
 		Assert.notNull(criteria, "'criteriaExpression' must not evaluate to null");
 		return criteria;
 	}
-
 
 	/**
 	 * /**

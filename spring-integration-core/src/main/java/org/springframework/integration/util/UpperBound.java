@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ public final class UpperBound {
 
 	private final Semaphore semaphore;
 
-
 	/**
 	 * Create an UpperBound with the given capacity. If the given capacity is less than 1
 	 * an infinite UpperBound is created.
@@ -51,7 +50,6 @@ public final class UpperBound {
 		}
 		return this.semaphore.availablePermits();
 	}
-
 
 	/**
 	 * Acquires a permit from the underlying semaphore if this UpperBound is bounded and returns
@@ -105,4 +103,5 @@ public final class UpperBound {
 		return super.toString() + "[Permits = " +
 				(this.semaphore != null ? this.semaphore.availablePermits() : "UNLIMITED") + "]";
 	}
+
 }

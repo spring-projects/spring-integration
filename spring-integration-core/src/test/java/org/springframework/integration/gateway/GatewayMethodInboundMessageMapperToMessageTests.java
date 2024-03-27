@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -294,7 +294,6 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertThat(message.getHeaders().get("1")).isEqualTo(mapB.get("1"));
 		assertThat(message.getHeaders().get("2")).isEqualTo(mapB.get("2"));
 	}
-
 
 	private interface TestService {
 

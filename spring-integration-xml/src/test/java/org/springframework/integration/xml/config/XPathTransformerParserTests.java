@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,7 +159,6 @@ public class XPathTransformerParserTests {
 		assertThat(output.receive(0).getPayload()).isEqualTo(84d);
 	}
 
-
 	@SuppressWarnings("unused")
 	private static class TestNodeMapper implements NodeMapper<Object> {
 
@@ -167,8 +166,8 @@ public class XPathTransformerParserTests {
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent() + "-mapped";
 		}
-	}
 
+	}
 
 	@SuppressWarnings("unused")
 	private static class TestXmlPayloadConverter implements XmlPayloadConverter {

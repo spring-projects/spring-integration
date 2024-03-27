@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,6 @@ public class RouterTests {
 	@Qualifier("evenChannel")
 	private PollableChannel evenChannel;
 
-
 	@Test
 	public void testRouter() {
 		this.beanFactory.containsBean("routeFlow.subFlow#0.channel#0");
@@ -148,7 +147,6 @@ public class RouterTests {
 		assertThat(receive.getPayload()).isEqualTo("BAZ");
 	}
 
-
 	@Autowired
 	@Qualifier("routeSubflowWithoutReplyToMainFlow.input")
 	private MessageChannel routeSubflowWithoutReplyToMainFlowInput;
@@ -180,7 +178,6 @@ public class RouterTests {
 	@Autowired
 	@Qualifier("bar-channel")
 	private PollableChannel barChannel;
-
 
 	@Autowired
 	@Qualifier("recipientListSubFlow1Result")
@@ -477,7 +474,6 @@ public class RouterTests {
 		assertThat(((List<?>) payload).size()).isGreaterThanOrEqualTo(1);
 	}
 
-
 	@Autowired
 	@Qualifier("exceptionTypeRouteFlow.input")
 	private MessageChannel exceptionTypeRouteFlowInput;
@@ -578,7 +574,6 @@ public class RouterTests {
 	@Autowired
 	@Qualifier("scatterGatherInSubFlow.input")
 	MessageChannel scatterGatherInSubFlowChannel;
-
 
 	@Test
 	public void testNestedScatterGatherSuccess() {
@@ -891,7 +886,6 @@ public class RouterTests {
 									.collect(Collectors.joining("\n")));
 		}
 
-
 		@Bean
 		public IntegrationFlow scatterGatherAndExecutorChannelSubFlow(TaskExecutor taskExecutor) {
 			return f -> f
@@ -913,7 +907,6 @@ public class RouterTests {
 					.copyHeaders(payload.getFailedMessage().getHeaders())
 					.build();
 		}
-
 
 		@Bean
 		public IntegrationFlow propagateErrorFromGatherer(TaskExecutor taskExecutor) {

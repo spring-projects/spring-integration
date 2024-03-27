@@ -112,7 +112,6 @@ public class StandardRotationPolicy implements RotationPolicy {
 		return this.current;
 	}
 
-
 	protected DelegatingSessionFactory<?> getFactory() {
 		return this.factory;
 	}

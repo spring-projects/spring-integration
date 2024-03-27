@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,6 @@ public abstract class ThreadStatePropagationChannelInterceptor<S> implements Exe
 	protected abstract S obtainPropagatingContext(Message<?> message, MessageChannel channel);
 
 	protected abstract void populatePropagatedContext(@Nullable S state, Message<?> message, MessageChannel channel);
-
 
 	private static final class MessageWithThreadState implements Message<Object>, MessageDecorator {
 

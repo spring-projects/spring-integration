@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,14 +53,12 @@ public class ConcurrentAggregatorTests {
 
 	private final MessageGroupStore store = new SimpleMessageStore();
 
-
 	@BeforeEach
 	public void configureAggregator() {
 		this.taskExecutor = new SimpleAsyncTaskExecutor();
 		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), this.store);
 		this.aggregator.setReleaseStrategy(new SimpleSequenceSizeReleaseStrategy());
 	}
-
 
 	@Test
 	public void testCompleteGroupWithinTimeout() throws InterruptedException {
@@ -246,7 +244,6 @@ public class ConcurrentAggregatorTests {
 		assertThat(reply.getPayload()).isEqualTo(105);
 	}
 
-
 	private static Message<?> createMessage(Object payload,
 			Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel, String predefinedId) {
@@ -261,7 +258,6 @@ public class ConcurrentAggregatorTests {
 		}
 		return builder.build();
 	}
-
 
 	private static class AggregatorTestTask implements Runnable {
 
@@ -299,7 +295,6 @@ public class ConcurrentAggregatorTests {
 
 	}
 
-
 	private class MultiplyingProcessor implements MessageGroupProcessor {
 
 		MultiplyingProcessor() {
@@ -316,7 +311,6 @@ public class ConcurrentAggregatorTests {
 		}
 
 	}
-
 
 	@SuppressWarnings("unused")
 	private class NullReturningMessageProcessor implements MessageGroupProcessor {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -732,7 +732,6 @@ public class EnableIntegrationTests {
 					consumeLatch.countDown();
 				});
 
-
 		assertThat(consumeLatch.await(0, TimeUnit.SECONDS)).isTrue(); // runs on same thread
 
 		List<Integer> integers = ref.get();
@@ -901,7 +900,6 @@ public class EnableIntegrationTests {
 			return new QueueChannel();
 		}
 
-
 		@Bean
 		@GlobalChannelInterceptor(patterns = "${global.wireTap.pattern}")
 		public WireTap wireTap() {
@@ -948,7 +946,6 @@ public class EnableIntegrationTests {
 		public PollableChannel pollableBridgeInput() {
 			return new QueueChannel();
 		}
-
 
 		@Bean
 		@BridgeFrom(value = "pollableBridgeInput", poller = @Poller)
@@ -1744,7 +1741,6 @@ public class EnableIntegrationTests {
 	//	@MessagingGateway(defaultRequestChannel = "gatewayChannel",
 	//        defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	//	public static class TestGateway2 { }
-
 
 	public static class TestSpelFunction {
 

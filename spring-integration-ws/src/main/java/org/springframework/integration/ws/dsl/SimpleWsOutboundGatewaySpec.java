@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,6 @@ public class SimpleWsOutboundGatewaySpec
 		return this;
 	}
 
-
 	@Override
 	protected SimpleWebServiceOutboundGateway assemble(SimpleWebServiceOutboundGateway gateway) {
 		SimpleWebServiceOutboundGateway assembled = super.assemble(gateway);
@@ -114,7 +113,6 @@ public class SimpleWsOutboundGatewaySpec
 			this.sourceExtractor = extractor;
 			return this;
 		}
-
 
 		/**
 		 * Specify the {@link WebServiceMessageFactory} to use.

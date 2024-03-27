@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ public class DynamicExpressionSplitterIntegrationTests {
 	@Autowired
 	private PollableChannel output;
 
-
 	@Test
 	public void simple() {
 		Message<?> message = MessageBuilder.withPayload(new TestBean()).setHeader("foo", "foo").build();
@@ -65,7 +64,6 @@ public class DynamicExpressionSplitterIntegrationTests {
 		assertThat(four.getHeaders().get("foo")).isEqualTo("foo");
 		assertThat(output.receive(0)).isNull();
 	}
-
 
 	static class TestBean {
 

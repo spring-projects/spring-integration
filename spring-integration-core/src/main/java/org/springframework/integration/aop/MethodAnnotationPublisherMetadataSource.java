@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,6 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 
 	private volatile String channelAttributeName = "channel";
 
-
 	public MethodAnnotationPublisherMetadataSource() {
 		this(Collections.singleton(Publisher.class));
 	}
@@ -73,7 +72,6 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 		Assert.notEmpty(annotationTypes, "annotationTypes must not be empty");
 		this.annotationTypes = annotationTypes;
 	}
-
 
 	public void setChannelAttributeName(String channelAttributeName) {
 		Assert.hasText(channelAttributeName, "channelAttributeName must not be empty");

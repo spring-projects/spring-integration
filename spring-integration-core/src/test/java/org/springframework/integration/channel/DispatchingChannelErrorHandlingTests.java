@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,6 @@ public class DispatchingChannelErrorHandlingTests {
 		context.close();
 	}
 
-
 	private void waitForLatch(long timeout) {
 		try {
 			this.latch.await(timeout, TimeUnit.MILLISECONDS);
@@ -127,7 +126,6 @@ public class DispatchingChannelErrorHandlingTests {
 			throw new RuntimeException("interrupted while waiting for latch");
 		}
 	}
-
 
 	private class ResultHandler implements MessageHandler {
 

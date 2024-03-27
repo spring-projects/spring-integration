@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,7 +129,6 @@ public class XPathTests {
 		result = XPathUtils.evaluate(XML, "/parent/child/@name", new TestNodeMapper());
 		assertThat(result).isEqualTo("test-mapped");
 
-
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> XPathUtils.evaluate(new Date(), "/parent/child"))
 				.withMessageContaining("unsupported payload type");
@@ -185,7 +184,6 @@ public class XPathTests {
 		assertThat(stringSourceFactory.createSource(receive.getPayload()).toString()).contains("<book>book2</book>");
 	}
 
-
 	@Test
 	public void testInt3140Router() {
 		this.xpathRouterInput.send(new GenericMessage<Object>("<name>A</name>"));
@@ -204,7 +202,6 @@ public class XPathTests {
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("<name>X</name>");
 	}
-
 
 	public static class TestNodeMapper implements NodeMapper<String> {
 

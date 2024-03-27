@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,6 @@ public class TransformerTests {
 	@Autowired
 	@Qualifier("enricherErrorChannel")
 	private PollableChannel enricherErrorChannel;
-
 
 	@Test
 	public void testContentEnricher() {
@@ -200,7 +199,6 @@ public class TransformerTests {
 		assertThat(receive.getPayload()).isEqualTo(42);
 	}
 
-
 	@Autowired
 	@Qualifier("pojoTransformFlow.input")
 	private MessageChannel pojoTransformFlowInput;
@@ -221,7 +219,6 @@ public class TransformerTests {
 		Message<?> receive = replyChannel.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("FooBar");
-
 
 		assertThatExceptionOfType(MessageRejectedException.class)
 				.isThrownBy(() -> this.pojoTransformFlowInput.send(message))

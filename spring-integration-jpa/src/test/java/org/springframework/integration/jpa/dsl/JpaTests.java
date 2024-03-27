@@ -86,7 +86,6 @@ public class JpaTests {
 	@Qualifier("retrievingGatewayFlow.input")
 	private MessageChannel retrievingGatewayFlowInput;
 
-
 	@Autowired
 	private PollableChannel retrieveResults;
 
@@ -178,7 +177,6 @@ public class JpaTests {
 		assertThat(student.getFirstName()).isEqualTo("First Two");
 		assertThat(student.getGender()).isEqualTo(Gender.FEMALE);
 	}
-
 
 	@Configuration
 	@EnableIntegration

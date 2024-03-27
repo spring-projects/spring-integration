@@ -82,7 +82,6 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 		this.dispatcher = unicastingDispatcher;
 	}
 
-
 	/**
 	 * Specify whether the channel's dispatcher should have failover enabled.
 	 * By default, it will. Set this value to 'false' to disable it.

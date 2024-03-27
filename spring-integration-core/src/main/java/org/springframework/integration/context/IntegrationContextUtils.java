@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,6 @@ public abstract class IntegrationContextUtils {
 	public static final String INTEGRATION_LIFECYCLE_ROLE_CONTROLLER = "integrationLifecycleRoleController";
 
 	public static final String INTEGRATION_GRAPH_SERVER_BEAN_NAME = "integrationGraphServer";
-
 
 	public static final String SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME = "spelPropertyAccessorRegistrar";
 

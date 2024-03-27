@@ -73,7 +73,6 @@ public final class MessageHistory implements List<Properties>, Serializable, Clo
 
 	private static final MessageBuilderFactory MESSAGE_BUILDER_FACTORY = new DefaultMessageBuilderFactory();
 
-
 	private final List<Properties> components;
 
 	@Nullable
@@ -152,7 +151,6 @@ public final class MessageHistory implements List<Properties>, Serializable, Clo
 		Assert.notEmpty(components, "component list must not be empty");
 		this.components = components;
 	}
-
 
 	@Override
 	public int size() {
@@ -302,7 +300,6 @@ public final class MessageHistory implements List<Properties>, Serializable, Clo
 	public void clear() {
 		throw UNSUPPORTED_OPERATION_EXCEPTION_IMMUTABLE;
 	}
-
 
 	private static Properties extractMetadata(NamedComponent component) {
 		Entry entry = new Entry();

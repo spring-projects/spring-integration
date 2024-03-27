@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.2
  */
 class RedisStoreInboundChannelAdapterIntegrationTests implements RedisContainerTest {
+
 	private static RedisConnectionFactory redisConnectionFactory;
 
 	@BeforeAll
@@ -197,7 +198,6 @@ class RedisStoreInboundChannelAdapterIntegrationTests implements RedisContainerT
 
 		zsetAdapterNoScore.stop();
 
-
 		//ScoreRange test
 		SourcePollingChannelAdapter zsetAdapterWithScoreRange =
 				context.getBean("zsetAdapterWithScoreRange", SourcePollingChannelAdapter.class);
@@ -214,7 +214,6 @@ class RedisStoreInboundChannelAdapterIntegrationTests implements RedisContainerT
 
 		zsetAdapterWithScoreRange.stop();
 
-
 		//SingleScore test
 		SourcePollingChannelAdapter zsetAdapterWithSingleScore =
 				context.getBean("zsetAdapterWithSingleScore", SourcePollingChannelAdapter.class);
@@ -230,7 +229,6 @@ class RedisStoreInboundChannelAdapterIntegrationTests implements RedisContainerT
 		assertThat(message.getPayload().rangeByScore(18, 18)).hasSize(2);
 
 		zsetAdapterWithSingleScore.stop();
-
 
 		//SingleScoreAndSynchronization test
 		SourcePollingChannelAdapter zsetAdapterWithSingleScoreAndSynchronization =

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,6 @@ public class FlowServiceTests {
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("bar:FOO");
 	}
-
 
 	@Autowired
 	@Qualifier("testGateway.input")
@@ -228,7 +227,6 @@ public class FlowServiceTests {
 		public String transform(String payload) {
 			return payload.toLowerCase();
 		}
-
 
 		@CorrelationStrategy
 		public Integer correlationKey() {

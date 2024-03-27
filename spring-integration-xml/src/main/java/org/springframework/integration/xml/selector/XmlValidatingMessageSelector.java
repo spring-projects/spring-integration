@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 
 	private XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
-
 	/**
 	 * Create a selector with a default {@link XmlValidator}. The validator will be initialized with
 	 * the provided 'schema' location {@link Resource} and 'schemaType'. The valid options for schema
@@ -96,14 +95,12 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 		this.xmlValidator = xmlValidator;
 	}
 
-
 	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
 		this(schema,
 				StringUtils.hasText(schemaType)
 						? SchemaType.valueOf(schemaType.toUpperCase().replaceFirst("-", "_"))
 						: null);
 	}
-
 
 	public void setThrowExceptionOnRejection(boolean throwExceptionOnRejection) {
 		this.throwExceptionOnRejection = throwExceptionOnRejection;

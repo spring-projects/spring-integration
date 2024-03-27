@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 
 	private volatile boolean shouldAppendNewLine = false;
 
-
 	public CharacterStreamWritingMessageHandler(Writer writer) {
 		this(writer, -1);
 	}
@@ -63,7 +62,6 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 			this.writer = new BufferedWriter(writer);
 		}
 	}
-
 
 	/**
 	 * Factory method that creates a target for stdout (System.out) with the
@@ -118,7 +116,6 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 			throw new IllegalArgumentException("unsupported encoding: " + charsetName, e);
 		}
 	}
-
 
 	public void setShouldAppendNewLine(boolean shouldAppendNewLine) {
 		this.shouldAppendNewLine = shouldAppendNewLine;

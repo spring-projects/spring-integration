@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,6 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 				.isEqualTo("Integration");
 	}
 
-
 	@Test
 	public void testGetValueFromMetadataStore() {
 		String testKey = "ZookeeperMetadataStoreTests-GetValue";
@@ -91,7 +90,6 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		String retrievedValue = metadataStore.get(testKey);
 		assertThat(retrievedValue).isEqualTo("Hello Zookeeper");
 	}
-
 
 	@Test
 	public void testPutIfAbsent() throws Exception {

@@ -16,7 +16,6 @@
 
 package org.springframework.integration.aop;
 
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +45,6 @@ public class MessagePublishingAnnotationUsageTests {
 
 	@Autowired
 	private QueueChannel channel;
-
 
 	@Test
 	public void headerWithExplicitName() {
@@ -78,7 +76,6 @@ public class MessagePublishingAnnotationUsageTests {
 		assertThat(message.getPayload()).isEqualTo("John");
 		assertThat(message.getHeaders().get("lname")).isEqualTo("Doe");
 	}
-
 
 	public static class TestBean {
 

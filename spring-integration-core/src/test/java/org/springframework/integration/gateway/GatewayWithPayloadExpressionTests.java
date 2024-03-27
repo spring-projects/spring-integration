@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ public class GatewayWithPayloadExpressionTests {
 	@Autowired
 	private PollableChannel input;
 
-
 	@Test
 	public void simpleExpression() {
 		gateway.send1("foo");
@@ -74,7 +73,6 @@ public class GatewayWithPayloadExpressionTests {
 		assertThat(result.getPayload()).isEqualTo("send3");
 	}
 
-
 	public interface SampleGateway {
 
 		void send1(String value);
@@ -85,14 +83,12 @@ public class GatewayWithPayloadExpressionTests {
 
 	}
 
-
 	public interface SampleAnnotatedGateway {
 
 		@Payload("args[0] + args[1]")
 		void send(String value1, String value2);
 
 	}
-
 
 	public static class TestBean {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -223,7 +223,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.temporaryFileSuffix = temporaryFileSuffix;
 		this.temporaryFileSuffixSet = true;
 	}
-
 
 	/**
 	 * Will set the {@link FileExistsMode} that specifies what will happen in
@@ -771,7 +770,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode)
 				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
-
 
 		try {
 			this.lockRegistry.executeLocked(fileToWriteTo.getAbsolutePath(),

@@ -77,7 +77,6 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 
 	private volatile boolean messageBuilderFactorySet;
 
-
 	public BroadcastingDispatcher() {
 		this(null, false);
 	}
@@ -205,7 +204,6 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		}
 		return dispatched >= this.minSubscribers;
 	}
-
 
 	private Runnable createMessageHandlingTask(final MessageHandler handler, final Message<?> message) {
 		MessageHandlingRunnable task = new MessageHandlingRunnable() {

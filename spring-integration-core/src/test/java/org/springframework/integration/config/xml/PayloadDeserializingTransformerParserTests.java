@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,6 @@ public class PayloadDeserializingTransformerParserTests {
 	@Qualifier("direct.handler")
 	private MessageHandler handler;
 
-
 	@Test
 	public void directChannelWithSerializedStringMessage() throws Exception {
 		byte[] bytes = serialize("foo");
@@ -127,14 +126,12 @@ public class PayloadDeserializingTransformerParserTests {
 		assertThat(result.getPayload()).isEqualTo("TEST");
 	}
 
-
 	private static byte[] serialize(Object object) throws Exception {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
 		objectStream.writeObject(object);
 		return byteStream.toByteArray();
 	}
-
 
 	@SuppressWarnings("serial")
 	private static class TestBean implements Serializable {
@@ -146,7 +143,6 @@ public class PayloadDeserializingTransformerParserTests {
 		public final String name = "test";
 
 	}
-
 
 	public static class TestDeserializer implements Deserializer<Object> {
 

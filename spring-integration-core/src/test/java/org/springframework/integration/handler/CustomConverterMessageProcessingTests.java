@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,6 @@ public class CustomConverterMessageProcessingTests {
 	@Autowired
 	@Qualifier("ROUTER_TARGET_CHANNEL")
 	private PollableChannel routerTargetChannel;
-
 
 	@Test
 	public void serviceActivator() {
@@ -124,7 +123,6 @@ public class CustomConverterMessageProcessingTests {
 		assertThat(((TestBean1) result.getPayload()).text).isEqualTo("router-test");
 	}
 
-
 	@SuppressWarnings("unused")
 	public static class TestConverter implements Converter<TestBean1, TestBean2> {
 
@@ -133,7 +131,6 @@ public class CustomConverterMessageProcessingTests {
 		}
 
 	}
-
 
 	@SuppressWarnings("unused")
 	public static class TestService {
@@ -148,7 +145,6 @@ public class CustomConverterMessageProcessingTests {
 
 	}
 
-
 	public static class TestBean1 {
 
 		private String text;
@@ -158,7 +154,6 @@ public class CustomConverterMessageProcessingTests {
 		}
 
 	}
-
 
 	public static class TestBean2 {
 

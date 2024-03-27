@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ public class MarshallingTransformer extends AbstractXmlTransformer {
 
 	private volatile boolean extractPayload = true;
 
-
 	public MarshallingTransformer(Marshaller marshaller, ResultTransformer resultTransformer) {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
@@ -53,7 +52,6 @@ public class MarshallingTransformer extends AbstractXmlTransformer {
 	public MarshallingTransformer(Marshaller marshaller) {
 		this(marshaller, null);
 	}
-
 
 	/**
 	 * Specify whether the source Message's payload should be extracted prior
@@ -69,7 +67,6 @@ public class MarshallingTransformer extends AbstractXmlTransformer {
 	public String getComponentType() {
 		return "xml:marshalling-transformer";
 	}
-
 
 	@Override
 	public Object doTransform(Message<?> message) {

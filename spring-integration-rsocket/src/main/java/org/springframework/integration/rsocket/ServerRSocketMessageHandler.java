@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,6 @@ public class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandle
 
 	private static final Method HANDLE_CONNECTION_SETUP_METHOD =
 			ReflectionUtils.findMethod(ServerRSocketMessageHandler.class, "handleConnectionSetup", Message.class);
-
 
 	private final Map<Object, RSocketRequester> clientRSocketRequesters = new HashMap<>();
 

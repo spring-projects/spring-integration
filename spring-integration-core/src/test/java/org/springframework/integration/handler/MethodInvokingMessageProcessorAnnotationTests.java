@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -369,7 +369,6 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		assertThat(result).isEqualTo("ABC");
 	}
 
-
 	private Message<?> getMessage() {
 		MessageBuilder<Employee> builder = MessageBuilder.withPayload(employee);
 		builder.setHeader("day", "monday");
@@ -384,7 +383,6 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		}
 
 	}
-
 
 	@SuppressWarnings("unused")
 	private static class TestService {
@@ -488,7 +486,6 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		}
 
 	}
-
 
 	public static class Employee {
 

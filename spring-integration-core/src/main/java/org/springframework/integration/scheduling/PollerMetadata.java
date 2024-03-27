@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,6 @@ public class PollerMetadata {
 	private long sendTimeout;
 
 	private TransactionSynchronizationFactory transactionSynchronizationFactory;
-
 
 	public void setTransactionSynchronizationFactory(
 			TransactionSynchronizationFactory transactionSynchronizationFactory) {
@@ -146,7 +145,6 @@ public class PollerMetadata {
 	public void setSendTimeout(long sendTimeout) {
 		this.sendTimeout = sendTimeout;
 	}
-
 
 	/**
 	 * Return the default {@link PollerMetadata} bean if available.

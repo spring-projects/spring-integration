@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,6 @@ public class PayloadAndHeaderMappingTests {
 	public void setup() {
 		bean = new TestBean();
 	}
-
 
 	@Test
 	public void headerPropertiesAndObjectPayload() throws Exception {
@@ -705,7 +704,6 @@ public class PayloadAndHeaderMappingTests {
 		assertThat(bean.lastPayload).isEqualTo("123456");
 	}
 
-
 	private ServiceActivatingHandler getHandler(String methodName, Class<?>... types) throws Exception {
 		ServiceActivatingHandler serviceActivatingHandler =
 				new ServiceActivatingHandler(bean, TestBean.class.getMethod(methodName, types));
@@ -713,7 +711,6 @@ public class PayloadAndHeaderMappingTests {
 		serviceActivatingHandler.afterPropertiesSet();
 		return serviceActivatingHandler;
 	}
-
 
 	@SuppressWarnings("unused")
 	private static class SingleAmbiguousMethodTestBean {
@@ -734,7 +731,6 @@ public class PayloadAndHeaderMappingTests {
 		private volatile Map lastHeaders;
 
 		private volatile Object lastPayload;
-
 
 		TestBean() {
 			super();

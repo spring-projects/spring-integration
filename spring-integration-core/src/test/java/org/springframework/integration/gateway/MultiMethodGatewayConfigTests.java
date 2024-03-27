@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ public class MultiMethodGatewayConfigTests {
 	@Autowired
 	private ApplicationContext applicationContext;
 
-
 	@Test
 	public void validateGatewayMethods() {
 		TestGateway gateway = this.applicationContext.getBean("myGateway", TestGateway.class);
@@ -49,7 +48,6 @@ public class MultiMethodGatewayConfigTests {
 		assertThat(parentClassName + "$TestBeanB:oleg").isEqualTo(gateway.echoUpperCase("oleg"));
 		assertThat(parentClassName + "$TestBeanC:oleg").isEqualTo(gateway.echoViaDefault("oleg"));
 	}
-
 
 	public static class TestBeanA {
 

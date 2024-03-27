@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 the original author or authors.
+ * Copyright 2019-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,7 +166,6 @@ public class RSocketOutboundGatewayIntegrationTests {
 		disposable.dispose();
 	}
 
-
 	@Test
 	void clientEcho() {
 		echo(this.inputChannel, this.resultChannel, null);
@@ -298,7 +297,6 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		verifier.verify(Duration.ofSeconds(10));
 	}
-
 
 	@Test
 	void clientVoidReturnValue() {
@@ -449,7 +447,6 @@ public class RSocketOutboundGatewayIntegrationTests {
 				.expectNext(testData.toStream().toArray(String[]::new))
 				.thenCancel()
 				.verify(Duration.ofSeconds(10));
-
 
 		disposable.dispose();
 		this.clientRsocketOutboundGateway.setExpectedResponseType(String.class);

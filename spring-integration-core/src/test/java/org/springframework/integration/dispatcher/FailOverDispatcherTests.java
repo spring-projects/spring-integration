@@ -194,7 +194,6 @@ public class FailOverDispatcherTests {
 		return handler;
 	}
 
-
 	private static class CountingTestEndpoint implements MessageHandler {
 
 		private final AtomicInteger counter;

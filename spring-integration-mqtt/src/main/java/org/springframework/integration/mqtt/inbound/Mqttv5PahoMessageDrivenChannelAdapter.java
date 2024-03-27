@@ -341,8 +341,8 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				MqttProperties subscriptionProperties = new MqttProperties();
 				subscriptionProperties.setSubscriptionIdentifier(this.subscriptionIdentifierCounter.incrementAndGet());
-				this.mqttClient.subscribe(new MqttSubscription[] { subscription },
-								null, null, new IMqttMessageListener[] { this::messageArrived }, subscriptionProperties)
+				this.mqttClient.subscribe(new MqttSubscription[] {subscription},
+								null, null, new IMqttMessageListener[] {this::messageArrived}, subscriptionProperties)
 						.waitForCompletion(getCompletionTimeout());
 			}
 		}
@@ -522,7 +522,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		Assert.notEmpty(serverURIs, "'serverURIs' must be provided in the 'MqttConnectionOptions'");
 		return serverURIs[0];
 	}
-
 
 	/**
 	 * Used to complete message arrival when {@link #isManualAcks()} is true.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ public class ContextHierarchyTests {
 
 	private ApplicationContext childContext;
 
-
 	@Before
 	public void setupContext() {
 		String prefix = "/org/springframework/integration/config/xml/ContextHierarchyTests-";
@@ -42,7 +41,6 @@ public class ContextHierarchyTests {
 		this.childContext = new ClassPathXmlApplicationContext(
 				new String[] {prefix + "child.xml"}, parentContext);
 	}
-
 
 	@Test // INT-646
 	public void inputChannelInParentContext() {

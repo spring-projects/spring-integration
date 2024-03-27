@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ public class MockHandlerTests {
 	@Autowired
 	private TestInterface mock;
 
-
 	@Test
 	public void configOk() {
 		QueueChannel output = new QueueChannel();
@@ -56,7 +55,6 @@ public class MockHandlerTests {
 		Message<?> result = output.receive(0);
 		assertThat(result.getPayload()).isEqualTo("bar");
 	}
-
 
 	public interface TestInterface {
 

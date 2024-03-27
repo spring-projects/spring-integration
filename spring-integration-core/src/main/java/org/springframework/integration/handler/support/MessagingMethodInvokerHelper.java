@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -637,7 +637,6 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		}
 		return new IllegalStateException("Cannot process message", evaluationException);
 	}
-
 
 	/*
 	 * If there's a single method, it is SpEL only, the content is JSON,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,6 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 
 	@Autowired
 	private StompInboundChannelAdapter stompInboundChannelAdapter;
-
 
 	@Test
 	public void testWebSocketStompClient() throws Exception {
@@ -220,7 +219,6 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 				.isTrue();
 	}
 
-
 	private boolean containsDestination(String destination, SubscriptionRegistry subscriptionRegistry) {
 		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.create(StompCommand.MESSAGE);
 		stompHeaderAccessor.setDestination(destination);
@@ -228,7 +226,6 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		MultiValueMap<String, String> subscriptions = subscriptionRegistry.findSubscriptions(message);
 		return !subscriptions.isEmpty();
 	}
-
 
 	// STOMP Client
 
@@ -248,7 +245,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 
 		@Bean
 		public WebSocketStompClient stompClient(
-			@Qualifier("taskScheduler") TaskScheduler taskScheduler) {
+				@Qualifier("taskScheduler") TaskScheduler taskScheduler) {
 			WebSocketStompClient webSocketStompClient = new WebSocketStompClient(webSocketClient());
 			webSocketStompClient.setMessageConverter(new MappingJackson2MessageConverter());
 			webSocketStompClient.setTaskScheduler(taskScheduler);
@@ -348,8 +345,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		//SimpleBrokerMessageHandler doesn't support RECEIPT frame, hence we emulate it this way
 		@Bean
 		public ApplicationListener<SessionSubscribeEvent> webSocketEventListener(
-				@Qualifier("clientOutboundChannel")
-				final AbstractSubscribableChannel clientOutboundChannel) {
+				@Qualifier("clientOutboundChannel") final AbstractSubscribableChannel clientOutboundChannel) {
 			return event -> {
 				Message<byte[]> message = event.getMessage();
 				StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(message);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ public class MethodInvokingAggregatorReturningMessageTests {
 	@Autowired
 	PollableChannel defaultOutput;
 
-
 	@Test // INT-1107
 	public void messageReturningPojoAggregatorResultIsNotWrappedInAnotherMessage() {
 		List<String> payload = Collections.singletonList("test");
@@ -68,7 +67,6 @@ public class MethodInvokingAggregatorReturningMessageTests {
 		Message<?> result = this.defaultOutput.receive();
 		assertThat(Message.class.isAssignableFrom(result.getPayload().getClass())).isFalse();
 	}
-
 
 	@SuppressWarnings("unused")
 	private static class TestAggregator {

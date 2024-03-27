@@ -209,7 +209,6 @@ public class StompServerIntegrationTests {
 		}
 		while (!(eventMessage.getPayload() instanceof StompConnectionFailedEvent) && n++ < 100);
 
-
 		assertThatExceptionOfType(MessageDeliveryException.class)
 				.isThrownBy(() -> stompOutputChannel1.send(new GenericMessage<>("foo".getBytes())))
 				.withMessageContaining("could not deliver message");

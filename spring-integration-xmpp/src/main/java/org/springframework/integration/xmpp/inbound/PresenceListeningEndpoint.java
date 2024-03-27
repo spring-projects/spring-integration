@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,14 +46,12 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 
 	private final PresencePublishingRosterListener rosterListener = new PresencePublishingRosterListener();
 
-
 	public PresenceListeningEndpoint() {
 	}
 
 	public PresenceListeningEndpoint(XMPPConnection xmppConnection) {
 		super(xmppConnection);
 	}
-
 
 	@Override
 	public String getComponentType() {
@@ -74,7 +72,6 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 			Roster.getInstanceFor(xmppConnection).removeRosterListener(this.rosterListener);
 		}
 	}
-
 
 	/**
 	 * RosterListener that subscribes to a given {@link Roster}'s events.
@@ -108,6 +105,7 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 				sendMessage(PresenceListeningEndpoint.this.getMessageBuilderFactory().withPayload(presence).build());
 			}
 		}
+
 	}
 
 }

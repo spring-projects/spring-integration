@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -405,7 +405,6 @@ public class ImapMailReceiverTests {
 		verify(logger).debug(org.mockito.ArgumentMatchers.contains("'msg2' will be discarded by the matching filter"));
 	}
 
-
 	@Test
 	public void receiveMarkAsReadAndDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
@@ -459,7 +458,6 @@ public class ImapMailReceiverTests {
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		given(folder.isOpen()).willReturn(true);
 		folderField.set(receiver, folder);
-
 
 		Message msg1 = GreenMailUtil.newMimeMessage("test1");
 		Message msg2 = GreenMailUtil.newMimeMessage("test2");
@@ -598,7 +596,6 @@ public class ImapMailReceiverTests {
 		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
 		//ImapMailReceiver receiver = (ImapMailReceiver) TestUtils.getPropertyValue(adapter, "mailReceiver");
-
 
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new AbstractReplyProducingMessageHandler() {
@@ -803,7 +800,6 @@ public class ImapMailReceiverTests {
 			given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 			given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 
-
 			DirectFieldAccessor df = new DirectFieldAccessor(receiver);
 			df.setPropertyValue("store", store);
 			receiver.setBeanFactory(mock(BeanFactory.class));
@@ -928,6 +924,7 @@ public class ImapMailReceiverTests {
 			}
 
 		}
+
 		ImapMailReceiver receiver = new TestReceiver();
 		Message[] received = (Message[]) receiver.receive();
 		assertThat(received.length).isEqualTo(1);
@@ -982,7 +979,6 @@ public class ImapMailReceiverTests {
 		given(bf.getBean("taskScheduler", TaskScheduler.class)).willReturn(taskScheduler);
 		mailReceiver.setBeanFactory(bf);
 	}
-
 
 	private static class ImapSearchLoggingHandler extends Handler {
 

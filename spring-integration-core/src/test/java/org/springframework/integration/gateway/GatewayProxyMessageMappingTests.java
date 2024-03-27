@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -213,7 +213,6 @@ public class GatewayProxyMessageMappingTests {
 				.isThrownBy(() -> this.gateway.payloadAndHeadersAnnotationsOnSameParameter(new HashMap<>()));
 	}
 
-
 	public interface TestGateway {
 
 		void payloadAndHeaderMapWithoutAnnotations(String s, Map<String, Object> map);
@@ -249,7 +248,6 @@ public class GatewayProxyMessageMappingTests {
 		void payloadAndHeadersAnnotationsOnSameParameter(@Payload @Headers Map<String, Object> map);
 
 	}
-
 
 	public static class TestBean {
 

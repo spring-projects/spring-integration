@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ public class Pop3MailReceiver extends AbstractMailReceiver {
 	public Pop3MailReceiver(String host, int port, String username, String password) {
 		super(new URLName(PROTOCOL, host, port, "INBOX", username, password));
 	}
-
 
 	@Override
 	protected Message[] searchForNewMessages() throws MessagingException {

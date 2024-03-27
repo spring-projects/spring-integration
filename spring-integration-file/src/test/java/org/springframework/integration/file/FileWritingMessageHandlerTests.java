@@ -85,7 +85,6 @@ public class FileWritingMessageHandlerTests {
 
 	static final String SAMPLE_CONTENT = "HelloWorld\näöüß";
 
-
 	private File sourceFile;
 
 	@TempDir

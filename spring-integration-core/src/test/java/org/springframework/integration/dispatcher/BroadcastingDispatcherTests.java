@@ -64,14 +64,12 @@ public class BroadcastingDispatcherTests {
 
 	private final MessageHandler targetMock3 = Mockito.mock();
 
-
 	@BeforeEach
 	public void init() {
 		Mockito.reset(taskExecutorMock, messageMock, taskExecutorMock, targetMock1, targetMock2, targetMock3);
 		given(messageMock.getHeaders()).willReturn(mock());
 		defaultTaskExecutorMock();
 	}
-
 
 	@Test
 	public void singleTargetWithoutTaskExecutor() {
@@ -343,7 +341,6 @@ public class BroadcastingDispatcherTests {
 			return null;
 		}).when(taskExecutorMock).execute(Mockito.any(Runnable.class));
 	}
-
 
 	private static class MessageStoringTestEndpoint implements MessageHandler {
 

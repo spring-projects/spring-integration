@@ -345,7 +345,6 @@ public class TcpInboundGatewayTests {
 		client.stop();
 	}
 
-
 	private void readFully(InputStream is, byte[] buff) throws IOException {
 		for (int i = 0; i < buff.length; i++) {
 			buff[i] = (byte) is.read();

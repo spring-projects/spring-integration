@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ public class GatewayWithHeaderAnnotations {
 	@Autowired
 	private ApplicationContext applicationContext;
 
-
 	@Test // INT-1205
 	public void priorityAsArgument() {
 		TestService gateway = (TestService) applicationContext.getBean("gateway");
@@ -48,8 +47,8 @@ public class GatewayWithHeaderAnnotations {
 		assertThat(result).isEqualTo("foo99barqux");
 	}
 
-
 	public interface TestService {
+
 		// wrt INT-1205, priority no longer has a $ prefix, so here we are testing the $custom header as well
 		String test(String str, @Header(IntegrationMessageHeaderAccessor.PRIORITY) int priority,
 				@Header("$custom") String custom, @Header(name = "baz") String baz);

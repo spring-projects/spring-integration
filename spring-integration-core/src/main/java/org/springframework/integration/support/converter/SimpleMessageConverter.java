@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,8 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 
 	private BeanFactory beanFactory;
 
-	public SimpleMessageConverter() { }
+	public SimpleMessageConverter() {
+	}
 
 	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper) {
 		setInboundMessageMapper(inboundMessageMapper);
@@ -74,7 +75,6 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		setInboundMessageMapper(inboundMessageMapper);
 		setOutboundMessageMapper(outboundMessageMapper);
 	}
-
 
 	public final void setInboundMessageMapper(@Nullable InboundMessageMapper<?> inboundMessageMapper) {
 		if (inboundMessageMapper != null) {
@@ -125,7 +125,6 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		}
 	}
 
-
 	private class DefaultInboundMessageMapper implements InboundMessageMapper<Object> {
 
 		DefaultInboundMessageMapper() {
@@ -146,7 +145,6 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		}
 
 	}
-
 
 	private static class DefaultOutboundMessageMapper implements OutboundMessageMapper<Object> {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ public class JpaMessageHandlerParserTests {
 	@Test
 	public void testJpaMessageHandlerParser() throws Exception {
 		setUp("JpaMessageHandlerParserTests.xml", getClass());
-
 
 		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
 
@@ -133,7 +132,6 @@ public class JpaMessageHandlerParserTests {
 	@Test
 	public void testJpaMessageHandlerParserWithEntityManagerFactory() throws Exception {
 		setUp("JpaMessageHandlerParserTestsWithEmFactory.xml", getClass());
-
 
 		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
 
@@ -233,4 +231,5 @@ public class JpaMessageHandlerParserTests {
 		}
 
 	}
+
 }

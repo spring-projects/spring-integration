@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ public class ErrorHandlingTaskExecutor implements TaskExecutor {
 	private final Executor executor;
 
 	private final ErrorHandler errorHandler;
-
 
 	public ErrorHandlingTaskExecutor(Executor executor, ErrorHandler errorHandler) {
 		Assert.notNull(executor, "executor must not be null");

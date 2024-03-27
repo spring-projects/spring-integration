@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +32,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gary Russell
  * @author Kazuki Shimizu
+ * @author Artem Bilan
+ *
  * @since 5.3.10
  *
  */
@@ -83,7 +84,6 @@ public class TcpSenderTests {
 		AtomicInteger instances = new AtomicInteger();
 		List<Integer> addOrder = Collections.synchronizedList(new ArrayList<>());
 		List<Integer> remOrder = Collections.synchronizedList(new ArrayList<>());
-		AtomicReference<Thread> thread = new AtomicReference<>();
 		Map<Integer, TcpConnection> interceptorsPerInstance = new HashMap<>();
 		List<TcpConnection> passedConnectionsToSenderViaAddNewConnection = new ArrayList<>();
 		class InterceptorFactory extends HelloWorldInterceptorFactory {
@@ -118,6 +118,7 @@ public class TcpSenderTests {
 			}
 
 		}
+
 		chain.setInterceptor(new InterceptorFactory(), new InterceptorFactory(), new InterceptorFactory());
 		client.setInterceptorFactoryChain(chain);
 		CountDownLatch firstClosed = new CountDownLatch(1);

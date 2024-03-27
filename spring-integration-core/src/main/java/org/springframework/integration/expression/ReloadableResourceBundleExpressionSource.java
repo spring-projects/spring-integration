@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,6 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 
 	private static final String XML_SUFFIX = ".xml";
 
-
 	/**
 	 * Cache to hold filename lists per Locale.
 	 */
@@ -114,7 +113,6 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
 
 	private ResourceLoader resourceLoader = new DefaultResourceLoader();
-
 
 	/**
 	 * Set a single basename, following the basic ResourceBundle convention of
@@ -247,7 +245,6 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	public void setResourceLoader(@Nullable ResourceLoader resourceLoader) {
 		this.resourceLoader = (resourceLoader != null ? resourceLoader : new DefaultResourceLoader());
 	}
-
 
 	/**
 	 * Resolves the given key in the retrieved bundle files to an Expression.
@@ -401,7 +398,6 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 		return result;
 	}
 
-
 	/**
 	 * Get a PropertiesHolder for the given filename, either from the
 	 * cache or freshly loaded.
@@ -553,7 +549,6 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 		}
 	}
 
-
 	/**
 	 * Clear the resource bundle cache.
 	 * Subsequent resolve calls will lead to reloading of the properties files.
@@ -581,7 +576,6 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	public String toString() {
 		return getClass().getName() + ": basenames=[" + StringUtils.arrayToCommaDelimitedString(this.basenames) + "]";
 	}
-
 
 	/**
 	 * PropertiesHolder for caching.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,7 +198,6 @@ public class UnZipTransformerTests {
 		unZipTransformer.setExpectSingleResult(true);
 		unZipTransformer.afterPropertiesSet();
 
-
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> unZipTransformer.transform(message))
 				.withStackTraceContaining("The UnZip operation extracted 5 result objects " +
@@ -231,7 +230,6 @@ public class UnZipTransformerTests {
 
 		final UnZipTransformer unZipTransformer = new UnZipTransformer();
 		unZipTransformer.afterPropertiesSet();
-
 
 		assertThatExceptionOfType(MessageTransformationException.class)
 				.isThrownBy(() -> unZipTransformer.transform(message))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ChannelInterceptorTests {
 
 	private final QueueChannel channel = new QueueChannel();
-
 
 	@Test
 	public void testPreSendInterceptorReturnsMessage() {
@@ -289,6 +288,7 @@ public class ChannelInterceptorTests {
 	}
 
 	public static class PreSendReturnsMessageInterceptor implements ChannelInterceptor {
+
 		private String foo;
 
 		private static AtomicInteger counter = new AtomicInteger();
@@ -322,7 +322,6 @@ public class ChannelInterceptorTests {
 
 	}
 
-
 	private static class PreSendReturnsNullInterceptor implements ChannelInterceptor {
 
 		private static AtomicInteger counter = new AtomicInteger();
@@ -341,6 +340,7 @@ public class ChannelInterceptorTests {
 			counter.incrementAndGet();
 			return null;
 		}
+
 	}
 
 	private static class AfterCompletionTestInterceptor implements ChannelInterceptor {
@@ -424,7 +424,6 @@ public class ChannelInterceptorTests {
 		}
 
 	}
-
 
 	private static class PreReceiveReturnsFalseInterceptor implements ChannelInterceptor {
 

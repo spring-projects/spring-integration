@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,6 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 
 	private final Lock monitor = new ReentrantLock();
 
-
 	/**
 	 * Creates an AcceptOnceFileListFilter that is based on a bounded queue. If the queue overflows,
 	 * files that fall out will be passed through this filter again if passed to the
@@ -68,7 +67,6 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 	public AcceptOnceFileListFilter() {
 		this.seen = null;
 	}
-
 
 	@Override
 	public boolean accept(F file) {

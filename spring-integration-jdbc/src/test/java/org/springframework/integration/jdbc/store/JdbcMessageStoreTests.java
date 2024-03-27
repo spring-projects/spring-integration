@@ -546,7 +546,6 @@ public class JdbcMessageStoreTests {
 		assertThat(this.messageStore.getMessageGroup(groupId).getCondition()).isEqualTo("testCondition");
 	}
 
-
 	@Test
 	@Transactional(propagation = Propagation.NEVER)
 	public void testMessageGroupStreamNoConnectionPoolLeak() throws NoSuchMethodException {

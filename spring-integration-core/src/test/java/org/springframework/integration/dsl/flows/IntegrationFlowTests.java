@@ -470,7 +470,6 @@ public class IntegrationFlowTests {
 		this.flowWithLocalNullChannelInput.send(new GenericMessage<>("foo"));
 	}
 
-
 	@Autowired
 	private EventDrivenConsumer flow1WithPrototypeHandlerConsumer;
 
@@ -543,12 +542,10 @@ public class IntegrationFlowTests {
 		assertThat(controlBus.isRunning()).isTrue();
 	}
 
-
 	@AfterEach
 	public void cleanUpList() {
 		outputStringList.clear();
 	}
-
 
 	@MessagingGateway
 	public interface ControlBusGateway {
@@ -591,7 +588,6 @@ public class IntegrationFlowTests {
 			threadPoolTaskScheduler.setPoolSize(100);
 			return threadPoolTaskScheduler;
 		}
-
 
 		@Bean
 		public QueueChannelSpec suppliedChannel() {
@@ -663,7 +659,6 @@ public class IntegrationFlowTests {
 		@Autowired
 		@Qualifier("successChannel")
 		private PollableChannel successChannel;
-
 
 		@Bean
 		public Advice expressionAdvice() {
@@ -924,7 +919,6 @@ public class IntegrationFlowTests {
 					.get();
 		}
 
-
 		@Bean
 		public TaskScheduler dedicatedTaskScheduler() {
 			ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
@@ -1045,7 +1039,6 @@ public class IntegrationFlowTests {
 		}
 
 	}
-
 
 	private static class InvalidLastMessageChannelFlowContext {
 

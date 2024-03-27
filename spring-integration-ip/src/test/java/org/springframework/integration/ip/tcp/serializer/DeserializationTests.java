@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
@@ -33,8 +32,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
@@ -57,6 +54,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Gary Russell
  * @author Gavin Gray
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -183,7 +181,6 @@ public class DeserializationTests {
 		}
 		catch (IOException e) {
 			if (!e.getMessage().startsWith("Message length")) {
-				e.printStackTrace();
 				fail("Unexpected IO Error:" + e.getMessage());
 			}
 		}
@@ -206,7 +203,6 @@ public class DeserializationTests {
 		}
 		catch (IOException e) {
 			if (!e.getMessage().startsWith("Read timed out")) {
-				e.printStackTrace();
 				fail("Unexpected IO Error:" + e.getMessage());
 			}
 		}
@@ -230,7 +226,6 @@ public class DeserializationTests {
 		}
 		catch (IOException e) {
 			if (!e.getMessage().startsWith("ETX not found")) {
-				e.printStackTrace();
 				fail("Unexpected IO Error:" + e.getMessage());
 			}
 		}
@@ -253,7 +248,6 @@ public class DeserializationTests {
 		}
 		catch (IOException e) {
 			if (!e.getMessage().startsWith("Read timed out")) {
-				e.printStackTrace();
 				fail("Unexpected IO Error:" + e.getMessage());
 			}
 		}
@@ -277,7 +271,6 @@ public class DeserializationTests {
 		}
 		catch (IOException e) {
 			if (!e.getMessage().startsWith("CRLF not found")) {
-				e.printStackTrace();
 				fail("Unexpected IO Error:" + e.getMessage());
 			}
 		}
@@ -289,22 +282,18 @@ public class DeserializationTests {
 	public void canDeserializeMultipleSubsequentTerminators() throws IOException {
 		byte terminator = (byte) '\n';
 		ByteArraySingleTerminatorSerializer serializer = new ByteArraySingleTerminatorSerializer(terminator);
-		ByteArrayInputStream inputStream = new ByteArrayInputStream("s\n\n".getBytes());
 
-		try {
+		try (ByteArrayInputStream inputStream = new ByteArrayInputStream("s\n\n".getBytes())) {
 			byte[] bytes = serializer.deserialize(inputStream);
 			assertThat(bytes.length).isEqualTo(1);
 			assertThat(bytes[0]).isEqualTo("s".getBytes()[0]);
 			bytes = serializer.deserialize(inputStream);
 			assertThat(bytes.length).isEqualTo(0);
 		}
-		finally {
-			inputStream.close();
-		}
 	}
 
 	@Test
-	public void deserializationEvents() throws Exception {
+	public void deserializationEvents() {
 		doDeserialize(new ByteArrayCrLfSerializer(), "CRLF not found before max message length: 5");
 		doDeserialize(new ByteArrayLengthHeaderSerializer(), "Message length 1718579042 exceeds max message length: 5");
 		TcpDeserializationExceptionEvent event = doDeserialize(new ByteArrayLengthHeaderSerializer(),
@@ -330,24 +319,11 @@ public class DeserializationTests {
 
 	private TcpDeserializationExceptionEvent doDeserialize(AbstractByteArraySerializer deser, String expectedMessage,
 			byte[] data, int mms) {
-		final AtomicReference<TcpDeserializationExceptionEvent> event =
-				new AtomicReference<TcpDeserializationExceptionEvent>();
-		class Publisher implements ApplicationEventPublisher {
 
-			@Override
-			public void publishEvent(ApplicationEvent anEvent) {
-				event.set((TcpDeserializationExceptionEvent) anEvent);
-			}
+		AtomicReference<TcpDeserializationExceptionEvent> event = new AtomicReference<>();
 
-			@Override
-			public void publishEvent(Object event) {
-
-			}
-
-		}
-		Publisher publisher = new Publisher();
 		ByteArrayInputStream bais = new ByteArrayInputStream(data);
-		deser.setApplicationEventPublisher(publisher);
+		deser.setApplicationEventPublisher(anEvent -> event.set((TcpDeserializationExceptionEvent) anEvent));
 		deser.setMaxMessageSize(mms);
 		try {
 			deser.deserialize(bais);
@@ -362,16 +338,16 @@ public class DeserializationTests {
 	}
 
 	@Test
-	public void testTimeoutWithCustomDeserializer() throws Exception {
+	public void testTimeoutWithCustomDeserializer() {
 		testTimeoutWhileDecoding(new CustomDeserializer(), "\u0000\u0002\u0000\u0005reply");
 	}
 
 	@Test
-	public void testTimeoutWithRawDeserializer() throws Exception {
+	public void testTimeoutWithRawDeserializer() {
 		testTimeoutWhileDecoding(new ByteArrayRawSerializer(), "reply");
 	}
 
-	public void testTimeoutWhileDecoding(AbstractByteArraySerializer deserializer, String reply) throws Exception {
+	private void testTimeoutWhileDecoding(AbstractByteArraySerializer deserializer, String reply) {
 		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
 		TcpNioServerConnectionFactory serverNio = new TcpNioServerConnectionFactory(0);
 		ByteArrayLengthHeaderSerializer lengthHeaderSerializer = new ByteArrayLengthHeaderSerializer(1);
@@ -407,23 +383,21 @@ public class DeserializationTests {
 				// eat SocketTimeoutException. Doesn't matter for this test
 			}
 		};
-		Executor exec = new SimpleAsyncTaskExecutor("-");
+		try (SimpleAsyncTaskExecutor exec = new SimpleAsyncTaskExecutor("-")) {
+			exec.execute(command);
+		}
 
-		Message<?> message;
-
-		// short reply should not be received.
-		exec.execute(command);
-		message = serverSideChannel.receive(10000);
+		Message<?> message = serverSideChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test");
 		String shortReply = reply.substring(0, reply.length() - 1);
-		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<String>(shortReply));
+		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<>(shortReply));
 		message = outputChannel.receive(1000);
 		assertThat(message).isNull();
 	}
 
 	@Test
-	public void testTimeoutWithRawDeserializerEofIsTerminator() throws Exception {
+	public void testTimeoutWithRawDeserializerEofIsTerminator() {
 		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
 		TcpNioServerConnectionFactory serverNio = new TcpNioServerConnectionFactory(0);
 		ByteArrayLengthHeaderSerializer lengthHeaderSerializer = new ByteArrayLengthHeaderSerializer(1);
@@ -459,15 +433,15 @@ public class DeserializationTests {
 				// eat SocketTimeoutException. Doesn't matter for this test
 			}
 		};
-		Executor exec = new SimpleAsyncTaskExecutor("testTimeoutWithRawDeserializerEofIsTerminator-");
 
-		Message<?> message;
+		try (SimpleAsyncTaskExecutor exec = new SimpleAsyncTaskExecutor("testTimeoutWithRawDeserializerEofIsTerminator-")) {
+			exec.execute(command);
+		}
 
-		exec.execute(command);
-		message = serverSideChannel.receive(10000);
+		Message<?> message = serverSideChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test");
-		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<String>("reply"));
+		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<>("reply"));
 		message = outputChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(new String(((byte[]) message.getPayload()))).isEqualTo("reply");
@@ -529,7 +503,7 @@ public class DeserializationTests {
 		}
 
 		@Override
-		public void serialize(byte[] object, OutputStream outputStream) throws IOException {
+		public void serialize(byte[] object, OutputStream outputStream) {
 		}
 
 	}

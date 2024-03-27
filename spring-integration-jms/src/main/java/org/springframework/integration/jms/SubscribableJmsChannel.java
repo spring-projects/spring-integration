@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,7 +182,6 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 		}
 	}
 
-
 	private static final class DispatchingMessageListener implements MessageListener {
 
 		private final Log logger = LogFactory.getLog(this.getClass());
@@ -197,7 +196,6 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 
 		private final MessageBuilderFactory messageBuilderFactory;
 
-
 		DispatchingMessageListener(JmsTemplate jmsTemplate,
 				MessageDispatcher dispatcher, SubscribableJmsChannel channel, boolean isPubSub,
 				MessageBuilderFactory messageBuilderFactory) {
@@ -208,7 +206,6 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 			this.isPubSub = isPubSub;
 			this.messageBuilderFactory = messageBuilderFactory;
 		}
-
 
 		@Override
 		public void onMessage(jakarta.jms.Message message) {

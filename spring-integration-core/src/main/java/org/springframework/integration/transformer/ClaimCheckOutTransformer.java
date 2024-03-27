@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ public class ClaimCheckOutTransformer extends AbstractTransformer implements Int
 	private final MessageStore messageStore;
 
 	private volatile boolean removeMessage = false;
-
 
 	/**
 	 * Create a claim check-out transformer that will delegate to the provided MessageStore.

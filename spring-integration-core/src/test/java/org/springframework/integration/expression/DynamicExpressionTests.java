@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,12 +37,10 @@ public class DynamicExpressionTests {
 
 	private static final String filepath = basename + ".properties";
 
-
 	@After
 	public void resetFile() {
 		writeExpressionStringToFile("'Hello World!'");
 	}
-
 
 	@Test
 	public void expressionUpdate() throws Exception {
@@ -54,7 +52,6 @@ public class DynamicExpressionTests {
 		writeExpressionStringToFile("toUpperCase()");
 		assertThat(expression.getValue("foo")).isEqualTo("FOO");
 	}
-
 
 	private static void writeExpressionStringToFile(String expressionString) {
 		ClassPathResource resource = new ClassPathResource(filepath);

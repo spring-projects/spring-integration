@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.springframework.web.util.WebUtils;
 public class SimpleMultipartFileReader implements MultipartFileReader<Object> {
 
 	private volatile Charset defaultCharset = Charset.forName(WebUtils.DEFAULT_CHARACTER_ENCODING);
-
 
 	/**
 	 * Specify the default charset name to use when converting multipart file

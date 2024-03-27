@@ -156,7 +156,6 @@ public abstract class TestUtils {
 		applicationContext.registerBean(beanName, (Class<Object>) bean.getClass(), () -> bean);
 	}
 
-
 	/**
 	 * A {@link GenericApplicationContext} extension with some support methods
 	 * to register Spring Integration beans in the application context at runtime.

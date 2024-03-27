@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,12 +119,10 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "merge-with-default-converters");
 
-
 		parseHeaderMapper(element, parserContext, builder);
 
 		BeanDefinition requestMappingDef = createRequestMapping(element);
 		builder.addPropertyValue("requestMapping", requestMappingDef);
-
 
 		parseCrossOrigin(element, builder);
 

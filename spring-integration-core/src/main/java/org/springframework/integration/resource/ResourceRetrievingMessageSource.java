@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,12 +53,10 @@ public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resou
 
 	private volatile CollectionFilter<Resource> filter;
 
-
 	public ResourceRetrievingMessageSource(String pattern) {
 		Assert.hasText(pattern, "pattern must not be empty");
 		this.pattern = pattern;
 	}
-
 
 	public void setPatternResolver(ResourcePatternResolver patternResolver) {
 		this.patternResolver = patternResolver;
@@ -77,7 +75,6 @@ public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resou
 	public String getComponentType() {
 		return "resource-inbound-channel-adapter";
 	}
-
 
 	@Override
 	protected void onInit() {

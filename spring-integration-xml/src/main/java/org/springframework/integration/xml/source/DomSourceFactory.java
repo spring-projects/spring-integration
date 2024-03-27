@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,6 @@ public class DomSourceFactory implements SourceFactory {
 
 	private final DocumentBuilderFactory documentBuilderFactory;
 
-
 	public DomSourceFactory() {
 		this(DocumentBuilderFactoryUtils.newInstance());
 		this.documentBuilderFactory.setNamespaceAware(true);
@@ -59,7 +58,6 @@ public class DomSourceFactory implements SourceFactory {
 		Assert.notNull(documentBuilderFactory, "'documentBuilderFactory' must not be null.");
 		this.documentBuilderFactory = documentBuilderFactory;
 	}
-
 
 	public Source createSource(Object payload) {
 		Source source = null;

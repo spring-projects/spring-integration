@@ -40,9 +40,15 @@
 		</indentOptions>
 	</codeStyleSettings>
 	<codeStyleSettings language="JAVA">
+		<option name="KEEP_BLANK_LINES_IN_DECLARATIONS" value="1"/>
+		<option name="KEEP_BLANK_LINES_IN_CODE" value="1"/>
+		<option name="KEEP_BLANK_LINES_BETWEEN_PACKAGE_DECLARATION_AND_HEADER" value="1"/>
 		<option name="KEEP_BLANK_LINES_BEFORE_RBRACE" value="1"/>
 		<option name="BLANK_LINES_AROUND_FIELD" value="1"/>
 		<option name="BLANK_LINES_AROUND_FIELD_IN_INTERFACE" value="1"/>
+		<option name="BLANK_LINES_AFTER_CLASS_HEADER" value="1"/>
+		<option name="BLANK_LINES_AFTER_ANONYMOUS_CLASS_HEADER" value="1"/>
+		<option name="BLANK_LINES_BEFORE_CLASS_END" value="1"/>
 		<option name="ELSE_ON_NEW_LINE" value="true"/>
 		<option name="CATCH_ON_NEW_LINE" value="true"/>
 		<option name="FINALLY_ON_NEW_LINE" value="true"/>

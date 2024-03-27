@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,6 @@ public class ProducerAndConsumerAutoStartupTests {
 	@Autowired
 	private Consumer consumer;
 
-
 	@Test
 	public void test() throws Exception {
 		List<Integer> received = new ArrayList<>();
@@ -62,7 +61,6 @@ public class ProducerAndConsumerAutoStartupTests {
 		assertThat(received.get(1)).isEqualTo(2);
 		assertThat(received.get(2)).isEqualTo(3);
 	}
-
 
 	static class Counter {
 
@@ -77,7 +75,6 @@ public class ProducerAndConsumerAutoStartupTests {
 		}
 
 	}
-
 
 	static class Consumer {
 

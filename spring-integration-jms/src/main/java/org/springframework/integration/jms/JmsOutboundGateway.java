@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -661,7 +661,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 					.acceptIfNotNull(this.replyContainerProperties.getTaskExecutor(),
 							container::setTaskExecutor);
 
-
 			if (this.replyContainerProperties.getTaskExecutor() == null) {
 				// set the beanName so the default TE threads get a meaningful name
 				String containerBeanName = this.getComponentName();
@@ -672,7 +671,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			}
 		}
 	}
-
 
 	@Override
 	public void start() {
@@ -1004,7 +1002,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			JmsUtils.closeMessageProducer(messageProducer);
 		}
 	}
-
 
 	/*
 	 * If the replyTo is not temporary, and the connection is lost while waiting for a reply, reconnect for
@@ -1364,7 +1361,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			}
 			return this.replyDestination;
 		}
-
 
 		@Override
 		protected void validateConfiguration() {

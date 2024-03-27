@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ public class MethodInvokingReleaseStrategy implements ReleaseStrategy, BeanFacto
 
 	private final MethodInvokingMessageListProcessor<Boolean> adapter;
 
-
 	public MethodInvokingReleaseStrategy(Object object, Method method) {
 		this.adapter = new MethodInvokingMessageListProcessor<Boolean>(object, method, Boolean.class);
 	}
@@ -43,7 +42,6 @@ public class MethodInvokingReleaseStrategy implements ReleaseStrategy, BeanFacto
 	public MethodInvokingReleaseStrategy(Object object, String methodName) {
 		this.adapter = new MethodInvokingMessageListProcessor<Boolean>(object, methodName, Boolean.class);
 	}
-
 
 	public void setConversionService(ConversionService conversionService) {
 		this.adapter.setConversionService(conversionService);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,7 +212,6 @@ public class ContentEnricherTests {
 		enricher.setReplyChannel(replyChannel);
 		enricher.setBeanFactory(mock(BeanFactory.class));
 
-
 		assertThatIllegalStateException()
 				.isThrownBy(enricher::afterPropertiesSet)
 				.withMessage("If the replyChannel is set, then the requestChannel must not be null");
@@ -388,7 +387,6 @@ public class ContentEnricherTests {
 
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 
-
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> enricher.handleMessage(requestMessage))
 				.withMessageContaining("Failed to clone payload object");
@@ -522,7 +520,6 @@ public class ContentEnricherTests {
 		}
 
 	}
-
 
 	public static final class Target implements Cloneable {
 

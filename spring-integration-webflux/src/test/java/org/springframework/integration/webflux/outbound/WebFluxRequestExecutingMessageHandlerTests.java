@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -279,7 +279,6 @@ class WebFluxRequestExecutingMessageHandlerTests {
 
 		ClientHttpResponse response = (ClientHttpResponse) receive.getPayload();
 
-
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.TEXT_PLAIN);
 
@@ -410,6 +409,7 @@ class WebFluxRequestExecutingMessageHandlerTests {
 				this.attributeValueName.set(request.attribute("name").orElse(null));
 				return next.exchange(request);
 			}
+
 		}
 
 		AttributeFilter attributeFilter = new AttributeFilter();

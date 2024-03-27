@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
 
-
 /**
  * Default implementation for mapping to/from Messages.
  *
@@ -65,7 +64,6 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	private volatile boolean messageBuilderFactorySet;
-
 
 	/**
 	 * Construct a converter with default options (qos=0, retain=false, charset=UTF-8).

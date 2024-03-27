@@ -702,7 +702,6 @@ public class AdvisedMessageHandlerTests {
 		assertThat(outerCounter.get()).isEqualTo(1);
 	}
 
-
 	@Test
 	public void testINT2858ExpressionAdviceWithSendFailureOnEachRetry() {
 		final AtomicInteger counter = new AtomicInteger(0);

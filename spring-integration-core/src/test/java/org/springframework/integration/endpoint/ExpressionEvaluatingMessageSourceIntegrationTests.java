@@ -96,7 +96,6 @@ public class ExpressionEvaluatingMessageSourceIntegrationTests {
 		assertThat(message3.getHeaders().get("bar")).isEqualTo(42);
 	}
 
-
 	public static int next() {
 		return counter.incrementAndGet();
 	}

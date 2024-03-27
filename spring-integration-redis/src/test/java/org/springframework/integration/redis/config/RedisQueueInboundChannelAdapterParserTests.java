@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 
 /**
  * @author Artem Bilan
@@ -83,10 +82,8 @@ public class RedisQueueInboundChannelAdapterParserTests {
 	@Qualifier("executor")
 	private TaskExecutor taskExecutor;
 
-
 	@Autowired
 	private RedisSerializer<?> serializer;
-
 
 	@Test
 	@SuppressWarnings("unchecked")
@@ -109,7 +106,6 @@ public class RedisQueueInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "rightPop", Boolean.class)).isTrue();
 	}
 
-
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testInt3017CustomConfig() {
@@ -127,7 +123,6 @@ public class RedisQueueInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(this.customAdapter, "outputChannel")).isSameAs(this.sendChannel);
 		assertThat(TestUtils.getPropertyValue(this.customAdapter, "rightPop", Boolean.class)).isFalse();
 	}
-
 
 	@Test
 	public void testInt4341ZeroReceiveTimeoutConfig() {

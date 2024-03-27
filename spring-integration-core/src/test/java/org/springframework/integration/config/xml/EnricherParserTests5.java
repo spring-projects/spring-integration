@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,24 +45,27 @@ public class EnricherParserTests5 {
 	@Autowired
 	private ApplicationContext context;
 
-
 	@Test
 	public void errorChannelTest() {
 
 		class ErrorThrower extends AbstractReplyProducingMessageHandler {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				throw new RuntimeException();
 			}
+
 		}
 
 		class DefaultTargetProducer extends AbstractReplyProducingMessageHandler {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				final Target defaultTarget = new Target();
 				defaultTarget.setName("Default");
 				return defaultTarget;
 			}
+
 		}
 
 		context.getBean("requestChannel", DirectChannel.class).subscribe(new ErrorThrower());
@@ -78,7 +81,6 @@ public class EnricherParserTests5 {
 		Target enriched = (Target) reply.getPayload();
 		assertThat(enriched.getName()).isEqualTo("Mr. Default");
 	}
-
 
 	public static class Target {
 

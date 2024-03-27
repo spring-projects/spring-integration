@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,6 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		}
 	}
 
-
 	/**
 	 * Set the {@link RecordMessageConverter} to the listener.
 	 * @param messageConverter the converter.
@@ -176,7 +175,6 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 	public boolean unsubscribe(MessageHandler handler) {
 		return this.dispatcher.removeHandler(handler);
 	}
-
 
 	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<Object, Object> {
 

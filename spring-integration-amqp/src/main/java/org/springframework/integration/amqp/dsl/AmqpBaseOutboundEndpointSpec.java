@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -270,7 +270,6 @@ AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E ext
 	public S delayFunction(Function<Message<?>, Integer> delayFunction) {
 		return delayExpression(new FunctionExpression<>(delayFunction));
 	}
-
 
 	/**
 	 * Set the SpEL expression to calculate the {@code x-delay} header when using the

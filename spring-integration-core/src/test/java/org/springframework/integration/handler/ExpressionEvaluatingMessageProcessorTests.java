@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	}
 
 	@Test
-	public void testProcessMessageWithParameterCoercion() throws Exception {
+	public void testProcessMessageWithParameterCoercion() {
 		@SuppressWarnings("unused")
 		class TestTarget {
 
@@ -77,6 +77,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 			}
 
 		}
+
 		Expression expression = expressionParser.parseExpression("#target.stringify(payload)");
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
@@ -89,7 +90,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	}
 
 	@Test
-	public void testProcessMessageWithVoidResult() throws Exception {
+	public void testProcessMessageWithVoidResult() {
 		@SuppressWarnings("unused")
 		class TestTarget {
 
@@ -110,7 +111,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	}
 
 	@Test
-	public void testProcessMessageWithParameterCoercionToNonPrimitive() throws Exception {
+	public void testProcessMessageWithParameterCoercionToNonPrimitive() {
 		class TestTarget {
 
 			@SuppressWarnings("unused")
@@ -119,6 +120,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 			}
 
 		}
+
 		Expression expression = expressionParser.parseExpression("#target.find(payload)");
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
@@ -136,7 +138,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
 		evaluationContext.setVariable("target", new TestTarget());
 		String result = processor.processMessage(new GenericMessage<>("classpath*:*-test.xml"));
-		assertThat(result.contains("log4j2-test.xml")).as("Wrong result: " + result).isTrue();
+		assertThat(result).contains("log4j2-test.xml");
 	}
 
 	@Test
@@ -169,7 +171,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	}
 
 	@Test
-	public void testProcessMessageWithBeanAsMethodArgument() throws Exception {
+	public void testProcessMessageWithBeanAsMethodArgument() {
 		StaticApplicationContext context = new StaticApplicationContext();
 		BeanDefinition beanDefinition = new RootBeanDefinition(String.class);
 		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue("bar");
@@ -188,7 +190,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	}
 
 	@Test
-	public void testProcessMessageWithMethodCallOnBean() throws Exception {
+	public void testProcessMessageWithMethodCallOnBean() {
 		StaticApplicationContext context = new StaticApplicationContext();
 		BeanDefinition beanDefinition = new RootBeanDefinition(String.class);
 		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue("bar");
@@ -238,7 +240,6 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>(new TestPayload())))
 				.withCauseInstanceOf(CheckedException.class);
 	}
-
 
 	@SuppressWarnings("unused")
 	private static class TestPayload {

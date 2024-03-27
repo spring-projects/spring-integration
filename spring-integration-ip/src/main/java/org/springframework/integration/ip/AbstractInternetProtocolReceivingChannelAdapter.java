@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,6 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	private int poolSize = 5; // NOSONAR magic number
 
 	private volatile boolean listening;
-
 
 	public AbstractInternetProtocolReceivingChannelAdapter(int port) {
 		this.port = port;

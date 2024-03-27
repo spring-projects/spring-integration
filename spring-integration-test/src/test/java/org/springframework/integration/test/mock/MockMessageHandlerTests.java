@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -211,7 +211,6 @@ public class MockMessageHandlerTests {
 				mockMessageHandler()
 						.handleNextAndReply(m -> m);
 
-
 		assertThatIllegalStateException()
 				.isThrownBy(() ->
 						this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler2))
@@ -272,7 +271,6 @@ public class MockMessageHandlerTests {
 				.isSameAs(mockMessageHandler);
 	}
 
-
 	@Autowired
 	private MessageChannel reactiveInputChannel;
 
@@ -289,7 +287,6 @@ public class MockMessageHandlerTests {
 
 		verify(mockMessageHandler).handleMessage(any(Message.class));
 	}
-
 
 	@Configuration
 	@EnableIntegration
@@ -360,7 +357,6 @@ public class MockMessageHandlerTests {
 		public MessageHandler logHandler() {
 			return new LoggingHandler(LoggingHandler.Level.FATAL);
 		}
-
 
 		@Bean
 		@EndpointId("reactiveEndpoint")

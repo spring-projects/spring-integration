@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.groovy;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -27,9 +28,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import groovy.lang.Script;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.io.AbstractResource;
 import org.springframework.integration.handler.MessageProcessor;
@@ -41,7 +41,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
-import org.springframework.test.annotation.Repeat;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,14 +54,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class GroovyScriptExecutingMessageProcessorTests {
 
-	@Rule
-	public RepeatProcessor repeater = new RepeatProcessor(4);
-
 	private final AtomicInteger countHolder = new AtomicInteger();
 
 	@Test
-	@Repeat(20)
-	public void testSimpleExecution() throws Exception {
+	public void testSimpleExecution() {
 		int count = countHolder.getAndIncrement();
 		String script = "return \"payload is $payload, header is $headers.testHeader\"";
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar" + count).build();
@@ -74,27 +69,17 @@ public class GroovyScriptExecutingMessageProcessorTests {
 	}
 
 	@Test
-	public void testSimpleExecutionWithScriptVariableGenerator() throws Exception {
+	public void testSimpleExecutionWithScriptVariableGenerator() {
 		int count = countHolder.getAndIncrement();
 		String script = "return \"payload is $payload, header is $headers.testHeader and date is $date\"";
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar" + count).build();
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
 		Object result = null;
-		class CustomScriptVariableGenerator implements ScriptVariableGenerator {
-
-			@Override
-			public Map<String, Object> generateScriptVariables(Message<?> message) {
-				Map<String, Object> variables = new HashMap<String, Object>();
-				variables.put("date", System.nanoTime());
-				variables.put("payload", message.getPayload());
-				variables.put("headers", message.getHeaders());
-				return variables;
-			}
-		}
 		for (int i = 0; i < 5; i++) {
 			ScriptVariableGenerator scriptVariableGenerator = new CustomScriptVariableGenerator();
-			MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource, scriptVariableGenerator);
+			MessageProcessor<Object> processor =
+					new GroovyScriptExecutingMessageProcessor(scriptSource, scriptVariableGenerator);
 			Object newResult = processor.processMessage(message);
 			assertThat(newResult.equals(result)).isFalse(); // make sure that we get different nanotime verifying that generateScriptVariables() is invoked
 			result = newResult;
@@ -126,7 +111,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 	}
 
 	@Test
-	@Ignore("Very sensitive to the time")
+	@Disabled("Very sensitive to the time")
 	public void testRefreshableScriptExecution() throws Exception {
 		String script = "return \"payload is $payload, header is $headers.testHeader\"";
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
@@ -151,7 +136,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 	}
 
 	@Test
-	public void testRefreshableScriptExecutionWithInfiniteDelay() throws Exception {
+	public void testRefreshableScriptExecutionWithInfiniteDelay() {
 		String script = "return \"payload is $payload, header is $headers.testHeader\"";
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
 		TestResource resource = new TestResource(script, "simpleTest");
@@ -168,7 +153,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 	}
 
 	@Test
-	public void testRefreshableScriptExecutionWithAlwaysRefresh() throws Exception {
+	public void testRefreshableScriptExecutionWithAlwaysRefresh() {
 		String script = "return \"payload is $payload, header is $headers.testHeader\"";
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
 		TestResource resource = new TestResource(script, "simpleTest");
@@ -177,7 +162,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		// process with the first script
 		Object result = processor.processMessage(message);
 		assertThat(result.toString()).isEqualTo("payload is foo, header is bar");
-		// change script, but since refresh-delay is less then 0 we should still se old script executing
+		// change script, but since refresh-delay is less than 0 we should still se old script executing
 		resource.setScript("return \"payload is $payload\"");
 		// process and see assert that the old script is used
 		result = processor.processMessage(message);
@@ -201,7 +186,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		ScriptSource scriptSource = new StaticScriptSource(script, Script.class.getName());
 		final MessageProcessor<Object> processor =
 				new GroovyScriptExecutingMessageProcessor(scriptSource, message1 -> {
-					Map<String, Object> variables = new HashMap<String, Object>(2);
+					Map<String, Object> variables = new HashMap<>(2);
 					variables.put("var1", var1);
 					variables.put("var2", var2);
 					return variables;
@@ -253,8 +238,22 @@ public class GroovyScriptExecutingMessageProcessorTests {
 
 		@Override
 		public InputStream getInputStream() throws IOException {
-			return new ByteArrayInputStream(script.getBytes("UTF-8"));
+			return new ByteArrayInputStream(script.getBytes(StandardCharsets.UTF_8));
 		}
+
+	}
+
+	private static class CustomScriptVariableGenerator implements ScriptVariableGenerator {
+
+		@Override
+		public Map<String, Object> generateScriptVariables(Message<?> message) {
+			Map<String, Object> variables = new HashMap<>();
+			variables.put("date", System.nanoTime());
+			variables.put("payload", message.getPayload());
+			variables.put("headers", message.getHeaders());
+			return variables;
+		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ public class GlobalChannelInterceptorWrapper implements Ordered {
 
 	private volatile int order = 0;
 
-
 	public GlobalChannelInterceptorWrapper(ChannelInterceptor channelInterceptor) {
 		Assert.notNull(channelInterceptor, "channelInterceptor must not be null");
 		this.channelInterceptor = channelInterceptor;
@@ -46,7 +45,6 @@ public class GlobalChannelInterceptorWrapper implements Ordered {
 			this.order = ((Ordered) channelInterceptor).getOrder();
 		}
 	}
-
 
 	public ChannelInterceptor getChannelInterceptor() {
 		return this.channelInterceptor;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 package org.springframework.integration.hazelcast.leader;
-
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -268,7 +267,6 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 		stop();
 	}
 
-
 	FencedLock getLock() {
 		CPSubsystem cpSubSystem = this.client.getCPSubsystem();
 		FencedLock lock = cpSubSystem.getLock(this.candidate.getRole());
@@ -276,7 +274,6 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 				LogMessage.format("Use lock groupId '%s', lock count '%s'", lock.getGroupId(), lock.getLockCount()));
 		return lock;
 	}
-
 
 	/**
 	 * Callable that manages the acquisition of Hazelcast locks
@@ -326,7 +323,6 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 						// The lock was broken and we are no longer leader
 						revokeLeadership();
 
-
 						if (isRunning()) {
 							// Give it a chance to elect some other leader.
 							try {
@@ -365,7 +361,6 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 				handleRevoked();
 			}
 		}
-
 
 		private void handleGranted() throws InterruptedException {
 			LeaderInitiator.this.candidate.onGranted(this.context);

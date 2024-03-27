@@ -16,7 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +47,6 @@ public class DefaultConfiguringBeanFactoryPostProcessorTests {
 
 	@Autowired
 	private ApplicationContext context;
-
 
 	@Test
 	public void errorChannelRegistered() {

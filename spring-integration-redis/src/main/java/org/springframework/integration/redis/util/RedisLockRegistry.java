@@ -209,7 +209,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.cacheCapacity = cacheCapacity;
 	}
 
-
 	/**
 	 * Set {@link RedisLockType} mode to work in.
 	 * By default, the {@link RedisLockType#SPIN_LOCK} is used - works in all the environment.
@@ -706,7 +705,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 	}
-
 
 	private final class RedisSpinLock extends RedisLock {
 

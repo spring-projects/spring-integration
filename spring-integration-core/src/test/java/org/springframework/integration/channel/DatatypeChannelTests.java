@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,6 +92,7 @@ public class DatatypeChannelTests {
 		QueueChannel channel = createChannel(Integer.class);
 		GenericConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<Boolean, Integer>() {
+
 			@Override
 			public Integer convert(Boolean source) {
 				return source ? 1 : 0;
@@ -108,6 +109,7 @@ public class DatatypeChannelTests {
 	public void conversionServiceBeanUsedByDefault() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		Converter<Boolean, Integer> converter = new Converter<Boolean, Integer>() {
+
 			@Override
 			public Integer convert(Boolean source) {
 				return source ? 1 : 0;
@@ -141,6 +143,7 @@ public class DatatypeChannelTests {
 	public void conversionServiceReferenceOverridesDefault() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		Converter<Boolean, Integer> defaultConverter = new Converter<Boolean, Integer>() {
+
 			@Override
 			public Integer convert(Boolean source) {
 				return source ? 1 : 0;
@@ -148,6 +151,7 @@ public class DatatypeChannelTests {
 		};
 		GenericConversionService customConversionService = new DefaultConversionService();
 		customConversionService.addConverter(new Converter<Boolean, Integer>() {
+
 			@Override
 			public Integer convert(Boolean source) {
 				return source ? 99 : -99;
@@ -217,7 +221,6 @@ public class DatatypeChannelTests {
 		out = channel.receive(0);
 		assertThat(out.getPayload()).isInstanceOf(Baz.class);
 	}
-
 
 	private static QueueChannel createChannel(Class<?>... datatypes) {
 		QueueChannel channel = new QueueChannel();

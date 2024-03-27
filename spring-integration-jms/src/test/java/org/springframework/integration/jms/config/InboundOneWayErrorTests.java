@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,6 @@ public class InboundOneWayErrorTests extends ActiveMQMultiContextTests {
 		assertThat(this.errorHandler.lastError).isNull();
 	}
 
-
 	public static class TestService {
 
 		public void process(Object o) {
@@ -94,7 +93,6 @@ public class InboundOneWayErrorTests extends ActiveMQMultiContextTests {
 		}
 
 	}
-
 
 	@SuppressWarnings("serial")
 	private static class TestException extends RuntimeException {

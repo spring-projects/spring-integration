@@ -61,7 +61,6 @@ public class DefaultMessageAggregatorIntegrationTests {
 				.containsAll(Arrays.asList(0, 1, 2, 3, 4));
 	}
 
-
 	private static Message<?> prepareSequenceMessage(int sequenceNumber, int sequenceSize, int correlationId) {
 		return MessageBuilder.withPayload(sequenceNumber)
 				.setSequenceNumber(sequenceNumber)

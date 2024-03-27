@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ public class MethodNameMappingPublisherMetadataSource implements PublisherMetada
 
 	private volatile Map<String, String> channelMap = Collections.emptyMap();
 
-
 	public MethodNameMappingPublisherMetadataSource(Map<String, String> payloadExpressionMap) {
 		Assert.notEmpty(payloadExpressionMap, "payloadExpressionMap must not be empty");
 		this.payloadExpressionMap =
@@ -48,7 +47,6 @@ public class MethodNameMappingPublisherMetadataSource implements PublisherMetada
 						.collect(Collectors.toMap(Map.Entry::getKey,
 								e -> EXPRESSION_PARSER.parseExpression(e.getValue())));
 	}
-
 
 	public void setHeaderExpressionMap(Map<String, Map<String, String>> headerExpressionMap) {
 		this.headerExpressionMap =

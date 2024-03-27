@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,12 +181,12 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 		this.container.setQueueNames(queue);
 		MessageConverter converter =
 				(getAmqpTemplate() instanceof RabbitTemplate rabbitTemplate)
-				? rabbitTemplate.getMessageConverter()
-				: new SimpleMessageConverter();
+						? rabbitTemplate.getMessageConverter()
+						: new SimpleMessageConverter();
 
 		MessageListener listener =
 				new DispatchingMessageListener(converter, this.dispatcher, this, this.isPubSub,
-				getMessageBuilderFactory(), getInboundHeaderMapper());
+						getMessageBuilderFactory(), getInboundHeaderMapper());
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
@@ -261,7 +261,6 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 
 	protected abstract String obtainQueueName(String channelName);
 
-
 	private static final class DispatchingMessageListener implements MessageListener {
 
 		private final Log logger = LogFactory.getLog(DispatchingMessageListener.class);
@@ -291,7 +290,6 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 			this.messageBuilderFactory = messageBuilderFactory;
 			this.inboundHeaderMapper = inboundHeaderMapper;
 		}
-
 
 		@Override
 		public void onMessage(org.springframework.amqp.core.Message message) {

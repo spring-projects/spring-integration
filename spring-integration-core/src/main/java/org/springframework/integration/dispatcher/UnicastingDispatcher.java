@@ -73,7 +73,6 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		this.executor = executor;
 	}
 
-
 	/**
 	 * Specify whether this dispatcher should failover when a single
 	 * {@link MessageHandler} throws an Exception. The default value is

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ public class EnricherParserTests4 {
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return null;
 			}
+
 		}
 
 		NullFoo foo = new NullFoo();
@@ -84,7 +85,6 @@ public class EnricherParserTests4 {
 		adviceCalled--;
 		requests.unsubscribe(foo);
 	}
-
 
 	public static class Target implements Cloneable {
 
@@ -137,6 +137,7 @@ public class EnricherParserTests4 {
 			copy.setMarried(this.married);
 			return copy;
 		}
+
 	}
 
 	public enum Gender {
@@ -152,4 +153,5 @@ public class EnricherParserTests4 {
 		}
 
 	}
+
 }

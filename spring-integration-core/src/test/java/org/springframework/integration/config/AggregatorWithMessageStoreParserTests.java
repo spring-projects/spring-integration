@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,6 @@ public class AggregatorWithMessageStoreParserTests {
 				.getPayload()).as("The aggregated message payload is not correct").isEqualTo("123456789");
 	}
 
-
 	@Test
 	@DirtiesContext
 	public void testExpiry() {
@@ -86,7 +85,6 @@ public class AggregatorWithMessageStoreParserTests {
 		assertThat(aggregatedMessage
 				.getPayload()).as("The aggregated message payload is not correct").isEqualTo("123456");
 	}
-
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel outputChannel) {

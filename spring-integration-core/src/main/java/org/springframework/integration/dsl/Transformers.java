@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -311,7 +311,6 @@ public abstract class Transformers {
 		return new StreamTransformer(charset);
 	}
 
-
 	@SuppressWarnings("unchecked")
 	static <I, O> Flux<Message<O>> transformWithFunction(Publisher<Message<I>> publisher,
 			Function<? super Flux<Message<I>>, ? extends Publisher<O>> fluxFunction) {
@@ -333,7 +332,6 @@ public abstract class Transformers {
 												.build()))
 				.contextWrite(ctx -> ctx.put(RequestMessageHolder.class, new RequestMessageHolder()));
 	}
-
 
 	@SuppressWarnings("serial")
 	private static final class RequestMessageHolder extends AtomicReference<Message<?>> {

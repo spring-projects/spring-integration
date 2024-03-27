@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,10 +58,12 @@ public class Jsr223RefreshTests {
 	}
 
 	public static class ResourceEditor extends PropertyEditorSupport {
+
 		@Override
 		public void setAsText(String text) throws IllegalArgumentException {
 			super.setValue(new CycleResource());
 		}
+
 	}
 
 	private static class CycleResource extends AbstractResource {
@@ -98,4 +100,5 @@ public class Jsr223RefreshTests {
 		}
 
 	}
+
 }

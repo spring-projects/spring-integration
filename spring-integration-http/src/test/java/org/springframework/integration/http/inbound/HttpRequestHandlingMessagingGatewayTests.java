@@ -281,6 +281,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		ParameterizedTypeReference<List<TestBean>> parameterizedTypeReference =
 				new ParameterizedTypeReference<>() {
+
 				};
 		gateway.setRequestPayloadType(ResolvableType.forType(parameterizedTypeReference));
 		gateway.setRequestChannel(channel);
@@ -312,7 +313,6 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 					assertThat(bean).extracting(TestBean::getAge).isEqualTo(42);
 				});
 	}
-
 
 	@Test
 	public void INT2680DuplicateContentTypeHeader() throws Exception {
@@ -451,7 +451,6 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		assertThat(response.getContentAsString()).contains("from error channel");
 	}
 
-
 	@Test
 	public void testMultipart() throws Exception {
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
@@ -500,7 +499,6 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		assertThat(twoValues).containsExactly("2");
 	}
 
-
 	private static class ContentTypeCheckingMockHttpServletResponse extends MockHttpServletResponse {
 
 		private final List<String> contentTypeList = new ArrayList<>();
@@ -546,7 +544,6 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		}
 
 	}
-
 
 	@SuppressWarnings("serial")
 	public static class TestBean implements Serializable {

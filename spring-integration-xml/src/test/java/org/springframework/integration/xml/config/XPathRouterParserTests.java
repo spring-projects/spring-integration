@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,6 @@ public class XPathRouterParserTests {
 	@Autowired @Qualifier("defaultOutput")
 	QueueChannel defaultOutput;
 
-
 	ConfigurableApplicationContext appContext;
 
 	public EventDrivenConsumer buildContext(String routerDef) {
@@ -89,7 +88,6 @@ public class XPathRouterParserTests {
 		consumer.start();
 		return consumer;
 	}
-
 
 	@AfterEach
 	public void tearDown() {
@@ -332,7 +330,6 @@ public class XPathRouterParserTests {
 		assertThat(result.getPayload()).isEqualTo("<name>channelA</name>");
 		ac.close();
 	}
-
 
 	@SuppressWarnings("unused")
 	private static class TestXmlPayloadConverter extends DefaultXmlPayloadConverter {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,16 +100,13 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 		throw new IllegalArgumentException("Message payload must be an Expression instance or an expression String.");
 	}
 
-
 	private static final class ExpressionCommandMethodResolver extends ReflectiveMethodResolver {
 
 		private final MethodFilter methodFilter;
 
-
 		ExpressionCommandMethodResolver(MethodFilter methodFilter) {
 			this.methodFilter = methodFilter;
 		}
-
 
 		@Override
 		public MethodExecutor resolve(EvaluationContext context,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,6 @@ public class XPathHeaderEnricherParserTests {
 
 	private final Message<?> message =
 			MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();
-
 
 	@Test
 	public void testParse() {
@@ -170,7 +169,6 @@ public class XPathHeaderEnricherParserTests {
 		assertThat(reply).isNotNull();
 		assertThat(reply.getHeaders().get("foo")).isEqualTo("bar");
 	}
-
 
 	private Message<?> getResultMessage() {
 		this.input.send(message);

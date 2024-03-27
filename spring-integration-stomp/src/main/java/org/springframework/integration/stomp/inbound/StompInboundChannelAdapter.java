@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,38 +204,8 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 
 	private void subscribeDestination(final String destination) {
 		if (this.stompSession != null) {
-			class FrameHandler implements StompFrameHandler {
-
-				@Override
-				public Type getPayloadType(StompHeaders headers) {
-					return StompInboundChannelAdapter.this.payloadType;
-				}
-
-				@Override
-				public void handleFrame(StompHeaders headers, @Nullable Object body) {
-					Message<?> message;
-
-					if (body == null) {
-						logger.info("No body in STOMP frame: nothing to produce.");
-						return;
-					}
-					else if (body instanceof Message) {
-						message = (Message<?>) body;
-					}
-					else {
-						message =
-								getMessageBuilderFactory()
-										.withPayload(body)
-										.copyHeaders(
-												StompInboundChannelAdapter.this.headerMapper.toHeaders(headers))
-										.build();
-					}
-					sendMessage(message);
-				}
-
-			}
-			final StompSession.Subscription subscription =
-					this.stompSession.subscribe(destination, new FrameHandler());
+			StompSession.Subscription subscription =
+					this.stompSession.subscribe(destination, new IntegrationFrameHandler());
 
 			if (this.stompSessionManager.isAutoReceiptEnabled()) {
 				final ApplicationEventPublisher eventPublisher = this.applicationEventPublisher;
@@ -267,6 +237,9 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 	}
 
 	private final class IntegrationInboundStompSessionHandler extends StompSessionHandlerAdapter {
+
+		IntegrationInboundStompSessionHandler() {
+		}
 
 		@Override
 		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
@@ -303,6 +276,40 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 		@Override
 		public void handleTransportError(StompSession session, Throwable exception) {
 			StompInboundChannelAdapter.this.stompSession = null;
+		}
+
+	}
+
+	private final class IntegrationFrameHandler implements StompFrameHandler {
+
+		IntegrationFrameHandler() {
+		}
+
+		@Override
+		public Type getPayloadType(StompHeaders headers) {
+			return StompInboundChannelAdapter.this.payloadType;
+		}
+
+		@Override
+		public void handleFrame(StompHeaders headers, @Nullable Object body) {
+			Message<?> message;
+
+			if (body == null) {
+				logger.info("No body in STOMP frame: nothing to produce.");
+				return;
+			}
+			else if (body instanceof Message) {
+				message = (Message<?>) body;
+			}
+			else {
+				message =
+						getMessageBuilderFactory()
+								.withPayload(body)
+								.copyHeaders(
+										StompInboundChannelAdapter.this.headerMapper.toHeaders(headers))
+								.build();
+			}
+			sendMessage(message);
 		}
 
 	}

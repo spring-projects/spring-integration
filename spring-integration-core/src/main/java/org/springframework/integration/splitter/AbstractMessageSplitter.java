@@ -130,7 +130,6 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		boolean reactive = getOutputChannel() instanceof ReactiveStreamsSubscribableChannel;
 		setAsync(reactive);
 
-
 		if (reactive) {
 			return prepareFluxResult(message, result);
 		}
@@ -352,7 +351,6 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	 * @return The result of splitting the message.
 	 */
 	protected abstract Object splitMessage(Message<?> message);
-
 
 	private static final class JacksonNodeHelper {
 

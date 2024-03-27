@@ -697,7 +697,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see LambdaMessageProcessor
 	 * @see GenericEndpointSpec
 	 */
-	private  <P, T> B transform(@Nullable Class<P> expectedType, GenericTransformer<P, T> genericTransformer,
+	private <P, T> B transform(@Nullable Class<P> expectedType, GenericTransformer<P, T> genericTransformer,
 			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
 		Assert.notNull(genericTransformer, "'genericTransformer' must not be null");
@@ -1320,7 +1320,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B split() {
-		return splitWith((splitterSpec) -> { });
+		return splitWith((splitterSpec) -> {
+		});
 	}
 
 	/**

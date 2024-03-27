@@ -80,7 +80,6 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 
-
 /**
  * @author Gary Russell
  * @author Artem Bilan

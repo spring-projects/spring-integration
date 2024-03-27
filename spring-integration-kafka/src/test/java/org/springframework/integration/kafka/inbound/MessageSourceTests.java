@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,6 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
-
 
 /**
  * @author Gary Russell
@@ -633,6 +632,7 @@ class MessageSourceTests {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() ->
 						new KafkaMessageSource((new DefaultKafkaConsumerFactory(Collections.emptyMap()) {
+
 						}),
 								new ConsumerProperties("topic")))
 				.withMessageContaining(ConsumerConfig.MAX_POLL_RECORDS_CONFIG);
@@ -906,7 +906,6 @@ class MessageSourceTests {
 		Arrays.asList(p0r0, p0r1, p0r2, p0r3, p1r0, p1r1, p1r2, p1r3, p2r0, p2r1, p2r2, p2r3, p3r0, p3r1, p3r2, p3r3,
 						p4r0, p4r1, p4r2, p4r3, p5r0, p5r1, p5r2, p5r3)
 				.forEach(consumer::addRecord);
-
 
 		Message<Object> message;
 		Set<String> expected = Stream.of(

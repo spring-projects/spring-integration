@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,6 @@ public final class IntegrationProperties {
 	public static final String CHANNELS_MAX_BROADCAST_SUBSCRIBERS =
 			INTEGRATION_PROPERTIES_PREFIX + "channels.maxBroadcastSubscribers";
 
-
 	/**
 	 * Specifies the value for {@link org.springframework.integration.channel.PublishSubscribeChannel#requireSubscribers}
 	 * on a global default {@link IntegrationContextUtils#ERROR_CHANNEL_BEAN_NAME}.
@@ -89,7 +88,6 @@ public final class IntegrationProperties {
 	 */
 	public static final String ERROR_CHANNEL_IGNORE_FAILURES =
 			INTEGRATION_PROPERTIES_PREFIX + "channels.error.ignoreFailures";
-
 
 	/**
 	 * Specifies the value of {@link org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler#poolSize}

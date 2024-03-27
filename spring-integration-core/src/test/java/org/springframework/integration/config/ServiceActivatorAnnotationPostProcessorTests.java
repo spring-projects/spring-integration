@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 		}
 	}
 
-
 	public static class AbstractServiceActivatorAnnotationTestBean {
 
 		private final CountDownLatch latch;
@@ -80,7 +79,6 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 		}
 
 	}
-
 
 	@MessageEndpoint
 	public static class SimpleServiceActivatorAnnotationTestBean extends AbstractServiceActivatorAnnotationTestBean {

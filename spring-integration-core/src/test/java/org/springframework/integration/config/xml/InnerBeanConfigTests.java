@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ public class InnerBeanConfigTests {
 	@Autowired
 	private ApplicationContext context;
 
-
 	// INT-1528: the inner bean should not be registered in the context
 	@Test(expected = NoSuchBeanDefinitionException.class)
 	public void checkInnerBean() {
@@ -51,11 +50,12 @@ public class InnerBeanConfigTests {
 		context.getBean(TestBean.class);
 	}
 
-
 	public static class TestBean {
+
 		public String echo(String value) {
 			return value;
 		}
+
 	}
 
 }

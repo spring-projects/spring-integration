@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,7 @@ public class StoredProcPollingChannelAdapterWithNamespace2IntegrationTests {
 			}
 			return Integer.valueOf(count.incrementAndGet());
 		}
+
 	}
 
 	static class Consumer {
@@ -94,5 +95,7 @@ public class StoredProcPollingChannelAdapterWithNamespace2IntegrationTests {
 		Message<List<Integer>> poll(long timeoutInMillis) throws InterruptedException {
 			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 		}
+
 	}
+
 }

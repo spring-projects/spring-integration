@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,6 @@ public class PollingConsumerEndpointTests {
 
 	private PollableChannel channelMock;
 
-
 	@Before
 	public void init() {
 		this.channelMock = mock(PollableChannel.class);
@@ -81,7 +80,6 @@ public class PollingConsumerEndpointTests {
 	public void stop() {
 		taskScheduler.destroy();
 	}
-
 
 	@Test
 	public void singleMessage() {
@@ -169,7 +167,6 @@ public class PollingConsumerEndpointTests {
 		assertThat(this.consumer.counter.get()).isEqualTo(1);
 	}
 
-
 	private static class TestConsumer implements MessageHandler {
 
 		private volatile AtomicInteger counter = new AtomicInteger();
@@ -185,8 +182,8 @@ public class PollingConsumerEndpointTests {
 				throw new MessageRejectedException(message, "intentional test failure");
 			}
 		}
-	}
 
+	}
 
 	private static class TestErrorHandler implements ErrorHandler {
 

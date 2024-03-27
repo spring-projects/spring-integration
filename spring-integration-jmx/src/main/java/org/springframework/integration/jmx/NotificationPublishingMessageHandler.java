@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,6 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 		}
 	}
 
-
 	/**
 	 * Set a mapper for creating Notifications from a Message. If not provided,
 	 * a default implementation will be used such that String-typed payloads will be
@@ -140,7 +139,6 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	protected void handleMessageInternal(Message<?> message) {
 		this.delegate.publish(this.notificationMapper.fromMessage(message));
 	}
-
 
 	/**
 	 * Simple class used for the actual MBean instances to be registered.

@@ -13,6 +13,7 @@ import org.apache.avro.specific.SpecificData;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class AvroTestClass2 extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
+
 	private static final long serialVersionUID = -5029139830458327575L;
 
 	public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"AvroTestClass2\",\"namespace\":\"org.springframework.integration.transformer\",\"fields\":[{\"name\":\"bar\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}]},{\"name\":\"qux\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}],\"default\":null}]}");
@@ -241,7 +242,6 @@ public class AvroTestClass2 extends org.apache.avro.specific.SpecificRecordBase 
 			return fieldSetFlags()[0];
 		}
 
-
 		/**
 		 * Clears the value of the 'bar' field.
 		 * @return This builder.
@@ -280,7 +280,6 @@ public class AvroTestClass2 extends org.apache.avro.specific.SpecificRecordBase 
 			return fieldSetFlags()[1];
 		}
 
-
 		/**
 		 * Clears the value of the 'qux' field.
 		 * @return This builder.
@@ -304,6 +303,7 @@ public class AvroTestClass2 extends org.apache.avro.specific.SpecificRecordBase 
 				throw new org.apache.avro.AvroRuntimeException(e);
 			}
 		}
+
 	}
 
 	@SuppressWarnings("unchecked")

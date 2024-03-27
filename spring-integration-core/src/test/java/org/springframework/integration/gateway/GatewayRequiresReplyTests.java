@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ public class GatewayRequiresReplyTests {
 	@Autowired
 	private ApplicationContext applicationContext;
 
-
 	@Test
 	public void replyReceived() {
 		TestService gateway = this.applicationContext.getBean("gateway", TestService.class);
@@ -61,7 +60,6 @@ public class GatewayRequiresReplyTests {
 		String result = gateway.test("hello");
 		assertThat(result).isNull();
 	}
-
 
 	public interface TestService {
 

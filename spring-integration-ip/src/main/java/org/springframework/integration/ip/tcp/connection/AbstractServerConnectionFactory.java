@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2023 the original author or authors.
+ * Copyright 2001-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 
 	private volatile boolean shuttingDown;
 
-
 	/**
 	 * The port on which the factory will listen.
 	 * @param port The port.
@@ -105,7 +104,6 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	protected void setListening(boolean listening) {
 		this.listening = listening;
 	}
-
 
 	/**
 	 *
@@ -173,7 +171,6 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	public void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
 	}
-
 
 	/**
 	 * The number of sockets in the server connection backlog.

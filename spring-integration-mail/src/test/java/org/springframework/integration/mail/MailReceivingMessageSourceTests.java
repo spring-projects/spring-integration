@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ public class MailReceivingMessageSourceTests {
 		assertThat(source.receive().getPayload()).as("Wrong message for number 4").isEqualTo(message4);
 		assertThat(source.receive()).as("Expected null after exhausting all messages").isNull();
 	}
-
 
 	@SuppressWarnings("unused")
 	private static class StubMailReceiver implements MailReceiver {

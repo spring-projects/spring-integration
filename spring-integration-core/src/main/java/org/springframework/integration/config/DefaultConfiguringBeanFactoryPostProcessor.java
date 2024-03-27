@@ -97,7 +97,6 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 		}
 	}
 
-
 	private ConfigurableListableBeanFactory beanFactory;
 
 	private BeanDefinitionRegistry registry;

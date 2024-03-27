@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 		this.messagesUpForProcessing.add(MessageBuilder.withPayload(2).build());
 		this.messagesUpForProcessing.add(MessageBuilder.withPayload(4).build());
 	}
-
 
 	@Test
 	public void shouldFindAnnotatedAggregatorMethod() {
@@ -290,7 +289,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 		Object result = processor.processMessageGroup(this.messageGroupMock);
 		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload()).isEqualTo(7);
 	}
-
 
 	@Test
 	public void shouldFindSimpleAggregatorMethodWithIterator() {
@@ -616,13 +614,11 @@ public class MethodInvokingMessageGroupProcessorTests {
 		assertThat(output.receive(0).getPayload()).isEqualTo("hello proxy");
 	}
 
-
 	public interface GreetingService {
 
 		String sayHello(List<String> names);
 
 	}
-
 
 	public static class GreetingBean implements GreetingService {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.redis.util;
 
 import java.io.Serializable;
 import java.util.Objects;
-
 
 @SuppressWarnings("serial")
 public class Person implements Serializable {
@@ -50,7 +49,6 @@ public class Person implements Serializable {
 	public void setName(String name) {
 		this.name = name;
 	}
-
 
 	@Override
 	public boolean equals(Object o) {

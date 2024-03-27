@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ public class DefaultMessageSenderObservationConvention implements MessageSenderO
 	public static final DefaultMessageSenderObservationConvention INSTANCE =
 			new DefaultMessageSenderObservationConvention();
 
-
 	@Override
 	public KeyValues getLowCardinalityKeyValues(MessageSenderContext context) {
 		return KeyValues
@@ -43,4 +42,5 @@ public class DefaultMessageSenderObservationConvention implements MessageSenderO
 				// See IntegrationObservation.ProducerTags.COMPONENT_TYPE - to avoid class tangle
 				.and("spring.integration.type", "producer");
 	}
+
 }

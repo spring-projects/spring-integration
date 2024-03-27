@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,7 +142,6 @@ public class ManualFlowTests {
 		IntegrationFlowRegistration flowRegistration = this.integrationFlowContext.registration(flow).register();
 		assertThat(started.get()).isTrue();
 
-
 		Set<MessageProducer> replyProducers =
 				TestUtils.getPropertyValue(flowBuilder, "REFERENCED_REPLY_PRODUCERS", Set.class);
 
@@ -165,6 +164,7 @@ public class ManualFlowTests {
 			}
 
 		}
+
 		class MyProducerSpec extends MessageProducerSpec<MyProducerSpec, MyProducer> {
 
 			MyProducerSpec(MyProducer producer) {
@@ -172,6 +172,7 @@ public class ManualFlowTests {
 			}
 
 		}
+
 		MyProducerSpec spec = new MyProducerSpec(new MyProducer());
 		QueueChannel channel = new QueueChannel();
 		IntegrationFlow flow = IntegrationFlow.from(spec.id("fooChannel"))
@@ -292,7 +293,6 @@ public class ManualFlowTests {
 		flowRegistration.destroy();
 	}
 
-
 	@Test
 	public void testWrongIntegrationFlowScope() {
 		assertThatExceptionOfType(BeanCreationNotAllowedException.class)
@@ -323,7 +323,6 @@ public class ManualFlowTests {
 			}
 
 		}
-
 
 		PollableChannel resultChannel = new QueueChannel();
 
@@ -484,7 +483,6 @@ public class ManualFlowTests {
 		flowRegistrations.forEach(IntegrationFlowRegistration::destroy);
 	}
 
-
 	@Test
 	public void testDisabledBeansOverride() {
 		assertThatExceptionOfType(BeanCreationException.class)
@@ -529,7 +527,6 @@ public class ManualFlowTests {
 		public Date foo() {
 			return new Date();
 		}
-
 
 		@Bean
 		public MessageChannel doNotOverrideChannel() {

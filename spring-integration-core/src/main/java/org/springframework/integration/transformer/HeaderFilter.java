@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 
 	private volatile boolean patternMatch = true;
 
-
 	/**
 	 * Create an instance of the class.
 	 * The {@link #setHeadersToRemove} must be called afterwards.
@@ -66,6 +65,7 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 		assertHeadersToRemoveNotEmpty(headersToRemove);
 		this.headersToRemove = Arrays.copyOf(headersToRemove, headersToRemove.length);
 	}
+
 	public void setPatternMatch(boolean patternMatch) {
 		this.patternMatch = patternMatch;
 	}

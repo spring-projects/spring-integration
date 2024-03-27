@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 /**
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -44,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MapToObjectTransformerParserTests {
+
 	@Autowired
 	@Qualifier("input")
 	private MessageChannel input;
@@ -106,7 +106,6 @@ public class MapToObjectTransformerParserTests {
 		assertThat(person.getAddress().getStreet()).isEqualTo("1123 Main st");
 	}
 
-
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	public void testMapToObjectTransformationWithConversionService() {
@@ -134,6 +133,7 @@ public class MapToObjectTransformerParserTests {
 	}
 
 	public static class Person {
+
 		private String fname;
 
 		private String lname;
@@ -173,9 +173,11 @@ public class MapToObjectTransformerParserTests {
 		public void setAddress(Address address) {
 			this.address = address;
 		}
+
 	}
 
 	public static class Address {
+
 		private String street;
 
 		public String getStreet() {
@@ -185,9 +187,11 @@ public class MapToObjectTransformerParserTests {
 		public void setStreet(String street) {
 			this.street = street;
 		}
+
 	}
 
 	public static class StringToAddressConverter implements Converter<String, Address> {
+
 		public StringToAddressConverter() {
 		}
 
@@ -197,5 +201,7 @@ public class MapToObjectTransformerParserTests {
 			address.setStreet(source);
 			return address;
 		}
+
 	}
+
 }

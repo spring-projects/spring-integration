@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.file.filters;
 import java.io.Closeable;
 import java.io.File;
 import java.io.Flushable;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -143,9 +142,6 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 	}
 
 	@Test
-	/*
-	 * INT-3721: Test all operations that can cause the metadata to be flushed.
-	 */
 	public void testFlush() throws Exception {
 		final AtomicInteger flushes = new AtomicInteger();
 		final AtomicBoolean replaced = new AtomicBoolean();
@@ -157,7 +153,7 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 			}
 
 			@Override
-			public void close() throws IOException {
+			public void close() {
 				flush();
 			}
 
@@ -168,6 +164,7 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 			}
 
 		}
+
 		MS store = new MS();
 		String prefix = "flush:";
 		FileSystemPersistentAcceptOnceFileListFilter filter = new FileSystemPersistentAcceptOnceFileListFilter(

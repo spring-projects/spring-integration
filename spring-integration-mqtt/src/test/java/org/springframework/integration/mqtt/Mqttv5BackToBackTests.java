@@ -153,7 +153,6 @@ public class Mqttv5BackToBackTests implements MosquittoContainerTest {
 		assertThat(receive.getPayload()).isEqualTo(testPayload);
 	}
 
-
 	@Configuration
 	@EnableIntegration
 	public static class Config {

@@ -237,7 +237,6 @@ public class ApplicationContextMessageBusTests {
 		assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
 	}
 
-
 	private record FailingSource(CountDownLatch latch) implements MessageSource<Object> {
 
 		@Override

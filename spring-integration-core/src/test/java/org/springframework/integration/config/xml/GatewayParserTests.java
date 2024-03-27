@@ -429,7 +429,6 @@ public class GatewayParserTests {
 		});
 	}
 
-
 	@SuppressWarnings("unused")
 	private static class TestExecutor extends SimpleAsyncTaskExecutor implements BeanNameAware {
 

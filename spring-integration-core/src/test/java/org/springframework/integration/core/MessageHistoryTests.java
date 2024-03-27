@@ -128,7 +128,6 @@ public class MessageHistoryTests {
 		assertThat(history2.toString()).isEqualTo("testComponent-1,testComponent-2");
 	}
 
-
 	private record TestComponent(int id) implements NamedComponent {
 
 		@Override

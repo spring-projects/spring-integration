@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,13 +38,11 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 
 	private static final Log LOGGER = LogFactory.getLog(FileCopyingMultipartFileReader.class);
 
-
 	private final File directory;
 
 	private String prefix = "si_";
 
 	private String suffix = ".tmp";
-
 
 	/**
 	 * Create a {@link FileCopyingMultipartFileReader} that creates temporary
@@ -62,7 +60,6 @@ public class FileCopyingMultipartFileReader implements MultipartFileReader<Multi
 	public FileCopyingMultipartFileReader(File directory) {
 		this.directory = directory;
 	}
-
 
 	/**
 	 * Specify the prefix to use for temporary files.

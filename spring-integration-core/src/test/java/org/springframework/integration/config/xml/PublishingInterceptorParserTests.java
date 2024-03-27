@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ public class PublishingInterceptorParserTests {
 	@Autowired
 	private SubscribableChannel echoChannel;
 
-
 	@Test
 	public void validateDefaultChannelPublishing() {
 		MessageHandler handler = Mockito.mock(MessageHandler.class);
@@ -91,7 +90,6 @@ public class PublishingInterceptorParserTests {
 		defaultTestBean.echo("hello");
 	}
 
-
 	public static class TestBean {
 
 		public String echo(String str) {
@@ -107,7 +105,6 @@ public class PublishingInterceptorParserTests {
 		}
 
 	}
-
 
 	public static class DefaultTestBean {
 

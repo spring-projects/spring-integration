@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,12 +95,17 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 	public static class Config {
 
 		private final CountDownLatch latch = new CountDownLatch(52);
+
 		private final List<String> payloads = new ArrayList<>();
+
 		private final List<Set<String>> headerKeys = new ArrayList<>();
 
 		private final CountDownLatch batchLatch = new CountDownLatch(52);
+
 		private final List<String> bachPayloads = new ArrayList<>();
+
 		private final List<List<String>> batchHeaderKeys = new ArrayList<>();
+
 		private int batchMessageCount = 0;
 
 		@Bean
@@ -152,11 +157,12 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 		@Bean
 		public DebeziumEngine.Builder<ChangeEvent<byte[], byte[]>> debeziumEngineBuilder() {
 			return DebeziumEngine.create(KeyValueHeaderChangeEventFormat
-					.of(io.debezium.engine.format.JsonByteArray.class,
-							io.debezium.engine.format.JsonByteArray.class,
-							io.debezium.engine.format.JsonByteArray.class))
+							.of(io.debezium.engine.format.JsonByteArray.class,
+									io.debezium.engine.format.JsonByteArray.class,
+									io.debezium.engine.format.JsonByteArray.class))
 					.using(DebeziumMySqlTestContainer.connectorConfig(DebeziumMySqlTestContainer.mysqlPort()));
 		}
+
 	}
 
 }

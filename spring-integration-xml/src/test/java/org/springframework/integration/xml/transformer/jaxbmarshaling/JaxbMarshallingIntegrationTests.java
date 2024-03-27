@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,6 @@ public class JaxbMarshallingIntegrationTests {
 		Document doc = (Document) ((DOMResult) res.getPayload()).getNode();
 		assertThat(doc.getDocumentElement().getLocalName()).as("Wrong name for root element ").isEqualTo("person");
 	}
-
 
 	@Test
 	public void testUnmarshalling() {

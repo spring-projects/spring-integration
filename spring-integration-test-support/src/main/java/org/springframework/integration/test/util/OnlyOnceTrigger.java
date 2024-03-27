@@ -47,7 +47,6 @@ public class OnlyOnceTrigger implements Trigger {
 
 	private volatile CountDownLatch latch = new CountDownLatch(1);
 
-
 	public OnlyOnceTrigger() {
 		this.executionTime = Instant.now();
 	}

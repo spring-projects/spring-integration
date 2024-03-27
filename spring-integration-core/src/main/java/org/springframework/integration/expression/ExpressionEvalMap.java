@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,12 +181,10 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public static ExpressionEvalMapBuilder from(Map<String, ?> expressions) {
 		Assert.notNull(expressions, "'expressions' must not be null.");
 		return new ExpressionEvalMapBuilder(expressions);
 	}
-
 
 	/**
 	 * Implementations of this interface can be provided to build 'on demand {@link #get(Object)} logic'
@@ -199,7 +197,6 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 		Object evaluate(Expression expression);
 
 	}
-
 
 	/**
 	 * The {@link EvaluationCallback} implementation which evaluates an expression using
@@ -241,7 +238,6 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 		}
 
 	}
-
 
 	/**
 	 * The builder class to instantiate {@link ExpressionEvalMap}.
@@ -299,7 +295,6 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 		}
 
-
 		private class ExpressionEvalMapFinalBuilderImpl implements ExpressionEvalMapFinalBuilder {
 
 			ExpressionEvalMapFinalBuilderImpl() {
@@ -320,7 +315,6 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 			}
 
 		}
-
 
 		private class ExpressionEvalMapComponentsBuilderImpl extends ExpressionEvalMapFinalBuilderImpl
 				implements ExpressionEvalMapComponentsBuilder {
@@ -353,7 +347,6 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 		ExpressionEvalMap build();
 
 	}
-
 
 	public interface ExpressionEvalMapComponentsBuilder extends ExpressionEvalMapFinalBuilder {
 

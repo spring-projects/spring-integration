@@ -45,7 +45,6 @@ public class JsonOutboundMessageMapperTests {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-
 	@Test
 	public void testFromMessageWithHeadersAndStringPayload() {
 		Message<String> testMessage = MessageBuilder.withPayload("myPayloadStuff").build();
@@ -121,7 +120,6 @@ public class JsonOutboundMessageMapperTests {
 		parser.nextToken();
 		return objectMapper.readValue(parser, TestBean.class);
 	}
-
 
 	private record TestNamedComponent(int id) implements NamedComponent {
 

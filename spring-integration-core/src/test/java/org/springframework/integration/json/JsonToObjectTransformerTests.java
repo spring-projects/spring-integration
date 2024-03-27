@@ -46,6 +46,7 @@ public class JsonToObjectTransformerTests {
 		JsonToObjectTransformer transformer =
 				new JsonToObjectTransformer(
 						ResolvableType.forType(new ParameterizedTypeReference<List<TestPerson>>() {
+
 						}));
 		// Since DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES is disabled by default
 		// (see Jackson2JsonObjectMapper)

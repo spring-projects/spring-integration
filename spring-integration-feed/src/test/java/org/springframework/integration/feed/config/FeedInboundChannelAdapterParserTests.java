@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,6 @@ public class FeedInboundChannelAdapterParserTests {
 	@TempDir
 	public static File tempFolder;
 
-
 	private static CountDownLatch latch;
 
 	@Test
@@ -75,7 +74,6 @@ public class FeedInboundChannelAdapterParserTests {
 		assertThat(syndFeedInput.isPreserveWireFeed()).isFalse();
 		context.close();
 	}
-
 
 	@Test
 	public void validateSuccessfulHttpConfigurationWithCustomMetadataStore() {
@@ -160,7 +158,6 @@ public class FeedInboundChannelAdapterParserTests {
 		}
 
 	}
-
 
 	public static class SampleServiceNoHistory {
 

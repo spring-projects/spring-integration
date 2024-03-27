@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,10 +45,8 @@ public class AutoCreateDirectoryIntegrationTests {
 			System.getProperty("java.io.tmpdir") + File.separator +
 					AutoCreateDirectoryIntegrationTests.class.getSimpleName();
 
-
 	@Autowired
 	private ApplicationContext context;
-
 
 	@BeforeClass
 	public static void setupNonAutoCreatedDirectories() {
@@ -62,7 +60,6 @@ public class AutoCreateDirectoryIntegrationTests {
 	public static void deleteBaseDirectory() {
 		new File(BASE_PATH).delete();
 	}
-
 
 	@Test
 	public void defaultInbound() {

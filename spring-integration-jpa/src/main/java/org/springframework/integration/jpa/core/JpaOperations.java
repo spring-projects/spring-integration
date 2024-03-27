@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,6 @@ public interface JpaOperations {
 	 */
 	int executeUpdate(String updateQuery, ParameterSource source);
 
-
 	/**
 	 *
 	 * @param updateQuery The update query.
@@ -72,7 +71,6 @@ public interface JpaOperations {
 	 * @return The number of entities updated
 	 */
 	int executeUpdateWithNativeQuery(String updateQuery, ParameterSource source);
-
 
 	/**
 	 * Find an Entity of given type with the given primary key type.

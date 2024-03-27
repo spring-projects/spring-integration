@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 
 /**
  * @author Gary Russell
@@ -681,7 +680,6 @@ public class RemoteFileOutboundGatewayTests {
 		assertThat(outFile.exists()).isFalse();
 	}
 
-
 	@Test
 	public void testGet_P() {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
@@ -969,7 +967,6 @@ public class RemoteFileOutboundGatewayTests {
 
 		private boolean open;
 
-
 		@Override
 		public boolean remove(String path) {
 			return false;
@@ -1048,7 +1045,6 @@ public class RemoteFileOutboundGatewayTests {
 		}
 
 	}
-
 
 	static class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
 

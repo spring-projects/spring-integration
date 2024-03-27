@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ public class DirectChannelSubscriptionTests {
 
 	private final PollableChannel targetChannel = new QueueChannel();
 
-
 	@BeforeEach
 	public void setupChannels() {
 		new IntegrationRegistrar().registerBeanDefinitions(mock(), this.context.getDefaultListableBeanFactory());
@@ -64,7 +63,6 @@ public class DirectChannelSubscriptionTests {
 	public void tearDown() {
 		this.context.close();
 	}
-
 
 	@Test
 	public void sendAndReceiveForRegisteredEndpoint() {
@@ -116,7 +114,6 @@ public class DirectChannelSubscriptionTests {
 				.isThrownBy(() -> this.sourceChannel.send(new GenericMessage<>("foo")));
 	}
 
-
 	static class TestBean {
 
 		public Message<?> handle(Message<?> message) {
@@ -124,7 +121,6 @@ public class DirectChannelSubscriptionTests {
 		}
 
 	}
-
 
 	@MessageEndpoint
 	public static class TestEndpoint {
@@ -135,7 +131,6 @@ public class DirectChannelSubscriptionTests {
 		}
 
 	}
-
 
 	@MessageEndpoint
 	public static class FailingTestEndpoint {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	private ThreadPoolTaskScheduler scheduler;
 
-
 	@BeforeEach
 	public void initialize() {
 		writer = new StringWriter();
@@ -75,7 +74,6 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void stop() {
 		scheduler.destroy();
 	}
-
 
 	@Test
 	public void singleString() {
@@ -190,7 +188,6 @@ public class CharacterStreamWritingMessageHandlerTests {
 		assertThat(writer.toString()).isEqualTo("foo" + newLine + "bar" + newLine);
 	}
 
-
 	private record TestObject(String text) {
 
 		@Override
@@ -199,7 +196,6 @@ public class CharacterStreamWritingMessageHandlerTests {
 		}
 
 	}
-
 
 	private static class TestTrigger implements Trigger {
 

@@ -64,7 +64,6 @@ public class WireTap implements ChannelInterceptor, ManageableLifecycle, VetoCap
 
 	private volatile boolean running = true;
 
-
 	/**
 	 * Create a new wire tap with <em>no</em> {@link MessageSelector}.
 	 * @param channel the MessageChannel to which intercepted messages will be sent

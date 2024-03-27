@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ public abstract class AbstractXPathMessageSelector implements MessageSelector {
 
 	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
-
 	/**
 	 * @param xPathExpression XPath expression as a String
 	 */
@@ -69,7 +68,6 @@ public abstract class AbstractXPathMessageSelector implements MessageSelector {
 	public AbstractXPathMessageSelector(XPathExpression xPathExpression) {
 		this.xPathExpresion = xPathExpression;
 	}
-
 
 	/**
 	 * Specify the converter used to convert payloads prior to XPath testing.

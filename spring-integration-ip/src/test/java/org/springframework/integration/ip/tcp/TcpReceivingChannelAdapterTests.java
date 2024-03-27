@@ -654,6 +654,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		public String serviceMethod(byte[] bytes) {
 			throw new RuntimeException("Failed");
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,12 +51,10 @@ public class XPathTransformerTests {
 
 	private volatile Message<?> message;
 
-
 	@BeforeEach
 	public void createMessage() {
 		this.message = MessageBuilder.withPayload(XML).build();
 	}
-
 
 	@Test
 	public void stringResultTypeByDefault() {
@@ -137,7 +135,6 @@ public class XPathTransformerTests {
 		assertThat(result).isEqualTo("custom");
 	}
 
-
 	private static class TestNodeMapper implements NodeMapper<Object> {
 
 		TestNodeMapper() {
@@ -150,7 +147,6 @@ public class XPathTransformerTests {
 		}
 
 	}
-
 
 	private static class TestXmlPayloadConverter implements XmlPayloadConverter {
 

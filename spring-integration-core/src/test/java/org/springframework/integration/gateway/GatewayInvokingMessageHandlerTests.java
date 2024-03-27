@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +133,6 @@ public class GatewayInvokingMessageHandlerTests {
 		assertThat(result).isEqualTo("Error happened in message: echoWithErrorAsyncChannel");
 	}
 
-
 	public static class SampleErrorTransformer {
 
 		public Message<?> toMessage(Throwable object) {
@@ -144,13 +143,11 @@ public class GatewayInvokingMessageHandlerTests {
 
 	}
 
-
 	public interface SimpleGateway {
 
 		String process(String str);
 
 	}
-
 
 	public static class SimpleService {
 
@@ -172,7 +169,6 @@ public class GatewayInvokingMessageHandlerTests {
 
 	}
 
-
 	@SuppressWarnings("serial")
 	public static class SampleCheckedException extends Exception {
 
@@ -181,7 +177,6 @@ public class GatewayInvokingMessageHandlerTests {
 		}
 
 	}
-
 
 	@SuppressWarnings("serial")
 	public static class SampleRuntimeException extends RuntimeException {

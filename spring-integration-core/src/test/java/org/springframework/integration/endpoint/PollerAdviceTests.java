@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,13 +134,12 @@ public class PollerAdviceTests {
 			}
 
 		}
+
 		CountDownLatch latch = new CountDownLatch(1);
 		adapter.setSource(new LocalSource(latch));
 		adapter.setTrigger(new OnlyOnceTrigger());
 		AtomicBoolean ehCalled = new AtomicBoolean();
-		adapter.setErrorHandler(t -> {
-			ehCalled.set(true);
-		});
+		adapter.setErrorHandler(t -> ehCalled.set(true));
 		configure(adapter);
 		List<Advice> adviceChain = new ArrayList<>();
 		SimplePollSkipStrategy skipper = new SimplePollSkipStrategy();
@@ -211,6 +210,7 @@ public class PollerAdviceTests {
 			}
 
 		}
+
 		adviceChain.add(new TestSourceAdvice());
 
 		adapter.setAdviceChain(adviceChain);

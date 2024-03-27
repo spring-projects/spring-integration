@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -525,7 +525,6 @@ public class DefaultJmsHeaderMapperTests {
 		assertThat(headers.get("foo")).isEqualTo("bar");
 	}
 
-
 	@Test
 	public void testJsonHeaderMapping() throws JMSException {
 
@@ -549,7 +548,6 @@ public class DefaultJmsHeaderMapperTests {
 		Object result = converter.fromMessage(reply);
 		assertThat(result).isInstanceOf(String.class);
 	}
-
 
 	@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "javatype")
 	private static class Foo {

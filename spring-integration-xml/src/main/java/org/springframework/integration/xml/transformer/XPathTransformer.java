@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ public class XPathTransformer extends AbstractTransformer {
 
 	private volatile NodeMapper<?> nodeMapper;
 
-
 	/**
 	 * Create an {@link XPathTransformer} that will create an XPath expression from the given String
 	 * to be evaluated against converted inbound Message payloads.
@@ -73,7 +72,6 @@ public class XPathTransformer extends AbstractTransformer {
 		Assert.notNull(expression, "expression must not be null");
 		this.xpathExpression = expression;
 	}
-
 
 	/**
 	 * Specify the expected {@link XPathEvaluationType}. The default is {@link XPathEvaluationType#STRING_RESULT}.

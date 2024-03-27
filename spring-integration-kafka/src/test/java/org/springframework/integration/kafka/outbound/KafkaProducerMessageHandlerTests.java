@@ -345,7 +345,7 @@ class KafkaProducerMessageHandlerTests {
 		producerFactory.destroy();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void immediateFailure() {
 		Producer producer = mock(Producer.class);
@@ -367,11 +367,11 @@ class KafkaProducerMessageHandlerTests {
 		Message<?> fail = fails.receive(0);
 		assertThat(fail).isNotNull();
 		assertThat(fail.getPayload())
-			.asInstanceOf(throwable(KafkaSendFailureException.class))
-			.cause()
-			.isInstanceOf(KafkaException.class)
-			.cause()
-			.isEqualTo(rte);
+				.asInstanceOf(throwable(KafkaSendFailureException.class))
+				.cause()
+				.isInstanceOf(KafkaException.class)
+				.cause()
+				.isEqualTo(rte);
 	}
 
 	@Test

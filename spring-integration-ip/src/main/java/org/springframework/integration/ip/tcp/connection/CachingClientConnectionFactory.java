@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.messaging.support.ErrorMessage;
  *
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Artem Bilan
  *
  * @since 2.2
  *
@@ -65,30 +66,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		// override single-use to true so the target creates multiple connections
 		target.setSingleUse(true);
 		this.targetConnectionFactory = target;
-		class Callback implements SimplePool.PoolItemCallback<TcpConnectionSupport> {
-
-			@Override
-			public TcpConnectionSupport createForPool() {
-				try {
-					return CachingClientConnectionFactory.this.targetConnectionFactory.getConnection();
-				}
-				catch (Exception e) {
-					throw new MessagingException("Failed to obtain connection", e);
-				}
-			}
-
-			@Override
-			public boolean isStale(TcpConnectionSupport connection) {
-				return !connection.isOpen();
-			}
-
-			@Override
-			public void removedFromPool(TcpConnectionSupport connection) {
-				connection.close();
-			}
-
-		}
-		this.pool = new SimplePool<TcpConnectionSupport>(poolSize, new Callback());
+		this.pool = new SimplePool<>(poolSize, new TcpConnectionPoolItemCallback(this.targetConnectionFactory));
 	}
 
 	/**
@@ -143,8 +121,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	public TcpConnectionSupport obtainConnection() {
 		return new CachedConnection(this.pool.getItem(), getListener());
 	}
-
-///////////////// DELEGATE METHODS ///////////////////////
 
 	@Override
 	public boolean isRunning() {
@@ -291,7 +267,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	 * it's listening logic (active thread) is terminated.
 	 * <p>
 	 * The listener registered with a factory is provided to each
-	 * connection it creates so it can call the onMessage() method.
+	 * connection it creates, so it can call the onMessage() method.
 	 * <p>
 	 * This code satisfies the first requirement in that this
 	 * listener signals to the factory that it needs to run
@@ -347,7 +323,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	 */
 	@Override
 	public void setSingleUse(boolean singleUse) {
-		if (!singleUse && logger.isDebugEnabled()) {
+		if (!singleUse) {
 			logger.debug("singleUse=false is not supported; cached connections are never closed");
 		}
 	}
@@ -367,11 +343,10 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		return this.targetConnectionFactory.isLookupHost();
 	}
 
-
 	@Override
 	public void forceClose(TcpConnection connection) {
-		if (connection instanceof CachedConnection) {
-			((CachedConnection) connection).physicallyClose();
+		if (connection instanceof CachedConnection cachedConnection) {
+			cachedConnection.physicallyClose();
 		}
 		// will be returned to pool but stale, so will be re-established
 		super.forceClose(connection);
@@ -403,7 +378,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		this.pool.close();
 	}
 
@@ -460,7 +435,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		public boolean onMessage(Message<?> message) {
 			Message<?> modifiedMessage;
 			if (message instanceof ErrorMessage) {
-				Map<String, Object> headers = new HashMap<String, Object>(message.getHeaders());
+				Map<String, Object> headers = new HashMap<>(message.getHeaders());
 				headers.put(IpHeaders.CONNECTION_ID, getConnectionId());
 				if (headers.get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
 					headers.put(IpHeaders.ACTUAL_CONNECTION_ID,
@@ -493,6 +468,31 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		private void physicallyClose() {
 			getTheConnection().close();
+		}
+
+	}
+
+	private record TcpConnectionPoolItemCallback(AbstractClientConnectionFactory targetConnectionFactory)
+			implements SimplePool.PoolItemCallback<TcpConnectionSupport> {
+
+		@Override
+		public TcpConnectionSupport createForPool() {
+			try {
+				return this.targetConnectionFactory.getConnection();
+			}
+			catch (Exception ex) {
+				throw new MessagingException("Failed to obtain connection", ex);
+			}
+		}
+
+		@Override
+		public boolean isStale(TcpConnectionSupport connection) {
+			return !connection.isOpen();
+		}
+
+		@Override
+		public void removedFromPool(TcpConnectionSupport connection) {
+			connection.close();
 		}
 
 	}

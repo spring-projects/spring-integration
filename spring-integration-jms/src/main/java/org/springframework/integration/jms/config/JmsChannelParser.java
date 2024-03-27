@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ public class JmsChannelParser extends AbstractChannelParser {
 	private static final String CONTAINER_CLASS_ATTRIBUTE = "container-class";
 
 	private static final String ACKNOWLEDGE_ATTRIBUTE = "acknowledge";
-
 
 	@Override
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {

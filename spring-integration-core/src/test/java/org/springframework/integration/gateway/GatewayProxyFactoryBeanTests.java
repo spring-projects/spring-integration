@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -387,7 +387,6 @@ public class GatewayProxyFactoryBeanTests {
 				.isThrownBy(() -> proxy.throwCheckedException("test"));
 	}
 
-
 	private static void startResponder(final PollableChannel requestChannel) {
 		new Thread(() -> {
 			Message<?> input = requestChannel.receive();
@@ -520,13 +519,11 @@ public class GatewayProxyFactoryBeanTests {
 		throw new TestException();
 	}
 
-
 	interface TestEchoService {
 
 		Message<?> echo(String s);
 
 	}
-
 
 	interface HeadersOverwriteService {
 
@@ -534,7 +531,6 @@ public class GatewayProxyFactoryBeanTests {
 		Message<?> echo(String s);
 
 	}
-
 
 	@Gateway
 	@Retention(RetentionPolicy.RUNTIME)
@@ -546,7 +542,6 @@ public class GatewayProxyFactoryBeanTests {
 
 	}
 
-
 	interface CompositedGatewayService {
 
 		@CompositedGateway(requestChannelName = "requestChannel")
@@ -554,13 +549,11 @@ public class GatewayProxyFactoryBeanTests {
 
 	}
 
-
 	interface HeadersParamService {
 
 		Message<?> echo(String s, @Header(MessageHeaders.TIMESTAMP) String foo);
 
 	}
-
 
 	interface TestExceptionThrowingInterface {
 
@@ -587,7 +580,6 @@ public class GatewayProxyFactoryBeanTests {
 	static class TestException extends Exception {
 
 	}
-
 
 	public static class TestClient {
 

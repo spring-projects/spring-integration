@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 	private static final String REGEX_MUST_NOT_BE_NULL = "regex must not be null";
 
 	private final String regex;
-
 
 	/**
 	 * Creates a selector which attempts to match the given regex and supports multiple namespaces.
@@ -91,7 +90,6 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 		Assert.notNull(regex, REGEX_MUST_NOT_BE_NULL);
 		this.regex = regex;
 	}
-
 
 	/**
 	 * Evaluate the payload and return true if the value returned by the

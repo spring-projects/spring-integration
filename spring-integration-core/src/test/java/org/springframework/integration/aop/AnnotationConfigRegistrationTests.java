@@ -49,7 +49,6 @@ public class AnnotationConfigRegistrationTests {
 	@Autowired
 	private QueueChannel defaultChannel;
 
-
 	@Test // INT-1200
 	public void verifyInterception() {
 		String name = this.testBean.setName("John", "Doe", 123);
@@ -69,7 +68,6 @@ public class AnnotationConfigRegistrationTests {
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("HELLO!!!");
 	}
-
 
 	public static class TestBean {
 

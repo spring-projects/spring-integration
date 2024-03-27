@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ public class StringSourceTests {
 		assertThat(docAsString).and(testDoc).areIdentical();
 	}
 
-
 	@Test
 	public void testWithString() throws Exception {
 		String docString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>";
@@ -63,7 +62,6 @@ public class StringSourceTests {
 
 		assertThat(docAsString).and(docString).areIdentical();
 	}
-
 
 	@Test
 	public void testWithUnsupportedPayload() {

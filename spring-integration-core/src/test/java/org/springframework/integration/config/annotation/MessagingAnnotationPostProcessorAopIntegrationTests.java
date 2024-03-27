@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 	@Autowired
 	private PollableChannel output;
 
-
 	@Test
 	public void parseConfig() {
 		assertThat(this.input).isNotNull();
@@ -66,7 +65,6 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 		assertThat(((Integer) reply.getPayload()).intValue()).isEqualTo(111);
 	}
 
-
 	@Aspect
 	public static class HandlerAspect {
 
@@ -77,7 +75,6 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 
 	}
 
-
 	@Aspect
 	public static class ServiceAspect {
 
@@ -87,7 +84,6 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 		}
 
 	}
-
 
 	@MessageEndpoint
 	public static class AnnotatedService {

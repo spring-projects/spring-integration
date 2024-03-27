@@ -86,7 +86,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-
 /**
  * An implementation of both the {@link MessageStore} and
  * {@link org.springframework.integration.store.MessageGroupStore}
@@ -128,7 +127,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private static final String SEQUENCE = "sequence";
 
-
 	private final MongoTemplate template;
 
 	private final MessageReadingMongoConverter converter;
@@ -160,7 +158,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		this.template = new MongoTemplate(mongoDbFactory, this.converter);
 		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName : DEFAULT_COLLECTION_NAME;
 	}
-
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
@@ -550,7 +547,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				String.format("Cannot read %s. as map. Given Bson must be a Document or DBObject!", bson.getClass()));
 	}
 
-
 	/**
 	 * Custom implementation of the {@link MappingMongoConverter} strategy.
 	 */
@@ -720,7 +716,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	}
 
-
 	@WritingConverter
 	private static final class MessageHistoryToDocumentConverter implements Converter<MessageHistory, Document> {
 
@@ -883,7 +878,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 
 	}
-
 
 	/**
 	 * Wrapper class used for storing Messages in MongoDB along with their "group" metadata.
