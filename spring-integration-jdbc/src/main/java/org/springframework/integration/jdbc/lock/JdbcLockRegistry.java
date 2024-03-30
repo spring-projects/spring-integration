@@ -362,11 +362,11 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, CustomTtlLockReg
 					catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
 						// try again
 					}
+					catch (IllegalStateException e) {
+						throw new IllegalStateException("Lock was released in the store due to expiration. " +
+								"The integrity of data protected by this lock may have been compromised.");
+					}
 					catch (Exception e) {
-						if (e instanceof IllegalStateException) {
-							throw new IllegalStateException("Lock was released in the store due to expiration. " +
-									"The integrity of data protected by this lock may have been compromised.");
-						}
 						throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);
 					}
 				}
