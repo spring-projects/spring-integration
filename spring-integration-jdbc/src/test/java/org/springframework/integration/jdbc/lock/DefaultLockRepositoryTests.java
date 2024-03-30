@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 the original author or authors.
+ * Copyright 2021-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.lock;
 
 import java.sql.Connection;
+import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,8 +61,8 @@ public class DefaultLockRepositoryTests {
 		TransactionSynchronization transactionSynchronization = spy(TransactionSynchronization.class);
 		TransactionSynchronizationManager.registerSynchronization(transactionSynchronization);
 
-		this.client.acquire("foo"); // 1
-		this.client.renew("foo"); // 2
+		this.client.acquire("foo", Duration.ofMillis(10000)); // 1
+		this.client.renew("foo", Duration.ofMillis(10000)); // 2
 		this.client.delete("foo"); // 3
 		this.client.isAcquired("foo"); // 4
 		this.client.deleteExpired(); // 5
@@ -82,7 +83,7 @@ public class DefaultLockRepositoryTests {
 		assertThat(TransactionSynchronizationManager.getCurrentTransactionIsolationLevel())
 				.isEqualTo(Connection.TRANSACTION_REPEATABLE_READ);
 
-		this.client.acquire("foo");
+		this.client.acquire("foo", Duration.ofMillis(10000));
 		assertThat(this.client.isAcquired("foo")).isTrue();
 
 		this.client.delete("foo");

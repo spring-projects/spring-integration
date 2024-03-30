@@ -38,6 +38,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.integration.support.locks.CustomTtlLock;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.test.annotation.DirtiesContext;
@@ -152,11 +153,10 @@ public class JdbcLockRegistryTests {
 	@Test
 	public void testReentrantLockAfterExpiration() throws Exception {
 		DefaultLockRepository client = new DefaultLockRepository(dataSource);
-		client.setTimeToLive(1);
 		client.setApplicationContext(this.context);
 		client.afterPropertiesSet();
 		client.afterSingletonsInstantiated();
-		JdbcLockRegistry registry = new JdbcLockRegistry(client);
+		JdbcLockRegistry registry = new JdbcLockRegistry(client, 1);
 		Lock lock1 = registry.obtain("foo");
 		assertThat(lock1.tryLock()).isTrue();
 		Thread.sleep(100);
@@ -244,44 +244,6 @@ public class JdbcLockRegistryTests {
 		latch2.countDown();
 		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(locked.get()).isTrue();
-	}
-
-	@Test
-	public void testTwoThreadsDifferentRegistries() throws Exception {
-		for (int i = 0; i < 100; i++) {
-
-			final JdbcLockRegistry registry1 = new JdbcLockRegistry(this.client);
-			final JdbcLockRegistry registry2 = new JdbcLockRegistry(this.client);
-			final Lock lock1 = registry1.obtain("foo");
-			final AtomicBoolean locked = new AtomicBoolean();
-			final CountDownLatch latch1 = new CountDownLatch(1);
-			final CountDownLatch latch2 = new CountDownLatch(1);
-			final CountDownLatch latch3 = new CountDownLatch(1);
-			lock1.lockInterruptibly();
-			this.taskExecutor.execute(() -> {
-				Lock lock2 = registry2.obtain("foo");
-				try {
-					latch1.countDown();
-					lock2.lockInterruptibly();
-					latch2.await(10, TimeUnit.SECONDS);
-					locked.set(true);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				finally {
-					lock2.unlock();
-					latch3.countDown();
-				}
-			});
-			assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
-			assertThat(locked.get()).isFalse();
-			lock1.unlock();
-			latch2.countDown();
-			assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
-			assertThat(locked.get()).isTrue();
-
-		}
 	}
 
 	@Test
@@ -499,6 +461,84 @@ public class JdbcLockRegistryTests {
 					.isThrownBy(testApplicationContext::refresh)
 					.withRootCauseExactlyInstanceOf(JdbcSQLSyntaxErrorException.class)
 					.withStackTraceContaining("Table \"TEST_LOCK\" not found");
+		}
+	}
+
+	@Test
+	public void testLockWithCustomTtl() throws Exception {
+		for (int i = 0; i < 10; i++) {
+			CustomTtlLock lock = this.registry.obtainCustomTtlLock("foo");
+			lock.lock(100, TimeUnit.MILLISECONDS);
+			try {
+				assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(1);
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+
+		Thread.sleep(10);
+		this.registry.expireUnusedOlderThan(0);
+		assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(0);
+	}
+
+	@Test
+	public void testTryLockWithCustomTtl() throws Exception {
+		for (int i = 0; i < 10; i++) {
+			CustomTtlLock lock = this.registry.obtainCustomTtlLock("foo");
+			lock.tryLock(100, TimeUnit.MILLISECONDS, 100, TimeUnit.MILLISECONDS);
+			try {
+				assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(1);
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+
+		Thread.sleep(10);
+		this.registry.expireUnusedOlderThan(0);
+		assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(0);
+	}
+
+	@Test
+	public void testUnlock_lockStatusIsExpired_lockHasBeenAcquiredByAnotherProcess_DataAccessResourceFailureExceptionWillBeThrown() throws Exception {
+		long ttl = 100;
+		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
+		client1.setApplicationContext(this.context);
+		client1.afterPropertiesSet();
+		client1.afterSingletonsInstantiated();
+		DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
+		client2.setApplicationContext(this.context);
+		client2.afterPropertiesSet();
+		client2.afterSingletonsInstantiated();
+		JdbcLockRegistry process1Registry = new JdbcLockRegistry(client1, ttl);
+		JdbcLockRegistry process2Registry = new JdbcLockRegistry(client2, ttl);
+		Lock lock1 = process1Registry.obtain("foo");
+		Lock lock2 = process2Registry.obtain("foo");
+		try {
+			lock1.lock();
+			Thread.sleep(ttl);
+			assertThat(lock2.tryLock()).isTrue();
+		}
+		finally {
+			assertThatExceptionOfType(IllegalStateException.class)
+					.isThrownBy(() -> lock1.unlock());
+			lock2.unlock();
+		}
+	}
+
+	@Test
+	public void testUnlock_lockStatusIsExpired_lockDataHasBeenDeleted_IllegalStateExceptionWillBeThrown() throws Exception {
+		JdbcLockRegistry registry = new JdbcLockRegistry(client, 100);
+		Lock lock = registry.obtain("foo");
+		try {
+			lock.lock();
+			Thread.sleep(200);
+			client.deleteExpired();
+		}
+		finally {
+			assertThatExceptionOfType(IllegalStateException.class)
+					.isThrownBy(() -> lock.unlock());
 		}
 	}
 

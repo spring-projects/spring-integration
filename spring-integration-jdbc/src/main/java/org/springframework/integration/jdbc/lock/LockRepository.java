@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.lock;
 
 import java.io.Closeable;
+import java.time.Duration;
 
 /**
  * Encapsulation of the SQL shunting that is needed for locks. A {@link JdbcLockRegistry}
@@ -26,6 +27,7 @@ import java.io.Closeable;
  * @author Dave Syer
  * @author Alexandre Strubel
  * @author Artem Bilan
+ * @author Eddie Cho
  *
  * @since 4.3
  */
@@ -41,8 +43,9 @@ public interface LockRepository extends Closeable {
 	/**
 	 * Remove a lock from this repository.
 	 * @param lock the lock to remove.
+	 * @return removed successfully or not
 	 */
-	void delete(String lock);
+	boolean delete(String lock);
 
 	/**
 	 * Remove all the expired locks.
@@ -50,18 +53,20 @@ public interface LockRepository extends Closeable {
 	void deleteExpired();
 
 	/**
-	 * Acquire a lock for a key.
+	 * Acquire a lock for a key with specific time-to-live value
 	 * @param lock the key for lock to acquire.
+	 * @param ttl the custom time-to-live value
 	 * @return acquired or not.
 	 */
-	boolean acquire(String lock);
+	boolean acquire(String lock, Duration ttl);
 
 	/**
-	 * Renew the lease for a lock.
-	 * @param lock the lock to renew.
+	 * Renew the lease for a lock with specific time-to-live value
+	 * @param lock the key for lock to acquire.
+	 * @param ttl the custom time-to-live value
 	 * @return renewed or not.
 	 */
-	boolean renew(String lock);
+	boolean renew(String lock, Duration ttl);
 
 	@Override
 	void close();
