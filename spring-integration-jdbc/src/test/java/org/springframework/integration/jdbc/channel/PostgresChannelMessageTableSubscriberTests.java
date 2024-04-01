@@ -17,6 +17,8 @@
 package org.springframework.integration.jdbc.channel;
 
 import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -61,6 +63,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Rafael Winterhalter
  * @author Artem Bilan
  * @author Igor Lovich
+ * @author Johannes Edmeier
  *
  * @since 6.0
  */
@@ -116,15 +119,14 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 	private String groupId;
 
+	private ConnectionSupplier connectionSupplier;
+
 	@BeforeEach
 	void setUp(TestInfo testInfo) {
 		// Not initiated as a bean to allow for registrations prior and post the life cycle
-		this.postgresChannelMessageTableSubscriber =
-				new PostgresChannelMessageTableSubscriber(() ->
-						DriverManager.getConnection(POSTGRES_CONTAINER.getJdbcUrl(),
-										POSTGRES_CONTAINER.getUsername(),
-										POSTGRES_CONTAINER.getPassword())
-								.unwrap(PgConnection.class));
+		this.connectionSupplier = new ConnectionSupplier();
+		this.postgresChannelMessageTableSubscriber = new PostgresChannelMessageTableSubscriber(connectionSupplier);
+		this.postgresChannelMessageTableSubscriber.setNotificationTimeout(Duration.ofSeconds(5));
 
 
 		this.taskExecutor = new ThreadPoolTaskExecutor();
@@ -277,6 +279,26 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		assertThat(payloads).containsExactly("1");
 	}
 
+	@Test
+	public void testRenewConnection() throws Exception {
+		CountDownLatch latch = new CountDownLatch(2);
+		List<Object> payloads = new ArrayList<>();
+		CountDownLatch connectionLatch = new CountDownLatch(2);
+		connectionSupplier.onGetConnection = connectionLatch::countDown;
+		postgresChannelMessageTableSubscriber.start();
+		postgresSubscribableChannel.subscribe(message -> {
+			payloads.add(message.getPayload());
+			latch.countDown();
+		});
+
+		assertThat(connectionLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(payloads).containsExactlyInAnyOrder("1", "2");
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {
@@ -316,4 +338,21 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 	}
 
+	private static class ConnectionSupplier implements PgConnectionSupplier {
+
+		Runnable onGetConnection;
+
+		@Override
+		public PgConnection get() throws SQLException {
+			var conn = DriverManager.getConnection(POSTGRES_CONTAINER.getJdbcUrl(),
+							POSTGRES_CONTAINER.getUsername(),
+							POSTGRES_CONTAINER.getPassword())
+					.unwrap(PgConnection.class);
+			if (this.onGetConnection != null) {
+				this.onGetConnection.run();
+			}
+			return conn;
+		}
+
+	}
 }
