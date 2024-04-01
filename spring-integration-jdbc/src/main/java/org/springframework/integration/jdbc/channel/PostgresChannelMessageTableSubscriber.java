@@ -18,6 +18,7 @@ package org.springframework.integration.jdbc.channel;
 
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -62,6 +63,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Igor Lovich
  * @author Christian Tzolov
+ * @author Johannes Edmeier
  *
  * @since 6.0
  */
@@ -85,6 +87,8 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 
 	@Nullable
 	private volatile PgConnection connection;
+
+	private Duration notificationTimeout = Duration.ofSeconds(60);
 
 	/**
 	 * Create a new subscriber using the {@link JdbcChannelMessageStore#DEFAULT_TABLE_PREFIX}.
@@ -114,6 +118,19 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	public void setTaskExecutor(AsyncTaskExecutor taskExecutor) {
 		Assert.notNull(taskExecutor, "A 'taskExecutor' must not be null.");
 		this.taskExecutor = taskExecutor;
+	}
+
+	/**
+	 * Set the timeout for the notification polling.
+	 * If for the specified duration no notificiation are received the underlying connection is closed and re-established.
+	 * Setting a value of {@code Duration.ZERO} will disable the timeout and wait forever.
+	 * This might cause problems in DB failover scenarios.
+	 * @param notificationTimeout the timeout for the notification polling.
+	 * @since 6.1.8
+	 */
+	public void setNotificationTimeout(Duration notificationTimeout) {
+		Assert.notNull(notificationTimeout, "'notificationTimeout' must not be null.");
+		this.notificationTimeout = notificationTimeout;
 	}
 
 	/**
@@ -193,24 +210,28 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 						while (isActive()) {
 							startingLatch.countDown();
 
-							PGNotification[] notifications = conn.getNotifications(0);
+							PGNotification[] notifications = conn.getNotifications((int) this.notificationTimeout.toMillis());
 							// Unfortunately, there is no good way of interrupting a notification
 							// poll but by closing its connection.
 							if (!isActive()) {
 								return;
 							}
-							if (notifications != null) {
-								for (PGNotification notification : notifications) {
-									String parameter = notification.getParameter();
-									Set<Subscription> subscriptions = this.subscriptionsMap.get(parameter);
-									if (subscriptions == null) {
-										continue;
-									}
-									for (Subscription subscription : subscriptions) {
-										subscription.notifyUpdate();
-									}
+							if (notifications == null || notifications.length == 0) {
+								//We did not receive any notifications within the timeout period.
+								//We will close the connection and re-establish it.
+								break;
+							}
+							for (PGNotification notification : notifications) {
+								String parameter = notification.getParameter();
+								Set<Subscription> subscriptions = this.subscriptionsMap.get(parameter);
+								if (subscriptions == null) {
+									continue;
+								}
+								for (Subscription subscription : subscriptions) {
+									subscription.notifyUpdate();
 								}
 							}
+
 						}
 					}
 					finally {
