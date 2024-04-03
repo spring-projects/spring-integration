@@ -49,7 +49,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
-import org.springframework.integration.support.locks.CustomTtlLock;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -124,7 +124,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
 		registry.setRedisLockType(testRedisLockType);
 		for (int i = 0; i < 3; i++) {
-			CustomTtlLock lock = registry.obtainCustomTtlLock("foo");
+			DistributedLock lock = registry.obtain("foo");
 			lock.lock(500, TimeUnit.MILLISECONDS);
 			try {
 				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
@@ -145,7 +145,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
 		registry.setRedisLockType(testRedisLockType);
 		for (int i = 0; i < 3; i++) {
-			CustomTtlLock lock = registry.obtainCustomTtlLock("foo");
+			DistributedLock lock = registry.obtain("foo");
 			lock.tryLock(100, TimeUnit.MILLISECONDS, 500, TimeUnit.MILLISECONDS);
 			try {
 				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);

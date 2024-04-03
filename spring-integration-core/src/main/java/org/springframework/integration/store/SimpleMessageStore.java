@@ -71,7 +71,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	private final long upperBoundTimeout;
 
-	private LockRegistry lockRegistry;
+	private LockRegistry<?> lockRegistry;
 
 	private boolean copyOnGet = false;
 
@@ -111,7 +111,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 * @param lockRegistry       The lock registry.
 	 * @see #SimpleMessageStore(int, int, long, LockRegistry)
 	 */
-	public SimpleMessageStore(int individualCapacity, int groupCapacity, LockRegistry lockRegistry) {
+	public SimpleMessageStore(int individualCapacity, int groupCapacity, LockRegistry<?> lockRegistry) {
 		this(individualCapacity, groupCapacity, 0, lockRegistry);
 	}
 
@@ -126,7 +126,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 * @since 4.3
 	 */
 	public SimpleMessageStore(int individualCapacity, int groupCapacity, long upperBoundTimeout,
-			LockRegistry lockRegistry) {
+			LockRegistry<?> lockRegistry) {
 
 		super(false);
 		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");
@@ -162,7 +162,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		this.copyOnGet = copyOnGet;
 	}
 
-	public void setLockRegistry(LockRegistry lockRegistry) {
+	public void setLockRegistry(LockRegistry<?> lockRegistry) {
 		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");
 		Assert.isTrue(!(this.isUsed), "Cannot change the lock registry after the store has been used");
 		this.lockRegistry = lockRegistry;

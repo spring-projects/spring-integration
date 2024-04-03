@@ -38,7 +38,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.integration.support.locks.CustomTtlLock;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.test.annotation.DirtiesContext;
@@ -467,7 +467,7 @@ public class JdbcLockRegistryTests {
 	@Test
 	public void testLockWithCustomTtl() throws Exception {
 		for (int i = 0; i < 10; i++) {
-			CustomTtlLock lock = this.registry.obtainCustomTtlLock("foo");
+			DistributedLock lock = this.registry.obtain("foo");
 			lock.lock(100, TimeUnit.MILLISECONDS);
 			try {
 				assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(1);
@@ -485,7 +485,7 @@ public class JdbcLockRegistryTests {
 	@Test
 	public void testTryLockWithCustomTtl() throws Exception {
 		for (int i = 0; i < 10; i++) {
-			CustomTtlLock lock = this.registry.obtainCustomTtlLock("foo");
+			DistributedLock lock = this.registry.obtain("foo");
 			lock.tryLock(100, TimeUnit.MILLISECONDS, 100, TimeUnit.MILLISECONDS);
 			try {
 				assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(1);

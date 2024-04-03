@@ -28,8 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.TransientDataAccessException;
-import org.springframework.integration.support.locks.CustomTtlLock;
-import org.springframework.integration.support.locks.CustomTtlLockRegistry;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.RenewableLockRegistry;
 import org.springframework.integration.util.UUIDConverter;
@@ -62,7 +61,7 @@ import org.springframework.util.Assert;
  *
  * @since 4.3
  */
-public class JdbcLockRegistry implements ExpirableLockRegistry, CustomTtlLockRegistry, RenewableLockRegistry {
+public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>, RenewableLockRegistry<DistributedLock> {
 
 	private static final int DEFAULT_IDLE = 100;
 
@@ -128,12 +127,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, CustomTtlLockReg
 	}
 
 	@Override
-	public Lock obtain(Object lockKey) {
-		return this.obtainCustomTtlLock(lockKey);
-	}
-
-	@Override
-	public CustomTtlLock obtainCustomTtlLock(Object lockKey) {
+	public DistributedLock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
 		this.lock.lock();
@@ -191,7 +185,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, CustomTtlLockReg
 		return Duration.ofMillis(timeInMilliseconds);
 	}
 
-	private final class JdbcLock implements CustomTtlLock {
+	private final class JdbcLock implements DistributedLock {
 
 		private final LockRepository mutex;
 

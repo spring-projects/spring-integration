@@ -161,7 +161,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private boolean appendNewLine = false;
 
-	private LockRegistry lockRegistry = new PassThruLockRegistry();
+	private LockRegistry<Lock> lockRegistry = new PassThruLockRegistry();
 
 	private int bufferSize = DEFAULT_BUFFER_SIZE;
 

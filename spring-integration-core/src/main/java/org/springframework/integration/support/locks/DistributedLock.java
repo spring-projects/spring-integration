@@ -20,13 +20,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 /**
- * A {@link Lock} implementing this interface supports the spring distributed locks with custom time-to-live value per lock
+ * A {@link Lock} implementing for spring distributed locks
  *
  * @author Eddie Cho
  *
  * @since 6.3
  */
-public interface CustomTtlLock extends Lock {
+public interface DistributedLock extends Lock {
 
 	/**
 	 * Attempt to acquire a lock with a specific time-to-live

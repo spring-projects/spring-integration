@@ -51,8 +51,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
-import org.springframework.integration.support.locks.CustomTtlLock;
-import org.springframework.integration.support.locks.CustomTtlLockRegistry;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
@@ -92,7 +91,7 @@ import org.springframework.util.ReflectionUtils;
  * @since 4.0
  *
  */
-public final class RedisLockRegistry implements ExpirableLockRegistry, CustomTtlLockRegistry, DisposableBean {
+public final class RedisLockRegistry implements ExpirableLockRegistry<DistributedLock>, DisposableBean {
 
 	private static final Log LOGGER = LogFactory.getLog(RedisLockRegistry.class);
 
@@ -226,12 +225,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, CustomTtl
 	}
 
 	@Override
-	public Lock obtain(Object lockKey) {
-		return this.obtainCustomTtlLock(lockKey);
-	}
-
-	@Override
-	public CustomTtlLock obtainCustomTtlLock(Object lockKey) {
+	public DistributedLock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = (String) lockKey;
 		this.lock.lock();
@@ -303,7 +297,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, CustomTtl
 		};
 	}
 
-	private abstract class RedisLock implements CustomTtlLock {
+	private abstract class RedisLock implements DistributedLock {
 
 		private static final String OBTAIN_LOCK_SCRIPT = """
 				local lockClientId = redis.call('GET', KEYS[1])
