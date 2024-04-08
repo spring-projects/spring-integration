@@ -75,9 +75,9 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	 * Such endpoints can be started/stopped as a group.
 	 * @param role the role for this endpoint.
 	 * @return the endpoint spec
+	 * @since 6.1.8
 	 * @see org.springframework.context.SmartLifecycle
 	 * @see org.springframework.integration.support.SmartLifecycleRoleController
-	 * @since 6.1.8
 	 */
 	public S role(String role) {
 		this.target.setRole(role);
