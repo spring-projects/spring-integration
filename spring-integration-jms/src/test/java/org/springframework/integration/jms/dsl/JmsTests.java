@@ -534,6 +534,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		public IntegrationFlow jmsMessageDrivenRedeliveryFlow() {
 			return IntegrationFlow
 					.from(Jms.messageDrivenChannelAdapter(amqFactory)
+							.role("someRole")
 							.errorChannel("errorChannelForRedelivery")
 							.destination("jmsMessageDrivenRedelivery")
 							.configureListenerContainer(c -> c
