@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,20 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	 */
 	public S autoStartup(boolean autoStartup) {
 		this.target.setAutoStartup(autoStartup);
+		return _this();
+	}
+
+	/**
+	 * Specify the role for the endpoint.
+	 * Such endpoints can be started/stopped as a group.
+	 * @param role the role for this endpoint.
+	 * @return the endpoint spec
+	 * @see org.springframework.context.SmartLifecycle
+	 * @see org.springframework.integration.support.SmartLifecycleRoleController
+	 * @since 6.1.8
+	 */
+	public S role(String role) {
+		this.target.setRole(role);
 		return _this();
 	}
 
