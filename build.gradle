@@ -114,7 +114,7 @@ ext {
     springKafkaVersion = '3.2.0-M2'
     springRetryVersion = '2.0.5'
     springSecurityVersion = '6.3.0-M3'
-    springVersion = '6.1.5'
+    springVersion = '6.1.6'
     springWsVersion = '4.0.10'
     testcontainersVersion = '1.19.7'
     tomcatVersion = '10.1.20'
