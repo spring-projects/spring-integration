@@ -22,8 +22,8 @@ import java.util.Map;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.filter.StanzaFilter;
+import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Stanza;
-import org.jivesoftware.smack.packet.XmlElement;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -132,9 +132,9 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 				if (ChatMessageListeningEndpoint.this.payloadExpression != null) {
 					EvaluationContext evaluationContextToUse = ChatMessageListeningEndpoint.this.evaluationContext;
 
-					List<XmlElement> extensions = xmppMessage.getExtensions();
+					List<ExtensionElement> extensions = xmppMessage.getExtensions();
 					if (extensions.size() == 1) {
-						XmlElement extension = extensions.get(0);
+						ExtensionElement extension = extensions.get(0);
 						evaluationContextToUse = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 						evaluationContextToUse.setVariable("extension", extension);
 					}

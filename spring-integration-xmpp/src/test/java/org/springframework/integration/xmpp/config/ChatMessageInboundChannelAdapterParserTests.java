@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(adapter, "payloadExpression.expression")).isEqualTo("#root");
 		adapter.start();
 		Map asyncRecvListeners = TestUtils.getPropertyValue(connection, "asyncRecvListeners", Map.class);
-		assertThat(asyncRecvListeners.size()).isEqualTo(6);
+		assertThat(asyncRecvListeners.size()).isEqualTo(5);
 		Object lastListener = asyncRecvListeners.values().stream().reduce((first, second) -> second).get();
 		assertThat(TestUtils.getPropertyValue(lastListener, "packetFilter")).isSameAs(stanzaFilter);
 		adapter.stop();
