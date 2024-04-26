@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -73,11 +71,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * {@link org.springframework.web.servlet.HandlerMapping}
  * compromise implementation between method-level annotations and component-level
  * (e.g. Spring Integration XML) configurations.
- * <p>
- * Starting with version 5.1, this class implements {@link DestructionAwareBeanPostProcessor} to
- * register HTTP endpoints at runtime for dynamically declared beans, e.g. via
- * {@link org.springframework.integration.dsl.context.IntegrationFlowContext}, and unregister
- * them during the {@link BaseHttpInboundEndpoint} destruction.
  *<p>
  * This class extends the Spring MVC {@link RequestMappingHandlerMapping} class, inheriting
  * most of its logic, especially {@link #handleNoMatch(java.util.Set, String, HttpServletRequest)},
@@ -96,37 +89,13 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * @see RequestMappingHandlerMapping
  */
 public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
-		implements ApplicationListener<ContextRefreshedEvent>, DestructionAwareBeanPostProcessor {
+		implements ApplicationListener<ContextRefreshedEvent> {
 
 	private static final Method HANDLE_REQUEST_METHOD =
 			ReflectionUtils.findMethod(HttpRequestHandler.class, "handleRequest", HttpServletRequest.class,
 					HttpServletResponse.class);
 
 	private final AtomicBoolean initialized = new AtomicBoolean();
-
-	@Override
-	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		if (this.initialized.get() && isHandler(bean.getClass())) {
-			detectHandlerMethods(bean);
-		}
-
-		return bean;
-	}
-
-	@Override
-	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
-		if (isHandler(bean.getClass())) {
-			RequestMappingInfo mapping = getMappingForEndpoint((BaseHttpInboundEndpoint) bean);
-			if (mapping != null) {
-				unregisterMapping(mapping);
-			}
-		}
-	}
-
-	@Override
-	public boolean requiresDestruction(Object bean) {
-		return isHandler(bean.getClass());
-	}
 
 	@Override
 	protected boolean isHandler(Class<?> beanType) {
@@ -229,7 +198,7 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	 * @see RequestMappingHandlerMapping#getMappingForMethod
 	 */
 	@Nullable
-	private RequestMappingInfo getMappingForEndpoint(BaseHttpInboundEndpoint endpoint) {
+	RequestMappingInfo getMappingForEndpoint(BaseHttpInboundEndpoint endpoint) {
 		final RequestMapping requestMapping = endpoint.getRequestMapping();
 
 		if (ObjectUtils.isEmpty(requestMapping.getPathPatterns())) {
