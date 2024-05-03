@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -268,7 +269,18 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		CountDownLatch latch = new CountDownLatch(2);
 		List<Object> payloads = new ArrayList<>();
 		CountDownLatch connectionLatch = new CountDownLatch(2);
-		connectionSupplier.onGetConnection = connectionLatch::countDown;
+		connectionSupplier.onGetConnection = conn -> {
+			connectionLatch.countDown();
+			new Thread(() -> {
+				try {
+					Thread.sleep(3000);
+					conn.close();
+				}
+				catch (Exception e) {
+					//nop
+				}
+			}).start();
+		};
 		postgresChannelMessageTableSubscriber.start();
 		postgresSubscribableChannel.subscribe(message -> {
 			payloads.add(message.getPayload());
@@ -324,7 +336,7 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 
 	private static class ConnectionSupplier implements PgConnectionSupplier {
 
-		Runnable onGetConnection;
+		Consumer<PgConnection> onGetConnection;
 
 		@Override
 		public PgConnection get() throws SQLException {
@@ -333,7 +345,7 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 							POSTGRES_CONTAINER.getPassword())
 					.unwrap(PgConnection.class);
 			if (this.onGetConnection != null) {
-				this.onGetConnection.run();
+				this.onGetConnection.accept(conn);
 			}
 			return conn;
 		}
