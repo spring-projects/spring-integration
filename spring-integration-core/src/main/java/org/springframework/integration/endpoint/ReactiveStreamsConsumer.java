@@ -19,7 +19,6 @@ package org.springframework.integration.endpoint;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import io.micrometer.context.ContextSnapshotFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -31,6 +30,7 @@ import reactor.util.context.ContextView;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
@@ -44,7 +44,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -57,9 +56,6 @@ import org.springframework.util.ErrorHandler;
  * @since 5.0
  */
 public class ReactiveStreamsConsumer extends AbstractEndpoint implements IntegrationConsumer {
-
-	private static final boolean isContextPropagationPresent = ClassUtils.isPresent(
-			"io.micrometer.context.ContextSnapshot", ReactiveStreamsConsumer.class.getClassLoader());
 
 	private final MessageChannel inputChannel;
 
@@ -188,7 +184,9 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		if (this.reactiveMessageHandler != null) {
 			this.subscription =
 					fluxFromChannel
-							.flatMap(this.reactiveMessageHandler::handleMessage)
+							.flatMap((message) ->
+									this.reactiveMessageHandler.handleMessage(message)
+											.contextWrite(StaticMessageHeaderAccessor.getReactorContext(message)))
 							.onErrorContinue((ex, data) -> this.errorHandler.handleError(ex))
 							.subscribe();
 		}
@@ -300,7 +298,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		protected void hookOnNext(Message<?> message) {
 			Message<?> messageToDeliver = message;
 
-			if (isContextPropagationPresent) {
+			if (IntegrationReactiveUtils.isContextPropagationPresent) {
 				ContextView reactorContext = message.getHeaders()
 						.get(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, ContextView.class);
 
@@ -310,7 +308,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 									.removeHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT)
 									.build();
 
-					try (AutoCloseable scope = ContextSnapshotHelper.setContext(reactorContext)) {
+					try (AutoCloseable scope = IntegrationReactiveUtils.setThreadLocalsFromReactorContext(reactorContext)) {
 						this.delegate.onNext(messageToDeliver);
 					}
 					catch (Exception ex) {
@@ -331,16 +329,6 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		@Override
 		protected void hookOnComplete() {
 			this.delegate.onComplete();
-		}
-
-	}
-
-	private static final class ContextSnapshotHelper {
-
-		private static final ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY = ContextSnapshotFactory.builder().build();
-
-		static AutoCloseable setContext(ContextView context) {
-			return CONTEXT_SNAPSHOT_FACTORY.setThreadLocalsFrom(context);
 		}
 
 	}

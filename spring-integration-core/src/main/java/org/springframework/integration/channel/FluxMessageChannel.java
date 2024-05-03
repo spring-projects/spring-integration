@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
-import io.micrometer.context.ContextSnapshotFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactor.core.Disposable;
@@ -31,17 +30,16 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-import reactor.util.context.Context;
 import reactor.util.context.ContextView;
 
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.util.IntegrationReactiveUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * The {@link AbstractMessageChannel} implementation for the
@@ -55,9 +53,6 @@ import org.springframework.util.ClassUtils;
  */
 public class FluxMessageChannel extends AbstractMessageChannel
 		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
-
-	private static final boolean isContextPropagationPresent = ClassUtils.isPresent(
-			"io.micrometer.context.ContextSnapshot", FluxMessageChannel.class.getClassLoader());
 
 	private final Scheduler scheduler = Schedulers.boundedElastic();
 
@@ -91,8 +86,8 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private boolean tryEmitMessage(Message<?> message) {
 		Message<?> messageToEmit = message;
-		if (isContextPropagationPresent) {
-			ContextView contextView = ContextSnapshotHelper.captureContext();
+		if (IntegrationReactiveUtils.isContextPropagationPresent) {
+			ContextView contextView = IntegrationReactiveUtils.captureReactorContext();
 			if (!contextView.isEmpty()) {
 				messageToEmit = MutableMessageBuilder.fromMessage(message)
 						.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, contextView)
@@ -194,16 +189,6 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		this.sink.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
 		this.scheduler.dispose();
 		super.destroy();
-	}
-
-	private static final class ContextSnapshotHelper {
-
-		private static final ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY = ContextSnapshotFactory.builder().build();
-
-		static ContextView captureContext() {
-			return CONTEXT_SNAPSHOT_FACTORY.captureAll().updateContext(Context.empty());
-		}
-
 	}
 
 }
