@@ -18,25 +18,31 @@ package org.springframework.integration.support.management.observation;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.micrometer.common.KeyValues;
 import io.micrometer.core.tck.MeterRegistryAssert;
+import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.test.SampleTestRunner;
 import io.micrometer.tracing.test.simple.SpansAssert;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
+import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
@@ -46,6 +52,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Bilan
@@ -93,6 +100,8 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 				assertThat(receive).isNull();
 
 				assertThat(configuration.observedHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+				await().untilAsserted(() -> assertThat(configuration.observationReference.get()).isNotNull());
 			}
 
 			SpansAssert.assertThat(bb.getFinishedSpans())
@@ -110,7 +119,7 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_NAME.asString(), "queueChannel")
 							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer")
 							.hasKindEqualTo(Span.Kind.PRODUCER))
-					.hasSize(3);
+					.hasSize(4);
 
 			MeterRegistryAssert.assertThat(getMeterRegistry())
 					.hasTimerWithNameAndTags("spring.integration.handler",
@@ -126,7 +135,7 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 	@EnableIntegration
 	@EnableIntegrationManagement(
 			observationPatterns = {
-					"${spring.integration.management.observation-patterns:testInboundGateway,skippedObservationInboundGateway,queueChannel,observedEndpoint}",
+					"${spring.integration.management.observation-patterns:testInboundGateway,skippedObservationInboundGateway,queueChannel,observedEndpoint,publishSubscribeChannel}",
 					"${spring.integration.management.observation-patterns:}"
 			})
 	public static class ObservationIntegrationTestConfiguration {
@@ -168,8 +177,10 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 		@ServiceActivator(inputChannel = "queueChannel",
 				poller = @Poller(fixedDelay = "100"),
 				adviceChain = "observedHandlerAdvice")
-		BridgeHandler bridgeHandler() {
-			return new BridgeHandler();
+		BridgeHandler bridgeHandler(PublishSubscribeChannel publishSubscribeChannel) {
+			BridgeHandler bridgeHandler = new BridgeHandler();
+			bridgeHandler.setOutputChannel(publishSubscribeChannel);
+			return bridgeHandler;
 		}
 
 		@Bean
@@ -182,6 +193,26 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 					this.observedHandlerLatch.countDown();
 				}
 			};
+		}
+
+		@Bean
+		@BridgeTo
+		PublishSubscribeChannel publishSubscribeChannel() {
+			return new PublishSubscribeChannel();
+		}
+
+		AtomicReference<Observation> observationReference = new AtomicReference<>();
+
+		@Bean
+		IntegrationFlow handleReactiveFlow(PublishSubscribeChannel publishSubscribeChannel,
+				ObservationRegistry observationRegistry) {
+
+			return IntegrationFlow.from(publishSubscribeChannel)
+					.handleReactive(m ->
+							Mono.just("Hi There")
+									.doOnSuccess(val ->
+											observationReference.set(observationRegistry.getCurrentObservation()))
+									.then());
 		}
 
 	}

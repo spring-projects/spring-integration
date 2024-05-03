@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.util;
 import java.time.Duration;
 import java.util.concurrent.locks.LockSupport;
 
+import io.micrometer.context.ContextSnapshotFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
@@ -26,17 +27,22 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.context.Context;
+import reactor.util.context.ContextView;
 import reactor.util.retry.Retry;
 
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AckUtils;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.util.ClassUtils;
 
 /**
  * Utilities for adapting integration components to/from reactive types.
@@ -60,7 +66,38 @@ public final class IntegrationReactiveUtils {
 	 */
 	public static final Duration DEFAULT_DELAY_WHEN_EMPTY = Duration.ofSeconds(1);
 
+	/**
+	 * The indicator that {@code io.micrometer:context-propagation} library is on classpath.
+	 * @since 6.2.5
+	 */
+	public static final boolean isContextPropagationPresent = ClassUtils.isPresent(
+			"io.micrometer.context.ContextSnapshot", IntegrationReactiveUtils.class.getClassLoader());
+
+	private static final ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY = ContextSnapshotFactory.builder().build();
+
 	private IntegrationReactiveUtils() {
+	}
+
+	/**
+	 * Capture a Reactor {@link ContextView} from the current thread local state
+	 * according to the {@link ContextSnapshotFactory} logic.
+	 * @return the Reactor {@link ContextView} from the current thread local state.
+	 * @since 6.2.5
+	 */
+	public static ContextView captureReactorContext() {
+		return CONTEXT_SNAPSHOT_FACTORY.captureAll().updateContext(Context.empty());
+	}
+
+	/**
+	 * Populate thread local variables from the provided Reactor {@link ContextView}
+	 * according to the {@link ContextSnapshotFactory} logic.
+	 * @param context the Reactor {@link ContextView} to populate from.
+	 * @return the {@link io.micrometer.context.ContextSnapshot.Scope} as a {@link AutoCloseable}
+	 * to not pollute the target classpath. Can be cast if necessary.
+	 * @since 6.2.5
+	 */
+	public static AutoCloseable setThreadLocalsFromReactorContext(ContextView context) {
+		return CONTEXT_SNAPSHOT_FACTORY.setThreadLocalsFrom(context);
 	}
 
 	/**
@@ -137,8 +174,17 @@ public final class IntegrationReactiveUtils {
 		return Flux.defer(() -> {
 			Sinks.Many<Message<T>> sink = Sinks.many().unicast().onBackpressureError();
 			MessageHandler messageHandler = (message) -> {
+				Message<?> messageToEmit = message;
+				if (IntegrationReactiveUtils.isContextPropagationPresent) {
+					ContextView contextView = IntegrationReactiveUtils.captureReactorContext();
+					if (!contextView.isEmpty()) {
+						messageToEmit = MutableMessageBuilder.fromMessage(message)
+								.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, contextView)
+								.build();
+					}
+				}
 				while (true) {
-					switch (sink.tryEmitNext((Message<T>) message)) {
+					switch (sink.tryEmitNext((Message<T>) messageToEmit)) {
 						case FAIL_NON_SERIALIZED:
 						case FAIL_OVERFLOW:
 							LockSupport.parkNanos(1000); // NOSONAR
