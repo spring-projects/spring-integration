@@ -169,70 +169,84 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 		this.latch = new CountDownLatch(1);
 
 		CountDownLatch startingLatch = new CountDownLatch(1);
-		this.future = executorToUse.submit(() -> {
-			try {
-				while (isActive()) {
-					try {
-						PgConnection conn = this.connectionSupplier.get();
-						try (Statement stmt = conn.createStatement()) {
-							stmt.execute("LISTEN " + this.tablePrefix.toLowerCase() + "channel_message_notify");
-						}
-						catch (Exception ex) {
-							try {
-								conn.close();
-							}
-							catch (Exception suppressed) {
-								ex.addSuppressed(suppressed);
-							}
-							throw ex;
-						}
-						this.subscriptionsMap.values()
-								.forEach(subscriptions -> subscriptions.forEach(Subscription::notifyUpdate));
-						try {
-							this.connection = conn;
-							while (isActive()) {
-								startingLatch.countDown();
+		this.future = executorToUse.submit(() -> doStart(startingLatch));
 
-								PGNotification[] notifications = conn.getNotifications((int) this.notificationTimeout.toMillis());
-								// Unfortunately, there is no good way of interrupting a notification
-								// poll but by closing its connection.
-								if (!isActive()) {
-									return;
-								}
-								if (notifications == null || notifications.length == 0) {
-									//We did not receive any notifications within the timeout period.
-									//We will close the connection and re-establish it.
-									break;
-								}
-								for (PGNotification notification : notifications) {
-									String parameter = notification.getParameter();
-									Set<Subscription> subscriptions = this.subscriptionsMap.get(parameter);
-									if (subscriptions == null) {
-										continue;
-									}
-									for (Subscription subscription : subscriptions) {
-										subscription.notifyUpdate();
-									}
-								}
-							}
-						}
-						finally {
+		try {
+			if (!startingLatch.await(5, TimeUnit.SECONDS)) {
+				throw new IllegalStateException("Failed to start " + this);
+			}
+		}
+		catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Failed to start " + this, ex);
+		}
+	}
+
+	private void doStart(CountDownLatch startingLatch) {
+		try {
+			while (isActive()) {
+				try {
+					PgConnection conn = this.connectionSupplier.get();
+					try (Statement stmt = conn.createStatement()) {
+						stmt.execute("LISTEN " + this.tablePrefix.toLowerCase() + "channel_message_notify");
+					}
+					catch (Exception ex) {
+						try {
 							conn.close();
 						}
-					}
-					catch (Exception e) {
-						// The getNotifications method does not throw a meaningful message on interruption.
-						// Therefore, we do not log an error, unless it occurred while active.
-						if (isActive()) {
-							LOGGER.error(e, "Failed to poll notifications from Postgres database");
+						catch (Exception suppressed) {
+							ex.addSuppressed(suppressed);
 						}
+						throw ex;
+					}
+					this.subscriptionsMap.values()
+							.forEach(subscriptions -> subscriptions.forEach(Subscription::notifyUpdate));
+					try {
+						this.connection = conn;
+						while (isActive()) {
+							startingLatch.countDown();
+
+							PGNotification[] notifications = conn.getNotifications((int) this.notificationTimeout.toMillis());
+							// Unfortunately, there is no good way of interrupting a notification
+							// poll but by closing its connection.
+							if (!isActive()) {
+								return;
+							}
+							if ((notifications == null || notifications.length == 0) && !conn.isValid(1)) {
+								//We did not receive any notifications within the timeout period.
+								//If the connection is still valid, we will continue polling
+								//Otherwise, we will close the connection and re-establish it.
+								break;
+							}
+							for (PGNotification notification : notifications) {
+								String parameter = notification.getParameter();
+								Set<Subscription> subscriptions = this.subscriptionsMap.get(parameter);
+								if (subscriptions == null) {
+									continue;
+								}
+								for (Subscription subscription : subscriptions) {
+									subscription.notifyUpdate();
+								}
+							}
+
+						}
+					}
+					finally {
+						conn.close();
+					}
+				}
+				catch (Exception e) {
+					// The getNotifications method does not throw a meaningful message on interruption.
+					// Therefore, we do not log an error, unless it occurred while active.
+					if (isActive()) {
+						LOGGER.error(e, "Failed to poll notifications from Postgres database");
 					}
 				}
 			}
-			finally {
-				this.latch.countDown();
-			}
-		});
+		}
+		finally {
+			this.latch.countDown();
+		}
 
 		try {
 			if (!startingLatch.await(5, TimeUnit.SECONDS)) {
