@@ -236,9 +236,10 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 							if (!isActive()) {
 								return;
 							}
-							if (notifications == null || notifications.length == 0) {
+							if ((notifications == null || notifications.length == 0) && !conn.isValid(1)) {
 								//We did not receive any notifications within the timeout period.
-								//We will close the connection and re-establish it.
+								//If the connection is still valid, we will continue polling
+								//Otherwise, we will close the connection and re-establish it.
 								break;
 							}
 							for (PGNotification notification : notifications) {
