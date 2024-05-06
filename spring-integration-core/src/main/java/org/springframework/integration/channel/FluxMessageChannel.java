@@ -86,13 +86,11 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private boolean tryEmitMessage(Message<?> message) {
 		Message<?> messageToEmit = message;
-		if (IntegrationReactiveUtils.isContextPropagationPresent) {
-			ContextView contextView = IntegrationReactiveUtils.captureReactorContext();
-			if (!contextView.isEmpty()) {
-				messageToEmit = MutableMessageBuilder.fromMessage(message)
-						.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, contextView)
-						.build();
-			}
+		ContextView contextView = IntegrationReactiveUtils.captureReactorContext();
+		if (!contextView.isEmpty()) {
+			messageToEmit = MutableMessageBuilder.fromMessage(message)
+					.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, contextView)
+					.build();
 		}
 		return switch (this.sink.tryEmitNext(messageToEmit)) {
 			case OK -> true;
