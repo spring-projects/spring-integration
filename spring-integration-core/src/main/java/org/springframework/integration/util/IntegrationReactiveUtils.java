@@ -36,6 +36,7 @@ import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AckUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -73,7 +74,8 @@ public final class IntegrationReactiveUtils {
 	public static final boolean isContextPropagationPresent = ClassUtils.isPresent(
 			"io.micrometer.context.ContextSnapshot", IntegrationReactiveUtils.class.getClassLoader());
 
-	private static final ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY = ContextSnapshotFactory.builder().build();
+	private static final ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY =
+			isContextPropagationPresent ? ContextSnapshotFactory.builder().build() : null;
 
 	private IntegrationReactiveUtils() {
 	}
@@ -81,11 +83,15 @@ public final class IntegrationReactiveUtils {
 	/**
 	 * Capture a Reactor {@link ContextView} from the current thread local state
 	 * according to the {@link ContextSnapshotFactory} logic.
-	 * @return the Reactor {@link ContextView} from the current thread local state.
+	 * If no {@code io.micrometer:context-propagation} library is on classpath,
+	 * the {@link Context:empty()} is returned.
+	 * @return the Reactor {@link ContextView} from the current thread local state or {@link Context:empty()}.
 	 * @since 6.2.5
 	 */
 	public static ContextView captureReactorContext() {
-		return CONTEXT_SNAPSHOT_FACTORY.captureAll().updateContext(Context.empty());
+		return isContextPropagationPresent
+				? CONTEXT_SNAPSHOT_FACTORY.captureAll().updateContext(Context.empty())
+				: Context.empty();
 	}
 
 	/**
@@ -94,10 +100,12 @@ public final class IntegrationReactiveUtils {
 	 * @param context the Reactor {@link ContextView} to populate from.
 	 * @return the {@link io.micrometer.context.ContextSnapshot.Scope} as a {@link AutoCloseable}
 	 * to not pollute the target classpath. Can be cast if necessary.
+	 * Or null if there is no {@code io.micrometer:context-propagation} library is on classpath.
 	 * @since 6.2.5
 	 */
+	@Nullable
 	public static AutoCloseable setThreadLocalsFromReactorContext(ContextView context) {
-		return CONTEXT_SNAPSHOT_FACTORY.setThreadLocalsFrom(context);
+		return isContextPropagationPresent ? CONTEXT_SNAPSHOT_FACTORY.setThreadLocalsFrom(context) : null;
 	}
 
 	/**
@@ -175,14 +183,12 @@ public final class IntegrationReactiveUtils {
 			Sinks.Many<Message<T>> sink = Sinks.many().unicast().onBackpressureError();
 			MessageHandler messageHandler = (message) -> {
 				Message<?> messageToEmit = message;
-				if (IntegrationReactiveUtils.isContextPropagationPresent) {
 					ContextView contextView = IntegrationReactiveUtils.captureReactorContext();
 					if (!contextView.isEmpty()) {
 						messageToEmit = MutableMessageBuilder.fromMessage(message)
 								.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, contextView)
 								.build();
 					}
-				}
 				while (true) {
 					switch (sink.tryEmitNext((Message<T>) messageToEmit)) {
 						case FAIL_NON_SERIALIZED:
