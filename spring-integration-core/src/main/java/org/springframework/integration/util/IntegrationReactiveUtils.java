@@ -84,8 +84,8 @@ public final class IntegrationReactiveUtils {
 	 * Capture a Reactor {@link ContextView} from the current thread local state
 	 * according to the {@link ContextSnapshotFactory} logic.
 	 * If no {@code io.micrometer:context-propagation} library is on classpath,
-	 * the {@link Context:empty()} is returned.
-	 * @return the Reactor {@link ContextView} from the current thread local state or {@link Context:empty()}.
+	 * the {@link Context#empty()} is returned.
+	 * @return the Reactor {@link ContextView} from the current thread local state or {@link Context#empty()}.
 	 * @since 6.2.5
 	 */
 	public static ContextView captureReactorContext() {
