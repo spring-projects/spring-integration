@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -193,8 +193,11 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 				String[] files = new File("remote-test-dir").list();
 				for (String fileName : files) {
-					when(sftpClient.read("remote-test-dir/" + fileName))
-							.thenReturn(new FileInputStream("remote-test-dir/" + fileName));
+					String remoteFilePath = "remote-test-dir/" + fileName;
+					when(sftpClient.canonicalPath(remoteFilePath))
+							.thenReturn("/" + remoteFilePath);
+					when(sftpClient.read("/" + remoteFilePath))
+							.thenReturn(new FileInputStream(remoteFilePath));
 				}
 				when(sftpClient.readDir("/remote-test-dir")).thenReturn(this.sftpEntries);
 
