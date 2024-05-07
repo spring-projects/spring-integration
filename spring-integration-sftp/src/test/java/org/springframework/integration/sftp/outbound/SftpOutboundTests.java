@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -260,17 +260,25 @@ public class SftpOutboundTests {
 	public void testExists() throws IOException {
 		SftpClient sftpClient = mock(SftpClient.class);
 
+		willReturn("/exist")
+				.given(sftpClient)
+				.canonicalPath("exist");
+
+		willReturn("/notExist")
+				.given(sftpClient)
+				.canonicalPath("notExist");
+
 		willReturn(new SftpClient.Attributes())
 				.given(sftpClient)
-				.lstat(eq("exist"));
+				.lstat("/exist");
 
 		willThrow(new SftpException(SftpConstants.SSH_FX_NO_SUCH_FILE, "notExist"))
 				.given(sftpClient)
-				.lstat(eq("notExist"));
+				.lstat("/notExist");
 
 		willThrow(new SshException(SshConstants.SSH_OPEN_CONNECT_FAILED, "Connection lost."))
 				.given(sftpClient)
-				.lstat(and(not(eq("exist")), not(eq("notExist"))));
+				.lstat(and(not(eq("/exist")), not(eq("/notExist"))));
 
 		SftpSession sftpSession = new SftpSession(sftpClient);
 
