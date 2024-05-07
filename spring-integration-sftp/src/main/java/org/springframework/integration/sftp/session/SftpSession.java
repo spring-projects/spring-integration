@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,23 +95,24 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 				remoteDir = remotePath;
 			}
 		}
-		remoteDir =
-				!remoteDir.isEmpty() && remoteDir.charAt(0) == '/'
-						? remoteDir
-						: this.sftpClient.canonicalPath(remoteDir);
+		remoteDir = normalizePath(remoteDir);
 		return StreamSupport.stream(this.sftpClient.readDir(remoteDir).spliterator(), false)
 				.filter((entry) -> !isPattern || PatternMatchUtils.simpleMatch(remoteFile, entry.getFilename()));
 	}
 
 	@Override
 	public void read(String source, OutputStream os) throws IOException {
-		InputStream is = this.sftpClient.read(source);
+		InputStream is = readRaw(source);
 		FileCopyUtils.copy(is, os);
 	}
 
 	@Override
 	public InputStream readRaw(String source) throws IOException {
-		return this.sftpClient.read(source);
+		return this.sftpClient.read(normalizePath(source));
+	}
+
+	private String normalizePath(String path) throws IOException {
+		return !path.isEmpty() && path.charAt(0) == '/' ? path : this.sftpClient.canonicalPath(path);
 	}
 
 	@Override
