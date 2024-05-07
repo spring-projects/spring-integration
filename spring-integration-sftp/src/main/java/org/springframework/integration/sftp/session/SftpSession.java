@@ -189,7 +189,7 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 	@Override
 	public boolean exists(String path) {
 		try {
-			this.sftpClient.lstat(path);
+			this.sftpClient.lstat(normalizePath(path));
 			return true;
 		}
 		catch (SftpException ex) {
