@@ -75,7 +75,7 @@ public class SftpTests extends SftpTestSupport {
 		IntegrationFlow flow = IntegrationFlow
 				.from(Sftp.inboundAdapter(sessionFactory())
 								.preserveTimestamp(true)
-								.remoteDirectory("sftpSource")
+								.remoteDirectory("/sftpSource")
 								.regexFilter(".*\\.txt$")
 								.localFilenameExpression("#this.toUpperCase() + '.a'")
 								.localDirectory(getTargetLocalDirectory())
@@ -91,6 +91,7 @@ public class SftpTests extends SftpTestSupport {
 		File file = (File) payload;
 		assertThat(file.getName()).isEqualTo(" SFTPSOURCE1.TXT.a");
 		assertThat(file.getAbsolutePath()).contains("localTarget");
+		assertThat(message.getHeaders()).containsEntry(FileHeaders.REMOTE_DIRECTORY, "/sftpSource");
 
 		message = out.receive(10_000);
 		assertThat(message).isNotNull();
