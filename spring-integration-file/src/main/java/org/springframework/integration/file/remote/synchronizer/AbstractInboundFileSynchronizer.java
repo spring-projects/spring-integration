@@ -505,7 +505,10 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				try {
 					String remoteFileMetadata =
 							new URI(protocol(), null, host, Integer.parseInt(port),
-									'/' + remoteDirectoryPath, null, remoteFileName)
+									remoteDirectoryPath.charAt(0) == '/'
+											? remoteDirectoryPath :
+											'/' + remoteDirectoryPath,
+									null, remoteFileName)
 									.toString();
 					this.remoteFileMetadataStore.put(buildMetadataKey(localFile), remoteFileMetadata);
 				}
