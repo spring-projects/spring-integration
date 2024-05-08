@@ -444,7 +444,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 	}
 
-	protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, // NOSONAR
+	protected boolean copyFileToLocalDirectory(@Nullable String remoteDirectoryPath, // NOSONAR
 			@Nullable EvaluationContext localFileEvaluationContext, F remoteFile, File localDirectory,
 			Session<F> session) throws IOException {
 
@@ -503,12 +503,15 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				String host = hostPort.substring(0, colonIndex);
 				String port = hostPort.substring(colonIndex + 1);
 				try {
+					String remoteDir = "/";
+					if (remoteDirectoryPath != null) {
+						remoteDir =
+								remoteDirectoryPath.charAt(0) == '/'
+										? remoteDirectoryPath :
+										'/' + remoteDirectoryPath;
+					}
 					String remoteFileMetadata =
-							new URI(protocol(), null, host, Integer.parseInt(port),
-									remoteDirectoryPath.charAt(0) == '/'
-											? remoteDirectoryPath :
-											'/' + remoteDirectoryPath,
-									null, remoteFileName)
+							new URI(protocol(), null, host, Integer.parseInt(port), remoteDir, null, remoteFileName)
 									.toString();
 					this.remoteFileMetadataStore.put(buildMetadataKey(localFile), remoteFileMetadata);
 				}
