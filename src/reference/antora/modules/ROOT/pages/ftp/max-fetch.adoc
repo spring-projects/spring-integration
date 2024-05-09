@@ -24,3 +24,4 @@ If the poller is active when the property is changed, the change takes effect on
 Starting with version 5.1, the synchronizer can be provided with a `Comparator<FTPFile>`.
 This is useful when restricting the number of files fetched with `maxFetchSize`.
 
+Also see general xref:ftp/inbound.adoc[FTP Inbound Channel Adapter] chapter for information about `FileListFilter` configuration.
