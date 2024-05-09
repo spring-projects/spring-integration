@@ -70,7 +70,7 @@ The Project Lead is Artem Bilan.
 
 For the actual code contribution process, read the Contributor Guidelines for Spring Integration.
 They apply for the samples project as well.
-You can find them at https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.md
+You can find them at https://github.com/spring-projects/spring-integration/blob/main/CONTRIBUTING.adoc
 
 This process ensures that every commit gets peer-reviewed.
 As a matter of fact, the core committers follow the exact same rules.
