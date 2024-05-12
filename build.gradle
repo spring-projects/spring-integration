@@ -22,7 +22,7 @@ plugins {
     id 'org.jetbrains.dokka' version "$kotlinVersion"
     id 'org.asciidoctor.jvm.pdf' version '3.3.2'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
-    id 'com.github.spotbugs' version '6.0.13'
+    id 'com.github.spotbugs' version '6.0.14'
 }
 
 if (isCI) {
@@ -109,7 +109,7 @@ ext {
     springSecurityVersion = '6.1.9'
     springVersion = '6.0.19'
     springWsVersion = '4.0.10'
-    testcontainersVersion = '1.19.7'
+    testcontainersVersion = '1.19.8'
     tomcatVersion = '10.1.23'
     xmlUnitVersion = '2.9.1'
     xstreamVersion = '1.4.20'
