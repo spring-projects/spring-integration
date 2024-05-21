@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
+import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -147,6 +148,9 @@ public class Mqttv3ClientManager
 		finally {
 			try {
 				client.close();
+				if (getConnectionInfo().isAutomaticReconnect()) {
+					MqttUtils.stopClientReconnectCycle(client);
+				}
 			}
 			catch (MqttException e) {
 				logger.error("Could not close the client", e);
