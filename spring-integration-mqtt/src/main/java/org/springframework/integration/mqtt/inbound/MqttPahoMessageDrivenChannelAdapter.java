@@ -228,6 +228,9 @@ public class MqttPahoMessageDrivenChannelAdapter
 
 			try {
 				this.client.disconnectForcibly(getDisconnectCompletionTimeout());
+				if (getConnectionInfo().isAutomaticReconnect()) {
+					MqttUtils.stopClientReconnectCycle(this.client);
+				}
 			}
 			catch (MqttException ex) {
 				logger.error(ex, "Exception while disconnecting");
