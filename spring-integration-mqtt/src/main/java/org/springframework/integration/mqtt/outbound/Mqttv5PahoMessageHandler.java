@@ -41,6 +41,7 @@ import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.event.MqttProtocolErrorEvent;
 import org.springframework.integration.mqtt.support.MqttHeaderMapper;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.integration.mqtt.support.MqttUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -184,6 +185,9 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		try {
 			if (getClientManager() == null) {
 				this.mqttClient.disconnect().waitForCompletion(getDisconnectCompletionTimeout());
+				if (getConnectionInfo().isAutomaticReconnect()) {
+					MqttUtils.stopClientReconnectCycle(this.mqttClient);
+				}
 			}
 		}
 		catch (MqttException ex) {

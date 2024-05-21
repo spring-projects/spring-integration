@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -488,8 +488,8 @@ public class MqttAdapterTests {
 		given(token.getGrantedQos()).willReturn(new int[] {2, 0});
 		willReturn(token).given(client).subscribe(any(String[].class), any(int[].class), any());
 
-		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
-				"baz", "fix");
+		MqttPahoMessageDrivenChannelAdapter adapter =
+				new MqttPahoMessageDrivenChannelAdapter("tcp://mqtt.host", "bar", factory, "baz", "fix");
 		AtomicReference<Method> method = new AtomicReference<>();
 		ReflectionUtils.doWithMethods(MqttPahoMessageDrivenChannelAdapter.class, m -> {
 			m.setAccessible(true);
