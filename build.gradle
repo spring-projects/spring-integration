@@ -111,7 +111,7 @@ ext {
     springAmqpVersion = '3.1.5'
     springDataVersion = '2024.0.0'
     springGraphqlVersion = '1.3.1-SNAPSHOT'
-    springKafkaVersion = '3.2.0-RC1'
+    springKafkaVersion = '3.2.1-SNAPSHOT'
     springRetryVersion = '2.0.6'
     springSecurityVersion = '6.3.1-SNAPSHOT'
     springVersion = '6.1.7'
