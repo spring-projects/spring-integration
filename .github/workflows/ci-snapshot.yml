@@ -5,6 +5,7 @@ on:
 
   push:
     branches:
+      - main
       - '*.x'
 
 concurrency:
@@ -14,10 +15,7 @@ concurrency:
 jobs:
   build-snapshot:
     uses: spring-io/spring-github-workflows/.github/workflows/spring-artifactory-gradle-snapshot.yml@main
-    with:
-      artifactoryUrl: https://repo.spring.vmware.com
-      targetRepository: spring-commercial-snapshot-local
-      artifactoryProjectKey: spring
     secrets:
-      ARTIFACTORY_USERNAME: ${{ secrets.COMMERCIAL_ARTIFACTORY_USERNAME }}
-      ARTIFACTORY_PASSWORD: ${{ secrets.COMMERCIAL_ARTIFACTORY_PASSWORD }}
+      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+      ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+      ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}

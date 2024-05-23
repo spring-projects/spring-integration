@@ -178,10 +178,6 @@ allprojects {
 
 }
 
-apply from: 'publish-maven.gradle'
-apply from: 'commercial-settings.gradle'
-apply from: 'docs.gradle'
-
 configure(javaProjects) { subproject ->
     apply plugin: 'java-library'
     apply plugin: 'eclipse'
@@ -189,6 +185,8 @@ configure(javaProjects) { subproject ->
     apply plugin: 'checkstyle'
     apply plugin: 'kotlin'
     apply plugin: 'kotlin-spring'
+
+    apply from: "${rootDir}/gradle/publish-maven.gradle"
 
     sourceSets {
         test {
@@ -1104,6 +1102,7 @@ project('spring-integration-bom') {
     description = 'Spring Integration (Bill of Materials)'
 
     apply plugin: 'java-platform'
+    apply from: "${rootDir}/gradle/publish-maven.gradle"
 
     dependencies {
         constraints {
@@ -1152,6 +1151,8 @@ dokkaHtmlMultiModule {
     moduleName.set('spring-integration')
     outputDirectory.set(file("$buildDir/kdoc"))
 }
+
+apply from: "${rootDir}/gradle/docs.gradle"
 
 task schemaZip(type: Zip) {
     group = 'Distribution'
@@ -1263,6 +1264,8 @@ task dist(dependsOn: assemble) {
     group = 'Distribution'
     description = 'Builds -dist, -docs and -schema distribution archives.'
 }
+
+apply from: "${rootDir}/gradle/publish-maven.gradle"
 
 publishing {
     publications {
