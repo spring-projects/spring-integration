@@ -1,0 +1,32 @@
+def artifactoryUsername = System.getenv('ARTIFACTORY_USERNAME')
+def artifactoryPassword = System.getenv('ARTIFACTORY_PASSWORD')
+
+allprojects {
+
+	repositories {
+		if (isCI) {
+			maven {
+				url 'https://repo.spring.vmware.com/artifactory/spring-commercial'
+				credentials {
+					username = artifactoryUsername
+					password = artifactoryPassword
+				}
+			}
+			if (version.endsWith('SNAPSHOT')) {
+				maven {
+					url 'https://repo.spring.vmware.com/artifactory/spring-commercial-snapshot-local'
+					credentials {
+						username = artifactoryUsername
+						password = artifactoryPassword
+					}
+				}
+			}
+		} else {
+			maven { url 'https://repo.spring.io/spring-commercial-remote' }
+			if (version.endsWith('SNAPSHOT')) {
+				maven { url 'https://repo.spring.io/spring-commercial-snapshot-remote' }
+			}
+		}
+	}
+
+}

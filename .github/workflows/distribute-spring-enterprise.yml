@@ -1,0 +1,28 @@
+name: Distribute Release to Spring Enterprise
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: 'The release version of the artifacts to distribute'
+        required: true
+      buildName:
+        description: 'The Artifactory Build Name'
+        required: true
+      buildNumber:
+        description: 'The Artifactory Build Number'
+        required: true
+
+
+jobs:
+  distribute-release-to-spring-enterprise:
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-enterprise-release-bundle.yml@main
+    with:
+      artifactoryUrl: https://usw1.packages.broadcom.com
+      bundleName: TNZ-${{ github.event.repository.name }}
+      releaseVersion: ${{ inputs.releaseVersion }}
+      buildName: ${{ inputs.buildName }}
+      buildNumber: ${{ inputs.buildNumber }}
+    secrets:
+      ARTIFACTORY_USERNAME: ${{ secrets.COMMERCIAL_ARTIFACTORY_USW1_USERNAME }}
+      ARTIFACTORY_PASSWORD: ${{ secrets.COMMERCIAL_ARTIFACTORY_USW1_PASSWORD }}

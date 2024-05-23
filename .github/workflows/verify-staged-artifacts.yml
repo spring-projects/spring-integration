@@ -9,9 +9,8 @@ on:
         type: string
 
 env:
-  DEVELOCITY_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
-  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+  ARTIFACTORY_USERNAME: ${{ secrets.COMMERCIAL_ARTIFACTORY_USERNAME }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.COMMERCIAL_ARTIFACTORY_PASSWORD }}
 
 jobs:
   verify-staged-with-samples:
@@ -33,7 +32,14 @@ jobs:
           printf "allprojects {
                   repositories {
                     maven { 
-                      url 'https://repo.spring.io/libs-staging-local'
+                      url 'https://repo.spring.vmware.com/artifactory/spring-commercial-staging-local'
+                      credentials {
+                        username = '$ARTIFACTORY_USERNAME'
+                        password = '$ARTIFACTORY_PASSWORD'
+                      }
+                    }
+          			maven {
+                      url 'https://repo.spring.vmware.com/artifactory/spring-commercial'
                       credentials {
                         username = '$ARTIFACTORY_USERNAME'
                         password = '$ARTIFACTORY_PASSWORD'
