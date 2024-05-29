@@ -89,7 +89,7 @@ class KotlinDslTests {
 
 	@Autowired
 	@Qualifier("functionGateway")
-	private lateinit var upperCaseFunction: Function<ByteArray, String>
+	private lateinit var upperCaseFunction: Function<Any, Any>
 
 	@Test
 	fun `uppercase function`() {

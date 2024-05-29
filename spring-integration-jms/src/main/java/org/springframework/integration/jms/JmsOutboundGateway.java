@@ -1367,10 +1367,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			if (isSubscriptionDurable() && !isPubSubDomain()) {
 				throw new IllegalArgumentException("A durable subscription requires a topic (pub-sub domain)");
 			}
-			synchronized (this.lifecycleMonitor) {
+			this.lifecycleLock.lock();
+			try {
 				if (isSubscriptionDurable() && this.getConcurrentConsumers() != 1) {
 					throw new IllegalArgumentException("Only 1 concurrent consumer supported for durable subscription");
 				}
+			}
+			finally {
+				this.lifecycleLock.unlock();
 			}
 		}
 

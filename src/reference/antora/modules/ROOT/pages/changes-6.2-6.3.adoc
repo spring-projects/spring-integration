@@ -1,0 +1,39 @@
+[[migration-6.2-6.3]]
+= Changes between 6.2 and 6.3
+
+[[x6.3-new-components]]
+== New Components
+
+[[x6.3-general]]
+== General Changes
+
+The `MessageHistory` header is now mutable, append-only container.
+And all the subsequent tracks don't create new message - only their entry is added to existing message history header.
+See xref:message-history.adoc[Message History Chapter] for more information.
+
+All the `MessageChannel` implementations based on the `UnicastingDispatcher` now can be configured with a `Predicate<Exception> failoverStrategy` for dynamic decision for the failover on the exception thrown from the current `MessageHandler`.
+See xref:channel/configuration.adoc[Message Channel Configuration] for more information.
+
+[[x6.3-security-changes]]
+== Security Support Changes
+
+The `spring-integration-security` module is completely removed (being deprecated previously) in favor of API from `spring-security-messaging` module.
+See xref:security.adoc[Security in Spring Integration] for more information.
+
+[[x6.3-mqtt]]
+== MQTT Support Changes
+
+The fine-grained configuration based on `MqttSubscription` API is exposed on the `Mqttv5PahoMessageDrivenChannelAdapter`.
+See xref:mqtt.adoc[MQTT Support] for more information.
+
+[[x6.3-testing]]
+== Testing Support Changes
+
+The `MockIntegrationContext.substituteTriggerFor()` API has been introduced.
+See xref:testing.adoc[Testing Support] for more information.
+
+[[x6.3-jms]]
+== JMS Support Changes
+
+The `ChannelPublishingJmsMessageListener` can now be supplied with a `RetryTemplate` and `RecoveryCallback<Message<?>>` for retries on the downstream send operations.
+See xref:jms.adoc#jms-message-driven-channel-adapter[Message Driven Channel Adapter] for more information.

@@ -15,13 +15,13 @@ This section details the compatible https://www.oracle.com/technetwork/java/java
 [[supported-java-versions]]
 === Compatible Java Versions
 
-For Spring Integration 6.3.x, the minimum compatible Java version is Java SE 17.
+For Spring Integration 6.4.x, the minimum compatible Java version is Java SE 17.
 Older versions of Java are not supported.
 
 [[supported-spring-versions]]
 === Compatible Versions of the Spring Framework
 
-Spring Integration 6.3.x requires Spring Framework 6.1 or later.
+Spring Integration 6.4.x requires Spring Framework 6.2 or later.
 
 [[code-conventions]]
 == Code Conventions

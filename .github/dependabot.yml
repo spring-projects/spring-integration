@@ -46,7 +46,7 @@ updates:
           - org.springframework.security*
 
   - package-ecosystem: gradle
-    target-branch: 6.2.x
+    target-branch: 6.3.x
     directory: /
     schedule:
       interval: weekly
@@ -69,6 +69,7 @@ updates:
           - io.spring.*
           - org.ajoberstar.grgit
           - org.antora
+          - com.google.protobuf
           - io.micrometer:micrometer-docs-generator
           - com.willowtreeapps.assertk:assertk-jvm
           - org.jetbrains.dokka
@@ -88,9 +89,10 @@ updates:
           - org.apache.tomcat.embed:tomcat-embed-websocket
           - org.xmlunit:xmlunit-assertj3
           - com.thoughtworks.xstream:xstream
+          - org.springframework.security*
 
   - package-ecosystem: gradle
-    target-branch: 6.1.x
+    target-branch: 6.2.x
     directory: /
     schedule:
       interval: weekly
@@ -146,7 +148,7 @@ updates:
           - '*'
 
   - package-ecosystem: github-actions
-    target-branch: 6.2.x
+    target-branch: 6.3.x
     directory: /
     schedule:
       interval: weekly
@@ -159,7 +161,7 @@ updates:
           - '*'
 
   - package-ecosystem: github-actions
-    target-branch: 6.1.x
+    target-branch: 6.2.x
     directory: /
     schedule:
       interval: weekly

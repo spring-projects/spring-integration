@@ -96,12 +96,13 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public MultiValueMap<String, ?> read(Class<? extends MultiValueMap<String, ?>> clazz,
 			HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
 
 		MediaType contentType = inputMessage.getHeaders().getContentType();
 		if (!MediaType.MULTIPART_FORM_DATA.includes(contentType)) {
-			return this.wrappedConverter.read(clazz, inputMessage);
+			return (MultiValueMap<String, ?>) this.wrappedConverter.read(clazz, inputMessage);
 		}
 		Assert.state(inputMessage instanceof MultipartHttpInputMessage,
 				"A request with 'multipart/form-data' Content-Type must be a MultipartHttpInputMessage. "
