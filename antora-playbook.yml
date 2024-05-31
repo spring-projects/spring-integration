@@ -1,14 +1,8 @@
 antora:
   extensions:
-  - '@springio/antora-extensions/partial-build-extension'
-  # atlas-extension must be before latest-version-extension so the latest versions are applied to imported versions
-  - '@antora/atlas-extension'
-  - require: '@springio/antora-extensions/latest-version-extension'
-  - require: '@springio/antora-extensions/inject-collector-cache-config-extension'
-  - '@antora/collector-extension'
-  - require: '@springio/antora-extensions/root-component-extension'
-    root_component_name: 'integration'
-  - '@springio/antora-extensions/static-page-extension'
+    - require: '@springio/antora-extensions'
+      root_component_name: 'amqp'
+
 site:
   title: Spring Integration
   url: https://docs.spring.io/spring-integration/reference
@@ -27,7 +21,7 @@ asciidoc:
   attributes:
     page-stackoverflow-url: https://stackoverflow.com/tags/spring-integration
     page-related-doc-categories: security
-    page-related-doc-projects: batch,framework,integration
+    page-related-doc-projects: batch,framework,integration,amqp,kafka
     page-pagination: ''
     hide-uri-scheme: '@'
     tabs-sync-option: '@'
@@ -40,7 +34,7 @@ urls:
   redirect_facility: httpd
 ui:
   bundle:
-    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.4.11/ui-bundle.zip
+    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.4.15/ui-bundle.zip
     snapshot: true
 runtime:
   log:
