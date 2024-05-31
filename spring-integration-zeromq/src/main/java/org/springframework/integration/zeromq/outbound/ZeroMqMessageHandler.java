@@ -256,7 +256,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 							String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
 							if (topic != null) {
 								var frame = new ZFrame(topic);
-								if(wrapTopic) {
+								if (wrapTopic) {
 									msg.wrap(frame);
 								} else {
 									msg.push(frame);
