@@ -88,6 +88,8 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 
 	private volatile Disposable socketMonoSubscriber;
 
+	private volatile boolean wrapTopic = true;
+
 	/**
 	 * Create an instance based on the provided {@link ZContext} and connection string.
 	 * @param context the {@link ZContext} to use for creating sockets.
@@ -191,6 +193,15 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 		this.topicExpression = topicExpression;
 	}
 
+	/**
+	 * Specify if the topic that {@link SocketType#PUB} socket is going to use for distributing messages into the
+	 * subscriptions must be wrapped with an additional empty frame.
+	 * @param wrapTopic true iff the topic must be wrapped with an additional empty frame.
+	 */
+	public void wrapTopic(boolean wrapTopic) {
+		this.wrapTopic = wrapTopic;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "zeromq:outbound-channel-adapter";
@@ -244,7 +255,8 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 						if (socket.base() instanceof Pub) {
 							String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
 							if (topic != null) {
-								msg.wrap(new ZFrame(topic));
+								var frame = new ZFrame(topic);
+								wrapTopic ? msg.wrap(frame) : msg.push(frame);
 							}
 						}
 					}
