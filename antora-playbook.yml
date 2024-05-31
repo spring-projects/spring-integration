@@ -1,7 +1,7 @@
 antora:
   extensions:
     - require: '@springio/antora-extensions'
-      root_component_name: 'amqp'
+      root_component_name: 'integration'
 
 site:
   title: Spring Integration
