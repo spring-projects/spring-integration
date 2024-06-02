@@ -74,7 +74,7 @@ ext {
     hamcrestVersion = '2.2'
     hazelcastVersion = '5.4.0'
     hibernateVersion = '6.5.2.Final'
-    hsqldbVersion = '2.7.2'
+    hsqldbVersion = '2.7.3'
     h2Version = '2.2.224'
     jacksonVersion = '2.17.1'
     jaxbVersion = '4.0.5'
