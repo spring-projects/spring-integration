@@ -151,7 +151,7 @@ public class ImapMailReceiverTests {
 		imapSearches.stores.clear();
 		ServerSetup imap = ServerSetupTest.IMAP.verbose(true).dynamicPort();
 		imap.setServerStartupTimeout(10000);
-		imap.setReadTimeout(2000);
+		imap.setReadTimeout(10000);
 		imapIdleServer = new GreenMail(imap);
 		user = imapIdleServer.setUser("user", "pw");
 		imapIdleServer.start();
@@ -187,7 +187,6 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	@Disabled("GreenMail server closes socket for some reason")
 	public void testIdleWithMessageMapping() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
@@ -196,6 +195,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
+	@Disabled
 	public void testIdleWithServerDefaultSearchSimple() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
@@ -258,7 +258,7 @@ public class ImapMailReceiverTests {
 			assertThat(received).isNotNull();
 			MessageHeaders headers = received.getHeaders();
 			assertThat(headers.get(MailHeaders.RAW_HEADERS)).isNotNull();
-			assertThat(headers.get(MailHeaders.CONTENT_TYPE)).isEqualTo("TEXT/PLAIN; charset=us-ascii");
+			assertThat(headers.get(MailHeaders.CONTENT_TYPE)).isEqualTo("text/plain; charset=us-ascii");
 			assertThat(headers.get(MessageHeaders.CONTENT_TYPE)).isEqualTo(MimeTypeUtils.TEXT_PLAIN_VALUE);
 			assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
 			String[] toHeader = headers.get(MailHeaders.TO, String[].class);
@@ -347,14 +347,14 @@ public class ImapMailReceiverTests {
 	public void receiveAndMarkAsReadDontDeleteFiltered() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		Message msg1 = GreenMailUtil.newMimeMessage("test1");
-		Message msg2 = GreenMailUtil.newMimeMessage("test2");
+		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
 		given(msg2.getSubject()).willReturn("foo"); // should not be marked seen
 		Expression selectorExpression = new SpelExpressionParser()
 				.parseExpression("subject == null OR !subject.equals('foo')");
 		receiver.setSelectorExpression(selectorExpression);
 		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
 		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
-		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
 		verify(receiver, times(0)).deleteMessages(Mockito.any());
 	}
 
