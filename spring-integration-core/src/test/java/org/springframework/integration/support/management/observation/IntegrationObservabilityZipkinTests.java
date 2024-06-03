@@ -48,7 +48,9 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,6 +104,18 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 				assertThat(configuration.observedHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 				await().untilAsserted(() -> assertThat(configuration.observationReference.get()).isNotNull());
+
+				MessageChannel errorChannel = applicationContext.getBean("myErrorChannel", MessageChannel.class);
+				ErrorMessage errorMessage =
+						new ErrorMessage(new RuntimeException("some error"), new GenericMessage<>("some original"));
+				errorChannel.send(errorMessage);
+
+				assertThat(configuration.errorMessageReceivedLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+				ErrorMessage receivedErrorMessage = configuration.errorMessageReference.get();
+				assertThat(receivedErrorMessage.getOriginalMessage()).isEqualTo(errorMessage.getOriginalMessage());
+				assertThat(receivedErrorMessage.getPayload()).isEqualTo(errorMessage.getPayload());
+				assertThat(receivedErrorMessage.getHeaders()).containsKeys("X-B3-TraceId", "X-B3-SpanId");
 			}
 
 			SpansAssert.assertThat(bb.getFinishedSpans())
@@ -119,7 +133,7 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_NAME.asString(), "queueChannel")
 							.hasTag(IntegrationObservation.ProducerTags.COMPONENT_TYPE.asString(), "producer")
 							.hasKindEqualTo(Span.Kind.PRODUCER))
-					.hasSize(4);
+					.hasSize(5);
 
 			MeterRegistryAssert.assertThat(getMeterRegistry())
 					.hasTimerWithNameAndTags("spring.integration.handler",
@@ -135,7 +149,7 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 	@EnableIntegration
 	@EnableIntegrationManagement(
 			observationPatterns = {
-					"${spring.integration.management.observation-patterns:testInboundGateway,skippedObservationInboundGateway,queueChannel,observedEndpoint,publishSubscribeChannel}",
+					"${spring.integration.management.observation-patterns:testInboundGateway,skippedObservationInboundGateway,queueChannel,myErrorChannel,observedEndpoint,publishSubscribeChannel}",
 					"${spring.integration.management.observation-patterns:}"
 			})
 	public static class ObservationIntegrationTestConfiguration {
@@ -181,6 +195,17 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 			BridgeHandler bridgeHandler = new BridgeHandler();
 			bridgeHandler.setOutputChannel(publishSubscribeChannel);
 			return bridgeHandler;
+		}
+
+
+		AtomicReference<ErrorMessage> errorMessageReference = new AtomicReference<>();
+
+		CountDownLatch errorMessageReceivedLatch = new CountDownLatch(1);
+
+		@ServiceActivator(inputChannel = "myErrorChannel")
+		void handleError(ErrorMessage errorMessage) {
+			this.errorMessageReference.set(errorMessage);
+			this.errorMessageReceivedLatch.countDown();
 		}
 
 		@Bean
