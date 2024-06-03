@@ -195,7 +195,6 @@ public class IntegrationObservabilityZipkinTests extends SampleTestRunner {
 			return bridgeHandler;
 		}
 
-
 		AtomicReference<ErrorMessage> errorMessageReference = new AtomicReference<>();
 
 		CountDownLatch errorMessageReceivedLatch = new CountDownLatch(1);
