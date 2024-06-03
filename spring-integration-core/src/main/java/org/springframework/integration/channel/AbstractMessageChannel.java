@@ -30,6 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -59,6 +60,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -335,12 +337,22 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private boolean sendWithObservation(Message<?> message, long timeout) {
 		MutableMessage<?> messageToSend = MutableMessage.of(message);
-		return IntegrationObservation.PRODUCER.observation(
-						this.observationConvention,
-						DefaultMessageSenderObservationConvention.INSTANCE,
-						() -> new MessageSenderContext(messageToSend, getComponentName()),
-						this.observationRegistry)
-				.observe(() -> sendInternal(messageToSend, timeout)); // NOSONAR - never null
+		Observation observation = IntegrationObservation.PRODUCER.observation(
+				this.observationConvention,
+				DefaultMessageSenderObservationConvention.INSTANCE,
+				() -> new MessageSenderContext(messageToSend, getComponentName()),
+				this.observationRegistry);
+		Boolean observe = observation.observe(() -> {
+					Message<?> messageToSendInternal = messageToSend;
+					if (message instanceof ErrorMessage errorMessage) {
+						messageToSendInternal =
+								new ErrorMessage(errorMessage.getPayload(),
+										messageToSend.getHeaders(),
+										errorMessage.getOriginalMessage());
+					}
+					return sendInternal(messageToSendInternal, timeout);
+				});
+		return Boolean.TRUE.equals(observe);
 	}
 
 	private boolean sendWithMetrics(Message<?> message, long timeout) {
