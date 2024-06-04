@@ -32,7 +32,6 @@ import org.springframework.integration.jdbc.store.JdbcMessageStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.messaging.Message;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -52,14 +51,14 @@ public class JdbcMessageStoreParserTests {
 	public void testSimpleMessageStoreWithDataSource() {
 		setUp("defaultJdbcMessageStore.xml", getClass());
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
-		assertThat(store instanceof JdbcMessageStore).isTrue();
+		assertThat(store).isInstanceOf(JdbcMessageStore.class);
 	}
 
 	@Test
 	public void testSimpleMessageStoreWithTemplate() {
 		setUp("jdbcOperationsJdbcMessageStore.xml", getClass());
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
-		assertThat(store instanceof JdbcMessageStore).isTrue();
+		assertThat(store).isInstanceOf(JdbcMessageStore.class);
 	}
 
 	@Test
@@ -67,9 +66,9 @@ public class JdbcMessageStoreParserTests {
 		setUp("serializerJdbcMessageStore.xml", getClass());
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
 		Object serializer = TestUtils.getPropertyValue(store, "serializer.serializer");
-		assertThat(serializer instanceof EnhancedSerializer).isTrue();
+		assertThat(serializer).isInstanceOf(EnhancedSerializer.class);
 		Object deserializer = TestUtils.getPropertyValue(store, "deserializer.deserializer");
-		assertThat(deserializer instanceof EnhancedSerializer).isTrue();
+		assertThat(deserializer).isInstanceOf(EnhancedSerializer.class);
 	}
 
 	@Test
@@ -78,7 +77,6 @@ public class JdbcMessageStoreParserTests {
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
 		assertThat(ReflectionTestUtils.getField(store, "region")).isEqualTo("FOO");
 		assertThat(ReflectionTestUtils.getField(store, "tablePrefix")).isEqualTo("BAR_");
-		assertThat(ReflectionTestUtils.getField(store, "lobHandler")).isEqualTo(context.getBean(LobHandler.class));
 	}
 
 	@AfterEach
@@ -99,8 +97,7 @@ public class JdbcMessageStoreParserTests {
 		private final Deserializer<Object> targetDeserializer = new DefaultDeserializer();
 
 		public Object deserialize(InputStream inputStream) throws IOException {
-			Message<?> message = (Message<?>) targetDeserializer.deserialize(inputStream);
-			return message;
+			return targetDeserializer.deserialize(inputStream);
 		}
 
 		public void serialize(Object object, OutputStream outputStream) throws IOException {

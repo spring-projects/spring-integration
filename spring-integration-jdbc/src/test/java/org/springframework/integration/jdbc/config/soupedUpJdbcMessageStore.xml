@@ -9,12 +9,9 @@
 
 	<bean id="messageStore" class="org.springframework.integration.jdbc.store.JdbcMessageStore">
 		<constructor-arg ref="dataSource"/>
-		<property name="lobHandler" ref="lobHandler"/>
 		<property name="region" value="FOO"/>
 		<property name="tablePrefix" value="BAR_"/>
 		<property name="checkDatabaseOnStart" value="false"/>
 	</bean>
-
-	<bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler"/>
 
 </beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.jdbc.support.lob.DefaultLobHandler;
-import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -135,14 +133,12 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 
 			private SerializingConverter serializer = new SerializingConverter();
 
-			private LobHandler lobHandler = new DefaultLobHandler();
-
 			@Override
 			public void setValues(PreparedStatement preparedStatement, Message<?> requestMessage, Object groupId,
 					String region, boolean priorityEnabled) throws SQLException {
 				super.setValues(preparedStatement, requestMessage, groupId, region, priorityEnabled);
 				byte[] messageBytes = this.serializer.convert(requestMessage);
-				this.lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
+				preparedStatement.setBytes(6, messageBytes);
 			}
 
 		};

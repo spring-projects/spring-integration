@@ -143,8 +143,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private SerializingConverter serializer;
 
-	private LobHandler lobHandler = new DefaultLobHandler();
-
 	private MessageRowMapper messageRowMapper;
 
 	private ChannelMessageStorePreparedStatementSetter preparedStatementSetter;
@@ -231,10 +229,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * Override the {@link LobHandler} that is used to create and unpack large objects in SQL queries. The default is
 	 * fine for almost all platforms, but some Oracle drivers require a native implementation.
 	 * @param lobHandler a {@link LobHandler}
+	 * @deprecated since 6.4 (for removal) (with no replacement) in favor of plain JDBC driver support for byte arrays.
 	 */
+	@Deprecated(forRemoval = true, since = "6.4")
 	public void setLobHandler(LobHandler lobHandler) {
-		Assert.notNull(lobHandler, "The provided LobHandler must not be null.");
-		this.lobHandler = lobHandler;
 	}
 
 	/**
@@ -396,8 +394,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * and {@link ChannelMessageStorePreparedStatementSetter} was explicitly set using
 	 * {@link #setMessageRowMapper(MessageRowMapper)} and
 	 * {@link #setPreparedStatementSetter(ChannelMessageStorePreparedStatementSetter)}  respectively, the default
-	 * {@link MessageRowMapper} and {@link ChannelMessageStorePreparedStatementSetter} will be instantiate using the
-	 * specified {@link #deserializer} and {@link #lobHandler}.
+	 * {@link MessageRowMapper} and {@link ChannelMessageStorePreparedStatementSetter} will be instantiated using the
+	 * specified {@link #deserializer}.
 	 * Also, if the jdbcTemplate's fetchSize property ({@link JdbcTemplate#getFetchSize()})
 	 * is not 1, a warning will be logged. When using the {@link JdbcChannelMessageStore}
 	 * with Oracle, the fetchSize value of 1 is needed to ensure FIFO characteristics
@@ -409,7 +407,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		Assert.notNull(this.channelMessageStoreQueryProvider, "A channelMessageStoreQueryProvider must be provided.");
 
 		if (this.messageRowMapper == null) {
-			this.messageRowMapper = new MessageRowMapper(this.deserializer, this.lobHandler);
+			this.messageRowMapper = new MessageRowMapper(this.deserializer);
 		}
 
 		if (this.jdbcTemplate.getFetchSize() != 1) {
@@ -417,8 +415,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		}
 
 		if (this.preparedStatementSetter == null) {
-			this.preparedStatementSetter = new ChannelMessageStorePreparedStatementSetter(this.serializer,
-					this.lobHandler);
+			this.preparedStatementSetter = new ChannelMessageStorePreparedStatementSetter(this.serializer);
 		}
 		this.jdbcTemplate.afterPropertiesSet();
 	}

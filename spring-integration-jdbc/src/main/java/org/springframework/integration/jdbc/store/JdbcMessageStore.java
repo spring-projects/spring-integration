@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jdbc.store;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,6 +36,7 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupMetadata;
@@ -49,9 +48,7 @@ import org.springframework.integration.util.FunctionIterator;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.lang.Nullable;
@@ -253,8 +250,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 		}
 	}
 
-	private final MessageMapper mapper = new MessageMapper();
-
 	private final JdbcOperations jdbcTemplate;
 
 	private final Map<Query, String> queryCache = new ConcurrentHashMap<>();
@@ -270,9 +265,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	private boolean deserializerExplicitlySet;
 
-	private SerializingConverter serializer;
+	private MessageRowMapper mapper = new MessageRowMapper(this.deserializer);
 
-	private LobHandler lobHandler = new DefaultLobHandler();
+	private SerializingConverter serializer;
 
 	private boolean checkDatabaseOnStart = true;
 
@@ -325,9 +320,11 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	 * Override the {@link LobHandler} that is used to create and unpack large objects in SQL queries. The default is
 	 * fine for almost all platforms, but some Oracle drivers require a native implementation.
 	 * @param lobHandler a {@link LobHandler}
+	 * @deprecated since 6.4 (for removal) (with no replacement) in favor of plain JDBC driver support for byte arrays.
 	 */
+	@Deprecated(forRemoval = true, since = "6.4")
 	public void setLobHandler(LobHandler lobHandler) {
-		this.lobHandler = lobHandler;
+
 	}
 
 	/**
@@ -347,6 +344,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new AllowListDeserializingConverter((Deserializer) deserializer);
 		this.deserializerExplicitlySet = true;
+		this.mapper = new MessageRowMapper(this.deserializer);
 	}
 
 	/**
@@ -459,8 +457,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				ps.setString(1, messageId); // NOSONAR - magic number
 				ps.setString(2, this.region); // NOSONAR - magic number
 				ps.setTimestamp(3, new Timestamp(System.currentTimeMillis())); // NOSONAR - magic number
-
-				this.lobHandler.getLobCreator().setBlobAsBytes(ps, 4, messageBytes); // NOSONAR - magic number
+				ps.setBytes(4, messageBytes); // NOSONAR - magic number
 			});
 		}
 		catch (DataIntegrityViolationException ex) {
@@ -778,25 +775,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 
 	private String getKey(Object input) {
 		return input == null ? null : UUIDConverter.getUUID(input).toString();
-	}
-
-	/**
-	 * Convenience class to be used to unpack a message from a result set row. Uses column named in the result set to
-	 * extract the required data, so that select clause ordering is unimportant.
-	 */
-	private final class MessageMapper implements RowMapper<Message<?>> {
-
-		@Override
-		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-			byte[] messageBytes = JdbcMessageStore.this.lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES");
-			if (messageBytes == null) {
-				return null;
-			}
-			else {
-				return (Message<?>) JdbcMessageStore.this.deserializer.convert(messageBytes);
-			}
-		}
-
 	}
 
 }

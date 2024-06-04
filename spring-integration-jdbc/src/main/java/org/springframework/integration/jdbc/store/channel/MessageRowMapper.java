@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.integration.support.converter.AllowListDeserializingC
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * Convenience class to be used to unpack a {@link Message} from a result set
@@ -40,22 +41,32 @@ public class MessageRowMapper implements RowMapper<Message<?>> {
 
 	private final AllowListDeserializingConverter deserializer;
 
-	private final LobHandler lobHandler;
-
 	/**
 	 * Construct an instance based on the provided {@link AllowListDeserializingConverter}
 	 * and {@link LobHandler}.
 	 * @param deserializer the {@link AllowListDeserializingConverter} to use.
 	 * @param lobHandler the {@link LobHandler} to use.
+	 * @deprecated since 6.4 (for removal) (if favor of {@link #MessageRowMapper(AllowListDeserializingConverter)})
+	 * with a plain JDBC driver support for byte arrays.
 	 */
+	@Deprecated(forRemoval = true, since = "6.4")
 	public MessageRowMapper(AllowListDeserializingConverter deserializer, LobHandler lobHandler) {
+		this(deserializer);
+	}
+
+	/**
+	 * Construct an instance based on the provided {@link AllowListDeserializingConverter}.
+	 * @param deserializer the {@link AllowListDeserializingConverter} to use.
+	 * @since 6.4
+	 */
+	public MessageRowMapper(AllowListDeserializingConverter deserializer) {
+		Assert.notNull(deserializer, "'deserializer' must not be null");
 		this.deserializer = deserializer;
-		this.lobHandler = lobHandler;
 	}
 
 	@Override
 	public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-		byte[] blobAsBytes = this.lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES");
+		byte[] blobAsBytes = rs.getBytes("MESSAGE_BYTES");
 		if (blobAsBytes == null) {
 			return null;
 		}

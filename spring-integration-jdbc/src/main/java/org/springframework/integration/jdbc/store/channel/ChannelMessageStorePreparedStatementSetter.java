@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * <p>
  * This class can be extended for any custom data structure or columns types.
  * For this purpose the {@code protected} constructor is provided for inheritors.
- * In this case the {@link #serializer} and {@link #lobHandler} are null to avoid
+ * In this case the {@link #serializer} is {@code null} to avoid
  * extra serialization actions if the target custom behavior doesn't imply them.
  *
  * @author Meherzad Lahewala
@@ -53,8 +53,6 @@ public class ChannelMessageStorePreparedStatementSetter {
 
 	private final SerializingConverter serializer;
 
-	private final LobHandler lobHandler;
-
 	/**
 	 * Instantiate a {@link ChannelMessageStorePreparedStatementSetter} with the provided
 	 * serializer and lobHandler, which both must not be null.
@@ -62,24 +60,35 @@ public class ChannelMessageStorePreparedStatementSetter {
 	 * the request message
 	 * @param lobHandler the {@link LobHandler} to store {@code byte[]} of the request
 	 * message to prepared statement
+	 * @deprecated since 6.4 (for removal) (if favor of {@link #ChannelMessageStorePreparedStatementSetter(SerializingConverter)})
+	 * with a plain JDBC driver support for byte arrays.
 	 */
+	@Deprecated(forRemoval = true, since = "6.4")
 	public ChannelMessageStorePreparedStatementSetter(SerializingConverter serializer, LobHandler lobHandler) {
+		this(serializer);
+	}
+
+	/**
+	 * Instantiate a {@link ChannelMessageStorePreparedStatementSetter} with the provided
+	 * serializer and lobHandler, which both must not be null.
+	 * @param serializer the {@link SerializingConverter} to build {@code byte[]} from
+	 * the request message
+	 * @since 6.4
+	 */
+	public ChannelMessageStorePreparedStatementSetter(SerializingConverter serializer) {
 		Assert.notNull(serializer, "'serializer' must not be null");
-		Assert.notNull(lobHandler, "'lobHandler' must not be null");
 		this.serializer = serializer;
-		this.lobHandler = lobHandler;
 	}
 
 	/**
 	 * The default constructor for inheritors who are not interested in the message
 	 * serialization to {@code byte[]}.
-	 * The {@link #serializer} and {@link #lobHandler} are null from this constructor,
+	 * The {@link #serializer} is {@code null} from this constructor,
 	 * therefore any serialization isn't happened in the default {@link #setValues} implementation.
 	 * A target implementor must ensure the proper custom logic for storing message.
 	 */
 	protected ChannelMessageStorePreparedStatementSetter() {
 		this.serializer = null;
-		this.lobHandler = null;
 	}
 
 	/**
@@ -91,7 +100,7 @@ public class ChannelMessageStorePreparedStatementSetter {
 	 *     <li>3 - region
 	 *     <li>4 - createdDate
 	 *     <li>5 - priority if enabled, otherwise null
-	 *     <li>6 - serialized message if {@link #serializer} and {@link #lobHandler} are provided.
+	 *     <li>6 - serialized message if {@link #serializer} is provided.
 	 * </ul>
 	 * An inheritor may consider to call this method for population common properties and perform
 	 * custom message serialization logic for the parameter #6.
@@ -99,7 +108,7 @@ public class ChannelMessageStorePreparedStatementSetter {
 	 * @param preparedStatement the {@link PreparedStatement} to populate columns based on the provided arguments
 	 * @param requestMessage the {@link Message} to store
 	 * @param groupId the group id for the message to store
-	 * @param region the region in the target table to distinguish different data base clients
+	 * @param region the region in the target table to distinguish different database clients
 	 * @param priorityEnabled the flag to indicate if priority has to be stored
 	 * @throws SQLException the exception throws during data population
 	 */
@@ -126,7 +135,7 @@ public class ChannelMessageStorePreparedStatementSetter {
 
 		if (this.serializer != null) {
 			byte[] messageBytes = this.serializer.convert(requestMessage);
-			this.lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes); // NOSONAR magic number
+			preparedStatement.setBytes(6, messageBytes); // NOSONAR magic number
 		}
 	}
 

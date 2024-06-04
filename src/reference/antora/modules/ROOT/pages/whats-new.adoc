@@ -24,3 +24,10 @@ In general the project has been moved to the latest dependency versions.
 
 The `AbstractRemoteFileStreamingMessageSource` has now a convenient `clearFetchedCache()` API to remove references from cache for not processed remote files.
 The references stay in cache because polling configuration does not allow to process all the fetched in one cycle, and the target `SessionFactory` might be changed between polling cycles, e.g. via `RotatingServerAdvice`.
+
+[[x6.4-jdbc-changes]]
+=== JDBC Changes
+
+The `LobHandler` (and respective API) has been deprecated for removal in Spring Framework `6.2`.
+Respective option on `JdbcMessageStore` (and similar) have been deprecated as well.
+The byte array handling for serialized message is fully deferred to JDBC driver.
