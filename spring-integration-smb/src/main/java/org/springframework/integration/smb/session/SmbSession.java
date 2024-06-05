@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 
 import jcifs.smb.SmbException;
@@ -39,10 +40,10 @@ import org.springframework.util.StringUtils;
  * Implementation of the {@link Session} interface for Server Message Block (SMB)
  * also known as Common Internet File System (CIFS). The Samba project set out to
  * create non-Windows implementations of SMB. Often Samba is thus used synonymously to SMB.
- *
+ * <p>
  * SMB is an application-layer network protocol that manages shared access to files, printers
  * and other networked resources.
- *
+ * <p>
  * See <a href="https://en.wikipedia.org/wiki/Server_Message_Block">Server Message Block</a>
  * for more details.
  *
@@ -60,7 +61,7 @@ public class SmbSession implements Session<SmbFile> {
 
 	private static final LogAccessor logger = new LogAccessor(SmbSession.class);
 
-	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
+	private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 
 	private static final String SMB_FILE_SEPARATOR = "/";
 
@@ -120,31 +121,42 @@ public class SmbSession implements Session<SmbFile> {
 	/**
 	 * Return the contents of the specified SMB resource as an array of SmbFile objects.
 	 * In case the remote resource does not exist, an empty array is returned.
-	 * @param _path path to a remote directory
+	 * @param remotePath path to a remote directory or remote file path
 	 * @return array of SmbFile objects
 	 * @throws IOException on error conditions returned by a CIFS server or if the remote resource is not a directory.
 	 */
 	@Override
-	public SmbFile[] list(String _path) throws IOException {
-		try {
-			SmbFile smbDir = createSmbDirectoryObject(_path);
-			if (!smbDir.exists()) {
-				logger.warn(() -> "Remote directory [" + _path + "] does not exist. Cannot list resources.");
-				return new SmbFile[0];
+	public SmbFile[] list(String remotePath) throws IOException {
+		SmbFile[] files;
+		int lastIndex = StringUtils.hasText(remotePath) ? remotePath.lastIndexOf('/') : 0;
+		String remoteFileName = lastIndex > 0 ? remotePath.substring(lastIndex + 1) : null;
+		if (StringUtils.hasText(remoteFileName)) {
+			SmbFile remoteFile = createSmbFileObject(remotePath);
+			if (!remoteFile.isFile()) {
+				throw new IOException("[" + remotePath + "] is not a file.");
 			}
-			else if (!smbDir.isDirectory()) {
-				throw new IOException("[" + _path + "] is not a directory. Cannot list resources.");
+			files = new SmbFile[] {remoteFile};
+		}
+		else {
+			try {
+				SmbFile smbDir = createSmbDirectoryObject(remotePath);
+				if (!smbDir.exists()) {
+					logger.warn(() -> "Remote directory [" + remotePath + "] does not exist. Cannot list resources.");
+					return new SmbFile[0];
+				}
+				else if (!smbDir.isDirectory()) {
+					throw new IOException("[" + remotePath + "] is not a directory. Cannot list resources.");
+				}
+
+				files = smbDir.listFiles();
 			}
-
-			SmbFile[] files = smbDir.listFiles();
-
-			logListedFiles(_path, files);
-
-			return files;
+			catch (SmbException _ex) {
+				throw new IOException("Failed to list in [" + remotePath + "].", _ex);
+			}
 		}
-		catch (SmbException _ex) {
-			throw new IOException("Failed to list in [" + _path + "].", _ex);
-		}
+		logListedFiles(remotePath, files);
+
+		return files;
 	}
 
 	/**
