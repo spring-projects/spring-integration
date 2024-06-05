@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,7 +164,7 @@ public class SmbTests extends SmbTestSupport {
 	}
 
 	@Test
-	public void testSmbOutboundFlow() {
+	public void testSmbOutboundFlow() throws SmbException {
 		IntegrationFlow flow = f -> f
 				.handle(Smb.outboundAdapter(sessionFactory(), FileExistsMode.REPLACE)
 						.useTemporaryFileName(false)
@@ -181,18 +181,13 @@ public class SmbTests extends SmbTestSupport {
 		SmbFile[] files = template.execute(session ->
 				session.list(getTargetRemoteDirectory().getName()));
 		assertThat(files).hasSize(1);
-		try {
-			assertThat(files[0].length()).isEqualTo(3);
-		}
-		catch (SmbException se) {
-			se.printStackTrace();
-		}
+		assertThat(files[0].length()).isEqualTo(3);
 
 		registration.destroy();
 	}
 
 	@Test
-	public void testSmbOutboundFlowWithSmbRemoteTemplate() {
+	public void testSmbOutboundFlowWithSmbRemoteTemplate() throws SmbException {
 		SmbRemoteFileTemplate smbTemplate = new SmbRemoteFileTemplate(sessionFactory());
 		IntegrationFlow flow = f -> f
 				.handle(Smb.outboundAdapter(smbTemplate)
@@ -209,18 +204,13 @@ public class SmbTests extends SmbTestSupport {
 		SmbFile[] files = smbTemplate.execute(session ->
 				session.list(getTargetRemoteDirectory().getName()));
 		assertThat(files).hasSize(1);
-		try {
-			assertThat(files[0].length()).isEqualTo(3);
-		}
-		catch (SmbException se) {
-			se.printStackTrace();
-		}
+		assertThat(files[0].length()).isEqualTo(3);
 
 		registration.destroy();
 	}
 
 	@Test
-	public void testSmbOutboundFlowWithSmbRemoteTemplateAndMode() {
+	public void testSmbOutboundFlowWithSmbRemoteTemplateAndMode() throws SmbException {
 		SmbRemoteFileTemplate smbTemplate = new SmbRemoteFileTemplate(sessionFactory());
 		IntegrationFlow flow = f -> f
 				.handle(Smb.outboundAdapter(smbTemplate, FileExistsMode.APPEND)
@@ -242,18 +232,33 @@ public class SmbTests extends SmbTestSupport {
 		SmbFile[] files = smbTemplate.execute(session ->
 				session.list(getTargetRemoteDirectory().getName()));
 		assertThat(files).hasSize(1);
-		try {
-			assertThat(files[0].length()).isEqualTo(9);
-		}
-		catch (SmbException se) {
-			se.printStackTrace();
-		}
+		assertThat(files[0].length()).isEqualTo(9);
 
 		registration.destroy();
 	}
 
 	@Test
 	public void testSmbGetFlow() {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.handle(
+						Smb.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.GET, "payload")
+								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "'"))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "smbSource/subSmbSource/subSmbSource2.txt";
+		registration.getInputChannel().send(new GenericMessage<>(fileName));
+		Message<?> result = out.receive(10_000);
+		assertThat(result).isNotNull();
+
+		File sfis = (File) result.getPayload();
+		assertThat(sfis).hasFileName("subSmbSource2.txt");
+
+		registration.destroy();
+	}
+
+	@Test
+	public void testSmbGetStreamFlow() throws IOException {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = f -> f
 				.handle(
@@ -271,14 +276,10 @@ public class SmbTests extends SmbTestSupport {
 		Message<?> result = out.receive(10_000);
 		assertThat(result).isNotNull();
 
-		SmbFileInputStream sfis = (SmbFileInputStream) result.getPayload();
-		assertThat(sfis).isNotNull();
+		try (SmbFileInputStream sfis = (SmbFileInputStream) result.getPayload()) {
+			assertThat(sfis).isNotNull();
+		}
 
-		try {
-			sfis.close();
-		}
-		catch (IOException ioe) {
-		}
 		registration.destroy();
 	}
 
