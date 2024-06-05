@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Artem Bilan
+ * @author Alessio Matricardi
  *
  * @since 5.4
  */
@@ -138,6 +139,48 @@ public class ZeroMqMessageProducerTests {
 
 		msg = ZMsg.newStringMsg("test");
 		msg.wrap(new ZFrame("otherTopic"));
+		msg.send(socket);
+
+		stepVerifier.verify(Duration.ofSeconds(10));
+
+		messageProducer.destroy();
+		socket.close();
+	}
+
+	@Test
+	void testMessageProducerForPubSubDisabledWrapTopic() {
+		String socketAddress = "inproc://messageProducer.test";
+		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.XPUB);
+		socket.bind(socketAddress);
+		socket.setReceiveTimeOut(10_000);
+
+		FluxMessageChannel outputChannel = new FluxMessageChannel();
+
+		StepVerifier stepVerifier =
+				StepVerifier.create(outputChannel)
+						.assertNext((message) ->
+								assertThat(message.getPayload())
+										.asInstanceOf(InstanceOfAssertFactories.type(ZMsg.class))
+										.extracting(ZMsg::pop)
+										.isEqualTo(new ZFrame("testTopicWithNonWrappedTopic")))
+						.thenCancel()
+						.verifyLater();
+
+		ZeroMqMessageProducer messageProducer = new ZeroMqMessageProducer(CONTEXT, SocketType.SUB);
+		messageProducer.setOutputChannel(outputChannel);
+		messageProducer.setTopics("test");
+		messageProducer.setReceiveRaw(true);
+		messageProducer.setConnectUrl(socketAddress);
+		messageProducer.setConsumeDelay(Duration.ofMillis(10));
+		messageProducer.setBeanFactory(mock(BeanFactory.class));
+		messageProducer.wrapTopic(false);
+		messageProducer.afterPropertiesSet();
+		messageProducer.start();
+
+		assertThat(socket.recv()).isNotNull();
+
+		ZMsg msg = ZMsg.newStringMsg("test");
+		msg.push(new ZFrame("testTopicWithNonWrappedTopic"));
 		msg.send(socket);
 
 		stepVerifier.verify(Duration.ofSeconds(10));
