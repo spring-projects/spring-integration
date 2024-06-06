@@ -32,6 +32,7 @@ import reactor.test.StepVerifier;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.zeromq.ZeroMqHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -158,18 +159,13 @@ public class ZeroMqMessageProducerTests {
 
 		StepVerifier stepVerifier =
 				StepVerifier.create(outputChannel)
-						.assertNext((message) ->
-								assertThat(message.getPayload())
-										.asInstanceOf(InstanceOfAssertFactories.type(ZMsg.class))
-										.extracting(ZMsg::pop)
-										.isEqualTo(new ZFrame("testTopicWithNonWrappedTopic")))
+						.assertNext((message) -> assertThat(message.getHeaders()).containsEntry(ZeroMqHeaders.TOPIC, "testTopicWithNonWrappedTopic"))
 						.thenCancel()
 						.verifyLater();
 
 		ZeroMqMessageProducer messageProducer = new ZeroMqMessageProducer(CONTEXT, SocketType.SUB);
 		messageProducer.setOutputChannel(outputChannel);
 		messageProducer.setTopics("test");
-		messageProducer.setReceiveRaw(true);
 		messageProducer.setConnectUrl(socketAddress);
 		messageProducer.setConsumeDelay(Duration.ofMillis(10));
 		messageProducer.setBeanFactory(mock(BeanFactory.class));
@@ -180,7 +176,7 @@ public class ZeroMqMessageProducerTests {
 		assertThat(socket.recv()).isNotNull();
 
 		ZMsg msg = ZMsg.newStringMsg("test");
-		msg.push(new ZFrame("testTopicWithNonWrappedTopic"));
+		msg.push("testTopicWithNonWrappedTopic");
 		msg.send(socket);
 
 		stepVerifier.verify(Duration.ofSeconds(10));
