@@ -113,12 +113,13 @@ public class ZeroMqMessageProducerSpec
 	 * Specify if the topic
 	 * that {@link SocketType#SUB} socket is going to receive is wrapped with an additional empty frame.
 	 * It is ignored for all other {@link SocketType}s supported.
-	 * @param wrapTopic true iff the received topic is wrapped with an additional empty frame.
+	 * This attribute is set to {@code true} by default.
+	 * @param unwrapTopic true if the received topic is wrapped with an additional empty frame.
 	 * @return the spec
 	 * @since 6.2.6
 	 */
-	public ZeroMqMessageProducerSpec wrapTopic(boolean wrapTopic) {
-		this.target.wrapTopic(wrapTopic);
+	public ZeroMqMessageProducerSpec unwrapTopic(boolean unwrapTopic) {
+		this.target.unwrapTopic(unwrapTopic);
 		return this;
 	}
 

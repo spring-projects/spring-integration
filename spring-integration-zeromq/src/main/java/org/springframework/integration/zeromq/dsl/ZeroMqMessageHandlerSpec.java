@@ -131,7 +131,8 @@ public class ZeroMqMessageHandlerSpec
 	 * Specify if the topic that {@link SocketType#PUB} socket is going to use for distributing messages into the
 	 * subscriptions must be wrapped with an additional empty frame.
 	 * It is ignored for all other {@link SocketType}s supported.
-	 * @param wrapTopic true iff the topic must be wrapped with an additional empty frame.
+	 * This attribute is set to {@code true} by default.
+	 * @param wrapTopic true if the topic must be wrapped with an additional empty frame.
 	 * @return the spec
 	 * @since 6.2.6
 	 */

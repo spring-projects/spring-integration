@@ -198,7 +198,8 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	 * Specify if the topic that {@link SocketType#PUB} socket is going to use for distributing messages into the
 	 * subscriptions must be wrapped with an additional empty frame.
 	 * It is ignored for all other {@link SocketType}s supported.
-	 * @param wrapTopic true iff the topic must be wrapped with an additional empty frame.
+	 * This attribute is set to {@code true} by default.
+	 * @param wrapTopic true if the topic must be wrapped with an additional empty frame.
 	 * @since 6.2.6
 	 */
 	public void wrapTopic(boolean wrapTopic) {
@@ -258,12 +259,12 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 						if (socket.base() instanceof Pub) {
 							String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
 							if (topic != null) {
-								var frame = new ZFrame(topic);
+								ZFrame topicFrame = new ZFrame(topic);
 								if (this.wrapTopic) {
-									msg.wrap(frame);
+									msg.wrap(topicFrame);
 								}
 								else {
-									msg.push(frame);
+									msg.push(topicFrame);
 								}
 							}
 						}

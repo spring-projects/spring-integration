@@ -92,7 +92,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 
 	private volatile Mono<ZMQ.Socket> socketMono;
 
-	private volatile boolean wrapTopic = true;
+	private volatile boolean unwrapTopic = true;
 
 	public ZeroMqMessageProducer(ZContext context) {
 		this(context, SocketType.PAIR);
@@ -197,11 +197,12 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 	 * Specify if the topic
 	 * that {@link SocketType#SUB} socket is going to receive is wrapped with an additional empty frame.
 	 * It is ignored for all other {@link SocketType}s supported.
-	 * @param wrapTopic true iff the received topic is wrapped with an additional empty frame.
+	 * This attribute is set to {@code true} by default.
+	 * @param unwrapTopic true if the received topic is wrapped with an additional empty frame.
 	 * @since 6.2.6
 	 */
-	public void wrapTopic(boolean wrapTopic) {
-		this.wrapTopic = wrapTopic;
+	public void unwrapTopic(boolean unwrapTopic) {
+		this.unwrapTopic = unwrapTopic;
 	}
 
 	@Override
@@ -299,14 +300,14 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 		return msgMono.map((msg) -> {
 			Map<String, Object> headers = null;
 			if (msg.size() > 1) {
-				ZFrame frame;
-				if (this.wrapTopic) {
-					frame = msg.unwrap();
+				ZFrame topicFrame;
+				if (this.unwrapTopic) {
+					topicFrame = msg.unwrap();
 				}
 				else {
-					frame = msg.pop();
+					topicFrame = msg.pop();
 				}
-				headers = Collections.singletonMap(ZeroMqHeaders.TOPIC, frame.getString(ZMQ.CHARSET));
+				headers = Collections.singletonMap(ZeroMqHeaders.TOPIC, topicFrame.getString(ZMQ.CHARSET));
 			}
 			return this.messageMapper.toMessage(msg.getLast().getData(), headers); // NOSONAR
 		});
