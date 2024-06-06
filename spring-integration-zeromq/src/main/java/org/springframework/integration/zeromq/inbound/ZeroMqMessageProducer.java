@@ -300,13 +300,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 		return msgMono.map((msg) -> {
 			Map<String, Object> headers = null;
 			if (msg.size() > 1) {
-				ZFrame topicFrame;
-				if (this.unwrapTopic) {
-					topicFrame = msg.unwrap();
-				}
-				else {
-					topicFrame = msg.pop();
-				}
+				ZFrame topicFrame = this.unwrapTopic ? msg.unwrap() : msg.pop();
 				headers = Collections.singletonMap(ZeroMqHeaders.TOPIC, topicFrame.getString(ZMQ.CHARSET));
 			}
 			return this.messageMapper.toMessage(msg.getLast().getData(), headers); // NOSONAR
