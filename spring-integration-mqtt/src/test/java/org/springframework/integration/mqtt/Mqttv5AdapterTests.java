@@ -57,7 +57,7 @@ public class Mqttv5AdapterTests {
 		adapter.stop();
 
 		verify(client).connect(any(MqttConnectionOptions.class));
-		verify(client).subscribe(any(MqttSubscription[].class), any(), any(), any(IMqttMessageListener[].class), any());
+		verify(client).subscribe(any(MqttSubscription[].class), any(), any(), any(IMqttMessageListener.class), any());
 		verify(client).unsubscribe(any(String[].class));
 	}
 
@@ -71,11 +71,12 @@ public class Mqttv5AdapterTests {
 		adapter.stop();
 
 		verify(client).connect(any(MqttConnectionOptions.class));
-		verify(client).subscribe(any(MqttSubscription[].class), any(), any(), any(IMqttMessageListener[].class), any());
+		verify(client).subscribe(any(MqttSubscription[].class), any(), any(), any(IMqttMessageListener.class), any());
 		verify(client, never()).unsubscribe(any(String[].class));
 	}
 
-	private static Mqttv5PahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttAsyncClient client, boolean cleanStart) throws MqttException {
+	private static Mqttv5PahoMessageDrivenChannelAdapter buildAdapterIn(final IMqttAsyncClient client,
+			boolean cleanStart) throws MqttException {
 
 		MqttConnectionOptions connectionOptions = new MqttConnectionOptions();
 		connectionOptions.setServerURIs(new String[] {"tcp://localhost:1883"});
@@ -85,9 +86,11 @@ public class Mqttv5AdapterTests {
 		IMqttToken token = mock(IMqttToken.class);
 		given(client.disconnect()).willReturn(token);
 		given(client.connect(any(MqttConnectionOptions.class))).willReturn(token);
-		given(client.subscribe(any(MqttSubscription[].class), any(), any(), any(IMqttMessageListener[].class), any())).willReturn(token);
+		given(client.subscribe(any(MqttSubscription[].class), any(), any(), any(IMqttMessageListener.class), any()))
+				.willReturn(token);
 		given(client.unsubscribe(any(String[].class))).willReturn(token);
-		Mqttv5PahoMessageDrivenChannelAdapter adapter = new Mqttv5PahoMessageDrivenChannelAdapter(connectionOptions, "client", "foo");
+		Mqttv5PahoMessageDrivenChannelAdapter adapter =
+				new Mqttv5PahoMessageDrivenChannelAdapter(connectionOptions, "client", "foo");
 		ReflectionTestUtils.setField(adapter, "mqttClient", client);
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
