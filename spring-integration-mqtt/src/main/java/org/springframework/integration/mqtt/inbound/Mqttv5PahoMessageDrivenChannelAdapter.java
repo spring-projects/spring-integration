@@ -17,14 +17,13 @@
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.IntStream;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
-import org.eclipse.paho.mqttv5.client.IMqttMessageListener;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.MqttCallback;
@@ -85,7 +84,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		extends AbstractMqttMessageDrivenChannelAdapter<IMqttAsyncClient, MqttConnectionOptions>
 		implements MqttCallback, MqttComponent<MqttConnectionOptions> {
 
-	private final Lock lock =  new ReentrantLock();
+	private final Lock lock = new ReentrantLock();
 
 	private final MqttConnectionOptions connectionOptions;
 
@@ -102,7 +101,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 
 	private volatile boolean readyToSubscribeOnStart;
 
-	private final AtomicInteger subscriptionIdentifierCounter = new AtomicInteger(0);	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
+	public Mqttv5PahoMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		super(url, clientId, topic);
 		Assert.hasText(url, "'url' cannot be null or empty");
 		this.connectionOptions = new MqttConnectionOptions();
@@ -282,9 +281,10 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			super.addTopic(topic, qos);
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				MqttProperties subscriptionProperties = new MqttProperties();
-				subscriptionProperties.setSubscriptionIdentifier(this.subscriptionIdentifierCounter.incrementAndGet());
-				this.mqttClient.subscribe(new MqttSubscription[] { new MqttSubscription(topic, qos) },
-								null, null, new IMqttMessageListener[] { this::messageArrived }, subscriptionProperties)
+				// Make use of mqttSession.getNextSubscriptionIdentifier() if available in connection
+				subscriptionProperties.setSubscriptionIdentifiers(List.of(0));
+				this.mqttClient.subscribe(new MqttSubscription[] {new MqttSubscription(topic, qos)},
+								null, null, this::messageArrived, subscriptionProperties)
 						.waitForCompletion(getCompletionTimeout());
 			}
 		}
@@ -409,18 +409,13 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 			}
 
 			int[] requestedQos = getQos();
-			MqttSubscription[] subscriptions = IntStream.range(0, topics.length)
+			MqttSubscription[] mqttSubscriptions = IntStream.range(0, topics.length)
 					.mapToObj(i -> new MqttSubscription(topics[i], requestedQos[i]))
 					.toArray(MqttSubscription[]::new);
-			IMqttMessageListener listener = this::messageArrived;
-			IMqttMessageListener[] listeners = IntStream.range(0, topics.length)
-					.mapToObj(t -> listener)
-					.toArray(IMqttMessageListener[]::new);
 			MqttProperties subscriptionProperties = new MqttProperties();
-			subscriptionProperties.setSubscriptionIdentifiers(IntStream.range(0, topics.length)
-					.mapToObj(i -> this.subscriptionIdentifierCounter.incrementAndGet())
-					.toList());
-			this.mqttClient.subscribe(subscriptions, null, null, listeners, new MqttProperties())
+			// Make use of mqttSession.getNextSubscriptionIdentifier() if available in connection
+			subscriptionProperties.setSubscriptionIdentifiers(List.of(0));
+			this.mqttClient.subscribe(mqttSubscriptions, null, null, this::messageArrived, subscriptionProperties)
 					.waitForCompletion(getCompletionTimeout());
 			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			logger.debug(message);
@@ -450,7 +445,6 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		Assert.notEmpty(serverURIs, "'serverURIs' must be provided in the 'MqttConnectionOptions'");
 		return serverURIs[0];
 	}
-
 
 	/**
 	 * Used to complete message arrival when {@link #isManualAcks()} is true.
