@@ -28,8 +28,6 @@ import reactor.core.Disposables;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 import reactor.util.context.ContextView;
 
 import org.springframework.core.log.LogMessage;
@@ -53,8 +51,6 @@ import org.springframework.util.Assert;
  */
 public class FluxMessageChannel extends AbstractMessageChannel
 		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
-
-	private final Scheduler scheduler = Schedulers.boundedElastic();
 
 	private final Sinks.Many<Message<?>> sink = Sinks.many().multicast().onBackpressureBuffer(1, false);
 
@@ -107,7 +103,8 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.sink.asFlux()
 				.doFinally((s) -> this.subscribedSignal.tryEmitNext(this.sink.currentSubscriberCount() > 0))
-				.share()
+				.publish(1)
+				.refCount()
 				.subscribe(subscriber);
 
 		Mono<Boolean> subscribersBarrier =
@@ -148,7 +145,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		Flux<Object> upstreamPublisher =
 				Flux.from(publisher)
 						.delaySubscription(this.subscribedSignal.asFlux().filter(Boolean::booleanValue).next())
-						.publishOn(this.scheduler)
+//						.publishOn(this.scheduler)
 						.flatMap((message) ->
 								Mono.just(message)
 										.handle((messageToHandle, syncSink) -> sendReactiveMessage(messageToHandle))
@@ -185,7 +182,6 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		this.upstreamSubscriptions.dispose();
 		this.subscribedSignal.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
 		this.sink.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
-		this.scheduler.dispose();
 		super.destroy();
 	}
 
