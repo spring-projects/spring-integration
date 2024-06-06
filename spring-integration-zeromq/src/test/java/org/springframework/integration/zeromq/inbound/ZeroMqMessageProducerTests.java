@@ -149,7 +149,7 @@ public class ZeroMqMessageProducerTests {
 
 	@Test
 	void testMessageProducerForPubSubDisabledWrapTopic() {
-		String socketAddress = "inproc://messageProducer.test";
+		String socketAddress = "inproc://messageProducerWrapTopic.test";
 		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.XPUB);
 		socket.bind(socketAddress);
 		socket.setReceiveTimeOut(10_000);
