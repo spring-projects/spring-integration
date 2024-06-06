@@ -173,7 +173,7 @@ public class ZeroMqMessageProducerTests {
 		messageProducer.setConnectUrl(socketAddress);
 		messageProducer.setConsumeDelay(Duration.ofMillis(10));
 		messageProducer.setBeanFactory(mock(BeanFactory.class));
-		messageProducer.wrapTopic(false);
+		messageProducer.unwrapTopic(false);
 		messageProducer.afterPropertiesSet();
 		messageProducer.start();
 
