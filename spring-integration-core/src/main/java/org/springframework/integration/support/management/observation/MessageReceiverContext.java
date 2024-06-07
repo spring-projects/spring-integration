@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.support.management.observation;
+
+import java.nio.charset.StandardCharsets;
 
 import io.micrometer.observation.transport.ReceiverContext;
 
@@ -35,7 +37,7 @@ public class MessageReceiverContext extends ReceiverContext<Message<?>> {
 	private final String handlerName;
 
 	public MessageReceiverContext(Message<?> message, @Nullable String handlerName) {
-		super((carrier, key) -> carrier.getHeaders().get(key, String.class));
+		super(MessageReceiverContext::getHeader);
 		this.message = message;
 		this.handlerName = handlerName != null ? handlerName : "unknown";
 	}
@@ -47,6 +49,14 @@ public class MessageReceiverContext extends ReceiverContext<Message<?>> {
 
 	public String getHandlerName() {
 		return this.handlerName;
+	}
+
+	@Nullable
+	private static String getHeader(Message<?> message, String key) {
+		Object value = message.getHeaders().get(key);
+		return value instanceof byte[] bytes
+				? new String(bytes, StandardCharsets.UTF_8)
+				: (value != null ? value.toString() : null);
 	}
 
 }
