@@ -90,7 +90,7 @@ public class ZeroMqMessageProducerTests {
 
 		stepVerifier.verify();
 
-		messageProducer.destroy();
+		messageProducer.stop();
 		socket.close();
 	}
 
@@ -144,7 +144,7 @@ public class ZeroMqMessageProducerTests {
 
 		stepVerifier.verify(Duration.ofSeconds(10));
 
-		messageProducer.destroy();
+		messageProducer.stop();
 		socket.close();
 	}
 
@@ -153,7 +153,6 @@ public class ZeroMqMessageProducerTests {
 		String socketAddress = "inproc://messageProducerWrapTopic.test";
 		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.XPUB);
 		socket.bind(socketAddress);
-		socket.setReceiveTimeOut(10_000);
 
 		FluxMessageChannel outputChannel = new FluxMessageChannel();
 
@@ -167,7 +166,6 @@ public class ZeroMqMessageProducerTests {
 		messageProducer.setOutputChannel(outputChannel);
 		messageProducer.setTopics("test");
 		messageProducer.setConnectUrl(socketAddress);
-		messageProducer.setConsumeDelay(Duration.ofMillis(10));
 		messageProducer.setBeanFactory(mock(BeanFactory.class));
 		messageProducer.unwrapTopic(false);
 		messageProducer.afterPropertiesSet();
@@ -179,9 +177,9 @@ public class ZeroMqMessageProducerTests {
 		msg.push("testTopicWithNonWrappedTopic");
 		msg.send(socket);
 
-		stepVerifier.verify(Duration.ofSeconds(10));
+		stepVerifier.verify();
 
-		messageProducer.destroy();
+		messageProducer.stop();
 		socket.close();
 	}
 
