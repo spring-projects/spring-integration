@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
+import org.zeromq.ZFrame;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 import reactor.core.publisher.Flux;
@@ -54,6 +55,7 @@ import org.springframework.util.Assert;
  * When the {@link SocketType#SUB} is used, the received topic is stored in the {@link ZeroMqHeaders#TOPIC}.
  *
  * @author Artem Bilan
+ * @author Alessio Matricardi
  *
  * @since 5.4
  */
@@ -89,6 +91,8 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 	private String connectUrl;
 
 	private volatile Mono<ZMQ.Socket> socketMono;
+
+	private volatile boolean unwrapTopic = true;
 
 	public ZeroMqMessageProducer(ZContext context) {
 		this(context, SocketType.PAIR);
@@ -189,6 +193,18 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 		return this.bindPort.get();
 	}
 
+	/**
+	 * Specify if the topic
+	 * that {@link SocketType#SUB} socket is going to receive is wrapped with an additional empty frame.
+	 * It is ignored for all other {@link SocketType}s supported.
+	 * This attribute is set to {@code true} by default.
+	 * @param unwrapTopic true if the received topic is wrapped with an additional empty frame.
+	 * @since 6.2.6
+	 */
+	public void unwrapTopic(boolean unwrapTopic) {
+		this.unwrapTopic = unwrapTopic;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "zeromq:inbound-channel-adapter";
@@ -284,7 +300,8 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 		return msgMono.map((msg) -> {
 			Map<String, Object> headers = null;
 			if (msg.size() > 1) {
-				headers = Collections.singletonMap(ZeroMqHeaders.TOPIC, msg.unwrap().getString(ZMQ.CHARSET));
+				ZFrame topicFrame = this.unwrapTopic ? msg.unwrap() : msg.pop();
+				headers = Collections.singletonMap(ZeroMqHeaders.TOPIC, topicFrame.getString(ZMQ.CHARSET));
 			}
 			return this.messageMapper.toMessage(msg.getLast().getData(), headers); // NOSONAR
 		});

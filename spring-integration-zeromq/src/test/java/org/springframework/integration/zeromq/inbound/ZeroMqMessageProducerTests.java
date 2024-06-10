@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import reactor.test.StepVerifier;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.zeromq.ZeroMqHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +41,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Artem Bilan
+ * @author Alessio Matricardi
  *
  * @since 5.4
  */
@@ -88,7 +90,7 @@ public class ZeroMqMessageProducerTests {
 
 		stepVerifier.verify();
 
-		messageProducer.destroy();
+		messageProducer.stop();
 		socket.close();
 	}
 
@@ -142,7 +144,42 @@ public class ZeroMqMessageProducerTests {
 
 		stepVerifier.verify(Duration.ofSeconds(10));
 
-		messageProducer.destroy();
+		messageProducer.stop();
+		socket.close();
+	}
+
+	@Test
+	void testMessageProducerForPubSubDisabledWrapTopic() {
+		String socketAddress = "inproc://messageProducerWrapTopic.test";
+		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.XPUB);
+		socket.bind(socketAddress);
+
+		FluxMessageChannel outputChannel = new FluxMessageChannel();
+
+		StepVerifier stepVerifier =
+				StepVerifier.create(outputChannel)
+						.assertNext((message) -> assertThat(message.getHeaders()).containsEntry(ZeroMqHeaders.TOPIC, "testTopicWithNonWrappedTopic"))
+						.thenCancel()
+						.verifyLater();
+
+		ZeroMqMessageProducer messageProducer = new ZeroMqMessageProducer(CONTEXT, SocketType.SUB);
+		messageProducer.setOutputChannel(outputChannel);
+		messageProducer.setTopics("test");
+		messageProducer.setConnectUrl(socketAddress);
+		messageProducer.setBeanFactory(mock(BeanFactory.class));
+		messageProducer.unwrapTopic(false);
+		messageProducer.afterPropertiesSet();
+		messageProducer.start();
+
+		assertThat(socket.recv()).isNotNull();
+
+		ZMsg msg = ZMsg.newStringMsg("test");
+		msg.push("testTopicWithNonWrappedTopic");
+		msg.send(socket);
+
+		stepVerifier.verify();
+
+		messageProducer.stop();
 		socket.close();
 	}
 
