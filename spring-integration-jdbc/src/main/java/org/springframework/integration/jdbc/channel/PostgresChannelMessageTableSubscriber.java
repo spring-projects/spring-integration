@@ -88,6 +88,8 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 	@Nullable
 	private volatile PgConnection connection;
 
+	private int phase = Integer.MAX_VALUE;
+
 	private Duration notificationTimeout = Duration.ofSeconds(60);
 
 	/**
@@ -298,6 +300,15 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 
 	private static String getKey(Object input) {
 		return input == null ? null : UUIDConverter.getUUID(input).toString();
+	}
+
+	@Override
+	public int getPhase() {
+		return this.phase;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 	/**
