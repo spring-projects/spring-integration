@@ -18,6 +18,7 @@ package org.springframework.integration.zeromq.outbound;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -43,6 +44,7 @@ import org.springframework.integration.mapping.ConvertingBytesMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.management.ManageableLifecycle;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
@@ -50,14 +52,14 @@ import org.springframework.util.Assert;
 /**
  * The {@link AbstractReactiveMessageHandler} implementation for publishing messages over ZeroMq socket.
  * Only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
- * This component is only connecting (no Binding) to another side, e.g. ZeroMq proxy.
+ * This component can bind or connect the socket.
  * <p>
  * When the {@link SocketType#PUB} is used, the {@link #topicExpression} is evaluated against a
  * request message to inject a topic frame into a ZeroMq message if it is not {@code null}.
  * The subscriber side must receive the topic frame first before parsing the actual data.
  * <p>
  * When the payload of the request message is a {@link ZMsg}, no any conversion and topic extraction happen:
- * the {@link ZMsg} is sent into a socket as is and it is not destroyed for possible further reusing.
+ * the {@link ZMsg} is sent into a socket as is, and it is not destroyed for possible further reusing.
  *
  * @author Artem Bilan
  * @author Alessio Matricardi
@@ -74,7 +76,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 
 	private final Scheduler publisherScheduler = Schedulers.newSingle("zeroMqMessageHandlerScheduler");
 
-	private final Mono<ZMQ.Socket> socketMono;
+	private volatile Mono<ZMQ.Socket> socketMono;
 
 	private OutboundMessageMapper<byte[]> messageMapper;
 
@@ -91,6 +93,23 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 
 	private volatile boolean wrapTopic = true;
 
+	private final ZContext context;
+
+	private final SocketType socketType;
+
+	private final AtomicInteger bindPort = new AtomicInteger();
+
+	@Nullable
+	private String connectUrl;
+
+	private ZeroMqMessageHandler(ZContext context, SocketType socketType) {
+		Assert.notNull(context, "'context' must not be null");
+		Assert.state(VALID_SOCKET_TYPES.contains(socketType),
+				() -> "'socketType' can only be one of the: " + VALID_SOCKET_TYPES);
+		this.context = context;
+		this.socketType = socketType;
+	}
+
 	/**
 	 * Create an instance based on the provided {@link ZContext} and connection string.
 	 * @param context the {@link ZContext} to use for creating sockets.
@@ -98,6 +117,16 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	 */
 	public ZeroMqMessageHandler(ZContext context, String connectUrl) {
 		this(context, connectUrl, SocketType.PAIR);
+	}
+
+	/**
+	 * Create an instance based on the provided {@link ZContext} and binding port.
+	 * @param context the {@link ZContext} to use for creating sockets.
+	 * @param port the port to bind ZeroMq socket to over TCP.
+	 * @since 6.2.6
+	 */
+	public ZeroMqMessageHandler(ZContext context, int port) {
+		this(context, port, SocketType.PAIR);
 	}
 
 	/**
@@ -123,6 +152,26 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	}
 
 	/**
+	 * Create an instance based on the provided {@link ZContext}, binding port and {@link SocketType}.
+	 * @param context the {@link ZContext} to use for creating sockets.
+	 * @param port the port to bind ZeroMq socket to over TCP.
+	 * @param socketType the {@link SocketType} to use;
+	 *    only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
+	 * @since 6.2.6
+	 */
+	public ZeroMqMessageHandler(ZContext context, int port, SocketType socketType) {
+		this(context, socketType);
+		this.bindPort.set(port);
+		this.socketMono =
+				Mono.just(this.context.createSocket(this.socketType))
+						.publishOn(this.publisherScheduler)
+						.doOnNext((socket) -> this.socketConfigurer.accept(socket))
+						.doOnNext((socket) -> this.bindPort.set(bindSocket(socket, this.bindPort.get())))
+						.cache()
+						.publishOn(this.publisherScheduler);
+	}
+
+	/**
 	 * Create an instance based on the provided {@link ZContext}, connection string supplier and {@link SocketType}.
 	 * @param context the {@link ZContext} to use for creating sockets.
 	 * @param connectUrl the supplier for URL to connect the socket to.
@@ -131,15 +180,16 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	 * @since 5.5.9
 	 */
 	public ZeroMqMessageHandler(ZContext context, Supplier<String> connectUrl, SocketType socketType) {
-		Assert.notNull(context, "'context' must not be null");
+		this(context, socketType);
 		Assert.notNull(connectUrl, "'connectUrl' must not be null");
-		Assert.state(VALID_SOCKET_TYPES.contains(socketType),
-				() -> "'socketType' can only be one of the: " + VALID_SOCKET_TYPES);
 		this.socketMono =
-				Mono.just(context.createSocket(socketType))
+				Mono.just(this.context.createSocket(this.socketType))
 						.publishOn(this.publisherScheduler)
 						.doOnNext((socket) -> this.socketConfigurer.accept(socket))
-						.doOnNext((socket) -> socket.connect(connectUrl.get()))
+						.doOnNext((socket) -> {
+							socket.connect(connectUrl.get());
+							this.connectUrl = connectUrl.get();
+						})
 						.cache()
 						.publishOn(this.publisherScheduler);
 	}
@@ -206,6 +256,16 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 		this.wrapTopic = wrapTopic;
 	}
 
+	/**
+	 * Return the port a socket is bound or 0 if this message producer has not been started yet
+	 * or the socket is connected - not bound.
+	 * @return the port for a socket or 0.
+	 * @since 6.2.6
+	 */
+	public int getBoundPort() {
+		return this.bindPort.get();
+	}
+
 	@Override
 	public String getComponentType() {
 		return "zeromq:outbound-channel-adapter";
@@ -214,6 +274,8 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	@Override
 	protected void onInit() {
 		super.onInit();
+		Assert.state(this.connectUrl == null || this.bindPort.get() == 0,
+				"Only one of the 'connectUrl' or 'bindPort' must be provided");
 		BeanFactory beanFactory = getBeanFactory();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 		if (this.messageMapper == null) {
@@ -281,6 +343,19 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 		this.socketMono.doOnNext(ZMQ.Socket::close).block();
 		this.socketMonoSubscriber.dispose();
 		this.publisherScheduler.dispose();
+	}
+
+	private static int bindSocket(ZMQ.Socket socket, int port) {
+		if (port == 0) {
+			return socket.bindToRandomPort("tcp://*");
+		}
+		else {
+			boolean bound = socket.bind("tcp://*:" + port);
+			if (!bound) {
+				throw new IllegalArgumentException("Cannot bind ZeroMQ socket to port: " + port);
+			}
+			return port;
+		}
 	}
 
 }

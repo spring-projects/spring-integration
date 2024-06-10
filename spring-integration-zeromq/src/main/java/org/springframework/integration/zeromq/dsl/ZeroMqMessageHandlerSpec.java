@@ -53,6 +53,16 @@ public class ZeroMqMessageHandlerSpec
 	}
 
 	/**
+	 * Create an instance based on the provided {@link ZContext} and binding port.
+	 * @param context the {@link ZContext} to use for creating sockets.
+	 * @param port the port to bind ZeroMq socket to over TCP.
+	 * @since 6.2.6
+	 */
+	public ZeroMqMessageHandlerSpec(ZContext context, int port) {
+		this(context, port, SocketType.PAIR);
+	}
+
+	/**
 	 * Create an instance based on the provided {@link ZContext} and connection string supplier.
 	 * @param context the {@link ZContext} to use for creating sockets.
 	 * @param connectUrl the supplier for URL to connect the socket to.
@@ -71,6 +81,18 @@ public class ZeroMqMessageHandlerSpec
 	 */
 	protected ZeroMqMessageHandlerSpec(ZContext context, String connectUrl, SocketType socketType) {
 		this(context, () -> connectUrl, socketType);
+	}
+
+	/**
+	 * Create an instance based on the provided {@link ZContext}, binding port and {@link SocketType}.
+	 * @param context the {@link ZContext} to use for creating sockets.
+	 * @param port the port to bind ZeroMq socket to over TCP.
+	 * @param socketType the {@link SocketType} to use;
+	 *    only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
+	 * @since 6.2.6
+	 */
+	public ZeroMqMessageHandlerSpec(ZContext context, int port, SocketType socketType) {
+		super(new ZeroMqMessageHandler(context, port, socketType));
 	}
 
 	/**

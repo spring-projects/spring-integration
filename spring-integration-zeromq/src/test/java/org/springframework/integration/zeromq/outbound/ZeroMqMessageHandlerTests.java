@@ -35,6 +35,7 @@ import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.util.TestSocketUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -167,6 +168,43 @@ public class ZeroMqMessageHandlerTests {
 		messageHandler.wrapTopic(false);
 		messageHandler.afterPropertiesSet();
 		messageHandler.start();
+
+		Message<?> testMessage = MessageBuilder.withPayload("test").setHeader("topic", "testTopic").build();
+
+		await().atMost(Duration.ofSeconds(20)).pollDelay(Duration.ofMillis(100))
+				.untilAsserted(() -> {
+					subSocket.subscribe("test");
+					messageHandler.handleMessage(testMessage).subscribe();
+					ZMsg msg = ZMsg.recvMsg(subSocket);
+					assertThat(msg).isNotNull();
+					assertThat(msg.pop().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
+					Message<?> capturedMessage =
+							new EmbeddedJsonHeadersMessageMapper().toMessage(msg.getFirst().getData());
+					assertThat(capturedMessage).isEqualTo(testMessage);
+					msg.destroy();
+				});
+
+		messageHandler.destroy();
+		subSocket.close();
+	}
+
+	@Test
+	void testMessageHandlerForPubSubWithBind() {
+		int boundPort = TestSocketUtils.findAvailableTcpPort();
+		ZeroMqMessageHandler messageHandler =
+				new ZeroMqMessageHandler(CONTEXT, boundPort, SocketType.PUB);
+		messageHandler.setBeanFactory(mock(BeanFactory.class));
+		messageHandler.setTopicExpression(
+				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
+		messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
+		messageHandler.wrapTopic(false);
+		messageHandler.afterPropertiesSet();
+		messageHandler.start();
+
+		ZMQ.Socket subSocket = CONTEXT.createSocket(SocketType.SUB);
+		subSocket.setReceiveTimeOut(0);
+		subSocket.connect("tcp://localhost:" + boundPort);
+		subSocket.subscribe("test");
 
 		Message<?> testMessage = MessageBuilder.withPayload("test").setHeader("topic", "testTopic").build();
 
