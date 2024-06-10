@@ -42,6 +42,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Artem Bilan
+ * @author Alessio Matricardi
  *
  * @since 5.4
  */
@@ -148,6 +149,42 @@ public class ZeroMqMessageHandlerTests {
 		pullSocket.close();
 		proxy.stop();
 		proxy.destroy();
+	}
+
+	@Test
+	void testMessageHandlerForPubSubDisabledWrapTopic() {
+		ZMQ.Socket subSocket = CONTEXT.createSocket(SocketType.SUB);
+		subSocket.setReceiveTimeOut(0);
+		int port = subSocket.bindToRandomPort("tcp://*");
+		subSocket.subscribe("test");
+
+		ZeroMqMessageHandler messageHandler =
+				new ZeroMqMessageHandler(CONTEXT, "tcp://localhost:" + port, SocketType.PUB);
+		messageHandler.setBeanFactory(mock(BeanFactory.class));
+		messageHandler.setTopicExpression(
+				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
+		messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
+		messageHandler.wrapTopic(false);
+		messageHandler.afterPropertiesSet();
+		messageHandler.start();
+
+		Message<?> testMessage = MessageBuilder.withPayload("test").setHeader("topic", "testTopic").build();
+
+		await().atMost(Duration.ofSeconds(20)).pollDelay(Duration.ofMillis(100))
+				.untilAsserted(() -> {
+					subSocket.subscribe("test");
+					messageHandler.handleMessage(testMessage).subscribe();
+					ZMsg msg = ZMsg.recvMsg(subSocket);
+					assertThat(msg).isNotNull();
+					assertThat(msg.pop().getString(ZMQ.CHARSET)).isEqualTo("testTopic");
+					Message<?> capturedMessage =
+							new EmbeddedJsonHeadersMessageMapper().toMessage(msg.getFirst().getData());
+					assertThat(capturedMessage).isEqualTo(testMessage);
+					msg.destroy();
+				});
+
+		messageHandler.destroy();
+		subSocket.close();
 	}
 
 }

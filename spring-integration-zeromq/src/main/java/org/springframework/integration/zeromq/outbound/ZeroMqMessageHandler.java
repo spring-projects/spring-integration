@@ -60,6 +60,7 @@ import org.springframework.util.Assert;
  * the {@link ZMsg} is sent into a socket as is and it is not destroyed for possible further reusing.
  *
  * @author Artem Bilan
+ * @author Alessio Matricardi
  *
  * @since 5.4
  */
@@ -87,6 +88,8 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	private volatile boolean initialized;
 
 	private volatile Disposable socketMonoSubscriber;
+
+	private volatile boolean wrapTopic = true;
 
 	/**
 	 * Create an instance based on the provided {@link ZContext} and connection string.
@@ -191,6 +194,18 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 		this.topicExpression = topicExpression;
 	}
 
+	/**
+	 * Specify if the topic that {@link SocketType#PUB} socket is going to use for distributing messages into the
+	 * subscriptions must be wrapped with an additional empty frame.
+	 * It is ignored for all other {@link SocketType}s supported.
+	 * This attribute is set to {@code true} by default.
+	 * @param wrapTopic true if the topic must be wrapped with an additional empty frame.
+	 * @since 6.2.6
+	 */
+	public void wrapTopic(boolean wrapTopic) {
+		this.wrapTopic = wrapTopic;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "zeromq:outbound-channel-adapter";
@@ -244,7 +259,13 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 						if (socket.base() instanceof Pub) {
 							String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
 							if (topic != null) {
-								msg.wrap(new ZFrame(topic));
+								ZFrame topicFrame = new ZFrame(topic);
+								if (this.wrapTopic) {
+									msg.wrap(topicFrame);
+								}
+								else {
+									msg.push(topicFrame);
+								}
 							}
 						}
 					}
