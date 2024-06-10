@@ -119,6 +119,9 @@ If the `receiveRaw` option is set to `true`, a `ZMsg`, consumed from the socket,
 Otherwise, an `InboundMessageMapper` is used to convert the consumed data into a `Message`.
 If the received `ZMsg` is multi-frame, the first frame is treated as the `ZeroMqHeaders.TOPIC` header this ZeroMQ message was published to.
 
+If the `unwrapTopic` option is set to `false`, the incoming message is considered to consist of two frames: the topic and the ZeroMQ message.
+Otherwise, by default, the `ZMsg` is considered to consist of three frames: the first one containing the topic, the last frame containing the message, with an empty frame in the middle.
+
 With `SocketType.SUB`, the `ZeroMqMessageProducer` uses the provided `topics` option for subscriptions; defaults to subscribe to all.
 Subscriptions can be adjusted at runtime using `subscribeToTopics()` and `unsubscribeFromTopics()` `@ManagedOperation` s.
 
@@ -146,6 +149,10 @@ Only `SocketType.PAIR`, `SocketType.PUSH` and `SocketType.PUB` are supported.
 The `ZeroMqMessageHandler` only supports connecting the ZeroMQ socket; binding is not supported.
 When the `SocketType.PUB` is used, the `topicExpression` is evaluated against a request message to inject a topic frame into a ZeroMQ message if it is not null.
 The subscriber side (`SocketType.SUB`) must receive the topic frame first before parsing the actual data.
+
+If the `wrapTopic` option is set to `false`, the ZeroMQ message frame is sent after the injected topic, if present.
+By default, an additional empty frame is sent between the topic and the message.
+
 When the payload of the request message is a `ZMsg`, no conversion or topic extraction is performed: the `ZMsg` is sent into a socket as is and it is not destroyed for possible further reuse.
 Otherwise, an `OutboundMessageMapper<byte[]>` is used to convert a request message (or just its payload) into a ZeroMQ frame to publish.
 By default, a `ConvertingBytesMessageMapper` is used supplied with a `ConfigurableCompositeMessageConverter`.

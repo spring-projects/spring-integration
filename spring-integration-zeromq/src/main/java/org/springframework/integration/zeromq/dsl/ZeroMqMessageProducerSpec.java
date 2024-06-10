@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.messaging.converter.MessageConverter;
 
 /**
  * @author Artem Bilan
+ * @author Alessio Matricardi
  *
  * @since 5.4
  */
@@ -105,6 +106,20 @@ public class ZeroMqMessageProducerSpec
 	 */
 	public ZeroMqMessageProducerSpec topics(String... topics) {
 		this.target.setTopics(topics);
+		return this;
+	}
+
+	/**
+	 * Specify if the topic
+	 * that {@link SocketType#SUB} socket is going to receive is wrapped with an additional empty frame.
+	 * It is ignored for all other {@link SocketType}s supported.
+	 * This attribute is set to {@code true} by default.
+	 * @param unwrapTopic true if the received topic is wrapped with an additional empty frame.
+	 * @return the spec
+	 * @since 6.2.6
+	 */
+	public ZeroMqMessageProducerSpec unwrapTopic(boolean unwrapTopic) {
+		this.target.unwrapTopic(unwrapTopic);
 		return this;
 	}
 

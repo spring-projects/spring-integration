@@ -36,6 +36,7 @@ import org.springframework.messaging.converter.MessageConverter;
  * The {@link ReactiveMessageHandlerSpec} extension for {@link ZeroMqMessageHandler}.
  *
  * @author Artem Bilan
+ * @author Alessio Matricardi
  *
  * @since 5.4
  */
@@ -123,6 +124,20 @@ public class ZeroMqMessageHandlerSpec
 	 */
 	public ZeroMqMessageHandlerSpec topic(String topic) {
 		this.reactiveMessageHandler.setTopic(topic);
+		return this;
+	}
+
+	/**
+	 * Specify if the topic that {@link SocketType#PUB} socket is going to use for distributing messages into the
+	 * subscriptions must be wrapped with an additional empty frame.
+	 * It is ignored for all other {@link SocketType}s supported.
+	 * This attribute is set to {@code true} by default.
+	 * @param wrapTopic true if the topic must be wrapped with an additional empty frame.
+	 * @return the spec
+	 * @since 6.2.6
+	 */
+	public ZeroMqMessageHandlerSpec wrapTopic(boolean wrapTopic) {
+		this.reactiveMessageHandler.wrapTopic(wrapTopic);
 		return this;
 	}
 
