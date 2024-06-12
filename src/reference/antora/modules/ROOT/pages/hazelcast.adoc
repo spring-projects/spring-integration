@@ -604,7 +604,7 @@ The xref:channel/implementations.adoc#channel-implementations-queuechannel[`Queu
 ----
 @Bean
 PollableChannel hazelcastQueueChannel(HazelcastInstance hazelcastInstance) {
-    return new QueueChannel(hazelcastInstance.Message<?>>getQueue("springIntegrationQueue"));
+    return new QueueChannel(hazelcastInstance.getQueue("springIntegrationQueue"));
 }
 ----
 
