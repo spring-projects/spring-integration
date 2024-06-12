@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -106,6 +107,11 @@ public class CookieTests {
 				}
 
 				public HttpMethod getMethod() {
+					return null;
+				}
+
+				@Override
+				public Map<String, Object> getAttributes() {
 					return null;
 				}
 
