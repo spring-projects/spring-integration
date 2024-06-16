@@ -22,7 +22,7 @@ plugins {
     id 'org.jetbrains.dokka' version '1.9.20'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
-    id 'com.github.spotbugs' version '6.0.15'
+    id 'com.github.spotbugs' version '6.0.17'
 }
 
 if (isCI) {
@@ -72,7 +72,7 @@ ext {
     groovyVersion = '4.0.21'
     hamcrestVersion = '2.2'
     hazelcastVersion = '5.3.7'
-    hibernateVersion = '6.4.8.Final'
+    hibernateVersion = '6.4.9.Final'
     hsqldbVersion = '2.7.3'
     h2Version = '2.2.224'
     jacksonVersion = '2.15.4'
