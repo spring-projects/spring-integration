@@ -56,9 +56,9 @@ public class ZeroMqMessageHandlerSpec
 	 * Create an instance based on the provided {@link ZContext} and binding port.
 	 * @param context the {@link ZContext} to use for creating sockets.
 	 * @param port the port to bind ZeroMq socket to over TCP.
-	 * @since 6.2.6
+	 * @since 6.4
 	 */
-	public ZeroMqMessageHandlerSpec(ZContext context, int port) {
+	protected ZeroMqMessageHandlerSpec(ZContext context, int port) {
 		this(context, port, SocketType.PAIR);
 	}
 
@@ -89,9 +89,9 @@ public class ZeroMqMessageHandlerSpec
 	 * @param port the port to bind ZeroMq socket to over TCP.
 	 * @param socketType the {@link SocketType} to use;
 	 *    only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
-	 * @since 6.2.6
+	 * @since 6.4
 	 */
-	public ZeroMqMessageHandlerSpec(ZContext context, int port, SocketType socketType) {
+	protected ZeroMqMessageHandlerSpec(ZContext context, int port, SocketType socketType) {
 		super(new ZeroMqMessageHandler(context, port, socketType));
 	}
 
