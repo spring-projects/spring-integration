@@ -66,12 +66,12 @@ public class ZeroMqMessageHandlerTests {
 		messageHandler.setBeanFactory(mock(BeanFactory.class));
 		messageHandler.setSocketConfigurer(s -> s.setZapDomain("global"));
 		messageHandler.afterPropertiesSet();
+		messageHandler.start();
 
 		@SuppressWarnings("unchecked")
 		Mono<ZMQ.Socket> socketMono = TestUtils.getPropertyValue(messageHandler, "socketMono", Mono.class);
 		ZMQ.Socket socketInUse = socketMono.block(Duration.ofSeconds(10));
 		assertThat(socketInUse.getZapDomain()).isEqualTo("global");
-		messageHandler.start();
 
 		Message<?> testMessage = new GenericMessage<>("test");
 		messageHandler.handleMessage(testMessage).subscribe();
