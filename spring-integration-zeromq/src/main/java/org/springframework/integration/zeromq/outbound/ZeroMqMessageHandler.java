@@ -44,6 +44,7 @@ import org.springframework.integration.mapping.ConvertingBytesMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.management.ManageableLifecycle;
+import org.springframework.integration.zeromq.ZeroMqUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
@@ -100,9 +101,13 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	private final AtomicInteger bindPort = new AtomicInteger();
 
 	@Nullable
-	private String connectUrl;
+	private Supplier<String> connectUrl;
 
-	private ZeroMqMessageHandler(ZContext context, SocketType socketType) {
+	public ZeroMqMessageHandler(ZContext context) {
+		this(context, SocketType.PAIR);
+	}
+
+	public ZeroMqMessageHandler(ZContext context, SocketType socketType) {
 		Assert.notNull(context, "'context' must not be null");
 		Assert.state(VALID_SOCKET_TYPES.contains(socketType),
 				() -> "'socketType' can only be one of the: " + VALID_SOCKET_TYPES);
@@ -123,7 +128,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	 * Create an instance based on the provided {@link ZContext} and binding port.
 	 * @param context the {@link ZContext} to use for creating sockets.
 	 * @param port the port to bind ZeroMq socket to over TCP.
-	 * @since 6.2.6
+	 * @since 6.4
 	 */
 	public ZeroMqMessageHandler(ZContext context, int port) {
 		this(context, port, SocketType.PAIR);
@@ -157,18 +162,12 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	 * @param port the port to bind ZeroMq socket to over TCP.
 	 * @param socketType the {@link SocketType} to use;
 	 *    only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
-	 * @since 6.2.6
+	 * @since 6.4
 	 */
 	public ZeroMqMessageHandler(ZContext context, int port, SocketType socketType) {
 		this(context, socketType);
+		Assert.isTrue(port > 0, "'port' must not be zero or negative");
 		this.bindPort.set(port);
-		this.socketMono =
-				Mono.just(this.context.createSocket(this.socketType))
-						.publishOn(this.publisherScheduler)
-						.doOnNext((socket) -> this.socketConfigurer.accept(socket))
-						.doOnNext((socket) -> this.bindPort.set(bindSocket(socket, this.bindPort.get())))
-						.cache()
-						.publishOn(this.publisherScheduler);
 	}
 
 	/**
@@ -182,16 +181,7 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	public ZeroMqMessageHandler(ZContext context, Supplier<String> connectUrl, SocketType socketType) {
 		this(context, socketType);
 		Assert.notNull(connectUrl, "'connectUrl' must not be null");
-		this.socketMono =
-				Mono.just(this.context.createSocket(this.socketType))
-						.publishOn(this.publisherScheduler)
-						.doOnNext((socket) -> this.socketConfigurer.accept(socket))
-						.doOnNext((socket) -> {
-							socket.connect(connectUrl.get());
-							this.connectUrl = connectUrl.get();
-						})
-						.cache()
-						.publishOn(this.publisherScheduler);
+		this.connectUrl = connectUrl;
 	}
 
 	/**
@@ -257,10 +247,41 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	}
 
 	/**
+	 * Configure an URL for {@link org.zeromq.ZMQ.Socket#connect(String)}.
+	 * Mutually exclusive with the {@link #setBindPort(int)}.
+	 * @param connectUrl the URL to connect ZeroMq socket to.
+	 * @since 6.4
+	 */
+	public void setConnectUrl(@Nullable String connectUrl) {
+		this.setConnectUrl(() -> connectUrl);
+	}
+
+	/**
+	 * Configure an URL supplier for {@link org.zeromq.ZMQ.Socket#connect(String)}.
+	 * Mutually exclusive with the {@link #setBindPort(int)}.
+	 * @param connectUrl the supplier for URL to connect the socket to.
+	 * @since 6.4
+	 */
+	public void setConnectUrl(@Nullable Supplier<String> connectUrl) {
+		this.connectUrl = connectUrl;
+	}
+
+	/**
+	 * Configure a port for TCP protocol binding via {@link org.zeromq.ZMQ.Socket#bind(String)}.
+	 * Mutually exclusive with the {@link #setConnectUrl(String)}.
+	 * @param port the port to bind ZeroMq socket to over TCP.
+	 * @since 6.4
+	 */
+	public void setBindPort(int port) {
+		Assert.isTrue(port > 0, "'port' must not be zero or negative");
+		this.bindPort.set(port);
+	}
+
+	/**
 	 * Return the port a socket is bound or 0 if this message producer has not been started yet
 	 * or the socket is connected - not bound.
 	 * @return the port for a socket or 0.
-	 * @since 6.2.6
+	 * @since 6.4
 	 */
 	public int getBoundPort() {
 		return this.bindPort.get();
@@ -290,6 +311,20 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	@Override
 	public void start() {
 		if (!this.running.getAndSet(true)) {
+			this.socketMono =
+					Mono.just(this.context.createSocket(this.socketType))
+							.publishOn(this.publisherScheduler)
+							.doOnNext((socket) -> this.socketConfigurer.accept(socket))
+							.doOnNext((socket) -> {
+								if (this.connectUrl != null) {
+									socket.connect(this.connectUrl.get());
+								}
+								else {
+									this.bindPort.set(ZeroMqUtils.bindSocket(socket, this.bindPort.get()));
+								}
+							})
+							.cache()
+							.publishOn(this.publisherScheduler);
 			this.socketMonoSubscriber = this.socketMono.subscribe();
 		}
 	}
@@ -343,19 +378,6 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 		this.socketMono.doOnNext(ZMQ.Socket::close).block();
 		this.socketMonoSubscriber.dispose();
 		this.publisherScheduler.dispose();
-	}
-
-	private static int bindSocket(ZMQ.Socket socket, int port) {
-		if (port == 0) {
-			return socket.bindToRandomPort("tcp://*");
-		}
-		else {
-			boolean bound = socket.bind("tcp://*:" + port);
-			if (!bound) {
-				throw new IllegalArgumentException("Cannot bind ZeroMQ socket to port: " + port);
-			}
-			return port;
-		}
 	}
 
 }
