@@ -23,17 +23,14 @@ import org.zeromq.ZMQ;
  *
  * @author Alessio Matricardi
  *
- * @since 6.4
  */
 public final class ZeroMqUtils {
 
 	/**
-	 * Binds the ZeroMq socket to the given port when different from 0
-	 * or to a random port if not.
+	 * Bind the ZeroMq socket to the given port over the TCP transport protocol.
 	 * @param socket the ZeroMq socket
-	 * @param port the port to bind ZeroMq socket to over TCP.
+	 * @param port the port to bind ZeroMq socket to over TCP. If equal to 0, the socket will bind to a random port.
 	 * @return the effectively bound port
-	 * @since 6.4
 	 */
 	public static int bindSocket(ZMQ.Socket socket, int port) {
 		if (port == 0) {
