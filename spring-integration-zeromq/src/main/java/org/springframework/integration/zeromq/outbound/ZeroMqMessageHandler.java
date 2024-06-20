@@ -103,10 +103,21 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	@Nullable
 	private Supplier<String> connectUrl;
 
+	/**
+	 * Create an instance based on the provided {@link ZContext}.
+	 * @param context the {@link ZContext} to use for creating sockets.
+	 * @since 6.4
+	 */
 	public ZeroMqMessageHandler(ZContext context) {
 		this(context, SocketType.PAIR);
 	}
 
+	/**
+	 * Create an instance based on the provided {@link ZContext} and {@link SocketType}.
+	 * @param context the {@link ZContext} to use for creating sockets.
+	 * @param socketType the {@link SocketType} to use;
+	 *    only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
+	 */
 	public ZeroMqMessageHandler(ZContext context, SocketType socketType) {
 		Assert.notNull(context, "'context' must not be null");
 		Assert.state(VALID_SOCKET_TYPES.contains(socketType),
@@ -247,37 +258,6 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	}
 
 	/**
-	 * Configure an URL for {@link org.zeromq.ZMQ.Socket#connect(String)}.
-	 * Mutually exclusive with the {@link #setBindPort(int)}.
-	 * @param connectUrl the URL to connect ZeroMq socket to.
-	 * @since 6.4
-	 */
-	public void setConnectUrl(@Nullable String connectUrl) {
-		this.setConnectUrl(() -> connectUrl);
-	}
-
-	/**
-	 * Configure an URL supplier for {@link org.zeromq.ZMQ.Socket#connect(String)}.
-	 * Mutually exclusive with the {@link #setBindPort(int)}.
-	 * @param connectUrl the supplier for URL to connect the socket to.
-	 * @since 6.4
-	 */
-	public void setConnectUrl(@Nullable Supplier<String> connectUrl) {
-		this.connectUrl = connectUrl;
-	}
-
-	/**
-	 * Configure a port for TCP protocol binding via {@link org.zeromq.ZMQ.Socket#bind(String)}.
-	 * Mutually exclusive with the {@link #setConnectUrl(String)}.
-	 * @param port the port to bind ZeroMq socket to over TCP.
-	 * @since 6.4
-	 */
-	public void setBindPort(int port) {
-		Assert.isTrue(port > 0, "'port' must not be zero or negative");
-		this.bindPort.set(port);
-	}
-
-	/**
 	 * Return the port a socket is bound or 0 if this message producer has not been started yet
 	 * or the socket is connected - not bound.
 	 * @return the port for a socket or 0.
@@ -295,8 +275,6 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 	@Override
 	protected void onInit() {
 		super.onInit();
-		Assert.state(this.connectUrl == null || this.bindPort.get() == 0,
-				"Only one of the 'connectUrl' or 'bindPort' must be provided");
 		BeanFactory beanFactory = getBeanFactory();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 		if (this.messageMapper == null) {
