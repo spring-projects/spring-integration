@@ -22,7 +22,7 @@ plugins {
     id 'org.jetbrains.dokka' version '1.9.20'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
-    id 'com.github.spotbugs' version '6.0.17'
+    id 'com.github.spotbugs' version '6.0.18'
 }
 
 if (isCI) {
@@ -116,7 +116,7 @@ ext {
     springVersion = '6.1.9'
     springWsVersion = '4.0.11'
     testcontainersVersion = '1.19.8'
-    tomcatVersion = '10.1.24'
+    tomcatVersion = '10.1.25'
     xmlUnitVersion = '2.9.1'
     xstreamVersion = '1.4.20'
     ztZipVersion = '1.16'
