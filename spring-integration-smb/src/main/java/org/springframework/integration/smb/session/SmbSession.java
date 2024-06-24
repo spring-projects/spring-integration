@@ -119,25 +119,26 @@ public class SmbSession implements Session<SmbFile> {
 	}
 
 	/**
-	 * Return the contents of the specified SMB resource as an array of SmbFile objects.
+	 * Return the content of the specified SMB resource as an array of SmbFile objects.
 	 * In case the remote resource does not exist, an empty array is returned.
-	 * @param remotePath path to a remote directory or remote file path
+	 * @param path path to a remote directory or remote file path
 	 * @return array of SmbFile objects
-	 * @throws IOException on error conditions returned by a CIFS server or if the remote resource is not a directory.
+	 * @throws IOException on error conditions returned by a CIFS server.
 	 */
 	@Override
-	public SmbFile[] list(String remotePath) throws IOException {
-		SmbFile[] files;
+	public SmbFile[] list(String path) throws IOException {
+		String remotePath = StringUtils.trimTrailingCharacter(path, '/');
+		SmbFile[] files = null;
 		int lastIndex = StringUtils.hasText(remotePath) ? remotePath.lastIndexOf('/') : 0;
 		String remoteFileName = lastIndex > 0 ? remotePath.substring(lastIndex + 1) : null;
 		if (StringUtils.hasText(remoteFileName)) {
 			SmbFile remoteFile = createSmbFileObject(remotePath);
-			if (!remoteFile.isFile()) {
-				throw new IOException("[" + remotePath + "] is not a file.");
+			if (remoteFile.isFile()) {
+				files = new SmbFile[] {remoteFile};
 			}
-			files = new SmbFile[] {remoteFile};
 		}
-		else {
+
+		if (files == null) {
 			try {
 				SmbFile smbDir = createSmbDirectoryObject(remotePath);
 				if (!smbDir.exists()) {
@@ -154,6 +155,7 @@ public class SmbSession implements Session<SmbFile> {
 				throw new IOException("Failed to list in [" + remotePath + "].", _ex);
 			}
 		}
+
 		logListedFiles(remotePath, files);
 
 		return files;
