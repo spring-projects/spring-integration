@@ -161,7 +161,7 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 
 		try {
 			ClientSession session = this.sftpClient.getSession();
-			if(session != null && session.isOpen()) {
+			if (session != null && session.isOpen()) {
 				session.close();
 			}
 		}
