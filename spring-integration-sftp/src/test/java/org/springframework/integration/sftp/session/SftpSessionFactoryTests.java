@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.auth.password.PasswordIdentityProvider;
 import org.apache.sshd.client.channel.ClientChannel;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
+import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
@@ -50,6 +51,7 @@ import static org.awaitility.Awaitility.await;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Auke Zaaiman
+ * @author Darryl Smith
  *
  * @since 3.0.2
  */
@@ -218,4 +220,30 @@ public class SftpSessionFactoryTests {
 		}
 	}
 
+	@Test
+	void clientSessionIsClosedOnSessionClose() throws IOException {
+		try (SshServer server = SshServer.setUpDefaultServer()) {
+			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
+			server.setPort(0);
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
+			server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
+			server.start();
+
+			DefaultSftpSessionFactory sftpSessionFactory = new DefaultSftpSessionFactory();
+			sftpSessionFactory.setHost("localhost");
+			sftpSessionFactory.setPort(server.getPort());
+			sftpSessionFactory.setUser("user");
+			sftpSessionFactory.setPassword("pass");
+			sftpSessionFactory.setAllowUnknownKeys(true);
+
+			SftpSession session = sftpSessionFactory.getSession();
+			ClientSession clientSession = session.getClientInstance().getClientSession();
+			assertThat(clientSession.isOpen()).isEqualTo(true);
+			
+			session.close();
+
+			assertThat(clientSession.isOpen()).isEqualTo(false);
+
+		}
+	}
 }
