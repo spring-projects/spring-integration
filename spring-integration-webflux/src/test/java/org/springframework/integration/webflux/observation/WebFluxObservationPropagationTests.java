@@ -125,7 +125,7 @@ public class WebFluxObservationPropagationTests {
 	@Configuration
 	@EnableWebFlux
 	@EnableIntegration
-	@EnableIntegrationManagement(observationPatterns = "*")
+	@EnableIntegrationManagement(observationPatterns = "*,!notObserved*")
 	public static class ContextConfiguration {
 
 		@Bean
@@ -201,6 +201,8 @@ public class WebFluxObservationPropagationTests {
 					.transformWith(t -> t
 							.<String, String>transformer(String::toLowerCase)
 							.id("testTransformer"))
+					.channel("notObservedChannel")
+					.bridge(e -> e.id("notObservedEndpoint"))
 					.get();
 		}
 
