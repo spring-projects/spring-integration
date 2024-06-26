@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -240,7 +241,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		try {
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
 				if (this.connectionOptions.isCleanStart()) {
-					this.mqttClient.unsubscribe(topics).waitForCompletion(getCompletionTimeout());
+					unsubscribe(topics);
 					// Have to re-subscribe on next start if connection is not lost.
 					this.readyToSubscribeOnStart = true;
 
@@ -261,12 +262,22 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		}
 	}
 
+	private void unsubscribe(String... topics) throws MqttException {
+		try {
+			// Catch ConcurrentModificationException: https://github.com/eclipse/paho.mqtt.java/issues/986
+			this.mqttClient.unsubscribe(topics).waitForCompletion(getCompletionTimeout());
+		}
+		catch (ConcurrentModificationException ex) {
+			logger.error(ex, () -> "Error unsubscribing from " + Arrays.toString(topics));
+		}
+	}
+
 	@Override
 	public void destroy() {
 		super.destroy();
 		try {
 			if (getClientManager() == null && this.mqttClient != null) {
-				this.mqttClient.close(true);
+				this.mqttClient.close();
 			}
 		}
 		catch (MqttException ex) {
@@ -301,7 +312,7 @@ public class Mqttv5PahoMessageDrivenChannelAdapter
 		this.topicLock.lock();
 		try {
 			if (this.mqttClient != null && this.mqttClient.isConnected()) {
-				this.mqttClient.unsubscribe(topic).waitForCompletion(getCompletionTimeout());
+				unsubscribe(topic);
 			}
 			super.removeTopic(topic);
 		}
