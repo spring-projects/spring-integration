@@ -159,6 +159,7 @@ public class LockRegistryLeaderInitiatorTests {
 	}
 
 	@Test
+	@SuppressWarnings("rawtypes")
 	public void competingWithLock() throws Exception {
 		// switch used to toggle which registry obtains lock
 		AtomicBoolean firstLocked = new AtomicBoolean(true);
@@ -220,6 +221,7 @@ public class LockRegistryLeaderInitiatorTests {
 	}
 
 	@Test
+	@SuppressWarnings("rawtypes")
 	public void testGracefulLeaderSelectorExit() throws Exception {
 		AtomicReference<Throwable> throwableAtomicReference = new AtomicReference<>();
 
