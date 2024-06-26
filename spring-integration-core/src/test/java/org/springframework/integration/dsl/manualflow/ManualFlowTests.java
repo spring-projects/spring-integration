@@ -470,6 +470,7 @@ public class ManualFlowTests {
 				}
 				catch (Exception e) {
 					exceptionHappened.set(true);
+					throw e;
 				}
 
 			});

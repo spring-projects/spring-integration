@@ -92,7 +92,7 @@ public class SmbTests extends SmbTestSupport {
 		DirectoryScanner scanner = new DefaultDirectoryScanner();
 		IntegrationFlow flow = IntegrationFlow.from(Smb.inboundAdapter(sessionFactory())
 								.preserveTimestamp(true)
-								.remoteDirectory("smbSource")
+								.remoteDirectory("smbSource/subSmbSource/")
 								.maxFetchSize(10)
 								.scanner(scanner)
 								.regexFilter(".*\\.txt$")
@@ -115,13 +115,13 @@ public class SmbTests extends SmbTestSupport {
 		Object payload = message.getPayload();
 		assertThat(payload).isInstanceOf(File.class);
 		File file = (File) payload;
-		assertThat(file.getName()).isIn("SMBSOURCE1.TXT.a", "SMBSOURCE2.TXT.a");
+		assertThat(file.getName()).isEqualTo("SUBSMBSOURCE1.TXT.a", "SUBSMBSOURCE2.TXT.a");
 		assertThat(file.getAbsolutePath()).contains("localTarget");
 
 		message = out.receive(10_000);
 		assertThat(message).isNotNull();
 		file = (File) message.getPayload();
-		assertThat(file.getName()).isIn("SMBSOURCE1.TXT.a", "SMBSOURCE2.TXT.a");
+		assertThat(file.getName()).isIn("SUBSMBSOURCE1.TXT.a", "SUBSMBSOURCE2.TXT.a");
 		assertThat(file.getAbsolutePath()).contains("localTarget");
 
 		assertThat(out.receive(10)).isNull();

@@ -54,8 +54,6 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private final Sinks.Many<Message<?>> sink = Sinks.many().multicast().onBackpressureBuffer(1, false);
 
-	private final Sinks.Many<Boolean> subscribedSignal = Sinks.many().replay().limit(1);
-
 	private final Disposable.Composite upstreamSubscriptions = Disposables.composite();
 
 	private volatile boolean active = true;
@@ -102,19 +100,9 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.sink.asFlux()
-				.doFinally((s) -> this.subscribedSignal.tryEmitNext(this.sink.currentSubscriberCount() > 0))
 				.publish(1)
 				.refCount()
 				.subscribe(subscriber);
-
-		Mono<Boolean> subscribersBarrier =
-				Mono.fromCallable(() -> this.sink.currentSubscriberCount() > 0)
-						.filter(Boolean::booleanValue)
-						.doOnNext(this.subscribedSignal::tryEmitNext)
-						.repeatWhenEmpty((repeat) ->
-								this.active ? repeat.delayElements(Duration.ofMillis(100)) : repeat); // NOSONAR
-
-		addPublisherToSubscribe(Flux.from(subscribersBarrier));
 	}
 
 	private void addPublisherToSubscribe(Flux<?> publisher) {
@@ -144,8 +132,11 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	public void subscribeTo(Publisher<? extends Message<?>> publisher) {
 		Flux<Object> upstreamPublisher =
 				Flux.from(publisher)
-						.delaySubscription(this.subscribedSignal.asFlux().filter(Boolean::booleanValue).next())
-//						.publishOn(this.scheduler)
+						.delaySubscription(
+								Mono.fromCallable(this.sink::currentSubscriberCount)
+										.filter((value) -> value > 0)
+										.repeatWhenEmpty((repeat) ->
+												this.active ? repeat.delayElements(Duration.ofMillis(100)) : repeat))
 						.flatMap((message) ->
 								Mono.just(message)
 										.handle((messageToHandle, syncSink) -> sendReactiveMessage(messageToHandle))
@@ -180,7 +171,6 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	public void destroy() {
 		this.active = false;
 		this.upstreamSubscriptions.dispose();
-		this.subscribedSignal.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
 		this.sink.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
 		super.destroy();
 	}
