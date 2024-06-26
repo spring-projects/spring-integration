@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.util;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -53,7 +54,6 @@ import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -162,7 +162,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 	@ParameterizedTest
 	@EnumSource(RedisLockType.class)
-	void testUnlock_lockStatusIsExpired_IllegalStateExceptionWillBeThrown(RedisLockType testRedisLockType) throws InterruptedException {
+	void testUnlock_lockStatusIsExpired_ConcurrentModificationExceptionWillBeThrown(RedisLockType testRedisLockType) throws InterruptedException {
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
 		registry.setRedisLockType(testRedisLockType);
 		Lock lock = registry.obtain("foo");
@@ -171,7 +171,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			Thread.sleep(200);
 		}
 		finally {
-			assertThatThrownBy(lock::unlock).isInstanceOf(IllegalStateException.class);
+			assertThatThrownBy(lock::unlock).isInstanceOf(ConcurrentModificationException.class);
 		}
 		registry.destroy();
 	}
@@ -459,9 +459,9 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		Lock lock1 = registry.obtain("foo");
 		assertThat(lock1.tryLock()).isTrue();
 		waitForExpire("foo");
-		assertThatIllegalStateException()
-				.isThrownBy(lock1::unlock)
-				.withMessageContaining("Lock was released in the store due to expiration.");
+		assertThatThrownBy(lock1::unlock)
+				.isInstanceOf(ConcurrentModificationException.class)
+				.hasMessageContaining("Lock was released in the store due to expiration.");
 		registry.destroy();
 	}
 

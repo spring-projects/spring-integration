@@ -18,6 +18,7 @@ package org.springframework.integration.redis.util;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -514,12 +515,12 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 					return;
 				}
 				else if (Boolean.FALSE.equals(unlinkResult)) {
-					throw new IllegalStateException("Lock was released in the store due to expiration. " +
+					throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
 							"The integrity of data protected by this lock may have been compromised.");
 				}
 			}
 			if (!removeLockKeyInnerDelete()) {
-				throw new IllegalStateException("Lock was released in the store due to expiration. " +
+				throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
 						"The integrity of data protected by this lock may have been compromised.");
 			}
 		}

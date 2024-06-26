@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.lock;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -315,7 +316,7 @@ public class JdbcLockRegistryDifferentClientTests {
 				});
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		data.add(2);
-		assertThatThrownBy(lock1::unlock).isInstanceOf(IllegalStateException.class);
+		assertThatThrownBy(lock1::unlock).isInstanceOf(ConcurrentModificationException.class);
 		for (int i = 0; i < 2; i++) {
 			Integer integer = data.poll(10, TimeUnit.SECONDS);
 			assertThat(integer).isNotNull();

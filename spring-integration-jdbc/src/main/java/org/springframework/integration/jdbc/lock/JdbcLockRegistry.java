@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.lock;
 
 import java.time.Duration;
+import java.util.ConcurrentModificationException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -349,15 +350,15 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 							return;
 						}
 						else {
-							throw new IllegalStateException();
+							throw new ConcurrentModificationException();
 							// the lock is no longer owned by current process, the exception should be handle and rollback the execution result
 						}
 					}
 					catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
 						// try again
 					}
-					catch (IllegalStateException e) {
-						throw new IllegalStateException("Lock was released in the store due to expiration. " +
+					catch (ConcurrentModificationException e) {
+						throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
 								"The integrity of data protected by this lock may have been compromised.");
 					}
 					catch (Exception e) {

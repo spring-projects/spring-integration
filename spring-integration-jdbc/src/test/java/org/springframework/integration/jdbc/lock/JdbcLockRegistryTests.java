@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc.lock;
 
+import java.util.ConcurrentModificationException;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
@@ -501,7 +502,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testUnlock_lockStatusIsExpired_lockHasBeenAcquiredByAnotherProcess_DataAccessResourceFailureExceptionWillBeThrown() throws Exception {
+	public void testUnlock_lockStatusIsExpired_lockHasBeenAcquiredByAnotherProcess_ConcurrentModificationExceptionWillBeThrown() throws Exception {
 		long ttl = 100;
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
 		client1.setApplicationContext(this.context);
@@ -521,14 +522,14 @@ public class JdbcLockRegistryTests {
 			assertThat(lock2.tryLock()).isTrue();
 		}
 		finally {
-			assertThatExceptionOfType(IllegalStateException.class)
+			assertThatExceptionOfType(ConcurrentModificationException.class)
 					.isThrownBy(() -> lock1.unlock());
 			lock2.unlock();
 		}
 	}
 
 	@Test
-	public void testUnlock_lockStatusIsExpired_lockDataHasBeenDeleted_IllegalStateExceptionWillBeThrown() throws Exception {
+	public void testUnlock_lockStatusIsExpired_lockDataHasBeenDeleted_ConcurrentModificationExceptionWillBeThrown() throws Exception {
 		JdbcLockRegistry registry = new JdbcLockRegistry(client, 100);
 		Lock lock = registry.obtain("foo");
 		try {
@@ -537,7 +538,7 @@ public class JdbcLockRegistryTests {
 			client.deleteExpired();
 		}
 		finally {
-			assertThatExceptionOfType(IllegalStateException.class)
+			assertThatExceptionOfType(ConcurrentModificationException.class)
 					.isThrownBy(() -> lock.unlock());
 		}
 	}
