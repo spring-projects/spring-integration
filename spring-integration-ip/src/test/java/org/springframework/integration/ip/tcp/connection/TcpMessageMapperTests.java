@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
- *
+ * @author Gengwu Zhao
  * @since 2.0
  *
  */
@@ -74,15 +74,10 @@ public class TcpMessageMapperTests {
 	@Test
 	public void testToMessage() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
-		TcpConnection connection = mock(TcpConnection.class);
-		Socket socket = mock(Socket.class);
+		TcpConnection connection = creatMockTcpConcnection(TEST_PAYLOAD.getBytes(), "MyHost", "1.1.1.1", 1234);
 		InetAddress local = mock(InetAddress.class);
+		Socket socket = creatMockSocket(local);
 		SocketInfo info = new SocketInfo(socket);
-		when(socket.getLocalAddress()).thenReturn(local);
-		when(connection.getPayload()).thenReturn(TEST_PAYLOAD.getBytes());
-		when(connection.getHostName()).thenReturn("MyHost");
-		when(connection.getHostAddress()).thenReturn("1.1.1.1");
-		when(connection.getPort()).thenReturn(1234);
 		when(connection.getSocketInfo()).thenReturn(info);
 		Message<?> message = mapper.toMessage(connection);
 		assertThat(new String((byte[]) message.getPayload())).isEqualTo(TEST_PAYLOAD);
@@ -97,15 +92,10 @@ public class TcpMessageMapperTests {
 	public void testToMessageWithContentType() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
-		TcpConnection connection = mock(TcpConnection.class);
-		Socket socket = mock(Socket.class);
+		TcpConnection connection = creatMockTcpConcnection(TEST_PAYLOAD.getBytes(), "MyHost", "1.1.1.1", 1234);
 		InetAddress local = mock(InetAddress.class);
+		Socket socket = creatMockSocket(local);
 		SocketInfo info = new SocketInfo(socket);
-		when(socket.getLocalAddress()).thenReturn(local);
-		when(connection.getPayload()).thenReturn(TEST_PAYLOAD.getBytes());
-		when(connection.getHostName()).thenReturn("MyHost");
-		when(connection.getHostAddress()).thenReturn("1.1.1.1");
-		when(connection.getPort()).thenReturn(1234);
 		when(connection.getSocketInfo()).thenReturn(info);
 		Message<?> message = mapper.toMessage(connection);
 		assertThat(new String((byte[]) message.getPayload())).isEqualTo(TEST_PAYLOAD);
@@ -124,15 +114,10 @@ public class TcpMessageMapperTests {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
 		mapper.setContentType("application/octet-stream;charset=ISO-8859-1");
-		TcpConnection connection = mock(TcpConnection.class);
-		Socket socket = mock(Socket.class);
+		TcpConnection connection = creatMockTcpConcnection(TEST_PAYLOAD.getBytes(), "MyHost", "1.1.1.1", 1234);
 		InetAddress local = mock(InetAddress.class);
+		Socket socket = creatMockSocket(local);
 		SocketInfo info = new SocketInfo(socket);
-		when(socket.getLocalAddress()).thenReturn(local);
-		when(connection.getPayload()).thenReturn(TEST_PAYLOAD.getBytes());
-		when(connection.getHostName()).thenReturn("MyHost");
-		when(connection.getHostAddress()).thenReturn("1.1.1.1");
-		when(connection.getPort()).thenReturn(1234);
 		when(connection.getSocketInfo()).thenReturn(info);
 		Message<?> message = mapper.toMessage(connection);
 		assertThat(new String((byte[]) message.getPayload())).isEqualTo(TEST_PAYLOAD);
@@ -366,11 +351,7 @@ public class TcpMessageMapperTests {
 		MapJsonSerializer deserializer = new MapJsonSerializer();
 		Map<?, ?> map = deserializer.deserialize(new ByteArrayInputStream(json.getBytes("UTF-8")));
 
-		TcpConnection connection = mock(TcpConnection.class);
-		when(connection.getPayload()).thenReturn(map);
-		when(connection.getHostName()).thenReturn("someHost");
-		when(connection.getHostAddress()).thenReturn("1.1.1.1");
-		when(connection.getPort()).thenReturn(1234);
+		TcpConnection connection = creatMockTcpConcnection(map, "someHost", "1.1.1.1", 1234);
 		when(connection.getConnectionId()).thenReturn("someId");
 		Message<?> message = mapper.toMessage(connection);
 		assertThat(message.getPayload()).isEqualTo("foo");
@@ -396,11 +377,7 @@ public class TcpMessageMapperTests {
 
 		DefaultDeserializer deserializer = new DefaultDeserializer();
 		map = (Map<?, ?>) deserializer.deserialize(new ByteArrayInputStream(baos.toByteArray()));
-		TcpConnection connection = mock(TcpConnection.class);
-		when(connection.getPayload()).thenReturn(map);
-		when(connection.getHostName()).thenReturn("someHost");
-		when(connection.getHostAddress()).thenReturn("1.1.1.1");
-		when(connection.getPort()).thenReturn(1234);
+		TcpConnection connection = creatMockTcpConcnection(map, "someHost", "1.1.1.1", 1234);
 		when(connection.getConnectionId()).thenReturn("someId");
 		Message<?> message = mapper.toMessage(connection);
 		assertThat(message.getPayload()).isEqualTo("foo");
@@ -420,11 +397,7 @@ public class TcpMessageMapperTests {
 		MessageConvertingTcpMessageMapper mapper = new MessageConvertingTcpMessageMapper(converter);
 		byte[] bytes = (byte[]) mapper.fromMessage(outMessage);
 
-		TcpConnection connection = mock(TcpConnection.class);
-		when(connection.getPayload()).thenReturn(bytes);
-		when(connection.getHostName()).thenReturn("someHost");
-		when(connection.getHostAddress()).thenReturn("1.1.1.1");
-		when(connection.getPort()).thenReturn(1234);
+		TcpConnection connection = creatMockTcpConcnection(bytes, "someHost", "1.1.1.1", 1234);
 		when(connection.getConnectionId()).thenReturn("someId");
 		Message<?> message = mapper.toMessage(connection);
 		assertThat(message.getPayload()).isEqualTo("foo");
@@ -444,11 +417,7 @@ public class TcpMessageMapperTests {
 		mapper.setBytesMessageMapper(new EmbeddedJsonHeadersMessageMapper());
 		byte[] bytes = (byte[]) mapper.fromMessage(outMessage);
 
-		TcpConnection connection = mock(TcpConnection.class);
-		when(connection.getPayload()).thenReturn(bytes);
-		when(connection.getHostName()).thenReturn("someHost");
-		when(connection.getHostAddress()).thenReturn("1.1.1.1");
-		when(connection.getPort()).thenReturn(1234);
+		TcpConnection connection = creatMockTcpConcnection(bytes, "someHost", "1.1.1.1", 1234);
 		when(connection.getConnectionId()).thenReturn("someId");
 		Message<?> message = mapper.toMessage(connection);
 		assertThat(message.getPayload()).isEqualTo("foo");
@@ -457,6 +426,21 @@ public class TcpMessageMapperTests {
 		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
 		assertThat(message.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
 		assertThat(message.getHeaders().get(IpHeaders.CONNECTION_ID)).isEqualTo("someId");
+	}
+
+	private static TcpConnection creatMockTcpConcnection(Object bytes, String hostName, String ipAdress, int port) {
+		TcpConnection connection = mock(TcpConnection.class);
+		when(connection.getPayload()).thenReturn(bytes);
+		when(connection.getHostName()).thenReturn(hostName);
+		when(connection.getHostAddress()).thenReturn(ipAdress);
+		when(connection.getPort()).thenReturn(port);
+		return connection;
+	}
+
+	private static Socket creatMockSocket(InetAddress local) {
+		Socket socket = mock(Socket.class);
+		when(socket.getLocalAddress()).thenReturn(local);
+		return socket;
 	}
 
 }
