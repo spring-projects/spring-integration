@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 import org.reactivestreams.Publisher;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -47,6 +48,7 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.integration.util.IntegrationReactiveUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -366,6 +368,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 	}
 
+	@SuppressWarnings("try")
 	private static CompletableFuture<?> toFutureReply(Object reply, @Nullable ReactiveAdapter reactiveAdapter) {
 		if (reactiveAdapter != null) {
 			Mono<?> reactiveReply;
@@ -377,7 +380,31 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				reactiveReply = Mono.from(publisher);
 			}
 
-			return reactiveReply.publishOn(Schedulers.boundedElastic()).toFuture();
+			CompletableFuture<Object> replyFuture = new CompletableFuture<>();
+
+			reactiveReply
+					.publishOn(Schedulers.boundedElastic())
+					// TODO until Reactor supports context propagation from the MonoToCompletableFuture
+					.doOnEach((signal) -> {
+						try (AutoCloseable scope = IntegrationReactiveUtils
+								.setThreadLocalsFromReactorContext(signal.getContextView())) {
+
+							if (signal.isOnError()) {
+								replyFuture.completeExceptionally(signal.getThrowable());
+							}
+							else {
+								replyFuture.complete(signal.get());
+							}
+
+						}
+						catch (Exception ex) {
+							throw Exceptions.bubble(ex);
+						}
+					})
+					.contextCapture()
+					.subscribe();
+
+			return replyFuture;
 		}
 		else {
 			return toCompletableFuture(reply);

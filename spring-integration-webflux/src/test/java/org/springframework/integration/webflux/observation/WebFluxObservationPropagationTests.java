@@ -36,26 +36,33 @@ import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.simple.SpansAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.webflux.dsl.WebFlux;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.config.EnableWebFlux;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,6 +87,10 @@ public class WebFluxObservationPropagationTests {
 
 	@Autowired
 	private PollableChannel testChannel;
+
+	@Autowired
+	@Qualifier("webFluxRequestReplyClientFlow.input")
+	private MessageChannel webFluxRequestReplyClientFlowInput;
 
 	@BeforeEach
 	void setup() {
@@ -118,6 +129,20 @@ public class WebFluxObservationPropagationTests {
 
 		// There is a race condition when we already have a reply, but the span in the last channel is not closed yet.
 		await().untilAsserted(() -> assertThat(SPANS.spans()).hasSize(3));
+		SpansAssert.assertThat(SPANS.spans().stream().map(BraveFinishedSpan::fromBrave).collect(Collectors.toList()))
+				.haveSameTraceId();
+	}
+
+	@Test
+	void observationIsPropagatedWebFluxClientRequestReply() {
+		String result =
+				new MessagingTemplate()
+						.convertSendAndReceive(this.webFluxRequestReplyClientFlowInput, "test", String.class);
+
+		assertThat(result).isEqualTo("SOME REPLY");
+
+		// There is a race condition when we already have a reply, but the span in the last channel is not closed yet.
+		await().untilAsserted(() -> assertThat(SPANS.spans()).hasSize(5));
 		SpansAssert.assertThat(SPANS.spans().stream().map(BraveFinishedSpan::fromBrave).collect(Collectors.toList()))
 				.haveSameTraceId();
 	}
@@ -186,6 +211,29 @@ public class WebFluxObservationPropagationTests {
 		@Bean
 		FluxMessageChannel webFluxRequestChannel() {
 			return new FluxMessageChannel();
+		}
+
+		@Bean
+		IntegrationFlow webFluxRequestReplyClientFlow(ObservationRegistry registry) {
+			ClientHttpConnector httpConnector =
+					new HttpHandlerConnector((request, response) -> {
+						response.setStatusCode(HttpStatus.OK);
+
+						Mono<DataBuffer> replyData = Mono.just(response.bufferFactory().wrap("some reply".getBytes()));
+
+						return response.writeWith(replyData)
+								.then(Mono.defer(response::setComplete));
+					});
+			WebClient webClient =
+					WebClient.builder()
+							.clientConnector(httpConnector)
+							.observationRegistry(registry)
+							.build();
+
+			return f -> f
+					.handle(WebFlux.outboundGateway(message -> "/someRequest", webClient)
+							.expectedResponseType(String.class))
+					.<String, String>transform(String::toUpperCase);
 		}
 
 		@Bean
