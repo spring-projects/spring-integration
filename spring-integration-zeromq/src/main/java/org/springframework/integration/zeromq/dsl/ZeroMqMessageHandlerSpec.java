@@ -54,6 +54,7 @@ public class ZeroMqMessageHandlerSpec
 
 	/**
 	 * Create an instance based on the provided {@link ZContext}.
+	 * The created socket will be bound to a random port.
 	 * @param context the {@link ZContext} to use for creating sockets.
 	 * @since 6.4
 	 */
@@ -94,6 +95,7 @@ public class ZeroMqMessageHandlerSpec
 
 	/**
 	 * Create an instance based on the provided {@link ZContext} and {@link SocketType}.
+	 * The created socket will be bound to a random port.
 	 * @param context the {@link ZContext} to use for creating sockets.
 	 * @param socketType the {@link SocketType} to use;
 	 *    only {@link SocketType#PAIR}, {@link SocketType#PUB} and {@link SocketType#PUSH} are supported.
