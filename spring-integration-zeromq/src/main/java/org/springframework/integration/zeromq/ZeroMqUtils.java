@@ -23,6 +23,8 @@ import org.zeromq.ZMQ;
  *
  * @author Alessio Matricardi
  *
+ * @since 6.4
+ *
  */
 public final class ZeroMqUtils {
 
