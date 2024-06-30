@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.lock;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -45,18 +46,20 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.StopWatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Dave Syer
  * @author Artem Bilan
  * @author Glenn Renfro
  * @author Alexandre Strubel
+ * @author Eddie Cho
  *
  * @since 4.3
  */
 @SpringJUnitConfig(locations = "JdbcLockRegistryTests-context.xml")
 @DirtiesContext
-public class JdbcLockRegistryDifferentClientTests {
+class JdbcLockRegistryDifferentClientTests {
 
 	private static final Log LOGGER = LogFactory.getLog(JdbcLockRegistryDifferentClientTests.class);
 
@@ -64,7 +67,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	private JdbcLockRegistry registry;
 
 	@Autowired
-	private LockRepository client;
+	private DefaultLockRepository client;
 
 	@Autowired
 	private ConfigurableApplicationContext context;
@@ -78,6 +81,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	public void clear() {
 		this.registry.expireUnusedOlderThan(0);
 		this.client.close();
+		this.client.afterPropertiesSet();
 		this.child = new AnnotationConfigApplicationContext();
 		this.child.registerBean("childLockRepository", DefaultLockRepository.class, this.dataSource);
 		this.child.setParent(this.context);
@@ -92,7 +96,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	}
 
 	@Test
-	public void testSecondThreadLoses() throws Exception {
+	void testSecondThreadLoses() throws Exception {
 		for (int i = 0; i < 100; i++) {
 			final JdbcLockRegistry registry1 = this.registry;
 			final JdbcLockRegistry registry2 = this.child.getBean(JdbcLockRegistry.class);
@@ -129,7 +133,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	}
 
 	@Test
-	public void testBothLock() throws Exception {
+	void testBothLock() throws Exception {
 		for (int i = 0; i < 100; i++) {
 			final JdbcLockRegistry registry1 = this.registry;
 			final JdbcLockRegistry registry2 = this.child.getBean(JdbcLockRegistry.class);
@@ -185,7 +189,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	}
 
 	@Test
-	public void testOnlyOneLock() throws Exception {
+	void testOnlyOneLock() throws Exception {
 		for (int i = 0; i < 100; i++) {
 			final BlockingQueue<String> locked = new LinkedBlockingQueue<>();
 			final CountDownLatch latch = new CountDownLatch(20);
@@ -231,7 +235,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	}
 
 	@Test
-	public void testExclusiveAccess() throws Exception {
+	void testExclusiveAccess() throws Exception {
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
 		client1.setApplicationContext(this.context);
 		client1.afterPropertiesSet();
@@ -281,7 +285,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	}
 
 	@Test
-	public void testOutOfDateLockTaken() throws Exception {
+	void testOutOfDateLockTaken() throws Exception {
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
 		client1.setTimeToLive(100);
 		client1.setApplicationContext(this.context);
@@ -314,7 +318,7 @@ public class JdbcLockRegistryDifferentClientTests {
 				});
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		data.add(2);
-		lock1.unlock();
+		assertThatThrownBy(lock1::unlock).isInstanceOf(ConcurrentModificationException.class);
 		for (int i = 0; i < 2; i++) {
 			Integer integer = data.poll(10, TimeUnit.SECONDS);
 			assertThat(integer).isNotNull();
@@ -323,7 +327,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	}
 
 	@Test
-	public void testRenewLock() throws Exception {
+	void testRenewLock() throws Exception {
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
 		client1.setTimeToLive(500);
 		client1.setApplicationContext(this.context);
