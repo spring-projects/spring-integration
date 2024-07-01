@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  */
-public class HazelcastLockRegistry implements LockRegistry {
+public class HazelcastLockRegistry implements LockRegistry<Lock> {
 
 	private final HazelcastInstance client;
 

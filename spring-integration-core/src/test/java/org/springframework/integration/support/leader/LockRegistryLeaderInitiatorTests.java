@@ -61,7 +61,7 @@ public class LockRegistryLeaderInitiatorTests {
 
 	private CountDownLatch revoked = new CountDownLatch(1);
 
-	private final LockRegistry registry = new DefaultLockRegistry();
+	private final LockRegistry<Lock> registry = new DefaultLockRegistry();
 
 	private final LockRegistryLeaderInitiator initiator =
 			new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
@@ -159,6 +159,7 @@ public class LockRegistryLeaderInitiatorTests {
 	}
 
 	@Test
+	@SuppressWarnings("rawtypes")
 	public void competingWithLock() throws Exception {
 		// switch used to toggle which registry obtains lock
 		AtomicBoolean firstLocked = new AtomicBoolean(true);
@@ -220,6 +221,7 @@ public class LockRegistryLeaderInitiatorTests {
 	}
 
 	@Test
+	@SuppressWarnings("rawtypes")
 	public void testGracefulLeaderSelectorExit() throws Exception {
 		AtomicReference<Throwable> throwableAtomicReference = new AtomicReference<>();
 
@@ -275,7 +277,7 @@ public class LockRegistryLeaderInitiatorTests {
 			}
 		}).given(mockLock).tryLock(anyLong(), any(TimeUnit.class));
 
-		LockRegistry registry = lockKey -> mockLock;
+		LockRegistry<Lock> registry = lockKey -> mockLock;
 
 		CountDownLatch onGranted = new CountDownLatch(1);
 

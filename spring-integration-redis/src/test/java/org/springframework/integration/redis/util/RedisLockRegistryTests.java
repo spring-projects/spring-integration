@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.util;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -49,11 +50,12 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -64,6 +66,7 @@ import static org.mockito.Mockito.mock;
  * @author Unseok Kim
  * @author Artem Vozhdayenko
  * @author Anton Gabov
+ * @author Eddie Cho
  *
  * @since 4.0
  *
@@ -112,6 +115,64 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		}
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testLockWithCustomTtl(RedisLockType testRedisLockType) throws InterruptedException {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
+		registry.setRedisLockType(testRedisLockType);
+		for (int i = 0; i < 3; i++) {
+			DistributedLock lock = registry.obtain("foo");
+			lock.lock(500, TimeUnit.MILLISECONDS);
+			try {
+				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
+				Thread.sleep(400);
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+		registry.expireUnusedOlderThan(-1000);
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testTryLockWithCustomTtl(RedisLockType testRedisLockType) throws InterruptedException {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
+		registry.setRedisLockType(testRedisLockType);
+		for (int i = 0; i < 3; i++) {
+			DistributedLock lock = registry.obtain("foo");
+			lock.tryLock(100, TimeUnit.MILLISECONDS, 500, TimeUnit.MILLISECONDS);
+			try {
+				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
+				Thread.sleep(400);
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+		registry.expireUnusedOlderThan(-1000);
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testUnlock_lockStatusIsExpired_ConcurrentModificationExceptionWillBeThrown(RedisLockType testRedisLockType) throws InterruptedException {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
+		registry.setRedisLockType(testRedisLockType);
+		Lock lock = registry.obtain("foo");
+		try {
+			lock.lock();
+			Thread.sleep(200);
+		}
+		finally {
+			assertThatThrownBy(lock::unlock).isInstanceOf(ConcurrentModificationException.class);
+		}
 		registry.destroy();
 	}
 
@@ -398,9 +459,9 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		Lock lock1 = registry.obtain("foo");
 		assertThat(lock1.tryLock()).isTrue();
 		waitForExpire("foo");
-		assertThatIllegalStateException()
-				.isThrownBy(lock1::unlock)
-				.withMessageContaining("Lock was released in the store due to expiration.");
+		assertThatThrownBy(lock1::unlock)
+				.isInstanceOf(ConcurrentModificationException.class)
+				.hasMessageContaining("Lock was released in the store due to expiration.");
 		registry.destroy();
 	}
 

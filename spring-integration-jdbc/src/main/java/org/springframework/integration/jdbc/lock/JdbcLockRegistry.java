@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.lock;
 
 import java.time.Duration;
+import java.util.ConcurrentModificationException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,6 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.TransientDataAccessException;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.RenewableLockRegistry;
 import org.springframework.integration.util.UUIDConverter;
@@ -56,10 +58,11 @@ import org.springframework.util.Assert;
  * @author Unseok Kim
  * @author Christian Tzolov
  * @author Myeonghyeon Lee
+ * @author Eddie Cho
  *
  * @since 4.3
  */
-public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockRegistry {
+public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>, RenewableLockRegistry<DistributedLock> {
 
 	private static final int DEFAULT_IDLE = 100;
 
@@ -84,11 +87,24 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 	private int cacheCapacity = DEFAULT_CAPACITY;
 
 	/**
+	 * Default value for the time-to-live property.
+	 */
+	public static final Duration DEFAULT_TTL = Duration.ofSeconds(10);
+
+	private final Duration ttl;
+
+	/**
 	 * Construct an instance based on the provided {@link LockRepository}.
 	 * @param client the {@link LockRepository} to rely on.
 	 */
 	public JdbcLockRegistry(LockRepository client) {
 		this.client = client;
+		this.ttl = DEFAULT_TTL;
+	}
+
+	public JdbcLockRegistry(LockRepository client, long expireAfter) {
+		this.client = client;
+		this.ttl = convertToDuration(expireAfter, TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -112,7 +128,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 	}
 
 	@Override
-	public Lock obtain(Object lockKey) {
+	public DistributedLock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
 		this.lock.lock();
@@ -165,7 +181,12 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 		}
 	}
 
-	private static final class JdbcLock implements Lock {
+	private static Duration convertToDuration(long time, TimeUnit timeUnit) {
+		long timeInMilliseconds = TimeUnit.MILLISECONDS.convert(time, timeUnit);
+		return Duration.ofMillis(timeInMilliseconds);
+	}
+
+	private final class JdbcLock implements DistributedLock {
 
 		private final LockRepository mutex;
 
@@ -189,10 +210,20 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 		@Override
 		public void lock() {
+			lock(JdbcLockRegistry.this.ttl);
+		}
+
+		@Override
+		public void lock(long customTtl, TimeUnit customTtlUnit) {
+			Duration customTtlDuration = convertToDuration(customTtl, customTtlUnit);
+			lock(customTtlDuration);
+		}
+
+		private void lock(Duration ttl) {
 			this.delegate.lock();
 			while (true) {
 				try {
-					while (!doLock()) {
+					while (!doLock(ttl)) {
 						Thread.sleep(this.idleBetweenTries.toMillis());
 					}
 					break;
@@ -223,7 +254,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 			this.delegate.lockInterruptibly();
 			while (true) {
 				try {
-					while (!doLock()) {
+					while (!doLock(JdbcLockRegistry.this.ttl)) {
 						Thread.sleep(this.idleBetweenTries.toMillis());
 						if (Thread.currentThread().isInterrupted()) {
 							throw new InterruptedException();
@@ -259,6 +290,16 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 
 		@Override
 		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+			return tryLock(time, unit, JdbcLockRegistry.this.ttl);
+		}
+
+		@Override
+		public boolean tryLock(long time, TimeUnit unit, long customTtl, TimeUnit customTtlUnit) throws InterruptedException {
+			Duration customTtlDuration = convertToDuration(customTtl, customTtlUnit);
+			return tryLock(time, unit, customTtlDuration);
+		}
+
+		private boolean tryLock(long time, TimeUnit unit, Duration ttl) throws InterruptedException {
 			long now = System.currentTimeMillis();
 			if (!this.delegate.tryLock(time, unit)) {
 				return false;
@@ -267,7 +308,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 			boolean acquired;
 			while (true) {
 				try {
-					while (!(acquired = doLock()) && System.currentTimeMillis() < expire) { //NOSONAR
+					while (!(acquired = doLock(ttl)) && System.currentTimeMillis() < expire) { //NOSONAR
 						Thread.sleep(this.idleBetweenTries.toMillis());
 					}
 					if (!acquired) {
@@ -285,8 +326,8 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 			}
 		}
 
-		private boolean doLock() {
-			boolean acquired = this.mutex.acquire(this.path);
+		private boolean doLock(Duration ttl) {
+			boolean acquired = this.mutex.acquire(this.path, ttl);
 			if (acquired) {
 				this.lastUsed = System.currentTimeMillis();
 			}
@@ -305,11 +346,20 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 			try {
 				while (true) {
 					try {
-						this.mutex.delete(this.path);
-						return;
+						if (this.mutex.delete(this.path)) {
+							return;
+						}
+						else {
+							throw new ConcurrentModificationException();
+							// the lock is no longer owned by current process, the exception should be handle and rollback the execution result
+						}
 					}
 					catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
 						// try again
+					}
+					catch (ConcurrentModificationException e) {
+						throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
+								"The integrity of data protected by this lock may have been compromised.");
 					}
 					catch (Exception e) {
 						throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);
@@ -331,12 +381,21 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 		}
 
 		public boolean renew() {
+			return renew(JdbcLockRegistry.this.ttl);
+		}
+
+		public boolean renew(long customTtl, TimeUnit customTtlTimeUnit) {
+			Duration customTtlDuration = convertToDuration(customTtl, customTtlTimeUnit);
+			return renew(customTtlDuration);
+		}
+
+		private boolean renew(Duration ttl) {
 			if (!this.delegate.isHeldByCurrentThread()) {
 				throw new IllegalMonitorStateException("The current thread doesn't own mutex at " + this.path);
 			}
 			while (true) {
 				try {
-					boolean renewed = this.mutex.renew(this.path);
+					boolean renewed = this.mutex.renew(this.path, ttl);
 					if (renewed) {
 						this.lastUsed = System.currentTimeMillis();
 					}

@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * @since 2.1.1
  *
  */
-public final class DefaultLockRegistry implements LockRegistry {
+public final class DefaultLockRegistry implements LockRegistry<Lock> {
 
 	private final Lock[] lockTable;
 
