@@ -198,7 +198,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
-	 * @param soTimeout the soTimeout to set
+	 * @param soTimeout the soTimeout to set, in milliseconds
 	 */
 	public void setSoTimeout(int soTimeout) {
 		this.soTimeout = soTimeout;

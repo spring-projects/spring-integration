@@ -23,7 +23,7 @@ package org.springframework.integration.ip;
 public interface CommonSocketOptions {
 
 	/**
-	 * @param soTimeout The timeout.
+	 * @param soTimeout The timeout, in milliseconds.
 	 * @see java.net.Socket#setSoTimeout(int)
 	 * @see java.net.DatagramSocket#setSoTimeout(int)
 	 */
