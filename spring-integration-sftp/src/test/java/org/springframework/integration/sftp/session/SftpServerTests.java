@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author David Liu
  * @author Artem Bilan
+ * @author Darryl Smith
  *
  * @since 4.1
  *
@@ -76,6 +77,8 @@ public class SftpServerTests {
 			f.setAllowUnknownKeys(true);
 			Session<SftpClient.DirEntry> session = f.getSession();
 			doTest(server, session);
+
+			f.destroy();
 		}
 	}
 
@@ -111,6 +114,8 @@ public class SftpServerTests {
 			f.setPrivateKeyPassphrase(passphrase);
 			Session<SftpClient.DirEntry> session = f.getSession();
 			doTest(server, session);
+
+			f.destroy();
 		}
 	}
 

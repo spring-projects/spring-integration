@@ -76,6 +76,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Darryl Smith
  */
 public class SftpOutboundTests {
 
@@ -84,7 +85,7 @@ public class SftpOutboundTests {
 		File targetDir = new File("remote-target-dir");
 		assertThat(targetDir.exists()).as("target directory does not exist: " + targetDir.getName()).isTrue();
 
-		SessionFactory<SftpClient.DirEntry> sessionFactory = new TestSftpSessionFactory();
+		TestSftpSessionFactory sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler<SftpClient.DirEntry> handler =
 				new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
@@ -103,6 +104,8 @@ public class SftpOutboundTests {
 
 		handler.handleMessage(new GenericMessage<>(srcFile));
 		assertThat(destFile.exists()).as("destination file was not created").isTrue();
+
+		sessionFactory.destroy();
 	}
 
 	@Test
@@ -111,7 +114,7 @@ public class SftpOutboundTests {
 		if (file.exists()) {
 			file.delete();
 		}
-		SessionFactory<SftpClient.DirEntry> sessionFactory = new TestSftpSessionFactory();
+		TestSftpSessionFactory sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler<SftpClient.DirEntry> handler =
 				new FileTransferringMessageHandler<>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
@@ -127,6 +130,8 @@ public class SftpOutboundTests {
 		byte[] inFile = FileCopyUtils.copyToByteArray(file);
 		assertThat(new String(inFile)).isEqualTo("String data");
 		file.delete();
+
+		sessionFactory.destroy();
 	}
 
 	@Test
@@ -135,7 +140,7 @@ public class SftpOutboundTests {
 		if (file.exists()) {
 			file.delete();
 		}
-		SessionFactory<SftpClient.DirEntry> sessionFactory = new TestSftpSessionFactory();
+		TestSftpSessionFactory sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler<SftpClient.DirEntry> handler =
 				new FileTransferringMessageHandler<>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
@@ -151,6 +156,8 @@ public class SftpOutboundTests {
 		byte[] inFile = FileCopyUtils.copyToByteArray(file);
 		assertThat(new String(inFile)).isEqualTo("byte[] data");
 		file.delete();
+
+		sessionFactory.destroy();
 	}
 
 	@Test //INT-2275
@@ -225,7 +232,7 @@ public class SftpOutboundTests {
 
 	@ParameterizedTest
 	@ValueSource(booleans = {true, false})
-	public void testSharedSession(boolean sharedSession) throws IOException {
+	public void testSharedSession(boolean sharedSession) throws Exception {
 		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
@@ -253,6 +260,8 @@ public class SftpOutboundTests {
 				assertThat(TestUtils.getPropertyValue(s2, "sftpClient"))
 						.isNotSameAs(TestUtils.getPropertyValue(s1, "sftpClient"));
 			}
+
+			f.destroy();
 		}
 	}
 
