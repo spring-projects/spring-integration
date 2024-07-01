@@ -31,6 +31,7 @@ import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
@@ -43,6 +44,7 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext.Integr
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
@@ -59,6 +61,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Joaquin Santana
  * @author Deepak Gunasekaran
+ * @author Darryl Smith
  *
  * @since 5.0
  */
@@ -69,11 +72,14 @@ public class SftpTests extends SftpTestSupport {
 	@Autowired
 	private IntegrationFlowContext flowContext;
 
+	@Autowired
+	private SessionFactory<SftpClient.DirEntry> sessionFactory;
+
 	@Test
 	public void testSftpInboundFlow() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = IntegrationFlow
-				.from(Sftp.inboundAdapter(sessionFactory())
+				.from(Sftp.inboundAdapter(sessionFactory)
 								.preserveTimestamp(true)
 								.remoteDirectory("/sftpSource")
 								.regexFilter(".*\\.txt$")
@@ -106,7 +112,7 @@ public class SftpTests extends SftpTestSupport {
 	public void testSftpInboundStreamFlow() throws Exception {
 		QueueChannel out = new QueueChannel();
 		StandardIntegrationFlow flow = IntegrationFlow.from(
-						Sftp.inboundStreamingAdapter(new SftpRemoteFileTemplate(sessionFactory()))
+						Sftp.inboundStreamingAdapter(new SftpRemoteFileTemplate(sessionFactory))
 								.remoteDirectory("sftpSource")
 								.regexFilter(".*\\.txt$"),
 						e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
@@ -133,7 +139,7 @@ public class SftpTests extends SftpTestSupport {
 
 	@Test
 	public void testSftpOutboundFlow() {
-		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
+		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sessionFactory, FileExistsMode.FAIL)
 				.useTemporaryFileName(false)
 				.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
 				.remoteDirectory("sftpTarget"));
@@ -143,7 +149,7 @@ public class SftpTests extends SftpTestSupport {
 				.setHeader(FileHeaders.FILENAME, fileName)
 				.build());
 
-		RemoteFileTemplate<SftpClient.DirEntry> template = new RemoteFileTemplate<>(sessionFactory());
+		RemoteFileTemplate<SftpClient.DirEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		SftpClient.DirEntry[] files =
 				template.execute(session -> session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertThat(files.length).isEqualTo(1);
@@ -154,7 +160,7 @@ public class SftpTests extends SftpTestSupport {
 
 	@Test
 	public void testSftpOutboundFlowSftpTemplate() {
-		SftpRemoteFileTemplate sftpTemplate = new SftpRemoteFileTemplate(sessionFactory());
+		SftpRemoteFileTemplate sftpTemplate = new SftpRemoteFileTemplate(sessionFactory);
 		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sftpTemplate)
 				.useTemporaryFileName(false)
 				.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
@@ -175,7 +181,7 @@ public class SftpTests extends SftpTestSupport {
 
 	@Test
 	public void testSftpOutboundFlowSftpTemplateAndMode() {
-		SftpRemoteFileTemplate sftpTemplate = new SftpRemoteFileTemplate(sessionFactory());
+		SftpRemoteFileTemplate sftpTemplate = new SftpRemoteFileTemplate(sessionFactory);
 		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sftpTemplate, FileExistsMode.APPEND)
 				.useTemporaryFileName(false)
 				.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
@@ -201,7 +207,7 @@ public class SftpTests extends SftpTestSupport {
 	@Test
 	@DisabledOnOs(OS.WINDOWS)
 	public void testSftpOutboundFlowWithChmod() {
-		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
+		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sessionFactory, FileExistsMode.FAIL)
 				.useTemporaryFileName(false)
 				.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
 				.chmod(0644)
@@ -212,7 +218,7 @@ public class SftpTests extends SftpTestSupport {
 				.setHeader(FileHeaders.FILENAME, fileName)
 				.build());
 
-		RemoteFileTemplate<SftpClient.DirEntry> template = new RemoteFileTemplate<>(sessionFactory());
+		RemoteFileTemplate<SftpClient.DirEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		SftpClient.DirEntry[] files =
 				template.execute(session -> session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertThat(files.length).isEqualTo(1);
@@ -231,7 +237,7 @@ public class SftpTests extends SftpTestSupport {
 	public void testSftpMgetFlow() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = f -> f
-				.handle(Sftp.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET,
+				.handle(Sftp.outboundGateway(sessionFactory, AbstractRemoteFileOutboundGateway.Command.MGET,
 								"payload")
 						.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
 						.regexFileNameFilter("(subSftpSource|.*1.txt)")
@@ -260,7 +266,7 @@ public class SftpTests extends SftpTestSupport {
 	public void testSftpSessionCallback() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = f -> f
-				.<String>handle((p, h) -> new SftpRemoteFileTemplate(sessionFactory()).execute(s -> s.list(p)))
+				.<String>handle((p, h) -> new SftpRemoteFileTemplate(sessionFactory).execute(s -> s.list(p)))
 				.channel(out);
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		registration.getInputChannel().send(new GenericMessage<>("sftpSource"));
@@ -279,7 +285,7 @@ public class SftpTests extends SftpTestSupport {
 	public void testSftpMv() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = f -> f
-				.handle(Sftp.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MV, "payload")
+				.handle(Sftp.outboundGateway(sessionFactory, AbstractRemoteFileOutboundGateway.Command.MV, "payload")
 						.renameExpression("payload.concat('.done')")
 						.remoteDirectoryExpression("'sftpSource'"))
 				.channel(out);
@@ -302,6 +308,11 @@ public class SftpTests extends SftpTestSupport {
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
+
+		@Bean
+		public SessionFactory<SftpClient.DirEntry> ftpsessionFactory() {
+			return SftpTests.sessionFactory();
+		}
 
 	}
 

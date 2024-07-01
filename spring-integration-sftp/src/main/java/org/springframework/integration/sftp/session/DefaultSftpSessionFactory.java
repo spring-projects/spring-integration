@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.apache.sshd.sftp.client.SftpVersionSelector;
 import org.apache.sshd.sftp.client.impl.AbstractSftpClient;
 import org.apache.sshd.sftp.client.impl.DefaultSftpClient;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -74,10 +75,11 @@ import org.springframework.util.Assert;
  * @author Auke Zaaiman
  * @author Christian Tzolov
  * @author Adama Sorho
+ * @author Darryl Smith
  *
  * @since 2.0
  */
-public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirEntry>, SharedSessionCapable {
+public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirEntry>, SharedSessionCapable, DisposableBean {
 
 	private final Lock lock = new ReentrantLock();
 
@@ -419,6 +421,13 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 			SftpErrorDataHandler errorDataHandler) throws IOException {
 
 		return new ConcurrentSftpClient(clientSession, initialVersionSelector, errorDataHandler);
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		if (this.isInnerClient && this.sshClient != null && this.sshClient.isStarted()) {
+			this.sshClient.stop();
+		}
 	}
 
 	/**
