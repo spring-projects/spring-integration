@@ -25,6 +25,7 @@ import java.time.Duration;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.util.net.SshdSocketAddress;
 import org.apache.sshd.sftp.SftpModuleProperties;
 import org.apache.sshd.sftp.client.SftpClient;
@@ -47,6 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Darryl Smith
  * @since 2.0
  */
 public class SftpSession implements Session<SftpClient.DirEntry> {
@@ -155,6 +157,16 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 		}
 		catch (IOException ex) {
 			throw new UncheckedIOException("failed to close an SFTP client", ex);
+		}
+
+		try {
+			ClientSession session = this.sftpClient.getSession();
+			if (session != null && session.isOpen()) {
+				session.close();
+			}
+		}
+		catch (IOException ex) {
+			throw new UncheckedIOException("failed to close an SFTP client (session)", ex);
 		}
 	}
 

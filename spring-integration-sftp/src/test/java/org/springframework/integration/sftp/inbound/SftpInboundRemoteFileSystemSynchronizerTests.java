@@ -61,6 +61,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Joaquin Santana
+ * @author Darryl Smith
  *
  * @since 2.0
  */
@@ -160,6 +161,8 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		ms.stop();
 		verify(synchronizer).close();
 		verify(store).close();
+
+		ftpSessionFactory.destroy();
 	}
 
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {

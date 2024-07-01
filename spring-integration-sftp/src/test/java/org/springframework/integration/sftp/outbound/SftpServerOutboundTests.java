@@ -86,6 +86,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Darryl Smith
  *
  * @since 3.0
  */
@@ -684,7 +685,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 	}
 
 	@Test
-	public void testSessionExists() throws IOException {
+	public void testSessionExists() throws Exception {
 		DefaultSftpSessionFactory sessionFactory = new DefaultSftpSessionFactory();
 		sessionFactory.setHost("localhost");
 		sessionFactory.setPort(port);
@@ -702,6 +703,8 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 				.isThrownBy(() -> session.exists("any"))
 				.withRootCauseInstanceOf(IOException.class)
 				.withStackTraceContaining("canonicalPath(any) client is closed");
+
+		sessionFactory.destroy();
 	}
 
 	@SuppressWarnings("unused")

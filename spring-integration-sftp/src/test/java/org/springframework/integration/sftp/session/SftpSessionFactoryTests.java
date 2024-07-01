@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.auth.password.PasswordIdentityProvider;
 import org.apache.sshd.client.channel.ClientChannel;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
+import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
@@ -50,6 +51,7 @@ import static org.awaitility.Awaitility.await;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Auke Zaaiman
+ * @author Darryl Smith
  *
  * @since 3.0.2
  */
@@ -101,11 +103,13 @@ public class SftpSessionFactoryTests {
 			}
 
 			assertThat(server.getActiveSessions().size()).isEqualTo(0);
+
+			f.destroy();
 		}
 	}
 
 	@Test
-	public void concurrentGetSessionDoesntCauseFailure() throws IOException {
+	public void concurrentGetSessionDoesntCauseFailure() throws Exception {
 		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
@@ -134,11 +138,13 @@ public class SftpSessionFactoryTests {
 					.isNotEqualTo(concurrentSessions.get(2));
 
 			assertThat(concurrentSessions.get(1)).isNotEqualTo(concurrentSessions.get(2));
+
+			sftpSessionFactory.destroy();
 		}
 	}
 
 	@Test
-	void externallyProvidedSshClientShouldNotHaveItsConfigurationOverwritten() throws IOException {
+	void externallyProvidedSshClientShouldNotHaveItsConfigurationOverwritten() throws Exception {
 		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
@@ -156,11 +162,13 @@ public class SftpSessionFactoryTests {
 			sftpSessionFactory.setUser("user");
 
 			assertThatNoException().isThrownBy(sftpSessionFactory::getSession);
+
+			sftpSessionFactory.destroy();
 		}
 	}
 
 	@Test
-	void concurrentSessionListDoesntCauseFailure() throws IOException {
+	void concurrentSessionListDoesntCauseFailure() throws Exception {
 		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
@@ -192,11 +200,13 @@ public class SftpSessionFactoryTests {
 							.toList();
 
 			assertThat(dirEntries).hasSize(10);
+
+			sftpSessionFactory.destroy();
 		}
 	}
 
 	@Test
-	void customTimeoutIsApplied() throws IOException {
+	void customTimeoutIsApplied() throws Exception {
 		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
@@ -215,7 +225,39 @@ public class SftpSessionFactoryTests {
 			ClientChannel clientChannel = sftpSessionFactory.getSession().getClientInstance().getClientChannel();
 
 			assertThat(AbstractSftpClient.SFTP_CLIENT_CMD_TIMEOUT.getRequired(clientChannel)).hasSeconds(15);
+
+			sftpSessionFactory.destroy();
 		}
 	}
 
+	@Test
+	void clientSessionIsClosedOnSessionClose() throws Exception {
+		try (SshServer server = SshServer.setUpDefaultServer()) {
+			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
+			server.setPort(0);
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
+			server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
+			server.start();
+
+			DefaultSftpSessionFactory sftpSessionFactory = new DefaultSftpSessionFactory();
+			sftpSessionFactory.setHost("localhost");
+			sftpSessionFactory.setPort(server.getPort());
+			sftpSessionFactory.setUser("user");
+			sftpSessionFactory.setPassword("pass");
+			sftpSessionFactory.setAllowUnknownKeys(true);
+
+			SftpSession session = sftpSessionFactory.getSession();
+			ClientSession clientSession = session.getClientInstance().getClientSession();
+
+			assertThat(session.isOpen()).isTrue();
+			assertThat(clientSession.isOpen()).isTrue();
+
+			session.close();
+
+			assertThat(session.isOpen()).isFalse();
+			assertThat(clientSession.isClosed()).isTrue();
+
+			sftpSessionFactory.destroy();
+		}
+	}
 }
