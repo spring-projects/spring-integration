@@ -45,7 +45,7 @@ public class UdpInboundChannelAdapterSpec
 	}
 
 	/**
-	 * @param soTimeout set the timeout socket option.
+	 * @param soTimeout set the timeout socket option, in milliseconds.
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setSoTimeout(int)
 	 */

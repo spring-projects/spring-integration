@@ -305,7 +305,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	/**
-	 * @param soTimeout The timeout.
+	 * @param soTimeout The timeout, in milliseconds.
 	 * @see AbstractConnectionFactory#setSoTimeout(int)
 	 */
 	public void setSoTimeout(int soTimeout) {

@@ -53,7 +53,7 @@ public abstract class AbstractConnectionFactorySpec
 	}
 
 	/**
-	 * @param soTimeout the timeout socket option.
+	 * @param soTimeout the timeout socket option, in milliseconds.
 	 * @return the spec.
 	 * @see AbstractConnectionFactory#setSoTimeout(int)
 	 */
