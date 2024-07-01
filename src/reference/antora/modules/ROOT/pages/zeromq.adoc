@@ -146,7 +146,9 @@ ZeroMqMessageProducer zeroMqMessageProducer(ZContext context, MessageChannel out
 
 The `ZeroMqMessageHandler` is a `ReactiveMessageHandler` implementation to produce publish messages into a ZeroMQ socket.
 Only `SocketType.PAIR`, `SocketType.PUSH` and `SocketType.PUB` are supported.
-The `ZeroMqMessageHandler` only supports connecting the ZeroMQ socket; binding is not supported.
+This component can connect to the remote socket or bind onto TCP protocol with the provided or random port.
+The actual port can be obtained via `getBoundPort()` after this component is started and ZeroMQ socket is bound.
+
 When the `SocketType.PUB` is used, the `topicExpression` is evaluated against a request message to inject a topic frame into a ZeroMQ message if it is not null.
 The subscriber side (`SocketType.SUB`) must receive the topic frame first before parsing the actual data.
 
@@ -158,7 +160,7 @@ Otherwise, an `OutboundMessageMapper<byte[]>` is used to convert a request messa
 By default, a `ConvertingBytesMessageMapper` is used supplied with a `ConfigurableCompositeMessageConverter`.
 The socket options (e.g. security or write timeout) can be configured via `setSocketConfigurer(Consumer<ZMQ.Socket> socketConfigurer)` callback.
 
-Here is a sample of `ZeroMqMessageHandler` configuration:
+Here is a sample of `ZeroMqMessageHandler` configuration which connect to a socket:
 
 [source,java]
 ----
@@ -167,6 +169,21 @@ Here is a sample of `ZeroMqMessageHandler` configuration:
 ZeroMqMessageHandler zeroMqMessageHandler(ZContext context) {
     ZeroMqMessageHandler messageHandler =
                   new ZeroMqMessageHandler(context, "tcp://localhost:6060", SocketType.PUB);
+    messageHandler.setTopicExpression(
+                  new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
+    messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
+}
+----
+
+Here is a sample of `ZeroMqMessageHandler` configuration which bind to a provided port:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "zeroMqPublisherChannel")
+ZeroMqMessageHandler zeroMqMessageHandler(ZContext context) {
+    ZeroMqMessageHandler messageHandler =
+                  new ZeroMqMessageHandler(context, 7070, SocketType.PUB);
     messageHandler.setTopicExpression(
                   new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
     messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());

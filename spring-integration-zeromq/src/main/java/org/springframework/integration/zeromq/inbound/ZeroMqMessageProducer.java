@@ -40,6 +40,7 @@ import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.zeromq.ZeroMqHeaders;
+import org.springframework.integration.zeromq.ZeroMqUtils;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.lang.Nullable;
@@ -263,7 +264,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 								socket.connect(this.connectUrl);
 							}
 							else {
-								this.bindPort.set(bindSocket(socket, this.bindPort.get()));
+								this.bindPort.set(ZeroMqUtils.bindSocket(socket, this.bindPort.get()));
 							}
 						})
 						.cache()
@@ -317,19 +318,6 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 	public void destroy() {
 		super.destroy();
 		this.socketMono.doOnNext(ZMQ.Socket::close).block();
-	}
-
-	private static int bindSocket(ZMQ.Socket socket, int port) {
-		if (port == 0) {
-			return socket.bindToRandomPort("tcp://*");
-		}
-		else {
-			boolean bound = socket.bind("tcp://*:" + port);
-			if (!bound) {
-				throw new IllegalArgumentException("Cannot bind ZeroMQ socket to port: " + port);
-			}
-			return port;
-		}
 	}
 
 }

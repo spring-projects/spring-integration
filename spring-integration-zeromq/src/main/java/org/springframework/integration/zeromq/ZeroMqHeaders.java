@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.zeromq;
 
 /**
- * The message headers constants to repsent ZeroMq message attributes.
+ * The message headers constants to represent ZeroMq message attributes.
  *
  * @author Artem Bilan
  *

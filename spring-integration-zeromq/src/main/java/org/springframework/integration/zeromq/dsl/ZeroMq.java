@@ -25,6 +25,7 @@ import org.zeromq.ZContext;
  * Factory class for ZeroMq components DSL.
  *
  * @author Artem Bilan
+ * @author Alessio Matricardi
  *
  * @since 5.4
  */
@@ -59,6 +60,17 @@ public final class ZeroMq {
 	}
 
 	/**
+	 * Create an instance of {@link ZeroMqMessageHandlerSpec} for the provided {@link ZContext} and binding port.
+	 * @param context the {@link ZContext} to use.
+	 * @param port the port to bind ZeroMq socket to over TCP.
+	 * @return the spec.
+	 * @since 6.4
+	 */
+	public static ZeroMqMessageHandlerSpec outboundChannelAdapter(ZContext context, int port) {
+		return new ZeroMqMessageHandlerSpec(context, port);
+	}
+
+	/**
 	 * Create an instance of {@link ZeroMqMessageHandlerSpec} for the provided {@link ZContext}
 	 * and connection URL supplier.
 	 * @param context the {@link ZContext} to use.
@@ -82,6 +94,43 @@ public final class ZeroMq {
 			SocketType socketType) {
 
 		return new ZeroMqMessageHandlerSpec(context, connectUrl, socketType);
+	}
+
+	/**
+	 * Create an instance of {@link ZeroMqMessageHandlerSpec} for the provided {@link ZContext}.
+	 * The created socket will be bound to a random port.
+	 * @param context the {@link ZContext} to use.
+	 * @return the spec.
+	 * @since 6.4
+	 */
+	public static ZeroMqMessageHandlerSpec outboundChannelAdapter(ZContext context) {
+		return new ZeroMqMessageHandlerSpec(context);
+	}
+
+	/**
+	 * Create an instance of {@link ZeroMqMessageHandlerSpec} for the provided {@link ZContext} and {@link SocketType}.
+	 * The created socket will be bound to a random port.
+	 * @param context the {@link ZContext} to use.
+	 * @param socketType the {@link SocketType} for ZeroMq socket.
+	 * @return the spec.
+	 * @since 6.4
+	 */
+	public static ZeroMqMessageHandlerSpec outboundChannelAdapter(ZContext context, SocketType socketType) {
+		return new ZeroMqMessageHandlerSpec(context, socketType);
+	}
+
+	/**
+	 * Create an instance of {@link ZeroMqMessageHandlerSpec} for the provided {@link ZContext}, binding port
+	 * and {@link SocketType}.
+	 * @param context the {@link ZContext} to use.
+	 * @param port the port to bind ZeroMq socket to over TCP.
+	 * @param socketType the {@link SocketType} for ZeroMq socket.
+	 * @return the spec.
+	 * @since 6.4
+	 */
+	public static ZeroMqMessageHandlerSpec outboundChannelAdapter(ZContext context, int port,
+			SocketType socketType) {
+		return new ZeroMqMessageHandlerSpec(context, port, socketType);
 	}
 
 	/**
