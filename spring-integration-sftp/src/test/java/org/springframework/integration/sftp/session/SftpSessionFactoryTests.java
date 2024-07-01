@@ -249,13 +249,13 @@ public class SftpSessionFactoryTests {
 			SftpSession session = sftpSessionFactory.getSession();
 			ClientSession clientSession = session.getClientInstance().getClientSession();
 
-			assertThat(session.isOpen()).isEqualTo(true);
-			assertThat(clientSession.isOpen()).isEqualTo(true);
+			assertThat(session.isOpen()).isTrue();
+			assertThat(clientSession.isOpen()).isTrue();
 
 			session.close();
 
-			assertThat(session.isOpen()).isEqualTo(false);
-			assertThat(clientSession.isClosed()).isEqualTo(true);
+			assertThat(session.isOpen()).isFalse();
+			assertThat(clientSession.isClosed()).isTrue();
 
 			sftpSessionFactory.destroy();
 		}
