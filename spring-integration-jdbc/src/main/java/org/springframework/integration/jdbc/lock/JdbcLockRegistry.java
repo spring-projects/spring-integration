@@ -311,16 +311,15 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 							return;
 						}
 						else {
-							throw new ConcurrentModificationException();
-							// the lock is no longer owned by current process, the exception should be handle and rollback the execution result
+							throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
+									"The integrity of data protected by this lock may have been compromised.");
 						}
 					}
 					catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
 						// try again
 					}
 					catch (ConcurrentModificationException e) {
-						throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
-								"The integrity of data protected by this lock may have been compromised.");
+						throw e;
 					}
 					catch (Exception e) {
 						throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);

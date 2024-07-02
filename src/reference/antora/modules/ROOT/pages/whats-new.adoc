@@ -32,7 +32,14 @@ The `LobHandler` (and respective API) has been deprecated for removal in Spring 
 Respective option on `JdbcMessageStore` (and similar) have been deprecated as well.
 The byte array handling for serialized message is fully deferred to JDBC driver.
 
+The `LockRepository.delete()` method return the result of removing ownership of a distributed lock. And the `JdbcLockRegistry.JdbcLock.unlock()` method throws ConcurrentModificationException if the ownership of the lock is expired.
+
 [[x6.4-zeromq-changes]]
 === ZeroMQ Changes
 
 The outbound component `ZeroMqMessageHandler` (and respective API) can now bind a TCP port instead of connecting to a given URL.
+
+[[x6.4-redis-changes]]
+=== Redis Changes
+
+Instead of throwing `IllegalStateException`, the `RedisLockRegistry.RedisLock.unlock()` method throws `ConcurrentModificationException` if the ownership of the lock is expired.

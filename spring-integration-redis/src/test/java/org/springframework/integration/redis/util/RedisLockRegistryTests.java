@@ -119,7 +119,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 	@ParameterizedTest
 	@EnumSource(RedisLockType.class)
-	void testUnlock_lockStatusIsExpired_ConcurrentModificationExceptionWillBeThrown(RedisLockType testRedisLockType) throws InterruptedException {
+	void testUnlockAfterLockStatusHasBeenExpired(RedisLockType testRedisLockType) throws InterruptedException {
 		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
 		registry.setRedisLockType(testRedisLockType);
 		Lock lock = registry.obtain("foo");

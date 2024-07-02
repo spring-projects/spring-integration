@@ -276,12 +276,7 @@ class JdbcLockRegistryTests {
 					Thread.currentThread().interrupt();
 				}
 				finally {
-					try {
-						lock2.unlock();
-					}
-					catch (ConcurrentModificationException ignored) {
-					}
-
+					lock2.unlock();
 					latch3.countDown();
 				}
 			});
@@ -514,7 +509,7 @@ class JdbcLockRegistryTests {
 	}
 
 	@Test
-	void testUnlock_lockStatusIsExpired_lockHasBeenAcquiredByAnotherProcess_ConcurrentModificationExceptionWillBeThrown() throws Exception {
+	void testUnlockAfterLockStatusHasBeenExpiredAndLockHasBeenAcquiredByAnotherProcess() throws Exception {
 		int ttl = 100;
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
 		client1.setApplicationContext(this.context);
@@ -541,7 +536,7 @@ class JdbcLockRegistryTests {
 	}
 
 	@Test
-	void testUnlock_lockStatusIsExpired_lockDataHasBeenDeleted_ConcurrentModificationExceptionWillBeThrown() throws Exception {
+	void testUnlockAfterLockStatusHasBeenExpiredAndDeleted() throws Exception {
 		DefaultLockRepository client = new DefaultLockRepository(dataSource);
 		client.setApplicationContext(this.context);
 		client.setTimeToLive(100);

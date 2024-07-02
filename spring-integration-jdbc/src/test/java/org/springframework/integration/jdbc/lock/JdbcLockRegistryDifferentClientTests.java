@@ -67,7 +67,7 @@ class JdbcLockRegistryDifferentClientTests {
 	private JdbcLockRegistry registry;
 
 	@Autowired
-	private DefaultLockRepository client;
+	private LockRepository client;
 
 	@Autowired
 	private ConfigurableApplicationContext context;
@@ -81,7 +81,6 @@ class JdbcLockRegistryDifferentClientTests {
 	public void clear() {
 		this.registry.expireUnusedOlderThan(0);
 		this.client.close();
-		this.client.afterPropertiesSet();
 		this.child = new AnnotationConfigApplicationContext();
 		this.child.registerBean("childLockRepository", DefaultLockRepository.class, this.dataSource);
 		this.child.setParent(this.context);
