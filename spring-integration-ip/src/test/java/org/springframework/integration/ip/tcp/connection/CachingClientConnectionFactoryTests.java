@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,6 +88,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Gengwu Zhao
  *
  * @since 2.2
  *
@@ -505,17 +506,13 @@ public class CachingClientConnectionFactoryTests {
 	@Test
 	public void testCachedFailover() throws Exception {
 		// Failover
-		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
-		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
+		TcpConnectionSupport mockConn1 = makeMockConnection();
+		TcpConnectionSupport mockConn2 = makeMockConnection();
+		AbstractClientConnectionFactory factory1 = createFactoryWithMockConnection(mockConn1);
+		AbstractClientConnectionFactory factory2 = createFactoryWithMockConnection(mockConn2);
 		List<AbstractClientConnectionFactory> factories = new ArrayList<>();
 		factories.add(factory1);
 		factories.add(factory2);
-		TcpConnectionSupport mockConn1 = makeMockConnection();
-		TcpConnectionSupport mockConn2 = makeMockConnection();
-		when(factory1.getConnection()).thenReturn(mockConn1);
-		when(factory2.getConnection()).thenReturn(mockConn2);
-		when(factory1.isActive()).thenReturn(true);
-		when(factory2.isActive()).thenReturn(true);
 		doThrow(new UncheckedIOException(new IOException("fail"))).when(mockConn1).send(Mockito.any(Message.class));
 		doAnswer(invocation -> null).when(mockConn2).send(Mockito.any(Message.class));
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
@@ -820,6 +817,13 @@ public class CachingClientConnectionFactoryTests {
 		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
 		when(connection.isOpen()).thenReturn(true);
 		return connection;
+	}
+
+	private static AbstractClientConnectionFactory createFactoryWithMockConnection(TcpConnectionSupport mockConn) throws Exception {
+		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
+		when(factory.getConnection()).thenReturn(mockConn);
+		when(factory.isActive()).thenReturn(true);
+		return factory;
 	}
 
 }

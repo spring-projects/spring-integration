@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Gengwu Zhao
  *
  * @since 2.2
  *
@@ -72,12 +73,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testContainerWithDest() throws Exception {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
-		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-				.thenReturn(scheduler);
+		BeanFactory beanFactory = createFactoryWithMockScheduler(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(connectionFactory);
@@ -118,12 +116,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testContainerWithDestNoCorrelation() throws Exception {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
-		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-				.thenReturn(scheduler);
+		BeanFactory beanFactory = createFactoryWithMockScheduler(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(connectionFactory);
@@ -166,12 +161,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testContainerWithDestName() throws Exception {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
-		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-				.thenReturn(scheduler);
+		BeanFactory beanFactory = createFactoryWithMockScheduler(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(connectionFactory);
@@ -212,12 +204,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testContainerWithDestNameNoCorrelation() throws Exception {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
-		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-				.thenReturn(scheduler);
+		BeanFactory beanFactory = createFactoryWithMockScheduler(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(connectionFactory);
@@ -260,12 +249,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testContainerWithTemporary() throws Exception {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
-		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-				.thenReturn(scheduler);
+		BeanFactory beanFactory = createFactoryWithMockScheduler(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(connectionFactory);
@@ -306,12 +292,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testContainerWithTemporaryNoCorrelation() throws Exception {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
-		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-				.thenReturn(scheduler);
+		BeanFactory beanFactory = createFactoryWithMockScheduler(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(connectionFactory);
@@ -353,12 +336,9 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testLazyContainerWithDest() throws Exception {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
-		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-				.thenReturn(scheduler);
+		BeanFactory beanFactory = createFactoryWithMockScheduler(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(connectionFactory);
@@ -407,4 +387,11 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 		}
 	}
 
+	private static BeanFactory createFactoryWithMockScheduler(ThreadPoolTaskScheduler scheduler) {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
+		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
+				.thenReturn(scheduler);
+		return beanFactory;
+	}
 }

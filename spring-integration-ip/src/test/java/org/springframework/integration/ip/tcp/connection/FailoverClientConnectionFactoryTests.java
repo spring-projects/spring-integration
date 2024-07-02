@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Gengwu Zhao
  *
  * @since 2.2
  *
@@ -93,17 +94,13 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testFailoverGood() throws Exception {
-		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
-		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
+		TcpConnectionSupport conn1 = makeMockConnection();
+		TcpConnectionSupport conn2 = makeMockConnection();
+		AbstractClientConnectionFactory factory1 = createFactoryWithMockConnection(conn1);
+		AbstractClientConnectionFactory factory2 = createFactoryWithMockConnection(conn2);
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
-		TcpConnectionSupport conn1 = makeMockConnection();
-		TcpConnectionSupport conn2 = makeMockConnection();
-		when(factory1.getConnection()).thenReturn(conn1);
-		when(factory2.getConnection()).thenReturn(conn2);
-		when(factory1.isActive()).thenReturn(true);
-		when(factory2.isActive()).thenReturn(true);
 		doThrow(new UncheckedIOException(new IOException("fail")))
 				.when(conn1).send(Mockito.any(Message.class));
 		doAnswer(invocation -> null).when(conn2).send(Mockito.any(Message.class));
@@ -181,17 +178,13 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testFailoverAllDead() throws Exception {
-		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
-		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
+		TcpConnectionSupport conn1 = makeMockConnection();
+		TcpConnectionSupport conn2 = makeMockConnection();
+		AbstractClientConnectionFactory factory1 = createFactoryWithMockConnection(conn1);
+		AbstractClientConnectionFactory factory2 = createFactoryWithMockConnection(conn2);
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
-		TcpConnectionSupport conn1 = makeMockConnection();
-		TcpConnectionSupport conn2 = makeMockConnection();
-		when(factory1.getConnection()).thenReturn(conn1);
-		when(factory2.getConnection()).thenReturn(conn2);
-		when(factory1.isActive()).thenReturn(true);
-		when(factory2.isActive()).thenReturn(true);
 		doThrow(new UncheckedIOException(new IOException("fail")))
 				.when(conn1).send(Mockito.any(Message.class));
 		doThrow(new UncheckedIOException(new IOException("fail")))
@@ -243,17 +236,13 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testFailoverAllDeadButOriginalOkAgain() throws Exception {
-		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
-		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
+		TcpConnectionSupport conn1 = makeMockConnection();
+		TcpConnectionSupport conn2 = makeMockConnection();
+		AbstractClientConnectionFactory factory1 = createFactoryWithMockConnection(conn1);
+		AbstractClientConnectionFactory factory2 = createFactoryWithMockConnection(conn2);
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
-		TcpConnectionSupport conn1 = makeMockConnection();
-		TcpConnectionSupport conn2 = makeMockConnection();
-		when(factory1.getConnection()).thenReturn(conn1);
-		when(factory2.getConnection()).thenReturn(conn2);
-		when(factory1.isActive()).thenReturn(true);
-		when(factory2.isActive()).thenReturn(true);
 		final AtomicBoolean failedOnce = new AtomicBoolean();
 		doAnswer(invocation -> {
 			if (!failedOnce.get()) {
@@ -315,17 +304,13 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testOkAgainAfterCompleteFailure() throws Exception {
-		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
-		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
+		TcpConnectionSupport conn1 = makeMockConnection();
+		TcpConnectionSupport conn2 = makeMockConnection();
+		AbstractClientConnectionFactory factory1 = createFactoryWithMockConnection(conn1);
+		AbstractClientConnectionFactory factory2 = createFactoryWithMockConnection(conn2);
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
-		TcpConnectionSupport conn1 = makeMockConnection();
-		TcpConnectionSupport conn2 = makeMockConnection();
-		when(factory1.getConnection()).thenReturn(conn1);
-		when(factory2.getConnection()).thenReturn(conn2);
-		when(factory1.isActive()).thenReturn(true);
-		when(factory2.isActive()).thenReturn(true);
 		final AtomicInteger failCount = new AtomicInteger();
 		doAnswer(invocation -> {
 			if (failCount.incrementAndGet() < 3) {
@@ -708,6 +693,13 @@ public class FailoverClientConnectionFactoryTests {
 
 		private AbstractServerConnectionFactory server1;
 
+	}
+
+	private static AbstractClientConnectionFactory createFactoryWithMockConnection(TcpConnectionSupport mockConn) throws Exception {
+		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
+		when(factory.getConnection()).thenReturn(mockConn);
+		when(factory.isActive()).thenReturn(true);
+		return factory;
 	}
 
 }
