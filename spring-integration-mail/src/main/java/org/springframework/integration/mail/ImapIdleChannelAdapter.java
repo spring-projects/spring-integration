@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.integration.mail.event.MailIntegrationEvent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.IntegrationResourceHolderSynchronization;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -200,22 +201,24 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			}
 			catch (Exception ex) {
 				publishException(ex);
-				if (this.shouldReconnectAutomatically
-						&& ex.getCause() instanceof jakarta.mail.MessagingException messagingException) {
+				if (this.shouldReconnectAutomatically) {
+					jakarta.mail.MessagingException messagingException =
+							getJakartaMailMessagingExceptionFromCause(ex.getCause());
 
-					//run again after a delay
-					logger.info(messagingException,
-							() -> "Failed to execute IDLE task. Will attempt to resubmit in "
-									+ this.reconnectDelay + " milliseconds.");
-					delayNextIdleCall();
+					if (messagingException != null) {
+						//run again after a delay
+						logger.info(messagingException,
+								() -> "Failed to execute IDLE task. Will attempt to resubmit in "
+										+ this.reconnectDelay + " milliseconds.");
+						delayNextIdleCall();
+						continue;
+					}
 				}
-				else {
-					logger.warn(ex,
-							"Failed to execute IDLE task. " +
-									"Won't resubmit since not a 'shouldReconnectAutomatically' " +
-									"or not a 'jakarta.mail.MessagingException'");
-					break;
-				}
+				logger.warn(ex,
+						"Failed to execute IDLE task. " +
+								"Won't resubmit since not a 'shouldReconnectAutomatically' " +
+								"or not a 'jakarta.mail.MessagingException'");
+				break;
 			}
 		}
 	}
@@ -254,6 +257,21 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			Thread.currentThread().interrupt();
 			throw new IllegalStateException(ex);
 		}
+	}
+
+	@Nullable
+	private static jakarta.mail.MessagingException getJakartaMailMessagingExceptionFromCause(Throwable cause) {
+		if (cause == null) {
+			return null;
+		}
+		if (cause instanceof jakarta.mail.MessagingException messagingException) {
+			return messagingException;
+		}
+		Throwable nextCause = cause.getCause();
+		if (cause == nextCause) {
+			return null;
+		}
+		return getJakartaMailMessagingExceptionFromCause(nextCause);
 	}
 
 	private class MessageSender implements Consumer<Object> {
