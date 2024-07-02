@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc.lock;
 
+import java.util.ConcurrentModificationException;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
@@ -53,12 +54,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Stefan Vassilev
  * @author Alexandre Strubel
  * @author Unseok Kim
+ * @author Eddie Cho
  *
  * @since 4.3
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class JdbcLockRegistryTests {
+class JdbcLockRegistryTests {
 
 	private final AsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
@@ -84,7 +86,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testLock() throws Exception {
+	void testLock() throws Exception {
 		for (int i = 0; i < 10; i++) {
 			Lock lock = this.registry.obtain("foo");
 			lock.lock();
@@ -102,7 +104,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testLockInterruptibly() throws Exception {
+	void testLockInterruptibly() throws Exception {
 		for (int i = 0; i < 10; i++) {
 			Lock lock = this.registry.obtain("foo");
 			lock.lockInterruptibly();
@@ -116,7 +118,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testReentrantLock() {
+	void testReentrantLock() {
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = this.registry.obtain("foo");
 			lock1.lock();
@@ -133,7 +135,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testReentrantLockInterruptibly() throws Exception {
+	void testReentrantLockInterruptibly() throws Exception {
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = this.registry.obtain("foo");
 			lock1.lockInterruptibly();
@@ -150,7 +152,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testReentrantLockAfterExpiration() throws Exception {
+	void testReentrantLockAfterExpiration() throws Exception {
 		DefaultLockRepository client = new DefaultLockRepository(dataSource);
 		client.setTimeToLive(1);
 		client.setApplicationContext(this.context);
@@ -172,7 +174,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testTwoLocks() throws Exception {
+	void testTwoLocks() throws Exception {
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = this.registry.obtain("foo");
 			lock1.lockInterruptibly();
@@ -189,7 +191,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testTwoThreadsSecondFailsToGetLock() throws Exception {
+	void testTwoThreadsSecondFailsToGetLock() throws Exception {
 		final Lock lock1 = this.registry.obtain("foo");
 		lock1.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
@@ -215,7 +217,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testTwoThreads() throws Exception {
+	void testTwoThreads() throws Exception {
 		final Lock lock1 = this.registry.obtain("foo");
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch1 = new CountDownLatch(1);
@@ -247,7 +249,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testTwoThreadsDifferentRegistries() throws Exception {
+	void testTwoThreadsDifferentRegistries() throws Exception {
 		for (int i = 0; i < 100; i++) {
 
 			final JdbcLockRegistry registry1 = new JdbcLockRegistry(this.client);
@@ -274,7 +276,12 @@ public class JdbcLockRegistryTests {
 					Thread.currentThread().interrupt();
 				}
 				finally {
-					lock2.unlock();
+					try {
+						lock2.unlock();
+					}
+					catch (ConcurrentModificationException ignored) {
+					}
+
 					latch3.countDown();
 				}
 			});
@@ -289,7 +296,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testTwoThreadsWrongOneUnlocks() throws Exception {
+	void testTwoThreadsWrongOneUnlocks() throws Exception {
 		final Lock lock = this.registry.obtain("foo");
 		lock.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
@@ -314,7 +321,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testLockRenew() {
+	void testLockRenew() {
 		final Lock lock = this.registry.obtain("foo");
 
 		assertThat(lock.tryLock()).isTrue();
@@ -327,7 +334,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void testLockRenewLockNotOwned() {
+	void testLockRenewLockNotOwned() {
 		this.registry.obtain("foo");
 
 		assertThatExceptionOfType(IllegalMonitorStateException.class)
@@ -335,7 +342,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void concurrentObtainCapacityTest() throws InterruptedException {
+	void concurrentObtainCapacityTest() throws InterruptedException {
 		final int KEY_CNT = 500;
 		final int CAPACITY_CNT = 179;
 		final int THREAD_CNT = 4;
@@ -371,7 +378,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void concurrentObtainRemoveOrderTest() throws InterruptedException {
+	void concurrentObtainRemoveOrderTest() throws InterruptedException {
 		final int THREAD_CNT = 2;
 		final int DUMMY_LOCK_CNT = 3;
 
@@ -415,7 +422,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void concurrentObtainAccessRemoveOrderTest() throws InterruptedException {
+	void concurrentObtainAccessRemoveOrderTest() throws InterruptedException {
 		final int THREAD_CNT = 2;
 		final int DUMMY_LOCK_CNT = 3;
 
@@ -465,7 +472,7 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
-	public void setCapacityTest() {
+	void setCapacityTest() {
 		final int CAPACITY_CNT = 4;
 		registry.setCacheCapacity(CAPACITY_CNT);
 
@@ -504,6 +511,51 @@ public class JdbcLockRegistryTests {
 					.withRootCauseExactlyInstanceOf(JdbcSQLSyntaxErrorException.class)
 					.withStackTraceContaining("Table \"TEST_LOCK\" not found");
 		}
+	}
+
+	@Test
+	void testUnlock_lockStatusIsExpired_lockHasBeenAcquiredByAnotherProcess_ConcurrentModificationExceptionWillBeThrown() throws Exception {
+		int ttl = 100;
+		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
+		client1.setApplicationContext(this.context);
+		client1.setTimeToLive(ttl);
+		client1.afterPropertiesSet();
+		client1.afterSingletonsInstantiated();
+		DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
+		client2.setApplicationContext(this.context);
+		client2.setTimeToLive(ttl);
+		client2.afterPropertiesSet();
+		client2.afterSingletonsInstantiated();
+		JdbcLockRegistry process1Registry = new JdbcLockRegistry(client1);
+		JdbcLockRegistry process2Registry = new JdbcLockRegistry(client2);
+		Lock lock1 = process1Registry.obtain("foo");
+		Lock lock2 = process2Registry.obtain("foo");
+
+		lock1.lock();
+		Thread.sleep(ttl);
+		assertThat(lock2.tryLock()).isTrue();
+
+		assertThatExceptionOfType(ConcurrentModificationException.class)
+				.isThrownBy(lock1::unlock);
+		lock2.unlock();
+	}
+
+	@Test
+	void testUnlock_lockStatusIsExpired_lockDataHasBeenDeleted_ConcurrentModificationExceptionWillBeThrown() throws Exception {
+		DefaultLockRepository client = new DefaultLockRepository(dataSource);
+		client.setApplicationContext(this.context);
+		client.setTimeToLive(100);
+		client.afterPropertiesSet();
+		client.afterSingletonsInstantiated();
+		JdbcLockRegistry registry = new JdbcLockRegistry(client);
+		Lock lock = registry.obtain("foo");
+
+		lock.lock();
+		Thread.sleep(200);
+		client.deleteExpired();
+
+		assertThatExceptionOfType(ConcurrentModificationException.class)
+				.isThrownBy(lock::unlock);
 	}
 
 	@SuppressWarnings("unchecked")
