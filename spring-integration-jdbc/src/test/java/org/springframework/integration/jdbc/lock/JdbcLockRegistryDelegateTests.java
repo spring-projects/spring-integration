@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.jdbc.lock;
 
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -31,17 +30,17 @@ import org.springframework.transaction.TransactionTimedOutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * @author Olivier Hubaut
  * @author Fran Aranda
+ * @author Eddie Cho
  *
  * @since 5.2.11
  */
-public class JdbcLockRegistryDelegateTests {
+class JdbcLockRegistryDelegateTests {
 
 	private JdbcLockRegistry registry;
 
@@ -56,7 +55,7 @@ public class JdbcLockRegistryDelegateTests {
 	}
 
 	@Test
-	public void testLessAmountOfUnlockThanLock() {
+	void testLessAmountOfUnlockThanLock() {
 		final Random random = new Random();
 		final int lockCount = random.nextInt(5) + 1;
 		final int unlockCount = random.nextInt(lockCount);
@@ -73,11 +72,13 @@ public class JdbcLockRegistryDelegateTests {
 	}
 
 	@Test
-	public void testSameAmountOfUnlockThanLock() {
+	void testSameAmountOfUnlockThanLock() {
 		final Random random = new Random();
 		final int lockCount = random.nextInt(5) + 1;
 
 		final Lock lock = registry.obtain("foo");
+		when(repository.delete(anyString())).thenReturn(true);
+
 		for (int i = 0; i < lockCount; i++) {
 			lock.tryLock();
 		}
@@ -89,17 +90,13 @@ public class JdbcLockRegistryDelegateTests {
 	}
 
 	@Test
-	public void testTransientDataAccessException() {
+	void testTransientDataAccessException() {
 		final Lock lock = registry.obtain("foo");
 		lock.tryLock();
 
-		final AtomicBoolean shouldThrow = new AtomicBoolean(true);
-		doAnswer(invocation -> {
-			if (shouldThrow.getAndSet(false)) {
-				throw mock(TransientDataAccessException.class);
-			}
-			return null;
-		}).when(repository).delete(anyString());
+		when(repository.delete(anyString()))
+				.thenThrow(mock(TransientDataAccessException.class))
+				.thenReturn(true);
 
 		lock.unlock();
 
@@ -107,17 +104,13 @@ public class JdbcLockRegistryDelegateTests {
 	}
 
 	@Test
-	public void testTransactionTimedOutException() {
+	void testTransactionTimedOutException() {
 		final Lock lock = registry.obtain("foo");
 		lock.tryLock();
 
-		final AtomicBoolean shouldThrow = new AtomicBoolean(true);
-		doAnswer(invocation -> {
-			if (shouldThrow.getAndSet(false)) {
-				throw mock(TransactionTimedOutException.class);
-			}
-			return null;
-		}).when(repository).delete(anyString());
+		when(repository.delete(anyString()))
+				.thenThrow(TransactionTimedOutException.class)
+				.thenReturn(true);
 
 		lock.unlock();
 
@@ -125,17 +118,13 @@ public class JdbcLockRegistryDelegateTests {
 	}
 
 	@Test
-	public void testTransactionSystemException() {
+	void testTransactionSystemException() {
 		final Lock lock = registry.obtain("foo");
 		lock.tryLock();
 
-		final AtomicBoolean shouldThrow = new AtomicBoolean(true);
-		doAnswer(invocation -> {
-			if (shouldThrow.getAndSet(false)) {
-				throw mock(TransactionSystemException.class);
-			}
-			return null;
-		}).when(repository).delete(anyString());
+		when(repository.delete(anyString()))
+				.thenThrow(TransactionSystemException.class)
+				.thenReturn(true);
 
 		lock.unlock();
 

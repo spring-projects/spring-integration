@@ -62,6 +62,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Alexandre Strubel
  * @author Ruslan Stelmachenko
+ * @author Eddie Cho
  *
  * @since 4.3
  */
@@ -389,9 +390,9 @@ public class DefaultLockRepository
 	}
 
 	@Override
-	public void delete(String lock) {
-		this.defaultTransactionTemplate.executeWithoutResult(
-				transactionStatus -> this.template.update(this.deleteQuery, this.region, lock, this.id));
+	public boolean delete(String lock) {
+		return this.defaultTransactionTemplate.execute(
+				transactionStatus -> this.template.update(this.deleteQuery, this.region, lock, this.id)) > 0;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc.lock;
 
 import java.time.Duration;
+import java.util.ConcurrentModificationException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -56,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Unseok Kim
  * @author Christian Tzolov
  * @author Myeonghyeon Lee
+ * @author Eddie Cho
  *
  * @since 4.3
  */
@@ -305,11 +307,19 @@ public class JdbcLockRegistry implements ExpirableLockRegistry, RenewableLockReg
 			try {
 				while (true) {
 					try {
-						this.mutex.delete(this.path);
-						return;
+						if (this.mutex.delete(this.path)) {
+							return;
+						}
+						else {
+							throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
+									"The integrity of data protected by this lock may have been compromised.");
+						}
 					}
 					catch (TransientDataAccessException | TransactionTimedOutException | TransactionSystemException e) {
 						// try again
+					}
+					catch (ConcurrentModificationException e) {
+						throw e;
 					}
 					catch (Exception e) {
 						throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);

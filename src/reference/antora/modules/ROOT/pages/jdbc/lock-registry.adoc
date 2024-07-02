@@ -57,3 +57,5 @@ For example, an insert query for PostgreSQL hint can be configured like this:
 lockRepository.setInsertQuery(lockRepository.getInsertQuery() + " ON CONFLICT DO NOTHING");
 ----
 
+Starting with version 6.4, the `LockRepository.delete()` method return the result of removing ownership of a distributed lock.
+And the `JdbcLockRegistry.JdbcLock.unlock()` method throws `ConcurrentModificationException` if the ownership of the lock is expired.
