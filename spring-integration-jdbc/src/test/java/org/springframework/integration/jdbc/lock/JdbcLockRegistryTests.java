@@ -251,7 +251,11 @@ public class JdbcLockRegistryTests {
 		for (int i = 0; i < 100; i++) {
 
 			final JdbcLockRegistry registry1 = new JdbcLockRegistry(this.client);
-			final JdbcLockRegistry registry2 = new JdbcLockRegistry(this.client);
+			DefaultLockRepository client2 = new DefaultLockRepository(this.dataSource);
+			client2.setTransactionManager(this.transactionManager);
+			client2.afterPropertiesSet();
+			client2.afterSingletonsInstantiated();
+			final JdbcLockRegistry registry2 = new JdbcLockRegistry(client2);
 			final Lock lock1 = registry1.obtain("foo");
 			final AtomicBoolean locked = new AtomicBoolean();
 			final CountDownLatch latch1 = new CountDownLatch(1);
