@@ -629,6 +629,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && this.deleteSourceFiles) {
 			rename(sourceFile, resultFile);
+			setPermissions(resultFile);
 			return resultFile;
 		}
 		else {
