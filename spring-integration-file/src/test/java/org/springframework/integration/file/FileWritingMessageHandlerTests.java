@@ -309,7 +309,7 @@ public class FileWritingMessageHandlerTests {
 		QueueChannel output = new QueueChannel();
 		handler.setDeleteSourceFiles(true);
 		handler.setOutputChannel(output);
-		handler.setChmod(0444);
+		handler.setChmod(0400);
 		Message<?> message = MessageBuilder.withPayload(sourceFile).build();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
