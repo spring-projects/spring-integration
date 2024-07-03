@@ -384,7 +384,14 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 			reactiveReply
 					.publishOn(Schedulers.boundedElastic())
-					// TODO until Reactor supports context propagation from the MonoToCompletableFuture
+					/*
+					The MonoToCompletableFuture in Project Reactor does not support context propagation,
+					 and it does not suppose to, since there is no guarantee how this Future is going to
+					 be handled downstream.
+					 However, in our case we process it directly in this class in the doProduceOutput()
+					 via whenComplete() callback. So, when value is set into the Future, it is available
+					 in the callback in the same thread immediately.
+					 */
 					.doOnEach((signal) -> {
 						try (AutoCloseable scope = IntegrationReactiveUtils
 								.setThreadLocalsFromReactorContext(signal.getContextView())) {
