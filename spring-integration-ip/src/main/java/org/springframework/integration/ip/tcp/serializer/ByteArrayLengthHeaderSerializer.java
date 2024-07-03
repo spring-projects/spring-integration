@@ -21,18 +21,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import org.springframework.util.Assert;
+
 /**
  * Reads data in an InputStream to a byte[]; data must be preceded by
  * a binary length (network byte order, not included in resulting byte[]).
- *
+ * <p>
  * Writes a byte[] to an OutputStream after a binary length.
  * The length field contains the length of data following the length
  * field. (network byte order).
- *
+ * <p>
  * The default length field is a 4 byte signed integer. During deserialization,
  * negative values will be rejected.
  * Other options are an unsigned byte, and unsigned short.
- *
+ * <p>
  * For other header formats, override {@link #readHeader(InputStream)} and
  * {@link #writeHeader(OutputStream, int)}.
  *
@@ -80,11 +82,10 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	 * @param headerSize The header size.
 	 */
 	public ByteArrayLengthHeaderSerializer(int headerSize) {
-		if (headerSize != HEADER_SIZE_INT &&
-				headerSize != HEADER_SIZE_UNSIGNED_BYTE &&
-				headerSize != HEADER_SIZE_UNSIGNED_SHORT) {
-			throw new IllegalArgumentException("Illegal header size: " + headerSize);
-		}
+		Assert.isTrue(headerSize == HEADER_SIZE_INT
+						|| headerSize == HEADER_SIZE_UNSIGNED_BYTE
+						|| headerSize == HEADER_SIZE_UNSIGNED_SHORT,
+				() -> "Illegal header size: " + headerSize);
 		this.headerSize = headerSize;
 	}
 
@@ -177,6 +178,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	 */
 	protected int read(InputStream inputStream, byte[] buffer, boolean header)
 			throws IOException {
+
 		int lengthRead = 0;
 		int needed = buffer.length;
 		while (lengthRead < needed) {
@@ -247,9 +249,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 				case HEADER_SIZE_INT:
 					int messageLength = ByteBuffer.wrap(lengthPart).getInt();
 					if (messageLength < 0) {
-						throw new IllegalArgumentException("Length header: "
-								+ messageLength
-								+ " is negative");
+						throw new IllegalArgumentException("Length header: " + messageLength + " is negative");
 					}
 					return messageLength;
 				case HEADER_SIZE_UNSIGNED_BYTE:
@@ -260,8 +260,8 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 					throw new IllegalArgumentException("Bad header size: " + this.headerSize);
 			}
 		}
-		catch (SoftEndOfStreamException e) { // NOSONAR catch and throw
-			throw e; // it's an IO exception and we don't want an event for this
+		catch (SoftEndOfStreamException ex) { // NOSONAR catch and throw
+			throw ex; // it's an IO exception, and we don't want an event for this
 		}
 		catch (IOException | RuntimeException ex) {
 			publishEvent(ex, lengthPart, -1);

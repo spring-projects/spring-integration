@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.tcp.serializer;
 
+import java.io.Serial;
+
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 
 /**
@@ -29,6 +31,7 @@ import org.springframework.integration.ip.event.IpIntegrationEvent;
  */
 public class TcpDeserializationExceptionEvent extends IpIntegrationEvent {
 
+	@Serial
 	private static final long serialVersionUID = 8812537718016054732L;
 
 	private final byte[] buffer;
