@@ -76,7 +76,7 @@ ext {
     hibernateVersion = '6.5.2.Final'
     hsqldbVersion = '2.7.3'
     h2Version = '2.2.224'
-    jacksonVersion = '2.17.1'
+    jacksonVersion = '2.17.2'
     jaxbVersion = '4.0.5'
     jcifsVersion = '2.1.38'
     jeroMqVersion = '0.6.0'
