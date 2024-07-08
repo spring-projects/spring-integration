@@ -36,6 +36,8 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -298,6 +300,23 @@ public class FileWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
+		assertThat(sourceFile.exists()).isFalse();
+	}
+
+	@Test
+	@DisabledOnOs(OS.WINDOWS)
+	public void deleteFilesWithChmod() throws Exception {
+		QueueChannel output = new QueueChannel();
+		handler.setDeleteSourceFiles(true);
+		handler.setOutputChannel(output);
+		handler.setChmod(0400);
+		Message<?> message = MessageBuilder.withPayload(sourceFile).build();
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIsMatching(result);
+		File resultFile = messageToFile(result);
+		Set<PosixFilePermission> posixFilePermissions = Files.getPosixFilePermissions(resultFile.toPath());
+		assertThat(posixFilePermissions).containsOnly(PosixFilePermission.OWNER_READ);
 		assertThat(sourceFile.exists()).isFalse();
 	}
 
