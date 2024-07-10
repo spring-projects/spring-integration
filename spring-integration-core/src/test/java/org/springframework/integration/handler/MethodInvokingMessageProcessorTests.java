@@ -500,7 +500,7 @@ public class MethodInvokingMessageProcessorTests {
 		Method method = service.getClass().getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
-		optionalAndRequiredWithAnnotatedMethodGuts(processor, false);
+		optionalAndRequiredWithAnnotatedMethodGuts(processor);
 	}
 
 	@Test
@@ -510,14 +510,13 @@ public class MethodInvokingMessageProcessorTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
 		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
-		optionalAndRequiredWithAnnotatedMethodGuts(processor, true);
+		optionalAndRequiredWithAnnotatedMethodGuts(processor);
 		assertThat(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.expression.compiledAst")).isNotNull();
-		optionalAndRequiredWithAnnotatedMethodGuts(processor, true);
+		optionalAndRequiredWithAnnotatedMethodGuts(processor);
 		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
 	}
 
-	private void optionalAndRequiredWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor,
-			boolean compiled) {
+	private void optionalAndRequiredWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor) {
 
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("foo")
@@ -531,21 +530,14 @@ public class MethodInvokingMessageProcessorTests {
 				.build();
 		result = processor.processMessage(message);
 		assertThat(result).isEqualTo("bar42");
-		message = MessageBuilder.withPayload("foo")
-				.setHeader("prop", "bar")
-				.build();
-		try {
-			result = processor.processMessage(message);
-			fail("Expected MessageHandlingException");
-		}
-		catch (MessageHandlingException e) {
-			if (compiled) {
-				assertThat(e.getCause().getMessage()).isEqualTo("required header not available: num");
-			}
-			else {
-				assertThat(e.getCause().getCause().getMessage()).isEqualTo("required header not available: num");
-			}
-		}
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() ->
+						processor.processMessage(
+								MessageBuilder.withPayload("foo")
+										.setHeader("prop", "bar")
+										.build()))
+				.withStackTraceContaining("required header not available: num");
 	}
 
 	@Test
@@ -555,7 +547,7 @@ public class MethodInvokingMessageProcessorTests {
 				String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
-		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor, false);
+		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor);
 	}
 
 	@Test
@@ -566,14 +558,13 @@ public class MethodInvokingMessageProcessorTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
 		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
-		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor, true);
+		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor);
 		assertThat(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.expression.compiledAst")).isNotNull();
-		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor, true);
+		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor);
 		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
 	}
 
-	private void optionalAndRequiredDottedWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor,
-			boolean compiled) {
+	private void optionalAndRequiredDottedWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor) {
 
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("hello")
@@ -589,22 +580,15 @@ public class MethodInvokingMessageProcessorTests {
 				.build();
 		result = processor.processMessage(message);
 		assertThat(result).isEqualTo("bar42dotted");
-		message = MessageBuilder.withPayload("hello")
-				.setHeader("dot1", new DotBean())
-				.setHeader("dotted.literal", "dotted")
-				.build();
-		try {
-			result = processor.processMessage(message);
-			fail("Expected MessageHandlingException");
-		}
-		catch (MessageHandlingException e) {
-			if (compiled) {
-				assertThat(e.getCause().getMessage()).isEqualTo("required header not available: dot2");
-			}
-			else { // interpreted
-				assertThat(e.getCause().getCause().getMessage()).isEqualTo("required header not available: dot2");
-			}
-		}
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() ->
+						processor.processMessage(
+								MessageBuilder.withPayload("hello")
+										.setHeader("dot1", new DotBean())
+										.setHeader("dotted.literal", "dotted")
+										.build()))
+				.withStackTraceContaining("required header not available: dot2");
 	}
 
 	@Test
