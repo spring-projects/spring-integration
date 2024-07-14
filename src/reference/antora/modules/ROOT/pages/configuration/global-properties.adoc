@@ -76,6 +76,6 @@ spring.integration.channels.autoCreate=true
 spring.integration.channels.maxBroadcastSubscribers=0x7fffffff
 spring.integration.readOnly.headers=
 spring.integration.messagingTemplate.throwExceptionOnLateReply=true
-spring.integration.endpoints.defaultTimeout=-1
+spring.integration.endpoints.defaultTimeout=30000
 ----
 
