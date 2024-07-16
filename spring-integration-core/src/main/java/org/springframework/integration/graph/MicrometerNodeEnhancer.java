@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 the original author or authors.
+ * Copyright 2019-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.graph;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.micrometer.common.docs.KeyName;
@@ -26,6 +25,7 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.observation.ObservationConvention;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.observation.DefaultMessageReceiverObservationConvention;
@@ -58,13 +58,8 @@ public class MicrometerNodeEnhancer {
 	private final MeterRegistry registry;
 
 	MicrometerNodeEnhancer(ApplicationContext applicationContext) {
-		Map<String, MeterRegistry> registries = applicationContext.getBeansOfType(MeterRegistry.class, false, false);
-		if (registries.size() == 1) {
-			this.registry = registries.values().iterator().next();
-		}
-		else {
-			this.registry = null;
-		}
+		ObjectProvider<MeterRegistry> meterRegistryProvider = applicationContext.getBeanProvider(MeterRegistry.class);
+		this.registry = meterRegistryProvider.getIfUnique();
 	}
 
 	/**
