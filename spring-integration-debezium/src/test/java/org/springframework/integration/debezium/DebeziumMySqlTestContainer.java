@@ -18,6 +18,7 @@ package org.springframework.integration.debezium;
 
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.MySQLContainer;
@@ -70,7 +71,7 @@ public interface DebeziumMySqlTestContainer {
 		// Topic prefix for the database server or cluster.
 		config.put("topic.prefix", "my-topic-" + uuid);
 		// Unique ID of the connector.
-		config.put("database.server.id", "" + (uuid.getMostSignificantBits() & Long.MAX_VALUE));
+		config.put("database.server.id", "" + Math.abs(ThreadLocalRandom.current().nextInt()));
 
 		config.put("key.converter.schemas.enable", "false");
 		config.put("value.converter.schemas.enable", "false");
