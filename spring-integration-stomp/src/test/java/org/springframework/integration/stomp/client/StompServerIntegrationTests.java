@@ -85,8 +85,8 @@ public class StompServerIntegrationTests {
 						.addAcceptorConfiguration("stomp", "tcp://127.0.0.1:" + TransportConstants.DEFAULT_STOMP_PORT)
 						.addAddressSetting("#",
 								new AddressSettings()
-										.setDeadLetterAddress(SimpleString.toSimpleString("dla"))
-										.setExpiryAddress(SimpleString.toSimpleString("expiry")));
+										.setDeadLetterAddress(SimpleString.of("dla"))
+										.setExpiryAddress(SimpleString.of("expiry")));
 		broker.setConfiguration(configuration).start();
 
 		stompClient = new ReactorNettyTcpStompClient("127.0.0.1", TransportConstants.DEFAULT_STOMP_PORT);
