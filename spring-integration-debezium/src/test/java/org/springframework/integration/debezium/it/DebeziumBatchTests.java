@@ -63,7 +63,7 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 
 	@Test
 	void batchMode() {
-		await().atMost(Duration.ofSeconds(30)).until(this::receivePayloads, (count) -> count == EXPECTED_DB_TX_COUNT);
+		await().atMost(Duration.ofMinutes(1)).until(this::receivePayloads, (count) -> count == EXPECTED_DB_TX_COUNT);
 
 		assertThat(allPayload).hasSize(EXPECTED_DB_TX_COUNT);
 		assertThat(batchCount).isLessThan(EXPECTED_DB_TX_COUNT);

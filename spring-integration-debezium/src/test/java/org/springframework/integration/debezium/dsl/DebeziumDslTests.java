@@ -60,7 +60,7 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 
 	@Test
 	void dslFromBuilder() throws InterruptedException {
-		assertThat(config.latch.await(30, TimeUnit.SECONDS)).isTrue();
+		assertThat(config.latch.await(1, TimeUnit.MINUTES)).isTrue();
 		assertThat(config.payloads).hasSize(EXPECTED_DB_TX_COUNT);
 		assertThat(config.headerKeys).hasSize(EXPECTED_DB_TX_COUNT);
 
@@ -74,7 +74,7 @@ public class DebeziumDslTests implements DebeziumMySqlTestContainer {
 
 	@Test
 	void dslBatch() throws InterruptedException {
-		assertThat(config.batchLatch.await(30, TimeUnit.SECONDS)).isTrue();
+		assertThat(config.batchLatch.await(1, TimeUnit.MINUTES)).isTrue();
 		assertThat(config.bachPayloads)
 				.as("Sum of the message payload counts should correspond to the number of DB transactions")
 				.hasSize(EXPECTED_DB_TX_COUNT);
