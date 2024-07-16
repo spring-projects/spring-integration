@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 1.0.3
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class RecipientListRouterParserTests {
 
 	@Autowired
@@ -57,7 +59,6 @@ public class RecipientListRouterParserTests {
 
 	@Test
 	public void checkMessageRouting() {
-		context.start();
 		Message<?> message = new GenericMessage<>(1);
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
@@ -93,7 +94,6 @@ public class RecipientListRouterParserTests {
 
 	@Test
 	public void simpleDynamicRouter() {
-		context.start();
 		Message<?> message = new GenericMessage<>(1);
 		simpleDynamicInput.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
@@ -104,7 +104,6 @@ public class RecipientListRouterParserTests {
 
 	@Test
 	public void noSelectorMatchRouter() {
-		context.start();
 		Message<?> message = new GenericMessage<>(1);
 		noSelectorMatchInput.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
