@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.debezium.it;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +63,7 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 
 	@Test
 	void batchMode() {
-		await().until(this::receivePayloads, (count) -> count == EXPECTED_DB_TX_COUNT);
+		await().atMost(Duration.ofSeconds(30)).until(this::receivePayloads, (count) -> count == EXPECTED_DB_TX_COUNT);
 
 		assertThat(allPayload).hasSize(EXPECTED_DB_TX_COUNT);
 		assertThat(batchCount).isLessThan(EXPECTED_DB_TX_COUNT);
