@@ -39,6 +39,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.context.annotation.Primary;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -80,6 +81,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -296,8 +298,15 @@ public class IntegrationGraphServerTests {
 	public static class Config {
 
 		@Bean
+		@Primary
 		public static MeterRegistry meterRegistry() {
 			return new SimpleMeterRegistry();
+		}
+
+		// To be sure that @Primary one wins for the MicrometerNodeEnhancer
+		@Bean
+		public static MeterRegistry mockRegistry() {
+			return mock();
 		}
 
 		@Bean
