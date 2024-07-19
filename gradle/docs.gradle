@@ -54,7 +54,7 @@ asciidoctorPdf {
 	configurations 'asciidoctorExtensions'
 
 	asciidoctorj {
-		sourceDir "$buildDir/asciidoc"
+		sourceDir 'src/reference/asciidoc'
 		inputs.dir(sourceDir)
 		sources {
 			include 'index-single.adoc'
@@ -70,8 +70,27 @@ asciidoctorPdf {
 	}
 }
 
-asciidoctorj {
-	version = '2.5.2'
+asciidoctor {
+	dependsOn asciidoctorPdf
+
+	inProcess = JAVA_EXEC
+	forkOptions {
+		jvmArgs '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED'
+	}
+
+	baseDirFollowsSourceFile()
+
+	configurations 'asciidoctorExtensions'
+	sourceDir "src/reference/asciidoc"
+	outputOptions {
+		backends 'spring-html'
+	}
+	resources {
+		from(sourceDir) {
+			include 'images/*', 'css/**', 'js/**'
+		}
+	}
+
 	options doctype: 'book', eruby: 'erubis'
 	attributes 'docinfo': 'shared',
 			stylesdir: 'css/',
@@ -90,20 +109,6 @@ asciidoctorj {
 			'toclevels': '4',
 			revnumber: project.version,
 			'project-version': project.version
-}
-
-asciidoctor {
-	dependsOn asciidoctorPdf
-	baseDirFollowsSourceFile()
-	configurations 'asciidoctorExtensions'
-	sourceDir "$buildDir/asciidoc"
-	inputs.dir(sourceDir)
-	resources {
-		from(sourceDir) {
-			include 'images/*', 'css/**', 'js/**'
-		}
-	}
-
 }
 
 task reference(dependsOn: asciidoctor) {
