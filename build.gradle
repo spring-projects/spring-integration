@@ -71,7 +71,7 @@ ext {
     greenmailVersion = '2.1.0-rc-1'
     groovyVersion = '4.0.22'
     hamcrestVersion = '2.2'
-    hazelcastVersion = '5.3.7'
+    hazelcastVersion = '5.3.8'
     hibernateVersion = '6.4.9.Final'
     hsqldbVersion = '2.7.3'
     h2Version = '2.2.224'
