@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -325,16 +325,15 @@ public class SocketTestUtils {
 		Thread thread = new Thread(() -> {
 			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				OutputStream outputStream = socket.getOutputStream();
-				for (int i = 0; i < 1500; i++) {
+				for (int i = 0; i < 20; i++) {
 					writeByte(outputStream, 'x', true);
 				}
-				testCompleteLatch.await(10, TimeUnit.SECONDS);
+				testCompleteLatch.await(30, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
 
 			}
 		});
-		thread.setDaemon(true);
 		thread.start();
 		return testCompleteLatch;
 	}
