@@ -297,7 +297,7 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadCrLfOverflow() throws Exception {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
-		serializer.setMaxMessageSize(1024);
+		serializer.setMaxMessageSize(16);
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<>();
 		final List<TcpConnection> removed = new ArrayList<>();
@@ -333,14 +333,14 @@ public class TcpNioConnectionReadTests {
 		whileOpen(semaphore, added);
 		assertThat(added.size()).isEqualTo(1);
 
-		assertThat(errorMessageLetch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(errorMessageLetch.await(20, TimeUnit.SECONDS)).isTrue();
 
 		assertThat(errorMessageRef.get().getMessage())
 				.satisfiesAnyOf(
-						s -> assertThat(s).contains("CRLF not found before max message length: 1024"),
+						s -> assertThat(s).contains("CRLF not found before max message length: 16"),
 						s -> assertThat(s).contains("Connection is closed"));
 
-		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(semaphore.tryAcquire(20, TimeUnit.SECONDS)).isTrue();
 		assertThat(removed).hasSizeGreaterThan(0);
 		scf.stop();
 		done.countDown();
@@ -532,9 +532,9 @@ public class TcpNioConnectionReadTests {
 		scf.stop();
 	}
 
-	private void whileOpen(Semaphore semaphore, final List<TcpConnection> added)
+	private void whileOpen(Semaphore semaphore, List<TcpConnection> added)
 			throws InterruptedException {
-		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(semaphore.tryAcquire(20, TimeUnit.SECONDS)).isTrue();
 		with().pollInterval(Duration.ofMillis(50)).await("Failed to close socket")
 				.atMost(Duration.ofSeconds(20))
 				.until(() -> !added.get(0).isOpen());

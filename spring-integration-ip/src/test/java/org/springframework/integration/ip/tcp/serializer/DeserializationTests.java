@@ -29,8 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
@@ -45,12 +44,12 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
@@ -61,9 +60,6 @@ import static org.mockito.Mockito.mock;
  * @since 2.0
  */
 public class DeserializationTests {
-
-	@Rule
-	public LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
 
 	@Test
 	public void testReadLength() throws Exception {
@@ -245,18 +241,11 @@ public class DeserializationTests {
 		server.setSoTimeout(10000);
 		CountDownLatch latch = SocketTestUtils.testSendCrLfOverflow(port);
 		Socket socket = server.accept();
-		socket.setSoTimeout(500);
+		socket.setSoTimeout(100);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
-		try {
-			serializer.deserialize(socket.getInputStream());
-			fail("Expected timout exception");
-		}
-		catch (IOException e) {
-			if (!e.getMessage().startsWith("Read timed out")) {
-				e.printStackTrace();
-				fail("Unexpected IO Error:" + e.getMessage());
-			}
-		}
+		assertThatIOException()
+				.isThrownBy(() -> serializer.deserialize(socket.getInputStream()))
+				.withMessageStartingWith("Read timed out");
 		server.close();
 		latch.countDown();
 	}
@@ -270,17 +259,10 @@ public class DeserializationTests {
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
-		serializer.setMaxMessageSize(1024);
-		try {
-			serializer.deserialize(socket.getInputStream());
-			fail("Expected message length exceeded exception");
-		}
-		catch (IOException e) {
-			if (!e.getMessage().startsWith("CRLF not found")) {
-				e.printStackTrace();
-				fail("Unexpected IO Error:" + e.getMessage());
-			}
-		}
+		serializer.setMaxMessageSize(16);
+		assertThatIOException()
+				.isThrownBy(() -> serializer.deserialize(socket.getInputStream()))
+				.withMessageStartingWith("CRLF not found");
 		server.close();
 		latch.countDown();
 	}
@@ -317,7 +299,8 @@ public class DeserializationTests {
 		assertThat(new String(event.getBuffer()).substring(0, 1)).isEqualTo(new String(new byte[] {7}));
 		doDeserialize(new ByteArrayLfSerializer(), "Terminator '0xa' not found before max message length: 5");
 		doDeserialize(new ByteArrayRawSerializer(), "Socket was not closed before max message length: 5");
-		doDeserialize(new ByteArraySingleTerminatorSerializer((byte) 0xfe), "Terminator '0xfe' not found before max message length: 5");
+		doDeserialize(new ByteArraySingleTerminatorSerializer((byte) 0xfe),
+				"Terminator '0xfe' not found before max message length: 5");
 		doDeserialize(new ByteArrayStxEtxSerializer(), "Expected STX to begin message");
 		event = doDeserialize(new ByteArrayStxEtxSerializer(),
 				"Socket closed during message assembly", new byte[] {0x02, 0, 0}, 5);
@@ -389,7 +372,7 @@ public class DeserializationTests {
 		TcpNioClientConnectionFactory clientNio = new TcpNioClientConnectionFactory("localhost", serverNio.getPort());
 		clientNio.setSerializer(serializer);
 		clientNio.setDeserializer(deserializer);
-		clientNio.setSoTimeout(1000);
+		clientNio.setSoTimeout(500);
 		clientNio.afterPropertiesSet();
 		final TcpOutboundGateway out = new TcpOutboundGateway();
 		out.setConnectionFactory(clientNio);
