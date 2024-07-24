@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,6 @@ import org.junit.jupiter.api.BeforeEach;
  */
 public class ZookeeperTestSupport {
 
-	private static final Log logger = LogFactory.getLog(ZookeeperTestSupport.class);
-
 	protected final Log log = LogFactory.getLog(this.getClass());
 
 	protected static TestingServer testingServer;
@@ -50,18 +48,12 @@ public class ZookeeperTestSupport {
 
 	@BeforeAll
 	public static void setUpClass() throws Exception {
-		testingServer = new TestingServer(true);
+		testingServer = new TestingServer();
 	}
 
 	@AfterAll
-	public static void tearDownClass() {
-		try {
-			testingServer.stop();
-		}
-		catch (IOException e) {
-			logger.warn("Exception thrown while shutting down ZooKeeper: ", e);
-		}
-		testingServer.getTempDirectory().delete();
+	public static void tearDownClass() throws IOException {
+		testingServer.close();
 	}
 
 	@BeforeEach

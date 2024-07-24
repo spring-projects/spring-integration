@@ -16,33 +16,34 @@
 
 package org.springframework.integration.config.xml;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.predicate.MessagePredicate;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Artem Bilan
  */
-@ContextConfiguration
-public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
+@SpringJUnitConfig
+@DirtiesContext
+public class BridgeParserTests {
 
 	@Autowired
 	@Qualifier("pollableChannel")
@@ -95,19 +96,17 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 		assertThat(message).matches(new MessagePredicate(reply));
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void stopperWithoutReplyHeader() {
 		Message<?> message = MessageBuilder.withPayload("test3").build();
-		this.stopperChannel.send(message);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.stopperChannel.send(message));
 	}
 
 	@Test
 	public void bridgeWithSendTimeout() {
-		BridgeHandler handler =
-				(BridgeHandler) new DirectFieldAccessor(bridgeWithSendTimeout).getPropertyValue("handler");
-		MessagingTemplate template =
-				(MessagingTemplate) new DirectFieldAccessor(handler).getPropertyValue("messagingTemplate");
-		assertThat(new DirectFieldAccessor(template).getPropertyValue("sendTimeout")).isEqualTo(1234L);
+		assertThat(TestUtils.getPropertyValue(bridgeWithSendTimeout, "handler.messagingTemplate.sendTimeout"))
+				.isEqualTo(1234L);
 	}
 
 }

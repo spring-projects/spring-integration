@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,8 +27,8 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,8 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class ConverterParserWithExistingConversionServiceTests {
 
 	@Autowired
@@ -82,24 +81,11 @@ public class ConverterParserWithExistingConversionServiceTests {
 		parentContext.close();
 	}
 
-	private static class TestBean1 {
-
-		private final String text;
-
-		@SuppressWarnings("unused")
-		TestBean1(String text) {
-			this.text = text;
-		}
+	private record TestBean1(String text) {
 
 	}
 
-	private static class TestBean2 {
-
-		private final String text;
-
-		TestBean2(String text) {
-			this.text = text;
-		}
+	private record TestBean2(String text) {
 
 		// called by router for channel name
 		@Override
@@ -109,13 +95,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 	}
 
-	private static class TestBean3 {
-
-		private final String text;
-
-		TestBean3(String text) {
-			this.text = text;
-		}
+	private record TestBean3(String text) {
 
 		// called by router for channel name
 		@Override
