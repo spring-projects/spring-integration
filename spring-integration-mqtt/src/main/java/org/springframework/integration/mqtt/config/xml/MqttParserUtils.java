@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import org.springframework.util.StringUtils;
 
 /**
  * Contains various utility methods for parsing Mqtt Adapter
- * specific namespace elements as well as for the generation of the the
- * respective {@link org.springframework.beans.factory.config.BeanDefinition}s.
+ * specific namespace elements as well as for the generation of the respective
+ * {@link org.springframework.beans.factory.config.BeanDefinition}s.
  *
  * @author Gary Russell
  * @author Artem Bilan
