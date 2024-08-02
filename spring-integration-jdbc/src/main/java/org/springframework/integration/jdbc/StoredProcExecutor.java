@@ -168,7 +168,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 				Assert.isInstanceOf(ExpressionEvaluatingSqlParameterSourceFactory.class,
 						this.sqlParameterSourceFactory,
 						() -> "You are providing 'ProcedureParameters'. "
-								+ "Was expecting the the provided 'sqlParameterSourceFactory' "
+								+ "Was expecting the provided 'sqlParameterSourceFactory' "
 								+ "to be an instance of 'ExpressionEvaluatingSqlParameterSourceFactory', "
 								+ "however the provided one is of type '"
 								+ this.sqlParameterSourceFactory.getClass().getName() + "'");
