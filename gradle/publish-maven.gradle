@@ -41,7 +41,7 @@ publishing {
 					developer {
 						id = 'markfisher'
 						name = 'Mark Fisher'
-						email = 'mark.fisher@broadcom.com'
+						email = 'mark.ryan.fisher@gmail.com'
 						roles = ['project founder and lead emeritus']
 					}
 				}
