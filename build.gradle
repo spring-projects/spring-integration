@@ -210,21 +210,16 @@ configure(javaProjects) { subproject ->
                 srcDirs = ['src/test/resources', 'src/test/java']
             }
         }
-        feature {
-            java {
-                srcDir 'src/main/java'
-            }
-        }
     }
 
     java {
         withJavadocJar()
         withSourcesJar()
         registerFeature('optional') {
-            usingSourceSet(sourceSets.feature)
+            usingSourceSet(sourceSets.main)
         }
         registerFeature('provided') {
-            usingSourceSet(sourceSets.feature)
+            usingSourceSet(sourceSets.main)
         }
     }
 
