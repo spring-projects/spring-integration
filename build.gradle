@@ -210,7 +210,11 @@ configure(javaProjects) { subproject ->
                 srcDirs = ['src/test/resources', 'src/test/java']
             }
         }
-        feature
+        feature {
+            java {
+                srcDir 'src/main/java'
+            }
+        }
     }
 
     java {
