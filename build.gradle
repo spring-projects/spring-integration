@@ -24,6 +24,7 @@ plugins {
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.github.spotbugs' version '6.0.19'
     id 'com.google.protobuf' version '0.9.4' apply false
+    id 'io.freefair.aggregate-javadoc' version '8.6'
 }
 
 if (isCI) {
@@ -217,6 +218,11 @@ configure(javaProjects) { subproject ->
                 attribute(scopeAttribute, 'provided')
             }
         }
+
+        [compileClasspath, testCompileClasspath, testRuntimeClasspath].each {
+            it.extendsFrom(optional)
+            it.extendsFrom(provided)
+        }
     }
 
     components.java.with {
@@ -233,13 +239,6 @@ configure(javaProjects) { subproject ->
             resources {
                 srcDirs = ['src/test/resources', 'src/test/java']
             }
-        }
-    }
-
-    [configurations.optional, configurations.provided].each { scoped ->
-        sourceSets.all {
-            compileClasspath += scoped
-            runtimeClasspath += scoped
         }
     }
 
@@ -1113,15 +1112,19 @@ project('spring-integration-bom') {
     }
 }
 
-tasks.register('api', Javadoc) {
-    group = 'Documentation'
-    description = 'Generates aggregated Javadoc API documentation.'
+dependencies {
+    javaProjects.each {
+        javadoc it
+    }
+}
+
+javadoc {
     title = "${rootProject.description} ${version} API"
     options {
         encoding = 'UTF-8'
         memberLevel = JavadocMemberLevel.PROTECTED
         author = true
-        header = rootProject.description
+        header = project.description
         use = true
         overview = 'src/api/overview.html'
         splitIndex = true
@@ -1129,12 +1132,14 @@ tasks.register('api', Javadoc) {
         addBooleanOption('Xdoclint:syntax', true) // only check syntax with doclint
     }
 
-    source javaProjects.collect { project ->
-        project.sourceSets.main.allJava
-    }
-    destinationDir = new File('build', 'api')
+    destinationDir = file('build/api')
     classpath = files().from { files(javaProjects.collect { it.sourceSets.main.compileClasspath }) }
+}
 
+tasks.register('api') {
+    group = 'Documentation'
+    description = 'Generates aggregated Javadoc API documentation.'
+    dependsOn javadoc
 }
 
 dokkaHtmlMultiModule {
@@ -1191,7 +1196,7 @@ tasks.register('docsZip', Zip) {
         include 'changelog.txt'
     }
 
-    from(api) {
+    from(javadoc) {
         into 'api'
     }
 
