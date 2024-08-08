@@ -20,8 +20,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.lang.Nullable;
@@ -72,7 +72,7 @@ final class ExpressionEvaluatingParameterSourceUtils {
 	public static class ParameterExpressionEvaluator extends AbstractExpressionEvaluator {
 
 		@Override
-		public StandardEvaluationContext getEvaluationContext() { // NOSONAR - not useless, increases visibility
+		public EvaluationContext getEvaluationContext() { // NOSONAR - not useless, increases visibility
 			return super.getEvaluationContext();
 		}
 

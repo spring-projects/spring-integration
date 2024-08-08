@@ -47,8 +47,8 @@ import org.springframework.integration.aop.ReceiveMessageAdvice;
 import org.springframework.integration.aop.SimpleActiveIdleReceiveMessageAdvice;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.config.ControlBusFactoryBean;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollSkipAdvice;
 import org.springframework.integration.scheduling.SimplePollSkipStrategy;
@@ -163,9 +163,9 @@ public class PollerAdviceTests {
 
 	@Test
 	public void testSkipSimpleControlBus() {
-		this.control.send(new GenericMessage<>("@skipper.skipPolls()"));
+		this.control.send(new GenericMessage<>("skipper.skipPolls"));
 		assertThat(this.skipper.skipPoll()).isTrue();
-		this.control.send(new GenericMessage<>("@skipper.reset()"));
+		this.control.send(new GenericMessage<>("skipper.reset"));
 		assertThat(this.skipper.skipPoll()).isFalse();
 	}
 
@@ -444,8 +444,8 @@ public class PollerAdviceTests {
 
 		@Bean
 		@ServiceActivator(inputChannel = "control")
-		public ExpressionControlBusFactoryBean controlBus() {
-			return new ExpressionControlBusFactoryBean();
+		public ControlBusFactoryBean controlBus() {
+			return new ControlBusFactoryBean();
 		}
 
 	}

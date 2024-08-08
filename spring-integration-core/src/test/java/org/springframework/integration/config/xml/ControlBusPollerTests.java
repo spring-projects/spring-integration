@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,18 @@
 
 package org.springframework.integration.config.xml;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 2.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class ControlBusPollerTests {
 
@@ -48,18 +50,17 @@ public class ControlBusPollerTests {
 	@Test
 	public void testDefaultEvaluationContext() {
 		Message<?> message =
-				MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo")
-						.setHeader("foo", "bar")
+				MessageBuilder.withPayload("service.convert")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("aardvark", "bar"))
 						.build();
 		this.input.send(message);
 		assertThat(output.receive(1000).getPayload()).isEqualTo("catbar");
-		assertThat(output.receive(0)).isNull();
 	}
 
 	public static class Service {
 
-		public String convert(String input) {
-			return "cat";
+		public String convert(String input, String header) {
+			return "cat" + header;
 		}
 
 	}

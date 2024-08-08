@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,20 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
  *
  * @author Dave Syer
  * @author Artem Bilan
+ *
  * @since 2.0
+ *
+ * @deprecated in favor of {@link org.springframework.integration.config.xml.ControlBusParser}
  */
+@Deprecated(since = "6.4", forRemoval = true)
 public class GroovyControlBusParser extends AbstractConsumerEndpointParser {
 
 	@Override
+	@SuppressWarnings("removal")
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(GroovyControlBusFactoryBean.class);
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.genericBeanDefinition(
+						org.springframework.integration.groovy.config.GroovyControlBusFactoryBean.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "customizer");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");

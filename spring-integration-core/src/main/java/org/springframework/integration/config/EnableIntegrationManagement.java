@@ -73,4 +73,12 @@ public @interface EnableIntegrationManagement {
 	 */
 	String[] observationPatterns() default {};
 
+	/**
+	 * Set to {@code true} to turn on Control Bus commands loading after application context initialization.
+	 * @return the flag to initialize the control bus registry eagerly or not.
+	 * @since 6.4
+	 * @see org.springframework.integration.support.management.ControlBusCommandRegistry#setEagerInitialization(boolean)
+	 */
+	String loadControlBusCommands() default "false";
+
 }

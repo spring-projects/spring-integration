@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +17,37 @@
 package org.springframework.integration.jmx;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class UpdateMappingsTests {
 
@@ -64,7 +65,10 @@ public class UpdateMappingsTests {
 
 	@Test
 	public void test() {
-		control.send(new GenericMessage<String>("@myRouter.setChannelMapping('baz', 'qux')"));
+		control.send(
+				MessageBuilder.withPayload("myRouter.setChannelMapping")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("baz", "qux"))
+						.build());
 		Message<?> message = MessageBuilder.withPayload("Hello, world!")
 				.setHeader("routing.header", "baz").build();
 		in.send(message);
@@ -75,15 +79,28 @@ public class UpdateMappingsTests {
 	public void testChangeRouterMappings() {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
-		messagingTemplate.convertAndSend(control,
-				"@'router.handler'.replaceChannelMappings('foo=bar \n baz=qux')");
-		Map<?, ?> mappings = messagingTemplate.convertSendAndReceive(control, "@'router.handler'.getChannelMappings()", Map.class);
+		Properties newMapping = new Properties();
+		newMapping.setProperty("foo", "bar");
+		newMapping.setProperty("baz", "qux");
+		messagingTemplate.send(control,
+				MessageBuilder.withPayload("'router.handler'.replaceChannelMappings")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of(newMapping))
+						.build());
+		Map<?, ?> mappings =
+				messagingTemplate.convertSendAndReceive(control, "@'router.handler'.getChannelMappings()", Map.class);
 		assertThat(mappings).isNotNull();
 		assertThat(mappings.size()).isEqualTo(2);
 		assertThat(mappings.get("foo")).isEqualTo("bar");
 		assertThat(mappings.get("baz")).isEqualTo("qux");
-		messagingTemplate.convertAndSend(control,
-				"@'router.handler'.replaceChannelMappings('foo=qux \n baz=bar')");
+
+		newMapping = new Properties();
+		newMapping.setProperty("foo", "qux");
+		newMapping.setProperty("baz", "bar");
+		messagingTemplate
+				.send(control,
+						MessageBuilder.withPayload("'router.handler'.replaceChannelMappings")
+								.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of(newMapping))
+								.build());
 		mappings = messagingTemplate.convertSendAndReceive(control, "@'router.handler'.getChannelMappings()", Map.class);
 		assertThat(mappings.size()).isEqualTo(2);
 		assertThat(mappings.get("baz")).isEqualTo("bar");
@@ -98,13 +115,14 @@ public class UpdateMappingsTests {
 						.getInstance("update.mapping.domain:type=MessageHandler,name=router,bean=endpoint"),
 				null);
 		assertThat(names.size()).isEqualTo(1);
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new HashMap<>();
 		map.put("foo", "bar");
 		map.put("baz", "qux");
 		Object[] params = new Object[] {map};
 		this.server.invoke(names.iterator().next(), "setChannelMappings", params,
 				new String[] {"java.util.Map"});
-		Map<?, ?> mappings = messagingTemplate.convertSendAndReceive(control, "@'router.handler'.getChannelMappings()", Map.class);
+		Map<?, ?> mappings =
+				messagingTemplate.convertSendAndReceive(control, "@'router.handler'.getChannelMappings()", Map.class);
 		assertThat(mappings).isNotNull();
 		assertThat(mappings.size()).isEqualTo(2);
 		assertThat(mappings.get("foo")).isEqualTo("bar");

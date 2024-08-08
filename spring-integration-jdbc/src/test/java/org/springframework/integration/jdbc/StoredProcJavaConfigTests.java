@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.ControlBusFactoryBean;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
@@ -80,9 +80,9 @@ public class StoredProcJavaConfigTests {
 		// verify maxMessagesPerPoll == 1
 		assertThat(received).isNull();
 		MessagingTemplate template = new MessagingTemplate(this.control);
-		template.convertAndSend("@'storedProc.inboundChannelAdapter'.stop()");
+		template.convertAndSend("'storedProc.inboundChannelAdapter'.stop");
 		assertThat(template.convertSendAndReceive(
-				"@'storedProc.inboundChannelAdapter'.isRunning()", Boolean.class))
+				"'storedProc.inboundChannelAdapter'.isRunning", Boolean.class))
 				.isFalse();
 	}
 
@@ -97,8 +97,8 @@ public class StoredProcJavaConfigTests {
 
 		@Bean
 		@ServiceActivator(inputChannel = "control")
-		public ExpressionControlBusFactoryBean controlBus() {
-			return new ExpressionControlBusFactoryBean();
+		public ControlBusFactoryBean controlBus() {
+			return new ControlBusFactoryBean();
 		}
 
 		@Bean

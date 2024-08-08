@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.springframework.integration.config.xml;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessagingTemplate;
@@ -68,17 +71,19 @@ public class ControlBusTests {
 	@Test
 	public void testDefaultEvaluationContext() {
 		Message<?> message =
-				MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo")
-						.setHeader("foo", "bar")
+				MessageBuilder.withPayload("service.convert")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("aardvark", "bar"))
 						.build();
 		this.input.send(message);
 		assertThat(output.receive(0).getPayload()).isEqualTo("catbar");
-		assertThat(output.receive(0)).isNull();
 	}
 
 	@Test
 	public void testvoidOperation() throws Exception {
-		Message<?> message = MessageBuilder.withPayload("@service.voidOp('foo')").build();
+		Message<?> message =
+				MessageBuilder.withPayload("service.voidOp")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("foo"))
+						.build();
 		this.input.send(message);
 		assertThat(this.service.latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
@@ -130,8 +135,13 @@ public class ControlBusTests {
 		Map<?, ?> mappings = (Map<?, ?>) result.getPayload();
 		assertThat(mappings.get("foo")).isEqualTo("bar");
 		assertThat(mappings.get("baz")).isEqualTo("qux");
-		messagingTemplate.convertAndSend(input,
-				"@'router.handler'.replaceChannelMappings('foo=qux \n baz=bar')");
+		Properties newMapping = new Properties();
+		newMapping.setProperty("foo", "qux");
+		newMapping.setProperty("baz", "bar");
+		messagingTemplate.send(input,
+				MessageBuilder.withPayload("'router.handler'.replaceChannelMappings")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of(newMapping))
+						.build());
 		messagingTemplate.convertAndSend(input, "@'router.handler'.getChannelMappings()");
 		result = this.output.receive(0);
 		assertThat(result).isNotNull();
@@ -145,8 +155,8 @@ public class ControlBusTests {
 		private final CountDownLatch latch = new CountDownLatch(1);
 
 		@ManagedOperation
-		public String convert(String input) {
-			return "cat";
+		public String convert(String input, String header) {
+			return "cat" + header;
 		}
 
 		@ManagedOperation

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,40 +17,32 @@
 package org.springframework.integration.filter;
 
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 
 /**
  * A {@link org.springframework.integration.core.MessageSelector} implementation that
- * evaluates a SpEL expression. The evaluation result of the expression must be a boolean
- * value.
+ * evaluates a simple SpEL expression - relies on the
+ * {@link org.springframework.expression.spel.support.SimpleEvaluationContext}.
  *
- * @author Mark Fisher
- * @author Liujiong
- * @author Gary Russell
  * @author Artem Bilan
  *
- * @since 2.0
+ * @since 6.4
  *
- * @see SimpleExpressionEvaluatingSelector
+ * @see ExpressionEvaluatingSelector
  */
-public class ExpressionEvaluatingSelector extends AbstractMessageProcessingSelector {
-
-	private static final ExpressionParser EXPRESSION_PARSER =
-			new SpelExpressionParser(new SpelParserConfiguration(true, true));
+public class SimpleExpressionEvaluatingSelector extends AbstractMessageProcessingSelector {
 
 	private final String expressionString;
 
-	public ExpressionEvaluatingSelector(String expressionString) {
-		super(new ExpressionEvaluatingMessageProcessor<Boolean>(EXPRESSION_PARSER.parseExpression(expressionString),
-				Boolean.class));
+	public SimpleExpressionEvaluatingSelector(String expressionString) {
+		super(new ExpressionEvaluatingMessageProcessor<>(expressionString, Boolean.class));
+		((ExpressionEvaluatingMessageProcessor<?>) getMessageProcessor()).setSimpleEvaluationContext(true);
 		this.expressionString = expressionString;
 	}
 
-	public ExpressionEvaluatingSelector(Expression expression) {
-		super(new ExpressionEvaluatingMessageProcessor<Boolean>(expression, Boolean.class));
+	public SimpleExpressionEvaluatingSelector(Expression expression) {
+		super(new ExpressionEvaluatingMessageProcessor<>(expression, Boolean.class));
+		((ExpressionEvaluatingMessageProcessor<?>) getMessageProcessor()).setSimpleEvaluationContext(true);
 		this.expressionString = expression.getExpressionString();
 	}
 
@@ -60,7 +52,7 @@ public class ExpressionEvaluatingSelector extends AbstractMessageProcessingSelec
 
 	@Override
 	public String toString() {
-		return "ExpressionEvaluatingSelector for: [" + this.expressionString + "]";
+		return "SimpleExpressionEvaluatingSelector for: [" + this.expressionString + "]";
 	}
 
 }

@@ -34,6 +34,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
+import org.springframework.integration.filter.SimpleExpressionEvaluatingSelector;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.lang.Nullable;
@@ -135,8 +136,8 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 	private void addRecipient(String channelName, String selectorExpression, Queue<Recipient> recipientsToAdd) {
 		Assert.hasText(channelName, "'channelName' must not be empty.");
 		Assert.hasText(selectorExpression, "'selectorExpression' must not be empty.");
-		ExpressionEvaluatingSelector expressionEvaluatingSelector =
-				new ExpressionEvaluatingSelector(selectorExpression);
+		SimpleExpressionEvaluatingSelector expressionEvaluatingSelector =
+				new SimpleExpressionEvaluatingSelector(selectorExpression);
 		expressionEvaluatingSelector.setBeanFactory(getBeanFactory());
 		Recipient recipient = new Recipient(channelName, expressionEvaluatingSelector);
 		setupRecipient(recipient);
@@ -203,9 +204,13 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 			Recipient next = it.next();
 			MessageSelector selector = next.getSelector();
 			MessageChannel channel = next.getChannel();
-			if (selector instanceof ExpressionEvaluatingSelector
+			if ((selector instanceof ExpressionEvaluatingSelector expressionEvaluatingSelector
 					&& targetChannel.equals(channel)
-					&& ((ExpressionEvaluatingSelector) selector).getExpressionString().equals(selectorExpression)) {
+					&& expressionEvaluatingSelector.getExpressionString().equals(selectorExpression)) ||
+					(selector instanceof SimpleExpressionEvaluatingSelector simpleExpressionEvaluatingSelector
+							&& targetChannel.equals(channel)
+							&& simpleExpressionEvaluatingSelector.getExpressionString().equals(selectorExpression))) {
+
 				it.remove();
 				counter++;
 			}

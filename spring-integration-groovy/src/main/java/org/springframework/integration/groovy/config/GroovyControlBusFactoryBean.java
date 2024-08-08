@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
-import org.springframework.integration.groovy.GroovyCommandMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -47,8 +46,12 @@ import org.springframework.util.CustomizableThreadCreator;
  * @author Artem Bilan
  * @author Stefan Reuter
  * @author Gary Russell
+ *
  * @since 2.0
+ *
+ * @deprecated in favor of {@link org.springframework.integration.config.ControlBusFactoryBean}
  */
+@Deprecated(since = "6.4", forRemoval = true)
 public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler>
 		implements BeanClassLoaderAware {
 
@@ -72,14 +75,16 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 	}
 
 	@Override
+	@SuppressWarnings("removal")
 	protected MessageHandler createHandler() {
 		Binding binding = new ManagedBeansBinding(this.getBeanFactory());
-		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(binding,
-				message -> {
-					Map<String, Object> variables = new HashMap<>();
-					variables.put("headers", message.getHeaders());
-					return variables;
-				});
+		org.springframework.integration.groovy.GroovyCommandMessageProcessor processor =
+				new org.springframework.integration.groovy.GroovyCommandMessageProcessor(binding,
+						message -> {
+							Map<String, Object> variables = new HashMap<>();
+							variables.put("headers", message.getHeaders());
+							return variables;
+						});
 		if (this.customizer != null) {
 			processor.setCustomizer(this.customizer);
 		}

@@ -14,7 +14,7 @@
 		<queue />
 	</channel>
 
-	<control-bus input-channel="input" output-channel="output"/>
+	<control-bus input-channel="input" output-channel="output" use-registry="true"/>
 	
 	<poller default="true" fixed-rate="100"/>
 

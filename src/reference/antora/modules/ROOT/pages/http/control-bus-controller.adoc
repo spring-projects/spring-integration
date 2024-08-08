@@ -1,0 +1,119 @@
+[[control-bus-controller]]
+= Control Bus Controller
+:page-section-summary-toc: 1
+
+Starting with version 6.4, the HTTP module provides an `@EnableControlBusController` configuration class annotation to expose the `ControlBusController` as a REST service at the `/control-bus` path.
+The `ControlBusControllerConfiguration` underneath enables eager initialization for the `ControlBusCommandRegistry` to expose all the available control bus commands for the mentioned REST service.
+The `/control-bus` GET request returns all the control bus commands for the application in a format like this:
+
+[source,json]
+----
+[
+  {
+    "beanName": "errorChannel",
+    "commands": [
+      {
+        "command": "errorChannel.setShouldTrack",
+        "description": "setShouldTrack",
+        "parameterTypes": [
+          "boolean"
+        ]
+      },
+      {
+        "command": "errorChannel.setLoggingEnabled",
+        "description": "Use to disable debug logging during normal message flow",
+        "parameterTypes": [
+          "boolean"
+        ]
+      },
+      {
+        "command": "errorChannel.isLoggingEnabled",
+        "description": "isLoggingEnabled",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "beanName": "testManagementComponent",
+    "commands": [
+      {
+        "command": "testManagementComponent.operation2",
+        "description": "operation2",
+        "parameterTypes": []
+      },
+      {
+        "command": "testManagementComponent.operation",
+        "description": "operation",
+        "parameterTypes": []
+      },
+      {
+        "command": "testManagementComponent.operation",
+        "description": "operation",
+        "parameterTypes": [
+          "int",
+          "java.lang.String"
+        ]
+      },
+      {
+        "command": "testManagementComponent.operation",
+        "description": "operation",
+        "parameterTypes": [
+          "int"
+        ]
+      }
+    ]
+  }
+]
+----
+
+Essentially, a JSON-serialized list of `ControlBusController.ControlBusBean` instances.
+Each entry is a bean with a list of control bus eligible methods (see `ControlBusMethodFilter` for more information) with their parameter types and description from the `@ManagedOperation` or `@ManagedAttribute` (falls back to method name otherwise).
+
+The GET method of this REST controller for `/control-bus/{beanName}` returns commands for specific bean.
+
+The POST method to `/control-bus/{beanName.methodName}` invokes the command.
+The body of the request may contain a list of values and their types for command to execute.
+For example, the `operation` command with `int` argument for the class:
+
+[source,java]
+----
+@ManagedResource
+class TestManagementComponent {
+
+    @ManagedOperation
+    public void operation() {
+
+    }
+
+    @ManagedOperation(description = "The overloaded operation with int argument")
+    public void operation(int input) {
+
+    }
+
+    @ManagedOperation(description = "The overloaded operation with two arguments")
+    public void operation(int input1, String input2) {
+
+    }
+
+    @ManagedOperation
+    public int operation2() {
+    	return 123;
+    }
+
+}
+----
+
+could be called like `/testManagementComponent.operation` using mention POST method with body:
+
+[source,json]
+----
+[
+    {
+        "value": "1",
+        "parameterType": "int"
+    }
+]
+----
+
+See xref:control-bus.adoc[Control Bus] for more information.
+

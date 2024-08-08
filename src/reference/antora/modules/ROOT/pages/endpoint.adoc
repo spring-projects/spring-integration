@@ -129,7 +129,7 @@ This means that the poller continues calling `receive()` without waiting, until 
 For example, if a poller has a ten-second interval trigger and a `maxMessagesPerPoll` setting of `25`, and it is polling a channel that has 100 messages in its queue, all 100 messages can be retrieved within 40 seconds.
 It grabs 25, waits ten seconds, grabs the next 25, and so on.
 If `maxMessagesPerPoll` is configured with a negative value, then `MessageSource.receive()` is called within a single polling cycle until it returns `null`.
-Starting with version 5.5, a `0` value has a special meaning - skip the `MessageSource.receive()` call altogether, which may be considered as pausing for this polling endpoint until the `maxMessagesPerPoll` is changed to a n non-zero value at a later time, e.g. via a Control Bus.
+Starting with version 5.5, a `0` value has a special meaning - skip the `MessageSource.receive()` call altogether, which may be considered as pausing for this polling endpoint until the `maxMessagesPerPoll` is changed to a non-zero value at a later time, e.g. via a Control Bus.
 
 The `receiveTimeout` property specifies the amount of time the poller should wait if no messages are available when it invokes the receive operation.
 For example, consider two options that seem similar on the surface but are actually quite different: The first has an interval trigger of 5 seconds and a receive timeout of 50 milliseconds, while the second has an interval trigger of 50 milliseconds and a receive timeout of 5 seconds.

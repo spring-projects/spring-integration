@@ -315,7 +315,7 @@ When all files are consumed, the remote fetch is attempted again, to pick up any
 IMPORTANT: When you deploy multiple instances of an application, we recommend a small `max-fetch-size`, to avoid one instance "`grabbing`" all the files and starving other instances.
 
 Another use for `max-fetch-size` is if you want to stop fetching remote files but continue to process files that have already been fetched.
-Setting the `maxFetchSize` property on the `MessageSource` (programmatically, with JMX, or with a xref:groovy.adoc#groovy-control-bus[control bus]) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
+Setting the `maxFetchSize` property on the `MessageSource` (programmatically, with JMX, or with a xref:control-bus.adoc[control bus]) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
 If the poller is active when the property is changed, the change takes effect on the next poll.
 
 The synchronizer can be provided with a `Comparator<SmbFile>`.

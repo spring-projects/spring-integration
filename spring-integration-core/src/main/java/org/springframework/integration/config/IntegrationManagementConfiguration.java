@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Role;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.integration.support.management.ControlBusCommandRegistry;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -52,9 +53,15 @@ import org.springframework.util.StringUtils;
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class IntegrationManagementConfiguration implements ImportAware, EnvironmentAware {
 
+	private final ControlBusCommandRegistry controlBusCommandRegistry;
+
 	private AnnotationAttributes attributes;
 
 	private Environment environment;
+
+	public IntegrationManagementConfiguration(ControlBusCommandRegistry controlBusCommandRegistry) {
+		this.controlBusCommandRegistry = controlBusCommandRegistry;
+	}
 
 	@Override
 	public void setEnvironment(Environment environment) {
@@ -67,6 +74,9 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 		this.attributes = AnnotationAttributes.fromMap(map);
 		Assert.notNull(this.attributes, () ->
 				"@EnableIntegrationManagement is not present on importing class " + importMetadata.getClassName());
+		this.controlBusCommandRegistry.setEagerInitialization(
+				Boolean.parseBoolean(
+						this.environment.resolvePlaceholders(this.attributes.getString("loadControlBusCommands"))));
 	}
 
 	@Bean(name = IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)

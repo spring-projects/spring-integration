@@ -279,7 +279,7 @@ If this attribute is not defined, the channel is always among the list of recipi
 
 Starting with version 4.1, the `RecipientListRouter` provides several operations to manipulate recipients dynamically at runtime.
 These management operations are presented by `RecipientListRouterManagement` through the `@ManagedResource` annotation.
-They are available by using xref:groovy.adoc#groovy-control-bus[Control Bus] as well as by using JMX, as the following example shows:
+They are available by using xref:control-bus.adoc[Control Bus] as well as by using JMX, as the following example shows:
 
 [source,xml]
 ----
@@ -293,7 +293,10 @@ They are available by using xref:groovy.adoc#groovy-control-bus[Control Bus] as 
 ----
 [source,java]
 ----
-messagingTemplate.convertAndSend(controlBus, "@'simpleRouter.handler'.addRecipient('channel2')");
+Message<?> addRecipientCommandMessage =
+                     MessageBuilder.withPayload("'simpleRouter.handler'.addRecipient")
+                            .setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("channel2"))
+                            .build();
 ----
 
 From the application start up the `simpleRouter`, has only one `channel1` recipient.

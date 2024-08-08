@@ -89,10 +89,10 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.config.ControlBusFactoryBean;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.config.EnablePublisher;
-import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.config.SpelFunctionFactoryBean;
@@ -454,15 +454,15 @@ public class EnableIntegrationTests {
 		assertThat(message.getHeaders().get("foo")).isEqualTo("FOO");
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.controlBusChannel);
-		assertThat(messagingTemplate.convertSendAndReceive("@pausable.isRunning()", Boolean.class)).isEqualTo(false);
-		this.controlBusChannel.send(new GenericMessage<>("@pausable.start()"));
-		assertThat(messagingTemplate.convertSendAndReceive("@pausable.isRunning()", Boolean.class)).isEqualTo(true);
-		this.controlBusChannel.send(new GenericMessage<>("@pausable.stop()"));
-		assertThat(messagingTemplate.convertSendAndReceive("@pausable.isRunning()", Boolean.class)).isEqualTo(false);
-		this.controlBusChannel.send(new GenericMessage<>("@pausable.pause()"));
+		assertThat(messagingTemplate.convertSendAndReceive("pausable.isRunning", Boolean.class)).isEqualTo(false);
+		this.controlBusChannel.send(new GenericMessage<>("pausable.start"));
+		assertThat(messagingTemplate.convertSendAndReceive("pausable.isRunning", Boolean.class)).isEqualTo(true);
+		this.controlBusChannel.send(new GenericMessage<>("pausable.stop"));
+		assertThat(messagingTemplate.convertSendAndReceive("pausable.isRunning", Boolean.class)).isEqualTo(false);
+		this.controlBusChannel.send(new GenericMessage<>("pausable.pause"));
 		Object pausable = this.context.getBean("pausable");
 		assertThat(TestUtils.getPropertyValue(pausable, "paused", Boolean.class)).isTrue();
-		this.controlBusChannel.send(new GenericMessage<>("@pausable.resume()"));
+		this.controlBusChannel.send(new GenericMessage<>("pausable.resume"));
 		assertThat(TestUtils.getPropertyValue(pausable, "paused", Boolean.class)).isFalse();
 
 		Map<String, ServiceActivatingHandler> beansOfType =
@@ -1113,8 +1113,8 @@ public class EnableIntegrationTests {
 		@ServiceActivator(inputChannel = "controlBusChannel")
 		@EndpointId("controlBusEndpoint")
 		@Role("bar")
-		public ExpressionControlBusFactoryBean controlBus() {
-			return new ExpressionControlBusFactoryBean();
+		public ControlBusFactoryBean controlBus() {
+			return new ControlBusFactoryBean();
 		}
 
 		@Autowired

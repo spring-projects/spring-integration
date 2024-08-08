@@ -100,6 +100,8 @@ public abstract class IntegrationContextUtils {
 
 	public static final String LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationListMessageHandlerMethodFactory";
 
+	public static final String CONTROL_BUS_COMMAND_REGISTRY_BEAN_NAME = "controlBusCommandRegistry";
+
 	/**
 	 * The default timeout for blocking operations like send and receive messages.
 	 * @since 6.1

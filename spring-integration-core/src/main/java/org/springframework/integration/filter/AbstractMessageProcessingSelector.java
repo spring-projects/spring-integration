@@ -58,6 +58,10 @@ public abstract class AbstractMessageProcessingSelector
 		}
 	}
 
+	protected MessageProcessor<Boolean> getMessageProcessor() {
+		return this.messageProcessor;
+	}
+
 	@Override
 	public final boolean accept(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);

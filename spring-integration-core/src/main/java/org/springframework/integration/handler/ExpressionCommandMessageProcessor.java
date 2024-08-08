@@ -31,6 +31,7 @@ import org.springframework.expression.MethodExecutor;
 import org.springframework.expression.MethodFilter;
 import org.springframework.expression.MethodResolver;
 import org.springframework.expression.spel.support.ReflectiveMethodResolver;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.lang.Nullable;
@@ -47,7 +48,10 @@ import org.springframework.util.CollectionUtils;
  * @author Artem Bilan
  *
  * @since 2.0
+ *
+ * @deprecated in favor of {@link ControlBusMessageProcessor}
  */
+@Deprecated(since = "6.4", forRemoval = true)
 public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<Object>
 		implements IntegrationPattern {
 
@@ -74,7 +78,12 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 		super.setBeanFactory(beanFactory);
 		if (this.methodFilter != null) {
 			MethodResolver methodResolver = new ExpressionCommandMethodResolver(this.methodFilter);
-			getEvaluationContext().setMethodResolvers(Collections.singletonList(methodResolver));
+			if (getEvaluationContext() instanceof StandardEvaluationContext standardEvaluationContext) {
+				standardEvaluationContext.setMethodResolvers(Collections.singletonList(methodResolver));
+			}
+			else {
+				logger.warn("Cannot customize the 'SimpleEvaluationContext'");
+			}
 		}
 	}
 

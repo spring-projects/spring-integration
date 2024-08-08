@@ -69,6 +69,7 @@
 	<xsd:element name="control-bus">
 		<xsd:annotation>
 			<xsd:documentation>
+				[DEPRECATED in favor 'control-bus' component from core module]
 				Control bus ('org.springframework.integration.groovy.config.GroovyControlBusFactoryBean') that accepts
 				messages in the form of Groovy scripts. The scripts should be provided as
 				String payload in incoming messages. The variable bindings will include any @ManagedResource, Lifecycle,

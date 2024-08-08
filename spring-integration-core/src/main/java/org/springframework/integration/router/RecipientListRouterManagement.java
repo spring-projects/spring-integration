@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 package org.springframework.integration.router;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -31,6 +33,8 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  *
  * @author Liujiong
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.1
  *
  */
@@ -40,6 +44,10 @@ public interface RecipientListRouterManagement {
 
 	/**
 	 * Add a recipient with channelName and expression.
+	 * The expression follows only
+	 * {@link org.springframework.expression.spel.support.SimpleEvaluationContext#forReadOnlyDataBinding()}
+	 * capabilities. Otherwise, use non-managed {@link RecipientListRouter#addRecipient(String, MessageSelector)}
+	 * API with more control over execution.
 	 * @param channelName The channel name.
 	 * @param selectorExpression The expression to filter the incoming message.
 	 */
@@ -78,6 +86,10 @@ public interface RecipientListRouterManagement {
 
 	/**
 	 * Replace recipient.
+	 * The expression follows only
+	 * {@link org.springframework.expression.spel.support.SimpleEvaluationContext#forReadOnlyDataBinding()}
+	 * capabilities. Otherwise, use non-managed {@link RecipientListRouter#addRecipient(String, MessageSelector)}
+	 * API with more control over execution.
 	 * @param recipientMappings contain channelName and expression.
 	 */
 	@ManagedOperation
@@ -85,6 +97,10 @@ public interface RecipientListRouterManagement {
 
 	/**
 	 * Set recipients.
+	 * The expression follows only
+	 * {@link org.springframework.expression.spel.support.SimpleEvaluationContext#forReadOnlyDataBinding()}
+	 * capabilities. Otherwise, use non-managed {@link RecipientListRouter#setRecipients(List)}
+	 * API with more control over execution.
 	 * @param recipientMappings contain channelName and expression.
 	 */
 	@ManagedAttribute

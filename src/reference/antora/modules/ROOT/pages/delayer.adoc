@@ -192,7 +192,7 @@ These operations can be invoked through a `Control Bus` command, as the followin
 [source,java]
 ----
 Message<String> delayerReschedulingMessage =
-    MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
+    MessageBuilder.withPayload("'delayer.handler'.reschedulePersistedMessages").build();
 controlBusChannel.send(delayerReschedulingMessage);
 ----
 

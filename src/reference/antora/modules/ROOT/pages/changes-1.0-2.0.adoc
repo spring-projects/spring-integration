@@ -71,7 +71,7 @@ See xref:claim-check.adoc[Claim Check] for more details.
 
 We have provided implementations of the https://www.enterpriseintegrationpatterns.com/ControlBus.html[control bus] pattern, which lets you use messaging to manage and monitor endpoints and channels.
 The implementations include both a SpEL-based approach and one that runs Groovy scripts.
-See xref:groovy.adoc#groovy-control-bus[Control Bus] and xref:groovy.adoc#groovy-control-bus[Control Bus] for more details.
+See xref:control-bus.adoc[Control Bus] for more details.
 
 [[new-adapters]]
 == New Channel Adapters and Gateways

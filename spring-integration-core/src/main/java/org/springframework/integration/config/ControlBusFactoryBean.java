@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,18 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.expression.MethodFilter;
+import org.springframework.integration.handler.ControlBusMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.messaging.MessageHandler;
 
 /**
- * FactoryBean for creating {@link MessageHandler} instances to handle a message as a SpEL expression.
+ * FactoryBean for creating {@link MessageHandler} instances to handle a message with a Control Bus command.
  *
- * @author Dave Syer
- * @author Mark Fisher
- * @author Oleg Zhurakousky
  * @author Artem Bilan
  *
- * @since 2.0
- *
- * @deprecated in favor of {@link ControlBusFactoryBean}
+ * @since 6.4
  */
-@Deprecated(since = "6.4", forRemoval = true)
-public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
-
-	@SuppressWarnings("removal")
-	private static final MethodFilter METHOD_FILTER = new org.springframework.integration.expression.ControlBusMethodFilter();
+public class ControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
 	private Long sendTimeout;
 
@@ -44,12 +35,9 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 		this.sendTimeout = sendTimeout;
 	}
 
-	@SuppressWarnings("removal")
 	@Override
 	protected MessageHandler createHandler() {
-		org.springframework.integration.handler.ExpressionCommandMessageProcessor processor =
-				new org.springframework.integration.handler.ExpressionCommandMessageProcessor(METHOD_FILTER, getBeanFactory());
-		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(new ControlBusMessageProcessor());
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);
 		}

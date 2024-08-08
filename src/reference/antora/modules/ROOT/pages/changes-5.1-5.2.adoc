@@ -66,7 +66,7 @@ The `splitter` now supports a `discardChannel` configuration option.
 See xref:splitter.adoc[Splitter] for more information.
 
 The Control Bus can now handle `Pausable` (extension of `Lifecycle`) operations.
-See xref:groovy.adoc#groovy-control-bus[Control Bus] for more information.
+See xref:control-bus.adoc[Control Bus] for more information.
 
 The `Function<MessageGroup, Map<String, Object>>` strategy has been introduced for the aggregator component to merge and compute headers for output messages.
 See xref:aggregator.adoc#aggregator-api[Aggregator Programming Model] for more information.

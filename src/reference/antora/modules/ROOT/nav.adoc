@@ -159,6 +159,7 @@
 ** xref:http/proxy.adoc[]
 ** xref:http/header-mapping.adoc[]
 ** xref:http/int-graph-controller.adoc[]
+** xref:http/control-bus-controller.adoc[]
 ** xref:http/samples.adoc[]
 * xref:ip.adoc[]
 ** xref:ip/intro.adoc[]

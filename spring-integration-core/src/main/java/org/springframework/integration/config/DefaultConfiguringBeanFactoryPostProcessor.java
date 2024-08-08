@@ -53,6 +53,7 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
+import org.springframework.integration.support.management.ControlBusCommandRegistry;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
@@ -127,6 +128,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 		registerMessageHandlerMethodFactory();
 		registerListMessageHandlerMethodFactory();
 		registerIntegrationConfigurationReport();
+		registerControlBusCommandRegistry();
 	}
 
 	@Override
@@ -438,6 +440,17 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 				BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigurationReport.class)
 						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
 						.getBeanDefinition());
+	}
+
+	private void registerControlBusCommandRegistry() {
+		if (!this.beanFactory.containsBean(IntegrationContextUtils.CONTROL_BUS_COMMAND_REGISTRY_BEAN_NAME)) {
+			BeanDefinitionBuilder builder =
+					BeanDefinitionBuilder.genericBeanDefinition(ControlBusCommandRegistry.class)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+			this.registry.registerBeanDefinition(IntegrationContextUtils.CONTROL_BUS_COMMAND_REGISTRY_BEAN_NAME,
+					builder.getBeanDefinition());
+		}
 	}
 
 	private static BeanDefinitionBuilder createMessageHandlerMethodFactoryBeanDefinition(boolean listCapable) {

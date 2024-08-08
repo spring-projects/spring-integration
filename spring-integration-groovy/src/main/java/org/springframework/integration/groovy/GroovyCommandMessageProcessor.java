@@ -47,7 +47,10 @@ import org.springframework.util.ObjectUtils;
  * @author Gary Russell
  *
  * @since 2.0
+ *
+ * @deprecated in favor of {@link org.springframework.integration.handler.ControlBusMessageProcessor}
  */
+@Deprecated(since = "6.4", forRemoval = true)
 public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object>
 		implements IntegrationPattern {
 

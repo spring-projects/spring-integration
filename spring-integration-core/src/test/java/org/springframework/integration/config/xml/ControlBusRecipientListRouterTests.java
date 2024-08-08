@@ -18,15 +18,17 @@ package org.springframework.integration.config.xml;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.integration.support.MessageBuilder;
@@ -36,17 +38,17 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Liujiong
+ * @author Artem Bilan
+ *
  * @since 4.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class ControlBusRecipientListRouterTests {
 
@@ -63,63 +65,79 @@ public class ControlBusRecipientListRouterTests {
 	@Qualifier("routingChannelA")
 	private MessageChannel channel;
 
-	@Before
+	@BeforeEach
 	public void aa() {
 		context.start();
 	}
 
 	@Test
 	public void testAddRecipient() {
-		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setReceiveTimeout(1000);
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel2','true')");
-		Message<?> message = new GenericMessage<Integer>(1);
+		this.input.send(
+				MessageBuilder.withPayload("'simpleRouter.handler'.addRecipient")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("channel2", "true"))
+						.build());
+		Message<?> message = new GenericMessage<>(1);
 		channel.send(message);
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
-		assertThat(chanel2.receive(0).getPayload().equals(1)).isTrue();
+		assertThat(chanel2.receive(0).getPayload()).isEqualTo(1);
 	}
 
 	@Test
 	public void testAddRecipientWithNullExpression() {
-		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setReceiveTimeout(1000);
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel3')");
+		this.input.send(
+				MessageBuilder.withPayload("'simpleRouter.handler'.addRecipient")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("channel3"))
+						.build());
 
-		Message<?> message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<>(1);
 		channel.send(message);
 		PollableChannel chanel3 = (PollableChannel) context.getBean("channel3");
-		assertThat(chanel3.receive(0).getPayload().equals(1)).isTrue();
+		assertThat(chanel3.receive(0).getPayload()).isEqualTo(1);
 	}
 
 	@Test
 	public void testRemoveRecipient() {
-		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setReceiveTimeout(1000);
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel1')");
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel4')");
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.removeRecipient('channel4')");
+		this.input.send(
+				MessageBuilder.withPayload("'simpleRouter.handler'.addRecipient")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("channel1"))
+						.build());
+		this.input.send(
+				MessageBuilder.withPayload("'simpleRouter.handler'.addRecipient")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("channel4"))
+						.build());
+		this.input.send(
+				MessageBuilder.withPayload("'simpleRouter.handler'.removeRecipient")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("channel4"))
+						.build());
 
-		Message<?> message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<>(1);
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel4 = (PollableChannel) context.getBean("channel4");
-		assertThat(chanel1.receive(0).getPayload().equals(1)).isTrue();
+		assertThat(chanel1.receive(0).getPayload()).isEqualTo(1);
 		assertThat(chanel4.receive(0)).isNull();
 	}
 
 	@Test
 	public void testRemoveRecipientWithExpression() {
-		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setReceiveTimeout(1000);
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel1','true')");
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel5','true')");
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.removeRecipient('channel5','true')");
+		this.input.send(
+				MessageBuilder.withPayload("'simpleRouter.handler'.addRecipient")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("channel1", "true"))
+						.build());
+		this.input.send(
+				MessageBuilder.withPayload("'simpleRouter.handler'.addRecipient")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("channel5", "true"))
+						.build());
+		this.input.send(
+				MessageBuilder.withPayload("'simpleRouter.handler'.removeRecipient")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("channel5", "true"))
+						.build());
 
-		Message<?> message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<>(1);
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel5 = (PollableChannel) context.getBean("channel5");
-		assertThat(chanel1.receive(0).getPayload().equals(1)).isTrue();
+		assertThat(chanel1.receive(0).getPayload()).isEqualTo(1);
 		assertThat(chanel5.receive(0)).isNull();
 	}
 
@@ -127,8 +145,10 @@ public class ControlBusRecipientListRouterTests {
 	@SuppressWarnings("unchecked")
 	public void testGetRecipients() {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setReceiveTimeout(1000);
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel1')");
+		messagingTemplate.send(input,
+				MessageBuilder.withPayload("'simpleRouter.handler'.addRecipient")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of("channel1"))
+						.build());
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.getRecipients()");
 		PollableChannel channel1 = (PollableChannel) context.getBean("channel1");
 		Message<?> result = this.output.receive(0);
@@ -138,29 +158,31 @@ public class ControlBusRecipientListRouterTests {
 
 	@Test
 	public void testSetRecipients() {
-		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setReceiveTimeout(1000);
-
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new HashMap<>();
 		map.put("channel6", "true");
-		Message<?> message = MessageBuilder.withPayload("@'simpleRouter.handler'.setRecipientMappings(headers.recipientMap)").setHeader("recipientMap", map).build();
+		Message<?> message =
+				MessageBuilder.withPayload("'simpleRouter.handler'.setRecipientMappings")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of(map))
+						.build();
 		this.input.send(message);
-		message = new GenericMessage<Integer>(1);
+		message = new GenericMessage<>(1);
 		channel.send(message);
 		PollableChannel chanel6 = (PollableChannel) context.getBean("channel6");
-		assertThat(chanel6.receive(0).getPayload().equals(1)).isTrue();
+		assertThat(chanel6.receive(0).getPayload()).isEqualTo(1);
 	}
 
 	@Test
 	public void testReplaceRecipients() {
-		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		messagingTemplate.setReceiveTimeout(1000);
-
-		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.replaceRecipients('channel7=true')");
-		Message<?> message = new GenericMessage<Integer>(1);
+		Properties newMapping = new Properties();
+		newMapping.setProperty("channel7", "true");
+		this.input.send(
+				MessageBuilder.withPayload("'simpleRouter.handler'.replaceRecipients")
+						.setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of(newMapping))
+						.build());
+		Message<?> message = new GenericMessage<>(1);
 		channel.send(message);
 		PollableChannel chanel7 = (PollableChannel) context.getBean("channel7");
-		assertThat(chanel7.receive(0).getPayload().equals(1)).isTrue();
+		assertThat(chanel7.receive(0).getPayload()).isEqualTo(1);
 	}
 
 }

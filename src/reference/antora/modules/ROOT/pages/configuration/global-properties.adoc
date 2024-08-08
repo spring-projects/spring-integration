@@ -42,7 +42,7 @@ By default, only `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are not copi
 Since version 4.3.2.
 
 <7> A comma-separated list of `AbstractEndpoint` bean names patterns (`xxx*`, `*xxx`, `*xxx*` or `xxx*yyy`) that should not be started automatically during application startup.
-You can manually start these endpoints later by their bean name through a `Control Bus` (see xref:groovy.adoc#groovy-control-bus[Control Bus]), by their role with the `SmartLifecycleRoleController` (see xref:endpoint.adoc#endpoint-roles[Endpoint Roles]), or by `Lifecycle` bean injection.
+You can manually start these endpoints later by their bean name through a xref:control-bus.adoc[Control Bus], by their role with the `SmartLifecycleRoleController` (see xref:endpoint-roles.adoc[Endpoint Roles]), or by `Lifecycle` bean injection.
 You can explicitly override the effect of this global property by specifying `auto-startup` XML annotation or the `autoStartup` annotation attribute or by calling `AbstractEndpoint.setAutoStartup()` in the bean definition.
 Since version 4.3.12.
 

@@ -52,7 +52,6 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
 import org.springframework.integration.dsl.support.MessageChannelReference;
-import org.springframework.integration.expression.ControlBusMethodFilter;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MessageFilter;
@@ -60,8 +59,8 @@ import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.BeanNameMessageProcessor;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.handler.ControlBusMessageProcessor;
 import org.springframework.integration.handler.DelayHandler;
-import org.springframework.integration.handler.ExpressionCommandMessageProcessor;
 import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageProcessor;
@@ -517,8 +516,33 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate the {@code Control Bus} EI Pattern specific {@link MessageHandler} implementation
 	 * at the current {@link IntegrationFlow} chain position.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @see ExpressionCommandMessageProcessor
+	 * @since 6.4
+	 * @see ControlBusMessageProcessor
 	 */
+	public B controlBusOnRegistry() {
+		return controlBusOnRegistry(null);
+	}
+
+	/**
+	 * Populate the {@code Control Bus} EI Pattern specific {@link MessageHandler} implementation
+	 * at the current {@link IntegrationFlow} chain position.
+	 * @param endpointConfigurer the {@link Consumer} to accept integration endpoint options.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @since 6.4
+	 * @see GenericEndpointSpec
+	 * @see ControlBusMessageProcessor
+	 */
+	public B controlBusOnRegistry(@Nullable Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+		return handle(new ServiceActivatingHandler(new ControlBusMessageProcessor()), endpointConfigurer);
+	}
+
+	/**
+	 * Populate the {@code Control Bus} EI Pattern specific {@link MessageHandler} implementation
+	 * at the current {@link IntegrationFlow} chain position.
+	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * @deprecated in favor of {@link #controlBusOnRegistry()}
+	 */
+	@Deprecated(since = "6.4", forRemoval = true)
 	public B controlBus() {
 		return controlBus(null);
 	}
@@ -528,12 +552,15 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * at the current {@link IntegrationFlow} chain position.
 	 * @param endpointConfigurer the {@link Consumer} to accept integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @see ExpressionCommandMessageProcessor
+	 * @deprecated in favor of {@link #controlBusOnRegistry(Consumer)}
 	 * @see GenericEndpointSpec
 	 */
+	@Deprecated(since = "6.4", forRemoval = true)
+	@SuppressWarnings("removal")
 	public B controlBus(@Nullable Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
-		return handle(new ServiceActivatingHandler(new ExpressionCommandMessageProcessor(
-				new ControlBusMethodFilter())), endpointConfigurer);
+		return handle(new ServiceActivatingHandler(
+				new org.springframework.integration.handler.ExpressionCommandMessageProcessor(
+						new org.springframework.integration.expression.ControlBusMethodFilter())), endpointConfigurer);
 	}
 
 	/**

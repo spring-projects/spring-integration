@@ -21,7 +21,7 @@
 
 	<int:channel id="control" />
 
-	<int:control-bus input-channel="control" />
+	<int:control-bus input-channel="control" use-registry="true"/>
 
 	<int:channel id="qux">
 		<int:queue />

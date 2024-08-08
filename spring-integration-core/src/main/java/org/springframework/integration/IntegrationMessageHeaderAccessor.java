@@ -80,9 +80,14 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	public static final String SOURCE_DATA = "sourceData";
 
 	/**
-	 * Raw source message.
+	 * The header for {@link reactor.util.context.ContextView}.
 	 */
 	public static final String REACTOR_CONTEXT = "reactorContext";
+
+	/**
+	 * The header for Control Bus command arguments. Must be a list of values.
+	 */
+	public static final String CONTROL_BUS_ARGUMENTS = "controlBusArguments";
 
 	private static final BiFunction<String, String, String> TYPE_VERIFY_MESSAGE_FUNCTION =
 			(name, trailer) -> "The '" + name + trailer;

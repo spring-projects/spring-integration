@@ -120,7 +120,7 @@ The `MessageHandler` instances (`MessageSource` instances) are also eligible to 
 Starting with version 4.0, all messaging annotations provide `SmartLifecycle` options (`autoStartup` and `phase`) to allow endpoint lifecycle control on application context initialization.
 They default to `true` and `0`, respectively.
 To change the state of an endpoint (such as `start()` or `stop()`), you can obtain a reference to the endpoint bean by using the `BeanFactory` (or autowiring) and invoke the methods.
-Alternatively, you can send a command message to the `Control Bus` (see xref:groovy.adoc#groovy-control-bus[Control Bus]).
+Alternatively, you can send a command message to the xref:control-bus.adoc[Control Bus].
 For these purposes, you should use the `beanName` mentioned earlier in the preceding paragraph.
 
 [IMPORTANT]

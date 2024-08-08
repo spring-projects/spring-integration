@@ -20,6 +20,6 @@
 	<beans:bean id="aggregatorBean"
 		class="org.springframework.integration.config.TestAggregatorBean" />
 
-	<control-bus input-channel="controlBusChannel" output-channel="nullChannel"/>
+	<control-bus input-channel="controlBusChannel" output-channel="nullChannel" use-registry="true"/>
 
 </beans:beans>

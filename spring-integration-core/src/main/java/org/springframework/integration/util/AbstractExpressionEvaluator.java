@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.springframework.integration.util;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -51,7 +51,9 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 
 	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 
-	private volatile StandardEvaluationContext evaluationContext;
+	private boolean simpleEvaluationContext;
+
+	private volatile EvaluationContext evaluationContext;
 
 	private volatile BeanFactory beanFactory;
 
@@ -64,9 +66,6 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 		this.typeConverter.setBeanFactory(beanFactory);
-		if (this.evaluationContext != null && this.evaluationContext.getBeanResolver() == null) {
-			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
-		}
 	}
 
 	protected BeanFactory getBeanFactory() {
@@ -83,6 +82,17 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 		return this.messageBuilderFactory;
 	}
 
+	/**
+	 * The flag to indicate that a {@link org.springframework.expression.spel.support.SimpleEvaluationContext}
+	 * must be used for expression evaluations.
+	 * @param simpleEvaluationContext true to use the
+	 * {@link org.springframework.expression.spel.support.SimpleEvaluationContext}
+	 * @since 6.4
+	 */
+	public void setSimpleEvaluationContext(boolean simpleEvaluationContext) {
+		this.simpleEvaluationContext = simpleEvaluationContext;
+	}
+
 	@Override
 	public final void afterPropertiesSet() {
 		getEvaluationContext();
@@ -93,24 +103,21 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 		onInit();
 	}
 
-	protected StandardEvaluationContext getEvaluationContext() {
+	protected EvaluationContext getEvaluationContext() {
 		return getEvaluationContext(true);
 	}
 
 	/**
 	 * Emits a WARN log if the beanFactory field is null, unless the argument is false.
-	 * @param beanFactoryRequired set to false to suppress the warning.
+	 * @param beanFactoryRequired set to {@code false} to suppress the warning.
 	 * @return The evaluation context.
 	 */
-	protected final StandardEvaluationContext getEvaluationContext(boolean beanFactoryRequired) {
+	protected final EvaluationContext getEvaluationContext(boolean beanFactoryRequired) {
 		if (this.evaluationContext == null) {
-			if (this.beanFactory == null && !beanFactoryRequired) {
-				this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
+			this.evaluationContext = obtainEvaluationContext(beanFactoryRequired);
+			if (this.evaluationContext instanceof StandardEvaluationContext standardEvaluationContext) {
+				standardEvaluationContext.setTypeConverter(this.typeConverter);
 			}
-			else {
-				this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
-			}
-			this.evaluationContext.setTypeConverter(this.typeConverter);
 			if (this.beanFactory != null) {
 				ConversionService conversionService = IntegrationUtils.getConversionService(this.beanFactory);
 				if (conversionService != null) {
@@ -119,6 +126,20 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 			}
 		}
 		return this.evaluationContext;
+	}
+
+	private EvaluationContext obtainEvaluationContext(boolean beanFactoryRequired) {
+		if (this.beanFactory == null && !beanFactoryRequired) {
+			return
+					this.simpleEvaluationContext
+							? ExpressionUtils.createSimpleEvaluationContext()
+							: ExpressionUtils.createStandardEvaluationContext();
+		}
+		else {
+			return this.simpleEvaluationContext
+					? ExpressionUtils.createSimpleEvaluationContext(this.beanFactory)
+					: ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+		}
 	}
 
 	@Nullable

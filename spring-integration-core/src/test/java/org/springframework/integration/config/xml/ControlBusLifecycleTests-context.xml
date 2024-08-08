@@ -7,7 +7,7 @@
 		https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
-	<control-bus input-channel="inputChannel" auto-startup="true"/>
+	<control-bus input-channel="inputChannel" auto-startup="true" use-registry="true"/>
 
 	<inbound-channel-adapter id="adapter" channel="outputChannel" auto-startup="false" method="receive">
 		<poller fixed-rate="1000"/>

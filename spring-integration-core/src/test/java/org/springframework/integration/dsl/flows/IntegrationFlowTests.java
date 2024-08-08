@@ -214,7 +214,7 @@ public class IntegrationFlowTests {
 				.withCauseInstanceOf(MessageDispatchingException.class)
 				.withMessageContaining("Dispatcher has no subscribers");
 
-		this.controlBus.send("@payloadSerializingTransformer.start()");
+		this.controlBus.send("payloadSerializingTransformer.start");
 
 		final AtomicBoolean used = new AtomicBoolean();
 
@@ -253,7 +253,7 @@ public class IntegrationFlowTests {
 				.withCauseInstanceOf(MessageDispatchingException.class)
 				.withMessageContaining("Dispatcher has no subscribers");
 
-		this.controlBus.send("@bridge.start()");
+		this.controlBus.send("bridge.start");
 		this.bridgeFlow2Input.send(message);
 		reply = this.bridgeFlow2Output.receive(10000);
 		assertThat(reply).isNotNull();
@@ -623,7 +623,7 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow controlBusFlow() {
 			return IntegrationFlow.from(ControlBusGateway.class, (gateway) -> gateway.beanName("controlBusGateway"))
-					.controlBus((endpoint) -> endpoint.id("controlBus"))
+					.controlBusOnRegistry((endpoint) -> endpoint.id("controlBus"))
 					.get();
 		}
 

@@ -139,37 +139,3 @@ NOTE: Using `compilerConfiguration` does not automatically add an `ASTTransforma
 If you still need `CompileStatic`, you should manually add a `new ASTTransformationCustomizer(CompileStatic.class)` into the `CompilationCustomizers` of that custom `compilerConfiguration`.
 
 NOTE: The Groovy compiler customization does not have any effect on the `refresh-check-delay` option, and reloadable scripts can be statically compiled, too.
-
-[[groovy-control-bus]]
-== Control Bus
-
-As described in (https://www.enterpriseintegrationpatterns.com/ControlBus.html[Enterprise Integration Patterns]), the idea behind the control bus is that you can use the same messaging system for monitoring and managing the components within the framework as is used for "`application-level`" messaging.
-In Spring Integration, we build upon the adapters described earlier so that you can send Messages as a means of invoking exposed operations.
-One option for those operations is Groovy scripts.
-The following example configures a Groovy script for the control bus:
-
-[source,xml]
-----
-<int-groovy:control-bus input-channel="operationChannel"/>
-----
-
-The control bus has an input channel that can be accessed to invoke operations on the beans in the application context.
-
-The Groovy control bus runs messages on the input channel as Groovy scripts.
-It takes a message, compiles the body to a script, customizes it with a `GroovyObjectCustomizer`, and runs it.
-The control bus' `MessageProcessor` exposes all beans in the application context that are annotated with `@ManagedResource` and implement Spring's `Lifecycle` interface or extend Spring's `CustomizableThreadCreator` base class (for example, several of the `TaskExecutor` and `TaskScheduler` implementations).
-
-IMPORTANT: Be careful about using managed beans with custom scopes (such as 'request') in the Control Bus' command scripts, especially inside an asynchronous message flow.
-If `MessageProcessor` of the control bus cannot expose a bean from the application context, you may end up with some `BeansException` during the command script's run.
-For example, if a custom scope's context is not established, the attempt to get a bean within that scope triggers a `BeanCreationException`.
-
-If you need to further customize the Groovy objects, you can also provide a reference to a bean that implements `GroovyObjectCustomizer` through the `customizer` attribute, as the following example shows:
-
-[source,xml]
-----
-<int-groovy:control-bus input-channel="input"
-        output-channel="output"
-        customizer="groovyCustomizer"/>
-
-<beans:bean id="groovyCustomizer" class="org.foo.MyGroovyObjectCustomizer"/>
-----

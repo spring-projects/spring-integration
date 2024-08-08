@@ -62,6 +62,7 @@ import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -419,27 +420,30 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	private void prepareEvaluationContext() {
-		StandardEvaluationContext context = getEvaluationContext();
-		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
-		if (this.method != null) {
-			context.registerMethodFilter(targetType,
-					new FixedMethodFilter(ClassUtils.getMostSpecificMethod(this.method, targetType)));
-			if (this.expectedType != null) {
-				Assert.state(context.getTypeConverter()
-								.canConvert(TypeDescriptor.valueOf((this.method).getReturnType()), this.expectedType),
-						() -> "Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
+		EvaluationContext context = getEvaluationContext();
+		if (context instanceof StandardEvaluationContext standardEvaluationContext) {
+			Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
+			if (this.method != null) {
+				standardEvaluationContext.registerMethodFilter(targetType,
+						new FixedMethodFilter(ClassUtils.getMostSpecificMethod(this.method, targetType)));
+				if (this.expectedType != null) {
+					Assert.state(context.getTypeConverter()
+									.canConvert(TypeDescriptor.valueOf((this.method).getReturnType()), this.expectedType),
+							() -> "Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
+				}
+			}
+			else {
+				AnnotatedMethodFilter filter = new AnnotatedMethodFilter(this.annotationType, this.methodName,
+						this.requiresReply);
+				Assert.state(canReturnExpectedType(filter, targetType, context.getTypeConverter()),
+						() -> "Cannot convert to expected type (" + this.expectedType + ") from " + this.methodName);
+				standardEvaluationContext.registerMethodFilter(targetType, filter);
 			}
 		}
-		else {
-			AnnotatedMethodFilter filter = new AnnotatedMethodFilter(this.annotationType, this.methodName,
-					this.requiresReply);
-			Assert.state(canReturnExpectedType(filter, targetType, context.getTypeConverter()),
-					() -> "Cannot convert to expected type (" + this.expectedType + ") from " + this.methodName);
-			context.registerMethodFilter(targetType, filter);
-		}
+
 		context.setVariable("target", this.targetObject);
 		try {
-			context.registerFunction("requiredHeader",
+			context.setVariable("requiredHeader",
 					ParametersWrapper.class.getDeclaredMethod("getHeader", Map.class, String.class));
 		}
 		catch (NoSuchMethodException ex) {

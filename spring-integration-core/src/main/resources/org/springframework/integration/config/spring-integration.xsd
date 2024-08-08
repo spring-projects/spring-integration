@@ -4968,6 +4968,16 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="use-registry" type="xsd:boolean" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Set true to make Control Bus based on the global 'ControlBusCommandRegistry'
+					which is a recommended way to configure Control Bus functionality.
+					The false is by default for backward compatibility and is deprecated.
+					This attributed will be true by default in the next major version and removed altogether eventually.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="retryAdviceType">

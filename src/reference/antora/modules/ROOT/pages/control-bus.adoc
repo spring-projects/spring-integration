@@ -4,6 +4,8 @@
 As described in the https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_] (EIP) book, the idea behind the control bus is that the same messaging system can be used for monitoring and managing the components within the framework as is used for "`application-level`" messaging.
 In Spring Integration, we build upon the adapters described above so that you can send messages as a means of invoking exposed operations.
 
+IMPORTANT: Since Control Bus is powerful enough to make changes into the system state, it is recommended to secure its messages reception (see `SecurityContextChannelInterceptor`) and expose Control Bus management (message source) only into DMZ.
+
 The following example shows how to configure a control bus with XML:
 
 [source,xml]
@@ -15,33 +17,84 @@ The control bus has an input channel that can be accessed for invoking operation
 It also has all the common properties of a service activating endpoint.
 For example, you can specify an output channel if the result of the operation has a return value that you want to send on to a downstream channel.
 
-The control bus runs messages on the input channel as Spring Expression Language (SpEL) expressions.
-It takes a message, compiles the body to an expression, adds some context, and then runs it.
-The default context supports any method that has been annotated with `@ManagedAttribute` or `@ManagedOperation`.
-It also supports the methods on Spring's `Lifecycle` interface (and its `Pausable` extension since version 5.2), and it supports methods that are used to configure several of Spring's `TaskExecutor` and `TaskScheduler` implementations.
+The control bus runs messages on the input channel as a managed operation in a simple string format like `beanName.methodName`.
+The arguments for the target method parameters must be supplied as a list in the `IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS` header.
+The bean and the method to call is resolved from the `ControlBusCommandRegistry` infrastructure bean.
+By default, the `ControlBusCommandRegistry` registers commands on demand: its `eagerInitialization` flag can be turned on via `@EnableIntegrationManagement(loadControlBusCommands = "true")`.
+
+The functionality of Control Bus is similar to JMX, therefore method eligibility for command must honor these requirements:
+
+- The method that has been annotated with `@ManagedAttribute` or `@ManagedOperation`;
+- Spring's `Lifecycle` interface (and its `Pausable` extension since version 5.2);
+- The methods that are used to configure several of Spring's `TaskExecutor` and `TaskScheduler` implementations.
+
 The simplest way to ensure that your own methods are available to the control bus is to use the `@ManagedAttribute` or `@ManagedOperation` annotations.
-Since those annotations are also used for exposing methods to a JMX MBean registry, they offer a convenient by-product: Often, the same types of operations you want to expose to the control bus are reasonable for exposing through JMX).
-Resolution of any particular instance within the application context is achieved in the typical SpEL syntax.
-To do so, provide the bean name with the SpEL prefix for beans (`@`).
-For example, to execute a method on a Spring Bean, a client could send a message to the operation channel as follows:
+Since those annotations are also used for exposing methods to a JMX MBean registry, they offer a convenient by-product: often, the same types of operations you want to expose to the control bus are reasonable for exposing through JMX).
+See more information in the `ControlBusCommandRegistry` and `ControlBusMethodFilter` Javadocs.
+
+To execute a method on a Spring Bean, a client could send a message to the operation channel as follows:
 
 [source,java]
 ----
-Message operation = MessageBuilder.withPayload("@myServiceBean.shutdown()").build();
-operationChannel.send(operation)
+Message<?> operation = MessageBuilder.withPayload("myServiceBean.shutdown").build();
+operationChannel.send(operation);
 ----
 
-The root of the context for the expression is the `Message` itself, so you also have access to the `payload` and `headers` as variables within your expression.
-This is consistent with all the other expression support in Spring Integration endpoints.
+If target method to call has arguments (e.g. `ThreadPoolTaskExecutor.setMaxPoolSize(int maxPoolSize)`), those values has to be provided as `IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS` header:
 
-With Java annotations, you can configured the control bus as follows:
+[source,java]
+----
+Message<?> operation =
+        MessageBuilder.withPayload("myTaskExecutor.setMaxPoolSize")
+        .setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of(10))
+        .build();
+operationChannel.send(operation);
+----
+
+You can think about these commands as `PreparedStatement` instances in JDBC with parameter binding.
+The types of arguments must match types of method parameters.
+They are used as additional criteria to select a method to call according to Java method overloading feature.
+For example the component:
+
+[source,java]
+----
+@ManagedResource
+class TestManagementComponent {
+
+    @ManagedOperation
+    public void operation() {
+
+    }
+
+    @ManagedOperation(description = "The overloaded operation with int argument")
+    public void operation(int input) {
+
+    }
+
+    @ManagedOperation(description = "The overloaded operation with two arguments")
+    public void operation(int input1, String input2) {
+
+    }
+
+    @ManagedOperation
+    public int operation2() {
+    	return 123;
+    }
+
+}
+----
+
+will expose 3 commands with `operation` name.
+When we call `testManagementComponent.operation` command, we should choose a proper list of values for the `IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS` header to let the `ControlBusCommandRegistry` to filter out the target method on the bean.
+
+With Java annotations, you can configure the control bus as follows:
 
 [source,java]
 ----
 @Bean
 @ServiceActivator(inputChannel = "operationChannel")
-public ExpressionControlBusFactoryBean controlBus() {
-    return new ExpressionControlBusFactoryBean();
+public ControlBusFactoryBean controlBus() {
+    return new ControlBusFactoryBean();
 }
 ----
 
@@ -68,3 +121,5 @@ public IntegrationFlow controlBus() {
 ----
 
 In this case, the channel is named `controlBus.input`.
+
+Also, see xref:http/control-bus-controller.adoc[Control Bus REST Controller] for exposing Control Bus management over HTTP.

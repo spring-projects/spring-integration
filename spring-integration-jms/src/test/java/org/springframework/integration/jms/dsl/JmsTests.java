@@ -167,14 +167,14 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testPollingFlow() {
-		this.controlBus.send("@'integerMessageSource.inboundChannelAdapter'.start()");
+		this.controlBus.send("'integerMessageSource.inboundChannelAdapter'.start");
 		assertThat(this.beanFactory.getBean("integerChannel")).isInstanceOf(FixedSubscriberChannel.class);
 		for (int i = 0; i < 5; i++) {
 			Message<?> message = this.outputChannel.receive(20000);
 			assertThat(message).isNotNull();
 			assertThat(message.getPayload()).isEqualTo("" + i);
 		}
-		this.controlBus.send("@'integerMessageSource.inboundChannelAdapter'.stop()");
+		this.controlBus.send("'integerMessageSource.inboundChannelAdapter'.stop");
 
 		assertThat(((InterceptableChannel) this.outputChannel).getInterceptors())
 				.contains(this.testChannelInterceptor);
@@ -358,7 +358,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		@Bean
 		public IntegrationFlow controlBus() {
-			return IntegrationFlowDefinition::controlBus;
+			return IntegrationFlowDefinition::controlBusOnRegistry;
 		}
 
 		@Bean

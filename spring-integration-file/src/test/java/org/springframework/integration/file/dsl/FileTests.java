@@ -182,7 +182,7 @@ public class FileTests {
 		}
 		assertThat(this.tailChannel.receive(1)).isNull();
 
-		this.controlBus.send("@tailer.stop()");
+		this.controlBus.send("tailer.stop");
 
 		while (!tailTestFile.delete()) {
 			Thread.sleep(100);
@@ -322,7 +322,7 @@ public class FileTests {
 
 		@Bean
 		public IntegrationFlow controlBus() {
-			return IntegrationFlowDefinition::controlBus;
+			return IntegrationFlowDefinition::controlBusOnRegistry;
 		}
 
 		@Bean

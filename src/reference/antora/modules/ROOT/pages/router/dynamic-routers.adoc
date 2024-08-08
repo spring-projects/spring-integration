@@ -97,7 +97,7 @@ In fact, it applies to every other router, including expression-based routers, s
 Any router that is a subclass of the `AbstractMappingMessageRouter` (which includes most framework-defined routers) is a dynamic router, because the `channelMapping` is defined at the `AbstractMappingMessageRouter` level.
 That map's setter method is exposed as a public method along with the 'setChannelMapping' and 'removeChannelMapping' methods.
 These let you  change, add, and remove router mappings at runtime, as long as you have a reference to the router itself.
-It also means that you could expose these same configuration options through JMX (see xref:jmx.adoc[JMX Support]) or the Spring Integration control bus (see xref:groovy.adoc#groovy-control-bus[Control Bus]) functionality.
+It also means that you could expose these same configuration options through JMX (see xref:jmx.adoc[JMX Support]) or the Spring Integration control bus (see xref:control-bus.adoc[Control Bus]) functionality.
 
 IMPORTANT: Falling back to the channel key as the channel name is flexible and convenient.
 However, if you don't trust the message creator, a malicious actor (who has knowledge of the system) could create a message that is routed to an unexpected channel.
@@ -109,7 +109,7 @@ You may therefore wish to disable this feature (set the `channelKeyFallback` pro
 
 One way to manage the router mappings is through the https://www.enterpriseintegrationpatterns.com/ControlBus.html[control bus] pattern, which exposes a control channel to which you can send control messages to manage and monitor Spring Integration components, including routers.
 
-NOTE: For more information about the control bus, see xref:groovy.adoc#groovy-control-bus[Control Bus].
+NOTE: For more information about the control bus, see xref:control-bus.adoc[Control Bus].
 
 Typically, you would send a control message asking to invoke a particular operation on a particular managed component (such as a router).
 The following managed operations (methods) are specific to changing the router resolution process:
@@ -125,15 +125,19 @@ The following methods let you do so:
 
 * `public Map<String, String>getChannelMappings()`: Returns the current mappings.
 * `public void replaceChannelMappings(Properties channelMappings)`: Updates the mappings.
-Note that the `channelMappings` parameter is a `Properties` object.
-This arrangement lets a control bus command use the built-in `StringToPropertiesConverter`, as the following example shows:
+Note that the `channelMappings` parameter is a `Properties` object, so this has to be added to the respective `IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS` header:
 
 [source]
 ----
-"@'router.handler'.replaceChannelMappings('foo=qux \n baz=bar')"
+Properties newMapping = new Properties();
+newMapping.setProperty("foo", "bar");
+newMapping.setProperty("baz", "qux");
+Message<?> replaceChannelMappingsCommandMessage =
+                     MessageBuilder.withPayload("'router.handler'.replaceChannelMappings")
+                            .setHeader(IntegrationMessageHeaderAccessor.CONTROL_BUS_ARGUMENTS, List.of(newMapping))
+                            .build();
 ----
 
-Note that each mapping is separated by a newline character (`\n`).
 For programmatic changes to the map, we recommend that you use the `setChannelMappings` method, due to type-safety concerns.
 `replaceChannelMappings` ignores keys or values that are not `String` objects.
 

@@ -35,8 +35,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.convert.ConversionService;
@@ -613,6 +615,14 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		BeanFactory beanFactory = getBeanFactory();
 		if (processor instanceof BeanFactoryAware beanFactoryAware && beanFactory != null) {
 			beanFactoryAware.setBeanFactory(beanFactory);
+		}
+		if (processor instanceof InitializingBean initializingBean) {
+			try {
+				initializingBean.afterPropertiesSet();
+			}
+			catch (Exception ex) {
+				throw new BeanCreationException("Cannot initialize processor for: " + this, ex);
+			}
 		}
 		if (!this.async && processor instanceof MethodInvokingMessageProcessor<?> methodInvokingMessageProcessor) {
 			this.async = methodInvokingMessageProcessor.isAsync();
