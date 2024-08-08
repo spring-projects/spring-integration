@@ -16,6 +16,8 @@
 
 package org.springframework.integration.support;
 
+import java.io.ObjectStreamException;
+import java.io.Serial;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.UUID;
@@ -32,6 +34,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author David Turanski
  * @author Artem Bilan
  * @author Nathan Kurtyka
+ * @author Mitchell McDonald
  *
  * @since 4.2
  */
@@ -72,6 +75,11 @@ public class MutableMessageHeaders extends MessageHeaders {
 	@Override
 	public Object remove(Object key) {
 		return super.getRawHeaders().remove(key);
+	}
+
+	@Serial
+	private Object readResolve() throws ObjectStreamException {
+		return new MutableMessageHeaders(this);
 	}
 
 	@Nullable
