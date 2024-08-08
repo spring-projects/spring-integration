@@ -202,7 +202,7 @@ public class SocketTestUtils {
 			try (Socket socket = new Socket(InetAddress.getLocalHost(), port)) {
 				OutputStream outputStream = socket.getOutputStream();
 				writeByte(outputStream, 0x02, true);
-				for (int i = 0; i < 1500; i++) {
+				for (int i = 0; i < 9; i++) {
 					writeByte(outputStream, 'x', true);
 				}
 				testCompleteLatch.await(10, TimeUnit.SECONDS);

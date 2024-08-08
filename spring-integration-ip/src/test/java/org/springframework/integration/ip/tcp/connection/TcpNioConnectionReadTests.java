@@ -241,7 +241,7 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadStxEtxOverflow() throws Exception {
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
-		serializer.setMaxMessageSize(1024);
+		serializer.setMaxMessageSize(8);
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<>();
 		final List<TcpConnection> removed = new ArrayList<>();
@@ -284,7 +284,7 @@ public class TcpNioConnectionReadTests {
 
 		assertThat(errorMessageRef.get().getMessage())
 				.satisfiesAnyOf(
-						s -> assertThat(s).contains("ETX not found before max message length: 1024"),
+						s -> assertThat(s).contains("ETX not found before max message length: 8"),
 						s -> assertThat(s).contains("Connection is closed"));
 
 		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
@@ -347,7 +347,6 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when no data received.
-	 * @throws Exception
 	 */
 	@Test
 	public void testCloseCleanupNoData() throws Exception {
@@ -400,7 +399,6 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when no data received.
-	 * @throws Exception
 	 */
 	@Test
 	public void testCloseCleanupPartialData() throws Exception {
@@ -454,7 +452,6 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when mid-message
-	 * @throws Exception
 	 */
 	@Test
 	public void testCloseCleanupCrLf() throws Exception {
@@ -464,7 +461,6 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when mid-message
-	 * @throws Exception
 	 */
 	@Test
 	public void testCloseCleanupStxEtx() throws Exception {
@@ -474,7 +470,6 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when mid-message
-	 * @throws Exception
 	 */
 	@Test
 	public void testCloseCleanupLengthHeader() throws Exception {
