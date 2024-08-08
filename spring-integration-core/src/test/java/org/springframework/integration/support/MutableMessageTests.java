@@ -16,6 +16,11 @@
 
 package org.springframework.integration.support;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,10 +31,12 @@ import org.junit.Test;
 import org.springframework.messaging.MessageHeaders;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
  * @author Stuart Williams
  * @author Nathan Kurtyka
+ * @author Mitchell McDonald
  *
  * @since 4.2
  */
@@ -102,6 +109,36 @@ public class MutableMessageTests {
 		MutableMessage<Object> mutableMessageBytes = new MutableMessage<>(payload, headerMapByte);
 		assertThat(mutableMessageBytes.getHeaders().getId()).isEqualTo(uuid);
 		assertThat(mutableMessageBytes.getHeaders().getTimestamp()).isEqualTo(timestamp);
+	}
+
+	@Test
+	public void testMessageHeaderIsSerializableAndDeserializableWithNonSerializableValues()
+			throws IOException, ClassNotFoundException {
+
+		String payload = "payload";
+
+		Map<String, Object> headerMap = new HashMap<>();
+		headerMap.put("header1", "serializableValue");
+		headerMap.put("header2", new Object()); // Non-Serializable value
+
+		MutableMessage<String> mutableMessage = new MutableMessage<>(payload, headerMap);
+
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		ObjectOutputStream outputStream = new ObjectOutputStream(byteArrayOutputStream);
+		outputStream.writeObject(mutableMessage);
+		outputStream.flush();
+
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+		ObjectInputStream inputStream = new ObjectInputStream(byteArrayInputStream);
+		Object deserializedObject = inputStream.readObject();
+
+		assertThat(deserializedObject).isInstanceOf(MutableMessage.class);
+		MutableMessage<?> deserializedMessage =
+				(MutableMessage<?>) deserializedObject;
+
+		assertThat(deserializedMessage.getHeaders().get("header2")).isNull(); // Non-serializable value removed
+		assertThat(deserializedMessage.getHeaders().get("header1")).isEqualTo("serializableValue");
+		assertThatNoException().isThrownBy(() -> deserializedMessage.getRawHeaders().put("header3", "newValue"));
 	}
 
 }
