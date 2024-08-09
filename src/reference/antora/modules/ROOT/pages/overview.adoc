@@ -427,7 +427,14 @@ See xref:configuration/annotations.adoc[Annotation Support] for more information
 [[programming-considerations]]
 === Programming Considerations
 
-You should use plain old java objects (POJOs) whenever possible and only expose the framework in your code when absolutely necessary.
+Most classes in Spring Integration (unless stated otherwise) must be declared as beans in the application context and as singletons.
+That means instances of these classes are thread-safe and their lifecycle and connection with other components are managed by Spring dependency injection container.
+The utility and builder classes (`JacksonJsonUtils, `MessageBuilder`, `ExpressionEvalMap`, `IntegrationReactiveUtils` etc.) can be used directly in the Java code.
+However, Java DSL factories and `IntegrationComponentSpec` implementation results still have to be registered as beans into the application context.
+The `Session` abstraction, present in many modules, is not thread-safe, typically created by the `Factory` pattern implementation, and used from thread-safe `Template` pattern.
+See, for example, `SftpRemoteFileTemplate` and its relationship with the `DefaultSftpSessionFactory`.
+
+You should use plain old java objects (POJOs) whenever possible (for message handling in target logic) and only expose the framework in your code when absolutely necessary.
 See xref:overview.adoc#pojo-invocation[POJO Method invocation] for more information.
 
 If you do expose the framework to your classes, there are some considerations that need to be taken into account, especially during application startup:
@@ -457,7 +464,7 @@ These files also need to be merged.
 IMPORTANT: https://docs.spring.io/spring-boot/docs/current/reference/html/executable-jar.html[Spring Boot's executable jar mechanism] takes a different approach, in that it nests the jars, thus retaining each `spring.factories` file on the class path.
 So, with a Spring Boot application, nothing more is needed if you use its default executable jar format.
 
-Even if you do not use Spring Boot, you can still use the tooling provided by Boot to enhance the shade plugin by adding transformers for the above mentioned files.
+Even if you do not use Spring Boot, you can still use the tooling provided by Boot to enhance the shade plugin by adding transformers for the files mentioned above.
 The following example shows how to configure the plugin:
 
 .pom.xml
