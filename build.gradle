@@ -66,7 +66,7 @@ ext {
     commonsIoVersion = '2.16.1'
     commonsNetVersion = '3.11.1'
     curatorVersion = '5.7.0'
-    debeziumVersion = '2.7.0.Final'
+    debeziumVersion = '2.7.1.Final'
     derbyVersion = '10.16.1.1'
     ftpServerVersion = '1.2.0'
     graalvmVersion = '24.0.2'
