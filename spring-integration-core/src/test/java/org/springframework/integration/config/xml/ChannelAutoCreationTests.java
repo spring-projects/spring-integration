@@ -16,38 +16,53 @@
 
 package org.springframework.integration.config.xml;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class ChannelAutoCreationTests {
 
-	@Test // no assertions since it validates that no exception is thrown
+	@Test
 	public void testEnablingAutoChannelCreationBeforeWithCustom() {
-		new ClassPathXmlApplicationContext("TestEnableChannelAutoCreation-before-context.xml", this.getClass()).close();
+		assertThatNoException()
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"TestEnableChannelAutoCreation-before-context.xml", this.getClass()));
 	}
 
-	@Test // no assertions since it validates that no exception is thrown
+	@Test
 	public void testEnablingAutoChannelCreationAfterWithCustom() {
-		new ClassPathXmlApplicationContext("TestEnableChannelAutoCreation-after-context.xml", this.getClass()).close();
+		assertThatNoException()
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"TestEnableChannelAutoCreation-after-context.xml", this.getClass()));
 	}
 
-	@Test(expected = BeanCreationException.class)
+	@Test
 	public void testDisablingAutoChannelCreationAfter() {
-		new ClassPathXmlApplicationContext("TestDisableChannelAutoCreation-after-context.xml", this.getClass()).close();
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"TestDisableChannelAutoCreation-after-context.xml", getClass()));
 	}
 
-	@Test(expected = BeanCreationException.class)
+	@Test
 	public void testDisablingAutoChannelCreationBefore() {
-		new ClassPathXmlApplicationContext("TestDisableChannelAutoCreation-before-context.xml", this.getClass())
-				.close();
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"TestDisableChannelAutoCreation-before-context.xml", this.getClass()));
 	}
 
 }

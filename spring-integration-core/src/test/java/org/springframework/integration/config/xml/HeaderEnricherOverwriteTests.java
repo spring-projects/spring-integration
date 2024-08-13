@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -29,8 +28,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,8 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class HeaderEnricherOverwriteTests {
 
 	@Autowired
@@ -156,7 +155,7 @@ public class HeaderEnricherOverwriteTests {
 		MessageChannel channel = this.context.getBean("priorityExplicitOverwriteTrueInput", MessageChannel.class);
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(channel);
-		Message<?> result = template.sendAndReceive(new GenericMessage<String>("test"));
+		Message<?> result = template.sendAndReceive(new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
 		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(42);
 	}
@@ -312,17 +311,7 @@ public class HeaderEnricherOverwriteTests {
 		assertThat(result.getHeaders().get("foo")).isEqualTo("ABC");
 	}
 
-	public static class TestBean {
-
-		private final String text;
-
-		public TestBean(String text) {
-			this.text = text;
-		}
-
-		public String text() {
-			return this.text;
-		}
+	public record TestBean(String text) {
 
 	}
 

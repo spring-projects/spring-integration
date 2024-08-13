@@ -16,24 +16,25 @@
 
 package org.springframework.integration.config.xml;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
+@DirtiesContext
 public class InnerBeanConfigTests {
 
 	@Autowired
@@ -42,12 +43,12 @@ public class InnerBeanConfigTests {
 	@Autowired
 	private ApplicationContext context;
 
-	// INT-1528: the inner bean should not be registered in the context
-	@Test(expected = NoSuchBeanDefinitionException.class)
+	@Test
 	public void checkInnerBean() {
 		Object innerBean = TestUtils.getPropertyValue(testEndpoint, "handler.processor.delegate.targetObject");
 		assertThat(innerBean).isNotNull();
-		context.getBean(TestBean.class);
+		assertThatExceptionOfType(NoSuchBeanDefinitionException.class)
+				.isThrownBy(() -> context.getBean(TestBean.class));
 	}
 
 	public static class TestBean {

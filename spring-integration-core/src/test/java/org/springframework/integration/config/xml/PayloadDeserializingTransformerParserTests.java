@@ -37,6 +37,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
@@ -48,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Artem Bilan
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class PayloadDeserializingTransformerParserTests {
 
 	@Autowired
@@ -69,7 +71,7 @@ public class PayloadDeserializingTransformerParserTests {
 	@Test
 	public void directChannelWithSerializedStringMessage() throws Exception {
 		byte[] bytes = serialize("foo");
-		directInput.send(new GenericMessage<byte[]>(bytes));
+		directInput.send(new GenericMessage<>(bytes));
 		Message<?> result = output.receive(10000);
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload() instanceof String).isTrue();

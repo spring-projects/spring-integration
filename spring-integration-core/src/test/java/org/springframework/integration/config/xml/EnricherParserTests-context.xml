@@ -43,10 +43,6 @@
 		</request-handler-advice-chain>
 	</enricher>
 
-	<enricher input-channel="input2" output-channel="output">
-		<header name="foo" expression="new java.util.Date()"/>
-	</enricher>
-
 	<util:constant id="testBean" static-field="org.springframework.integration.config.xml.EnricherParserTests$Gender.MALE"/>
 
 </beans:beans>
