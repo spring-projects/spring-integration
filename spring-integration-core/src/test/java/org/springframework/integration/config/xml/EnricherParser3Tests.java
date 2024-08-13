@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,14 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Gary Russell
  *
  * @since 2.1.1
  */
-public class EnricherParserTests3 {
+public class EnricherParser3Tests {
 
 	@Test
 	public void testSourceBeanResolver() {
@@ -44,7 +44,7 @@ public class EnricherParserTests3 {
 		PollableChannel beanResolveOut = context.getBean("beanResolveOut", PollableChannel.class);
 		SomeBean payload = new SomeBean("foo");
 		assertThat(payload.getNested().getValue()).isEqualTo("foo");
-		beanResolveIn.send(new GenericMessage<SomeBean>(payload));
+		beanResolveIn.send(new GenericMessage<>(payload));
 		@SuppressWarnings("unchecked")
 		Message<SomeBean> out = (Message<SomeBean>) beanResolveOut.receive();
 		assertThat(out.getPayload()).isSameAs(payload);
@@ -59,13 +59,9 @@ public class EnricherParserTests3 {
 		MessageChannel beanResolveIn = context.getBean("beanResolveIn", MessageChannel.class);
 		SomeBean payload = new SomeBean("foo");
 		assertThat(payload.getNested().getValue()).isEqualTo("foo");
-		try {
-			beanResolveIn.send(new GenericMessage<SomeBean>(payload));
-			fail("Expected SpEL Exception");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getCause() instanceof SpelEvaluationException).isTrue();
-		}
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> beanResolveIn.send(new GenericMessage<>(payload)))
+				.withCauseInstanceOf(SpelEvaluationException.class);
 		context.close();
 	}
 
@@ -85,7 +81,7 @@ public class EnricherParserTests3 {
 			return "bar";
 		}
 
-		public class Nested {
+		public static class Nested {
 			private String value;
 
 			public void setValue(String value) {

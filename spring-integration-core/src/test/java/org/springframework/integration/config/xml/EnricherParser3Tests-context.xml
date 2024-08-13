@@ -14,10 +14,10 @@
 	</channel>
 
 	<enricher id="enricher" input-channel="beanResolveIn" output-channel="beanResolveOut">
-		<property name="@someBean.nested.value" value="qux" />
+		<property name="nested.value" expression="@someBean.someOtherProperty" />
 	</enricher>
 
-	<beans:bean id="someBean" class="org.springframework.integration.config.xml.EnricherParserTests3$SomeBean">
+	<beans:bean id="someBean" class="org.springframework.integration.config.xml.EnricherParser3Tests$SomeBean">
 		<beans:constructor-arg value="baz" />
 	</beans:bean>
 

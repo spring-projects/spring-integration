@@ -27,6 +27,7 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @since 2.0
  */
 @SpringJUnitConfig
+@DirtiesContext
 class HeaderEnricherParserTests {
 
 	@Autowired

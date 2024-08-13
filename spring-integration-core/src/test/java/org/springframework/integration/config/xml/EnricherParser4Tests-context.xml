@@ -40,10 +40,10 @@
 				null-result-expression="'Could not determine the notOverwrite'"/>
 
 		<request-handler-advice-chain>
-			<beans:bean class="org.springframework.integration.config.xml.EnricherParserTests4$FooAdvice" />
+			<beans:bean class="org.springframework.integration.config.xml.EnricherParser4Tests$FooAdvice" />
 		</request-handler-advice-chain>
 	</enricher>
 
-	<util:constant id="testBean" static-field="org.springframework.integration.config.xml.EnricherParserTests4$Gender.MALE"/>
+	<util:constant id="testBean" static-field="org.springframework.integration.config.xml.EnricherParser4Tests$Gender.MALE"/>
 
 </beans:beans>
