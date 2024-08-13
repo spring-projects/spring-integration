@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -83,8 +84,8 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 		suspend.set(true);
 		file.setLastModified(file.lastModified() + 5000L);
 
-		Future<Integer> result = Executors.newSingleThreadExecutor()
-				.submit(() -> filter.filterFiles(new File[] {file}).size());
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		Future<Integer> result = executorService.submit(() -> filter.filterFiles(new File[] {file}).size());
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		store.put("foo:" + file.getAbsolutePath(), "43");
 		latch1.countDown();
@@ -93,6 +94,7 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 
 		file.delete();
 		filter.close();
+		executorService.shutdown();
 	}
 
 	@Override

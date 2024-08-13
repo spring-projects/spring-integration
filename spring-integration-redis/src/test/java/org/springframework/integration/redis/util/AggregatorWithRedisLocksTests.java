@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -88,8 +89,9 @@ class AggregatorWithRedisLocksTests implements RedisContainerTest {
 	@Test
 	void testLockSingleGroup() throws Exception {
 		this.releaseStrategy.reset(1);
-		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
-		Executors.newSingleThreadExecutor().execute(asyncSend("bar", 2, 1));
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		executorService.execute(asyncSend("foo", 1, 1));
+		executorService.execute(asyncSend("bar", 2, 1));
 		assertThat(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*")).hasSize(1);
 		this.releaseStrategy.latch1.countDown();
@@ -98,17 +100,19 @@ class AggregatorWithRedisLocksTests implements RedisContainerTest {
 		this.assertNoLocksAfterTest();
 		assertThat(this.exception)
 				.as("Unexpected exception:" + (this.exception != null ? this.exception.toString() : "")).isNull();
+		executorService.shutdown();
 	}
 
 	@Test
 	void testLockThreeGroups() throws Exception {
 		this.releaseStrategy.reset(3);
-		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
-		Executors.newSingleThreadExecutor().execute(asyncSend("bar", 2, 1));
-		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 2));
-		Executors.newSingleThreadExecutor().execute(asyncSend("bar", 2, 2));
-		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 3));
-		Executors.newSingleThreadExecutor().execute(asyncSend("bar", 2, 3));
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		executorService.execute(asyncSend("foo", 1, 1));
+		executorService.execute(asyncSend("bar", 2, 1));
+		executorService.execute(asyncSend("foo", 1, 2));
+		executorService.execute(asyncSend("bar", 2, 2));
+		executorService.execute(asyncSend("foo", 1, 3));
+		executorService.execute(asyncSend("bar", 2, 3));
 		assertThat(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*")).hasSize(3);
 		this.releaseStrategy.latch1.countDown();
@@ -121,13 +125,15 @@ class AggregatorWithRedisLocksTests implements RedisContainerTest {
 		this.assertNoLocksAfterTest();
 		assertThat(this.exception)
 				.as("Unexpected exception:" + (this.exception != null ? this.exception.toString() : "")).isNull();
+		executorService.shutdown();
 	}
 
 	@RepeatedTest(10)
 	void testDistributedAggregator() throws Exception {
 		this.releaseStrategy.reset(1);
-		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
-		Executors.newSingleThreadExecutor().execute(() -> {
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		executorService.execute(asyncSend("foo", 1, 1));
+		executorService.execute(() -> {
 			try {
 				in2.send(new GenericMessage<>("bar", stubHeaders(2, 2, 1)));
 			}
@@ -143,6 +149,7 @@ class AggregatorWithRedisLocksTests implements RedisContainerTest {
 		this.assertNoLocksAfterTest();
 		assertThat(this.exception)
 				.as("Unexpected exception:" + (this.exception != null ? this.exception.toString() : "")).isNull();
+		executorService.shutdown();
 	}
 
 	private void assertNoLocksAfterTest() throws Exception {

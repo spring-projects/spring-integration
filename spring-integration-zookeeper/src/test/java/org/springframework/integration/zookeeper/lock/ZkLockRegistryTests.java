@@ -146,7 +146,8 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		lock1.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		Future<Object> result = executorService.submit(() -> {
 			Lock lock2 = registry.obtain("foo");
 			locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
 			latch.countDown();
@@ -165,6 +166,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		assertThat(ise).isInstanceOf(IllegalMonitorStateException.class);
 		assertThat(((Exception) ise).getMessage()).contains("You do not own");
 		registry.destroy();
+		executorService.shutdown();
 	}
 
 	@Test
@@ -176,7 +178,8 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.execute(() -> {
 			Lock lock2 = registry.obtain("foo");
 			try {
 				latch1.countDown();
@@ -199,6 +202,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(locked.get()).isTrue();
 		registry.destroy();
+		executorService.shutdown();
 	}
 
 	@Test
@@ -211,7 +215,8 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.execute(() -> {
 			Lock lock2 = registry2.obtain("foo");
 			try {
 				latch1.countDown();
@@ -235,6 +240,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		assertThat(locked.get()).isTrue();
 		registry1.destroy();
 		registry2.destroy();
+		executorService.shutdown();
 	}
 
 	@Test
@@ -244,7 +250,8 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		lock.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		Future<Object> result = executorService.submit(() -> {
 			try {
 				lock.unlock();
 			}
@@ -261,6 +268,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		assertThat(imse).isInstanceOf(IllegalMonitorStateException.class);
 		assertThat(((Exception) imse).getMessage()).contains("You do not own");
 		registry.destroy();
+		executorService.shutdown();
 	}
 
 	@Test

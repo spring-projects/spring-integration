@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.hazelcast.lock;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -28,8 +29,8 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.cp.lock.FencedLock;
 import com.hazelcast.instance.impl.HazelcastInstanceFactory;
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,7 +47,7 @@ public class HazelcastLockRegistryTests {
 
 	private static final HazelcastInstance instance = Hazelcast.newHazelcastInstance(CONFIG);
 
-	@AfterClass
+	@AfterAll
 	public static void destroy() {
 		HazelcastInstanceFactory.terminateAll();
 	}
@@ -144,7 +145,8 @@ public class HazelcastLockRegistryTests {
 		lock1.lockInterruptibly();
 		AtomicBoolean locked = new AtomicBoolean();
 		CountDownLatch latch = new CountDownLatch(1);
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		Future<Object> result = executorService.submit(() -> {
 			Lock lock2 = registry.obtain("foo");
 			locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
 			latch.countDown();
@@ -162,6 +164,7 @@ public class HazelcastLockRegistryTests {
 		Object ise = result.get(10, TimeUnit.SECONDS);
 		assertThat(ise).isInstanceOf(IllegalMonitorStateException.class);
 		assertThat(((Exception) ise).getMessage()).contains("Current thread is not owner of the lock!");
+		executorService.shutdown();
 	}
 
 	@Test
@@ -173,7 +176,8 @@ public class HazelcastLockRegistryTests {
 		CountDownLatch latch2 = new CountDownLatch(1);
 		CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.execute(() -> {
 			Lock lock2 = registry.obtain("foo");
 			try {
 				latch1.countDown();
@@ -195,6 +199,7 @@ public class HazelcastLockRegistryTests {
 		latch2.countDown();
 		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(locked.get()).isTrue();
+		executorService.shutdown();
 	}
 
 	@Test
@@ -207,7 +212,8 @@ public class HazelcastLockRegistryTests {
 		CountDownLatch latch2 = new CountDownLatch(1);
 		CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.execute(() -> {
 			Lock lock2 = registry2.obtain("foo");
 			try {
 				latch1.countDown();
@@ -229,6 +235,7 @@ public class HazelcastLockRegistryTests {
 		latch2.countDown();
 		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(locked.get()).isTrue();
+		executorService.shutdown();
 	}
 
 	@Test
@@ -238,7 +245,8 @@ public class HazelcastLockRegistryTests {
 		lock.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		Future<Object> result = executorService.submit(() -> {
 			try {
 				lock.unlock();
 			}
@@ -254,6 +262,7 @@ public class HazelcastLockRegistryTests {
 		Object imse = result.get(10, TimeUnit.SECONDS);
 		assertThat(imse).isInstanceOf(IllegalMonitorStateException.class);
 		assertThat(((Exception) imse).getMessage()).contains("Current thread is not owner of the lock!");
+		executorService.shutdown();
 	}
 
 	@Test

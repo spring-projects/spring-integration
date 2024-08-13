@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.http.inbound;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -357,7 +358,8 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		final AtomicInteger active = new AtomicInteger();
 		final AtomicBoolean expected503 = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.execute(() -> {
 			try {
 				// wait for the active thread
 				latch2.await(10, TimeUnit.SECONDS);
@@ -387,6 +389,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		Object reply = modelAndView.getModel().get("reply");
 		assertThat(reply).isNotNull();
 		assertThat(reply).isEqualTo("HELLO");
+		executorService.shutdown();
 	}
 
 	@Test
