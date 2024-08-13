@@ -28,6 +28,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -426,7 +427,8 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		PipedOutputStream out2 = new PipedOutputStream(pipe2);
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.execute(() -> {
 			try {
 				session1.write(pipe1, "foo.txt");
 			}
@@ -435,7 +437,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 			}
 			latch1.countDown();
 		});
-		Executors.newSingleThreadExecutor().execute(() -> {
+		executorService.execute(() -> {
 			try {
 				session2.write(pipe2, "bar.txt");
 			}
@@ -465,6 +467,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		session2.remove("bar.txt");
 		session1.close();
 		session2.close();
+		executorService.shutdown();
 	}
 
 	@Test

@@ -18,6 +18,7 @@ package org.springframework.integration.core;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -432,8 +433,8 @@ public class AsyncMessagingTemplateTests {
 	}
 
 	private static void sendMessageAfterDelay(MessageChannel channel, GenericMessage<String> message, int delay) {
-		Executors.newSingleThreadExecutor()
-				.execute(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.execute(() -> {
 					try {
 						Thread.sleep(delay);
 					}
@@ -443,6 +444,7 @@ public class AsyncMessagingTemplateTests {
 					}
 					channel.send(message);
 				});
+		executorService.shutdown();
 	}
 
 	private static class EchoHandler extends AbstractReplyProducingMessageHandler {

@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -395,7 +396,8 @@ public class GatewayParserTests {
 	}
 
 	private void startResponder(final PollableChannel requestChannel, final MessageChannel replyChannel) {
-		Executors.newSingleThreadExecutor().execute(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.execute(() -> {
 			Message<?> request = requestChannel.receive(60000);
 			assertThat(request).as("Request not received").isNotNull();
 			Message<?> reply = MessageBuilder.fromMessage(request)
@@ -405,7 +407,7 @@ public class GatewayParserTests {
 				payload = CompletableFuture.completedFuture(reply);
 			}
 			else if (request.getPayload().equals("flowCompletable")) {
-				payload = CompletableFuture.<String>completedFuture("SYNC_COMPLETABLE");
+				payload = CompletableFuture.completedFuture("SYNC_COMPLETABLE");
 			}
 			else if (request.getPayload().equals("flowCustomCompletable")) {
 				MyCompletableFuture myCompletableFuture1 = new MyCompletableFuture();
@@ -427,6 +429,7 @@ public class GatewayParserTests {
 			}
 			replyChannel.send(reply);
 		});
+		executorService.shutdown();
 	}
 
 	@SuppressWarnings("unused")

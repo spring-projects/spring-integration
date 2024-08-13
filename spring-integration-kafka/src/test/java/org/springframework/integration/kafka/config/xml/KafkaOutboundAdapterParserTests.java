@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.kafka.config.xml;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
@@ -125,8 +126,8 @@ class KafkaOutboundAdapterParserTests {
 		handler.setTimeoutBuffer(200);
 		handler.setTopicExpression(new LiteralExpression("foo"));
 
-		Executors.newSingleThreadExecutor()
-				.submit(() -> {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.submit(() -> {
 					RuntimeException exception = new RuntimeException("Async Producer Mock exception");
 					while (!mockProducer.errorNext(exception)) {
 						Thread.sleep(100);
@@ -146,6 +147,8 @@ class KafkaOutboundAdapterParserTests {
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
 				.withCauseInstanceOf(TimeoutException.class)
 				.withStackTraceContaining("Timeout waiting for response from KafkaProducer");
+
+		executorService.shutdown();
 	}
 
 }

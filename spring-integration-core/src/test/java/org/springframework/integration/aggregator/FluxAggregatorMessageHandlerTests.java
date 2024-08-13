@@ -19,13 +19,13 @@ package org.springframework.integration.aggregator;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -156,8 +156,6 @@ class FluxAggregatorMessageHandlerTests {
 	}
 
 	@Test
-	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
-			disabledReason = "Timing is too short for CI")
 	void testWindowTimespan() {
 		QueueChannel resultChannel = new QueueChannel();
 		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
@@ -165,18 +163,18 @@ class FluxAggregatorMessageHandlerTests {
 		fluxAggregatorMessageHandler.setWindowTimespan(Duration.ofMillis(100));
 		fluxAggregatorMessageHandler.start();
 
-		Executors.newSingleThreadExecutor()
-				.submit(() -> {
-					for (int i = 0; i < 10; i++) {
-						Message<?> messageToAggregate =
-								MessageBuilder.withPayload(i)
-										.setCorrelationId("1")
-										.build();
-						fluxAggregatorMessageHandler.handleMessage(messageToAggregate);
-						Thread.sleep(20);
-					}
-					return null;
-				});
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.submit(() -> {
+			for (int i = 0; i < 10; i++) {
+				Message<?> messageToAggregate =
+						MessageBuilder.withPayload(i)
+								.setCorrelationId("1")
+								.build();
+				fluxAggregatorMessageHandler.handleMessage(messageToAggregate);
+				Thread.sleep(20);
+			}
+			return null;
+		});
 
 		Message<?> result = resultChannel.receive(10_000);
 		assertThat(result).isNotNull();
@@ -211,6 +209,8 @@ class FluxAggregatorMessageHandlerTests {
 				.doesNotContain(0, 1);
 
 		fluxAggregatorMessageHandler.stop();
+
+		executorService.shutdown();
 	}
 
 	@Test

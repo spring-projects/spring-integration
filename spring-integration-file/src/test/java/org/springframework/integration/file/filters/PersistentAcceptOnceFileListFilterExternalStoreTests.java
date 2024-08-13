@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  * @author Bojan Vukasovic
  * @author Artem Vozhdayenko
+ *
  * @since 4.0
  */
 public class PersistentAcceptOnceFileListFilterExternalStoreTests implements RedisContainerTest {
@@ -139,7 +141,8 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests implements Red
 		suspend.set(true);
 		assertThat(file.setLastModified(file.lastModified() + 5000L)).isTrue();
 
-		Future<Integer> result = Executors.newSingleThreadExecutor()
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		Future<Integer> result = executorService
 				.submit(() -> filter.filterFiles(new File[] {file}).size());
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		store.put("foo:" + file.getAbsolutePath(), "43");
@@ -149,6 +152,7 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests implements Red
 
 		assertThat(file.delete()).isTrue();
 		filter.close();
+		executorService.shutdown();
 	}
 
 }
