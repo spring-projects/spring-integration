@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -26,8 +25,8 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,11 +35,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * a default object in case of downstream failure.
  *
  * @author Kris Jacyna
+ * @author Artem Bilan
+ *
  * @since 4.1
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-public class EnricherParserTests5 {
+@SpringJUnitConfig
+@DirtiesContext
+public class EnricherParser5Tests {
 
 	@Autowired
 	private ApplicationContext context;
