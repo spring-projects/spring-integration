@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,7 +209,14 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	@Override
+	public void afterPropertiesSet() {
+		// Ignore 'super.afterPropertiesSet()' to avoid early 'BeanFactory' access
+		// and load 'MBeanServer' bypassing some 'BeanPostProcessor's
+	}
+
+	@Override
 	public void afterSingletonsInstantiated() {
+		super.afterPropertiesSet();
 		populateMessageHandlers();
 		populateMessageSources();
 		populateMessageChannels();

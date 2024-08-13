@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,11 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Role;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -107,10 +109,12 @@ public class EnableMBeanExportTests {
 			defaultDomain = "${managed.domain}",
 			managedComponents = {"input", "${managed.component}"})
 	@EnableIntegrationManagement(defaultLoggingEnabled = "false")
+	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public static class ContextConfiguration {
 
 		@Bean
-		public MBeanServerFactoryBean mbeanServer() {
+		@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+		public static MBeanServerFactoryBean mbeanServer() {
 			return new MBeanServerFactoryBean();
 		}
 

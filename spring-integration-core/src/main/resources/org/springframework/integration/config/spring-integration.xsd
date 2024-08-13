@@ -4974,7 +4974,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 					Set true to make Control Bus based on the global 'ControlBusCommandRegistry'
 					which is a recommended way to configure Control Bus functionality.
 					The false is by default for backward compatibility and is deprecated.
-					This attributed will be true by default in the next major version and removed altogether eventually.
+					This attribute will be true by default in the next major version and removed altogether eventually.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

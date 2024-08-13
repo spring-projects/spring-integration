@@ -18,19 +18,15 @@ package org.springframework.integration.jmx.config;
 
 import java.util.UUID;
 
-import javax.management.MBeanServerFactory;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the 'mbean-export' element of the integration JMX namespace.
@@ -57,7 +53,6 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		Object mbeanServer = getMBeanServer(element);
 		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-domain");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-name-static-properties");
@@ -65,18 +60,7 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 				"componentNamePatterns");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-naming-strategy",
 				"namingStrategy");
-
-		builder.addPropertyValue("server", mbeanServer);
-	}
-
-	private Object getMBeanServer(Element element) {
-		String mbeanServer = element.getAttribute("server");
-		if (StringUtils.hasText(mbeanServer)) {
-			return new RuntimeBeanReference(mbeanServer);
-		}
-		else {
-			return MBeanServerFactory.createMBeanServer();
-		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "server");
 	}
 
 	@Override
