@@ -19,7 +19,7 @@ package org.springframework.integration.http.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,18 +46,17 @@ public class ControlBusControllerConfiguration {
 
 	@Bean
 	ControlBusController controlBusController(ControlBusCommandRegistry controlBusCommandRegistry,
-			@Qualifier("mvcConversionService") FormattingConversionService conversionService) {
+			ObjectProvider<FormattingConversionService> conversionService) {
 
 		if (!HttpContextUtils.WEB_MVC_PRESENT && !HttpContextUtils.WEB_FLUX_PRESENT) {
 			LOGGER.warn("The 'IntegrationGraphController' isn't registered with the application context because" +
-					" there is no 'org.springframework.web.servlet.DispatcherServlet' or" +
-					" 'org.springframework.web.reactive.DispatcherHandler' in the classpath.");
+					" there is no 'spring-mvc' or 'spring-webflux' in the classpath.");
 			return null;
 		}
 
 		controlBusCommandRegistry.setEagerInitialization(true);
 
-		return new ControlBusController(controlBusCommandRegistry, conversionService);
+		return new ControlBusController(controlBusCommandRegistry, conversionService.getIfUnique());
 	}
 
 }

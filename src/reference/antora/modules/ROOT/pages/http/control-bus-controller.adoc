@@ -69,7 +69,7 @@ The `/control-bus` GET request returns all the control bus commands for the appl
 Essentially, a JSON-serialized list of `ControlBusController.ControlBusBean` instances.
 Each entry is a bean with a list of control bus eligible methods (see `ControlBusMethodFilter` for more information) with their parameter types and description from the `@ManagedOperation` or `@ManagedAttribute` (falls back to method name otherwise).
 
-The GET method of this REST controller for `/control-bus/{beanName}` returns commands for specific bean.
+The GET method of this REST controller for `/control-bus/\{beanName}` returns commands for specific bean.
 
 The POST method to `/control-bus/{beanName.methodName}` invokes the command.
 The body of the request may contain a list of values and their types for command to execute.
