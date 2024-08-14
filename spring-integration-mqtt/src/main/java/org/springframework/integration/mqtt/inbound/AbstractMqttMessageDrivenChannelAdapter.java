@@ -203,7 +203,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		super.onInit();
 		if (this.clientManager != null) {
 			this.clientManager.addCallback(this);
-			if (this.clientManager.isConnection()){
+			if (this.clientManager.isConnection()) {
 				connectComplete(true);
 			}
 		}

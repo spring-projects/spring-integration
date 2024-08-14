@@ -200,7 +200,9 @@ public class Mqttv3ClientManager
 
 	@Override
 	public boolean isConnection() {
-		if(getClient()!=null) return getClient().isConnected();
+		if (getClient() != null) {
+			return getClient().isConnected();
+		}
 		return false;
 	}
 }

@@ -188,6 +188,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		}
 
 	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Mqttv3ConfigWithStartedManager {
@@ -328,7 +329,6 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		}
 
 	}
-
 
 	record ClientV3Disconnector(Mqttv3ClientManager clientManager) {
 
