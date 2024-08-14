@@ -107,3 +107,13 @@ If `false`, a pre-populated `knownHosts` file is required.
 
 `userInteraction`::A custom `org.apache.sshd.client.auth.keyboard.UserInteraction` to be used during authentication.
 
+Starting with version 6.4, the `DefaultSftpSessionFactory` expose a `Consumer<SshClient>` configurer property to further customize an internal `SshClient`.
+For example, this is how to change a default number of NIO workers and packet size for the client:
+
+[source, java]
+----
+sftpSessionFactory.setSshClientConfigurer((sshClient) -> {
+    sshClient.setNioWorkers(27);
+    PropertyResolverUtils.updateProperty(sshClient, CoreModuleProperties.MAX_PACKET_SIZE.getName(), 48 * 1024);
+});
+----

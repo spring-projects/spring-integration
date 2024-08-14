@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.auth.keyboard.UserInteraction;
@@ -79,7 +80,8 @@ import org.springframework.util.Assert;
  *
  * @since 2.0
  */
-public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirEntry>, SharedSessionCapable, DisposableBean {
+public class DefaultSftpSessionFactory
+		implements SessionFactory<SftpClient.DirEntry>, SharedSessionCapable, DisposableBean {
 
 	private final Lock lock = new ReentrantLock();
 
@@ -118,6 +120,9 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	private SftpVersionSelector sftpVersionSelector = SftpVersionSelector.CURRENT;
 
 	private volatile SftpClient sharedSftpClient;
+
+	private Consumer<SshClient> sshClientConfigurer = (sshClient) -> {
+	};
 
 	public DefaultSftpSessionFactory() {
 		this(false);
@@ -283,6 +288,20 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 		this.sftpVersionSelector = sftpVersionSelector;
 	}
 
+	/**
+	 * Set a {@link Consumer} as a callback to further customize an internal {@link SshClient} instance.
+	 * For example, to set custom values for its properties using {@link PropertyResolverUtils#updateProperty} API.
+	 * @param sshClientConfigurer the {@link Consumer} to configure an internal {@link SshClient} instance.
+	 * @since 6.4
+	 * @see SshClient
+	 * @see PropertyResolverUtils#updateProperty
+	 */
+	public void setSshClientConfigurer(Consumer<SshClient> sshClientConfigurer) {
+		Assert.state(this.isInnerClient, "Cannot mutate externally provided SshClient");
+		Assert.notNull(sshClientConfigurer, "'sshClientConfigurer' must noy be null");
+		this.sshClientConfigurer = sshClientConfigurer;
+	}
+
 	@Override
 	public SftpSession getSession() {
 		SftpSession sftpSession;
@@ -392,6 +411,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 				}
 			}
 			this.sshClient.setUserInteraction(this.userInteraction);
+			this.sshClientConfigurer.accept(this.sshClient);
 		}
 	}
 
@@ -424,7 +444,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (this.isInnerClient && this.sshClient != null && this.sshClient.isStarted()) {
 			this.sshClient.stop();
 		}

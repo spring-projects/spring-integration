@@ -31,7 +31,9 @@ import org.apache.sshd.client.auth.password.PasswordIdentityProvider;
 import org.apache.sshd.client.channel.ClientChannel;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
 import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.common.PropertyResolverUtils;
 import org.apache.sshd.common.SshException;
+import org.apache.sshd.core.CoreModuleProperties;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.sftp.client.SftpClient;
@@ -206,7 +208,7 @@ public class SftpSessionFactoryTests {
 	}
 
 	@Test
-	void customTimeoutIsApplied() throws Exception {
+	void customPropertiesAreApplied() throws Exception {
 		try (SshServer server = SshServer.setUpDefaultServer()) {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
@@ -221,10 +223,15 @@ public class SftpSessionFactoryTests {
 			sftpSessionFactory.setPassword("pass");
 			sftpSessionFactory.setAllowUnknownKeys(true);
 			sftpSessionFactory.setTimeout(15_000);
+			sftpSessionFactory.setSshClientConfigurer((sshClient) -> {
+				sshClient.setNioWorkers(27);
+				PropertyResolverUtils.updateProperty(sshClient, CoreModuleProperties.MAX_PACKET_SIZE.getName(), 48 * 1024);
+			});
 
 			ClientChannel clientChannel = sftpSessionFactory.getSession().getClientInstance().getClientChannel();
 
 			assertThat(AbstractSftpClient.SFTP_CLIENT_CMD_TIMEOUT.getRequired(clientChannel)).hasSeconds(15);
+			assertThat(CoreModuleProperties.MAX_PACKET_SIZE.getRequired(clientChannel)).isEqualTo(48 * 1024);
 
 			sftpSessionFactory.destroy();
 		}
@@ -260,4 +267,5 @@ public class SftpSessionFactoryTests {
 			sftpSessionFactory.destroy();
 		}
 	}
+
 }
