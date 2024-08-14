@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,12 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 	 * @return true if callback was removed.
 	 */
 	boolean removeCallback(ConnectCallback connectCallback);
+
+	/**
+	 * Return the managed clients isConnected.
+	 * @return the managed clients isConnected.
+	 */
+	boolean isConnection();
 
 	/**
 	 * A contract for a custom callback on {@code connectComplete} event from the client.

@@ -206,4 +206,9 @@ public class Mqttv5ClientManager
 		logger.error("MQTT error occurred", exception);
 	}
 
+	@Override
+	public boolean isConnection() {
+		if(getClient()!=null) return getClient().isConnected();
+		return false;
+	}
 }
