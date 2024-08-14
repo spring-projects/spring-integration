@@ -24,7 +24,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.format.support.FormattingConversionService;
@@ -43,7 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Artem Bilan
  *
- * @since 4.3
+ * @since 6.4
  */
 @RestController
 @RequestMapping("/control-bus")
@@ -58,7 +57,7 @@ public class ControlBusController implements BeanFactoryAware, InitializingBean 
 	private EvaluationContext evaluationContext;
 
 	public ControlBusController(ControlBusCommandRegistry controlBusCommandRegistry,
-			@Qualifier("mvcConversionService") FormattingConversionService conversionService) {
+			FormattingConversionService conversionService) {
 
 		this.controlBusCommandRegistry = controlBusCommandRegistry;
 		this.conversionService = conversionService;
