@@ -18,7 +18,6 @@ package org.springframework.integration.mqtt;
 
 import java.lang.reflect.Constructor;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -83,7 +82,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 	}
 
 	@Test
-	void testV3ClientManagerRuntime() throws Exception{
+	void testV3ClientManagerRuntime() throws Exception {
 		testSubscribeAndPublishRuntime(Mqttv3ConfigRuntime.class, Mqttv3ConfigRuntime.TOPIC_NAME,
 				Mqttv3ConfigRuntime.subscribedLatch, Mqttv3ConfigRuntime.adapter);
 	}
@@ -101,7 +100,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 	}
 
 	@Test
-	void testV5ClientManagerRuntime() throws Exception{
+	void testV5ClientManagerRuntime() throws Exception {
 		testSubscribeAndPublishRuntime(Mqttv5ConfigRuntime.class, Mqttv5ConfigRuntime.TOPIC_NAME,
 				Mqttv5ConfigRuntime.subscribedLatch, Mqttv5ConfigRuntime.adapter);
 	}
@@ -144,7 +143,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			Class<?>[] parameterTypes = {ClientManager.class, String[].class};
 			Constructor<?> declaredConstructor = adapter.getConstructor(parameterTypes);
 			flowContext.registration(IntegrationFlow
-					.from((MessageProducerSupport) declaredConstructor.newInstance(clientManager,new String[] {topicName}))
+					.from((MessageProducerSupport) declaredConstructor.newInstance(clientManager, new String[] {topicName}))
 					.channel(output)
 					.get()).register();
 			String testPayload = "foo";
@@ -277,6 +276,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		}
 
 	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Mqttv3ConfigRuntime {
@@ -297,7 +297,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
 			connectionOptions.setServerURIs(new String[] {MosquittoContainerTest.mqttUrl()});
 			connectionOptions.setAutomaticReconnect(true);
-            return new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3");
+			return new Mqttv3ClientManager(connectionOptions, "client-manager-client-id-v3");
 		}
 
 		@Bean
@@ -411,6 +411,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		}
 
 	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Mqttv5ConfigRuntime {
