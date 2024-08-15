@@ -61,8 +61,16 @@ See xref:redis.adoc[Redis Support] for more information.
 The `ControlBusFactoryBean` (and respective `<int-groovy:control-bus>` XML tag) has been deprecated (for removal) in favor of new introduced `ControlBusFactoryBean` based on a new model implemented in the `ControlBusCommandRegistry`.
 See xref:control-bus.adoc[Control Bus] for more information.
 
+
 [[x6.4-sftp-changes]]
 === SFTP Support Changes
 
 The `DefaultSftpSessionFactory` now exposes a `Consumer<SshClient>` configurer property to further customize an internal `SshClient`.
 See xref:sftp/session-factory.adoc[SFTP Session Factory] for more information.
+
+[[x6.4-mqtt-changes]]
+=== mqtt Changes
+
+Multiple instances of `MqttPahoMessageDrivenChannelAdapter` and `Mqttv5PahoMessageDrivenChannelAdapter` can now be added at runtime using corresponding `ClientManager` through `IntegrationFlowContext`
+See xref:mqtt.adoc[MQTT Support] for more information.
+
