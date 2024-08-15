@@ -49,6 +49,7 @@ import org.springframework.util.Assert;
  * @author Trung Pham
  * @author Mikhail Polivakha
  * @author Artem Vozhdayenko
+ * @author Jiri Soucek
  *
  * @since 4.0
  *
@@ -204,7 +205,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		if (this.clientManager != null) {
 			this.clientManager.addCallback(this);
 			if (this.clientManager.isConnection()) {
-				connectComplete(true);
+				connectComplete(false);
 			}
 		}
 	}

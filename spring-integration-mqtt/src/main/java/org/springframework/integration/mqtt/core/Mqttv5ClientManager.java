@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Artem Vozhdayenko
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Jiri Soucek
  *
  * @since 6.0
  */
@@ -208,9 +209,16 @@ public class Mqttv5ClientManager
 
 	@Override
 	public boolean isConnection() {
-		if (getClient() != null) {
-			return getClient().isConnected();
+		this.lock.lock();
+		try {
+			IMqttAsyncClient client = getClient();
+			if (client != null) {
+				return client.isConnected();
+			}
+			return false;
 		}
-		return false;
+		finally {
+			this.lock.unlock();
+		}
 	}
 }

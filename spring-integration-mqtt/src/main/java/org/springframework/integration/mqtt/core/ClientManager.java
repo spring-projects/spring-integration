@@ -28,6 +28,7 @@ import org.springframework.context.SmartLifecycle;
  *
  * @author Artem Vozhdayenko
  * @author Artem Bilan
+ * @author Jiri Soucek
  *
  * @since 6.0
  */
@@ -71,6 +72,7 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 	/**
 	 * Return the managed clients isConnected.
 	 * @return the managed clients isConnected.
+	 * @since 6.4
 	 */
 	boolean isConnection();
 
