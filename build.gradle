@@ -198,11 +198,6 @@ configure(javaProjects) { subproject ->
     def scopeAttribute = Attribute.of('dependency.scope', String)
 
     configurations {
-        optional {
-            attributes {
-                attribute(scopeAttribute, 'optional')
-            }
-        }
         provided {
             attributes {
                 attribute(scopeAttribute, 'provided')
@@ -210,15 +205,11 @@ configure(javaProjects) { subproject ->
         }
 
         [compileClasspath, testCompileClasspath, testRuntimeClasspath].each {
-            it.extendsFrom(optional)
             it.extendsFrom(provided)
         }
     }
 
     components.java.with {
-        it.addVariantsFromConfiguration(configurations.optional) {
-            mapToOptional()
-        }
         it.addVariantsFromConfiguration(configurations.provided) {
             mapToMavenScope('compile') // This is temporary. Gradle doesn't natively support the provided scope
         }
@@ -235,6 +226,9 @@ configure(javaProjects) { subproject ->
     java {
         withJavadocJar()
         withSourcesJar()
+        registerFeature('optional') {
+            usingSourceSet(sourceSets.main)
+        }
     }
 
     compileJava {
@@ -463,11 +457,11 @@ project('spring-integration-test-support') {
         api 'org.springframework:spring-context'
         api 'org.springframework:spring-messaging'
         api 'org.springframework:spring-test'
-        optional("junit:junit:$junit4Version") {
+        optionalApi("junit:junit:$junit4Version") {
             exclude group: 'org.hamcrest'
         }
-        optional 'org.junit.jupiter:junit-jupiter-api'
-        optional 'org.apache.logging.log4j:log4j-core'
+        optionalApi 'org.junit.jupiter:junit-jupiter-api'
+        optionalApi 'org.apache.logging.log4j:log4j-core'
     }
 }
 
@@ -475,7 +469,7 @@ project('spring-integration-amqp') {
     description = 'Spring Integration AMQP Support'
     dependencies {
         api 'org.springframework.amqp:spring-rabbit'
-        optional 'org.springframework.amqp:spring-rabbit-stream'
+        optionalApi 'org.springframework.amqp:spring-rabbit-stream'
 
         testImplementation 'org.springframework.amqp:spring-rabbit-junit'
         testImplementation project(':spring-integration-stream')
@@ -525,23 +519,23 @@ project('spring-integration-core') {
         api 'io.projectreactor:reactor-core'
         api 'io.micrometer:micrometer-observation'
 
-        optional 'com.fasterxml.jackson.core:jackson-databind'
-        optional 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
-        optional 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-        optional 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
-        optional('com.fasterxml.jackson.module:jackson-module-kotlin') {
+        optionalApi 'com.fasterxml.jackson.core:jackson-databind'
+        optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+        optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+        optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
+        optionalApi('com.fasterxml.jackson.module:jackson-module-kotlin') {
             exclude group: 'org.jetbrains.kotlin'
         }
-        optional "com.google.protobuf:protobuf-java:$protobufVersion"
-        optional "com.jayway.jsonpath:json-path:$jsonpathVersion"
-        optional "com.esotericsoftware:kryo:$kryoVersion"
-        optional 'io.micrometer:micrometer-core'
-        optional('io.micrometer:micrometer-tracing') {
+        optionalApi "com.google.protobuf:protobuf-java:$protobufVersion"
+        optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
+        optionalApi "com.esotericsoftware:kryo:$kryoVersion"
+        optionalApi 'io.micrometer:micrometer-core'
+        optionalApi('io.micrometer:micrometer-tracing') {
             exclude group: 'aopalliance'
         }
-        optional "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"
-        optional "org.apache.avro:avro:$avroVersion"
-        optional 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
+        optionalApi "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"
+        optionalApi "org.apache.avro:avro:$avroVersion"
+        optionalApi 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
 
         testImplementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
         testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
@@ -622,7 +616,7 @@ project('spring-integration-ftp') {
         api project(':spring-integration-file')
         api "commons-net:commons-net:$commonsNetVersion"
         api 'org.springframework:spring-context-support'
-        optional "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
+        optionalApi "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 
         testImplementation project(':spring-integration-file').sourceSets.test.output
     }
@@ -682,8 +676,8 @@ project('spring-integration-http') {
     dependencies {
         api 'org.springframework:spring-webmvc'
         provided "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
-        optional "com.rometools:rome:$romeToolsVersion"
-        optional 'org.springframework:spring-webflux'
+        optionalApi "com.rometools:rome:$romeToolsVersion"
+        optionalApi 'org.springframework:spring-webflux'
 
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testImplementation 'org.springframework.security:spring-security-messaging'
@@ -715,7 +709,7 @@ project('spring-integration-jdbc') {
     description = 'Spring Integration JDBC Support'
     dependencies {
         api 'org.springframework:spring-jdbc'
-        optional "org.postgresql:postgresql:$postgresVersion"
+        optionalApi "org.postgresql:postgresql:$postgresVersion"
 
         testImplementation "com.h2database:h2:$h2Version"
         testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
@@ -763,7 +757,7 @@ project('spring-integration-jpa') {
     description = 'Spring Integration JPA Support'
     dependencies {
         api 'org.springframework:spring-orm'
-        optional "jakarta.persistence:jakarta.persistence-api:$jpaApiVersion"
+        optionalApi "jakarta.persistence:jakarta.persistence-api:$jpaApiVersion"
 
         testImplementation 'org.springframework.data:spring-data-jpa'
         testImplementation "com.h2database:h2:$h2Version"
@@ -799,8 +793,8 @@ project('spring-integration-mongodb') {
     dependencies {
         api 'org.springframework.data:spring-data-mongodb'
 
-        optional "org.mongodb:mongodb-driver-sync:$mongoDriverVersion"
-        optional "org.mongodb:mongodb-driver-reactivestreams:$mongoDriverVersion"
+        optionalApi "org.mongodb:mongodb-driver-sync:$mongoDriverVersion"
+        optionalApi "org.mongodb:mongodb-driver-reactivestreams:$mongoDriverVersion"
 
         testImplementation 'org.testcontainers:mongodb'
     }
@@ -821,7 +815,7 @@ project('spring-integration-mqtt') {
     dependencies {
         api "org.eclipse.paho:org.eclipse.paho.client.mqttv3:$pahoMqttClientVersion"
 
-        optional "org.eclipse.paho:org.eclipse.paho.mqttv5.client:$pahoMqttClientVersion"
+        optionalApi "org.eclipse.paho:org.eclipse.paho.mqttv5.client:$pahoMqttClientVersion"
 
         testImplementation project(':spring-integration-jmx')
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -851,7 +845,7 @@ project('spring-integration-rsocket') {
 project('spring-integration-scripting') {
     description = 'Spring Integration Scripting Support'
     dependencies {
-        optional 'org.jetbrains.kotlin:kotlin-scripting-jsr223'
+        optionalApi 'org.jetbrains.kotlin:kotlin-scripting-jsr223'
         provided "org.graalvm.sdk:graal-sdk:$graalvmVersion"
         provided "org.graalvm.js:js:$graalvmVersion"
 
@@ -904,7 +898,7 @@ project('spring-integration-smb') {
 project('spring-integration-stomp') {
     description = 'Spring Integration STOMP Support'
     dependencies {
-        optional 'org.springframework:spring-websocket'
+        optionalApi 'org.springframework:spring-websocket'
 
         testImplementation project(':spring-integration-websocket')
         testImplementation project(':spring-integration-websocket').sourceSets.test.output
@@ -956,7 +950,7 @@ project('spring-integration-webflux') {
             exclude group: 'org.springframework', module: 'spring-webmvc'
         }
         api 'org.springframework:spring-webflux'
-        optional 'io.projectreactor.netty:reactor-netty-http'
+        optionalApi 'io.projectreactor.netty:reactor-netty-http'
 
         testImplementation "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
         testImplementation "org.hamcrest:hamcrest-core:$hamcrestVersion"
@@ -979,7 +973,7 @@ project('spring-integration-websocket') {
     description = 'Spring Integration WebSockets Support'
     dependencies {
         api 'org.springframework:spring-websocket'
-        optional 'org.springframework:spring-webmvc'
+        optionalApi 'org.springframework:spring-webmvc'
         provided "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
 
         testImplementation project(':spring-integration-event')
@@ -1026,7 +1020,7 @@ project('spring-integration-xml') {
         api('org.springframework.ws:spring-xml') {
             exclude group: 'org.springframework'
         }
-        optional('org.springframework.ws:spring-ws-core') {
+        optionalApi('org.springframework.ws:spring-ws-core') {
             exclude group: 'org.springframework'
         }
 
@@ -1056,7 +1050,7 @@ project('spring-integration-zeromq') {
     dependencies {
         api "org.zeromq:jeromq:$jeroMqVersion"
 
-        optional 'com.fasterxml.jackson.core:jackson-databind'
+        optionalApi 'com.fasterxml.jackson.core:jackson-databind'
     }
 }
 
