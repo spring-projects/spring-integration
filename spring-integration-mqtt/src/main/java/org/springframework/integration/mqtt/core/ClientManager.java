@@ -74,7 +74,7 @@ public interface ClientManager<T, C> extends SmartLifecycle, MqttComponent<C> {
 	 * @return the managed clients isConnected.
 	 * @since 6.4
 	 */
-	boolean isConnection();
+	boolean isConnected();
 
 	/**
 	 * A contract for a custom callback on {@code connectComplete} event from the client.

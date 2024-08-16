@@ -16,7 +16,6 @@
 
 package org.springframework.integration.mqtt;
 
-import java.lang.reflect.Constructor;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +24,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,7 +35,6 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.core.Mqttv3ClientManager;
 import org.springframework.integration.mqtt.core.Mqttv5ClientManager;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
@@ -84,7 +83,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 	@Test
 	void testV3ClientManagerRuntime() throws Exception {
 		testSubscribeAndPublishRuntime(Mqttv3ConfigRuntime.class, Mqttv3ConfigRuntime.TOPIC_NAME,
-				Mqttv3ConfigRuntime.subscribedLatch, Mqttv3ConfigRuntime.adapter);
+				Mqttv3ConfigRuntime.subscribedLatch);
 	}
 
 	@Test
@@ -102,7 +101,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 	@Test
 	void testV5ClientManagerRuntime() throws Exception {
 		testSubscribeAndPublishRuntime(Mqttv5ConfigRuntime.class, Mqttv5ConfigRuntime.TOPIC_NAME,
-				Mqttv5ConfigRuntime.subscribedLatch, Mqttv5ConfigRuntime.adapter);
+				Mqttv5ConfigRuntime.subscribedLatch);
 	}
 
 	private void testSubscribeAndPublish(Class<?> configClass, String topicName, CountDownLatch subscribedLatch)
@@ -131,19 +130,18 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		}
 	}
 
-	private void testSubscribeAndPublishRuntime(Class<?> configClass, String topicName, CountDownLatch subscribedLatch, Class<?> adapter)
+	private void testSubscribeAndPublishRuntime(Class<?> configClass, String topicName, CountDownLatch subscribedLatch)
 			throws Exception {
 
 		try (var ctx = new AnnotationConfigApplicationContext(configClass)) {
 			// given
 			var input = ctx.getBean("mqttOutFlow.input", MessageChannel.class);
 			var flowContext = ctx.getBean(IntegrationFlowContext.class);
-			var clientManager = ctx.getBean(ClientManager.class);
+			var factory = ctx.getBean(MessageDrivenChannelAdapterFactory.class);
 			var output = new QueueChannel();
-			Class<?>[] parameterTypes = {ClientManager.class, String[].class};
-			Constructor<?> declaredConstructor = adapter.getConstructor(parameterTypes);
+
 			flowContext.registration(IntegrationFlow
-					.from((MessageProducerSupport) declaredConstructor.newInstance(clientManager, new String[] {topicName}))
+					.from(factory.createMessageDrivenAdapter(ctx))
 					.channel(output)
 					.get()).register();
 			String testPayload = "foo";
@@ -279,13 +277,11 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 
 	@Configuration
 	@EnableIntegration
-	public static class Mqttv3ConfigRuntime {
+	public static class Mqttv3ConfigRuntime implements MessageDrivenChannelAdapterFactory {
 
 		static final String TOPIC_NAME = "test-topic-v3";
 
 		static final CountDownLatch subscribedLatch = new CountDownLatch(1);
-
-		static final Class<?> adapter = MqttPahoMessageDrivenChannelAdapter.class;
 
 		@EventListener
 		public void onSubscribed(MqttSubscribedEvent e) {
@@ -305,6 +301,11 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			return f -> f.handle(new MqttPahoMessageHandler(mqttv3ClientManager));
 		}
 
+		@Override
+		public MessageProducerSupport createMessageDrivenAdapter(ApplicationContext ctx) {
+			var clientManager = ctx.getBean(Mqttv3ClientManager.class);
+			return new MqttPahoMessageDrivenChannelAdapter(clientManager, TOPIC_NAME);
+		}
 	}
 
 	@Configuration
@@ -414,13 +415,11 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 
 	@Configuration
 	@EnableIntegration
-	public static class Mqttv5ConfigRuntime {
+	public static class Mqttv5ConfigRuntime implements MessageDrivenChannelAdapterFactory {
 
 		static final String TOPIC_NAME = "test-topic-v5";
 
 		static final CountDownLatch subscribedLatch = new CountDownLatch(1);
-
-		static final Class<?> adapter = Mqttv5PahoMessageDrivenChannelAdapter.class;
 
 		@EventListener
 		public void onSubscribed(MqttSubscribedEvent e) {
@@ -438,6 +437,15 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			return new Mqttv5PahoMessageHandler(mqttv5ClientManager);
 		}
 
+		@Override
+		public MessageProducerSupport createMessageDrivenAdapter(ApplicationContext ctx) {
+			var clientManager = ctx.getBean(Mqttv5ClientManager.class);
+			return new Mqttv5PahoMessageDrivenChannelAdapter(clientManager, TOPIC_NAME);
+		}
+	}
+
+	interface MessageDrivenChannelAdapterFactory {
+		MessageProducerSupport createMessageDrivenAdapter(ApplicationContext ctx);
 	}
 
 	record ClientV3Disconnector(Mqttv3ClientManager clientManager) {

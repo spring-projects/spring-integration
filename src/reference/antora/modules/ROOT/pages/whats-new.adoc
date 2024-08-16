@@ -68,8 +68,8 @@ See xref:control-bus.adoc[Control Bus] for more information.
 The `DefaultSftpSessionFactory` now exposes a `Consumer<SshClient>` configurer property to further customize an internal `SshClient`.
 See xref:sftp/session-factory.adoc[SFTP Session Factory] for more information.
 
-[[x6.4-mqtt-changes]]
-=== mqtt Changes
+[[x6.4-mqtt-support-changes]]
+=== MQTT Support Changes
 
 Multiple instances of `MqttPahoMessageDrivenChannelAdapter` and `Mqttv5PahoMessageDrivenChannelAdapter` can now be added at runtime using corresponding `ClientManager` through `IntegrationFlowContext`
 See xref:mqtt.adoc[MQTT Support] for more information.

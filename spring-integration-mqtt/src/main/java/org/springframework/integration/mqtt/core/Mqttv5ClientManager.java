@@ -208,7 +208,7 @@ public class Mqttv5ClientManager
 	}
 
 	@Override
-	public boolean isConnection() {
+	public boolean isConnected() {
 		this.lock.lock();
 		try {
 			IMqttAsyncClient client = getClient();
