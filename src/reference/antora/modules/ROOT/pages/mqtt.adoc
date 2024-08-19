@@ -382,9 +382,9 @@ public class MqttJavaApplication {
             .run(args);
     }
 
-   	@Bean
-   	public IntegrationFlow mqttOutboundFlow() {
-   	    return f -> f.handle(new MqttPahoMessageHandler("tcp://host1:1883", "someMqttClient"));
+       @Bean
+       public IntegrationFlow mqttOutboundFlow() {
+           return f -> f.handle(new MqttPahoMessageHandler("tcp://host1:1883", "someMqttClient"));
     }
 
 }
@@ -546,5 +546,21 @@ public IntegrationFlow mqttOutFlow(
         ClientManager<IMqttAsyncClient, MqttConnectionOptions> clientManager) {
 
     return f -> f.handle(new Mqttv5PahoMessageHandler(clientManager));
+}
+----
+
+NOTE: Starting with version 6.4, multiple instances of `MqttPahoMessageDrivenChannelAdapter` and `Mqttv5PahoMessageDrivenChannelAdapter` can now be added at runtime using corresponding `ClientManager` through `IntegrationFlowContext`
+
+[source,java]
+----
+private void addAddRuntimeAdapter(IntegrationFlowContext flowContext, Mqttv5ClientManager clientManager,
+                                  String topic, MessageChannel channel) {
+    flowContext
+        .registration(
+            IntegrationFlow
+                .from(new Mqttv5PahoMessageDrivenChannelAdapter(clientManager, topic))
+                .channel(channel)
+                .get())
+        .register();
 }
 ----

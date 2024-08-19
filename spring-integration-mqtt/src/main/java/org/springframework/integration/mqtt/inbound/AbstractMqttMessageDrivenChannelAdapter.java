@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.springframework.util.Assert;
  * @author Trung Pham
  * @author Mikhail Polivakha
  * @author Artem Vozhdayenko
+ * @author Jiri Soucek
  *
  * @since 4.0
  *
@@ -203,6 +204,9 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter<T, C> extends Mess
 		super.onInit();
 		if (this.clientManager != null) {
 			this.clientManager.addCallback(this);
+			if (this.clientManager.isConnected()) {
+				connectComplete(false);
+			}
 		}
 	}
 

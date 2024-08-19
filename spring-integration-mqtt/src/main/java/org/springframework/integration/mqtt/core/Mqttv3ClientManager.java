@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * @author Artem Vozhdayenko
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Jiri Soucek
  *
  * @since 6.0
  */
@@ -198,4 +199,19 @@ public class Mqttv3ClientManager
 		// nor this manager concern
 	}
 
+	@Override
+	public boolean isConnected() {
+		this.lock.lock();
+		try {
+			IMqttAsyncClient client = getClient();
+			if (client != null) {
+				return client.isConnected();
+			}
+			return false;
+		}
+		finally {
+			this.lock.unlock();
+		}
+
+	}
 }
