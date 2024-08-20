@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * @author Alexey Tsoy
  * @author Robert Höglund
  * @author Christian Tzolov
+ * @author Emil Palm
  */
 public class LeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
 
@@ -316,6 +317,10 @@ public class LeaderInitiator implements SmartLifecycle, DisposableBean, Applicat
 								// Success: we are now leader
 								this.leader = true;
 								handleGranted();
+							}
+							if (!acquired && this.leader) {
+								//If we no longer can acquire the lock but still have the leader status
+								revokeLeadership();
 							}
 						}
 					}

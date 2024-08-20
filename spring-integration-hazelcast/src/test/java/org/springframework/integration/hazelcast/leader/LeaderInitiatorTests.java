@@ -24,13 +24,18 @@ import java.util.concurrent.TimeUnit;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.cp.CPGroupId;
+import com.hazelcast.cp.CPSubsystem;
+import com.hazelcast.cp.lock.FencedLock;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.AbstractLeaderEvent;
@@ -42,8 +47,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Mockito.spy;
 
 /**
  * Tests for hazelcast leader election.
@@ -53,6 +60,7 @@ import static org.mockito.Mockito.spy;
  * @author Dave Syer
  * @author Artem Bilan
  * @author Mael Le Guével
+ * @author Emil Palm
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration
@@ -70,6 +78,10 @@ public class LeaderInitiatorTests {
 
 	@Autowired
 	private LeaderInitiator initiator;
+
+	private FencedLock fencedLock;
+	private LeaderInitiator leaderInitiator;
+	private LeaderEventPublisher leaderEventPublisher;
 
 	@Test
 	public void testLeaderElections() throws Exception {
@@ -173,7 +185,7 @@ public class LeaderInitiatorTests {
 
 		CountDownLatch onGranted = new CountDownLatch(1);
 
-		DefaultCandidate candidate = spy(new DefaultCandidate());
+		DefaultCandidate candidate = Mockito.spy(new DefaultCandidate());
 		willAnswer(invocation -> {
 			try {
 				return invocation.callRealMethod();
@@ -202,6 +214,29 @@ public class LeaderInitiatorTests {
 		assertThat(initiator.getContext().isLeader()).isTrue();
 
 		initiator.destroy();
+	}
+
+	@Test
+	public void testRevokeLeadershipCalledWhenLockNotAcquiredButStillLeader() throws Exception {
+		// Initialize mocks and objects needed for the revoke leadership when fenced lock is no longer acquired
+		setupRevokeLeadership();
+
+		// Simulate that the lock is currently held by this thread
+		given(fencedLock.isLockedByCurrentThread()).willReturn(true, false);
+		Mockito.when(fencedLock.tryLock(anyLong(), any(TimeUnit.class))).thenReturn(false); // Lock acquisition fails
+
+		// Start the LeaderInitiator to trigger the leader election process
+		leaderInitiator.start();
+
+		// Simulate the lock acquisition check process
+		Thread.sleep(1000);  // Give time for the async task to run
+
+		// Verify that revokeLeadership was called due to lock not being acquired
+		// unlock is part of revokeLeadership
+		Mockito.verify(fencedLock, Mockito.times(1)).unlock();
+		// verify revoke event is published
+		Mockito.verify(leaderEventPublisher, Mockito.times(1)).publishOnRevoked(any(Object.class), any(Context.class), anyString());
+
 	}
 
 	@Configuration
@@ -296,6 +331,32 @@ public class LeaderInitiatorTests {
 			this.granted.countDown();
 		}
 
+	}
+
+	private void setupRevokeLeadership() {
+		HazelcastInstance hazelcastInstance = Mockito.mock(HazelcastInstance.class);
+		Candidate candidate = Mockito.mock(Candidate.class);
+		fencedLock = Mockito.mock(FencedLock.class);
+		leaderEventPublisher = Mockito.mock(LeaderEventPublisher.class);
+
+		CPSubsystem cpSubsystem = Mockito.mock(CPSubsystem.class);
+		Mockito.when(candidate.getRole()).thenReturn("role");
+		Mockito.when(hazelcastInstance.getCPSubsystem()).thenReturn(cpSubsystem);
+		Mockito.when(cpSubsystem.getLock(anyString())).thenReturn(fencedLock);
+		Mockito.when(fencedLock.getGroupId()).thenReturn(new CPGroupId() {
+			@Override
+			public String getName() {
+				return "";
+			}
+
+			@Override
+			public long getId() {
+				return 0;
+			}
+		});
+
+		leaderInitiator = new LeaderInitiator(hazelcastInstance, candidate);
+		leaderInitiator.setLeaderEventPublisher(leaderEventPublisher);
 	}
 
 }
