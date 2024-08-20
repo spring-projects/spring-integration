@@ -86,6 +86,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Eddie Cho
  * @author Myeonghyeon Lee
  * @author Roman Zabaluev
+ * @author Alex Peelman
  *
  * @since 4.0
  *
@@ -658,7 +659,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private void runRedisMessageListenerContainer() {
-			RedisLockRegistry.this.lock.tryLock();
+			RedisLockRegistry.this.lock.lock();
 			try {
 				if (!(RedisLockRegistry.this.isRunningRedisMessageListenerContainer
 						&& RedisLockRegistry.this.redisMessageListenerContainer != null
