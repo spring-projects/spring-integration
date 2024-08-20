@@ -84,18 +84,6 @@ public class ControlBusControllerTests {
 	}
 
 	@Test
-	void commandsForBean() throws Exception {
-		this.mockMvc.perform(get("/control-bus/testManagementComponent")
-						.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-				.andExpect(handler().handlerType(ControlBusController.class))
-				.andExpect(handler().methodName("getCommandsForBean"))
-				.andExpect(content().string(Matchers.containsString("testManagementComponent.operation")))
-				.andExpect(content().string(Matchers.containsString("testManagementComponent.operation2")));
-	}
-
-	@Test
 	void controlBusCommandIsPerformedOverRestCall() throws Exception {
 		this.mockMvc.perform(post("/control-bus/testManagementComponent.operation")
 						.contentType(MediaType.APPLICATION_JSON)

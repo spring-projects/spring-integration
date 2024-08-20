@@ -82,33 +82,6 @@ public class ControlBusController implements BeanFactoryAware, InitializingBean 
 				.toList();
 	}
 
-	@GetMapping(name = "getCommandsForBean", path = "/{beanName}")
-	public ControlBusBean getCommandsForBean(@PathVariable String beanName) {
-		Map<ControlBusCommandRegistry.CommandMethod, String> commandsForBean =
-				this.controlBusCommandRegistry.getCommands()
-						.get(beanName);
-
-		return createControlBusBean(beanName, commandsForBean);
-	}
-
-	private ControlBusBean createControlBusBean(String beanName,
-			Map<ControlBusCommandRegistry.CommandMethod, String> commandsForBean) {
-
-		List<ControlBusCommand> commands =
-				commandsForBean.keySet()
-						.stream()
-						.map(this::converControlBusCommand)
-						.toList();
-
-		return new ControlBusBean(beanName, commands);
-	}
-
-	private ControlBusCommand converControlBusCommand(ControlBusCommandRegistry.CommandMethod commandMethod) {
-		return new ControlBusCommand(commandMethod.getBeanName() + '.' + commandMethod.getMethodName(),
-				commandMethod.getDescription(),
-				Arrays.asList(commandMethod.getParameterTypes()));
-	}
-
 	@PostMapping(name = "invokeCommand", path = "/{command}")
 	public Object invokeCommand(@PathVariable String command,
 			@RequestBody(required = false) List<CommandArgument> arguments) {
@@ -131,6 +104,24 @@ public class ControlBusController implements BeanFactoryAware, InitializingBean 
 		}
 
 		return commandExpression.getValue(this.evaluationContext, parameterValues);
+	}
+
+	private static ControlBusBean createControlBusBean(String beanName,
+			Map<ControlBusCommandRegistry.CommandMethod, String> commandsForBean) {
+
+		List<ControlBusCommand> commands =
+				commandsForBean.keySet()
+						.stream()
+						.map(ControlBusController::converControlBusCommand)
+						.toList();
+
+		return new ControlBusBean(beanName, commands);
+	}
+
+	private static ControlBusCommand converControlBusCommand(ControlBusCommandRegistry.CommandMethod commandMethod) {
+		return new ControlBusCommand(commandMethod.getBeanName() + '.' + commandMethod.getMethodName(),
+				commandMethod.getDescription(),
+				Arrays.asList(commandMethod.getParameterTypes()));
 	}
 
 	public record ControlBusBean(String beanName, List<ControlBusCommand> commands) {
