@@ -87,7 +87,7 @@ ext {
     jsonpathVersion = '2.9.0'
     junit4Version = '4.13.2'
     junitJupiterVersion = '5.10.3'
-    jythonVersion = '2.7.3'
+    jythonVersion = '2.7.4'
     kotlinCoroutinesVersion = '1.8.1'
     kryoVersion = '5.6.0'
     lettuceVersion = '6.3.2.RELEASE'
