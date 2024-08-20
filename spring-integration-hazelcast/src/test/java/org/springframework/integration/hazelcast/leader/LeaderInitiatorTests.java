@@ -24,26 +24,33 @@ import java.util.concurrent.TimeUnit;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.hazelcast.cp.CPGroupId;
+import com.hazelcast.cp.CPSubsystem;
+import com.hazelcast.cp.lock.FencedLock;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.AbstractLeaderEvent;
 import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * Tests for hazelcast leader election.
@@ -53,9 +60,9 @@ import static org.mockito.Mockito.spy;
  * @author Dave Syer
  * @author Artem Bilan
  * @author Mael Le Guével
+ * @author Emil Palm
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
 public class LeaderInitiatorTests {
 
@@ -204,16 +211,64 @@ public class LeaderInitiatorTests {
 		initiator.destroy();
 	}
 
+	@Test
+	public void testRevokeLeadershipCalledWhenLockNotAcquiredButStillLeader() throws Exception {
+		// Initialize mocks and objects needed for the revoke leadership when fenced lock is no longer acquired
+		HazelcastInstance hazelcastInstance = mock();
+		Candidate candidate = mock();
+		FencedLock fencedLock = mock();
+		LeaderEventPublisher leaderEventPublisher = mock();
+
+		CPSubsystem cpSubsystem = mock(CPSubsystem.class);
+		given(candidate.getRole()).willReturn("role");
+		given(hazelcastInstance.getCPSubsystem()).willReturn(cpSubsystem);
+		given(cpSubsystem.getLock(anyString())).willReturn(fencedLock);
+		given(fencedLock.getGroupId())
+				.willReturn(new CPGroupId() {
+
+					@Override
+					public String getName() {
+						return "";
+					}
+
+					@Override
+					public long getId() {
+						return 0;
+					}
+				});
+
+		LeaderInitiator leaderInitiator = new LeaderInitiator(hazelcastInstance, candidate);
+		leaderInitiator.setLeaderEventPublisher(leaderEventPublisher);
+
+		// Simulate that the lock is currently held by this thread
+		given(fencedLock.isLockedByCurrentThread()).willReturn(true, false);
+		given(fencedLock.tryLock(anyLong(), any(TimeUnit.class))).willReturn(false); // Lock acquisition fails
+
+		// Start the LeaderInitiator to trigger the leader election process
+		leaderInitiator.start();
+
+		// Simulate the lock acquisition check process
+		Thread.sleep(1000);  // Give time for the async task to run
+
+		// Verify that revokeLeadership was called due to lock not being acquired
+		// unlock is part of revokeLeadership
+		verify(fencedLock).unlock();
+		// verify revoke event is published
+		verify(leaderEventPublisher).publishOnRevoked(any(Object.class), any(Context.class), anyString());
+
+		leaderInitiator.destroy();
+	}
+
 	@Configuration
 	public static class TestConfig {
 
 		@Bean
-		public TestCandidate candidate() {
+		TestCandidate candidate() {
 			return new TestCandidate();
 		}
 
 		@Bean
-		public Config hazelcastConfig() {
+		Config hazelcastConfig() {
 			Config config = new Config();
 			config.getCPSubsystemConfig()
 					.setSessionHeartbeatIntervalSeconds(1);
@@ -221,17 +276,17 @@ public class LeaderInitiatorTests {
 		}
 
 		@Bean(destroyMethod = "shutdown")
-		public HazelcastInstance hazelcastInstance() {
+		HazelcastInstance hazelcastInstance() {
 			return Hazelcast.newHazelcastInstance(hazelcastConfig());
 		}
 
 		@Bean
-		public LeaderInitiator initiator() {
+		LeaderInitiator initiator() {
 			return new LeaderInitiator(hazelcastInstance(), candidate());
 		}
 
 		@Bean
-		public TestEventListener testEventListener() {
+		TestEventListener testEventListener() {
 			return new TestEventListener();
 		}
 
