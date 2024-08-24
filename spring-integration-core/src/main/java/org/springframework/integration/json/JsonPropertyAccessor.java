@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
@@ -35,7 +36,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * A SpEL {@link PropertyAccessor} that knows how to read properties from JSON objects.
- * Uses Jackson {@link JsonNode} API for nested properties access.
+ * <p>Uses Jackson {@link JsonNode} API for nested properties access.
  *
  * @author Eric Bottard
  * @author Artem Bilan
@@ -43,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Pierre Lakreb
  * @author Vladislav Fefelov
+ * @author Sam Brannen
  *
  * @since 3.0
  */
@@ -80,23 +82,22 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 			// Cannot parse - treat as not a JSON
 			return false;
 		}
-		Integer index = maybeIndex(name);
 		if (node instanceof ArrayNode) {
-			return index != null;
+			return maybeIndex(name) != null;
 		}
 		return true;
 	}
 
 	private JsonNode asJson(Object target) throws AccessException {
-		if (target instanceof JsonNode) {
-			return (JsonNode) target;
+		if (target instanceof JsonNode jsonNode) {
+			return jsonNode;
 		}
-		else if (target instanceof JsonNodeWrapper) {
-			return ((JsonNodeWrapper<?>) target).getRealNode();
+		else if (target instanceof JsonNodeWrapper<?> jsonNodeWrapper) {
+			return jsonNodeWrapper.getRealNode();
 		}
-		else if (target instanceof String) {
+		else if (target instanceof String content) {
 			try {
-				return this.objectMapper.readTree((String) target);
+				return this.objectMapper.readTree(content);
 			}
 			catch (JsonProcessingException e) {
 				throw new AccessException("Exception while trying to deserialize String", e);
@@ -161,7 +162,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	}
 
 	private static TypedValue typedValue(JsonNode json) throws AccessException {
-		if (json == null) {
+		if (json == null || json instanceof NullNode) {
 			return TypedValue.NULL;
 		}
 		else if (json.isValueNode()) {
@@ -199,8 +200,8 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		if (json == null) {
 			return null;
 		}
-		else if (json instanceof ArrayNode) {
-			return new ArrayNodeAsList((ArrayNode) json);
+		else if (json instanceof ArrayNode arrayNode) {
+			return new ArrayNodeAsList(arrayNode);
 		}
 		else if (json.isValueNode()) {
 			return getValue(json);
@@ -211,8 +212,6 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	}
 
 	interface JsonNodeWrapper<T> extends Comparable<T> {
-
-		String toString();
 
 		JsonNode getRealNode();
 
@@ -309,10 +308,8 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 		@Override
 		public int compareTo(Object o) {
-			if (o instanceof JsonNodeWrapper<?>) {
-				return this.delegate.equals(((JsonNodeWrapper<?>) o).getRealNode()) ? 0 : 1;
-			}
-			return this.delegate.equals(o) ? 0 : 1;
+			Object that = (o instanceof JsonNodeWrapper<?> wrapper ? wrapper.getRealNode() : o);
+			return this.delegate.equals(that) ? 0 : 1;
 		}
 
 	}
