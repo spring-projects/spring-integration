@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
  * @author Sam Brannen
  *
  * @since 3.0
+ * @see JsonIndexAccessor
  */
 public class JsonPropertyAccessor implements PropertyAccessor {
 
@@ -161,7 +162,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		return true;
 	}
 
-	private static TypedValue typedValue(JsonNode json) throws AccessException {
+	static TypedValue typedValue(JsonNode json) throws AccessException {
 		if (json == null || json instanceof NullNode) {
 			return TypedValue.NULL;
 		}
