@@ -76,6 +76,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		Message<?> message3 = channel.receive(20);
 		assertThat(message3).isNotNull();
 		assertThat(((ApplicationEvent) message3.getPayload()).getSource()).isEqualTo("event2");
+		adapter.stop();
 	}
 
 	@Test
@@ -106,6 +107,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.setEventTypes(null, null);
 		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class))).isTrue();
 		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class))).isTrue();
+		adapter.stop();
 	}
 
 	@Test
@@ -178,6 +180,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		Message<?> message2 = channel.receive(20);
 		assertThat(message2).isNotNull();
 		assertThat(message2.getPayload()).isEqualTo("test");
+		adapter.stop();
 	}
 
 	@Test
@@ -192,6 +195,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		Message<?> message2 = channel.receive(20);
 		assertThat(message2).isNotNull();
 		assertThat(message2.getPayload()).isEqualTo("test");
+		adapter.stop();
 	}
 
 	@Test
@@ -216,6 +220,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.setErrorChannel(null);
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> adapter.onApplicationEvent(new TestApplicationEvent1()));
+		adapter.stop();
 	}
 
 	@Test

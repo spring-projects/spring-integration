@@ -7,7 +7,7 @@
 
 	<!-- under test -->
 	<bean id="pollableFileSource" class="org.springframework.integration.file.FileReadingMessageSource"
-		  p:directory="file:${java.io.tmpdir}/FileReadingMessageSourcePersistentFilterIntegrationTests"
+		  p:directory="#{T(org.springframework.integration.file.FileReadingMessageSourcePersistentFilterIntegrationTests).inputDir}"
 		  p:filter-ref="persistentFilter"/>
 
 	<!-- persistent filter -->
@@ -18,7 +18,7 @@
 
 	<bean id="ppms" class="org.springframework.integration.metadata.PropertiesPersistingMetadataStore">
 		<property name="baseDirectory"
-			value="#{T(System).getProperty('java.io.tmpdir') + T(java.io.File).separator + 'FileReadingMessageSourcePersistentFilterIntegrationTests.meta'}"/>
+			value="#{T(org.springframework.integration.file.FileReadingMessageSourcePersistentFilterIntegrationTests).inputDir.path}"/>
 	</bean>
 
 </beans>

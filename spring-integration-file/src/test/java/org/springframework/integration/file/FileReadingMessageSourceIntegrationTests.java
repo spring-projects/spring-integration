@@ -17,21 +17,20 @@
 package org.springframework.integration.file;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.Repeat;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,71 +39,39 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
+@DirtiesContext
 public class FileReadingMessageSourceIntegrationTests {
 
 	@Autowired
 	FileReadingMessageSource pollableFileSource;
 
-	private static File inputDir;
+	@TempDir
+	public static File inputDir;
 
-	@AfterClass
-	public static void cleanUp() throws Throwable {
-		if (inputDir.exists()) {
-			inputDir.delete();
-		}
-	}
-
-	@BeforeClass
-	public static void setupInputDir() {
-		inputDir = new File(System.getProperty("java.io.tmpdir") + "/"
-				+ FileReadingMessageSourceIntegrationTests.class.getSimpleName());
-		inputDir.mkdir();
-		clean();
-	}
-
-	@AfterClass
-	public static void tearDown() {
-		clean();
-		inputDir.delete();
-	}
-
-	private static void clean() {
-		File[] files = inputDir.listFiles();
-		for (File file : files) {
-			file.delete();
-		}
-	}
-
-	@Before
-	public void generateTestFiles() throws Exception {
+	@BeforeEach
+	public void generateTestFiles() throws IOException {
 		File.createTempFile("test", null, inputDir).setLastModified(System.currentTimeMillis() - 1000);
 		File.createTempFile("test", null, inputDir).setLastModified(System.currentTimeMillis() - 1000);
 		File.createTempFile("test", null, inputDir).setLastModified(System.currentTimeMillis() - 1000);
 	}
 
-	@After
-	public void cleanupInputDir() throws Exception {
+	@AfterEach
+	public void cleanupInputDir() {
 		File[] listFiles = inputDir.listFiles();
-		for (int i = 0; i < listFiles.length; i++) {
-			listFiles[i].delete();
+		for (File listFile : listFiles) {
+			listFile.delete();
 		}
-	}
-
-	@AfterClass
-	public static void removeInputDir() throws Exception {
-		inputDir.delete();
 	}
 
 	@Test
-	public void configured() throws Exception {
+	public void configured() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(pollableFileSource);
 		assertThat(accessor.getPropertyValue("directory")).isEqualTo(inputDir);
 	}
 
 	@Test
-	public void getFiles() throws Exception {
+	public void getFiles() {
 		Message<File> received1 = pollableFileSource.receive();
 		assertThat(received1).as("This should return the first message").isNotNull();
 		Message<File> received2 = pollableFileSource.receive();
@@ -117,7 +84,7 @@ public class FileReadingMessageSourceIntegrationTests {
 	}
 
 	@Test
-	public void parallelRetrieval() throws Exception {
+	public void parallelRetrieval() {
 		Message<File> received1 = pollableFileSource.receive();
 		Message<File> received2 = pollableFileSource.receive();
 		Message<File> received3 = pollableFileSource.receive();
@@ -127,7 +94,7 @@ public class FileReadingMessageSourceIntegrationTests {
 	}
 
 	@Test
-	public void inputDirExhausted() throws Exception {
+	public void inputDirExhausted() {
 		assertThat(pollableFileSource.receive()).isNotNull();
 		assertThat(pollableFileSource.receive()).isNotNull();
 		Message<File> receive = pollableFileSource.receive();
@@ -141,7 +108,7 @@ public class FileReadingMessageSourceIntegrationTests {
 
 	@Test
 	@Repeat(5)
-	public void concurrentProcessing() throws Exception {
+	public void concurrentProcessing() {
 		CountDownLatch go = new CountDownLatch(1);
 		Runnable successfulConsumer = () -> {
 			Message<File> received = pollableFileSource.receive();

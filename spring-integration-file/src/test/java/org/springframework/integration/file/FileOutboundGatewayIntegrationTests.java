@@ -20,12 +20,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +32,8 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,8 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class FileOutboundGatewayIntegrationTests {
 
 	@Qualifier("copyInput")
@@ -76,26 +74,10 @@ public class FileOutboundGatewayIntegrationTests {
 
 	File sourceFile;
 
+	@TempDir
 	static File workDir;
 
-	@BeforeClass
-	public static void setupClass() {
-		workDir = new File(System.getProperty("java.io.tmpdir"), "anyDir");
-		workDir.mkdir();
-		workDir.deleteOnExit();
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		if (workDir != null && workDir.exists()) {
-			for (File file : workDir.listFiles()) {
-				file.delete();
-			}
-		}
-		workDir.delete();
-	}
-
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		sourceFile = File.createTempFile("anyFile", ".txt");
 		sourceFile.deleteOnExit();
@@ -104,7 +86,7 @@ public class FileOutboundGatewayIntegrationTests {
 		message = MessageBuilder.withPayload(sourceFile).build();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		sourceFile.delete();
 	}

@@ -19,8 +19,7 @@ package org.springframework.integration.file.config;
 import java.io.File;
 import java.util.Set;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,17 +32,19 @@ import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class FileInboundChannelAdapterWithPatternParserTests {
 
 	@Autowired
@@ -53,12 +54,8 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Qualifier("adapterWithPattern.adapter")
 	private AbstractEndpoint endpoint;
 
-	private DirectFieldAccessor accessor;
-
 	@Autowired
-	public void setSource(FileReadingMessageSource source) {
-		this.accessor = new DirectFieldAccessor(source);
-	}
+	FileReadingMessageSource source;
 
 	@Test
 	public void channelName() {
@@ -75,35 +72,30 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Test
 	public void inputDirectory() {
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = (File) accessor.getPropertyValue("directory");
+		File actual = TestUtils.getPropertyValue(this.source, "directory", File.class);
 		assertThat(actual).isEqualTo(expected);
 	}
 
 	@Test
 	public void compositeFilterType() {
-		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-		assertThat(scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter).isTrue();
+		FileListFilter<?> filter = TestUtils.getPropertyValue(this.source, "scanner.filter", FileListFilter.class);
+		assertThat(filter).isInstanceOf(CompositeFileListFilter.class);
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void compositeFilterSetSize() {
-		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-		Set<FileListFilter<File>> filters = (Set<FileListFilter<File>>) new DirectFieldAccessor(
-				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
-		assertThat(filters.size()).isEqualTo(2);
+		assertThat((Set<?>) TestUtils.getPropertyValue(this.source, "scanner.filter.fileFilters")).hasSize(2);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void acceptOnceFilter() {
-		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-		Set<FileListFilter<File>> filters = (Set<FileListFilter<File>>) new DirectFieldAccessor(
-				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
+		var filters = (Set<FileListFilter<File>>) TestUtils.getPropertyValue(this.source, "scanner.filter.fileFilters");
 		boolean hasAcceptOnceFilter = false;
 		for (FileListFilter<File> filter : filters) {
 			if (filter instanceof AcceptOnceFileListFilter) {
 				hasAcceptOnceFilter = true;
+				break;
 			}
 		}
 		assertThat(hasAcceptOnceFilter).as("expected AcceptOnceFileListFilter").isTrue();
@@ -112,9 +104,7 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void patternFilter() {
-		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-		Set<FileListFilter<?>> filters = (Set<FileListFilter<?>>) new DirectFieldAccessor(
-				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
+		var filters = (Set<FileListFilter<File>>) TestUtils.getPropertyValue(this.source, "scanner.filter.fileFilters");
 		String pattern = null;
 		for (FileListFilter<?> filter : filters) {
 			if (filter instanceof SimplePatternFileListFilter) {
@@ -122,7 +112,7 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 			}
 		}
 		assertThat(pattern).as("expected SimplePatternFileListFilterTest").isNotNull();
-		assertThat(pattern.toString()).isEqualTo("*.txt");
+		assertThat(pattern).isEqualTo("*.txt");
 	}
 
 }

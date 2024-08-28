@@ -21,8 +21,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +32,9 @@ import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,8 +42,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Gunnar Hillert
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 
 	@Autowired
@@ -70,7 +70,7 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 	}
 
 	@Test
-	public void filterAndFalse() throws Exception {
+	public void filterAndFalse() {
 		FileListFilter<?> filter = this.extractFilter("filterAndFalse");
 		assertThat(filter instanceof CompositeFileListFilter).isFalse();
 		assertThat(filter).isSameAs(testFilter);
@@ -78,7 +78,7 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void patternAndNull() throws Exception {
+	public void patternAndNull() {
 		FileListFilter<?> filter = this.extractFilter("patternAndNull");
 		assertThat(filter instanceof CompositeFileListFilter).isTrue();
 		Collection<FileListFilter<File>> filters = (Collection<FileListFilter<File>>)
@@ -90,7 +90,7 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void patternAndTrue() throws Exception {
+	public void patternAndTrue() {
 		FileListFilter<?> filter = this.extractFilter("patternAndTrue");
 		assertThat(filter instanceof CompositeFileListFilter).isTrue();
 		Collection<FileListFilter<File>> filters = (Collection<FileListFilter<File>>)
@@ -101,14 +101,14 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 	}
 
 	@Test
-	public void patternAndFalse() throws Exception {
+	public void patternAndFalse() {
 		FileListFilter<File> filter = this.extractFilter("patternAndFalse");
 		assertThat(filter instanceof CompositeFileListFilter).isFalse();
 		assertThat(filter).isInstanceOf(SimplePatternFileListFilter.class);
 	}
 
 	@Test
-	public void defaultAndNull() throws Exception {
+	public void defaultAndNull() {
 		FileListFilter<File> filter = this.extractFilter("defaultAndNull");
 		assertThat(filter).isNotNull();
 		assertThat(filter instanceof CompositeFileListFilter).isFalse();
@@ -121,7 +121,7 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 	}
 
 	@Test
-	public void defaultAndTrue() throws Exception {
+	public void defaultAndTrue() {
 		FileListFilter<File> filter = this.extractFilter("defaultAndTrue");
 		assertThat(filter instanceof CompositeFileListFilter).isFalse();
 		assertThat(filter instanceof AcceptOnceFileListFilter).isTrue();
@@ -132,7 +132,7 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 	}
 
 	@Test
-	public void defaultAndFalse() throws Exception {
+	public void defaultAndFalse() {
 		FileListFilter<File> filter = this.extractFilter("defaultAndFalse");
 		assertThat(filter).isNotNull();
 		assertThat(filter instanceof CompositeFileListFilter).isFalse();
@@ -145,13 +145,7 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 
 	@SuppressWarnings("unchecked")
 	private FileListFilter<File> extractFilter(String beanName) {
-		return (FileListFilter<File>)
-				new DirectFieldAccessor(
-						new DirectFieldAccessor(
-								new DirectFieldAccessor(context.getBean(beanName))
-										.getPropertyValue("source"))
-								.getPropertyValue("scanner"))
-						.getPropertyValue("filter");
+		return (FileListFilter<File>) TestUtils.getPropertyValue(context.getBean(beanName), "source.scanner.filter");
 	}
 
 }
