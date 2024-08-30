@@ -78,9 +78,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	protected final Lock lifecycleMonitor = new ReentrantLock(); // NOSONAR final
 
-	private final Map<String, TcpConnectionSupport> connections = new ConcurrentHashMap<>();
+	protected final Map<String, TcpConnectionSupport> connections = new ConcurrentHashMap<>(); // NOSONAR final
 
-	private final Lock connectionsMonitor = new ReentrantLock();
+	protected final Lock connectionsMonitor = new ReentrantLock(); // NOSONAR final
 
 	private final BlockingQueue<PendingIO> delayedReads = new LinkedBlockingQueue<>();
 
@@ -977,7 +977,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.connectionsMonitor.lock();
 		try {
 			boolean closed = false;
-			TcpConnectionSupport connection = removeConnection(connectionId);
+			TcpConnectionSupport connection = this.connections.remove(connectionId);
 			if (connection != null) {
 				try {
 					connection.close();
@@ -994,11 +994,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		finally {
 			this.connectionsMonitor.unlock();
 		}
-	}
-
-	@Nullable
-	protected TcpConnectionSupport removeConnection(String connectionId) {
-		return this.connections.remove(connectionId);
 	}
 
 	@Override

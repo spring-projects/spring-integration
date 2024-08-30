@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.util.Assert;
 
 /**
  * Connection factory that caches connections from the underlying target factory. The underlying
@@ -359,8 +360,31 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
-	protected TcpConnectionSupport removeConnection(String connectionId) {
-		return this.targetConnectionFactory.removeConnection(connectionId.replaceFirst("Cached:", ""));
+	public boolean closeConnection(String connectionId) {
+		Assert.notNull(connectionId, "'connectionId' to close must not be null");
+		String targetConnectionId = connectionId.replaceFirst("Cached:", "");
+		this.connectionsMonitor.lock();
+		try {
+			TcpConnectionSupport targetConnection = this.targetConnectionFactory.connections.get(targetConnectionId);
+			if (targetConnection != null) {
+				/*
+				 * If the delegate is stopped, actually close the connection, but still release
+				 * it to the pool, it will be discarded/renewed the next time it is retrieved.
+				 */
+				if (!isRunning()) {
+					logger.debug(() -> "Factory not running - closing " + connectionId);
+					super.closeConnection(targetConnectionId);
+				}
+				CachingClientConnectionFactory.this.pool.releaseItem(targetConnection);
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		finally {
+			this.connectionsMonitor.unlock();
+		}
 	}
 
 	@Override
