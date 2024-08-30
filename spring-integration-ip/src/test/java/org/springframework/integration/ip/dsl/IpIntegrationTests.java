@@ -35,6 +35,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -51,6 +52,7 @@ import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionServerListeningEvent;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
@@ -261,6 +263,7 @@ public class IpIntegrationTests {
 				IntStream.rangeClosed('a', 'z')
 						.mapToObj((characterCode) -> (char) characterCode)
 						.map((character) -> "" + character)
+						.parallel()
 						.peek((character) -> this.outboundFlowInput.send(new GenericMessage<>(character)))
 						.map(String::toUpperCase)
 						.toList();
@@ -274,6 +277,8 @@ public class IpIntegrationTests {
 		}
 
 		assertThat(replies).containsAll(expected);
+
+		assertThat(config.openEvents).hasSizeLessThanOrEqualTo(5);
 	}
 
 	@Configuration
@@ -431,9 +436,18 @@ public class IpIntegrationTests {
 			return Tcp.netClient("localhost", 0);
 		}
 
+		final List<TcpConnectionOpenEvent> openEvents = new ArrayList<>();
+
+		@EventListener
+		void connectionOpened(TcpConnectionOpenEvent tcpConnectionOpenEvent) {
+			if ("client3".equals(tcpConnectionOpenEvent.getConnectionFactoryName())) {
+				this.openEvents.add(tcpConnectionOpenEvent);
+			}
+		}
+
 		@Bean
 		CachingClientConnectionFactory cachingClient(TcpNetClientConnectionFactory client3) {
-			var cachingClientConnectionFactory = new CachingClientConnectionFactory(client3, 10);
+			var cachingClientConnectionFactory = new CachingClientConnectionFactory(client3, 5);
 			cachingClientConnectionFactory.setConnectionWaitTimeout(10_000);
 			return cachingClientConnectionFactory;
 		}

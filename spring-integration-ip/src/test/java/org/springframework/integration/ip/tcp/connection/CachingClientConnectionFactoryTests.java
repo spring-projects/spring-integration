@@ -390,12 +390,7 @@ public class CachingClientConnectionFactoryTests {
 
 	private TcpConnectionSupport mockedTcpNioConnection() throws Exception {
 		SocketChannel socketChannel = mock(SocketChannel.class);
-		if (System.getProperty("java.version").startsWith("1.8")) {
-			new DirectFieldAccessor(socketChannel).setPropertyValue("open", false);
-		}
-		else {
-			new DirectFieldAccessor(socketChannel).setPropertyValue("closed", true);
-		}
+		new DirectFieldAccessor(socketChannel).setPropertyValue("closed", true);
 		doThrow(new IOException("Foo")).when(socketChannel).write(Mockito.any(ByteBuffer.class));
 		when(socketChannel.socket()).thenReturn(mock(Socket.class));
 		TcpNioConnection conn = new TcpNioConnection(socketChannel, false, false, event -> {
