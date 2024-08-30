@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.FtpFileInfo;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -85,12 +86,12 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 
 	/**
 	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
-	 * etc), and an expression to determine the filename.
+	 * etc.), and an expression to determine the remote path.
 	 * @param sessionFactory the session factory.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expression the remote path expression.
 	 */
-	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory, String command, String expression) {
+	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory, String command, @Nullable String expression) {
 		this(new FtpRemoteFileTemplate(sessionFactory), command, expression);
 		((FtpRemoteFileTemplate) getRemoteFileTemplate()).setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLST);
 		remoteFileTemplateExplicitlySet(false);
@@ -98,12 +99,14 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 
 	/**
 	 * Construct an instance with the supplied remote file template, a command ('ls',
-	 * 'get' etc), and an expression to determine the filename.
+	 * 'get' etc.), and an expression to determine the remote path.
 	 * @param remoteFileTemplate the remote file template.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expression the remote path expression.
 	 */
-	public FtpOutboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate, String command, String expression) {
+	public FtpOutboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate, String command,
+			@Nullable String expression) {
+
 		super(remoteFileTemplate, command, expression);
 	}
 
