@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -977,7 +977,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.connectionsMonitor.lock();
 		try {
 			boolean closed = false;
-			TcpConnectionSupport connection = this.connections.remove(connectionId);
+			TcpConnectionSupport connection = removeConnection(connectionId);
 			if (connection != null) {
 				try {
 					connection.close();
@@ -994,6 +994,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		finally {
 			this.connectionsMonitor.unlock();
 		}
+	}
+
+	@Nullable
+	protected TcpConnectionSupport removeConnection(String connectionId) {
+		return this.connections.remove(connectionId);
 	}
 
 	@Override

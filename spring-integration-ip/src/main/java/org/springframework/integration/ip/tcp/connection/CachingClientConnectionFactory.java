@@ -384,6 +384,11 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
+	protected TcpConnectionSupport removeConnection(String connectionId) {
+		return this.targetConnectionFactory.removeConnection(connectionId.replaceFirst("Cached:", ""));
+	}
+
+	@Override
 	public void start() {
 		setActive(true);
 		this.targetConnectionFactory.start();
