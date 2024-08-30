@@ -17,6 +17,8 @@
 package org.springframework.integration.mqtt;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -37,6 +39,7 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mqtt.core.Mqttv3ClientManager;
 import org.springframework.integration.mqtt.core.Mqttv5ClientManager;
+import org.springframework.integration.mqtt.event.MqttMessageDeliveryEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.inbound.Mqttv5PahoMessageDrivenChannelAdapter;
@@ -92,6 +95,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 				Mqttv5ConfigRuntime.subscribedLatch);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void testSubscribeAndPublish(Class<?> configClass, String topicName, CountDownLatch subscribedLatch)
 			throws Exception {
 
@@ -115,6 +119,13 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			else {
 				assertThat(payload).isEqualTo(testPayload.getBytes(StandardCharsets.UTF_8));
 			}
+
+			if (ctx.containsBean("deliveryEvents")) {
+				List<MqttMessageDeliveryEvent> deliveryEvents = ctx.getBean("deliveryEvents", List.class);
+				// MqttMessageSentEvent and  MqttMessageDeliveredEvent
+				assertThat(deliveryEvents).hasSize(2);
+			}
+
 		}
 	}
 
@@ -164,6 +175,16 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			subscribedLatch.countDown();
 		}
 
+		@EventListener
+		void mqttEvents(MqttMessageDeliveryEvent event) {
+			deliveryEvents().add(event);
+		}
+
+		@Bean
+		List<MqttMessageDeliveryEvent> deliveryEvents() {
+			return new ArrayList<>();
+		}
+
 		@Bean
 		public Mqttv3ClientManager mqttv3ClientManager() {
 			MqttConnectOptions connectionOptions = new MqttConnectOptions();
@@ -174,7 +195,10 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 
 		@Bean
 		public IntegrationFlow mqttOutFlow(Mqttv3ClientManager mqttv3ClientManager) {
-			return f -> f.handle(new MqttPahoMessageHandler(mqttv3ClientManager));
+			MqttPahoMessageHandler mqttPahoMessageHandler = new MqttPahoMessageHandler(mqttv3ClientManager);
+			mqttPahoMessageHandler.setAsync(true);
+			mqttPahoMessageHandler.setAsyncEvents(true);
+			return f -> f.handle(mqttPahoMessageHandler);
 		}
 
 		@Bean
@@ -257,6 +281,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			var clientManager = ctx.getBean(Mqttv3ClientManager.class);
 			return new MqttPahoMessageDrivenChannelAdapter(clientManager, TOPIC_NAME);
 		}
+
 	}
 
 	@Configuration
@@ -272,6 +297,16 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			subscribedLatch.countDown();
 		}
 
+		@EventListener
+		void mqttEvents(MqttMessageDeliveryEvent event) {
+			deliveryEvents().add(event);
+		}
+
+		@Bean
+		List<MqttMessageDeliveryEvent> deliveryEvents() {
+			return new ArrayList<>();
+		}
+
 		@Bean
 		public Mqttv5ClientManager mqttv5ClientManager() {
 			return new Mqttv5ClientManager(MosquittoContainerTest.mqttUrl(), "client-manager-client-id-v5");
@@ -280,7 +315,10 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 		@Bean
 		@ServiceActivator(inputChannel = "mqttOutFlow.input")
 		public Mqttv5PahoMessageHandler mqttv5PahoMessageHandler(Mqttv5ClientManager mqttv5ClientManager) {
-			return new Mqttv5PahoMessageHandler(mqttv5ClientManager);
+			Mqttv5PahoMessageHandler mqttPahoMessageHandler = new Mqttv5PahoMessageHandler(mqttv5ClientManager);
+			mqttPahoMessageHandler.setAsync(true);
+			mqttPahoMessageHandler.setAsyncEvents(true);
+			return mqttPahoMessageHandler;
 		}
 
 		@Bean
@@ -358,10 +396,13 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			var clientManager = ctx.getBean(Mqttv5ClientManager.class);
 			return new Mqttv5PahoMessageDrivenChannelAdapter(clientManager, TOPIC_NAME);
 		}
+
 	}
 
 	interface MessageDrivenChannelAdapterFactory {
+
 		MessageProducerSupport createMessageDrivenAdapter(ApplicationContext ctx);
+
 	}
 
 	record ClientV3Disconnector(Mqttv3ClientManager clientManager) {

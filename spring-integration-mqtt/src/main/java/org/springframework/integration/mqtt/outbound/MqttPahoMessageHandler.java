@@ -16,8 +16,10 @@
 
 package org.springframework.integration.mqtt.outbound;
 
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -29,8 +31,6 @@ import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
-import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
-import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.mqtt.support.MqttUtils;
@@ -60,9 +60,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private boolean async;
-
-	private boolean asyncEvents;
+	private final IMqttActionListener mqttPublishActionListener = new MqttPublishActionListener();
 
 	private volatile IMqttAsyncClient client;
 
@@ -111,29 +109,6 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 		var factory = new DefaultMqttPahoClientFactory();
 		factory.setConnectionOptions(clientManager.getConnectionInfo());
 		this.clientFactory = factory;
-	}
-
-	/**
-	 * Set to true if you don't want to block when sending messages. Default false.
-	 * When true, message sent/delivered events will be published for reception
-	 * by a suitably configured 'ApplicationListener' or an event
-	 * inbound-channel-adapter.
-	 * @param async true for async.
-	 * @since 4.1
-	 */
-	public void setAsync(boolean async) {
-		this.async = async;
-	}
-
-	/**
-	 * When {@link #setAsync(boolean)} is true, setting this to true enables
-	 * publication of {@link MqttMessageSentEvent} and {@link MqttMessageDeliveredEvent}
-	 * to be emitted. Default false.
-	 * @param asyncEvents the asyncEvents.
-	 * @since 4.1
-	 */
-	public void setAsyncEvents(boolean asyncEvents) {
-		this.asyncEvents = asyncEvents;
 	}
 
 	@Override
@@ -236,28 +211,16 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage, "The 'mqttMessage' must be an instance of 'MqttMessage'");
 		try {
 			IMqttDeliveryToken token = checkConnection()
-					.publish(topic, (MqttMessage) mqttMessage);
-			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-			if (!this.async) {
+					.publish(topic, (MqttMessage) mqttMessage, null, this.mqttPublishActionListener);
+			if (!isAsync()) {
 				token.waitForCompletion(getCompletionTimeout()); // NOSONAR (sync)
 			}
-			else if (this.asyncEvents && applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(
-						new MqttMessageSentEvent(this, message, topic, token.getMessageId(), getClientId(),
-								getClientInstance()));
+			else {
+				messageSentEvent(message, topic, token.getMessageId());
 			}
 		}
 		catch (MqttException e) {
 			throw new MessageHandlingException(message, "Failed to publish to MQTT in the [" + this + ']', e);
-		}
-	}
-
-	private void sendDeliveryComplete(IMqttDeliveryToken token) {
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (this.async && this.asyncEvents && applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(
-					new MqttMessageDeliveredEvent(this, token.getMessageId(), getClientId(),
-							getClientInstance()));
 		}
 	}
 
@@ -293,7 +256,24 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler<IMqttAsyn
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken token) {
-		sendDeliveryComplete(token);
+
+	}
+
+	private final class MqttPublishActionListener implements IMqttActionListener {
+
+		MqttPublishActionListener() {
+		}
+
+		@Override
+		public void onSuccess(IMqttToken asyncActionToken) {
+			sendDeliveryCompleteEvent(asyncActionToken.getMessageId());
+		}
+
+		@Override
+		public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+			sendFailedDeliveryEvent(asyncActionToken.getMessageId(), exception);
+		}
+
 	}
 
 }

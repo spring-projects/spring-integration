@@ -182,7 +182,7 @@ public class MqttAdapterTests {
 			assertThat(new String(message.getPayload())).isEqualTo("Hello, world!");
 			publishCalled.set(true);
 			return deliveryToken;
-		}).given(client).publish(anyString(), any(MqttMessage.class));
+		}).given(client).publish(anyString(), any(), any(), any());
 
 		handler.handleMessage(new GenericMessage<>("Hello, world!"));
 
@@ -204,7 +204,7 @@ public class MqttAdapterTests {
 		given(clientManager.getClient()).willReturn(client);
 
 		var deliveryToken = mock(MqttDeliveryToken.class);
-		given(client.publish(anyString(), any(MqttMessage.class))).willReturn(deliveryToken);
+		given(client.publish(anyString(), any(), any(), any())).willReturn(deliveryToken);
 
 		var handler = new MqttPahoMessageHandler(clientManager);
 		handler.setDefaultTopic("mqtt-foo");
@@ -218,7 +218,7 @@ public class MqttAdapterTests {
 
 		// then
 		verify(client, never()).connect(any(MqttConnectOptions.class));
-		verify(client).publish(anyString(), any(MqttMessage.class));
+		verify(client).publish(anyString(), any(), any(), any());
 		verify(client, never()).disconnect();
 		verify(client, never()).disconnect(anyLong());
 		verify(client, never()).close();

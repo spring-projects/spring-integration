@@ -72,5 +72,6 @@ See xref:sftp/session-factory.adoc[SFTP Session Factory] for more information.
 === MQTT Support Changes
 
 Multiple instances of `MqttPahoMessageDrivenChannelAdapter` and `Mqttv5PahoMessageDrivenChannelAdapter` can now be added at runtime using corresponding `ClientManager` through `IntegrationFlowContext`
+Also a `MqttMessageNotDeliveredEvent` event has been introduced to emit when action callback reacts to the delivery failure.
 See xref:mqtt.adoc[MQTT Support] for more information.
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.mqtt.core.ClientManager;
+import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
+import org.springframework.integration.mqtt.event.MqttMessageNotDeliveredEvent;
+import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.support.management.ManageableLifecycle;
@@ -75,6 +78,10 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 	private final String clientId;
 
 	private final ClientManager<T, C> clientManager;
+
+	private boolean async;
+
+	private boolean asyncEvents;
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
@@ -319,6 +326,32 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 		return this.clientManager;
 	}
 
+	/**
+	 * Set to true if you don't want to block when sending messages. Default false.
+	 * When true, message sent/delivered events will be published for reception
+	 * by a suitably configured 'ApplicationListener' or an event
+	 * inbound-channel-adapter.
+	 * @param async true for async.
+	 * @see #setAsyncEvents(boolean)
+	 */
+	public void setAsync(boolean async) {
+		this.async = async;
+	}
+
+	protected boolean isAsync() {
+		return this.async;
+	}
+
+	/**
+	 * When {@link #setAsync(boolean)} is true, setting this to true enables
+	 * publication of {@link MqttMessageSentEvent} and {@link MqttMessageDeliveredEvent}
+	 * to be emitted. Default false.
+	 * @param asyncEvents the asyncEvents.
+	 */
+	public void setAsyncEvents(boolean asyncEvents) {
+		this.asyncEvents = asyncEvents;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -370,6 +403,31 @@ public abstract class AbstractMqttMessageHandler<T, C> extends AbstractMessageHa
 		Assert.state(topic != null, "No topic could be determined from the message and no default topic defined");
 
 		publish(topic, mqttMessage, message);
+	}
+
+	protected void messageSentEvent(Message<?> message, String topic, int messageId) {
+		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+		if (this.async && this.asyncEvents && applicationEventPublisher != null) {
+			applicationEventPublisher.publishEvent(
+					new MqttMessageSentEvent(this, message, topic, messageId, getClientId(),
+							getClientInstance()));
+		}
+	}
+
+	protected void sendDeliveryCompleteEvent(int messageId) {
+		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+		if (this.async && this.asyncEvents && applicationEventPublisher != null) {
+			applicationEventPublisher.publishEvent(
+					new MqttMessageDeliveredEvent(this, messageId, getClientId(), getClientInstance()));
+		}
+	}
+
+	protected void sendFailedDeliveryEvent(int messageId, Throwable exception) {
+		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+		if (this.async && this.asyncEvents && applicationEventPublisher != null) {
+			applicationEventPublisher.publishEvent(
+					new MqttMessageNotDeliveredEvent(this, messageId, getClientId(), getClientInstance(), exception));
+		}
 	}
 
 	protected abstract void publish(String topic, Object mqttMessage, Message<?> message);

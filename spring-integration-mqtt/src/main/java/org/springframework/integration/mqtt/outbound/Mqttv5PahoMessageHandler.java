@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
+import org.eclipse.paho.mqttv5.client.MqttActionListener;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.MqttCallback;
 import org.eclipse.paho.mqttv5.client.MqttClientPersistence;
@@ -36,8 +37,6 @@ import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.mqtt.core.ClientManager;
 import org.springframework.integration.mqtt.core.MqttComponent;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
-import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
-import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.event.MqttProtocolErrorEvent;
 import org.springframework.integration.mqtt.support.MqttHeaderMapper;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
@@ -62,14 +61,12 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 
 	private final MqttConnectionOptions connectionOptions;
 
+	private final MqttActionListener mqttPublishActionListener = new MqttPublishActionListener();
+
 	private IMqttAsyncClient mqttClient;
 
 	@Nullable
 	private MqttClientPersistence persistence;
-
-	private boolean async;
-
-	private boolean asyncEvents;
 
 	private HeaderMapper<MqttProperties> headerMapper = new MqttHeaderMapper();
 
@@ -116,28 +113,6 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 	public void setHeaderMapper(HeaderMapper<MqttProperties> headerMapper) {
 		Assert.notNull(headerMapper, "'headerMapper' must not be null");
 		this.headerMapper = headerMapper;
-	}
-
-	/**
-	 * Set to true if you don't want to block when sending messages. Default false.
-	 * When true, message sent/delivered events will be published for reception
-	 * by a suitably configured 'ApplicationListener' or an event
-	 * inbound-channel-adapter.
-	 * @param async true for async.
-	 * @see #setAsyncEvents(boolean)
-	 */
-	public void setAsync(boolean async) {
-		this.async = async;
-	}
-
-	/**
-	 * When {@link #setAsync(boolean)} is true, setting this to true enables
-	 * publication of {@link MqttMessageSentEvent} and {@link MqttMessageDeliveredEvent}
-	 * to be emitted. Default false.
-	 * @param asyncEvents the asyncEvents.
-	 */
-	public void setAsyncEvents(boolean asyncEvents) {
-		this.asyncEvents = asyncEvents;
 	}
 
 	@Override
@@ -268,15 +243,13 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 			if (!this.mqttClient.isConnected()) {
 				this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
 			}
-			IMqttToken token = this.mqttClient.publish(topic, (MqttMessage) mqttMessage);
-			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-			if (!this.async) {
+			IMqttToken token =
+					this.mqttClient.publish(topic, (MqttMessage) mqttMessage, null, this.mqttPublishActionListener);
+			if (!isAsync()) {
 				token.waitForCompletion(completionTimeout); // NOSONAR (sync)
 			}
-			else if (this.asyncEvents && applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(
-						new MqttMessageSentEvent(this, message, topic, token.getMessageId(), getClientId(),
-								getClientInstance()));
+			else {
+				messageSentEvent(message, topic, token.getMessageId());
 			}
 		}
 		catch (MqttException ex) {
@@ -284,18 +257,9 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		}
 	}
 
-	private void sendDeliveryComplete(IMqttToken token) {
-		ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
-		if (this.async && this.asyncEvents && applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(
-					new MqttMessageDeliveredEvent(this, token.getMessageId(), getClientId(),
-							getClientInstance()));
-		}
-	}
-
 	@Override
 	public void deliveryComplete(IMqttToken token) {
-		sendDeliveryComplete(token);
+
 	}
 
 	@Override
@@ -327,6 +291,23 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 
 	@Override
 	public void authPacketArrived(int reasonCode, MqttProperties properties) {
+
+	}
+
+	private final class MqttPublishActionListener implements MqttActionListener {
+
+		MqttPublishActionListener() {
+		}
+
+		@Override
+		public void onSuccess(IMqttToken asyncActionToken) {
+			sendDeliveryCompleteEvent(asyncActionToken.getMessageId());
+		}
+
+		@Override
+		public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+			sendFailedDeliveryEvent(asyncActionToken.getMessageId(), exception);
+		}
 
 	}
 
