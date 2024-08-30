@@ -52,6 +52,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Artem Vozhdayenko
@@ -123,9 +124,8 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			if (ctx.containsBean("deliveryEvents")) {
 				List<MqttMessageDeliveryEvent> deliveryEvents = ctx.getBean("deliveryEvents", List.class);
 				// MqttMessageSentEvent and  MqttMessageDeliveredEvent
-				assertThat(deliveryEvents).hasSize(2);
+				await().untilAsserted(() -> assertThat(deliveryEvents).hasSize(2));
 			}
-
 		}
 	}
 
