@@ -134,42 +134,84 @@ public final class Ftp {
 
 	/**
 	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link SessionFactory},
-	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
-	 * remoteFilePath.
+	 * {@link AbstractRemoteFileOutboundGateway.Command}.
 	 * @param sessionFactory the {@link SessionFactory}.
 	 * @param command the command to perform on the FTP.
-	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link FtpOutboundGatewaySpec}
+	 * @since 6.4
+	 */
+	public static FtpOutboundGatewaySpec outboundGateway(SessionFactory<FTPFile> sessionFactory,
+			AbstractRemoteFileOutboundGateway.Command command) {
+
+		return outboundGateway(sessionFactory, command.getCommand(), null);
+	}
+
+	/**
+	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link SessionFactory},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
+	 * remote path.
+	 * @param sessionFactory the {@link SessionFactory}.
+	 * @param command the command to perform on the FTP.
+	 * @param expression the remote path SpEL expression.
 	 * @return the {@link FtpOutboundGatewaySpec}
 	 */
 	public static FtpOutboundGatewaySpec outboundGateway(SessionFactory<FTPFile> sessionFactory,
-			AbstractRemoteFileOutboundGateway.Command command, String expression) {
+			AbstractRemoteFileOutboundGateway.Command command, @Nullable String expression) {
 
 		return outboundGateway(sessionFactory, command.getCommand(), expression);
 	}
 
 	/**
 	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link SessionFactory},
-	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
-	 * remoteFilePath.
+	 * {@link AbstractRemoteFileOutboundGateway.Command}.
 	 * @param sessionFactory the {@link SessionFactory}.
 	 * @param command the command to perform on the FTP.
-	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link FtpOutboundGatewaySpec}
+	 * @since 6.4
+	 * @see RemoteFileTemplate
+	 */
+	public static FtpOutboundGatewaySpec outboundGateway(SessionFactory<FTPFile> sessionFactory, String command) {
+		return outboundGateway(sessionFactory, command, null);
+	}
+
+	/**
+	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link SessionFactory},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
+	 * remote path.
+	 * @param sessionFactory the {@link SessionFactory}.
+	 * @param command the command to perform on the FTP.
+	 * @param expression the remote path SpEL expression.
 	 * @return the {@link FtpOutboundGatewaySpec}
 	 * @see RemoteFileTemplate
 	 */
 	public static FtpOutboundGatewaySpec outboundGateway(SessionFactory<FTPFile> sessionFactory,
-			String command, String expression) {
+			String command, @Nullable String expression) {
 
 		return new FtpOutboundGatewaySpec(new FtpOutboundGateway(sessionFactory, command, expression));
 	}
 
 	/**
 	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
-	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
-	 * remoteFilePath.
+	 * {@link AbstractRemoteFileOutboundGateway.Command}.
 	 * @param remoteFileTemplate the {@link RemoteFileTemplate}.
 	 * @param command the command to perform on the FTP.
-	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link FtpOutboundGatewaySpec}
+	 * @since 6.4
+	 * @see RemoteFileTemplate
+	 */
+	public static FtpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate,
+			AbstractRemoteFileOutboundGateway.Command command) {
+
+		return outboundGateway(remoteFileTemplate, command, null);
+	}
+
+	/**
+	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
+	 * remote path.
+	 * @param remoteFileTemplate the {@link RemoteFileTemplate}.
+	 * @param command the command to perform on the FTP.
+	 * @param expression the remote path SpEL expression.
 	 * @return the {@link FtpOutboundGatewaySpec}
 	 * @see RemoteFileTemplate
 	 */
@@ -181,16 +223,31 @@ public final class Ftp {
 
 	/**
 	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
-	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
-	 * remoteFilePath.
+	 * {@link AbstractRemoteFileOutboundGateway.Command}.
 	 * @param remoteFileTemplate the {@link RemoteFileTemplate}.
 	 * @param command the command to perform on the FTP.
-	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link FtpOutboundGatewaySpec}
+	 * @since 6.4
+	 * @see RemoteFileTemplate
+	 */
+	public static FtpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate,
+			String command) {
+
+		return outboundGateway(remoteFileTemplate, command, null);
+	}
+
+	/**
+	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
+	 * remote path.
+	 * @param remoteFileTemplate the {@link RemoteFileTemplate}.
+	 * @param command the command to perform on the FTP.
+	 * @param expression the remote path SpEL expression.
 	 * @return the {@link FtpOutboundGatewaySpec}
 	 * @see RemoteFileTemplate
 	 */
 	public static FtpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate,
-			String command, String expression) {
+			String command, @Nullable String expression) {
 
 		return new FtpOutboundGatewaySpec(new FtpOutboundGateway(remoteFileTemplate, command, expression));
 	}

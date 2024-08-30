@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,6 +134,20 @@ public final class Sftp {
 
 	/**
 	 * Produce a {@link SftpOutboundGatewaySpec} based on the {@link SessionFactory},
+	 * {@link AbstractRemoteFileOutboundGateway.Command}.
+	 * @param sessionFactory the {@link SessionFactory}.
+	 * @param command the command to perform on the FTP.
+	 * @return the {@link SftpOutboundGatewaySpec}
+	 * @since 6.4
+	 */
+	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory,
+			AbstractRemoteFileOutboundGateway.Command command) {
+
+		return outboundGateway(sessionFactory, command, null);
+	}
+
+	/**
+	 * Produce a {@link SftpOutboundGatewaySpec} based on the {@link SessionFactory},
 	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the
 	 * remoteFilePath.
 	 * @param sessionFactory the {@link SessionFactory}.
@@ -142,9 +156,24 @@ public final class Sftp {
 	 * @return the {@link SftpOutboundGatewaySpec}
 	 */
 	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory,
-			AbstractRemoteFileOutboundGateway.Command command, String expression) {
+			AbstractRemoteFileOutboundGateway.Command command, @Nullable String expression) {
 
 		return outboundGateway(sessionFactory, command.getCommand(), expression);
+	}
+
+	/**
+	 * Produce a {@link SftpOutboundGatewaySpec} based on the {@link SessionFactory},
+	 * {@link AbstractRemoteFileOutboundGateway.Command}.
+	 * @param sessionFactory the {@link SessionFactory}.
+	 * @param command the command to perform on the FTP.
+	 * @return the {@link SftpOutboundGatewaySpec}
+	 * @since 6.4
+	 * @see RemoteFileTemplate
+	 */
+	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory,
+			String command) {
+
+		return outboundGateway(sessionFactory, command, null);
 	}
 
 	/**
@@ -158,24 +187,54 @@ public final class Sftp {
 	 * @see RemoteFileTemplate
 	 */
 	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory,
-			String command, String expression) {
+			String command, @Nullable String expression) {
 
 		return new SftpOutboundGatewaySpec(new SftpOutboundGateway(sessionFactory, command, expression));
 	}
 
 	/**
 	 * Produce a {@link SftpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
-	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the remoteFilePath.
+	 * {@link AbstractRemoteFileOutboundGateway.Command}.
 	 * @param remoteFileTemplate the {@link RemoteFileTemplate} to be based on.
 	 * @param command the command to perform on the SFTP.
-	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link SftpOutboundGatewaySpec}
+	 * @since 6.4
+	 * @see RemoteFileTemplate
+	 */
+	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
+			AbstractRemoteFileOutboundGateway.Command command) {
+
+		return outboundGateway(remoteFileTemplate, command, null);
+	}
+
+	/**
+	 * Produce a {@link SftpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the remote path.
+	 * @param remoteFileTemplate the {@link RemoteFileTemplate} to be based on.
+	 * @param command the command to perform on the SFTP.
+	 * @param expression the remote path SpEL expression.
 	 * @return the {@link SftpOutboundGatewaySpec}
 	 * @see RemoteFileTemplate
 	 */
 	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
-			AbstractRemoteFileOutboundGateway.Command command, String expression) {
+			AbstractRemoteFileOutboundGateway.Command command, @Nullable String expression) {
 
 		return outboundGateway(remoteFileTemplate, command.getCommand(), expression);
+	}
+
+	/**
+	 * Produce a {@link SftpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
+	 * {@link AbstractRemoteFileOutboundGateway.Command}.
+	 * @param remoteFileTemplate the {@link RemoteFileTemplate} to be based on.
+	 * @param command the command to perform on the SFTP.
+	 * @return the {@link SftpOutboundGatewaySpec}
+	 * @since 6.4
+	 * @see RemoteFileTemplate
+	 */
+	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
+			String command) {
+
+		return outboundGateway(remoteFileTemplate, command, null);
 	}
 
 	/**
@@ -188,7 +247,7 @@ public final class Sftp {
 	 * @see RemoteFileTemplate
 	 */
 	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate,
-			String command, String expression) {
+			String command, @Nullable String expression) {
 
 		return new SftpOutboundGatewaySpec(new SftpOutboundGateway(remoteFileTemplate, command, expression));
 	}

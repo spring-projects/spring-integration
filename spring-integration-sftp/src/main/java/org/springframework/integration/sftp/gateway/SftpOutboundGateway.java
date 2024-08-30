@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOut
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
+import org.springframework.lang.Nullable;
 
 /**
  * Outbound Gateway for performing remote file operations via SFTP.
@@ -71,24 +72,28 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<SftpC
 
 	/**
 	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
-	 * etc), and an expression to determine the filename.
+	 * etc.), and an expression to determine the remote path.
 	 * @param sessionFactory the session factory.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expression the remote path expression.
 	 */
-	public SftpOutboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory, String command, String expression) {
+	public SftpOutboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory, String command,
+			@Nullable String expression) {
+
 		this(new SftpRemoteFileTemplate(sessionFactory), command, expression);
 		remoteFileTemplateExplicitlySet(false);
 	}
 
 	/**
 	 * Construct an instance with the supplied remote file template, a command ('ls',
-	 * 'get' etc), and an expression to determine the filename.
+	 * 'get' etc.), and an expression to determine the remote path.
 	 * @param remoteFileTemplate the remote file template.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expression the remote path expression.
 	 */
-	public SftpOutboundGateway(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate, String command, String expression) {
+	public SftpOutboundGateway(RemoteFileTemplate<SftpClient.DirEntry> remoteFileTemplate, String command,
+			@Nullable String expression) {
+
 		super(remoteFileTemplate, command, expression);
 	}
 

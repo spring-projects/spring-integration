@@ -153,10 +153,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	/**
 	 * Construct an instance with the supplied session factory,
-	 * a command ('ls', 'get' etc.), and an expression to determine the filename.
+	 * a command ('ls', 'get' etc.), and an expression to determine the remote path (file or directory).
+	 * The expression is treated as a remote directory for {@code ls} and {@code nlst} commands
+	 * and can be {@code null} if remote file protocol supports it with a meaning of root directory (or use home).
+	 * The {@code put} and {@code mput} commands ignore this expression and fully rely on the payload.
+	 * If expression is not provided, it falls back to the {@code payload}.
 	 * @param sessionFactory the session factory.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expression the remote path.
 	 */
 	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, String command,
 			@Nullable String expression) {
@@ -166,10 +170,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	/**
 	 * Construct an instance with the supplied session factory,
-	 * a command ('ls', 'get' etc.), and an expression to determine the filename.
+	 * a command ('ls', 'get' etc.), and an expression to determine the remote path (file or directory).
+	 * The expression is treated as a remote directory for {@code ls} and {@code nlst} commands
+	 * and can be {@code null} if remote file protocol supports it with a meaning of root directory (or use home).
+	 * The {@code put} and {@code mput} commands ignore this expression and fully rely on the payload.
+	 * If expression is not provided, it falls back to the {@code payload}.
 	 * @param sessionFactory the session factory.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expression the remote path.
 	 */
 	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, Command command,
 			@Nullable String expression) {
@@ -180,10 +188,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	/**
 	 * Construct an instance with the supplied remote file template,
-	 * a command ('ls', 'get' etc.), and an expression to determine the filename.
+	 * a command ('ls', 'get' etc.), and an expression to determine the remote path (file or directory).
+	 * The expression is treated as a remote directory for {@code ls} and {@code nlst} commands
+	 * and can be {@code null} if remote file protocol supports it with a meaning of root directory (or use home).
+	 * The {@code put} and {@code mput} commands ignore this expression and fully rely on the payload.
+	 * If expression is not provided, it falls back to the {@code payload}.
 	 * @param remoteFileTemplate the remote file template.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expression the remote path.
 	 */
 	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, String command,
 			@Nullable String expression) {
@@ -193,10 +205,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	/**
 	 * Construct an instance with the supplied remote file template,
-	 * a command ('ls', 'get' etc.), and an expression to determine the filename.
+	 * a command ('ls', 'get' etc.), and an expression to determine the remote path (file or directory).
+	 * The expression is treated as a remote directory for {@code ls} and {@code nlst} commands
+	 * and can be {@code null} if remote file protocol supports it with a meaning of root directory (or use home).
+	 * The {@code put} and {@code mput} commands ignore this expression and fully rely on the payload.
+	 * If expression is not provided, it falls back to the {@code payload}.
 	 * @param remoteFileTemplate the remote file template.
 	 * @param command the command.
-	 * @param expressionArg the filename expression.
+	 * @param expressionArg the remote path.
 	 */
 	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, Command command,
 			@Nullable String expressionArg) {

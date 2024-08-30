@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import java.util.List;
 
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
@@ -32,17 +30,17 @@ import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOut
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.smb.session.SmbFileInfo;
 import org.springframework.integration.smb.session.SmbRemoteFileTemplate;
+import org.springframework.lang.Nullable;
 
 /**
  * Outbound Gateway for performing remote file operations via SMB.
  *
  * @author Gregory Bragg
+ * @author Artem Bilan
  *
  * @since 6.0
  */
 public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFile> {
-
-	private static final Log logger = LogFactory.getLog(SmbOutboundGateway.class);
 
 	/**
 	 * Construct an instance using the provided session factory and callback for
@@ -71,24 +69,26 @@ public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFil
 
 	/**
 	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
-	 * etc), and an expression to determine the filename.
+	 * etc.), and an expression to determine the remote path.
 	 * @param sessionFactory the session factory.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expression the remote path expression.
 	 */
-	public SmbOutboundGateway(SessionFactory<SmbFile> sessionFactory, String command, String expression) {
+	public SmbOutboundGateway(SessionFactory<SmbFile> sessionFactory, String command, @Nullable String expression) {
 		this(new SmbRemoteFileTemplate(sessionFactory), command, expression);
 		remoteFileTemplateExplicitlySet(false);
 	}
 
 	/**
 	 * Construct an instance with the supplied remote file template, a command ('ls',
-	 * 'get' etc), and an expression to determine the filename.
+	 * 'get' etc.), and an expression to determine the remote path.
 	 * @param remoteFileTemplate the remote file template.
 	 * @param command the command.
-	 * @param expression the filename expression.
+	 * @param expression the remote path expression.
 	 */
-	public SmbOutboundGateway(RemoteFileTemplate<SmbFile> remoteFileTemplate, String command, String expression) {
+	public SmbOutboundGateway(RemoteFileTemplate<SmbFile> remoteFileTemplate, String command,
+			@Nullable String expression) {
+
 		super(remoteFileTemplate, command, expression);
 	}
 
@@ -127,7 +127,7 @@ public class SmbOutboundGateway extends AbstractRemoteFileOutboundGateway<SmbFil
 			return file.isDirectory();
 		}
 		catch (SmbException se) {
-			logger.error("Unable to determine if this SmbFile represents a directory", se);
+			logger.error(se, "Unable to determine if this SmbFile represents a directory");
 			return false;
 		}
 	}
