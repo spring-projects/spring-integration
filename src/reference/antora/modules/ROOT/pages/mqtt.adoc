@@ -399,6 +399,7 @@ Certain application events are published by the adapters.
 For the MQTT v5 Paho client, this event is also emitted when the server performs a normal disconnection, in which case the `cause` of the lost connection is `null`.
 * `MqttMessageSentEvent` - published by the outbound adapter when a message has been sent, if running in asynchronous mode.
 * `MqttMessageDeliveredEvent` - published by the outbound adapter when the client indicates that a message has been delivered, if running in asynchronous mode.
+* `MqttMessageNotDeliveredEvent` - published by the outbound adapter when the client indicates that a message has not been delivered, if running in asynchronous mode.
 * `MqttSubscribedEvent` - published by the inbound adapter after subscribing to the topics.
 
 These events can be received by an `ApplicationListener<MqttIntegrationEvent>` or with an `@EventListener` method.
