@@ -29,17 +29,18 @@ import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionOverrideException;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -52,7 +53,6 @@ import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
@@ -60,6 +60,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
+import org.springframework.integration.context.ComponentSourceAware;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.ComponentsRegistration;
@@ -97,7 +98,7 @@ public class IntegrationFlowBeanPostProcessor
 
 	private StringValueResolver embeddedValueResolver;
 
-	private ConfigurableListableBeanFactory beanFactory;
+	private DefaultListableBeanFactory beanFactory;
 
 	private volatile IntegrationFlowContext flowContext;
 
@@ -109,7 +110,7 @@ public class IntegrationFlowBeanPostProcessor
 		);
 
 		this.applicationContext = (ConfigurableApplicationContext) applicationContext;
-		this.beanFactory = this.applicationContext.getBeanFactory();
+		this.beanFactory = (DefaultListableBeanFactory) this.applicationContext.getBeanFactory();
 		this.embeddedValueResolver = new EmbeddedValueResolver(this.beanFactory);
 	}
 
@@ -142,8 +143,16 @@ public class IntegrationFlowBeanPostProcessor
 		}
 	}
 
-	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String flowBeanName) { // NOSONAR
-		// complexity
+	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String flowBeanName) { // NOSONAR complexity
+		boolean registerBeanDefinitions = this.beanFactory.containsBeanDefinition(flowBeanName);
+		if (registerBeanDefinitions) {
+			BeanDefinition beanDefinition = this.beanFactory.getBeanDefinition(flowBeanName);
+			flow.setComponentSource(beanDefinition.getSource());
+			flow.setComponentDescription(beanDefinition.getDescription());
+		}
+		Object beanSource = flow.getComponentSource();
+		String beanDescription = flow.getComponentDescription();
+
 		String flowNamePrefix = flowBeanName + ".";
 		if (this.flowContext == null) {
 			this.flowContext = this.beanFactory.getBean(IntegrationFlowContext.class);
@@ -172,18 +181,21 @@ public class IntegrationFlowBeanPostProcessor
 				if (noBeanPresentForComponent(messageHandler, flowBeanName)) {
 					String handlerBeanName = generateBeanName(messageHandler, flowNamePrefix);
 
-					registerComponent(messageHandler, handlerBeanName, flowBeanName);
+					registerComponent(registerBeanDefinitions, messageHandler, handlerBeanName,
+							beanSource, beanDescription, flowBeanName);
 					this.beanFactory.registerAlias(handlerBeanName, id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX);
 				}
 
-				registerComponent(endpoint, id, flowBeanName);
+				registerComponent(registerBeanDefinitions, endpoint, id, beanSource,
+						beanDescription, flowBeanName);
 				targetIntegrationComponents.put(endpoint, id);
 			}
 			else if (component instanceof MessageChannelReference messageChannelReference) {
 				String channelBeanName = messageChannelReference.name();
 				if (!this.beanFactory.containsBean(channelBeanName)) {
 					DirectChannel directChannel = new DirectChannel();
-					registerComponent(directChannel, channelBeanName, flowBeanName);
+					registerComponent(registerBeanDefinitions, directChannel, channelBeanName,
+							beanSource, beanDescription, flowBeanName);
 					targetIntegrationComponents.put(directChannel, channelBeanName);
 				}
 			}
@@ -194,9 +206,9 @@ public class IntegrationFlowBeanPostProcessor
 							.stream()
 							.filter(o -> noBeanPresentForComponent(o.getKey(), flowBeanName))
 							.forEach(o ->
-									registerComponent(o.getKey(),
+									registerComponent(registerBeanDefinitions, o.getKey(),
 											generateBeanName(o.getKey(), flowNamePrefix, o.getValue(),
-													useFlowIdAsPrefix)));
+													useFlowIdAsPrefix), beanSource, beanDescription, spec.getId()));
 				}
 				SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean = spec.getObject().getT1();
 				String id = spec.getId();
@@ -208,7 +220,8 @@ public class IntegrationFlowBeanPostProcessor
 					id = flowNamePrefix + id;
 				}
 
-				registerComponent(pollingChannelAdapterFactoryBean, id, flowBeanName);
+				registerComponent(registerBeanDefinitions, pollingChannelAdapterFactoryBean, id,
+						beanSource, beanDescription, flowBeanName);
 				targetIntegrationComponents.put(pollingChannelAdapterFactoryBean, id);
 
 				MessageSource<?> messageSource = spec.getObject().getT2();
@@ -219,7 +232,8 @@ public class IntegrationFlowBeanPostProcessor
 
 						messageSourceId = namedComponent.getComponentName();
 					}
-					registerComponent(messageSource, messageSourceId, flowBeanName);
+					registerComponent(registerBeanDefinitions, messageSource, messageSourceId,
+							beanSource, beanDescription, flowBeanName);
 				}
 			}
 			else {
@@ -233,7 +247,8 @@ public class IntegrationFlowBeanPostProcessor
 										BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + channelNameIndex++;
 							}
 						}
-						registerComponent(component, channelBeanName, flowBeanName);
+						registerComponent(registerBeanDefinitions, component, channelBeanName,
+								beanSource, beanDescription, flowBeanName);
 						targetIntegrationComponents.put(component, channelBeanName);
 					}
 					else if (component instanceof FixedSubscriberChannel fixedSubscriberChannel) {
@@ -242,7 +257,8 @@ public class IntegrationFlowBeanPostProcessor
 							channelBeanName = flowNamePrefix + "channel" +
 									BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + channelNameIndex++;
 						}
-						registerComponent(component, channelBeanName, flowBeanName);
+						registerComponent(registerBeanDefinitions, component, channelBeanName,
+								beanSource, beanDescription, flowBeanName);
 						targetIntegrationComponents.put(component, channelBeanName);
 					}
 					else if (component instanceof StandardIntegrationFlow) {
@@ -251,7 +267,8 @@ public class IntegrationFlowBeanPostProcessor
 										? entry.getValue()
 										: flowNamePrefix + "subFlow" +
 										BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + subFlowNameIndex++;
-						registerComponent(component, subFlowBeanName, flowBeanName);
+						registerComponent(registerBeanDefinitions, component, subFlowBeanName,
+								beanSource, beanDescription, flowBeanName);
 						targetIntegrationComponents.put(component, subFlowBeanName);
 					}
 					else if (component instanceof AnnotationGatewayProxyFactoryBean<?> gateway) {
@@ -264,15 +281,21 @@ public class IntegrationFlowBeanPostProcessor
 							gatewayId = flowNamePrefix + "gateway";
 						}
 
-						registerComponent(gateway, gatewayId, flowBeanName,
-								beanDefinition -> {
-									RootBeanDefinition definition = (RootBeanDefinition) beanDefinition;
-									Class<?> serviceInterface = gateway.getObjectType();
-									definition.setSource(new DescriptiveResource("" + serviceInterface));
-									definition.setTargetType(
-											ResolvableType.forClassWithGenerics(AnnotationGatewayProxyFactoryBean.class,
-													serviceInterface));
-								});
+						if (registerBeanDefinitions) {
+							registerBeanDefinition(gateway, gatewayId, beanSource,
+									beanDescription, flowBeanName,
+									beanDefinition -> {
+										RootBeanDefinition definition = (RootBeanDefinition) beanDefinition;
+										Class<?> serviceInterface = gateway.getObjectType();
+										definition.setSource(new DescriptiveResource("" + serviceInterface));
+										definition.setTargetType(
+												ResolvableType.forClassWithGenerics(AnnotationGatewayProxyFactoryBean.class,
+														serviceInterface));
+									});
+						}
+						else {
+							registerSingleton(gateway, gatewayId, beanSource, beanDescription, flowBeanName);
+						}
 
 						targetIntegrationComponents.put(component, gatewayId);
 					}
@@ -280,7 +303,8 @@ public class IntegrationFlowBeanPostProcessor
 						String generatedBeanName =
 								generateBeanName(component, flowNamePrefix, entry.getValue(), useFlowIdAsPrefix);
 
-						registerComponent(component, generatedBeanName, flowBeanName);
+						registerComponent(registerBeanDefinitions, component, generatedBeanName,
+								beanSource, beanDescription, flowBeanName);
 						targetIntegrationComponents.put(component, generatedBeanName);
 					}
 				}
@@ -352,13 +376,20 @@ public class IntegrationFlowBeanPostProcessor
 		if (bean instanceof ComponentsRegistration componentsRegistration) {
 			Map<Object, String> componentsToRegister = componentsRegistration.getComponentsToRegister();
 			if (!CollectionUtils.isEmpty(componentsToRegister)) {
+				boolean registerBeanDefinitions = this.beanFactory.containsBeanDefinition(beanName);
+				BeanDefinition beanDefinition = null;
+				if (registerBeanDefinitions) {
+					beanDefinition = this.beanFactory.getBeanDefinition(beanName);
+				}
+				Object beanDefinitionSource = registerBeanDefinitions ? beanDefinition.getSource() : null;
+				String beanDefinitionDescription = registerBeanDefinitions ? beanDefinition.getDescription() : null;
 				componentsToRegister.entrySet()
 						.stream()
 						.filter(component -> noBeanPresentForComponent(component.getKey(), beanName))
 						.forEach(component ->
-								registerComponent(component.getKey(),
-										generateBeanName(component.getKey(), beanName, component.getValue(), false)));
-
+								registerComponent(registerBeanDefinitions, component.getKey(),
+										generateBeanName(component.getKey(), beanName, component.getValue(), false),
+										beanDefinitionSource, beanDefinitionDescription, beanName));
 			}
 		}
 	}
@@ -405,21 +436,34 @@ public class IntegrationFlowBeanPostProcessor
 				return true;
 			}
 			else {
-				BeanDefinition existingBeanDefinition =
-						IntegrationContextUtils.getBeanDefinition(beanName, this.beanFactory);
-				if (!ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(existingBeanDefinition.getScope())
-						&& !instance.equals(this.beanFactory.getBean(beanName))) {
+				BeanDefinition existingBeanDefinition = null;
+				try {
+					existingBeanDefinition = IntegrationContextUtils.getBeanDefinition(beanName, this.beanFactory);
+				}
+				catch (NoSuchBeanDefinitionException ex) {
+					// Ignore and move on as no bean definition (possibly just singleton?)
+				}
 
-					AbstractBeanDefinition beanDefinition =
-							BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) instance.getClass(),
-											() -> instance)
-									.getBeanDefinition();
-					beanDefinition.setResourceDescription("the '" + parentBeanName + "' bean definition");
-					throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingBeanDefinition);
+				if (existingBeanDefinition == null
+						|| !ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(existingBeanDefinition.getScope())) {
+
+					Object existingBean = this.beanFactory.getBean(beanName);
+					if (!instance.equals(existingBean)) {
+						AbstractBeanDefinition beanDefinition =
+								BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) instance.getClass(),
+												() -> instance)
+										.getBeanDefinition();
+						beanDefinition.setResourceDescription("the '" + parentBeanName + "' bean definition");
+						if (existingBeanDefinition == null) {
+							existingBeanDefinition =
+									BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) existingBean.getClass(),
+													() -> existingBean)
+											.getBeanDefinition();
+						}
+						throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingBeanDefinition);
+					}
 				}
-				else {
-					return false;
-				}
+				return false;
 			}
 		}
 
@@ -427,12 +471,21 @@ public class IntegrationFlowBeanPostProcessor
 				.containsValue(instance);
 	}
 
-	private void registerComponent(Object component, String beanName) {
-		registerComponent(component, beanName, null);
+	private void registerComponent(boolean registerBeanDefinition,
+			Object component, String beanName, @Nullable Object source,
+			@Nullable String description, @Nullable String parentName) {
+
+		if (registerBeanDefinition) {
+			registerBeanDefinition(component, beanName, source, description, parentName);
+		}
+		else {
+			registerSingleton(component, beanName, source, description, parentName);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void registerComponent(Object component, String beanName, @Nullable String parentName,
+	private void registerBeanDefinition(Object component, String beanName, @Nullable Object source,
+			@Nullable String description, @Nullable String parentName,
 			BeanDefinitionCustomizer... customizers) {
 
 		AbstractBeanDefinition beanDefinition =
@@ -440,20 +493,31 @@ public class IntegrationFlowBeanPostProcessor
 						.applyCustomizers(customizers)
 						.getRawBeanDefinition();
 
-		if (parentName != null && this.beanFactory.containsBeanDefinition(parentName)) {
-			AbstractBeanDefinition parentBeanDefinition =
-					(AbstractBeanDefinition) this.beanFactory.getBeanDefinition(parentName);
-			beanDefinition.setResource(parentBeanDefinition.getResource());
-			Object source = parentBeanDefinition.getSource();
-			if (source instanceof MethodMetadata) {
-				source = "bean method " + ((MethodMetadata) source).getMethodName();
-			}
-			beanDefinition.setSource(source);
+		beanDefinition.setSource(source);
+		beanDefinition.setDescription(description);
+
+		if (parentName != null) {
 			this.beanFactory.registerDependentBean(parentName, beanName);
 		}
 
 		((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(beanName, beanDefinition);
+		this.beanFactory.getBean(beanName);
+	}
 
+	private void registerSingleton(Object component, String beanName, @Nullable Object source,
+			@Nullable String description, @Nullable String parentName) {
+
+		if (component instanceof ComponentSourceAware componentSourceAware) {
+			componentSourceAware.setComponentSource(source);
+			componentSourceAware.setComponentDescription(description);
+		}
+
+		if (parentName != null) {
+			this.beanFactory.registerDependentBean(parentName, beanName);
+		}
+
+		this.beanFactory.registerSingleton(beanName, component);
+		this.beanFactory.initializeBean(component, beanName);
 		this.beanFactory.getBean(beanName);
 	}
 

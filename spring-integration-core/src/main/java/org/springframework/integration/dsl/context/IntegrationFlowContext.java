@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -213,6 +213,14 @@ public interface IntegrationFlowContext {
 		 * @since 5.2
 		 */
 		IntegrationFlowRegistrationBuilder setSource(Object source);
+
+		/**
+		 * Set a human-readable description of this integration flow.
+		 * @param description the description for integration flow instance.
+		 * @return the current builder instance
+		 * @since 6.4
+		 */
+		IntegrationFlowRegistrationBuilder setDescription(String description);
 
 		/**
 		 * Invoke this method to prefix bean names in the flow with the (required) flow id

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.context.ComponentSourceAware;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
@@ -69,7 +69,7 @@ import org.springframework.messaging.MessageChannel;
  * @see SmartLifecycle
  */
 public class StandardIntegrationFlow
-		implements IntegrationFlow, SmartLifecycle, BeanNameAware, NamedComponent {
+		implements IntegrationFlow, SmartLifecycle, ComponentSourceAware, NamedComponent {
 
 	private final Map<Object, String> integrationComponents;
 
@@ -78,6 +78,10 @@ public class StandardIntegrationFlow
 	private boolean running;
 
 	private String beanName;
+
+	private Object beanSource;
+
+	private String beanDescription;
 
 	StandardIntegrationFlow(Map<Object, String> integrationComponents) {
 		this.integrationComponents = new LinkedHashMap<>(integrationComponents);
@@ -96,6 +100,34 @@ public class StandardIntegrationFlow
 	@Override
 	public String getComponentType() {
 		return "integration-flow";
+	}
+
+	@Override
+	public void setComponentSource(Object source) {
+		this.beanSource = source;
+	}
+
+	@Nullable
+	@Override
+	public Object getComponentSource() {
+		return this.beanSource;
+	}
+
+	@Override
+	public void setComponentDescription(String description) {
+		this.beanDescription = description;
+	}
+
+	@Nullable
+	@Override
+	public String getComponentDescription() {
+		return this.beanDescription;
+	}
+
+	@Nullable
+	@Override
+	public String getBeanName() {
+		return this.beanName;
 	}
 
 	@Override

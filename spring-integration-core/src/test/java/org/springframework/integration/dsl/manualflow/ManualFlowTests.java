@@ -21,8 +21,10 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,9 +36,7 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -52,7 +52,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.config.EnableMessageHistory;
-import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -111,9 +110,6 @@ public class ManualFlowTests {
 
 	@Autowired
 	private SmartLifecycleRoleController roleController;
-
-	@Autowired
-	private IntegrationManagementConfigurer integrationManagementConfigurer;
 
 	@Test
 	@SuppressWarnings("unchecked")
@@ -212,7 +208,6 @@ public class ManualFlowTests {
 				this.beanFactory.getBean(flowRegistrationId + BeanFactoryHandler.class.getName() + "#0",
 						BeanFactoryHandler.class);
 		assertThat(bean).isSameAs(additionalBean);
-		assertThat(bean.beanFactory).isSameAs(this.beanFactory);
 		bean = this.beanFactory.getBean(flowRegistrationId + "." + "anId.handler", BeanFactoryHandler.class);
 
 		MessagingTemplate messagingTemplate = flowRegistration.getMessagingTemplate();
@@ -486,23 +481,28 @@ public class ManualFlowTests {
 
 	@Test
 	public void testDisabledBeansOverride() {
-		assertThatExceptionOfType(BeanCreationException.class)
+		assertThatExceptionOfType(BeanDefinitionOverrideException.class)
 				.isThrownBy(() ->
 						this.integrationFlowContext.registration(f -> f.channel(c -> c.direct("doNotOverrideChannel")))
 								.register())
-				.isExactlyInstanceOf(BeanCreationException.class)
-				.withCauseExactlyInstanceOf(BeanDefinitionOverrideException.class)
 				.withMessageContaining("Invalid bean definition with name 'doNotOverrideChannel'");
 	}
 
 	@Test
 	public void testBeanDefinitionInfoInTheException() {
+		Map<?, ?> mergedBeanDefinitions =
+				TestUtils.getPropertyValue(this.beanFactory, "mergedBeanDefinitions", Map.class);
+
+		int mergedBeanDefinitionsSizeBeforeRandomFlow = mergedBeanDefinitions.size();
+
 		IntegrationFlow testFlow = f -> f.<String, String>transform(String::toUpperCase);
 		Method source = ReflectionUtils.findMethod(ManualFlowTests.class, "testBeanDefinitionInfoInTheException");
 		IntegrationFlowRegistration flowRegistration =
 				this.integrationFlowContext.registration(testFlow)
 						.setSource(source)
+						.id("flow#" + UUID.randomUUID())
 						.register();
+
 		assertThatExceptionOfType(MessageTransformationException.class)
 				.isThrownBy(() -> flowRegistration.getInputChannel().send(new GenericMessage<>(new Date())))
 				.withCauseExactlyInstanceOf(ClassCastException.class)
@@ -510,6 +510,8 @@ public class ManualFlowTests {
 				.withStackTraceContaining("java.util.Date cannot be cast to");
 
 		flowRegistration.destroy();
+
+		assertThat(mergedBeanDefinitions.size()).isEqualTo(mergedBeanDefinitionsSizeBeforeRandomFlow);
 	}
 
 	@Configuration
@@ -565,20 +567,17 @@ public class ManualFlowTests {
 
 	private final class BeanFactoryHandler extends AbstractReplyProducingMessageHandler {
 
-		@Autowired
-		private BeanFactory beanFactory;
-
 		private boolean destroyed;
 
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
-			Objects.requireNonNull(this.beanFactory);
+			Objects.requireNonNull(getBeanFactory());
 			return requestMessage;
 		}
 
 		@Override
 		protected void doInit() {
-			this.beanFactory.getClass(); // ensure wiring before afterPropertiesSet()
+			getBeanFactory().getClass(); // ensure wiring before afterPropertiesSet()
 		}
 
 		@Override
