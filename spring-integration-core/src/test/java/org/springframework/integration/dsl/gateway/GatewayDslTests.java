@@ -48,6 +48,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,6 +60,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @since 5.1.3
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class GatewayDslTests {
 
 	@Autowired
@@ -96,9 +98,8 @@ public class GatewayDslTests {
 		String exceptionMessage = ((Exception) receive.getPayload()).getMessage();
 		assertThat(exceptionMessage)
 				.contains("message has been rejected in filter")
-				.contains("defined in: " +
-						"'org.springframework.integration.dsl.gateway.GatewayDslTests$ContextConfiguration'; " +
-						"from source: 'bean method gatewayRequestFlow'");
+				.contains("from source: 'public org.springframework.integration.dsl.IntegrationFlow " +
+						"org.springframework.integration.dsl.gateway.GatewayDslTests$ContextConfiguration.gatewayRequestFlow()'");
 	}
 
 	@Autowired

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -64,7 +63,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent,
+public abstract class IntegrationObjectSupport implements ComponentSourceAware, NamedComponent,
 		ApplicationContextAware, BeanFactoryAware, InitializingBean, ExpressionCapable {
 
 	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
@@ -94,6 +93,10 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	private MessageBuilderFactory messageBuilderFactory;
 
 	private Expression expression;
+
+	private Object beanSource;
+
+	private String beanDescription;
 
 	private boolean initialized;
 
@@ -132,28 +135,41 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		return null;
 	}
 
+	@Override
+	public void setComponentSource(Object source) {
+		this.beanSource = source;
+	}
+
+	@Nullable
+	@Override
+	public Object getComponentSource() {
+		return this.beanSource;
+	}
+
+	@Override
+	public void setComponentDescription(String description) {
+		this.beanDescription = description;
+	}
+
+	@Nullable
+	@Override
+	public String getComponentDescription() {
+		return this.beanDescription;
+	}
+
 	public String getBeanDescription() {
-		String description = null;
-		Object source = null;
-
-		if (this.beanFactory instanceof ConfigurableListableBeanFactory &&
-				((ConfigurableListableBeanFactory) this.beanFactory).containsBeanDefinition(this.beanName)) {
-			BeanDefinition beanDefinition =
-					((ConfigurableListableBeanFactory) this.beanFactory).getBeanDefinition(this.beanName);
-			description = beanDefinition.getResourceDescription();
-			source = beanDefinition.getSource();
+		StringBuilder sb =
+				new StringBuilder("bean '")
+						.append(this.beanName).append("'");
+		String beanComponentName = getComponentName();
+		if (!this.beanName.equals(beanComponentName)) {
+			sb.append(" for component '").append(beanComponentName).append("'");
 		}
-
-		StringBuilder sb = new StringBuilder("bean '")
-				.append(this.beanName).append("'");
-		if (!this.beanName.equals(getComponentName())) {
-			sb.append(" for component '").append(getComponentName()).append("'");
+		if (this.beanDescription != null) {
+			sb.append("; defined in: '").append(this.beanDescription).append("'");
 		}
-		if (description != null) {
-			sb.append("; defined in: '").append(description).append("'");
-		}
-		if (source != null) {
-			sb.append("; from source: '").append(source).append("'");
+		if (this.beanSource != null) {
+			sb.append("; from source: '").append(this.beanSource).append("'");
 		}
 		return sb.toString();
 	}
@@ -203,6 +219,15 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			}
 			else {
 				this.messageBuilderFactory = new DefaultMessageBuilderFactory();
+			}
+		}
+		if (this.beanSource == null && this.beanName != null
+				&& this.beanFactory instanceof ConfigurableListableBeanFactory configurableListableBeanFactory
+				&& configurableListableBeanFactory.containsBeanDefinition(this.beanName)) {
+			BeanDefinition beanDefinition = configurableListableBeanFactory.getBeanDefinition(this.beanName);
+			this.beanSource = beanDefinition.getSource();
+			if (this.beanDescription == null) {
+				this.beanDescription = beanDefinition.getResourceDescription();
 			}
 		}
 		onInit();

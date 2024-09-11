@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.integration.context.ComponentSourceAware;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
@@ -59,11 +60,51 @@ import org.springframework.util.Assert;
  *
  * @since 5.0
  */
-public abstract class IntegrationFlowAdapter implements IntegrationFlow, ManageableSmartLifecycle {
+public abstract class IntegrationFlowAdapter
+		implements IntegrationFlow, ManageableSmartLifecycle, ComponentSourceAware {
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
 	private StandardIntegrationFlow targetIntegrationFlow;
+
+	private String beanName;
+
+	private Object beanSource;
+
+	private String beanDescription;
+
+	@Override
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
+
+	@Nullable
+	@Override
+	public String getBeanName() {
+		return this.beanName;
+	}
+
+	@Override
+	public void setComponentSource(Object source) {
+		this.beanSource = source;
+	}
+
+	@Nullable
+	@Override
+	public Object getComponentSource() {
+		return this.beanSource;
+	}
+
+	@Override
+	public void setComponentDescription(String description) {
+		this.beanDescription = description;
+	}
+
+	@Nullable
+	@Override
+	public String getComponentDescription() {
+		return this.beanDescription;
+	}
 
 	@Override
 	public final void configure(IntegrationFlowDefinition<?> flow) {
@@ -71,6 +112,12 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, Managea
 		flow.integrationComponents.clear();
 		flow.integrationComponents.putAll(targetFlow.integrationComponents);
 		this.targetIntegrationFlow = flow.get();
+		if (this.beanSource != null) {
+			this.targetIntegrationFlow.setComponentSource(this.beanSource);
+		}
+		if (this.beanDescription != null) {
+			this.targetIntegrationFlow.setComponentDescription(this.beanDescription);
+		}
 	}
 
 	@Nullable

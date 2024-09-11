@@ -27,14 +27,15 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.core.type.MethodMetadata;
+import org.springframework.integration.context.ComponentSourceAware;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowAdapter;
+import org.springframework.integration.dsl.IntegrationFlowBuilder;
+import org.springframework.integration.dsl.IntegrationFlowDefinition;
+import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -59,21 +60,18 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 	private final Lock registerFlowsLock = new ReentrantLock();
 
-	private ConfigurableListableBeanFactory beanFactory;
-
-	private BeanDefinitionRegistry beanDefinitionRegistry;
+	private DefaultListableBeanFactory beanFactory;
 
 	StandardIntegrationFlowContext() {
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		Assert.isInstanceOf(ConfigurableListableBeanFactory.class, beanFactory,
+		Assert.isInstanceOf(DefaultListableBeanFactory.class, beanFactory,
 				"To use Spring Integration Java DSL the 'beanFactory' has to be an instance of " +
 						"'ConfigurableListableBeanFactory'. " +
 						"Consider using 'GenericApplicationContext' implementation.");
-		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
-		this.beanDefinitionRegistry = (BeanDefinitionRegistry) this.beanFactory;
+		this.beanFactory = (DefaultListableBeanFactory) beanFactory;
 	}
 
 	/**
@@ -107,7 +105,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 						"An existing IntegrationFlowRegistration must be destroyed before overriding.");
 			}
 
-			integrationFlow = registerFlowBean(integrationFlow, flowId, builder.source);
+			integrationFlow = registerFlowBean(integrationFlow, flowId, builder.source, builder.description);
 		}
 		finally {
 			this.registerFlowsLock.unlock();
@@ -116,7 +114,8 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		builder.integrationFlow = integrationFlow;
 
 		final String theFlowId = flowId;
-		builder.additionalBeans.forEach((key, value) -> registerBean(key, value, theFlowId));
+		builder.additionalBeans.forEach((key, value) ->
+				registerBean(key, value, theFlowId, builder.source, builder.description));
 
 		IntegrationFlowRegistration registration =
 				new StandardIntegrationFlowRegistration(integrationFlow, this, flowId);
@@ -133,38 +132,37 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		return registration;
 	}
 
-	private IntegrationFlow registerFlowBean(IntegrationFlow flow, String flowId, @Nullable Object source) {
-		AbstractBeanDefinition beanDefinition =
-				BeanDefinitionBuilder.genericBeanDefinition(IntegrationFlow.class, () -> flow)
-						.getRawBeanDefinition();
-		beanDefinition.setSource(source);
-		this.beanDefinitionRegistry.registerBeanDefinition(flowId, beanDefinition);
-		return this.beanFactory.getBean(flowId, IntegrationFlow.class);
+	private IntegrationFlow registerFlowBean(IntegrationFlow flow, @Nullable String beanName,
+			@Nullable Object source, @Nullable String description) {
+
+		IntegrationFlow flowToRegister = flow;
+
+		if (!(flow instanceof StandardIntegrationFlow) && !(flow instanceof IntegrationFlowAdapter)) {
+			flowToRegister = new IntegrationFlowComponentSourceAwareAdapter(flow);
+		}
+
+		return registerBean(flowToRegister, beanName, null, source, description);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void registerBean(Object bean, @Nullable String beanNameArg, String parentName) {
-		String beanName = beanNameArg;
-		if (beanName == null) {
-			beanName = generateBeanName(bean, parentName);
-		}
+	private <B> B registerBean(B bean, @Nullable String beanNameArg, @Nullable String parentName,
+			@Nullable Object source, @Nullable String description) {
 
-		AbstractBeanDefinition beanDefinition =
-				BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) bean.getClass(), () -> bean)
-						.getRawBeanDefinition();
+		String beanName = beanNameArg != null ? beanNameArg : generateBeanName(bean, parentName);
 
 		if (parentName != null) {
-			AbstractBeanDefinition parentBeanDefinition =
-					(AbstractBeanDefinition) this.beanFactory.getBeanDefinition(parentName);
-			Object source = parentBeanDefinition.getSource();
-			if (source instanceof MethodMetadata) {
-				source = "bean method " + ((MethodMetadata) source).getMethodName();
-			}
-			beanDefinition.setSource(source);
 			this.beanFactory.registerDependentBean(parentName, beanName);
 		}
-		this.beanDefinitionRegistry.registerBeanDefinition(beanName, beanDefinition);
-		this.beanFactory.getBean(beanName);
+		if (bean instanceof ComponentSourceAware componentSourceAware) {
+			if (source != null && componentSourceAware.getComponentSource() == null) {
+				componentSourceAware.setComponentSource(source);
+			}
+			if (description != null && componentSourceAware.getComponentDescription() == null) {
+				componentSourceAware.setComponentDescription(description);
+			}
+		}
+		this.beanFactory.registerSingleton(beanName, bean);
+		return (B) this.beanFactory.initializeBean(bean, beanName);
 	}
 
 	/**
@@ -192,7 +190,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 			removeDependantBeans(flowId);
 
-			this.beanDefinitionRegistry.removeBeanDefinition(flowId);
+			this.beanFactory.destroySingleton(flowId);
 		}
 		else {
 			throw new IllegalStateException("An IntegrationFlow with the id "
@@ -203,12 +201,13 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	private void removeDependantBeans(String parentName) {
 		String[] dependentBeans = this.beanFactory.getDependentBeans(parentName);
 		for (String beanName : dependentBeans) {
-			removeDependantBeans(beanName);
-			this.beanDefinitionRegistry.removeBeanDefinition(beanName);
-			String[] aliases = this.beanDefinitionRegistry.getAliases(beanName);
+			this.beanFactory.destroyBean(this.beanFactory.getBean(beanName));
+			this.beanFactory.destroySingleton(beanName);
+			String[] aliases = this.beanFactory.getAliases(beanName);
 			for (String alias : aliases) {
-				this.beanDefinitionRegistry.removeAlias(alias);
+				this.beanFactory.removeAlias(alias);
 			}
+			removeDependantBeans(beanName);
 		}
 	}
 
@@ -216,9 +215,8 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	 * Obtain a {@link MessagingTemplate} with its default destination set to the input channel
 	 * of the {@link IntegrationFlow} for provided {@code flowId}.
 	 * <p> Any {@link IntegrationFlow} bean (not only manually registered) can be used for this method.
-	 * <p> If {@link IntegrationFlow} doesn't start with the
-	 * {@link org.springframework.messaging.MessageChannel}, the
-	 * {@link IllegalStateException} is thrown.
+	 * <p> If {@link IntegrationFlow} doesn't start with the {@link org.springframework.messaging.MessageChannel},
+	 * the {@link IllegalStateException} is thrown.
 	 * @param flowId the bean name to obtain the input channel from
 	 * @return the {@link MessagingTemplate} instance
 	 */
@@ -274,6 +272,9 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 		@Nullable
 		private Object source;
+
+		@Nullable
+		private String description;
 
 		StandardIntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
 			this.integrationFlow = integrationFlow;
@@ -339,6 +340,12 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		}
 
 		@Override
+		public IntegrationFlowRegistrationBuilder setDescription(String description) {
+			this.description = description;
+			return this;
+		}
+
+		@Override
 		public IntegrationFlowRegistrationBuilder useFlowIdAsPrefix() {
 			this.idAsPrefix = true;
 			return this;
@@ -360,6 +367,64 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 			IntegrationFlowRegistration registration = StandardIntegrationFlowContext.this.register(this);
 			registration.setBeanFactory(StandardIntegrationFlowContext.this.beanFactory);
 			return registration;
+		}
+
+	}
+
+	private static final class IntegrationFlowComponentSourceAwareAdapter
+			implements IntegrationFlow, ComponentSourceAware {
+
+		private final IntegrationFlow delegate;
+
+		private Object beanSource;
+
+		private String beanDescription;
+
+		IntegrationFlowComponentSourceAwareAdapter(IntegrationFlow delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override
+		public void setComponentSource(Object source) {
+			this.beanSource = source;
+		}
+
+		@Override
+		public Object getComponentSource() {
+			return this.beanSource;
+		}
+
+		@Override
+		public void setComponentDescription(String description) {
+			this.beanDescription = description;
+		}
+
+		@Override
+		public String getComponentDescription() {
+			return this.beanDescription;
+		}
+
+		@Nullable
+		@Override
+		public String getBeanName() {
+			return null;
+		}
+
+		@Override
+		public void setBeanName(String name) {
+
+		}
+
+		@Override
+		public void configure(IntegrationFlowDefinition<?> flow) {
+			this.delegate.configure(flow);
+			StandardIntegrationFlow standardIntegrationFlow = ((IntegrationFlowBuilder) flow).get();
+			if (this.beanSource != null) {
+				standardIntegrationFlow.setComponentSource(this.beanSource);
+			}
+			if (this.beanDescription != null) {
+				standardIntegrationFlow.setComponentDescription(this.beanDescription);
+			}
 		}
 
 	}
