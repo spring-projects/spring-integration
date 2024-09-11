@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.BeanResolver;
+import org.springframework.expression.IndexAccessor;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypeLocator;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -101,6 +102,10 @@ public class IntegrationEvaluationContextFactoryBean extends AbstractEvaluationC
 		}
 
 		evaluationContext.addPropertyAccessor(new MapAccessor());
+
+		for (IndexAccessor indexAccessor : getIndexAccessors().values()) {
+			evaluationContext.addIndexAccessor(indexAccessor);
+		}
 
 		for (Entry<String, Method> functionEntry : getFunctions().entrySet()) {
 			evaluationContext.registerFunction(functionEntry.getKey(), functionEntry.getValue());

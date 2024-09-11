@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,13 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.expression.IndexAccessor;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -45,13 +47,18 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractEvaluationContextFactoryBean implements ApplicationContextAware, InitializingBean {
 
-	private Map<String, PropertyAccessor> propertyAccessors = new LinkedHashMap<String, PropertyAccessor>();
+	private Map<String, PropertyAccessor> propertyAccessors = new LinkedHashMap<>();
 
-	private Map<String, Method> functions = new LinkedHashMap<String, Method>();
+	private Map<String, IndexAccessor> indexAccessors = new LinkedHashMap<>();
+
+	private Map<String, Method> functions = new LinkedHashMap<>();
 
 	private TypeConverter typeConverter = new StandardTypeConverter();
 
 	private ApplicationContext applicationContext;
+
+	@Nullable
+	private SpelPropertyAccessorRegistrar propertyAccessorRegistrar;
 
 	private boolean initialized;
 
@@ -68,22 +75,45 @@ public abstract class AbstractEvaluationContextFactoryBean implements Applicatio
 		this.applicationContext = applicationContext;
 	}
 
-	public void setPropertyAccessors(Map<String, PropertyAccessor> accessors) {
+	public void setPropertyAccessors(Map<String, PropertyAccessor> propertyAccessors) {
 		Assert.isTrue(!this.initialized, "'propertyAccessors' can't be changed after initialization.");
-		Assert.notNull(accessors, "'accessors' must not be null.");
-		Assert.noNullElements(accessors.values().toArray(), "'accessors' cannot have null values.");
-		this.propertyAccessors = new LinkedHashMap<String, PropertyAccessor>(accessors);
+		Assert.notNull(propertyAccessors, "'propertyAccessors' must not be null.");
+		Assert.noNullElements(propertyAccessors.values().toArray(), "'propertyAccessors' cannot have null values.");
+		this.propertyAccessors = new LinkedHashMap<>(propertyAccessors);
 	}
 
 	public Map<String, PropertyAccessor> getPropertyAccessors() {
 		return this.propertyAccessors;
 	}
 
+	/**
+	 * Set a map of {@link IndexAccessor}s to use in the target {@link org.springframework.expression.EvaluationContext}
+	 * @param indexAccessors the map of {@link IndexAccessor}s to use
+	 * @since 6.4
+	 * @see org.springframework.expression.EvaluationContext#getIndexAccessors()
+	 */
+	public void setIndexAccessors(Map<String, IndexAccessor> indexAccessors) {
+		Assert.isTrue(!this.initialized, "'indexAccessors' can't be changed after initialization.");
+		Assert.notNull(indexAccessors, "'indexAccessors' must not be null.");
+		Assert.noNullElements(indexAccessors.values().toArray(), "'indexAccessors' cannot have null values.");
+		this.indexAccessors = new LinkedHashMap<>(indexAccessors);
+	}
+
+	/**
+	 * Return the map of {@link IndexAccessor}s to use in the target {@link org.springframework.expression.EvaluationContext}
+	 * @return the map of {@link IndexAccessor}s to use
+	 * @since 6.4
+	 * @see org.springframework.expression.EvaluationContext#getIndexAccessors()
+	 */
+	public Map<String, IndexAccessor> getIndexAccessors() {
+		return this.indexAccessors;
+	}
+
 	public void setFunctions(Map<String, Method> functionsArg) {
 		Assert.isTrue(!this.initialized, "'functions' can't be changed after initialization.");
 		Assert.notNull(functionsArg, "'functions' must not be null.");
 		Assert.noNullElements(functionsArg.values().toArray(), "'functions' cannot have null values.");
-		this.functions = new LinkedHashMap<String, Method>(functionsArg);
+		this.functions = new LinkedHashMap<>(functionsArg);
 	}
 
 	public Map<String, Method> getFunctions() {
@@ -94,7 +124,14 @@ public abstract class AbstractEvaluationContextFactoryBean implements Applicatio
 		if (this.applicationContext != null) {
 			conversionService();
 			functions();
+			try {
+				this.propertyAccessorRegistrar = this.applicationContext.getBean(SpelPropertyAccessorRegistrar.class);
+			}
+			catch (@SuppressWarnings("unused") NoSuchBeanDefinitionException e) {
+				// There is no 'SpelPropertyAccessorRegistrar' bean in the application context.
+			}
 			propertyAccessors();
+			indexAccessors();
 			processParentIfPresent(beanName);
 		}
 		this.initialized = true;
@@ -108,28 +145,43 @@ public abstract class AbstractEvaluationContextFactoryBean implements Applicatio
 	}
 
 	private void functions() {
-		Map<String, SpelFunctionFactoryBean> functionFactoryBeanMap = BeanFactoryUtils
-				.beansOfTypeIncludingAncestors(this.applicationContext, SpelFunctionFactoryBean.class);
-		for (SpelFunctionFactoryBean spelFunctionFactoryBean : functionFactoryBeanMap.values()) {
-			if (!getFunctions().containsKey(spelFunctionFactoryBean.getFunctionName())) {
-				getFunctions().put(spelFunctionFactoryBean.getFunctionName(), spelFunctionFactoryBean.getObject());
+		Map<String, SpelFunctionFactoryBean> spelFunctions =
+				BeanFactoryUtils.beansOfTypeIncludingAncestors(this.applicationContext, SpelFunctionFactoryBean.class);
+		for (SpelFunctionFactoryBean spelFunctionFactoryBean : spelFunctions.values()) {
+			String functionName = spelFunctionFactoryBean.getFunctionName();
+			if (!this.functions.containsKey(functionName)) {
+				this.functions.put(functionName, spelFunctionFactoryBean.getObject());
 			}
 		}
 	}
 
 	private void propertyAccessors() {
-		try {
-			SpelPropertyAccessorRegistrar propertyAccessorRegistrar =
-					this.applicationContext.getBean(SpelPropertyAccessorRegistrar.class);
-			for (Entry<String, PropertyAccessor> entry : propertyAccessorRegistrar.getPropertyAccessors()
-					.entrySet()) {
-				if (!getPropertyAccessors().containsKey(entry.getKey())) {
-					getPropertyAccessors().put(entry.getKey(), entry.getValue());
-				}
+		if (this.propertyAccessorRegistrar != null) {
+			propertyAccessors(this.propertyAccessorRegistrar.getPropertyAccessors());
+		}
+	}
+
+	private void propertyAccessors(Map<String, PropertyAccessor> propertyAccessors) {
+		for (Entry<String, PropertyAccessor> entry : propertyAccessors.entrySet()) {
+			String key = entry.getKey();
+			if (!this.propertyAccessors.containsKey(key)) {
+				this.propertyAccessors.put(key, entry.getValue());
 			}
 		}
-		catch (@SuppressWarnings("unused") NoSuchBeanDefinitionException e) {
-			// There is no 'SpelPropertyAccessorRegistrar' bean in the application context.
+	}
+
+	private void indexAccessors() {
+		if (this.propertyAccessorRegistrar != null) {
+			indexAccessors(this.propertyAccessorRegistrar.getIndexAccessors());
+		}
+	}
+
+	private void indexAccessors(Map<String, IndexAccessor> indexAccessors) {
+		for (Entry<String, IndexAccessor> entry : indexAccessors.entrySet()) {
+			String key = entry.getKey();
+			if (!this.indexAccessors.containsKey(key)) {
+				this.indexAccessors.put(key, entry.getValue());
+			}
 		}
 	}
 
@@ -138,16 +190,12 @@ public abstract class AbstractEvaluationContextFactoryBean implements Applicatio
 
 		if (parent != null && parent.containsBean(beanName)) {
 			AbstractEvaluationContextFactoryBean parentFactoryBean = parent.getBean("&" + beanName, getClass());
-
-			for (Entry<String, PropertyAccessor> entry : parentFactoryBean.getPropertyAccessors().entrySet()) {
-				if (!getPropertyAccessors().containsKey(entry.getKey())) {
-					getPropertyAccessors().put(entry.getKey(), entry.getValue());
-				}
-			}
-
+			propertyAccessors(parentFactoryBean.getPropertyAccessors());
+			indexAccessors(parentFactoryBean.getIndexAccessors());
 			for (Entry<String, Method> entry : parentFactoryBean.getFunctions().entrySet()) {
-				if (!getFunctions().containsKey(entry.getKey())) {
-					getFunctions().put(entry.getKey(), entry.getValue());
+				String key = entry.getKey();
+				if (!this.functions.containsKey(key)) {
+					this.functions.put(key, entry.getValue());
 				}
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,10 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
@@ -33,7 +30,9 @@ import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;spel-property-accessors&gt; element.
@@ -46,69 +45,61 @@ import org.springframework.util.StringUtils;
  */
 public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 
-	private final Lock lock = new ReentrantLock();
-
-	private final Map<String, Object> propertyAccessors = new ManagedMap<String, Object>();
-
 	@Override
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		initializeSpelPropertyAccessorRegistrarIfNecessary(parserContext);
+		Map<String, Object> propertyAccessors = new ManagedMap<>();
+		Map<String, Object> indexAccessors = new ManagedMap<>();
+		parseTargetedAccessors(element, parserContext, propertyAccessors);
 
-		BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
-
-		NodeList children = element.getChildNodes();
-
-		for (int i = 0; i < children.getLength(); i++) {
-			Node node = children.item(i);
-			String propertyAccessorName;
-			Object propertyAccessor;
-			if (node instanceof Element &&
-					!delegate.nodeNameEquals(node, BeanDefinitionParserDelegate.DESCRIPTION_ELEMENT)) {
-				Element ele = (Element) node;
-
-				if (delegate.nodeNameEquals(ele, BeanDefinitionParserDelegate.BEAN_ELEMENT)) {
-					propertyAccessorName = ele.getAttribute(BeanDefinitionParserDelegate.ID_ATTRIBUTE);
-					if (!StringUtils.hasText(propertyAccessorName)) {
-						parserContext.getReaderContext()
-								.error("The '<bean>' 'id' attribute is required within 'spel-property-accessors'.", ele);
-						return null;
-					}
-					propertyAccessor = delegate.parseBeanDefinitionElement(ele);
-				}
-				else if (delegate.nodeNameEquals(ele, BeanDefinitionParserDelegate.REF_ELEMENT)) {
-					BeanReference propertyAccessorRef = (BeanReference) delegate.parsePropertySubElement(ele, null);
-					propertyAccessorName = propertyAccessorRef.getBeanName(); // NOSONAR not null
-					propertyAccessor = propertyAccessorRef;
-				}
-				else {
-					parserContext.getReaderContext().error("Only '<bean>' and '<ref>' elements are allowed.", element);
-					return null;
-				}
-
-				this.propertyAccessors.put(propertyAccessorName, propertyAccessor);
-			}
+		Element indexAccessorsElement = DomUtils.getChildElementByTagName(element, "index-accessors");
+		if (indexAccessorsElement != null) {
+			parseTargetedAccessors(indexAccessorsElement, parserContext, indexAccessors);
 		}
+
+		BeanDefinitionBuilder registrarBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(SpelPropertyAccessorRegistrar.class)
+						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		if (!CollectionUtils.isEmpty(propertyAccessors)) {
+			registrarBuilder.addConstructorArgValue(propertyAccessors);
+		}
+
+		if (!CollectionUtils.isEmpty(indexAccessors)) {
+			registrarBuilder.addPropertyValue("indexAccessors", indexAccessors);
+		}
+
+		parserContext.getRegistry()
+				.registerBeanDefinition(IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME,
+						registrarBuilder.getBeanDefinition());
 
 		return null;
 	}
 
-	private void initializeSpelPropertyAccessorRegistrarIfNecessary(ParserContext parserContext) {
-		this.lock.lock();
-		try {
-			if (!parserContext.getRegistry()
-					.containsBeanDefinition(IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME)) {
+	private static void parseTargetedAccessors(Element accessorsElement, ParserContext parserContext,
+			Map<String, Object> accessorsMap) {
 
-				BeanDefinitionBuilder registrarBuilder = BeanDefinitionBuilder
-						.genericBeanDefinition(SpelPropertyAccessorRegistrar.class)
-						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-						.addConstructorArgValue(this.propertyAccessors);
-				parserContext.getRegistry()
-						.registerBeanDefinition(IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME,
-								registrarBuilder.getBeanDefinition());
+		BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
+		List<Element> accessorElements = DomUtils.getChildElementsByTagName(accessorsElement,
+				BeanDefinitionParserDelegate.BEAN_ELEMENT, BeanDefinitionParserDelegate.REF_ELEMENT);
+		for (Element accessorElement : accessorElements) {
+			String accessorName;
+			Object accessor;
+			if (delegate.nodeNameEquals(accessorElement, BeanDefinitionParserDelegate.BEAN_ELEMENT)) {
+				accessorName = accessorElement.getAttribute(BeanDefinitionParserDelegate.ID_ATTRIBUTE);
+				if (!StringUtils.hasText(accessorName)) {
+					parserContext.getReaderContext()
+							.error("The '<bean>' 'id' attribute is required within 'spel-property-accessors'.",
+									accessorElement);
+					return;
+				}
+				accessor = delegate.parseBeanDefinitionElement(accessorElement);
 			}
-		}
-		finally {
-			this.lock.unlock();
+			else {
+				BeanReference propertyAccessorRef =
+						(BeanReference) delegate.parsePropertySubElement(accessorElement, null);
+				accessorName = propertyAccessorRef.getBeanName(); // NOSONAR not null
+				accessor = propertyAccessorRef;
+			}
+			accessorsMap.put(accessorName, accessor);
 		}
 	}
 

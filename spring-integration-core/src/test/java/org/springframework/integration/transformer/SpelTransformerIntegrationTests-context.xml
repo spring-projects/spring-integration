@@ -42,10 +42,13 @@
 		</beans:property>
 	</beans:bean>
 
-	<beans:import resource="property-accessor-import-context.xml" />
-
-	<!-- import twice to verify override is ok -->
-	<beans:import resource="property-accessor-import-context.xml" />
+	<spel-property-accessors>
+		<index-accessors>
+			<beans:bean id="jsonIndex" class="org.springframework.integration.json.JsonIndexAccessor"/>
+		</index-accessors>
+		<beans:bean id="fooAccessor1" class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
+		<beans:ref bean="fooAccessor"/>
+	</spel-property-accessors>
 
 	<beans:bean id="fooAccessor" class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
 

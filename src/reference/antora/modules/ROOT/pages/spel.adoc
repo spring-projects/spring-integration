@@ -20,6 +20,11 @@ Starting with Spring Integration 3.0, you can add additional `PropertyAccessor` 
 The framework provides the (read-only) `JsonPropertyAccessor`, which you can use to access fields from a `JsonNode` or JSON in a `String`.
 You can also create your own `PropertyAccessor` if you have specific needs.
 
+Starting with version 6.4, the `JsonIndexAccessor` implementation is provided that knows how to read indexes from JSON arrays, using Jackson's `ArrayNode` API.
+Supports indexes supplied as an integer literal, for example, `myJsonArray[1]`.
+Also supports negative indexes, for example, `myJsonArray[-1]` which equates to `myJsonArray[myJsonArray.length - 1]`.
+Furthermore, `null` is returned for any index that is out of bounds (see `ArrayNode.get(int)` for details).
+
 In addition, you can add custom functions.
 Custom functions are `static` methods declared on a class.
 Functions and property accessors are available in any SpEL expression used throughout the framework.
@@ -44,6 +49,9 @@ The following configuration shows how to directly configure the `IntegrationEval
 	</property>
 </bean>
 ----
+
+Starting with version 6.4, the `AbstractEvaluationContextFactoryBean` supports an injection of `IndexAccessor` instances.
+See `AbstractEvaluationContextFactoryBean` method JavaDocs for more information.
 
 For convenience, Spring Integration provides namespace support for both property accessors and functions, as described in the following sections.
 The framework automatically configures the factory bean on your behalf.
@@ -122,7 +130,7 @@ Each context has its own instance of the `integrationEvaluationContext` factory 
 [[built-in-spel-functions]]
 === Built-in SpEL Functions
 
-Spring Integration provides the folloiwng  standard functions, which are registered with the application context automatically on start up:
+Spring Integration provides the following standard functions, which are registered with the application context automatically on start up:
 
 * `#jsonPath`: Evaluates a 'jsonPath' on a specified object.
 This function invokes `JsonPathUtils.evaluate(...)`, which delegates to the https://github.com/json-path/JsonPath[Jayway JsonPath library].
@@ -157,12 +165,16 @@ For more information regarding XML and XPath, see xref:xml.adoc[XML Support - De
 
 Spring Integration provides namespace support to let you create SpEL custom https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/expression/PropertyAccessor.html[`PropertyAccessor`] implementations.
 You can use the `<spel-property-accessors/>` component to provide a list of custom `PropertyAccessor` instances to the `EvaluationContext` used throughout the framework.
-Instead of configuring the factory bean shown earlier, you can add one or more of these components, and the framework automatically adds the accessors to the default `integrationEvaluationContext` factory bean.
+Instead of configuring the factory bean shown earlier, you can add this component, and the framework automatically adds the accessors to the default `integrationEvaluationContext` factory bean.
+Also, starting with version 6.4, a dedicated `<index-accessors>` sub-element is provided to configure `IndexAccessor` beans similar way.
 The following example shows how to do so:
 
 [source,xml]
 ----
 <int:spel-property-accessors>
+    <index-accessors>
+        <beans:bean id="jsonIndex" class="org.springframework.integration.json.JsonIndexAccessor"/>
+    </index-accessors>
 	<bean id="jsonPA" class="org.springframework.integration.json.JsonPropertyAccessor"/>
 	<ref bean="fooPropertyAccessor"/>
 </int:spel-property-accessors>
@@ -170,15 +182,17 @@ The following example shows how to do so:
 
 In the preceding example, two custom `PropertyAccessor` instances are injected into the `EvaluationContext` (in the order in which they are declared).
 
+
 To provide `PropertyAccessor` instances by using Java Configuration, you should declare a `SpelPropertyAccessorRegistrar` bean with a name of `spelPropertyAccessorRegistrar` (dictated by the `IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME` constant).
-The following example shows how to configure two custom `PropertyAccessor` instances with Java:
+The following example shows how to configure two custom `PropertyAccessor` (and `IndexAccessor` starting with version 6.4) instances with Java:
 
 [source,java]
 ----
 @Bean
 public SpelPropertyAccessorRegistrar spelPropertyAccessorRegistrar() {
     return new SpelPropertyAccessorRegistrar(new JsonPropertyAccessor())
-                    .add(fooPropertyAccessor());
+                    .add(fooPropertyAccessor())
+                    .add(new JsonIndexAccessor());
 }
 ----
 
