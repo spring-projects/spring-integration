@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ package org.springframework.integration.zip.transformer;
 import java.io.File;
 import java.nio.charset.Charset;
 
-import org.springframework.integration.file.DefaultFileNameGenerator;
-import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -36,8 +34,6 @@ import org.springframework.util.Assert;
 public abstract class AbstractZipTransformer extends AbstractTransformer {
 
 	protected Charset charset = Charset.defaultCharset();
-
-	protected FileNameGenerator fileNameGenerator;
 
 	protected ZipResultType zipResultType = ZipResultType.FILE;
 
@@ -91,11 +87,6 @@ public abstract class AbstractZipTransformer extends AbstractTransformer {
 			logger.info(() -> "Creating work directory: " + this.workDirectory);
 			Assert.isTrue(this.workDirectory.mkdirs(), () -> "Can't create the 'workDirectory': " + this.workDirectory);
 		}
-		DefaultFileNameGenerator defaultFileNameGenerator = new DefaultFileNameGenerator();
-		defaultFileNameGenerator.setBeanFactory(getBeanFactory());
-		defaultFileNameGenerator.setConversionService(getConversionService());
-		this.fileNameGenerator = defaultFileNameGenerator;
-
 	}
 
 	/**

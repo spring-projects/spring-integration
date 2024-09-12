@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,13 @@ import org.zeroturnaround.zip.ByteSource;
 import org.zeroturnaround.zip.FileSource;
 import org.zeroturnaround.zip.ZipEntrySource;
 
+import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
+import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.zip.ZipHeaders;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
@@ -43,9 +46,6 @@ import org.springframework.util.StringUtils;
  * <p>
  * See also: <a href="https://www.mindprod.com/jgloss/zip.html"/>
  * <p>
- * If you want to generate Zip files larger than {@code 4GB}, you must use Java 7:
- * <p>
- * See also: <a href="https://blogs.oracle.com/xuemingshen/entry/zip64_support_for_4g_zipfile"/>
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
@@ -56,9 +56,11 @@ public class ZipTransformer extends AbstractZipTransformer {
 
 	private static final String ZIP_EXTENSION = ".zip";
 
-	private volatile int compressionLevel = Deflater.DEFAULT_COMPRESSION;
+	private int compressionLevel = Deflater.DEFAULT_COMPRESSION;
 
-	private volatile boolean useFileAttributes = true;
+	private boolean useFileAttributes = true;
+
+	private FileNameGenerator fileNameGenerator;
 
 	/**
 	 * Set the compression level. Default is {@link Deflater#DEFAULT_COMPRESSION}.
@@ -78,6 +80,31 @@ public class ZipTransformer extends AbstractZipTransformer {
 	}
 
 	/**
+	 * Set a {@link FileNameGenerator} for zip file base name: the {@code .zip} extension is added to this name.
+	 * Unless it already comes with {@code .zip} extension.
+	 * Defaults to the {@link org.springframework.integration.file.DefaultFileNameGenerator}.
+	 * The result of this generator is also used for zip entry(ies) if {@link ZipHeaders#ZIP_ENTRY_FILE_NAME}
+	 * header is not provided in the request message.
+	 * @param fileNameGenerator the {@link FileNameGenerator} to use.
+	 * @since 6.4
+	 */
+	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
+		Assert.notNull(fileNameGenerator, "'fileNameGenerator' must not be null");
+		this.fileNameGenerator = fileNameGenerator;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		if (this.fileNameGenerator == null) {
+			DefaultFileNameGenerator defaultFileNameGenerator = new DefaultFileNameGenerator();
+			defaultFileNameGenerator.setBeanFactory(getBeanFactory());
+			defaultFileNameGenerator.setConversionService(getConversionService());
+			this.fileNameGenerator = defaultFileNameGenerator;
+		}
+	}
+
+	/**
 	 * The payload may encompass the following types:
 	 * <ul>
 	 *   <li>{@link File}
@@ -91,39 +118,19 @@ public class ZipTransformer extends AbstractZipTransformer {
 	@Override
 	protected Object doZipTransform(Message<?> message) {
 		Object payload = message.getPayload();
-		Object zippedData;
+		MessageHeaders messageHeaders = message.getHeaders();
+
 		String baseFileName = this.fileNameGenerator.generateFileName(message);
+		String zipFileName = baseFileName.endsWith(ZIP_EXTENSION) ? baseFileName : baseFileName + ZIP_EXTENSION;
 
-		String zipEntryName;
-		String zipFileName;
-
-		if (message.getHeaders().containsKey(ZipHeaders.ZIP_ENTRY_FILE_NAME)) {
-			zipEntryName = (String) message.getHeaders().get(ZipHeaders.ZIP_ENTRY_FILE_NAME);
-		}
-		else {
-			zipEntryName = baseFileName;
-		}
-
-		if (message.getHeaders().containsKey(FileHeaders.FILENAME)) {
-			zipFileName = (String) message.getHeaders().get(FileHeaders.FILENAME);
-		}
-		else {
-			zipFileName = baseFileName + ZIP_EXTENSION;
-		}
-
-		Date lastModifiedDate;
-
-		if (message.getHeaders().containsKey(ZipHeaders.ZIP_ENTRY_LAST_MODIFIED_DATE)) {
-			lastModifiedDate = message.getHeaders().get(ZipHeaders.ZIP_ENTRY_LAST_MODIFIED_DATE, Date.class);
-		}
-		else {
-			lastModifiedDate = new Date();
-		}
+		String zipEntryName = (String) messageHeaders.getOrDefault(ZipHeaders.ZIP_ENTRY_FILE_NAME, baseFileName);
+		Date lastModifiedDate = (Date) messageHeaders.getOrDefault(ZipHeaders.ZIP_ENTRY_LAST_MODIFIED_DATE, new Date());
 
 		List<ZipEntrySource> entries = createZipEntries(payload, zipEntryName, lastModifiedDate);
 
 		byte[] zippedBytes = SpringZipUtils.pack(entries, this.compressionLevel);
 
+		Object zippedData;
 		if (ZipResultType.FILE.equals(this.zipResultType)) {
 			final File zippedFile = new File(this.workDirectory, zipFileName);
 			try {
@@ -145,7 +152,7 @@ public class ZipTransformer extends AbstractZipTransformer {
 
 		return getMessageBuilderFactory()
 				.withPayload(zippedData)
-				.copyHeaders(message.getHeaders())
+				.copyHeaders(messageHeaders)
 				.setHeader(FileHeaders.FILENAME, zipFileName)
 				.build();
 	}

@@ -69,6 +69,14 @@ The `ZipTransformer` can be customized by setting several properties:
 Default is `Deflater#DEFAULT_COMPRESSION`.
 
 * `useFileAttributes` - specifies whether the name of the file shall be used for the zip entry.
+* `fileNameGenerator` - uses to generate an original file name based on the request message.
+Defaults to `DefaultFileNameGenerator`.
+The `.zip` extension is added into this name for the target zip file name.
+Unless it is already present as a result of this generator.
+
+In addition, a `ZipHeaders.ZIP_ENTRY_FILE_NAME` and `ZipHeaders.ZIP_ENTRY_LAST_MODIFIED_DATE` can be supplied for the name of zip entry and its `lastmodified` attribute.
+If not provided, the entry name is exact result of the `fileNameGenerator` and `lastmodified` falls back to the current date and time.
+If the payload of request message is an `Iterable`, then this entry name is modified with an index starting `1`.
 
 For example to zip a simple `test.txt` file into a `test.txt.zip`, only this configuration is enough:
 

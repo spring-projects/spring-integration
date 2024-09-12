@@ -78,3 +78,9 @@ See xref:sftp/session-factory.adoc[SFTP Session Factory] for more information.
 Multiple instances of `MqttPahoMessageDrivenChannelAdapter` and `Mqttv5PahoMessageDrivenChannelAdapter` can now be added at runtime using corresponding `ClientManager` through `IntegrationFlowContext`
 Also a `MqttMessageNotDeliveredEvent` event has been introduced to emit when action callback reacts to the delivery failure.
 See xref:mqtt.adoc[MQTT Support] for more information.
+
+[[x6.4-zip-support-changes]]
+=== Zip Support Changes
+
+The `ZipTransformer` now exposes a `fileNameGenerator` property to customize a target zip file (and optional zip entry) name generation.
+See xref:zip.adoc[Zip Support] for more information.

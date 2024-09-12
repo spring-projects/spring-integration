@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.file.DefaultFileNameGenerator;
-import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.zip.transformer.UnZipTransformer;
@@ -64,21 +62,18 @@ public class UnZipTransformerParserTests {
 		final UnZipTransformer unZipTransformer = TestUtils.getPropertyValue(handler, "transformer", UnZipTransformer.class);
 
 		final Charset charset = TestUtils.getPropertyValue(unZipTransformer, "charset", Charset.class);
-		final FileNameGenerator fileNameGenerator = TestUtils.getPropertyValue(unZipTransformer, "fileNameGenerator", FileNameGenerator.class);
 		final ZipResultType zipResultType = TestUtils.getPropertyValue(unZipTransformer, "zipResultType", ZipResultType.class);
 		final File workDirectory = TestUtils.getPropertyValue(unZipTransformer, "workDirectory", File.class);
 		final Boolean deleteFiles = TestUtils.getPropertyValue(unZipTransformer, "deleteFiles", Boolean.class);
 		final Boolean expectSingleResult = TestUtils.getPropertyValue(unZipTransformer, "expectSingleResult", Boolean.class);
 
 		assertThat(charset).isNotNull();
-		assertThat(fileNameGenerator).isNotNull();
 		assertThat(zipResultType).isNotNull();
 		assertThat(workDirectory).isNotNull();
 		assertThat(deleteFiles).isNotNull();
 		assertThat(expectSingleResult).isNotNull();
 
 		assertThat(charset).isEqualTo(Charset.defaultCharset());
-		assertThat(fileNameGenerator).isInstanceOf(DefaultFileNameGenerator.class);
 		assertThat(zipResultType).isEqualTo(ZipResultType.FILE);
 		assertThat(workDirectory)
 				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer"));
@@ -102,21 +97,18 @@ public class UnZipTransformerParserTests {
 		final UnZipTransformer unZipTransformer = TestUtils.getPropertyValue(handler, "transformer", UnZipTransformer.class);
 
 		final Charset charset = TestUtils.getPropertyValue(unZipTransformer, "charset", Charset.class);
-		final FileNameGenerator fileNameGenerator = TestUtils.getPropertyValue(unZipTransformer, "fileNameGenerator", FileNameGenerator.class);
 		final ZipResultType zipResultType = TestUtils.getPropertyValue(unZipTransformer, "zipResultType", ZipResultType.class);
 		final File workDirectory = TestUtils.getPropertyValue(unZipTransformer, "workDirectory", File.class);
 		final Boolean deleteFiles = TestUtils.getPropertyValue(unZipTransformer, "deleteFiles", Boolean.class);
 		final Boolean expectSingleResult = TestUtils.getPropertyValue(unZipTransformer, "expectSingleResult", Boolean.class);
 
 		assertThat(charset).isNotNull();
-		assertThat(fileNameGenerator).isNotNull();
 		assertThat(zipResultType).isNotNull();
 		assertThat(workDirectory).isNotNull();
 		assertThat(deleteFiles).isNotNull();
 		assertThat(expectSingleResult).isNotNull();
 
 		assertThat(charset).isEqualTo(Charset.defaultCharset());
-		assertThat(fileNameGenerator).isInstanceOf(DefaultFileNameGenerator.class);
 		assertThat(zipResultType).isEqualTo(ZipResultType.FILE);
 		assertThat(workDirectory)
 				.isEqualTo(new File(System.getProperty("java.io.tmpdir") + File.separator + "ziptransformer"));
