@@ -23,6 +23,10 @@ See xref:control-bus.adoc[Control Bus] for more information.
 Also, a `ControlBusController` (together with an `@EnableControlBusController`) is introduced for managing exposed commands by the mentioned `ControlBusCommandRegistry`.
 See xref:http.adoc[HTTP Support] for more information.
 
+The SpEL evaluation infrastructure now supports configuration for `IndexAccessor`.
+Also, an out-of-the-box `JsonIndexAccessor` is provided.
+See xref:spel.adoc[SpEL Support] for more information.
+
 [[x6.4-general]]
 === General Changes
 
@@ -74,4 +78,3 @@ See xref:sftp/session-factory.adoc[SFTP Session Factory] for more information.
 Multiple instances of `MqttPahoMessageDrivenChannelAdapter` and `Mqttv5PahoMessageDrivenChannelAdapter` can now be added at runtime using corresponding `ClientManager` through `IntegrationFlowContext`
 Also a `MqttMessageNotDeliveredEvent` event has been introduced to emit when action callback reacts to the delivery failure.
 See xref:mqtt.adoc[MQTT Support] for more information.
-

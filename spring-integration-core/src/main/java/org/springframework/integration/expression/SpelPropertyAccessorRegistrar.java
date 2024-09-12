@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import java.beans.Introspector;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.expression.IndexAccessor;
 import org.springframework.expression.PropertyAccessor;
+import org.springframework.expression.TargetedAccessor;
 import org.springframework.util.Assert;
 
 /**
@@ -35,14 +37,16 @@ import org.springframework.util.Assert;
  */
 public class SpelPropertyAccessorRegistrar {
 
-	private final Map<String, PropertyAccessor> propertyAccessors = new LinkedHashMap<String, PropertyAccessor>();
+	private final Map<String, PropertyAccessor> propertyAccessors = new LinkedHashMap<>();
+
+	private final Map<String, IndexAccessor> indexAccessors = new LinkedHashMap<>();
 
 	public SpelPropertyAccessorRegistrar() {
 	}
 
 	/**
-	 * Create an instance with the provided property accessors. Each accessor name
-	 * will be the class simple name.
+	 * Create an instance with the provided {@link PropertyAccessor} instances.
+	 * Each accessor name will be the class simple name.
 	 * @param propertyAccessors the accessors.
 	 * @since 4.3.8
 	 */
@@ -54,7 +58,7 @@ public class SpelPropertyAccessorRegistrar {
 	}
 
 	/**
-	 * Create an instance with the provided named property accessors.
+	 * Create an instance with the provided named {@link PropertyAccessor} instances.
 	 * @param propertyAccessors a map of name:accessor.
 	 * @since 4.3.8
 	 */
@@ -64,12 +68,33 @@ public class SpelPropertyAccessorRegistrar {
 	}
 
 	/**
-	 * Return the registered accessors.
+	 * Return the registered {@link PropertyAccessor} instances to use
+	 * in the target {@link org.springframework.expression.EvaluationContext}.
 	 * @return the map of name:accessor.
 	 * @since 4.3.8
 	 */
 	public Map<String, PropertyAccessor> getPropertyAccessors() {
 		return this.propertyAccessors;
+	}
+
+	/**
+	 * Add a map of {@link IndexAccessor} instances to use
+	 * in the target {@link org.springframework.expression.EvaluationContext}.
+	 * @param indexAccessors the map of name:accessor.
+	 * @since 6.4
+	 */
+	public void setIndexAccessors(Map<String, IndexAccessor> indexAccessors) {
+		Assert.notEmpty(indexAccessors, "'indexAccessors' must not be empty");
+		this.indexAccessors.putAll(indexAccessors);
+	}
+
+	/**
+	 * Return the registered {@link IndexAccessor} instances.
+	 * @return the map of name:accessor.
+	 * @since 6.4
+	 */
+	public Map<String, IndexAccessor> getIndexAccessors() {
+		return this.indexAccessors;
 	}
 
 	/**
@@ -101,8 +126,37 @@ public class SpelPropertyAccessorRegistrar {
 		return this;
 	}
 
-	private static String obtainAccessorKey(PropertyAccessor propertyAccessor) {
-		return Introspector.decapitalize(propertyAccessor.getClass().getSimpleName());
+	/**
+	 * Add the provided named {@link IndexAccessor}.
+	 * @param name the name.
+	 * @param indexAccessor the accessor.
+	 * @return this registrar.
+	 * @since 6.4
+	 */
+	public SpelPropertyAccessorRegistrar add(String name, IndexAccessor indexAccessor) {
+		Assert.hasText(name, "'name' must not be empty");
+		Assert.notNull(indexAccessor, "'indexAccessor' must not be null");
+		this.indexAccessors.put(name, indexAccessor);
+		return this;
+	}
+
+	/**
+	 * Add the provided {@link IndexAccessor} instances.
+	 * Each accessor name will be the class simple name.
+	 * @param indexAccessors the accessors.
+	 * @return this registrar.
+	 * @since 6.4
+	 */
+	public SpelPropertyAccessorRegistrar add(IndexAccessor... indexAccessors) {
+		Assert.notEmpty(indexAccessors, "'indexAccessors' must not be empty");
+		for (IndexAccessor indexAccessor : indexAccessors) {
+			this.indexAccessors.put(obtainAccessorKey(indexAccessor), indexAccessor);
+		}
+		return this;
+	}
+
+	private static String obtainAccessorKey(TargetedAccessor targetedAccessor) {
+		return Introspector.decapitalize(targetedAccessor.getClass().getSimpleName());
 	}
 
 }

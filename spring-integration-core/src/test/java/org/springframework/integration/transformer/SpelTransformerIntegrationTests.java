@@ -16,10 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import java.util.Map;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,13 +30,12 @@ import org.springframework.integration.config.IntegrationEvaluationContextFactor
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.Assert;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,8 +45,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  * @author Gary Russell
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class SpelTransformerIntegrationTests {
 
 	@Autowired
@@ -96,7 +92,7 @@ public class SpelTransformerIntegrationTests {
 	@Test
 	public void testInt2755ChainChildIdWithinExceptionMessage() {
 		try {
-			this.transformerChainInput.send(new GenericMessage<String>("foo"));
+			this.transformerChainInput.send(new GenericMessage<>("foo"));
 		}
 		catch (ReplyRequiredException e) {
 			assertThat(e.getMessage()).contains("No reply produced by handler 'transformerChain$child#0'");
@@ -108,20 +104,20 @@ public class SpelTransformerIntegrationTests {
 		QueueChannel outputChannel = new QueueChannel();
 		fooHandler.setOutputChannel(outputChannel);
 		Foo foo = new Foo("baz");
-		fooHandler.handleMessage(new GenericMessage<Foo>(foo));
+		fooHandler.handleMessage(new GenericMessage<>(foo));
 		Message<?> reply = outputChannel.receive(0);
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload() instanceof String).isTrue();
 		assertThat(reply.getPayload()).isEqualTo("baz");
-		assertThat(TestUtils.getPropertyValue(this.evaluationContextFactoryBean, "propertyAccessors", Map.class).size())
-				.isEqualTo(3);
+		assertThat(this.evaluationContextFactoryBean.getPropertyAccessors()).hasSize(3);
+		assertThat(this.evaluationContextFactoryBean.getIndexAccessors()).hasSize(1);
 	}
 
 	@Test
 	public void testCustomFunction() {
 		QueueChannel outputChannel = new QueueChannel();
 		barHandler.setOutputChannel(outputChannel);
-		barHandler.handleMessage(new GenericMessage<String>("foo"));
+		barHandler.handleMessage(new GenericMessage<>("foo"));
 		Message<?> reply = outputChannel.receive(0);
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("bar");
@@ -169,7 +165,7 @@ public class SpelTransformerIntegrationTests {
 		}
 
 		@Override
-		public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
+		public boolean canRead(EvaluationContext context, Object target, String name) {
 			return "bar".equals(name);
 		}
 
@@ -180,7 +176,7 @@ public class SpelTransformerIntegrationTests {
 		}
 
 		@Override
-		public boolean canWrite(EvaluationContext context, Object target, String name) throws AccessException {
+		public boolean canWrite(EvaluationContext context, Object target, String name) {
 			return "bar".equals(name);
 		}
 
