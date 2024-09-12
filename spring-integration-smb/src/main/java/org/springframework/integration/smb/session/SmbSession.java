@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.nio.file.FileSystems;
 import java.util.Arrays;
 
 import jcifs.smb.SmbException;
@@ -54,14 +53,13 @@ import org.springframework.util.StringUtils;
  * @author Prafull Kumar Soni
  * @author Gregory Bragg
  * @author Adam Jones
+ * @author Paolo Fosser
  *
  * @since 6.0
  */
 public class SmbSession implements Session<SmbFile> {
 
 	private static final LogAccessor logger = new LogAccessor(SmbSession.class);
-
-	private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 
 	private static final String SMB_FILE_SEPARATOR = "/";
 
@@ -338,7 +336,7 @@ public class SmbSession implements Session<SmbFile> {
 	 * @throws IOException on error conditions returned by a CIFS server
 	 */
 	String mkdirs(String _path) throws IOException {
-		int idxPath = _path.lastIndexOf(FILE_SEPARATOR);
+		int idxPath = _path.lastIndexOf(SMB_FILE_SEPARATOR);
 		if (idxPath > -1) {
 			String path = _path.substring(0, idxPath + 1);
 			mkdir(path);
