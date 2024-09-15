@@ -92,7 +92,7 @@ ext {
     lettuceVersion = '6.3.2.RELEASE'
     log4jVersion = '2.21.1'
     mailVersion = '2.0.3'
-    micrometerTracingVersion = '1.2.9'
+    micrometerTracingVersion = '1.2.10'
     micrometerVersion = '1.12.10'
     mockitoVersion = '5.7.0'
     mongoDriverVersion = '4.11.4'
