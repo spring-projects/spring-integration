@@ -423,6 +423,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		if (!this.replyTimeoutSet) {
 			this.messagingTemplate.setReceiveTimeout(endpointsDefaultTimeout);
 		}
+		super.onInit();
 		this.initialized = true;
 	}
 

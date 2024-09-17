@@ -453,6 +453,13 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="group-id">
+			<xsd:annotation>
+				<xsd:documentation>
+					Set the 'group.id' KafkaConsumer property.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attributeGroup ref="kafkaTemplate"/>
 	</xsd:complexType>
 
@@ -762,13 +769,6 @@
 						<tool:expected-type type="org.springframework.kafka.core.KafkaTemplate" />
 					</tool:annotation>
 				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="group-id">
-			<xsd:annotation>
-				<xsd:documentation>
-					Set the 'group.id' KafkaConsumer property.
-				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
