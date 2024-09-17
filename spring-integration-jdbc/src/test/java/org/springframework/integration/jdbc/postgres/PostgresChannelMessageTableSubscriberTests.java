@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc.channel;
+package org.springframework.integration.jdbc.postgres;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -44,6 +44,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.jdbc.channel.PgConnectionSupplier;
+import org.springframework.integration.jdbc.channel.PostgresChannelMessageTableSubscriber;
+import org.springframework.integration.jdbc.channel.PostgresSubscribableChannel;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;

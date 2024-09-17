@@ -25,7 +25,9 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -168,12 +170,18 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 
 	@Override
 	public void afterPropertiesSet() {
+		String dataBaseVendor =
+				this.jdbcTemplate.execute((ConnectionCallback<String>) connection ->
+						connection.getMetaData().getDatabaseProductName());
 		this.getValueQuery = String.format(this.getValueQuery, this.tablePrefix);
 		this.getValueForUpdateQuery = String.format(this.getValueForUpdateQuery, this.tablePrefix, this.lockHint);
 		this.replaceValueQuery = String.format(this.replaceValueQuery, this.tablePrefix);
 		this.replaceValueByKeyQuery = String.format(this.replaceValueByKeyQuery, this.tablePrefix);
 		this.removeValueQuery = String.format(this.removeValueQuery, this.tablePrefix);
 		this.putIfAbsentValueQuery = String.format(this.putIfAbsentValueQuery, this.tablePrefix, this.tablePrefix);
+		if ("PostgreSQL".equals(dataBaseVendor)) {
+			this.putIfAbsentValueQuery += " ON CONFLICT DO NOTHING";
+		}
 		this.countQuery = String.format(this.countQuery, this.tablePrefix);
 	}
 
@@ -247,7 +255,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 						ps.setString(5, this.region); // NOSONAR magic number
 					});
 		}
-		catch (DataIntegrityViolationException ex) {
+		catch (TransientDataAccessException | DataIntegrityViolationException ex) {
 			return 0;
 		}
 	}
