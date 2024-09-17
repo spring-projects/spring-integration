@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.integration.file.remote.session.CachingSessionFactory
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.smb.session.SmbSessionFactory;
-import org.springframework.integration.test.util.TestUtils;
 
 /**
  * Provides a connection to a Testcontainers-driven SMB Server for test cases.
@@ -101,17 +100,12 @@ public class SmbTestSupport extends RemoteFileTestSupport {
 		try (Session<SmbFile> smbFileSession = smbSessionFactory.getSession()) {
 			smbFileSession.mkdir("smbTarget");
 			Charset charset = StandardCharsets.UTF_8;
-			smbFileSession.write(IOUtils.toInputStream("source1", charset),
-					TestUtils.applySystemFileSeparator("smbSource/smbSource1.txt"));
-			smbFileSession.write(IOUtils.toInputStream("source2", charset),
-					TestUtils.applySystemFileSeparator("smbSource/smbSource2.txt"));
+			smbFileSession.write(IOUtils.toInputStream("source1", charset), "smbSource/smbSource1.txt");
+			smbFileSession.write(IOUtils.toInputStream("source2", charset), "smbSource/smbSource2.txt");
 			smbFileSession.write(IOUtils.toInputStream("", charset), "SMBSOURCE1.TXT.a");
 			smbFileSession.write(IOUtils.toInputStream("", charset), "SMBSOURCE2.TXT.a");
-
-			smbFileSession.write(IOUtils.toInputStream("subSource1", charset),
-					TestUtils.applySystemFileSeparator("smbSource/subSmbSource/subSmbSource1.txt"));
-			smbFileSession.write(IOUtils.toInputStream("subSource2", charset),
-					TestUtils.applySystemFileSeparator("smbSource/subSmbSource/subSmbSource2.txt"));
+			smbFileSession.write(IOUtils.toInputStream("subSource1", charset), "smbSource/subSmbSource/subSmbSource1.txt");
+			smbFileSession.write(IOUtils.toInputStream("subSource2", charset), "smbSource/subSmbSource/subSmbSource2.txt");
 		}
 	}
 
