@@ -21,7 +21,8 @@
 			retry-template="retryTemplate"
 			recovery-callback="recoveryCallback"
 			bind-source-record="true"
-			on-partitions-assigned-seek-callback="onPartitionsAssignedSeekCallback"/>
+			on-partitions-assigned-seek-callback="onPartitionsAssignedSeekCallback"
+			role="testRole"/>
 
 	<bean id="template" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.kafka.core.KafkaTemplate" type="java.lang.Class"/>
