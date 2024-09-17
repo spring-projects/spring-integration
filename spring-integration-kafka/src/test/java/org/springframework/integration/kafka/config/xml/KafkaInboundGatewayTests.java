@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 the original author or authors.
+ * Copyright 2019-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.kafka.inbound.KafkaInboundGateway;
+import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.test.annotation.DirtiesContext;
@@ -44,6 +45,9 @@ public class KafkaInboundGatewayTests {
 
 	@Autowired
 	private ApplicationContext context;
+
+	@Autowired
+	SmartLifecycleRoleController roleController;
 
 	@Test
 	public void testProps() {
@@ -69,6 +73,8 @@ public class KafkaInboundGatewayTests {
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "messagingTemplate.sendTimeout")).isEqualTo(5000L);
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "messagingTemplate.receiveTimeout")).isEqualTo(43L);
 		assertThat(TestUtils.getPropertyValue(this.gateway1, "bindSourceRecord", Boolean.class)).isTrue();
+		assertThat(this.roleController.getRoles()).contains("testRole");
+		assertThat(this.roleController.getEndpointsRunningStatus("testRole")).containsEntry("gateway1", false);
 	}
 
 }
