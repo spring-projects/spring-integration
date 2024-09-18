@@ -32,6 +32,7 @@ import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ClientHttpConnector;
@@ -89,6 +90,47 @@ class WebFluxRequestExecutingMessageHandlerTests {
 
 		StepVerifier.create(ackChannel, 2)
 				.assertNext(m -> assertThat(m.getHeaders()).containsEntry(HttpHeaders.STATUS_CODE, HttpStatus.OK))
+				.assertNext(m -> assertThat(m.getHeaders()).containsEntry(HttpHeaders.STATUS_CODE, HttpStatus.OK))
+				.expectNoEvent(Duration.ofMillis(100))
+				.thenCancel()
+				.verify(Duration.ofSeconds(10));
+	}
+
+	@Test
+	void noContentLengthHeaderForGetMethod() {
+		ClientHttpConnector httpConnector =
+				new HttpHandlerConnector((request, response) -> {
+					assertThat(request.getHeaders())
+							.doesNotContainKey(org.springframework.http.HttpHeaders.CONTENT_LENGTH);
+					response.setStatusCode(HttpStatus.OK);
+					return Mono.defer(response::setComplete);
+				});
+
+		WebClient webClient = WebClient.builder()
+				.clientConnector(httpConnector)
+				.build();
+
+		String destinationUri = "https://www.springsource.org/spring-integration";
+		WebFluxRequestExecutingMessageHandler reactiveHandler =
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
+		reactiveHandler.setHttpMethod(HttpMethod.GET);
+
+		FluxMessageChannel ackChannel = new FluxMessageChannel();
+		reactiveHandler.setOutputChannel(ackChannel);
+		String testPayload = "hello, world";
+		Message<?> testMessage =
+				MessageBuilder.withPayload(testPayload)
+						.setHeader(org.springframework.http.HttpHeaders.CONTENT_LENGTH, testPayload.length())
+						.build();
+		reactiveHandler.handleMessage(testMessage);
+		reactiveHandler.handleMessage(testMessage);
+
+		StepVerifier.create(ackChannel, 2)
+				.assertNext(m ->
+						assertThat(m.getHeaders())
+								.containsEntry(HttpHeaders.STATUS_CODE, HttpStatus.OK)
+								// The reply message headers are copied from the request message
+								.containsEntry(org.springframework.http.HttpHeaders.CONTENT_LENGTH, testPayload.length()))
 				.assertNext(m -> assertThat(m.getHeaders()).containsEntry(HttpHeaders.STATUS_CODE, HttpStatus.OK))
 				.expectNoEvent(Duration.ofMillis(100))
 				.thenCancel()

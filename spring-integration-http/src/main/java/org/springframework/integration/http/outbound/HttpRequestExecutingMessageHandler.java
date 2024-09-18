@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param uri The URI.
 	 * @param restTemplate The rest template.
 	 */
-	public HttpRequestExecutingMessageHandler(String uri, RestTemplate restTemplate) {
+	public HttpRequestExecutingMessageHandler(String uri, @Nullable RestTemplate restTemplate) {
 		this(new LiteralExpression(uri), restTemplate);
 		/*
 		 *  We'd prefer to do this assertion first, but the compiler doesn't allow it. However,
@@ -173,7 +173,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	@Override
 	@Nullable
 	protected Object exchange(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
-			Object expectedResponseType, Message<?> requestMessage, Map<String, ?> uriVariables) {
+			@Nullable Object expectedResponseType, Message<?> requestMessage, @Nullable Map<String, ?> uriVariables) {
 
 		ResponseEntity<?> httpResponse;
 		try {
