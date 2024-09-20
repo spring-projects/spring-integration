@@ -99,6 +99,7 @@
 ** xref:shutdown.adoc[]
 ** xref:graph.adoc[]
 ** xref:integration-graph-controller.adoc[]
+** xref:keep-alive.adoc[]
 * xref:reactive-streams.adoc[]
 * xref:native-aot.adoc[]
 * xref:endpoint-summary.adoc[]

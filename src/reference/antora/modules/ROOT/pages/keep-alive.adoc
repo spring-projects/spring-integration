@@ -1,0 +1,17 @@
+[[keep-alive]]
+= Integration Keep Alive
+
+Starting with version 6.4, Spring Integration provides an `IntegrationKeepAlive` infrastructure bean.
+It manages an `spring-integration-keep-alive` non-daemon forever thread which keeps an application running.
+In some use-cases, e.g. `WebSocketInboundChannelAdapter` based on the `StandardWebSocketClient` does not use non-daemon thread for session, therefore an application may exit prematurely.
+Or an application logic may have only service activators or outbound channel adapters which rely on some other interaction, but not loops from executors like the one from Web server.
+Or all the threads in the application are virtual.
+
+The `IntegrationKeepAlive` is started automatically only if `TaskScheduler` is configured for non-daemon threads and there is no `AbstractPollingEndpoint` beans in the application context.
+In case of the `TaskScheduler` bean configured for daemon or virtual threads, the `IntegrationKeepAlive` is started regardless of the presence for `AbstractPollingEndpoint` beans.
+
+This component can be disabled by the `spring.integration.keepAlive` global property.
+See xref:configuration/global-properties.adoc[Global Properties] for more information.
+The `IntegrationKeepAlive` can be injected in some service and stopped manually if there is no need to keep an application alive or such a status is managed somewhere else.
+
+See also Spring Boot https://docs.spring.io/spring-boot/reference/features/spring-application.html#features.spring-application.virtual-threads[Virtual Threads] documentation for a `spring.main.keep-alive` property.
