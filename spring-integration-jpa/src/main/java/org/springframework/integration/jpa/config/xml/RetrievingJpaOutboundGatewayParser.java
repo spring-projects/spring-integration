@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Amol Nayak
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.2
  */
@@ -99,9 +100,9 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 
 			boolean childElementsExist = !CollectionUtils.isEmpty(DomUtils.getChildElementsByTagName(gatewayElement,
 					"parameter"));
-			if (others.length() > 0 || childElementsExist) {
+			if (!others.isEmpty() || childElementsExist) {
 				parserContext.getReaderContext().error(
-						(others.length() == 0 ? "" : "'" + others + "' "
+						(others.isEmpty() ? "" : "'" + others + "' "
 								+ (childElementsExist ? "and " : ""))
 								+ (childElementsExist ? "child elements " : "")
 								+ "not allowed with an 'id-expression' attribute.",
