@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.integration.file.remote.session.Session;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 3.0
  *
@@ -56,7 +57,7 @@ public final class RemoteFileUtils {
 				List<String> pathsToCreate = new LinkedList<>();
 				while (nextSeparatorIndex > -1) {
 					String pathSegment = path.substring(0, nextSeparatorIndex);
-					if (pathSegment.length() == 0 || session.exists(pathSegment)) {
+					if (pathSegment.isEmpty() || session.exists(pathSegment)) {
 						// no more paths to create
 						break;
 					}
