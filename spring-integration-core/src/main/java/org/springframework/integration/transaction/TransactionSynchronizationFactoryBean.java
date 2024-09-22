@@ -197,8 +197,8 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 				.acceptIfNotNull(this.afterCommitChannel, processor::setAfterCommitChannel)
 				.acceptIfNotNull(this.afterRollbackChannel, processor::setAfterRollbackChannel);
 
-		if (this.beanFactory instanceof AutowireCapableBeanFactory) {
-			((AutowireCapableBeanFactory) this.beanFactory).initializeBean(processor,
+		if (this.beanFactory instanceof AutowireCapableBeanFactory autowireCapableBeanFactory) {
+			autowireCapableBeanFactory.initializeBean(processor,
 					getClass().getName() + "#" + TransactionSynchronizationFactoryBean.this.counter.incrementAndGet());
 		}
 

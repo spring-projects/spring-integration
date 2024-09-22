@@ -41,8 +41,8 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 
 	public void setExecutor(Executor executor) {
 		Assert.notNull(executor, "executor must not be null");
-		this.executor = (executor instanceof AsyncTaskExecutor) ?
-				(AsyncTaskExecutor) executor : new TaskExecutorAdapter(executor);
+		this.executor = (executor instanceof AsyncTaskExecutor asyncTaskExecutor) ?
+			asyncTaskExecutor : new TaskExecutorAdapter(executor);
 	}
 
 	@Override

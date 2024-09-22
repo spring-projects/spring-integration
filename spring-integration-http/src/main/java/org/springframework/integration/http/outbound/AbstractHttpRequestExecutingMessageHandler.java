@@ -404,7 +404,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message, HttpMethod httpMethod) {
 		HttpHeaders httpHeaders = mapHeaders(message);
 		if (shouldIncludeRequestBody(httpMethod)) {
-			return new HttpEntity<Object>(message, httpHeaders);
+			return new HttpEntity<>(message, httpHeaders);
 		}
 		return new HttpEntity<>(httpHeaders);
 	}
@@ -447,11 +447,11 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		for (Entry<?, ?> entry : simpleMap.entrySet()) {
 			Object key = entry.getKey();
 			Object value = entry.getValue();
-			if (value instanceof Object[]) {
-				value = Arrays.asList((Object[]) value);
+			if (value instanceof Object[] objects) {
+				value = Arrays.asList(objects);
 			}
-			if (value instanceof Collection) {
-				multipartValueMap.put(key, new ArrayList<>((Collection<?>) value));
+			if (value instanceof Collection<?> collection) {
+				multipartValueMap.put(key, new ArrayList<>(collection));
 			}
 			else {
 				multipartValueMap.add(key, value);
@@ -502,8 +502,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		Assert.state((httpMethod instanceof String || httpMethod instanceof HttpMethod), () ->
 				"'httpMethodExpression' evaluation must result in an 'HttpMethod' enum or its String representation, " +
 						"not: " + (httpMethod == null ? "null" : httpMethod.getClass()));
-		if (httpMethod instanceof HttpMethod) {
-			return (HttpMethod) httpMethod;
+		if (httpMethod instanceof HttpMethod castHttpMethod) {
+			return castHttpMethod;
 		}
 		else {
 			try {
@@ -537,9 +537,9 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 					() -> "The '" + property + "' can be an instance of 'Class<?>', 'String' " +
 							"or 'ParameterizedTypeReference<?>'; " +
 							"evaluation resulted in a " + typeClass + ".");
-			if (type instanceof String && StringUtils.hasText((String) type)) {
+			if (type instanceof String string && StringUtils.hasText(string)) {
 				try {
-					type = ClassUtils.forName((String) type, getApplicationContext().getClassLoader());
+					type = ClassUtils.forName(string, getApplicationContext().getClassLoader());
 				}
 				catch (ClassNotFoundException e) {
 					throw new IllegalStateException("Cannot load class for name: " + type, e);

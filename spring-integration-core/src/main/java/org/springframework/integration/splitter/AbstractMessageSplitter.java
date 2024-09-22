@@ -223,7 +223,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		Function<Object, ?> messageBuilderFunction = prepareMessageBuilderFunction(message, sequenceSize);
 
 		return new FunctionIterator<>(
-				result instanceof AutoCloseable && !result.equals(iterator) ? (AutoCloseable) result : null,
+				result instanceof AutoCloseable autoCloseable && !result.equals(iterator) ? autoCloseable : null,
 				iterator, messageBuilderFunction);
 	}
 
@@ -314,17 +314,16 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 
 	@Override
 	protected void produceOutput(Object result, Message<?> requestMessage) {
-		if (result instanceof Iterator<?>) {
-			Iterator<?> iterator = (Iterator<?>) result;
+		if (result instanceof Iterator<?> iterator) {
 			try {
 				while (iterator.hasNext()) {
 					super.produceOutput(iterator.next(), requestMessage);
 				}
 			}
 			finally {
-				if (iterator instanceof AutoCloseable) {
+				if (iterator instanceof AutoCloseable autoCloseable) {
 					try {
-						((AutoCloseable) iterator).close();
+						autoCloseable.close();
 					}
 					catch (Exception e) {
 						// ignored

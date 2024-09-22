@@ -47,7 +47,7 @@ public final class FixedSubscriberChannelBeanFactoryPostProcessor implements Bea
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
-			if (this.candidateFixedChannelHandlerMap.size() > 0) {
+			if (!this.candidateFixedChannelHandlerMap.isEmpty()) {
 				for (Entry<String, String> entry : this.candidateFixedChannelHandlerMap.entrySet()) {
 					String handlerName = entry.getKey();
 					String channelName = entry.getValue();

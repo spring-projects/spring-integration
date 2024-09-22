@@ -104,8 +104,7 @@ public final class XPathUtils {
 		else if (resultType instanceof NodeMapper<?>) {
 			return (T) expression.evaluateAsObject(node, (NodeMapper<?>) resultType);
 		}
-		else if (resultType instanceof String && RESULT_TYPES.contains(resultType)) {
-			String resType = (String) resultType;
+		else if (resultType instanceof String resType && RESULT_TYPES.contains(resultType)) {
 			if (DOCUMENT_LIST.equals(resType)) {
 				List<Node> nodeList = (List<Node>) XPathEvaluationType.NODE_LIST_RESULT.evaluateXPath(expression,
 						node);

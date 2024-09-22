@@ -198,8 +198,7 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 							.filter((operation) -> ObjectUtils.isEmpty(operation.getCacheNames()))
 							.map((operation) -> {
 								CacheOperation.Builder builder;
-								if (operation instanceof CacheableOperation) {
-									CacheableOperation cacheableOperation = (CacheableOperation) operation;
+								if (operation instanceof CacheableOperation cacheableOperation) {
 									CacheableOperation.Builder cacheableBuilder = new CacheableOperation.Builder();
 									cacheableBuilder.setSync(cacheableOperation.isSync());
 									String unless = cacheableOperation.getUnless();
@@ -208,9 +207,8 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 									}
 									builder = cacheableBuilder;
 								}
-								else if (operation instanceof CacheEvictOperation) {
+								else if (operation instanceof CacheEvictOperation cacheEvictOperation) {
 									CacheEvictOperation.Builder cacheEvictBuilder = new CacheEvictOperation.Builder();
-									CacheEvictOperation cacheEvictOperation = (CacheEvictOperation) operation;
 									cacheEvictBuilder.setBeforeInvocation(cacheEvictOperation.isBeforeInvocation());
 									cacheEvictBuilder.setCacheWide(cacheEvictOperation.isCacheWide());
 									builder = cacheEvictBuilder;

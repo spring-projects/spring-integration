@@ -387,14 +387,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 		BeanFactory beanFactory = getBeanFactory();
 		if (beanFactory != null) {
-			if (this.outputProcessor instanceof BeanFactoryAware) {
-				((BeanFactoryAware) this.outputProcessor).setBeanFactory(beanFactory);
+			if (this.outputProcessor instanceof BeanFactoryAware beanFactoryAware) {
+				beanFactoryAware.setBeanFactory(beanFactory);
 			}
-			if (this.correlationStrategy instanceof BeanFactoryAware) {
-				((BeanFactoryAware) this.correlationStrategy).setBeanFactory(beanFactory);
+			if (this.correlationStrategy instanceof BeanFactoryAware beanFactoryAware) {
+				beanFactoryAware.setBeanFactory(beanFactory);
 			}
-			if (this.releaseStrategy instanceof BeanFactoryAware) {
-				((BeanFactoryAware) this.releaseStrategy).setBeanFactory(beanFactory);
+			if (this.releaseStrategy instanceof BeanFactoryAware beanFactoryAware) {
+				beanFactoryAware.setBeanFactory(beanFactory);
 			}
 		}
 
@@ -422,8 +422,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.lockRegistrySet = true;
 		this.forceReleaseProcessor = createGroupTimeoutProcessor();
 
-		if (this.releaseStrategy instanceof GroupConditionProvider) {
-			this.groupConditionSupplier = ((GroupConditionProvider) this.releaseStrategy).getGroupConditionSupplier();
+		if (this.releaseStrategy instanceof GroupConditionProvider groupConditionProvider) {
+			this.groupConditionSupplier = groupConditionProvider.getGroupConditionSupplier();
 		}
 	}
 
@@ -671,8 +671,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		 */
 		if (groupTimeout != null) {
 			Date startTime = null;
-			if (groupTimeout instanceof Date) {
-				startTime = (Date) groupTimeout;
+			if (groupTimeout instanceof Date date) {
+				startTime = date;
 			}
 			else if ((Long) groupTimeout > 0) {
 				startTime = new Date(System.currentTimeMillis() + (Long) groupTimeout);
@@ -976,11 +976,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	public void start() {
 		if (!this.running) {
 			this.running = true;
-			if (this.outputProcessor instanceof Lifecycle) {
-				((Lifecycle) this.outputProcessor).start();
+			if (this.outputProcessor instanceof Lifecycle lifecycle) {
+				lifecycle.start();
 			}
-			if (this.releaseStrategy instanceof Lifecycle) {
-				((Lifecycle) this.releaseStrategy).start();
+			if (this.releaseStrategy instanceof Lifecycle lifecycle) {
+				lifecycle.start();
 			}
 			if (this.expireTimeout > 0) {
 				purgeOrphanedGroups();
@@ -996,11 +996,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	public void stop() {
 		if (this.running) {
 			this.running = false;
-			if (this.outputProcessor instanceof Lifecycle) {
-				((Lifecycle) this.outputProcessor).stop();
+			if (this.outputProcessor instanceof Lifecycle lifecycle) {
+				lifecycle.stop();
 			}
-			if (this.releaseStrategy instanceof Lifecycle) {
-				((Lifecycle) this.releaseStrategy).stop();
+			if (this.releaseStrategy instanceof Lifecycle lifecycle) {
+				lifecycle.stop();
 			}
 		}
 	}
@@ -1033,8 +1033,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			 */
 			super(messageGroup.getMessages(), null, messageGroup.getGroupId(), messageGroup.getTimestamp(),
 					messageGroup.isComplete(), true);
-			if (messageGroup instanceof SimpleMessageGroup) {
-				this.sourceGroup = (SimpleMessageGroup) messageGroup;
+			if (messageGroup instanceof SimpleMessageGroup simpleMessageGroup) {
+				this.sourceGroup = simpleMessageGroup;
 			}
 			else {
 				this.sourceGroup = null;

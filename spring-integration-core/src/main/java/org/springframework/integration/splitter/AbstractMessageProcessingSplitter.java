@@ -67,7 +67,7 @@ abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
 
 	@Override
 	public boolean isRunning() {
-		return !(this.processor instanceof Lifecycle) || ((Lifecycle) this.processor).isRunning();
+		return !(this.processor instanceof Lifecycle lifecycle) || lifecycle.isRunning();
 	}
 
 }

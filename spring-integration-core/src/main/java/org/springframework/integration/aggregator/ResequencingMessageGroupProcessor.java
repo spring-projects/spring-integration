@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 	public Object processMessageGroup(MessageGroup group) {
 		Collection<Message<?>> messages = group.getMessages();
 
-		if (messages.size() > 0) {
+		if (!messages.isEmpty()) {
 			List<Message<?>> sorted = new ArrayList<>(messages);
 			sorted.sort(this.comparator);
 			ArrayList<Message<?>> partialSequence = new ArrayList<>();

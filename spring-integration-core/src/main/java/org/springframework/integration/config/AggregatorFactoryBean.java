@@ -197,8 +197,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 	@Override
 	protected AggregatingMessageHandler createHandler() {
 		MessageGroupProcessor outputProcessor;
-		if (this.processorBean instanceof MessageGroupProcessor) {
-			outputProcessor = (MessageGroupProcessor) this.processorBean;
+		if (this.processorBean instanceof MessageGroupProcessor messageGroupProcessor) {
+			outputProcessor = messageGroupProcessor;
 		}
 		else {
 			if (!StringUtils.hasText(this.methodName)) {
@@ -210,8 +210,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		}
 
 		if (this.headersFunction != null) {
-			if (outputProcessor instanceof AbstractAggregatingMessageGroupProcessor) {
-				((AbstractAggregatingMessageGroupProcessor) outputProcessor).setHeadersFunction(this.headersFunction);
+			if (outputProcessor instanceof AbstractAggregatingMessageGroupProcessor abstractAggregatingMessageGroupProcessor) {
+				abstractAggregatingMessageGroupProcessor.setHeadersFunction(this.headersFunction);
 			}
 			else {
 				outputProcessor = new DelegatingMessageGroupProcessor(outputProcessor, this.headersFunction);

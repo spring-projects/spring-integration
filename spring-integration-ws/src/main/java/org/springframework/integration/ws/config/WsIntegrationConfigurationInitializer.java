@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.ws.server.endpoint.adapter.MessageEndpointAdapter;
  *
  * @author Artem Bilan
  * @author Chris Bono
+ * @author Ngoc Nhan
  *
  * @since 4.3
  *
@@ -53,12 +54,12 @@ public class WsIntegrationConfigurationInitializer implements IntegrationConfigu
 
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		if (beanFactory instanceof BeanDefinitionRegistry) {
+		if (beanFactory instanceof BeanDefinitionRegistry beanDefinitionRegistry) {
 			if (beanFactory.getBeanNamesForType(EndpointAdapter.class, false, false).length > 0) {
 				BeanDefinitionBuilder requestMappingBuilder =
 						BeanDefinitionBuilder.genericBeanDefinition(MessageEndpointAdapter.class)
 								.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-				((BeanDefinitionRegistry) beanFactory).registerBeanDefinition(MESSAGE_ENDPOINT_ADAPTER_BEAN_NAME,
+				beanDefinitionRegistry.registerBeanDefinition(MESSAGE_ENDPOINT_ADAPTER_BEAN_NAME,
 						requestMappingBuilder.getBeanDefinition());
 			}
 		}

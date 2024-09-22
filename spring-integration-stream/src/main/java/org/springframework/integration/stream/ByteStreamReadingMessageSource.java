@@ -47,8 +47,8 @@ public class ByteStreamReadingMessageSource extends AbstractMessageSource<byte[]
 	}
 
 	public ByteStreamReadingMessageSource(InputStream stream, int bufferSize) {
-		if (stream instanceof BufferedInputStream) {
-			this.stream = (BufferedInputStream) stream;
+		if (stream instanceof BufferedInputStream bufferedInputStream) {
+			this.stream = bufferedInputStream;
 		}
 		else if (bufferSize > 0) {
 			this.stream = new BufferedInputStream(stream, bufferSize);

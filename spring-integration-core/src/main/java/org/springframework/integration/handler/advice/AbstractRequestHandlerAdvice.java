@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,8 +162,8 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 				 * If we don't copy the invocation carefully it won't keep a reference to the other
 				 * interceptors in the chain.
 				 */
-				if (this.invocation instanceof ProxyMethodInvocation) {
-					return ((ProxyMethodInvocation) this.invocation).invocableClone().proceed();
+				if (this.invocation instanceof ProxyMethodInvocation proxyMethodInvocation) {
+					return proxyMethodInvocation.invocableClone().proceed();
 				}
 				else {
 					throw new IllegalStateException(

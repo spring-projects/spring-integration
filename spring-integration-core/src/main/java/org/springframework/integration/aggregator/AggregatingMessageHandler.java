@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,8 +103,8 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 			remove(messageGroup);
 		}
 		else {
-			if (messageStore instanceof SimpleMessageStore) {
-				((SimpleMessageStore) messageStore).clearMessageGroup(groupId);
+			if (messageStore instanceof SimpleMessageStore simpleMessageStore) {
+				simpleMessageStore.clearMessageGroup(groupId);
 			}
 			else {
 				messageStore.removeMessagesFromGroup(groupId, messageGroup.getMessages());

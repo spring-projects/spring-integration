@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */
@@ -94,8 +95,8 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 	AbstractAmqpChannel(AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
 		Assert.notNull(amqpTemplate, "amqpTemplate must not be null");
 		this.amqpTemplate = amqpTemplate;
-		if (amqpTemplate instanceof RabbitTemplate) {
-			this.rabbitTemplate = (RabbitTemplate) amqpTemplate;
+		if (amqpTemplate instanceof RabbitTemplate castRabbitTemplate) {
+			this.rabbitTemplate = castRabbitTemplate;
 			MessageConverter converter = this.rabbitTemplate.getMessageConverter();
 			if (converter instanceof AllowedListDeserializingMessageConverter allowedListMessageConverter) {
 				allowedListMessageConverter.addAllowedListPatterns(

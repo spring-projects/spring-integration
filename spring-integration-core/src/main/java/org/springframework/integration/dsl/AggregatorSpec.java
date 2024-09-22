@@ -71,8 +71,8 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 				.outputProcessor(methodName != null
 						? new MethodInvokingMessageGroupProcessor(target, methodName)
 						:
-						(target instanceof MessageGroupProcessor
-								? (MessageGroupProcessor) target
+						(target instanceof MessageGroupProcessor messageGroupProcessor
+								? messageGroupProcessor
 								: new MethodInvokingMessageGroupProcessor(target)));
 	}
 
@@ -124,8 +124,8 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	public Map<Object, String> getComponentsToRegister() {
 		if (this.headersFunction != null) {
 			MessageGroupProcessor outputProcessor = this.handler.getOutputProcessor();
-			if (outputProcessor instanceof AbstractAggregatingMessageGroupProcessor) {
-				((AbstractAggregatingMessageGroupProcessor) outputProcessor).setHeadersFunction(this.headersFunction);
+			if (outputProcessor instanceof AbstractAggregatingMessageGroupProcessor abstractAggregatingMessageGroupProcessor) {
+				abstractAggregatingMessageGroupProcessor.setHeadersFunction(this.headersFunction);
 			}
 			else {
 				this.handler.setOutputProcessor(

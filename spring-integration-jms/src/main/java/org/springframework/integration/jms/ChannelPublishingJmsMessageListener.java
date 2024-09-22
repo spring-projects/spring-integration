@@ -558,8 +558,8 @@ public class ChannelPublishingJmsMessageListener
 	 * @see #setDestinationResolver
 	 */
 	private Destination resolveDefaultReplyDestination(Session session) throws JMSException {
-		if (this.defaultReplyDestination instanceof Destination) {
-			return (Destination) this.defaultReplyDestination;
+		if (this.defaultReplyDestination instanceof Destination destination) {
+			return destination;
 		}
 		if (this.defaultReplyDestination instanceof DestinationNameHolder nameHolder) {
 			return this.destinationResolver.resolveDestinationName(session, nameHolder.name, nameHolder.isTopic);

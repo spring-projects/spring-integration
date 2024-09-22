@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -311,14 +311,14 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 
 	private HttpStatus buildHttpStatus(Object httpStatusValue) {
 		HttpStatus httpStatus = null;
-		if (httpStatusValue instanceof HttpStatus) {
-			httpStatus = (HttpStatus) httpStatusValue;
+		if (httpStatusValue instanceof HttpStatus castHttpStatus) {
+			httpStatus = castHttpStatus;
 		}
-		else if (httpStatusValue instanceof Integer) {
-			httpStatus = HttpStatus.valueOf((Integer) httpStatusValue);
+		else if (httpStatusValue instanceof Integer integer) {
+			httpStatus = HttpStatus.valueOf(integer);
 		}
-		else if (httpStatusValue instanceof String) {
-			httpStatus = HttpStatus.valueOf(Integer.parseInt((String) httpStatusValue));
+		else if (httpStatusValue instanceof String string) {
+			httpStatus = HttpStatus.valueOf(Integer.parseInt(string));
 		}
 		return httpStatus;
 	}

@@ -475,9 +475,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 		Flusher flusher = new Flusher();
 		flusher.run();
-		boolean needInterrupt = this.fileStates.size() > 0;
+		boolean needInterrupt = !this.fileStates.isEmpty();
 		int n = 0;
-		while (n++ < 10 && this.fileStates.size() > 0) { // NOSONAR
+		while (n++ < 10 && !this.fileStates.isEmpty()) { // NOSONAR
 			try {
 				Thread.sleep(1);
 			}
@@ -486,7 +486,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 			flusher.run();
 		}
-		if (this.fileStates.size() > 0) {
+		if (!this.fileStates.isEmpty()) {
 			this.logger.error("Failed to flush after multiple attempts, while stopping: " + this.fileStates.keySet());
 		}
 		if (needInterrupt) {

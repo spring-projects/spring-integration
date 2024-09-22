@@ -91,7 +91,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	protected boolean hasAdviceChain() {
-		return this.adviceChain.size() > 0;
+		return !this.adviceChain.isEmpty();
 	}
 
 	@Override

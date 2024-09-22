@@ -274,14 +274,14 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 			if (this.alwaysUseResultFactory) {
 				transformedPayload = transformUsingResultFactory(payload, transformer);
 			}
-			else if (payload instanceof String) {
-				transformedPayload = transformString((String) payload, transformer);
+			else if (payload instanceof String string) {
+				transformedPayload = transformString(string, transformer);
 			}
-			else if (payload instanceof Document) {
-				transformedPayload = transformDocument((Document) payload, transformer);
+			else if (payload instanceof Document document) {
+				transformedPayload = transformDocument(document, transformer);
 			}
-			else if (payload instanceof Source) {
-				transformedPayload = transformSource((Source) payload, payload, transformer);
+			else if (payload instanceof Source source) {
+				transformedPayload = transformSource(source, payload, transformer);
 			}
 			else {
 				// fall back to trying factories
@@ -299,14 +299,14 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		if (this.alwaysUseSourceFactory) {
 			source = this.sourceFactory.createSource(payload);
 		}
-		else if (payload instanceof String) {
-			source = new StringSource((String) payload);
+		else if (payload instanceof String string) {
+			source = new StringSource(string);
 		}
-		else if (payload instanceof Document) {
-			source = new DOMSource((Document) payload);
+		else if (payload instanceof Document document) {
+			source = new DOMSource(document);
 		}
-		else if (payload instanceof Source) {
-			source = (Source) payload;
+		else if (payload instanceof Source castSource) {
+			source = castSource;
 		}
 		else {
 			source = this.sourceFactory.createSource(payload);

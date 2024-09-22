@@ -110,7 +110,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	@Override
 	public void registerSenders(List<TcpSender> sendersToRegister) {
 		this.interceptedSenders = sendersToRegister;
-		if (sendersToRegister.size() > 0) {
+		if (!sendersToRegister.isEmpty()) {
 			if (!(sendersToRegister.get(0) instanceof TcpConnectionInterceptorSupport)) {
 				this.realSender = true;
 			}
@@ -249,8 +249,8 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 				return;
 			}
 			this.removed = true;
-			if (this.theConnection instanceof TcpConnectionInterceptorSupport && !this.theConnection.equals(this)) {
-				((TcpConnectionInterceptorSupport) this.theConnection).removeDeadConnection(this);
+			if (this.theConnection instanceof TcpConnectionInterceptorSupport tcpConnectionInterceptorSupport && !this.theConnection.equals(this)) {
+				tcpConnectionInterceptorSupport.removeDeadConnection(this);
 			}
 			TcpSender sender = getSender();
 			if (sender != null && !(sender instanceof TcpConnectionInterceptorSupport)) {
@@ -270,7 +270,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	@Override
 	@Nullable
 	public TcpSender getSender() {
-		return this.interceptedSenders != null && this.interceptedSenders.size() > 0
+		return this.interceptedSenders != null && !this.interceptedSenders.isEmpty()
 				? this.interceptedSenders.get(0)
 				: null;
 	}

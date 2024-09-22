@@ -76,6 +76,7 @@ import org.springframework.web.server.WebHandler;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 5.0
  *
@@ -118,8 +119,8 @@ public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappi
 
 	@Override
 	protected void detectHandlerMethods(Object handler) {
-		if (handler instanceof String) {
-			handler = getApplicationContext().getBean((String) handler); // NOSONAR never null
+		if (handler instanceof String string) {
+			handler = getApplicationContext().getBean(string); // NOSONAR never null
 		}
 		RequestMappingInfo mapping = getMappingForEndpoint((WebFluxInboundEndpoint) handler);
 		if (mapping != null) {

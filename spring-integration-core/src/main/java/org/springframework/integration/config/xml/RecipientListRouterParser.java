@@ -58,7 +58,7 @@ public class RecipientListRouterParser extends AbstractRouterParser {
 			}
 			recipientList.add(recipientBuilder.getBeanDefinition());
 		}
-		if (recipientList.size() > 0) {
+		if (!recipientList.isEmpty()) {
 			recipientListRouterBuilder.addPropertyValue("recipients", recipientList);
 		}
 		return recipientListRouterBuilder.getBeanDefinition();

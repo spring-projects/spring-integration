@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,8 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 		Assert.notNull(prefix, "'prefix' cannot be null");
 		this.store = store;
 		this.prefix = prefix;
-		if (store instanceof Flushable) {
-			this.flushableStore = (Flushable) store;
+		if (store instanceof Flushable flushable) {
+			this.flushableStore = flushable;
 		}
 		else {
 			this.flushableStore = null;
@@ -130,8 +130,8 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 
 	@Override
 	public void close() throws IOException {
-		if (this.store instanceof Closeable) {
-			((Closeable) this.store).close();
+		if (this.store instanceof Closeable closeable) {
+			closeable.close();
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Artem Bilan
+ * @author Ngoc Nhan
  * @since 4.1
  */
 abstract class WebSocketAdapterParsingUtils {
@@ -48,7 +49,7 @@ abstract class WebSocketAdapterParsingUtils {
 		boolean hasDefaultProtocolHandler = StringUtils.hasText(defaultProtocolHandler);
 
 		if (hasProtocolHandlers || hasDefaultProtocolHandler) {
-			List<BeanReference> protocolHandlerList = new ManagedList<BeanReference>();
+			List<BeanReference> protocolHandlerList = new ManagedList<>();
 			String[] ids = StringUtils.commaDelimitedListToStringArray(protocolHandlers);
 			for (String id : ids) {
 				protocolHandlerList.add(new RuntimeBeanReference(id));
@@ -64,7 +65,7 @@ abstract class WebSocketAdapterParsingUtils {
 
 		String messageConverters = element.getAttribute("message-converters");
 		if (StringUtils.hasText(messageConverters)) {
-			List<BeanReference> messageConverterList = new ManagedList<BeanReference>();
+			List<BeanReference> messageConverterList = new ManagedList<>();
 			String[] ids = StringUtils.commaDelimitedListToStringArray(messageConverters);
 			for (String id : ids) {
 				messageConverterList.add(new RuntimeBeanReference(id));

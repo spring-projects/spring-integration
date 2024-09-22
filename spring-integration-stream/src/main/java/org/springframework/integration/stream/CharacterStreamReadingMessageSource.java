@@ -92,8 +92,8 @@ public class CharacterStreamReadingMessageSource extends AbstractMessageSource<S
 	 */
 	public CharacterStreamReadingMessageSource(Reader reader, int bufferSize, boolean blockToDetectEOF) {
 		Assert.notNull(reader, "reader must not be null");
-		if (reader instanceof BufferedReader) {
-			this.reader = (BufferedReader) reader;
+		if (reader instanceof BufferedReader bufferedReader) {
+			this.reader = bufferedReader;
 		}
 		else if (bufferSize > 0) {
 			this.reader = new BufferedReader(reader, bufferSize);

@@ -80,7 +80,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 				eventSet.add(ResolvableType.forClass(eventType));
 			}
 		}
-		this.eventTypes = (eventSet.size() > 0 ? eventSet : null);
+		this.eventTypes = (!eventSet.isEmpty() ? eventSet : null);
 
 		if (this.applicationEventMulticaster != null) {
 			this.applicationEventMulticaster.addApplicationListener(this);

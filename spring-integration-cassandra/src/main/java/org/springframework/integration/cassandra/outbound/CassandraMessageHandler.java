@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,11 +180,11 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
-		if (typeLocator instanceof StandardTypeLocator) {
+		if (typeLocator instanceof StandardTypeLocator standardTypeLocator) {
 			/*
 			 * Register the Cassandra Query DSL package, so they don't need a FQCN for QueryBuilder, for example.
 			 */
-			((StandardTypeLocator) typeLocator).registerImport(QueryBuilder.class.getPackage().getName());
+			standardTypeLocator.registerImport(QueryBuilder.class.getPackage().getName());
 		}
 	}
 

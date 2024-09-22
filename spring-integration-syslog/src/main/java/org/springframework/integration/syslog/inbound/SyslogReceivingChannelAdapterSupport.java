@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,9 +79,9 @@ public abstract class SyslogReceivingChannelAdapterSupport extends MessageProduc
 
 	protected void convertAndSend(Message<?> message) {
 		try {
-			if (message instanceof ErrorMessage) {
+			if (message instanceof ErrorMessage errorMessage) {
 				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("Error on syslog socket:" + ((ErrorMessage) message).getPayload().getMessage());
+					this.logger.debug("Error on syslog socket:" + errorMessage.getPayload().getMessage());
 				}
 			}
 			else {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,8 +185,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 		private Message<?> applyBeforeHandle(Message<?> message, Deque<ExecutorChannelInterceptor> interceptorStack) {
 			Message<?> theMessage = message;
 			for (ChannelInterceptor interceptor : AbstractExecutorChannel.this.interceptors.interceptors) {
-				if (interceptor instanceof ExecutorChannelInterceptor) {
-					ExecutorChannelInterceptor executorInterceptor = (ExecutorChannelInterceptor) interceptor;
+				if (interceptor instanceof ExecutorChannelInterceptor executorInterceptor) {
 					theMessage = executorInterceptor.beforeHandle(theMessage, AbstractExecutorChannel.this,
 							this.delegate.getMessageHandler());
 					if (theMessage == null) {

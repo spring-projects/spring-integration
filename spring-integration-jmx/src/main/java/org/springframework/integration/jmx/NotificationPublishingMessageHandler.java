@@ -118,7 +118,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 		Map<String, MBeanExporter> exporters =
 				BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory) beanFactory,
 						MBeanExporter.class);
-		Assert.state(exporters.size() > 0, "No MBeanExporter is available in the current context.");
+		Assert.state(!exporters.isEmpty(), "No MBeanExporter is available in the current context.");
 		MBeanExporter exporter = null;
 		for (MBeanExporter exp : exporters.values()) {
 			exporter = exp;

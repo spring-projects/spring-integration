@@ -61,6 +61,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  * @author Gary Russell
  * @author David Graff
  * @author Jatin Saxena
+ * @author Ngoc Nhan
  *
  * @since 5.0
  *
@@ -249,8 +250,8 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		WebClient.RequestBodyUriSpec requestBodyUriSpec = this.webClient.method(httpMethod);
 		WebClient.RequestBodySpec requestSpec;
 
-		if (uri instanceof URI) {
-			requestSpec = requestBodyUriSpec.uri((URI) uri);
+		if (uri instanceof URI castUri) {
+			requestSpec = requestBodyUriSpec.uri(castUri);
 		}
 		else {
 			requestSpec = requestBodyUriSpec.uri((String) uri, uriVariables);
@@ -287,14 +288,14 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		}
 
 		BodyInserter<?, ? super ClientHttpRequest> inserter;
-		if (requestBody instanceof Resource) {
-			inserter = BodyInserters.fromResource((Resource) requestBody);
+		if (requestBody instanceof Resource resource) {
+			inserter = BodyInserters.fromResource(resource);
 		}
-		else if (requestBody instanceof Publisher<?>) {
-			inserter = buildBodyInserterForPublisher(requestMessage, (Publisher<?>) requestBody);
+		else if (requestBody instanceof Publisher<?> publisher) {
+			inserter = buildBodyInserterForPublisher(requestMessage, publisher);
 		}
-		else if (requestBody instanceof MultiValueMap<?, ?>) {
-			inserter = buildBodyInserterForMultiValueMap((MultiValueMap<?, ?>) requestBody,
+		else if (requestBody instanceof MultiValueMap<?, ?> multiValueMap) {
+			inserter = buildBodyInserterForMultiValueMap(multiValueMap,
 					httpRequest.getHeaders().getContentType());
 		}
 		else {
@@ -350,8 +351,8 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	private BodyExtractor<Flux<Object>, ? super ClientHttpResponse> createBodyExtractor(Object expectedResponseType) {
 		if (expectedResponseType != null) {
 			if (this.replyPayloadToFlux) {
-				if (expectedResponseType instanceof ParameterizedTypeReference) {
-					return BodyExtractors.toFlux((ParameterizedTypeReference) expectedResponseType);
+				if (expectedResponseType instanceof ParameterizedTypeReference parameterizedTypeReference) {
+					return BodyExtractors.toFlux(parameterizedTypeReference);
 				}
 				else {
 					return BodyExtractors.toFlux((Class) expectedResponseType);
@@ -359,8 +360,8 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 			}
 			else {
 				BodyExtractor<? extends Mono<?>, ReactiveHttpInputMessage> monoExtractor;
-				if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-					monoExtractor = BodyExtractors.toMono((ParameterizedTypeReference) expectedResponseType);
+				if (expectedResponseType instanceof ParameterizedTypeReference<?> parameterizedTypeReference) {
+					monoExtractor = BodyExtractors.toMono(parameterizedTypeReference);
 				}
 				else {
 					monoExtractor = BodyExtractors.toMono((Class) expectedResponseType);
@@ -371,8 +372,8 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		else if (this.bodyExtractor != null) {
 			return (inputMessage, context) -> {
 				Object body = this.bodyExtractor.extract(inputMessage, context);
-				if (body instanceof Publisher) {
-					return Flux.from((Publisher) body);
+				if (body instanceof Publisher publisher) {
+					return Flux.from(publisher);
 				}
 				return Flux.just(body);
 			};

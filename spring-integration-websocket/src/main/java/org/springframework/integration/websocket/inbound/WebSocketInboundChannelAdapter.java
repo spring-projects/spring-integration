@@ -66,6 +66,7 @@ import org.springframework.web.socket.messaging.SubProtocolHandler;
  * The {@link MessageProducerSupport} for inbound WebSocket messages.
  *
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 4.1
  */
@@ -281,15 +282,15 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	@Override
 	protected void doStart() {
-		if (this.webSocketContainer instanceof Lifecycle) {
-			((Lifecycle) this.webSocketContainer).start();
+		if (this.webSocketContainer instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 
 	@Override
 	protected void doStop() {
-		if (this.webSocketContainer instanceof Lifecycle) {
-			((Lifecycle) this.webSocketContainer).stop();
+		if (this.webSocketContainer instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 

@@ -194,7 +194,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 				ids.clear();
 			}
 		}
-		if (ids.size() > 0) {
+		if (!ids.isEmpty()) {
 			removeMessages(groupId, ids);
 		}
 		updateGroup(groupId, lastModifiedUpdate());

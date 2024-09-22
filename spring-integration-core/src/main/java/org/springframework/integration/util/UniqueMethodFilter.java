@@ -30,7 +30,7 @@ import org.springframework.util.ReflectionUtils.MethodFilter;
  */
 public class UniqueMethodFilter implements MethodFilter {
 
-	private final List<Method> uniqueMethods = new ArrayList<Method>();
+	private final List<Method> uniqueMethods = new ArrayList<>();
 
 	public UniqueMethodFilter(Class<?> targetClass) {
 		Method[] allMethods = ReflectionUtils.getAllDeclaredMethods(targetClass);
