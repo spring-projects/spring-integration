@@ -52,6 +52,7 @@ import org.springframework.validation.Validator;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Trung Pham
+ * @author Ngoc Nhan
  *
  * @since 5.0
  */

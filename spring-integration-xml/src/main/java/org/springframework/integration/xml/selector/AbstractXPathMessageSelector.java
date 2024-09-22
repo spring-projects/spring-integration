@@ -29,6 +29,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * Base class for XPath {@link MessageSelector} implementations.
  *
  * @author Jonas Partner
+ * @author Ngoc Nhan
  */
 public abstract class AbstractXPathMessageSelector implements MessageSelector {
 

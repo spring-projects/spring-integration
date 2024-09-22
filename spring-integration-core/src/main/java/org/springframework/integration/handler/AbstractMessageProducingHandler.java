@@ -70,6 +70,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Marius Bogoevici
+ * @author Ngoc Nhan
  *
  * since 4.1
  */
@@ -479,7 +480,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 		else {
 			Object nextPath = ((RoutingSlipRouteStrategy) routingSlipPathValue).getNextPath(requestMessage, reply);
-			if (nextPath != null && (!(nextPath instanceof String string) || StringUtils.hasText(string)) {
+			if (nextPath != null && (!(nextPath instanceof String string) || StringUtils.hasText(string))) {
 				return nextPath;
 			}
 			else {

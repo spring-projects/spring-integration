@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author David Liu
+ * @author Ngoc Nhan
  */
 public abstract class AbstractStandardMessageHandlerFactoryBean
 		extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> implements DisposableBean {

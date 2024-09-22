@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * Used to post process candidates for {@link FixedSubscriberChannel}
  * {@link org.springframework.messaging.MessageHandler}s.
  * @author Gary Russell
+ * @author Ngoc Nhan
  * @since 4.0
  *
  */

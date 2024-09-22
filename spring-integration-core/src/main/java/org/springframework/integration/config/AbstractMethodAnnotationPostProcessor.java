@@ -118,6 +118,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Chris Bono
+ * @author Ngoc Nhan
  */
 public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation>
 		implements MethodAnnotationPostProcessor<T>, BeanFactoryAware {

@@ -61,6 +61,7 @@ import org.springframework.util.StringUtils;
  * @author Marcin Pilaczynski
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  *
  * @since 2.0
  */

@@ -28,6 +28,7 @@ import org.springframework.util.Assert;
  * Optionally pools buffers.
  *
  * @author Gary Russell
+ * @author Ngoc Nhan
  * @since 4.3
  *
  */

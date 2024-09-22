@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Ngoc Nhan
  * @since 2.0
  */
 public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMessagingOperations {

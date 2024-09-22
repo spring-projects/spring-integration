@@ -37,6 +37,7 @@ import org.springframework.messaging.support.ErrorMessage;
  * @author Gary Russell
  * @author Kazuki Shimizu
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  *
  * @since 2.0
  */

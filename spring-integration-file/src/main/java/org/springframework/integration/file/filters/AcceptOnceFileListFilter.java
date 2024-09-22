@@ -40,6 +40,7 @@ import org.springframework.lang.Nullable;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> implements ReversibleFileListFilter<F>,
 		ResettableFileListFilter<F> {

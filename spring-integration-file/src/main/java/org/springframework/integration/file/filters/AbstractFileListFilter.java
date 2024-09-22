@@ -29,6 +29,7 @@ import java.util.List;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public abstract class AbstractFileListFilter<F> implements FileListFilter<F> {
 

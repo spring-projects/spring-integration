@@ -52,6 +52,7 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  * @author Ruslan Stelmachenko
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler
 		implements DiscardingMessageHandler {

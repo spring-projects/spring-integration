@@ -31,6 +31,7 @@ import org.springframework.messaging.MessagingException;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public class ByteStreamReadingMessageSource extends AbstractMessageSource<byte[]> {
 

@@ -36,6 +36,7 @@ import org.springframework.messaging.MessagingException;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  * @since 2.2
  */
 public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupport

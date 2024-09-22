@@ -43,6 +43,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Liujiong
  * @author Kris Jacyna
  * @author Gary Russell
+ * @author Ngoc Nhan
  * @since 2.1
  */
 public class EnricherParser extends AbstractConsumerEndpointParser {

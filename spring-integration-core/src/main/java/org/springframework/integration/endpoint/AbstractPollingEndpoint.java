@@ -81,6 +81,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Artem Bilan
  * @author Andreas Baer
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
 

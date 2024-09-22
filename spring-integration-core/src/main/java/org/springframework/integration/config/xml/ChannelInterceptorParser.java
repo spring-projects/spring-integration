@@ -37,6 +37,7 @@ import org.springframework.beans.factory.xml.ParserContext;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class ChannelInterceptorParser {
 

@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
  * @param <F> the target protocol file type.
  *
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 5.0
  *

@@ -61,6 +61,7 @@ import org.springframework.util.CollectionUtils;
  * @author Artem Bilan
  * @author David Liu
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageHandler>
 		implements FactoryBean<MessageHandler>, ApplicationContextAware, BeanFactoryAware, BeanNameAware,

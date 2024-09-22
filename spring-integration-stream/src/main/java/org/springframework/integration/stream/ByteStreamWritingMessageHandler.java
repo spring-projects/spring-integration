@@ -30,6 +30,7 @@ import org.springframework.messaging.MessagingException;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class ByteStreamWritingMessageHandler extends AbstractMessageHandler {
 

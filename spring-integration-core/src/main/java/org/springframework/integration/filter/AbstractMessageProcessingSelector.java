@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public abstract class AbstractMessageProcessingSelector
 		implements MessageSelector, BeanFactoryAware, ManageableLifecycle {

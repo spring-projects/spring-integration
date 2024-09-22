@@ -38,6 +38,7 @@ import org.springframework.util.ClassUtils;
  * @author Gary Russell
  * @author Soby Chacko
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware {
 

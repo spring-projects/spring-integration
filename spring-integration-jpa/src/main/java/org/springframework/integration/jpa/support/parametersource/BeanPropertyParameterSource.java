@@ -28,6 +28,7 @@ import org.springframework.beans.PropertyAccessorFactory;
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 2.2
  *

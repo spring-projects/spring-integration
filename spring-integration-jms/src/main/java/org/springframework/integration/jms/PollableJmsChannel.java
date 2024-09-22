@@ -35,6 +35,7 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.0
  */

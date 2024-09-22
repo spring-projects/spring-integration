@@ -86,6 +86,7 @@ import org.springframework.util.StringUtils;
  * @author Meherzad Lahewala
  * @author Trung Pham
  * @author Johannes Edmeier
+ * @author Ngoc Nhan
  *
  * @since 2.2
  */

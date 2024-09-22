@@ -39,6 +39,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mike Bazos
  * @author liujiong
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 

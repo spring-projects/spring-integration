@@ -70,6 +70,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public class XPathMessageSplitter extends AbstractMessageSplitter {
 

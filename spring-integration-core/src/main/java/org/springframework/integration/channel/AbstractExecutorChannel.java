@@ -47,6 +47,7 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 4.2
  *

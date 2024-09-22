@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
  * A {@link CorrelationHandlerSpec} for an {@link AggregatingMessageHandler}.
  *
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 5.0
  */

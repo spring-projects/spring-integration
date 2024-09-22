@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * {@link MessageProcessor} instance.
  *
  * @author Mark Fisher
+ * @author Ngoc Nhan
  * @since 2.0
  */
 class AbstractMessageProcessingRouter extends AbstractMappingMessageRouter

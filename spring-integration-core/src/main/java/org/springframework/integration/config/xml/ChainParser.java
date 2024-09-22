@@ -51,6 +51,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Artem Bilan
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class ChainParser extends AbstractConsumerEndpointParser {
 

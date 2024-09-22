@@ -77,6 +77,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class ChannelPublishingJmsMessageListener
 		implements SessionAwareMessageListener<jakarta.jms.Message>, InitializingBean,

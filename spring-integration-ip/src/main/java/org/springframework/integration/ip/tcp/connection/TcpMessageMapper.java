@@ -56,6 +56,7 @@ import org.springframework.util.MimeType;
  * *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.0
  *

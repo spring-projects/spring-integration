@@ -55,6 +55,7 @@ import org.springframework.xml.transform.StringSource;
  * @author Jonas Partner
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
 

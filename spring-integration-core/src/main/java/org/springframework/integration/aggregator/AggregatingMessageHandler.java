@@ -32,6 +32,7 @@ import org.springframework.messaging.Message;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */

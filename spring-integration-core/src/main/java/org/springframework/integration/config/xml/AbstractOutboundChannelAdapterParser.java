@@ -42,6 +42,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public abstract class AbstractOutboundChannelAdapterParser extends AbstractChannelAdapterParser {
 

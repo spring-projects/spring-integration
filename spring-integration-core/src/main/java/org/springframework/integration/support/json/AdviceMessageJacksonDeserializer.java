@@ -30,6 +30,7 @@ import org.springframework.messaging.MessageHeaders;
  * The {@link MessageJacksonDeserializer} implementation for the {@link AdviceMessage}.
  *
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 4.3.10
  */

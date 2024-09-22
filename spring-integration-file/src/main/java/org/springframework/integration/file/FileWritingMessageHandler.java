@@ -112,6 +112,7 @@ import org.springframework.util.StringUtils;
  * @author Alen Turkovic
  * @author Trung Pham
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
 		implements ManageableLifecycle, MessageTriggerAction {

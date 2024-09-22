@@ -34,6 +34,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public abstract class AbstractPollingInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 

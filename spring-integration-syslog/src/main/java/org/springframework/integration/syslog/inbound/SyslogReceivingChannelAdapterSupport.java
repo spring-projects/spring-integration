@@ -27,6 +27,7 @@ import org.springframework.messaging.support.ErrorMessage;
  * Base support class for inbound channel adapters. The default port is 514.
  *
  * @author Gary Russell
+ * @author Ngoc Nhan
  * @since 3.0
  *
  */

@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author David Liu
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 

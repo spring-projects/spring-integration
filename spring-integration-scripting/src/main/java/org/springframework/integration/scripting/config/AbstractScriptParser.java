@@ -37,6 +37,7 @@ import org.springframework.util.xml.DomUtils;
 /**
  * @author David Turanski
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  */
 public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionParser {

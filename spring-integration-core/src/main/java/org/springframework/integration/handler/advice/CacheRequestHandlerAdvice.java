@@ -53,6 +53,7 @@ import org.springframework.util.ReflectionUtils;
  * The default cache {@code key} is {@code payload} of the request message.
  *
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 5.2
  *

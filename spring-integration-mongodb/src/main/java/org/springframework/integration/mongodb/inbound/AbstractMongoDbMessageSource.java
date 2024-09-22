@@ -51,6 +51,7 @@ import org.springframework.util.MultiValueMap;
  * @param <T> The payload type.
  *
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 5.5
  */

@@ -37,6 +37,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public abstract class AbstractMessageProcessingTransformer
 		implements Transformer, BeanFactoryAware, ManageableLifecycle {

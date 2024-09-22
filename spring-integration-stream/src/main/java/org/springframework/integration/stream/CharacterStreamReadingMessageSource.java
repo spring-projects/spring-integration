@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public class CharacterStreamReadingMessageSource extends AbstractMessageSource<String>
 		implements ApplicationEventPublisherAware {

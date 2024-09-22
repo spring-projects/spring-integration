@@ -34,6 +34,7 @@ import org.springframework.util.xml.DomUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public abstract class AbstractRouterParser extends AbstractConsumerEndpointParser {
 

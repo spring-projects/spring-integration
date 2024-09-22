@@ -42,6 +42,7 @@ import org.springframework.messaging.MessagingException;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Ingo Dueppe
+ * @author Ngoc Nhan
  *
  * @since 6.1
  */

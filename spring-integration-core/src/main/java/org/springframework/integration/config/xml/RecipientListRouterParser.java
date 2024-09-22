@@ -36,6 +36,7 @@ import org.springframework.util.xml.DomUtils;
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Ngoc Nhan
  * @since 1.0.3
  */
 public class RecipientListRouterParser extends AbstractRouterParser {

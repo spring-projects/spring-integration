@@ -49,6 +49,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 4.2
  *

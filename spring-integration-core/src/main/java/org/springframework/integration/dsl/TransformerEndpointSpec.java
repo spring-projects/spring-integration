@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * {@link #processor(MessageProcessorSpec)} or {@link #transformer(GenericTransformer)} must be provided.
  *
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 6.2
  */

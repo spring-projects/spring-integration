@@ -67,6 +67,7 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  * @author Dominik Simmen
  * @author Yuxin Wang
+ * @author Ngoc Nhan
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean {
 

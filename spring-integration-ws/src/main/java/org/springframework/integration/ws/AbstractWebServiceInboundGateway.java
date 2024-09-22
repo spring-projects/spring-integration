@@ -36,6 +36,7 @@ import org.springframework.ws.soap.SoapMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */
