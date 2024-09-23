@@ -38,6 +38,7 @@ import org.springframework.util.ClassUtils;
  * @author Gary Russell
  * @author Soby Chacko
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware {
 
@@ -61,10 +62,10 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		if (beanFactory instanceof ConfigurableBeanFactory) {
-			Object typeConverter = ((ConfigurableBeanFactory) beanFactory).getTypeConverter();
-			if (typeConverter instanceof SimpleTypeConverter) {
-				this.delegate = (SimpleTypeConverter) typeConverter;
+		if (beanFactory instanceof ConfigurableBeanFactory configurableBeanFactory) {
+			Object typeConverter = configurableBeanFactory.getTypeConverter();
+			if (typeConverter instanceof SimpleTypeConverter simpleTypeConverter) {
+				this.delegate = simpleTypeConverter;
 			}
 		}
 	}

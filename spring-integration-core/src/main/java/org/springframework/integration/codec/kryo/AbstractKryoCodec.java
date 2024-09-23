@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author David Turanski
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 4.2
  */
@@ -63,7 +64,7 @@ public abstract class AbstractKryoCodec implements Codec {
 		Assert.notNull(outputStream, "'outputSteam' cannot be null");
 
 		Kryo kryo = this.pool.obtain();
-		try (Output output = (outputStream instanceof Output ? (Output) outputStream : new Output(outputStream))) {
+		try (Output output = (outputStream instanceof Output castOutput ? castOutput : new Output(outputStream))) {
 			doEncode(kryo, object, output);
 		}
 		finally {
@@ -86,7 +87,7 @@ public abstract class AbstractKryoCodec implements Codec {
 		Assert.notNull(type, "'type' cannot be null");
 
 		Kryo kryo = this.pool.obtain();
-		try (Input input = (inputStream instanceof Input ? (Input) inputStream : new Input(inputStream))) {
+		try (Input input = (inputStream instanceof Input castInput ? castInput : new Input(inputStream))) {
 			return doDecode(kryo, input, type);
 		}
 		finally {

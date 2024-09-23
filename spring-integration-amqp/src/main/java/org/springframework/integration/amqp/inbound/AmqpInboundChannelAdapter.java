@@ -63,6 +63,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */
@@ -136,8 +137,8 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		this.messageListenerContainer = listenerContainer;
 		this.messageListenerContainer.setAutoStartup(false);
 		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
-		this.abstractListenerContainer = listenerContainer instanceof AbstractMessageListenerContainer
-				? (AbstractMessageListenerContainer) listenerContainer
+		this.abstractListenerContainer = listenerContainer instanceof AbstractMessageListenerContainer abstractMessageListenerContainer
+				? abstractMessageListenerContainer
 				: null;
 	}
 

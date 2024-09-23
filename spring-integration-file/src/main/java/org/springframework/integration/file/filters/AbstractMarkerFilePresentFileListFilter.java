@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
  * @param <F> the target protocol file type.
  *
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 5.0
  *
@@ -125,7 +126,7 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 			boolean anyMatch = this.filtersAndFunctions.entrySet().stream().anyMatch(entry -> {
 				F[] fileToCheck = (F[]) Array.newInstance(file.getClass(), 1);
 				fileToCheck[0] = file;
-				if (entry.getKey().filterFiles(fileToCheck).size() > 0) {
+				if (!entry.getKey().filterFiles(fileToCheck).isEmpty()) {
 					String markerName = entry.getValue().apply(getFilename(file));
 					return markerName != null && candidates.contains(markerName);
 				}

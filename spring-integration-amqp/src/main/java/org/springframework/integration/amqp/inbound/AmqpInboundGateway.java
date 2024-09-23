@@ -62,6 +62,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */
@@ -123,12 +124,12 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this.messageListenerContainer.setAutoStartup(false);
 		this.amqpTemplate = amqpTemplate;
 		this.amqpTemplateExplicitlySet = amqpTemplateExplicitlySet;
-		if (this.amqpTemplateExplicitlySet && this.amqpTemplate instanceof RabbitTemplate) {
-			this.templateMessageConverter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
+		if (this.amqpTemplateExplicitlySet && this.amqpTemplate instanceof RabbitTemplate rabbitTemplate) {
+			this.templateMessageConverter = rabbitTemplate.getMessageConverter();
 		}
 		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
-		this.abstractListenerContainer = listenerContainer instanceof AbstractMessageListenerContainer
-				? (AbstractMessageListenerContainer) listenerContainer
+		this.abstractListenerContainer = listenerContainer instanceof AbstractMessageListenerContainer abstractMessageListenerContainer
+				? abstractMessageListenerContainer
 				: null;
 	}
 

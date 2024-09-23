@@ -74,6 +74,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.0
  */
@@ -137,7 +138,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 */
 	public AbstractInboundFileSynchronizer(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
-		this.remoteFileTemplate = new RemoteFileTemplate<F>(sessionFactory);
+		this.remoteFileTemplate = new RemoteFileTemplate<>(sessionFactory);
 	}
 
 	@Nullable
@@ -312,8 +313,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	@Override
 	public void close() throws IOException {
-		if (this.filter instanceof Closeable) {
-			((Closeable) this.filter).close();
+		if (this.filter instanceof Closeable closeable) {
+			closeable.close();
 		}
 	}
 

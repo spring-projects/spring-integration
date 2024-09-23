@@ -58,6 +58,7 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -206,8 +207,8 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		}
 		Object responsePayload = doHandle(uriWithVariables.toString(), requestMessage, this.requestCallback);
 		if (responsePayload != null && !(this.ignoreEmptyResponses
-				&& responsePayload instanceof String
-				&& !StringUtils.hasText((String) responsePayload))) {
+				&& responsePayload instanceof String string
+				&& !StringUtils.hasText(string))) {
 
 			return responsePayload;
 		}
@@ -247,9 +248,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		public void doWithMessage(WebServiceMessage message) throws IOException, TransformerException {
 			Object payload = this.requestMessage.getPayload();
 			doWithMessageInternal(message, payload);
-			if (message instanceof SoapMessage) {
+			if (message instanceof SoapMessage soapMessage) {
 				AbstractWebServiceOutboundGateway.this.headerMapper
-						.fromHeadersToRequest(this.requestMessage.getHeaders(), (SoapMessage) message);
+						.fromHeadersToRequest(this.requestMessage.getHeaders(), soapMessage);
 			}
 			if (this.reqCallback != null) {
 				this.reqCallback.doWithMessage(message);
@@ -270,9 +271,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 			Object resultObject = this.doExtractData(message);
 
-			if (resultObject != null && message instanceof SoapMessage) {
+			if (resultObject != null && message instanceof SoapMessage soapMessage) {
 				Map<String, Object> mappedMessageHeaders =
-						AbstractWebServiceOutboundGateway.this.headerMapper.toHeadersFromReply((SoapMessage) message);
+						AbstractWebServiceOutboundGateway.this.headerMapper.toHeadersFromReply(soapMessage);
 				return getMessageBuilderFactory()
 						.withPayload(resultObject)
 						.copyHeaders(mappedMessageHeaders)

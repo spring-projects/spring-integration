@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  * @since 2.0
  */
 public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
@@ -89,7 +90,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 
 				// set headersMap
 				Map<String, String> headerExpressions = headerExpressions(parserContext, mapping);
-				if (headerExpressions.size() > 0) {
+				if (!headerExpressions.isEmpty()) {
 					headersExpressionMap.put(methodPattern, headerExpressions);
 				}
 
@@ -100,14 +101,14 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 				resolvableChannelMap.put(channel, new RuntimeBeanReference(channel));
 			}
 		}
-		if (payloadExpressionMap.size() == 0) {
+		if (payloadExpressionMap.isEmpty()) {
 			payloadExpressionMap.put("*", "#return");
 		}
 		interceptorMappings.put(PAYLOAD, payloadExpressionMap);
-		if (headersExpressionMap.size() > 0) {
+		if (!headersExpressionMap.isEmpty()) {
 			interceptorMappings.put("headers", headersExpressionMap);
 		}
-		if (channelMap.size() > 0) {
+		if (!channelMap.isEmpty()) {
 			interceptorMappings.put("channels", channelMap);
 			interceptorMappings.put("resolvableChannels", resolvableChannelMap);
 		}

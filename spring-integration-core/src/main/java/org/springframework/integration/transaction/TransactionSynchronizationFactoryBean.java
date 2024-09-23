@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 4.0
  */
@@ -197,8 +198,8 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 				.acceptIfNotNull(this.afterCommitChannel, processor::setAfterCommitChannel)
 				.acceptIfNotNull(this.afterRollbackChannel, processor::setAfterRollbackChannel);
 
-		if (this.beanFactory instanceof AutowireCapableBeanFactory) {
-			((AutowireCapableBeanFactory) this.beanFactory).initializeBean(processor,
+		if (this.beanFactory instanceof AutowireCapableBeanFactory autowireCapableBeanFactory) {
+			autowireCapableBeanFactory.initializeBean(processor,
 					getClass().getName() + "#" + TransactionSynchronizationFactoryBean.this.counter.incrementAndGet());
 		}
 

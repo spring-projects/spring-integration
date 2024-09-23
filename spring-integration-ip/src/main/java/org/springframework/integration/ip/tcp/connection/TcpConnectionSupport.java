@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2022 the original author or authors.
+ * Copyright 2001-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.0
  *
@@ -370,7 +371,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	@Nullable
 	public TcpSender getSender() {
-		return this.senders.size() > 0 ? this.senders.get(0) : null;
+		return !this.senders.isEmpty() ? this.senders.get(0) : null;
 	}
 
 	/**

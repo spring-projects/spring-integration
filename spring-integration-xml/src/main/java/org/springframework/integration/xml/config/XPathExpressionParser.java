@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * @author Jonas Partner
  * @author Soby Chacko
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 
@@ -94,7 +95,7 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 		}
 
 		if (prefixProvided) {
-			Map<String, String> namespaceMap = new HashMap<String, String>(1);
+			Map<String, String> namespaceMap = new HashMap<>(1);
 			namespaceMap.put(nsPrefix, nsUri);
 			builder.addConstructorArgValue(namespaceMap);
 		}

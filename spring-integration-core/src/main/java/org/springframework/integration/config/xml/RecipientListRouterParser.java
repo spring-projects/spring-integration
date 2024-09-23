@@ -36,6 +36,7 @@ import org.springframework.util.xml.DomUtils;
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Ngoc Nhan
  * @since 1.0.3
  */
 public class RecipientListRouterParser extends AbstractRouterParser {
@@ -58,7 +59,7 @@ public class RecipientListRouterParser extends AbstractRouterParser {
 			}
 			recipientList.add(recipientBuilder.getBeanDefinition());
 		}
-		if (recipientList.size() > 0) {
+		if (!recipientList.isEmpty()) {
 			recipientListRouterBuilder.addPropertyValue("recipients", recipientList);
 		}
 		return recipientListRouterBuilder.getBeanDefinition();

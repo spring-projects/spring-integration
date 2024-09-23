@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public abstract class AbstractMessageProcessingTransformer
 		implements Transformer, BeanFactoryAware, ManageableLifecycle {
@@ -61,8 +62,8 @@ public abstract class AbstractMessageProcessingTransformer
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
-		if (this.messageProcessor instanceof BeanFactoryAware) {
-			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
+		if (this.messageProcessor instanceof BeanFactoryAware beanFactoryAware) {
+			beanFactoryAware.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -78,21 +79,21 @@ public abstract class AbstractMessageProcessingTransformer
 
 	@Override
 	public void start() {
-		if (this.messageProcessor instanceof Lifecycle) {
-			((Lifecycle) this.messageProcessor).start();
+		if (this.messageProcessor instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.messageProcessor instanceof Lifecycle) {
-			((Lifecycle) this.messageProcessor).stop();
+		if (this.messageProcessor instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		return !(this.messageProcessor instanceof Lifecycle) || ((Lifecycle) this.messageProcessor).isRunning();
+		return !(this.messageProcessor instanceof Lifecycle lifecycle) || lifecycle.isRunning();
 	}
 
 	/**

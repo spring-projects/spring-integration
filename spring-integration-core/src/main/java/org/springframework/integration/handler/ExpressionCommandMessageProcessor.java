@@ -46,6 +46,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.0
  *
@@ -136,8 +137,8 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 				}
 			}
 			List<Method> supportedMethods = this.methodFilter.filter(candidates);
-			if (supportedMethods.size() == 0) {
-				String methodDescription = (candidates.size() > 0) ? candidates.get(0).toString() : name;
+			if (supportedMethods.isEmpty()) {
+				String methodDescription = (!candidates.isEmpty()) ? candidates.get(0).toString() : name;
 				throw new EvaluationException("The method '" + methodDescription +
 						"' is not supported by this command processor. " +
 						"If using the Control Bus, consider adding @ManagedOperation or @ManagedAttribute.");

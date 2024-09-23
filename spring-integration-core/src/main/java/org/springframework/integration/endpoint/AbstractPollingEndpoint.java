@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Artem Bilan
  * @author Andreas Baer
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
 
@@ -187,8 +188,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * @since 4.3
 	 */
 	public MessageChannel getDefaultErrorChannel() {
-		if (!this.errorHandlerIsDefault && this.errorHandler instanceof MessagePublishingErrorHandler) {
-			return ((MessagePublishingErrorHandler) this.errorHandler).getDefaultErrorChannel();
+		if (!this.errorHandlerIsDefault && this.errorHandler instanceof MessagePublishingErrorHandler messagePublishingErrorHandler) {
+			return messagePublishingErrorHandler.getDefaultErrorChannel();
 		}
 		else {
 			return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.xml.DomUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public abstract class AbstractRouterParser extends AbstractConsumerEndpointParser {
 
@@ -61,7 +62,7 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 			// check if mapping is provided otherwise returned values will be treated as channel names
 			List<Element> mappingElements = DomUtils.getChildElementsByTagName(element, "mapping");
 			if (!CollectionUtils.isEmpty(mappingElements)) {
-				ManagedMap<String, String> channelMappings = new ManagedMap<String, String>();
+				ManagedMap<String, String> channelMappings = new ManagedMap<>();
 				for (Element mappingElement : mappingElements) {
 					String key = mappingElement.getAttribute(this.getMappingKeyAttributeName());
 					channelMappings.put(key, mappingElement.getAttribute("channel"));

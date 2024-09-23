@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author David Liu
+ * @author Ngoc Nhan
  */
 public abstract class AbstractStandardMessageHandlerFactoryBean
 		extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> implements DisposableBean {
@@ -207,8 +208,8 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 		}
 
 		if (this.requiresReply != null) {
-			if (handler instanceof AbstractReplyProducingMessageHandler) {
-				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
+			if (handler instanceof AbstractReplyProducingMessageHandler abstractReplyProducingMessageHandler) {
+				abstractReplyProducingMessageHandler.setRequiresReply(this.requiresReply);
 			}
 			else {
 				if (this.requiresReply && logger.isDebugEnabled()) {

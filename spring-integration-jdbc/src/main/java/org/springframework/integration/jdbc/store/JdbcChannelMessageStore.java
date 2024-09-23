@@ -86,6 +86,7 @@ import org.springframework.util.StringUtils;
  * @author Meherzad Lahewala
  * @author Trung Pham
  * @author Johannes Edmeier
+ * @author Ngoc Nhan
  *
  * @since 2.2
  */
@@ -609,7 +610,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 		Assert.state(messages.size() < 2,
 				() -> "The query must return zero or 1 row; got " + messages.size() + " rows");
-		if (messages.size() > 0) {
+		if (!messages.isEmpty()) {
 
 			final Message<?> message = messages.get(0);
 			UUID id = message.getHeaders().getId();

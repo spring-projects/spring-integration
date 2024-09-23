@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */
@@ -167,7 +168,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 			if (traceEnabled) {
 				logger.trace("preReceive on channel '" + this + "'");
 			}
-			if (interceptorList.getInterceptors().size() > 0) {
+			if (!interceptorList.getInterceptors().isEmpty()) {
 				interceptorStack = new ArrayDeque<>();
 				if (!interceptorList.preReceive(this, interceptorStack)) {
 					return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Liujiong
  * @author Kris Jacyna
  * @author Gary Russell
+ * @author Ngoc Nhan
  * @since 2.1
  */
 public class EnricherParser extends AbstractConsumerEndpointParser {
@@ -107,10 +108,10 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 						nullResultExpression, hasAttributeValue, hasAttributeExpression,
 						hasAttributeNullResultExpression);
 			}
-			if (expressions.size() > 0) {
+			if (!expressions.isEmpty()) {
 				builder.addPropertyValue("propertyExpressions", expressions);
 			}
-			if (nullResultExpressions.size() > 0) {
+			if (!nullResultExpressions.isEmpty()) {
 				builder.addPropertyValue("nullResultPropertyExpressions", nullResultExpressions);
 			}
 		}
@@ -183,10 +184,10 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				headerExpression(parserContext, expressions, nullResultHeaderExpressions, subElement, name,
 						valueElementValue, hasAttributeValue, hasAttributeExpression, hasAttributeNullResultExpression);
 			}
-			if (expressions.size() > 0) {
+			if (!expressions.isEmpty()) {
 				builder.addPropertyValue("headerExpressions", expressions);
 			}
-			if (nullResultHeaderExpressions.size() > 0) {
+			if (!nullResultHeaderExpressions.isEmpty()) {
 				builder.addPropertyValue("nullResultHeaderExpressions", nullResultHeaderExpressions);
 			}
 		}

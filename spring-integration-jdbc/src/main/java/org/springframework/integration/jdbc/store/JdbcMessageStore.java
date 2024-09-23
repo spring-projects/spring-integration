@@ -79,6 +79,7 @@ import org.springframework.util.StringUtils;
  * @author Will Schipp
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.0
  */
@@ -752,7 +753,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 				groupIdKey, this.region, groupIdKey, this.region);
 		Assert.state(messages.size() < 2,
 				() -> "The query must return zero or 1 row; got " + messages.size() + " rows");
-		if (messages.size() > 0) {
+		if (!messages.isEmpty()) {
 			return messages.get(0);
 		}
 		return null;

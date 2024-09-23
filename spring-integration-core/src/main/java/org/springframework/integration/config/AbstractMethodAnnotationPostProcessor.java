@@ -118,6 +118,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Chris Bono
+ * @author Ngoc Nhan
  */
 public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation>
 		implements MethodAnnotationPostProcessor<T>, BeanFactoryAware {
@@ -447,8 +448,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {
 			handlerBeanName = handlerBeanName + ".wrapper";
 		}
-		if (handler instanceof IntegrationObjectSupport) {
-			((IntegrationObjectSupport) handler).setComponentName(
+		if (handler instanceof IntegrationObjectSupport integrationObjectSupport) {
+			integrationObjectSupport.setComponentName(
 					handlerBeanName.substring(0,
 							handlerBeanName.indexOf(IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX)));
 		}
@@ -464,8 +465,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				String resolvedValue = this.beanFactory.resolveEmbeddedValue(sendTimeout);
 				if (resolvedValue != null) {
 					long value = Long.parseLong(resolvedValue);
-					if (handler instanceof AbstractMessageProducingHandler) {
-						((AbstractMessageProducingHandler) handler).setSendTimeout(value);
+					if (handler instanceof AbstractMessageProducingHandler abstractMessageProducingHandler) {
+						abstractMessageProducingHandler.setSendTimeout(value);
 					}
 					else {
 						((AbstractMessageRouter) handler).setSendTimeout(value);
@@ -490,8 +491,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				advisor.setPointcut(pointcut);
 				advisor.setBeanFactory(this.beanFactory);
 
-				if (handler instanceof Advised) {
-					((Advised) handler).addAdvisor(advisor);
+				if (handler instanceof Advised advised) {
+					advised.addAdvisor(advisor);
 				}
 				else {
 					ProxyFactory proxyFactory = new ProxyFactory(handler);
@@ -507,8 +508,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		MessageHandler handler = handlerArg;
 		List<Advice> adviceChain = extractAdviceChain(beanName, annotations);
 
-		if (!CollectionUtils.isEmpty(adviceChain) && handler instanceof AbstractReplyProducingMessageHandler) {
-			((AbstractReplyProducingMessageHandler) handler).setAdviceChain(adviceChain);
+		if (!CollectionUtils.isEmpty(adviceChain) && handler instanceof AbstractReplyProducingMessageHandler abstractReplyProducingMessageHandler) {
+			abstractReplyProducingMessageHandler.setAdviceChain(adviceChain);
 		}
 
 		if (!CollectionUtils.isEmpty(adviceChain)) {
@@ -516,8 +517,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				if (advice instanceof HandleMessageAdvice) {
 					NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(advice);
 					handlerAdvice.addMethodName("handleMessage");
-					if (handler instanceof Advised) {
-						((Advised) handler).addAdvisor(handlerAdvice);
+					if (handler instanceof Advised advised) {
+						advised.addAdvisor(handlerAdvice);
 					}
 					else {
 						ProxyFactory proxyFactory = new ProxyFactory(handler);
@@ -543,11 +544,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			adviceChain = new ArrayList<>();
 			for (String adviceChainName : adviceChainNames) {
 				Object adviceChainBean = this.beanFactory.getBean(adviceChainName);
-				if (adviceChainBean instanceof Advice) {
-					adviceChain.add((Advice) adviceChainBean);
+				if (adviceChainBean instanceof Advice advice) {
+					adviceChain.add(advice);
 				}
-				else if (adviceChainBean instanceof Advice[]) {
-					Collections.addAll(adviceChain, (Advice[]) adviceChainBean);
+				else if (adviceChainBean instanceof Advice[] advices) {
+					Collections.addAll(adviceChain, advices);
 				}
 				else if (adviceChainBean instanceof Collection) {
 					@SuppressWarnings(UNCHECKED)
@@ -604,11 +605,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (inputChannel instanceof Publisher || handler instanceof ReactiveMessageHandlerAdapter || reactive != null) {
 			return reactiveStreamsConsumer(inputChannel, handler, reactive);
 		}
-		else if (inputChannel instanceof SubscribableChannel) {
+		else if (inputChannel instanceof SubscribableChannel subscribableChannel) {
 			Assert.state(poller == null, () ->
 					"A '@Poller' should not be specified for Annotation-based " +
 							"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
-			return new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
+			return new EventDrivenConsumer(subscribableChannel, handler);
 		}
 		else if (inputChannel instanceof PollableChannel) {
 			return pollingConsumer(inputChannel, handler, poller);
@@ -624,9 +625,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			Reactive reactive) {
 
 		ReactiveStreamsConsumer reactiveStreamsConsumer;
-		if (handler instanceof ReactiveMessageHandlerAdapter) {
+		if (handler instanceof ReactiveMessageHandlerAdapter reactiveMessageHandlerAdapter) {
 			reactiveStreamsConsumer = new ReactiveStreamsConsumer(channel,
-					((ReactiveMessageHandlerAdapter) handler).getDelegate());
+				reactiveMessageHandlerAdapter.getDelegate());
 		}
 		else {
 			reactiveStreamsConsumer = new ReactiveStreamsConsumer(channel, handler);
@@ -696,8 +697,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 		pollingEndpoint.setMaxMessagesPerPoll(maxMessagesPerPoll);
 		pollingEndpoint.setErrorHandler(pollerMetadata.getErrorHandler());
-		if (pollingEndpoint instanceof PollingConsumer) {
-			((PollingConsumer) pollingEndpoint).setReceiveTimeout(pollerMetadata.getReceiveTimeout());
+		if (pollingEndpoint instanceof PollingConsumer pollingConsumer) {
+			pollingConsumer.setReceiveTimeout(pollerMetadata.getReceiveTimeout());
 		}
 		pollingEndpoint.setTransactionSynchronizationFactory(pollerMetadata.getTransactionSynchronizationFactory());
 	}
@@ -834,10 +835,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	private static void orderable(Method method, MessageHandler handler) {
-		if (handler instanceof Orderable) {
+		if (handler instanceof Orderable orderable) {
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
 			if (orderAnnotation != null) {
-				((Orderable) handler).setOrder(orderAnnotation.value());
+				orderable.setOrder(orderAnnotation.value());
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public class XPathMessageSplitter extends AbstractMessageSplitter {
 
@@ -216,8 +217,8 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		try {
 			Object payload = message.getPayload();
 			Object result;
-			if (payload instanceof Node) {
-				result = splitNode((Node) payload);
+			if (payload instanceof Node node) {
+				result = splitNode(node);
 			}
 			else {
 				Document document = this.xmlPayloadConverter.convertToDocument(payload);
@@ -239,12 +240,12 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	protected int obtainSizeIfPossible(Iterator<?> iterator) {
 		Iterator<?> theIterator = iterator;
 
-		if (iterator instanceof TransformFunctionIterator) {
-			theIterator = ((TransformFunctionIterator) iterator).delegate;
+		if (iterator instanceof TransformFunctionIterator transformFunctionIterator) {
+			theIterator = transformFunctionIterator.delegate;
 		}
 
-		if (theIterator instanceof NodeListIterator) {
-			return ((NodeListIterator) theIterator).nodeList.getLength();
+		if (theIterator instanceof NodeListIterator nodeListIterator) {
+			return nodeListIterator.nodeList.getLength();
 		}
 
 		return 0;

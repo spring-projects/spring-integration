@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
  * A {@link CorrelationHandlerSpec} for an {@link AggregatingMessageHandler}.
  *
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 5.0
  */
@@ -71,8 +72,8 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 				.outputProcessor(methodName != null
 						? new MethodInvokingMessageGroupProcessor(target, methodName)
 						:
-						(target instanceof MessageGroupProcessor
-								? (MessageGroupProcessor) target
+						(target instanceof MessageGroupProcessor messageGroupProcessor
+								? messageGroupProcessor
 								: new MethodInvokingMessageGroupProcessor(target)));
 	}
 
@@ -124,8 +125,8 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	public Map<Object, String> getComponentsToRegister() {
 		if (this.headersFunction != null) {
 			MessageGroupProcessor outputProcessor = this.handler.getOutputProcessor();
-			if (outputProcessor instanceof AbstractAggregatingMessageGroupProcessor) {
-				((AbstractAggregatingMessageGroupProcessor) outputProcessor).setHeadersFunction(this.headersFunction);
+			if (outputProcessor instanceof AbstractAggregatingMessageGroupProcessor abstractAggregatingMessageGroupProcessor) {
+				abstractAggregatingMessageGroupProcessor.setHeadersFunction(this.headersFunction);
 			}
 			else {
 				this.handler.setOutputProcessor(

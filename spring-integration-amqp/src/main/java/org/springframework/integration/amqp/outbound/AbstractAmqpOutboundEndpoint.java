@@ -61,6 +61,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  *
  * @since 4.3
  *
@@ -594,8 +595,8 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		}
 		if (correlationData == null) {
 			Object correlation = requestMessage.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM_CORRELATION);
-			if (correlation instanceof CorrelationData) {
-				correlationData = (CorrelationData) correlation;
+			if (correlation instanceof CorrelationData castCorrelationData) {
+				correlationData = castCorrelationData;
 			}
 			if (correlationData != null) {
 				correlationData = new CorrelationDataWrapper(messageId, correlationData, requestMessage);
@@ -728,8 +729,8 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 		@Override
 		public CompletableFuture<Confirm> getFuture() {
-			if (this.userData instanceof CorrelationData) {
-				return ((CorrelationData) this.userData).getFuture();
+			if (this.userData instanceof CorrelationData correlationData) {
+				return correlationData.getFuture();
 			}
 			else {
 				return super.getFuture();
@@ -738,8 +739,8 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 		@Override
 		public void setReturned(ReturnedMessage returned) {
-			if (this.userData instanceof CorrelationData) {
-				((CorrelationData) this.userData).setReturned(returned);
+			if (this.userData instanceof CorrelationData correlationData) {
+				correlationData.setReturned(returned);
 			}
 			super.setReturned(returned);
 		}

@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.0
  */
@@ -67,7 +68,7 @@ abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
 
 	@Override
 	public boolean isRunning() {
-		return !(this.processor instanceof Lifecycle) || ((Lifecycle) this.processor).isRunning();
+		return !(this.processor instanceof Lifecycle lifecycle) || lifecycle.isRunning();
 	}
 
 }

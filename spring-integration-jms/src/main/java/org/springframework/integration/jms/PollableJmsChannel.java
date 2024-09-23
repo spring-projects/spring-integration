@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.0
  */
@@ -77,7 +78,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 			if (isLoggingEnabled()) {
 				logger.trace(() -> "preReceive on channel '" + this + "'");
 			}
-			if (interceptorList.getInterceptors().size() > 0) {
+			if (!interceptorList.getInterceptors().isEmpty()) {
 				interceptorStack = new ArrayDeque<>();
 
 				if (!interceptorList.preReceive(this, interceptorStack)) {

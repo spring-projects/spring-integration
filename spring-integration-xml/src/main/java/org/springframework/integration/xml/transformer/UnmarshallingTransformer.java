@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ import org.springframework.xml.transform.StringSource;
  * @author Jonas Partner
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
 
@@ -113,22 +114,21 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 			if (this.alwaysUseSourceFactory) {
 				source = this.sourceFactory.createSource(payload);
 			}
-			else if (payload instanceof String) {
-				source = new StringSource((String) payload);
+			else if (payload instanceof String string) {
+				source = new StringSource(string);
 			}
-			else if (payload instanceof byte[]) {
-				source = new StreamSource(new ByteArrayInputStream((byte[]) payload));
+			else if (payload instanceof byte[] bytes) {
+				source = new StreamSource(new ByteArrayInputStream(bytes));
 			}
-			else if (payload instanceof File) {
-				File file = (File) payload;
+			else if (payload instanceof File file) {
 				inputStream = new FileInputStream(file);
 				source = new StreamSource(inputStream, file.toURI().toASCIIString());
 			}
-			else if (payload instanceof Document) {
-				source = new DOMSource((Document) payload);
+			else if (payload instanceof Document document) {
+				source = new DOMSource(document);
 			}
-			else if (payload instanceof Source) {
-				source = (Source) payload;
+			else if (payload instanceof Source castSource) {
+				source = castSource;
 			}
 			else {
 				source = this.sourceFactory.createSource(payload);
@@ -163,9 +163,9 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 		}
 
 		Object maybeUnmarshalMimeMessage(Object payload) throws IOException {
-			if (payload instanceof org.springframework.ws.mime.MimeMessage) {
+			if (payload instanceof org.springframework.ws.mime.MimeMessage mimeMessage) {
 				return org.springframework.ws.support.MarshallingUtils.unmarshal(this.delegate,
-						(org.springframework.ws.mime.MimeMessage) payload);
+					mimeMessage);
 			}
 			else {
 				return null;

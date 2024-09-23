@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.messaging.MessagingException;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Ingo Dueppe
+ * @author Ngoc Nhan
  *
  * @since 6.1
  */
@@ -86,11 +87,11 @@ public class UnZipTransformer extends AbstractZipTransformer {
 
 				inputStream = new FileInputStream(filePayload);
 			}
-			else if (payload instanceof InputStream) {
-				inputStream = (InputStream) payload;
+			else if (payload instanceof InputStream castInputStream) {
+				inputStream = castInputStream;
 			}
-			else if (payload instanceof byte[]) {
-				inputStream = new ByteArrayInputStream((byte[]) payload);
+			else if (payload instanceof byte[] bytes) {
+				inputStream = new ByteArrayInputStream(bytes);
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported payload type '" + payload.getClass().getSimpleName()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * {@link #processor(MessageProcessorSpec)} or {@link #transformer(GenericTransformer)} must be provided.
  *
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 6.2
  */
@@ -218,7 +219,7 @@ public class TransformerEndpointSpec extends ConsumerEndpointSpec<TransformerEnd
 	}
 
 	private Transformer wrapToTransformerIfAny() {
-		return this.transformer instanceof Transformer ? (Transformer) this.transformer :
+		return this.transformer instanceof Transformer castTransformer ? castTransformer :
 				(ClassUtils.isLambda(this.transformer)
 						? new MethodInvokingTransformer(new LambdaMessageProcessor(this.transformer, this.expectedType))
 						: new MethodInvokingTransformer(this.transformer, ClassUtils.TRANSFORMER_TRANSFORM_METHOD));

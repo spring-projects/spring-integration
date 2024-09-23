@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public abstract class AbstractPollingInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
@@ -48,13 +49,13 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 
 		String sourceBeanName = null;
 
-		if (source instanceof BeanDefinition) {
+		if (source instanceof BeanDefinition beanDefinition) {
 			String channelAdapterId = this.resolveId(element, adapterBuilder.getRawBeanDefinition(), parserContext);
 			sourceBeanName = channelAdapterId + ".source";
-			parserContext.getRegistry().registerBeanDefinition(sourceBeanName, (BeanDefinition) source);
+			parserContext.getRegistry().registerBeanDefinition(sourceBeanName, beanDefinition);
 		}
-		else if (source instanceof RuntimeBeanReference) {
-			sourceBeanName = ((RuntimeBeanReference) source).getBeanName();
+		else if (source instanceof RuntimeBeanReference runtimeBeanReference) {
+			sourceBeanName = runtimeBeanReference.getBeanName();
 		}
 		else {
 			parserContext.getReaderContext().error("Wrong 'source' type: must be 'BeanDefinition' or 'RuntimeBeanReference'", source);

@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */
@@ -107,11 +108,11 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	private Message<?> extractMessage(Object object) {
-		if (object instanceof MessageHolder) {
-			return ((MessageHolder) object).getMessage();
+		if (object instanceof MessageHolder messageHolder) {
+			return messageHolder.getMessage();
 		}
-		else if (object instanceof Message) {
-			return (Message<?>) object;
+		else if (object instanceof Message<?> message) {
+			return message;
 		}
 		else {
 			throw new IllegalArgumentException(
@@ -126,8 +127,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Object object = doRetrieve(this.messagePrefix + messageId);
 		if (object != null) {
 			extractMessage(object);
-			if (object instanceof MessageHolder) {
-				return ((MessageHolder) object).getMessageMetadata();
+			if (object instanceof MessageHolder messageHolder) {
+				return messageHolder.getMessageMetadata();
 			}
 		}
 		return null;

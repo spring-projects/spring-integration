@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public abstract class AbstractMessageProcessingSelector
 		implements MessageSelector, BeanFactoryAware, ManageableLifecycle {
@@ -53,8 +54,8 @@ public abstract class AbstractMessageProcessingSelector
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		if (this.messageProcessor instanceof BeanFactoryAware) {
-			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
+		if (this.messageProcessor instanceof BeanFactoryAware beanFactoryAware) {
+			beanFactoryAware.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -72,21 +73,21 @@ public abstract class AbstractMessageProcessingSelector
 
 	@Override
 	public void start() {
-		if (this.messageProcessor instanceof Lifecycle) {
-			((Lifecycle) this.messageProcessor).start();
+		if (this.messageProcessor instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.messageProcessor instanceof Lifecycle) {
-			((Lifecycle) this.messageProcessor).stop();
+		if (this.messageProcessor instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		return !(this.messageProcessor instanceof Lifecycle) || ((Lifecycle) this.messageProcessor).isRunning();
+		return !(this.messageProcessor instanceof Lifecycle lifecycle) || lifecycle.isRunning();
 	}
 
 }

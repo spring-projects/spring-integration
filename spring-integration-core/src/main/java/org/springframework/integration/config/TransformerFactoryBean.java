@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author David Liu
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
@@ -44,8 +45,8 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
 		Transformer transformer = null;
-		if (targetObject instanceof Transformer) {
-			transformer = (Transformer) targetObject;
+		if (targetObject instanceof Transformer castTransformer) {
+			transformer = castTransformer;
 		}
 		else {
 			this.checkForIllegalTarget(targetObject, targetMethodName);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mike Bazos
  * @author liujiong
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 
@@ -72,7 +73,7 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		}
 		List<Element> xslParameterElements = DomUtils.getChildElementsByTagName(element, "xslt-param");
 		if (!CollectionUtils.isEmpty(xslParameterElements)) {
-			Map<String, Object> xslParameterMappings = new ManagedMap<String, Object>();
+			Map<String, Object> xslParameterMappings = new ManagedMap<>();
 			for (Element xslParameterElement : xslParameterElements) {
 				String name = xslParameterElement.getAttribute("name");
 				String expression = xslParameterElement.getAttribute("expression");

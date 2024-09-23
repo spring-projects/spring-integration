@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  * @author Dominik Simmen
  * @author Yuxin Wang
+ * @author Ngoc Nhan
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean {
 
@@ -474,19 +475,19 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					headers.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.TEXT_PLAIN_VALUE);
 				}
 			}
-			else if (content instanceof InputStream) {
+			else if (content instanceof InputStream inputStream) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				FileCopyUtils.copy((InputStream) content, baos);
+				FileCopyUtils.copy(inputStream, baos);
 				content = byteArrayToContent(headers, baos);
 			}
-			else if (content instanceof Multipart && this.embeddedPartsAsBytes) {
+			else if (content instanceof Multipart multipart && this.embeddedPartsAsBytes) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				((Multipart) content).writeTo(baos);
+				multipart.writeTo(baos);
 				content = byteArrayToContent(headers, baos);
 			}
-			else if (content instanceof Part && this.embeddedPartsAsBytes) {
+			else if (content instanceof Part part && this.embeddedPartsAsBytes) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				((Part) content).writeTo(baos);
+				part.writeTo(baos);
 				content = byteArrayToContent(headers, baos);
 			}
 			return content;

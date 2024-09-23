@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public abstract class AbstractOutboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
@@ -99,8 +100,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 			boolean isReplyProducer = this.isUsingReplyProducer();
 			if (!isReplyProducer) {
 				Class<?> beanClass = null;
-				if (handlerBeanDefinition instanceof AbstractBeanDefinition) {
-					AbstractBeanDefinition abstractBeanDefinition = (AbstractBeanDefinition) handlerBeanDefinition;
+				if (handlerBeanDefinition instanceof AbstractBeanDefinition abstractBeanDefinition) {
 					if (abstractBeanDefinition.hasBeanClass()) {
 						beanClass = abstractBeanDefinition.getBeanClass();
 					}

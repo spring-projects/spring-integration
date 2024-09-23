@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.integration.webflux.support.WebFluxContextUtils;
  *
  * @author Artem Bilan
  * @author Chris Bono
+ * @author Ngoc Nhan
  *
  * @since 5.0
  */
@@ -46,8 +47,8 @@ public class WebFluxIntegrationConfigurationInitializer implements IntegrationCo
 
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		if (beanFactory instanceof BeanDefinitionRegistry) {
-			registerReactiveRequestMappingHandlerMappingIfNecessary((BeanDefinitionRegistry) beanFactory);
+		if (beanFactory instanceof BeanDefinitionRegistry beanDefinitionRegistry) {
+			registerReactiveRequestMappingHandlerMappingIfNecessary(beanDefinitionRegistry);
 		}
 		else {
 			LOGGER.warn("'IntegrationRequestMappingHandlerMapping' isn't registered because 'beanFactory'" +

@@ -37,13 +37,14 @@ import org.springframework.beans.factory.xml.ParserContext;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class ChannelInterceptorParser {
 
 	private final Map<String, BeanDefinitionRegisteringParser> parsers;
 
 	public ChannelInterceptorParser() {
-		this.parsers = new HashMap<String, BeanDefinitionRegisteringParser>();
+		this.parsers = new HashMap<>();
 		this.parsers.put("wire-tap", new WireTapParser());
 	}
 

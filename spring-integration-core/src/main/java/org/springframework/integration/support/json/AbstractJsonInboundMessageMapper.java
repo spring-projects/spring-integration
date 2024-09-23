@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 3.0
  *
@@ -43,7 +44,7 @@ public abstract class AbstractJsonInboundMessageMapper<P> implements InboundMess
 			"JSON message is invalid.  Expected a message in the format of either " +
 					"{\"headers\":{...},\"payload\":{...}} or {\"payload\":{...}.\"headers\":{...}} but was ";
 
-	protected static final Map<String, Class<?>> DEFAULT_HEADER_TYPES = new HashMap<String, Class<?>>();
+	protected static final Map<String, Class<?>> DEFAULT_HEADER_TYPES = new HashMap<>();
 
 	static {
 		DEFAULT_HEADER_TYPES.put(IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);

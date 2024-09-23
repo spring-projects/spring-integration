@@ -44,6 +44,7 @@ import org.springframework.util.ClassUtils;
  * @author David Liu
  * @author Trung Pham
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingHandler
 		implements BeanClassLoaderAware {
@@ -91,7 +92,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	protected boolean hasAdviceChain() {
-		return this.adviceChain.size() > 0;
+		return !this.adviceChain.isEmpty();
 	}
 
 	@Override

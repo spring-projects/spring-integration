@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2023 the original author or authors.
+ * Copyright 2001-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ import org.springframework.util.StringUtils;
  * @author Marcin Pilaczynski
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  *
  * @since 2.0
  */
@@ -357,15 +358,14 @@ public class UnicastSendingMessageHandler extends
 		SocketAddress destinationAddress;
 		if (this.destinationExpression != null) {
 			Object destination = this.destinationExpression.getValue(this.evaluationContext, message);
-			if (destination instanceof String) {
-				destination = new URI((String) destination);
+			if (destination instanceof String string) {
+				destination = new URI(string);
 			}
-			if (destination instanceof URI) {
-				URI uri = (URI) destination;
+			if (destination instanceof URI uri) {
 				destination = new InetSocketAddress(uri.getHost(), uri.getPort());
 			}
-			if (destination instanceof SocketAddress) {
-				destinationAddress = (SocketAddress) destination;
+			if (destination instanceof SocketAddress socketAddress) {
+				destinationAddress = socketAddress;
 			}
 			else {
 				throw new IllegalStateException("'destinationExpression' must evaluate to String, URI " +

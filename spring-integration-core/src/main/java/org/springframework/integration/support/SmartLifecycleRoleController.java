@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ import org.springframework.util.MultiValueMap;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  *
  * @since 4.2
  *
@@ -169,7 +170,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * @param role the role.
 	 */
 	public void startLifecyclesInRole(String role) {
-		if (this.lazyLifecycles.size() > 0) {
+		if (!this.lazyLifecycles.isEmpty()) {
 			addLazyLifecycles();
 		}
 		List<SmartLifecycle> componentsInRole = this.lifecycles.get(role);
@@ -201,7 +202,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * @param role the role.
 	 */
 	public void stopLifecyclesInRole(String role) {
-		if (this.lazyLifecycles.size() > 0) {
+		if (!this.lazyLifecycles.isEmpty()) {
 			addLazyLifecycles();
 		}
 		List<SmartLifecycle> componentsInRole = this.lifecycles.get(role);
@@ -234,7 +235,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * @since 4.3.8
 	 */
 	public Collection<String> getRoles() {
-		if (this.lazyLifecycles.size() > 0) {
+		if (!this.lazyLifecycles.isEmpty()) {
 			addLazyLifecycles();
 		}
 		return Collections.unmodifiableCollection(this.lifecycles.keySet());
@@ -270,7 +271,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * @since 4.3.8
 	 */
 	public Map<String, Boolean> getEndpointsRunningStatus(String role) {
-		if (this.lazyLifecycles.size() > 0) {
+		if (!this.lazyLifecycles.isEmpty()) {
 			addLazyLifecycles();
 		}
 

@@ -40,6 +40,7 @@ import org.springframework.lang.Nullable;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> implements ReversibleFileListFilter<F>,
 		ResettableFileListFilter<F> {
@@ -47,7 +48,7 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 	@Nullable
 	private final Queue<F> seen;
 
-	private final Set<F> seenSet = new HashSet<F>();
+	private final Set<F> seenSet = new HashSet<>();
 
 	private final Lock monitor = new ReentrantLock();
 
@@ -58,7 +59,7 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 	 * @param maxCapacity the maximum number of Files to maintain in the 'seen' queue.
 	 */
 	public AcceptOnceFileListFilter(int maxCapacity) {
-		this.seen = new LinkedBlockingQueue<F>(maxCapacity);
+		this.seen = new LinkedBlockingQueue<>(maxCapacity);
 	}
 
 	/**

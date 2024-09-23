@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ import org.springframework.util.CollectionUtils;
  * @author Artem Bilan
  * @author David Liu
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  */
 public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageHandler>
 		implements FactoryBean<MessageHandler>, ApplicationContextAware, BeanFactoryAware, BeanNameAware,
@@ -251,13 +252,13 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	private void adviceChain(Object actualHandler) {
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
-			if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
-				((AbstractReplyProducingMessageHandler) actualHandler).setAdviceChain(this.adviceChain);
+			if (actualHandler instanceof AbstractReplyProducingMessageHandler abstractReplyProducingMessageHandler) {
+				abstractReplyProducingMessageHandler.setAdviceChain(this.adviceChain);
 			}
 			else if (this.logger.isDebugEnabled()) {
 				String name = this.componentName;
-				if (name == null && actualHandler instanceof NamedComponent) {
-					name = ((NamedComponent) actualHandler).getBeanName();
+				if (name == null && actualHandler instanceof NamedComponent namedComponent) {
+					name = namedComponent.getBeanName();
 				}
 				this.logger.debug("adviceChain can only be set on an AbstractReplyProducingMessageHandler"
 						+ (name == null ? "" : (", " + name)) + ".");
@@ -266,9 +267,9 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	}
 
 	private void initializingBean() {
-		if (this.handler instanceof InitializingBean) {
+		if (this.handler instanceof InitializingBean initializingBean) {
 			try {
-				((InitializingBean) this.handler).afterPropertiesSet();
+				initializingBean.afterPropertiesSet();
 			}
 			catch (Exception e) {
 				throw new BeanInitializationException("failed to initialize MessageHandler", e);
@@ -277,8 +278,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	}
 
 	private void configureOutputChannelIfAny() {
-		if (this.handler instanceof MessageProducer) {
-			MessageProducer messageProducer = (MessageProducer) this.handler;
+		if (this.handler instanceof MessageProducer messageProducer) {
 			if (this.outputChannel != null) {
 				messageProducer.setOutputChannel(this.outputChannel);
 			}

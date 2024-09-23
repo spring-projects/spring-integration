@@ -61,6 +61,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Christian Tzolov
+ * @author Ngoc Nhan
  *
  * @since 2.0
  *
@@ -153,9 +154,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
-		if (!this.deserializerSet && this.deserializer instanceof ApplicationEventPublisherAware) {
-			((ApplicationEventPublisherAware) this.deserializer)
-					.setApplicationEventPublisher(applicationEventPublisher);
+		if (!this.deserializerSet && this.deserializer instanceof ApplicationEventPublisherAware applicationEventPublisherAware) {
+			applicationEventPublisherAware.setApplicationEventPublisher(applicationEventPublisher);
 		}
 	}
 
@@ -335,7 +335,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 */
 	@Nullable
 	public TcpSender getSender() {
-		return this.senders.size() > 0 ? this.senders.get(0) : null;
+		return !this.senders.isEmpty() ? this.senders.get(0) : null;
 	}
 
 	/**
@@ -827,7 +827,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	private void rescheduleDelayedReads(Selector selector, long now) {
 		boolean wakeSelector = false;
 		try {
-			while (this.delayedReads.size() > 0) {
+			while (!this.delayedReads.isEmpty()) {
 				if (this.delayedReads.peek().failedAt + this.readDelay < now) {
 					PendingIO pendingRead = this.delayedReads.take();
 					if (pendingRead.key.channel().isOpen()) {

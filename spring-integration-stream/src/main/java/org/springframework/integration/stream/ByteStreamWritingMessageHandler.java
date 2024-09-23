@@ -30,6 +30,7 @@ import org.springframework.messaging.MessagingException;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class ByteStreamWritingMessageHandler extends AbstractMessageHandler {
 
@@ -57,11 +58,11 @@ public class ByteStreamWritingMessageHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
 		try {
-			if (payload instanceof String) {
-				this.stream.write(((String) payload).getBytes());
+			if (payload instanceof String string) {
+				this.stream.write(string.getBytes());
 			}
-			else if (payload instanceof byte[]) {
-				this.stream.write((byte[]) payload);
+			else if (payload instanceof byte[] bytes) {
+				this.stream.write(bytes);
 			}
 			else {
 				throw new MessagingException(this.getClass().getSimpleName() +

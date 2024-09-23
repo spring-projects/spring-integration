@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 the original author or authors.
+ * Copyright 2021-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.util.MultiValueMap;
  * @param <T> The payload type.
  *
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 5.5
  */
@@ -175,9 +176,9 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 	protected void onInit() {
 		super.onInit();
 		TypeLocator typeLocator = getEvaluationContext().getTypeLocator();
-		if (typeLocator instanceof StandardTypeLocator) {
+		if (typeLocator instanceof StandardTypeLocator standardTypeLocator) {
 			//Register MongoDB query API package so FQCN can be avoided in query-expression.
-			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
+			standardTypeLocator.registerImport("org.springframework.data.mongodb.core.query");
 		}
 	}
 
@@ -185,11 +186,11 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 		Object value = this.queryExpression.getValue(getEvaluationContext());
 		Assert.notNull(value, "'queryExpression' must not evaluate to null");
 		Query query = null;
-		if (value instanceof String) {
-			query = new BasicQuery((String) value);
+		if (value instanceof String string) {
+			query = new BasicQuery(string);
 		}
-		else if (value instanceof Query) {
-			query = ((Query) value);
+		else if (value instanceof Query castQuery) {
+			query = castQuery;
 		}
 		else {
 			throw new IllegalStateException("'queryExpression' must evaluate to String " +
@@ -244,11 +245,11 @@ public abstract class AbstractMongoDbMessageSource<T> extends AbstractMessageSou
 			Object value = this.updateExpression.getValue(getEvaluationContext());
 			Assert.notNull(value, "'updateExpression' must not evaluate to null");
 			Update update;
-			if (value instanceof String) {
-				update = new BasicUpdate((String) value);
+			if (value instanceof String string) {
+				update = new BasicUpdate(string);
 			}
-			else if (value instanceof Update) {
-				update = ((Update) value);
+			else if (value instanceof Update castUpdate) {
+				update = castUpdate;
 			}
 			else {
 				throw new IllegalStateException("'updateExpression' must evaluate to String " +

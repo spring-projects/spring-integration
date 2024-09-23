@@ -53,6 +53,7 @@ import org.springframework.util.Assert;
  * @author Amol Nayak
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 3.0
  */
@@ -194,7 +195,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 				ids.clear();
 			}
 		}
-		if (ids.size() > 0) {
+		if (!ids.isEmpty()) {
 			removeMessages(groupId, ids);
 		}
 		updateGroup(groupId, lastModifiedUpdate());

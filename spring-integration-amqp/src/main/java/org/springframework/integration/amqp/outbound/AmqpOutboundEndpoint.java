@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */
@@ -67,9 +68,9 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 	public AmqpOutboundEndpoint(AmqpTemplate amqpTemplate) {
 		Assert.notNull(amqpTemplate, "amqpTemplate must not be null");
 		this.amqpTemplate = amqpTemplate;
-		if (amqpTemplate instanceof RabbitTemplate) {
-			setConnectionFactory(((RabbitTemplate) amqpTemplate).getConnectionFactory());
-			this.rabbitTemplate = (RabbitTemplate) amqpTemplate;
+		if (amqpTemplate instanceof RabbitTemplate castRabbitTemplate) {
+			setConnectionFactory(castRabbitTemplate.getConnectionFactory());
+			this.rabbitTemplate = castRabbitTemplate;
 		}
 		else {
 			this.rabbitTemplate = null;
@@ -159,8 +160,8 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 
 	@Override
 	protected void doStop() {
-		if (this.amqpTemplate instanceof Lifecycle) {
-			((Lifecycle) this.amqpTemplate).stop();
+		if (this.amqpTemplate instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 

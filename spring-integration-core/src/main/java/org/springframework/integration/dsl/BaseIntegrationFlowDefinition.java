@@ -111,6 +111,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Gabriele Del Prete
  * @author Tim Feuerbach
+ * @author Ngoc Nhan
  *
  * @since 5.2.1
  *
@@ -728,7 +729,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			@Nullable Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
 		Assert.notNull(genericTransformer, "'genericTransformer' must not be null");
-		Transformer transformer = genericTransformer instanceof Transformer ? (Transformer) genericTransformer :
+		Transformer transformer = genericTransformer instanceof Transformer castTransformer ? castTransformer :
 				(ClassUtils.isLambda(genericTransformer.getClass())
 						? new MethodInvokingTransformer(new LambdaMessageProcessor(genericTransformer, expectedType))
 						: new MethodInvokingTransformer(genericTransformer, ClassUtils.TRANSFORMER_TRANSFORM_METHOD));
@@ -900,7 +901,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			@Nullable Consumer<FilterEndpointSpec> endpointConfigurer) {
 
 		Assert.notNull(genericSelector, "'genericSelector' must not be null");
-		MessageSelector selector = genericSelector instanceof MessageSelector ? (MessageSelector) genericSelector :
+		MessageSelector selector = genericSelector instanceof MessageSelector messageSelector ? messageSelector :
 				(ClassUtils.isLambda(genericSelector.getClass())
 						? new MethodInvokingSelector(new LambdaMessageProcessor(genericSelector, expectedType))
 						: new MethodInvokingSelector(genericSelector, ClassUtils.SELECTOR_ACCEPT_METHOD));
@@ -1136,8 +1137,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			@Nullable Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
 
 		Assert.notNull(messageHandlerSpec, "'messageHandlerSpec' must not be null");
-		if (messageHandlerSpec instanceof ComponentsRegistration) {
-			addComponents(((ComponentsRegistration) messageHandlerSpec).getComponentsToRegister());
+		if (messageHandlerSpec instanceof ComponentsRegistration componentsRegistration) {
+			addComponents(componentsRegistration.getComponentsToRegister());
 		}
 		return handle(messageHandlerSpec.getObject(), endpointConfigurer);
 	}

@@ -70,6 +70,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Marius Bogoevici
+ * @author Ngoc Nhan
  *
  * since 4.1
  */
@@ -462,8 +463,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		Object path = routingSlip.get(routingSlipIndex.get());
 		Object routingSlipPathValue = null;
 
-		if (path instanceof String) {
-			routingSlipPathValue = getBeanFactory().getBean((String) path);
+		if (path instanceof String string) {
+			routingSlipPathValue = getBeanFactory().getBean(string);
 		}
 		else if (path instanceof RoutingSlipRouteStrategy) {
 			routingSlipPathValue = path;
@@ -479,7 +480,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 		else {
 			Object nextPath = ((RoutingSlipRouteStrategy) routingSlipPathValue).getNextPath(requestMessage, reply);
-			if (nextPath != null && (!(nextPath instanceof String) || StringUtils.hasText((String) nextPath))) {
+			if (nextPath != null && (!(nextPath instanceof String string) || StringUtils.hasText(string))) {
 				return nextPath;
 			}
 			else {
@@ -540,20 +541,20 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			throw new DestinationResolutionException("no output-channel or replyChannel header available");
 		}
 
-		if (replyChannel instanceof MessageChannel) {
+		if (replyChannel instanceof MessageChannel messageChannel) {
 			if (output instanceof Message<?>) {
-				this.messagingTemplate.send((MessageChannel) replyChannel, (Message<?>) output);
+				this.messagingTemplate.send(messageChannel, (Message<?>) output);
 			}
 			else {
-				this.messagingTemplate.convertAndSend((MessageChannel) replyChannel, output);
+				this.messagingTemplate.convertAndSend(messageChannel, output);
 			}
 		}
-		else if (replyChannel instanceof String) {
+		else if (replyChannel instanceof String string) {
 			if (output instanceof Message<?>) {
-				this.messagingTemplate.send((String) replyChannel, (Message<?>) output);
+				this.messagingTemplate.send(string, (Message<?>) output);
 			}
 			else {
-				this.messagingTemplate.convertAndSend((String) replyChannel, output);
+				this.messagingTemplate.convertAndSend(string, output);
 			}
 		}
 		else {

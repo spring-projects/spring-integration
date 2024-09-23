@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,13 @@ import java.util.List;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public abstract class AbstractFileListFilter<F> implements FileListFilter<F> {
 
 	@Override
 	public final List<F> filterFiles(F[] files) {
-		List<F> accepted = new ArrayList<F>();
+		List<F> accepted = new ArrayList<>();
 		if (files != null) {
 			for (F file : files) {
 				if (this.accept(file)) {

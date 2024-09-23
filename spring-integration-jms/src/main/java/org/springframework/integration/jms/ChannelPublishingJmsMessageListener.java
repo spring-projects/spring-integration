@@ -77,6 +77,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  */
 public class ChannelPublishingJmsMessageListener
 		implements SessionAwareMessageListener<jakarta.jms.Message>, InitializingBean,
@@ -558,8 +559,8 @@ public class ChannelPublishingJmsMessageListener
 	 * @see #setDestinationResolver
 	 */
 	private Destination resolveDefaultReplyDestination(Session session) throws JMSException {
-		if (this.defaultReplyDestination instanceof Destination) {
-			return (Destination) this.defaultReplyDestination;
+		if (this.defaultReplyDestination instanceof Destination destination) {
+			return destination;
 		}
 		if (this.defaultReplyDestination instanceof DestinationNameHolder nameHolder) {
 			return this.destinationResolver.resolveDestinationName(session, nameHolder.name, nameHolder.isTopic);

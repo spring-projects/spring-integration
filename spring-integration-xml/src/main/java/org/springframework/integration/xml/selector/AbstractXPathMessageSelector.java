@@ -29,6 +29,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * Base class for XPath {@link MessageSelector} implementations.
  *
  * @author Jonas Partner
+ * @author Ngoc Nhan
  */
 public abstract class AbstractXPathMessageSelector implements MessageSelector {
 
@@ -49,7 +50,7 @@ public abstract class AbstractXPathMessageSelector implements MessageSelector {
 	 * @param namespace namespace URI
 	 */
 	public AbstractXPathMessageSelector(String xPathExpression, String prefix, String namespace) {
-		Map<String, String> namespaces = new HashMap<String, String>();
+		Map<String, String> namespaces = new HashMap<>();
 		namespaces.put(prefix, namespace);
 		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression, namespaces);
 	}

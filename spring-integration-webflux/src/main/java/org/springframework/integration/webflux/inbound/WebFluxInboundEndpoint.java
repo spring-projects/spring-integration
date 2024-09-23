@@ -73,6 +73,7 @@ import org.springframework.web.server.WebHandler;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 5.0
  *
@@ -362,8 +363,8 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 			responseContent = replyMessage.getPayload();
 		}
 
-		if (responseContent instanceof HttpStatus) {
-			response.setStatusCode((HttpStatus) responseContent);
+		if (responseContent instanceof HttpStatus httpStatus) {
+			response.setStatusCode(httpStatus);
 			return response.setComplete();
 		}
 		else {

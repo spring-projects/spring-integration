@@ -49,6 +49,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Trung Pham
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */
@@ -372,25 +373,25 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	private void addChannelKeyToCollection(Collection<MessageChannel> channels, Message<?> message, Object channelKey) {
 		ConversionService conversionService = getRequiredConversionService();
-		if (channelKey instanceof MessageChannel) {
-			channels.add((MessageChannel) channelKey);
+		if (channelKey instanceof MessageChannel messageChannel) {
+			channels.add(messageChannel);
 		}
-		else if (channelKey instanceof MessageChannel[]) {
-			channels.addAll(Arrays.asList((MessageChannel[]) channelKey));
+		else if (channelKey instanceof MessageChannel[] messageChannels) {
+			channels.addAll(Arrays.asList(messageChannels));
 		}
-		else if (channelKey instanceof String) {
-			addChannelFromString(channels, (String) channelKey, message);
+		else if (channelKey instanceof String string) {
+			addChannelFromString(channels, string, message);
 		}
-		else if (channelKey instanceof Class) {
-			addChannelFromString(channels, ((Class<?>) channelKey).getName(), message);
+		else if (channelKey instanceof Class<?> cls) {
+			addChannelFromString(channels, cls.getName(), message);
 		}
-		else if (channelKey instanceof String[]) {
-			for (String indicatorName : (String[]) channelKey) {
+		else if (channelKey instanceof String[] strings) {
+			for (String indicatorName : strings) {
 				addChannelFromString(channels, indicatorName, message);
 			}
 		}
-		else if (channelKey instanceof Collection) {
-			addToCollection(channels, (Collection<?>) channelKey, message);
+		else if (channelKey instanceof Collection<?> collection) {
+			addToCollection(channels, collection, message);
 		}
 		else if (conversionService.canConvert(channelKey.getClass(), String.class)) {
 			String converted = conversionService.convert(channelKey, String.class);

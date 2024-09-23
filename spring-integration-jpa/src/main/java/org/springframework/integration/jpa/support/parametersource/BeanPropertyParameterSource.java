@@ -28,6 +28,7 @@ import org.springframework.beans.PropertyAccessorFactory;
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Ngoc Nhan
  *
  * @since 2.2
  *
@@ -69,7 +70,7 @@ public class BeanPropertyParameterSource implements ParameterSource {
 	 */
 	public String[] getReadablePropertyNames() {
 		if (this.propertyNames == null) {
-			final List<String> names = new ArrayList<String>();
+			final List<String> names = new ArrayList<>();
 			PropertyDescriptor[] props = this.beanWrapper.getPropertyDescriptors();
 			for (PropertyDescriptor pd : props) {
 				if (this.beanWrapper.isReadableProperty(pd.getName())) {

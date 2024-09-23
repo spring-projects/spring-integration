@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.messaging.MessageHeaders;
  * The {@link MessageJacksonDeserializer} implementation for the {@link AdviceMessage}.
  *
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 4.3.10
  */
@@ -46,7 +47,7 @@ public class AdviceMessageJacksonDeserializer extends MessageJacksonDeserializer
 	protected AdviceMessage<?> buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
 			DeserializationContext ctxt) throws IOException {
 		Message<?> inputMessage = getMapper().readValue(root.get("inputMessage").traverse(), Message.class);
-		return new AdviceMessage<Object>(payload, (MessageHeaders) headers, inputMessage);
+		return new AdviceMessage<>(payload, (MessageHeaders) headers, inputMessage);
 	}
 
 }

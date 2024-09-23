@@ -64,6 +64,7 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */
@@ -197,8 +198,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	 */
 
 	public void setEncoding(String encoding) {
-		if (this.amqpTemplate instanceof RabbitTemplate) {
-			((RabbitTemplate) this.amqpTemplate).setEncoding(encoding);
+		if (this.amqpTemplate instanceof RabbitTemplate rabbitTemplate) {
+			rabbitTemplate.setEncoding(encoding);
 		}
 		else if (logger.isInfoEnabled()) {
 			logger.info("AmqpTemplate is not a RabbitTemplate, so configured 'encoding' value will be ignored.");
@@ -206,8 +207,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	}
 
 	public void setMessageConverter(MessageConverter messageConverter) {
-		if (this.amqpTemplate instanceof RabbitTemplate) {
-			((RabbitTemplate) this.amqpTemplate).setMessageConverter(messageConverter);
+		if (this.amqpTemplate instanceof RabbitTemplate rabbitTemplate) {
+			rabbitTemplate.setMessageConverter(messageConverter);
 		}
 		else if (logger.isInfoEnabled()) {
 			logger.info("AmqpTemplate is not a RabbitTemplate, so configured MessageConverter will be ignored.");
@@ -215,8 +216,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	}
 
 	public void setTemplateChannelTransacted(boolean channelTransacted) {
-		if (this.amqpTemplate instanceof RabbitTemplate) {
-			((RabbitTemplate) this.amqpTemplate).setChannelTransacted(channelTransacted);
+		if (this.amqpTemplate instanceof RabbitTemplate rabbitTemplate) {
+			rabbitTemplate.setChannelTransacted(channelTransacted);
 		}
 		else if (logger.isInfoEnabled()) {
 			logger.info("AmqpTemplate is not a RabbitTemplate, so configured 'channelTransacted' will be ignored.");
@@ -233,15 +234,15 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
-		if (this.amqpTemplate instanceof RabbitTemplate) {
-			((RabbitTemplate) this.amqpTemplate).setConnectionFactory(this.connectionFactory);
+		if (this.amqpTemplate instanceof RabbitTemplate rabbitTemplate) {
+			rabbitTemplate.setConnectionFactory(this.connectionFactory);
 		}
 	}
 
 	public void setMessagePropertiesConverter(MessagePropertiesConverter messagePropertiesConverter) {
 		this.messagePropertiesConverter = messagePropertiesConverter;
-		if (this.amqpTemplate instanceof RabbitTemplate) {
-			((RabbitTemplate) this.amqpTemplate).setMessagePropertiesConverter(messagePropertiesConverter);
+		if (this.amqpTemplate instanceof RabbitTemplate rabbitTemplate) {
+			rabbitTemplate.setMessagePropertiesConverter(messagePropertiesConverter);
 		}
 	}
 
@@ -354,8 +355,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	protected AbstractAmqpChannel createInstance() {
 		if (this.messageDriven) {
 			AbstractMessageListenerContainer container = this.createContainer();
-			if (this.amqpTemplate instanceof RabbitAccessor) {
-				((RabbitAccessor) this.amqpTemplate).afterPropertiesSet();
+			if (this.amqpTemplate instanceof RabbitAccessor rabbitAccessor) {
+				rabbitAccessor.afterPropertiesSet();
 			}
 			if (this.isPubSub) {
 				PublishSubscribeAmqpChannel pubsub = new PublishSubscribeAmqpChannel(
@@ -440,38 +441,38 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	@Override
 	public boolean isAutoStartup() {
-		return (this.channel instanceof SmartLifecycle) && ((SmartLifecycle) this.channel).isAutoStartup();
+		return (this.channel instanceof SmartLifecycle smartLifecycle) && smartLifecycle.isAutoStartup();
 	}
 
 	@Override
 	public int getPhase() {
-		return (this.channel instanceof SmartLifecycle) ?
-				((SmartLifecycle) this.channel).getPhase() : 0;
+		return (this.channel instanceof SmartLifecycle smartLifecycle) ?
+			smartLifecycle.getPhase() : 0;
 	}
 
 	@Override
 	public boolean isRunning() {
-		return (this.channel instanceof Lifecycle) && ((Lifecycle) this.channel).isRunning();
+		return (this.channel instanceof Lifecycle lifecycle) && lifecycle.isRunning();
 	}
 
 	@Override
 	public void start() {
-		if (this.channel instanceof Lifecycle) {
-			((Lifecycle) this.channel).start();
+		if (this.channel instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.channel instanceof Lifecycle) {
-			((Lifecycle) this.channel).stop();
+		if (this.channel instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		if (this.channel instanceof SmartLifecycle) {
-			((SmartLifecycle) this.channel).stop(callback);
+		if (this.channel instanceof SmartLifecycle smartLifecycle) {
+			smartLifecycle.stop(callback);
 		}
 		else {
 			callback.run();

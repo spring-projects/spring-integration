@@ -33,6 +33,7 @@ import org.springframework.util.ClassUtils;
  * @author Gary Russell
  * @author Christian Tzolov
  * @author Artem Bilan
+ * @author Ngoc Nhan
  */
 public class UUIDConverter implements Converter<Object, UUID> {
 
@@ -66,8 +67,8 @@ public class UUIDConverter implements Converter<Object, UUID> {
 		if (input == null) {
 			return null;
 		}
-		if (input instanceof UUID) {
-			return (UUID) input;
+		if (input instanceof UUID uuid) {
+			return uuid;
 		}
 		if (input instanceof String inputText) {
 			if (isValidUuidStringRepresentation(inputText)) {

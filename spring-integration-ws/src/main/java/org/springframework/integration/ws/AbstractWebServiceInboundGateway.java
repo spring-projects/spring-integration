@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.ws.soap.SoapMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Ngoc Nhan
  *
  * @since 2.1
  */
@@ -73,8 +74,8 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		}
 		catch (Exception e) {
 			while ((e instanceof MessagingException || e instanceof ExpressionException) && // NOSONAR
-					e.getCause() instanceof Exception) {
-				e = (Exception) e.getCause();
+					e.getCause() instanceof Exception exception) {
+				e = exception;
 			}
 			throw e;
 		}
@@ -91,8 +92,7 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 				builder.setHeader(propertyName, messageContext.getProperty(propertyName));
 			}
 		}
-		if (request instanceof SoapMessage) {
-			SoapMessage soapMessage = (SoapMessage) request;
+		if (request instanceof SoapMessage soapMessage) {
 			Map<String, ?> headers = this.headerMapper.toHeadersFromRequest(soapMessage);
 			if (!CollectionUtils.isEmpty(headers)) {
 				builder.copyHeaders(headers);
@@ -101,9 +101,9 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 	}
 
 	protected void toSoapHeaders(WebServiceMessage response, Message<?> replyMessage) {
-		if (response instanceof SoapMessage) {
+		if (response instanceof SoapMessage soapMessage) {
 			this.headerMapper.fromHeadersToReply(
-					replyMessage.getHeaders(), (SoapMessage) response);
+					replyMessage.getHeaders(), soapMessage);
 		}
 	}
 
