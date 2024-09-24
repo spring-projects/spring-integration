@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package org.springframework.integration.test.context;
 
 import java.util.List;
 
-import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.test.context.ContextConfigurationAttributes;
 import org.springframework.test.context.ContextCustomizer;
 import org.springframework.test.context.ContextCustomizerFactory;
+import org.springframework.test.context.TestContextAnnotationUtils;
 
 /**
  * The {@link ContextCustomizerFactory} implementation to produce a
@@ -29,6 +29,7 @@ import org.springframework.test.context.ContextCustomizerFactory;
  * is present on the test class.
  *
  * @author Artem Bilan
+ * @author Chris Bono
  *
  * @since 5.0
  */
@@ -38,7 +39,7 @@ class MockIntegrationContextCustomizerFactory implements ContextCustomizerFactor
 	public ContextCustomizer createContextCustomizer(Class<?> testClass,
 			List<ContextConfigurationAttributes> configAttributes) {
 
-		return AnnotatedElementUtils.hasAnnotation(testClass, SpringIntegrationTest.class)
+		return TestContextAnnotationUtils.hasAnnotation(testClass, SpringIntegrationTest.class)
 				? new MockIntegrationContextCustomizer()
 				: null;
 	}

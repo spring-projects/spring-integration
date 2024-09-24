@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.test.context;
 
 import java.util.Arrays;
 
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.test.context.TestContext;
@@ -45,11 +44,7 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 		String[] patterns = springIntegrationTest != null ? springIntegrationTest.noAutoStartup() : new String[0];
 
 		ApplicationContext applicationContext = testContext.getApplicationContext();
-		MockIntegrationContext mockIntegrationContext = handledGetMockIntegrationContext(applicationContext);
-		if (mockIntegrationContext == null) {
-			return;
-		}
-
+		MockIntegrationContext mockIntegrationContext = applicationContext.getBean(MockIntegrationContext.class);
 		mockIntegrationContext.getAutoStartupCandidates()
 				.stream()
 				.filter(endpoint -> !match(endpoint.getBeanName(), patterns))
@@ -60,11 +55,7 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 	@Override
 	public void afterTestClass(TestContext testContext) {
 		ApplicationContext applicationContext = testContext.getApplicationContext();
-		MockIntegrationContext mockIntegrationContext = handledGetMockIntegrationContext(applicationContext);
-		if (mockIntegrationContext == null) {
-			return;
-		}
-
+		MockIntegrationContext mockIntegrationContext = applicationContext.getBean(MockIntegrationContext.class);
 		mockIntegrationContext.getAutoStartupCandidates()
 				.forEach(AbstractEndpoint::stop);
 	}
@@ -73,17 +64,6 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 		return patterns.length > 0 &&
 				Arrays.stream(patterns)
 						.anyMatch(pattern -> PatternMatchUtils.simpleMatch(pattern, name));
-	}
-
-	/**
-	 * to allow nested class execution
-	 */
-	private MockIntegrationContext handledGetMockIntegrationContext(ApplicationContext applicationContext) {
-		try {
-			return applicationContext.getBean(MockIntegrationContext.class);
-		} catch (NoSuchBeanDefinitionException e) {
-			return null;
-		}
 	}
 
 }
