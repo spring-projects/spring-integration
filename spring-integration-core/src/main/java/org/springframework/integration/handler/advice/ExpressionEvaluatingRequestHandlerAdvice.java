@@ -309,7 +309,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 		private static final long serialVersionUID = 1L;
 
-		private final Object evaluationResult;
+		private final transient Object evaluationResult;
 
 		public MessageHandlingExpressionEvaluatingAdviceException(Message<?> message, String description,
 				Throwable cause, Object evaluationResult) {

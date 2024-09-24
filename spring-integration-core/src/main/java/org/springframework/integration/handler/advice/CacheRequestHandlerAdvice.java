@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.interceptor.CacheAspectSupport;
@@ -49,7 +50,7 @@ import org.springframework.util.ReflectionUtils;
  * The {@link AbstractRequestHandlerAdvice} implementation for caching
  * {@code AbstractReplyProducingMessageHandler.RequestHandler#handleRequestMessage(Message)} results.
  * Supports all the cache operations - cacheable, put, evict.
- * By default only cacheable is applied for the provided {@code cacheNames}.
+ * By default, only cacheable is applied for the provided {@code cacheNames}.
  * The default cache {@code key} is {@code payload} of the request message.
  *
  * @author Artem Bilan
@@ -103,9 +104,6 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 	 */
 	public CacheRequestHandlerAdvice(String... cacheNamesArg) {
 		this.cacheNames = cacheNamesArg != null ? Arrays.copyOf(cacheNamesArg, cacheNamesArg.length) : null;
-		CacheableOperation.Builder builder = new CacheableOperation.Builder();
-		builder.setName(toString());
-		this.cacheOperations.add(builder.build());
 	}
 
 	/**
@@ -192,6 +190,11 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 
 	@Override
 	protected void onInit() {
+		if (this.cacheOperations.isEmpty()) {
+			CacheableOperation.Builder builder = new CacheableOperation.Builder();
+			builder.setName(toString());
+			this.cacheOperations.add(builder.build());
+		}
 		List<CacheOperation> cacheOperationsToUse;
 		if (!ObjectUtils.isEmpty(this.cacheNames)) {
 			cacheOperationsToUse =
@@ -232,14 +235,15 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 								builder.setKeyGenerator(operation.getKeyGenerator());
 								return builder.build();
 							})
-							.collect(Collectors.toList());
+							.toList();
 		}
 		else {
 			cacheOperationsToUse = this.cacheOperations;
 		}
 
-		this.delegate.setBeanFactory(getBeanFactory());
-		EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		this.delegate.setBeanFactory(beanFactory);
+		EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 		this.delegate.setKeyGenerator((target, method, params) ->
 				this.keyExpression.getValue(evaluationContext, params[0])); // NOSONAR
 		this.delegate.setCacheOperationSources((method, targetClass) -> cacheOperationsToUse);
@@ -260,7 +264,6 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 					else {
 						return result;
 					}
-
 				};
 
 		return this.delegate.invoke(operationInvoker, target, message);

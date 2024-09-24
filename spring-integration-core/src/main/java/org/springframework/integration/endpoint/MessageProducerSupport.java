@@ -81,7 +81,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 	private volatile Subscription subscription;
 
 	protected MessageProducerSupport() {
-		this.setPhase(Integer.MAX_VALUE / 2);
+		setPhase(Integer.MAX_VALUE / 2);
 	}
 
 	@Override
@@ -222,7 +222,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 		if (beanFactory != null) {
 			this.messagingTemplate.setBeanFactory(beanFactory);
 		}
-
 	}
 
 	/**
@@ -278,8 +277,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 						.doOnCancel(this::stop)
 						.doOnSubscribe((subs) -> this.subscription = subs);
 
-		if (channelForSubscription instanceof ReactiveStreamsSubscribableChannel) {
-			((ReactiveStreamsSubscribableChannel) channelForSubscription).subscribeTo(messageFlux);
+		if (channelForSubscription instanceof ReactiveStreamsSubscribableChannel reactiveStreamsSubscribableChannel) {
+			reactiveStreamsSubscribableChannel.subscribeTo(messageFlux);
 		}
 		else {
 			messageFlux

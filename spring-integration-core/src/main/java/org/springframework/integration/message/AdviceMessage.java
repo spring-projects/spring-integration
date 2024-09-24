@@ -41,6 +41,7 @@ public class AdviceMessage<T> extends GenericMessage<T> {
 
 	private static final long serialVersionUID = 1L;
 
+	@SuppressWarnings("serial")
 	private final Message<?> inputMessage;
 
 	public AdviceMessage(T payload, Message<?> inputMessage) {

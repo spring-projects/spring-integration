@@ -22,8 +22,7 @@ import javax.management.Attribute;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -37,16 +36,18 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class MessageSourceTests {
 
@@ -108,7 +109,9 @@ public class MessageSourceTests {
 
 	public static class MaxFetchSource extends AbstractFetchLimitingMessageSource<String> {
 
-		{
+		@Override
+		protected void onInit() {
+			super.onInit();
 			setMaxFetchSize(123);
 		}
 

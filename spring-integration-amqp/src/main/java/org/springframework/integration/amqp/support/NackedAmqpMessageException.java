@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import org.springframework.messaging.MessagingException;
  * publisher confirm.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3.12
  *
  */
@@ -32,9 +34,10 @@ public class NackedAmqpMessageException extends MessagingException {
 
 	private static final long serialVersionUID = 1L;
 
-	private final Object correlationData;
-
 	private final String nackReason;
+
+	@SuppressWarnings("serial")
+	private final Object correlationData;
 
 	public NackedAmqpMessageException(Message<?> message, @Nullable Object correlationData, String nackReason) {
 		super(message);

@@ -45,7 +45,7 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 		Assert.notNull(handler, "handler must not be null");
 		this.inputChannel = inputChannel;
 		this.handler = handler;
-		this.setPhase(Integer.MIN_VALUE);
+		setPhase(Integer.MIN_VALUE);
 	}
 
 	@Override
@@ -55,11 +55,11 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 
 	@Override
 	public MessageChannel getOutputChannel() {
-		if (this.handler instanceof MessageProducer) {
-			return ((MessageProducer) this.handler).getOutputChannel();
+		if (this.handler instanceof MessageProducer messageProducer) {
+			return messageProducer.getOutputChannel();
 		}
-		else if (this.handler instanceof MessageRouter) {
-			return ((MessageRouter) this.handler).getDefaultOutputChannel();
+		else if (this.handler instanceof MessageRouter messageRouter) {
+			return messageRouter.getDefaultOutputChannel();
 		}
 		else {
 			return null;
@@ -75,8 +75,8 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 	protected void doStart() {
 		this.logComponentSubscriptionEvent(true);
 		this.inputChannel.subscribe(this.handler);
-		if (this.handler instanceof Lifecycle) {
-			((Lifecycle) this.handler).start();
+		if (this.handler instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 
@@ -84,15 +84,16 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 	protected void doStop() {
 		this.logComponentSubscriptionEvent(false);
 		this.inputChannel.unsubscribe(this.handler);
-		if (this.handler instanceof Lifecycle) {
-			((Lifecycle) this.handler).stop();
+		if (this.handler instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
 	private void logComponentSubscriptionEvent(boolean add) {
-		if (this.handler instanceof NamedComponent && this.inputChannel instanceof NamedComponent) {
-			String channelName = ((NamedComponent) this.inputChannel).getComponentName();
-			String componentType = ((NamedComponent) this.handler).getComponentType();
+		if (this.handler instanceof NamedComponent namedHandler
+				&& this.inputChannel instanceof NamedComponent namedChannel) {
+
+			String componentType = namedHandler.getComponentType();
 			componentType = StringUtils.hasText(componentType) ? componentType : "";
 			String componentName = getComponentName();
 			componentName =
@@ -102,7 +103,7 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 					.append(componentType)
 					.append(componentName)
 					.append("} as a subscriber to the '")
-					.append(channelName)
+					.append(namedChannel.getComponentName())
 					.append("' channel");
 			if (add) {
 				buffer.insert(0, "Adding ");

@@ -41,6 +41,7 @@ public class MessageGroupMetadata implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	@SuppressWarnings("serial")
 	private final List<UUID> messageIds = new LinkedList<>();
 
 	private long timestamp;

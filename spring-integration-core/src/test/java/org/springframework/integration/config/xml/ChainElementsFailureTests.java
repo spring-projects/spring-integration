@@ -20,21 +20,21 @@ import java.io.ByteArrayInputStream;
 import java.util.Locale;
 import java.util.Properties;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionStoreException;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky
@@ -46,240 +46,73 @@ public class ChainElementsFailureTests {
 
 	private Locale localeBeforeTest;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		localeBeforeTest = Locale.getDefault();
-		Locale.setDefault(new Locale("en", "US"));
+		Locale.setDefault(Locale.forLanguageTag("en-US"));
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		Locale.setDefault(localeBeforeTest);
 	}
 
-	@Test
-	public void chainServiceActivator() throws Exception {
-
-		try {
-			this.bootStrap("service-activator");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
-					"not" +
-					" allowed to appear in element 'int:service-activator'.");
-		}
-
+	@ParameterizedTest
+	@ValueSource(strings = {
+			"service-activator",
+			"aggregator",
+			"chain",
+			"delayer",
+			"filter",
+			"gateway",
+			"header-enricher",
+			"header-filter",
+			"header-filter",
+			"header-value-router",
+			"transformer",
+			"router",
+			"splitter",
+			"resequencer",
+	})
+	void inputChannelNotAllowed(String element) {
+		assertThatExceptionOfType(XmlBeanDefinitionStoreException.class)
+				.isThrownBy(() -> bootStrap(element))
+				.withStackTraceContaining(
+						"cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+								" allowed to appear in element 'int:" + element + "'.");
 	}
 
 	@Test
-	public void chainAggregator() throws Exception {
-
-		try {
-			this.bootStrap("aggregator");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
-					"not" +
-					" allowed to appear in element 'int:aggregator'.");
-		}
-
-	}
-
-	@Test
-	public void chainChain() throws Exception {
-
-		try {
-			this.bootStrap("chain");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
-					"not" +
-					" allowed to appear in element 'int:chain'.");
-		}
-	}
-
-	@Test
-	public void chainDelayer() throws Exception {
-
-		try {
-			this.bootStrap("delayer");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
-					"not" +
-					" allowed to appear in element 'int:delayer'.");
-		}
-	}
-
-	@Test
-	public void chainFilter() throws Exception {
-
-		try {
-			this.bootStrap("filter");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
-					"not" +
-					" allowed to appear in element 'int:filter'.");
-		}
-	}
-
-	@Test
-	public void chainGateway() throws Exception {
-
-		try {
-			this.bootStrap("gateway");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
-					"not" +
-					" allowed to appear in element 'int:gateway'.");
-		}
-	}
-
-	@Test
-	public void chainHeaderEnricher() throws Exception {
-
-		try {
-			this.bootStrap("header-enricher");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:header-enricher'.");
-		}
-	}
-
-	@Test
-	public void chainHeaderFilter() throws Exception {
-
-		try {
-			this.bootStrap("header-filter");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:header-filter'.");
-		}
-	}
-
-	@Test
-	public void chainHeaderValueRouter() throws Exception {
-
-		try {
-			this.bootStrap("header-value-router");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
-					"not" +
-					" allowed to appear in element 'int:header-value-router'.");
-		}
-	}
-
-	@Test
-	public void chainTransformer() throws Exception {
-
-		try {
-			this.bootStrap("transformer");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:transformer'.");
-		}
-	}
-
-	@Test
-	public void chainRouter() throws Exception {
-
-		try {
-			this.bootStrap("router");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:router'.");
-		}
-	}
-
-	@Test
-	public void chainSplitter() throws Exception {
-
-		try {
-			this.bootStrap("splitter");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:splitter'.");
-		}
-	}
-
-	@Test
-	public void chainResequencer() throws Exception {
-
-		try {
-			this.bootStrap("resequencer");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:resequencer'.");
-		}
-	}
-
-	@Test
-	public void chainResequencerPoller() throws Exception {
-
-		try {
-			this.bootStrap("resequencer-poller");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (BeanDefinitionParsingException e) {
-			final String expectedMessage = "Configuration problem: " +
-					"'int:resequencer' must not define a 'poller' sub-element " +
-					"when used within a chain.";
-			final String actualMessage = e.getMessage();
-			assertThat(actualMessage.startsWith(expectedMessage))
-					.as("Error message did not start with '" + expectedMessage +
-							"' but instead returned: '" + actualMessage + "'").isTrue();
-		}
+	public void chainResequencerPoller() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> bootStrap("resequencer-poller"))
+				.withMessageStartingWith("Configuration problem: " +
+						"'int:resequencer' must not define a 'poller' sub-element " +
+						"when used within a chain.");
 	}
 
 	@Test
 	public void testInt2755DetectDuplicateHandlerId() throws Exception {
-
-		try {
-			this.bootStrap("duplicate-handler-id");
-			fail("Expected a BeanDefinitionParsingException to be thrown.");
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage().contains("A bean definition is already registered for " +
-					"beanName: 'foo$child.bar.handler' within the current <chain>.")).isTrue();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> bootStrap("duplicate-handler-id"))
+				.withMessageContaining("A bean definition is already registered for " +
+						"beanName: 'foo$child.bar.handler' within the current <chain>.");
 	}
 
-	private ApplicationContext bootStrap(String configProperty) throws Exception {
-		PropertiesFactoryBean pfb = new PropertiesFactoryBean();
-		pfb.setLocation(new ClassPathResource("org/springframework/integration/config/xml/chain-elements-config.properties"));
-		pfb.afterPropertiesSet();
-		Properties prop = pfb.getObject();
-		StringBuilder buffer = new StringBuilder();
-		buffer.append(prop.getProperty("xmlheaders")).append(prop.getProperty(configProperty)).append(prop.getProperty("xmlfooter"));
-		ByteArrayInputStream stream = new ByteArrayInputStream(buffer.toString().getBytes());
+	private static void bootStrap(String configProperty) throws Exception {
+		Properties prop =
+				PropertiesLoaderUtils.loadProperties(
+						new ClassPathResource(
+								"org/springframework/integration/config/xml/chain-elements-config.properties"));
+		ByteArrayInputStream stream =
+				new ByteArrayInputStream((prop.getProperty("xmlheaders") +
+						prop.getProperty(configProperty) +
+						prop.getProperty("xmlfooter")).getBytes());
 		GenericApplicationContext ac = new GenericApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
 		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
 		reader.loadBeanDefinitions(new InputStreamResource(stream));
 		ac.refresh();
-		return ac;
 	}
 
 	public static class SampleService {

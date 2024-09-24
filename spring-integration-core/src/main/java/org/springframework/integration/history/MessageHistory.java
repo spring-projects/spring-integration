@@ -73,6 +73,7 @@ public final class MessageHistory implements List<Properties>, Serializable, Clo
 
 	private static final MessageBuilderFactory MESSAGE_BUILDER_FACTORY = new DefaultMessageBuilderFactory();
 
+	@SuppressWarnings("serial")
 	private final List<Properties> components;
 
 	@Nullable

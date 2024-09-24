@@ -114,6 +114,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private AmqpInboundGateway(MessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate,
 			boolean amqpTemplateExplicitlySet) {
+
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
 		Assert.notNull(amqpTemplate, "'amqpTemplate' must not be null");
 		Assert.isNull(listenerContainer.getMessageListener(),
@@ -194,7 +195,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	 * @since 4.3.10
 	 * @see #setRetryTemplate(RetryTemplate)
 	 */
-	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
+	public void setRecoveryCallback(RecoveryCallback<?> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
 	}
 
@@ -340,6 +341,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	}
 
 	protected class Listener implements ChannelAwareMessageListener {
+
+		protected Listener() {
+		}
 
 		@SuppressWarnings("unchecked")
 		@Override

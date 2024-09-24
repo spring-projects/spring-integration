@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import org.springframework.util.Assert;
  * performing multiple updates from a single message, e.g. an FTP 'mput' operation.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
@@ -34,9 +36,9 @@ public class PartialSuccessException extends MessagingException {
 
 	private static final long serialVersionUID = 8810900575763284993L;
 
-	private final Collection<?> partialResults;
+	private final transient Collection<?> partialResults;
 
-	private final Collection<?> derivedInput;
+	private final transient Collection<?> derivedInput;
 
 	/**
 	 *

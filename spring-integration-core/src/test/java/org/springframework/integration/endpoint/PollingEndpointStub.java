@@ -30,8 +30,10 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  */
 public class PollingEndpointStub extends AbstractPollingEndpoint {
 
-	public PollingEndpointStub() {
-		this.setTrigger(new PeriodicTrigger(Duration.ofMillis(500)));
+	@Override
+	protected void onInit() {
+		super.onInit();
+		setTrigger(new PeriodicTrigger(Duration.ofMillis(500)));
 	}
 
 	@Override

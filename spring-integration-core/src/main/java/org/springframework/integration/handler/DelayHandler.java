@@ -686,6 +686,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 		private final long requestDate;
 
+		@SuppressWarnings("serial")
 		private final Message<?> original;
 
 		DelayedMessageWrapper(Message<?> original, long requestDate) {
