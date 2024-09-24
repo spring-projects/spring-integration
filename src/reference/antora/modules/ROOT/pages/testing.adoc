@@ -206,6 +206,8 @@ The endpoints are matched to the provided patterns, which support the following 
 
 This is useful when we would like to not have real connections to the target systems from inbound channel adapters (for example an AMQP Inbound Gateway, JDBC Polling Channel Adapter, WebSocket Message Producer in client mode, and so on).
 
+The `@SpringIntegrationTest` honors the `org.springframework.test.context.NestedTestConfiguration` semantics, hence it can be declared on the outer class (or even its super class) - and `@SpringIntegrationTest` environment will be available to inherited `@Nested` tests.
+
 The `MockIntegrationContext` is meant to be used in the target test cases for modifications to beans in the real application context.
 For example, endpoints that have `autoStartup` overridden to `false` can be replaced with mocks, as the following example shows:
 
