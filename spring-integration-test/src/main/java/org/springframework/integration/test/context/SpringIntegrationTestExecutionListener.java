@@ -18,10 +18,11 @@ package org.springframework.integration.test.context;
 
 import java.util.Arrays;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.test.context.TestContext;
+import org.springframework.test.context.TestContextAnnotationUtils;
 import org.springframework.test.context.TestExecutionListener;
 import org.springframework.util.PatternMatchUtils;
 
@@ -39,12 +40,16 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 	@Override
 	public void prepareTestInstance(TestContext testContext) {
 		SpringIntegrationTest springIntegrationTest =
-				AnnotatedElementUtils.findMergedAnnotation(testContext.getTestClass(), SpringIntegrationTest.class);
+				TestContextAnnotationUtils.findMergedAnnotation(testContext.getTestClass(), SpringIntegrationTest.class);
 
 		String[] patterns = springIntegrationTest != null ? springIntegrationTest.noAutoStartup() : new String[0];
 
 		ApplicationContext applicationContext = testContext.getApplicationContext();
-		MockIntegrationContext mockIntegrationContext = applicationContext.getBean(MockIntegrationContext.class);
+		MockIntegrationContext mockIntegrationContext = handledGetMockIntegrationContext(applicationContext);
+		if (mockIntegrationContext == null) {
+			return;
+		}
+
 		mockIntegrationContext.getAutoStartupCandidates()
 				.stream()
 				.filter(endpoint -> !match(endpoint.getBeanName(), patterns))
@@ -55,7 +60,11 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 	@Override
 	public void afterTestClass(TestContext testContext) {
 		ApplicationContext applicationContext = testContext.getApplicationContext();
-		MockIntegrationContext mockIntegrationContext = applicationContext.getBean(MockIntegrationContext.class);
+		MockIntegrationContext mockIntegrationContext = handledGetMockIntegrationContext(applicationContext);
+		if (mockIntegrationContext == null) {
+			return;
+		}
+
 		mockIntegrationContext.getAutoStartupCandidates()
 				.forEach(AbstractEndpoint::stop);
 	}
@@ -64,6 +73,17 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 		return patterns.length > 0 &&
 				Arrays.stream(patterns)
 						.anyMatch(pattern -> PatternMatchUtils.simpleMatch(pattern, name));
+	}
+
+	/**
+	 * to allow nested class execution
+	 */
+	private MockIntegrationContext handledGetMockIntegrationContext(ApplicationContext applicationContext) {
+		try {
+			return applicationContext.getBean(MockIntegrationContext.class);
+		} catch (NoSuchBeanDefinitionException e) {
+			return null;
+		}
 	}
 
 }
