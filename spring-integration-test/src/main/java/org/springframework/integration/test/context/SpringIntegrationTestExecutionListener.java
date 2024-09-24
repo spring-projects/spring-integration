@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.springframework.integration.test.context;
 import java.util.Arrays;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.test.context.TestContext;
+import org.springframework.test.context.TestContextAnnotationUtils;
 import org.springframework.test.context.TestExecutionListener;
 import org.springframework.util.PatternMatchUtils;
 
@@ -39,7 +39,7 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 	@Override
 	public void prepareTestInstance(TestContext testContext) {
 		SpringIntegrationTest springIntegrationTest =
-				AnnotatedElementUtils.findMergedAnnotation(testContext.getTestClass(), SpringIntegrationTest.class);
+				TestContextAnnotationUtils.findMergedAnnotation(testContext.getTestClass(), SpringIntegrationTest.class);
 
 		String[] patterns = springIntegrationTest != null ? springIntegrationTest.noAutoStartup() : new String[0];
 
