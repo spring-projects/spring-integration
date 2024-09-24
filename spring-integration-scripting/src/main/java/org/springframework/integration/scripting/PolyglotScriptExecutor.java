@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.scripting;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.graalvm.polyglot.Context;
@@ -36,7 +38,7 @@ public class PolyglotScriptExecutor implements ScriptExecutor {
 
 	private final String language;
 
-	private Context.Builder contextBuilder;
+	private final Context.Builder contextBuilder;
 
 	/**
 	 * Construct an executor based on the provided language id.
@@ -67,11 +69,28 @@ public class PolyglotScriptExecutor implements ScriptExecutor {
 				Value bindings = context.getBindings(this.language);
 				variables.forEach(bindings::putMember);
 			}
-			return context.eval(this.language, scriptSource.getScriptAsString()).as(Object.class);
+			String scriptAsString = scriptSource.getScriptAsString();
+			Object result = context.eval(this.language, scriptAsString).as(Object.class);
+			// We have to copy all the expected PolyglotWrapper instances before context is closed.
+			if (result instanceof Map<?, ?> map) {
+				String returnVariable = parseReturnVariable(scriptAsString);
+				result = map.get(returnVariable);
+			}
+			if (result instanceof List<?> list) {
+				result = new ArrayList<>(list);
+			}
+			return result;
 		}
 		catch (Exception ex) {
 			throw new ScriptingException(ex.getMessage(), ex);
 		}
+	}
+
+	private static String parseReturnVariable(String script) {
+		String[] lines = script.trim().split("\n");
+		String lastLine = lines[lines.length - 1];
+		String[] tokens = lastLine.split("=");
+		return tokens[0].trim();
 	}
 
 }

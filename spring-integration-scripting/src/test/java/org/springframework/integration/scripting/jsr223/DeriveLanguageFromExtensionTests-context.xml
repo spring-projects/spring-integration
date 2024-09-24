@@ -5,8 +5,9 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/scripting https://www.springframework.org/schema/integration/scripting/spring-integration-scripting.xsd">
 
-	<int-script:script location="foo.rb"/>
-	<int-script:script location="foo.groovy"/>
-	<int-script:script location="foo.py"/>
-	<int-script:script location="foo.kts"/>
+	<int-script:script location="script.rb"/>
+	<int-script:script location="script.groovy"/>
+	<int-script:script location="script.py"/>
+	<int-script:script location="script.kts"/>
+	<int-script:script location="script.js"/>
 </beans>

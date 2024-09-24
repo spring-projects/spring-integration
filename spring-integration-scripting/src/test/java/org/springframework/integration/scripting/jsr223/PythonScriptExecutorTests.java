@@ -22,9 +22,9 @@ import java.util.Map;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.python.core.PyTuple;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.integration.scripting.PolyglotScriptExecutor;
 import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
@@ -44,7 +44,7 @@ public class PythonScriptExecutorTests {
 
 	@BeforeEach
 	public void init() {
-		this.executor = new PythonScriptExecutor();
+		this.executor = new PolyglotScriptExecutor("python");
 	}
 
 	@Test
@@ -76,11 +76,8 @@ public class PythonScriptExecutorTests {
 						new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
 		Object obj = this.executor.executeScript(source);
 		assertThat(obj)
-				.isNotNull()
-				.isInstanceOf(PyTuple.class)
 				.asInstanceOf(InstanceOfAssertFactories.LIST)
-				.element(0)
-				.isEqualTo(1);
+				.containsOnly(1, 2, 3);
 	}
 
 	@Test
@@ -92,11 +89,8 @@ public class PythonScriptExecutorTests {
 		variables.put("foo", "bar");
 		Object obj = this.executor.executeScript(source, variables);
 		assertThat(obj)
-				.isNotNull()
-				.isInstanceOf(PyTuple.class)
 				.asInstanceOf(InstanceOfAssertFactories.LIST)
-				.element(0)
-				.isEqualTo(1);
+				.containsOnly(1, 2, 3);
 	}
 
 	@Test

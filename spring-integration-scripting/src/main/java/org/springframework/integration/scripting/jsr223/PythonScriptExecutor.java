@@ -32,9 +32,14 @@ import javax.script.ScriptEngine;
  *
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  *
+ * @deprecated in favor of {@link org.springframework.integration.scripting.PolyglotScriptExecutor}
+ * with a {@code python} language argument.
  */
+@Deprecated(forRemoval = true, since = "6.4")
 public class PythonScriptExecutor extends AbstractScriptExecutor {
 
 	public PythonScriptExecutor() {

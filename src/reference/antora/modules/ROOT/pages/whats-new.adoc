@@ -84,3 +84,10 @@ See xref:mqtt.adoc[MQTT Support] for more information.
 
 The `ZipTransformer` now exposes a `fileNameGenerator` property to customize a target zip file (and optional zip entry) name generation.
 See xref:zip.adoc[Zip Support] for more information.
+
+
+[[x6.4-scripting-changes]]
+=== Scripting Changes
+
+The Python scripts evaluation is now migrated to the GraalVM Polyglot.
+See xref:scripting.adoc[Scripting Support] for more information.

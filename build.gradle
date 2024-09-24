@@ -87,7 +87,6 @@ ext {
     jsonpathVersion = '2.9.0'
     junit4Version = '4.13.2'
     junitJupiterVersion = '5.11.0'
-    jythonVersion = '2.7.4'
     kotlinCoroutinesVersion = '1.8.1'
     kryoVersion = '5.6.0'
     lettuceVersion = '6.4.0.RELEASE'
@@ -866,17 +865,18 @@ project('spring-integration-scripting') {
         optionalApi 'org.jetbrains.kotlin:kotlin-scripting-jsr223'
         provided "org.graalvm.sdk:graal-sdk:$graalvmVersion"
         provided "org.graalvm.polyglot:js:$graalvmVersion"
+        provided "org.graalvm.polyglot:python:$graalvmVersion"
 
         testImplementation "org.jruby:jruby-complete:$jrubyVersion"
         testImplementation 'org.apache.groovy:groovy-jsr223'
-        testImplementation "org.python:jython-standalone:$jythonVersion"
     }
 
     tasks.withType(JavaForkOptions) {
         jvmArgs '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED',
                 '--add-opens', 'java.base/java.io=ALL-UNNAMED',
                 '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.util=ALL-UNNAMED'
+                '--add-opens', 'java.base/java.util=ALL-UNNAMED',
+                '-Dpolyglot.engine.WarnInterpreterOnly=false'
     }
 }
 

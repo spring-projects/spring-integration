@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,20 @@
 
 package org.springframework.integration.scripting.jsr223;
 
-import java.util.Map;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.scripting.PolyglotScriptExecutor;
+import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -41,30 +47,26 @@ public class DeriveLanguageFromExtensionTests {
 	@Autowired
 	private ApplicationContext ctx;
 
-	@Test
-	public void testParseLanguage() {
-		String[] langs = {"ruby", "Groovy", "python", "kotlin"};
-		Class<?>[] executors = {
-				RubyScriptExecutor.class,
-				DefaultScriptExecutor.class,
-				PythonScriptExecutor.class,
-				DefaultScriptExecutor.class
-		};
+	@ParameterizedTest
+	@MethodSource("languageExecutorSource")
+	public void testParseLanguage(String language, Class<?> executorClass, ArgumentsAccessor argumentsAccessor) {
+		assertThat(this.ctx.getBeansOfType(ScriptExecutingMessageProcessor.class)).hasSize(5);
 
-		Map<String, ScriptExecutingMessageProcessor> scriptProcessors =
-				this.ctx.getBeansOfType(ScriptExecutingMessageProcessor.class);
-		assertThat(scriptProcessors.size()).isEqualTo(4);
+		var processor =
+				ctx.getBean(
+						"org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor#" +
+								(argumentsAccessor.getInvocationIndex() - 1),
+						ScriptExecutingMessageProcessor.class);
 
-		for (int i = 0; i < 4; i++) {
-			ScriptExecutingMessageProcessor processor = ctx.getBean(
-					"org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor#" + i,
-					ScriptExecutingMessageProcessor.class);
-
-			AbstractScriptExecutor executor =
-					TestUtils.getPropertyValue(processor, "scriptExecutor", AbstractScriptExecutor.class);
-			assertThat(executor.getScriptEngine().getFactory().getLanguageName()).isEqualTo(langs[i]);
-			assertThat(executor.getClass()).isEqualTo(executors[i]);
+		ScriptExecutor executor = TestUtils.getPropertyValue(processor, "scriptExecutor", ScriptExecutor.class);
+		if (executor instanceof PolyglotScriptExecutor) {
+			assertThat(TestUtils.getPropertyValue(executor, "language")).isEqualTo(language);
 		}
+		else {
+			AbstractScriptExecutor abstractScriptExecutor = (AbstractScriptExecutor) executor;
+			assertThat(abstractScriptExecutor.getScriptEngine().getFactory().getLanguageName()).isEqualTo(language);
+		}
+		assertThat(executor.getClass()).isEqualTo(executorClass);
 	}
 
 	@Test
@@ -83,6 +85,15 @@ public class DeriveLanguageFromExtensionTests {
 						new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-fail2-context.xml",
 								getClass()).close())
 				.withStackTraceContaining("Unable to determine language for script 'foo'");
+	}
+
+	private static Stream<Arguments> languageExecutorSource() {
+		return Stream.of(
+				Arguments.of("ruby", RubyScriptExecutor.class),
+				Arguments.of("Groovy", DefaultScriptExecutor.class),
+				Arguments.of("python", PolyglotScriptExecutor.class),
+				Arguments.of("kotlin", DefaultScriptExecutor.class),
+				Arguments.of("js", PolyglotScriptExecutor.class));
 	}
 
 }

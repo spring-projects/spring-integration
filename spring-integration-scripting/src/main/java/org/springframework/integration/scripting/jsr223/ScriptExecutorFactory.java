@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public final class ScriptExecutorFactory {
 
 	public static ScriptExecutor getScriptExecutor(String language) {
 		if (language.equalsIgnoreCase("python") || language.equalsIgnoreCase("jython")) {
-			return new PythonScriptExecutor();
+			return new PolyglotScriptExecutor("python");
 		}
 		else if (language.equalsIgnoreCase("ruby") || language.equalsIgnoreCase("jruby")) {
 			return new RubyScriptExecutor();
@@ -56,11 +56,16 @@ public final class ScriptExecutorFactory {
 		int index = scriptLocation.lastIndexOf('.') + 1;
 		Assert.state(index > 0, () -> "Unable to determine language for script '" + scriptLocation + "'");
 		String extension = scriptLocation.substring(index);
-		if (extension.equals("kts")) {
-			return "kotlin";
-		}
-		else if (extension.equals("js")) {
-			return "js";
+		switch (extension) {
+			case "kts" -> {
+				return "kotlin";
+			}
+			case "js" -> {
+				return "js";
+			}
+			case "py" -> {
+				return "python";
+			}
 		}
 		ScriptEngineManager engineManager = new ScriptEngineManager();
 		ScriptEngine engine = engineManager.getEngineByExtension(extension);
