@@ -72,7 +72,7 @@ public class ChainElementsFailureTests {
 			"transformer",
 			"router",
 			"splitter",
-			"resequencer",
+			"resequencer"
 	})
 	void inputChannelNotAllowed(String element) {
 		assertThatExceptionOfType(XmlBeanDefinitionStoreException.class)
