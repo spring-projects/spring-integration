@@ -19,6 +19,7 @@ spring.integration.endpoints.noAutoStartup= <7>
 spring.integration.channels.error.requireSubscribers=true <8>
 spring.integration.channels.error.ignoreFailures=true <9>
 spring.integration.endpoints.defaultTimeout=30000 <10>
+spring.integration.keepAlive=true <11>
 ----
 
 <1> When true, `input-channel` instances are automatically declared as `DirectChannel` instances when not explicitly found in the application context.
@@ -57,6 +58,11 @@ Since version 5.5.
 Default value is 30 seconds to avoid indefinite blocking.
 Can be configured to a negative value to restore infinite blocking behavior in endpoints.
 Since version 6.2.
+
+<11> Whether to start the `IntegrationKeepAlive`.
+Default is `true`, however depends on the beans in the application context.
+See xref:keep-alive.adoc[Keep Alive] for more information.
+Since version 6.4.
 ====
 
 These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath or an `IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME` bean for the `org.springframework.integration.context.IntegrationProperties` instance.
@@ -77,5 +83,6 @@ spring.integration.channels.maxBroadcastSubscribers=0x7fffffff
 spring.integration.readOnly.headers=
 spring.integration.messagingTemplate.throwExceptionOnLateReply=true
 spring.integration.endpoints.defaultTimeout=30000
+spring.integration.keepAlive=false
 ----
 

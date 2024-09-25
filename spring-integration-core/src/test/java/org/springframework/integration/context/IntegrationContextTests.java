@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.management.IntegrationKeepAlive;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
@@ -52,6 +53,9 @@ public class IntegrationContextTests {
 	@Autowired
 	private ThreadPoolTaskScheduler taskScheduler;
 
+	@Autowired
+	private IntegrationKeepAlive integrationKeepAlive;
+
 	@Test
 	public void testIntegrationContextComponents() {
 		assertThat(this.integrationProperties.isMessagingTemplateThrowExceptionOnLateReply()).isTrue();
@@ -62,6 +66,7 @@ public class IntegrationContextTests {
 		assertThat(this.serviceActivator.isRunning()).isFalse();
 		assertThat(this.serviceActivatorExplicit.isAutoStartup()).isTrue();
 		assertThat(this.serviceActivatorExplicit.isRunning()).isTrue();
+		assertThat(this.integrationKeepAlive.isRunning()).isTrue();
 	}
 
 }

@@ -100,7 +100,17 @@ public abstract class IntegrationContextUtils {
 
 	public static final String LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationListMessageHandlerMethodFactory";
 
+	/**
+	 * The bean name for the {@code org.springframework.integration.support.management.ControlBusCommandRegistry}.
+	 * @since 6.4
+	 */
 	public static final String CONTROL_BUS_COMMAND_REGISTRY_BEAN_NAME = "controlBusCommandRegistry";
+
+	/**
+	 * The bean name for the {@code org.springframework.integration.endpoint.management.IntegrationKeepAlive}.
+	 * @since 6.4
+	 */
+	public static final String INTEGRATION_KEEP_ALIVE_BEAN_NAME = "integrationKeepAlive";
 
 	/**
 	 * The default timeout for blocking operations like send and receive messages.

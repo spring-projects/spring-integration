@@ -44,6 +44,7 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
+import org.springframework.integration.endpoint.management.IntegrationKeepAlive;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.support.IntegrationMessageHandlerMethodFactory;
 import org.springframework.integration.json.JsonPathUtils;
@@ -129,6 +130,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 		registerListMessageHandlerMethodFactory();
 		registerIntegrationConfigurationReport();
 		registerControlBusCommandRegistry();
+		registerKeepAlive();
 	}
 
 	@Override
@@ -458,6 +460,17 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 				.addConstructorArgValue(listCapable)
 				.addPropertyReference("messageConverter",
 						IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
+	}
+
+	private void registerKeepAlive() {
+		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_KEEP_ALIVE_BEAN_NAME)) {
+			BeanDefinitionBuilder builder =
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationKeepAlive.class)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+			this.registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_KEEP_ALIVE_BEAN_NAME,
+					builder.getBeanDefinition());
+		}
 	}
 
 }
