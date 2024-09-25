@@ -296,10 +296,13 @@ They are mutually exclusive.
 Starting with version 6.0, the framework provides a `PolyglotScriptExecutor` which is based the https://www.graalvm.org/latest/reference-manual/languages/[GraalVM Polyglot API].
 The JSR223 engine implementation for JavaScript, removed from Java by itself, has been replaced by using this new script executor.
 See more information about enabling JavaScript support in GraalVM and what https://www.graalvm.org/latest/reference-manual/js/[configuration options] can be propagated via script variables.
+In particular, an `org.graalvm.polyglot:js` dependency has to be added to the target project to support JavaScript.
+
 
 Starting with version 6.4, the Python scripts support has been migrated to GraalVM Polyglot as well.
 Now these scripts can be written in Python 3.x and can use third-party libraries.
 See https://www.graalvm.org/latest/reference-manual/python/[GraalPy] documentation for more information.
+In particular, an `rg.graalvm.polyglot:python` dependency has to be added to the target project to support JavaScript.
 
 By default, the framework sets `allowAllAccess` to `true` on the shared Polyglot `Context` which enables this interaction with host JVM:
 
