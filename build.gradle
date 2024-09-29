@@ -59,7 +59,7 @@ ext {
     aspectjVersion = '1.9.22.1'
     assertjVersion = '3.25.3'
     assertkVersion = '0.28.1'
-    avroVersion = '1.11.3'
+    avroVersion = '1.11.4'
     awaitilityVersion = '4.2.2'
     camelVersion = '4.5.0'
     commonsDbcp2Version = '2.12.0'
