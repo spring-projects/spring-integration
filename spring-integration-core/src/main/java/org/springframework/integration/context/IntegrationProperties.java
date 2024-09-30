@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Utility class to encapsulate infrastructure Integration properties constants and their default values.
- * The default values can be overridden by the {@code META-INF/spring.integration.properties} with these entries
+ * The default values can be overridden by the {@code META-INF/spring.integration.properties} with this entries
  * (includes their default values):
  * <ul>
  *   <li> {@code spring.integration.channels.autoCreate=true}
@@ -38,7 +38,6 @@ import org.springframework.util.StringUtils;
  *   <li> {@code spring.integration.channels.error.requireSubscribers=true}
  *   <li> {@code spring.integration.channels.error.ignoreFailures=true}
  *   <li> {@code spring.integration.endpoints.defaultTimeout=30000}
- *   <li> {@code spring.integration.keepAlive=true}
  * </ul>
  *
  * @author Artem Bilan
@@ -118,12 +117,6 @@ public final class IntegrationProperties {
 	 */
 	public static final String ENDPOINTS_DEFAULT_TIMEOUT = INTEGRATION_PROPERTIES_PREFIX + "endpoints.defaultTimeout";
 
-	/**
-	 * Set to {@code false} to fully disable Keep-Alive thread.
-	 * @since 6.4
-	 */
-	public static final String KEEP_ALIVE = INTEGRATION_PROPERTIES_PREFIX + "keepAlive";
-
 	private static final Properties DEFAULTS;
 
 	private boolean channelsAutoCreate = true;
@@ -145,8 +138,6 @@ public final class IntegrationProperties {
 	private String[] noAutoStartupEndpoints = {};
 
 	private long endpointsDefaultTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
-
-	private boolean keepAlive = true;
 
 	private volatile Properties properties;
 
@@ -321,28 +312,9 @@ public final class IntegrationProperties {
 	/**
 	 * Configure a value for {@link #ENDPOINTS_DEFAULT_TIMEOUT} option.
 	 * @param endpointsDefaultTimeout the value for {@link #ENDPOINTS_DEFAULT_TIMEOUT} option.
-	 * @since 6.2
 	 */
 	public void setEndpointsDefaultTimeout(long endpointsDefaultTimeout) {
 		this.endpointsDefaultTimeout = endpointsDefaultTimeout;
-	}
-
-	/**
-	 * Return the value of {@link #KEEP_ALIVE} option.
-	 * @return the value of {@link #KEEP_ALIVE} option.
-	 * @since 6.4
-	 */
-	public boolean isKeepAlive() {
-		return this.keepAlive;
-	}
-
-	/**
-	 * Configure a value for {@link #KEEP_ALIVE} option.
-	 * Defaults {@code true} - set to {@code false} disable keep-alive thread.
-	 * @param keepAlive {@code false} to disable keep-alive thread.
-	 */
-	public void setKeepAlive(boolean keepAlive) {
-		this.keepAlive = keepAlive;
 	}
 
 	/**

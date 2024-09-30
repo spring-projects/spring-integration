@@ -27,10 +27,6 @@ The SpEL evaluation infrastructure now supports configuration for `IndexAccessor
 Also, an out-of-the-box `JsonIndexAccessor` is provided.
 See xref:spel.adoc[SpEL Support] for more information.
 
-The `IntegrationKeepAlive` component has been introduced.
-See xref:keep-alive.adoc[Integration Keep Alive] for more information.
-
-
 [[x6.4-general]]
 === General Changes
 
