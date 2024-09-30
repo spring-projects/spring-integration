@@ -38,6 +38,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.FluxAggregatorMessageHandler;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
+import org.springframework.integration.aggregator.MessageCountReleaseStrategy;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -47,6 +48,8 @@ import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.json.ObjectToJsonTransformer;
+import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -60,7 +63,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Artem Bilan
  * @author Gary Russell
- *
  * @since 5.0
  */
 @SpringJUnitConfig
@@ -318,6 +320,23 @@ public class CorrelationHandlerTests {
 					.trigger(barrierTriggerAction,
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.get();
+		}
+
+		@Bean
+		IntegrationFlow purgeOrphanedGroupsDoesNotFailStartupFlow() {
+			MessageGroupStore messageStore = new SimpleMessageStore();
+			// Add two messages that 'complete' the aggregation immediately on startup
+			messageStore.addMessagesToGroup("test", new GenericMessage<>("1"));
+			messageStore.addMessagesToGroup("test", new GenericMessage<>("2"));
+
+			return f -> f.aggregate((a) -> a
+							.messageStore(messageStore)
+							.id("purgeOrphanedGroups")
+							.expireTimeout(1) // Expire immediately
+							// The group above is actually 'complete' on startup
+							.releaseStrategy(new MessageCountReleaseStrategy(2)))
+					.channel("purgeOrphanedGroupsChannel")
+					.handle(message -> { }, e -> e.id("endOfFlowEndpoint"));
 		}
 
 	}

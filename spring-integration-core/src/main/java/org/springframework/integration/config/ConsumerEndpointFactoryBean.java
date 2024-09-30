@@ -416,17 +416,9 @@ public class ConsumerEndpointFactoryBean
 		if (this.autoStartup != null) {
 			this.endpoint.setAutoStartup(this.autoStartup);
 		}
-		int phaseToSet = this.phase;
-		if (!this.isPhaseSet) {
-			if (this.endpoint instanceof PollingConsumer) {
-				phaseToSet = Integer.MAX_VALUE / 2;
-			}
-			else {
-				phaseToSet = Integer.MIN_VALUE;
-			}
+		if (this.isPhaseSet) {
+			this.endpoint.setPhase(this.phase);
 		}
-
-		this.endpoint.setPhase(phaseToSet);
 	}
 
 

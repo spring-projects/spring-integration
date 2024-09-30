@@ -45,7 +45,12 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 		Assert.notNull(handler, "handler must not be null");
 		this.inputChannel = inputChannel;
 		this.handler = handler;
-		setPhase(Integer.MIN_VALUE);
+		if (this.handler instanceof MessageProducer) {
+			setPhase(Integer.MIN_VALUE + 1000);
+		}
+		else {
+			setPhase(Integer.MIN_VALUE);
+		}
 	}
 
 	@Override

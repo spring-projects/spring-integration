@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,8 +28,8 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -39,11 +38,10 @@ import static org.assertj.core.api.Assertions.fail;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
- *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class ServiceActivatorParserTests {
 
 	@Autowired
@@ -211,7 +209,7 @@ public class ServiceActivatorParserTests {
 
 	@Test
 	public void testConsumerEndpointFactoryBeanDefaultPhase() {
-		assertThat(this.testAliasEndpoint.getPhase()).isEqualTo(Integer.MIN_VALUE);
+		assertThat(this.testAliasEndpoint.getPhase()).isEqualTo(Integer.MIN_VALUE + 1000);
 	}
 
 	private Object sendAndReceive(MessageChannel channel, Object payload) {
