@@ -25,6 +25,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -97,6 +99,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig
 @DirtiesContext
 public class KafkaDslTests {
+
+	private static final Log log = LogFactory.getLog(KafkaDslTests.class);
 
 	static final String TEST_TOPIC1 = "test-topic1";
 
@@ -179,6 +183,7 @@ public class KafkaDslTests {
 		for (int i = 0; i < 100; i++) {
 			Message<?> receive = this.listeningFromKafkaResults1.receive(20000);
 			assertThat(receive).isNotNull();
+			log.warn("Received '%s' for index '%d'".formatted(receive, i));
 			assertThat(receive.getPayload()).isEqualTo("FOO");
 			MessageHeaders headers = receive.getHeaders();
 			assertThat(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue();
@@ -196,6 +201,7 @@ public class KafkaDslTests {
 		for (int i = 0; i < 100; i++) {
 			Message<?> receive = this.listeningFromKafkaResults2.receive(20000);
 			assertThat(receive).isNotNull();
+			log.warn("Received '%s' for index '%d'".formatted(receive, i));
 			assertThat(receive.getPayload()).isEqualTo("FOO");
 			MessageHeaders headers = receive.getHeaders();
 			assertThat(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue();
