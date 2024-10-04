@@ -8,7 +8,7 @@ However, the problem becomes more complex when an application is distributed and
 The locking in this case is challenging and requires some shared state and its specific approach to achieve the exclusivity requirement.
 
 Spring Integration provides a `LockRegistry` abstraction with an in-memory `DefaultLockRegistry` implementation based on the `ReentrantLock` API.
-The `obtain(Object)` method of the `LockRegistrty` requires a `lock key` for specific context.
+The `obtain(Object)` method of the `LockRegistry` requires a `lock key` for specific context.
 For example, an aggregator uses a `correlationKey` to lock operations around its group.
 This way different locks can be used concurrently.
 This `obtain(Object)` method returns a `java.util.concurrent.locks.Lock` instance (depending on the `LockRegistry` implementation), therefore the rest of the logic is the same as standard Java Concurrency algorithm.
@@ -27,7 +27,7 @@ registry.executeLocked("someLockKey", () -> someExclusiveResourceCall());
 The method rethrows an exception from the task call, throws an `InterruptedException` if `Lock` is interrupted.
 In addition, a variant with `Duration` throws a `java.util.concurrent.TimeoutException` when `lock.tryLock()` returns `false`.
 
-Spring Integration provides these `LockRegistrty` implementations for distributed locks:
+Spring Integration provides these `LockRegistry` implementations for distributed locks:
 
 * xref:hazelcast.adoc#hazelcast-lock-registry[Hazelcast]
 * xref:jdbc/lock-registry.adoc[JDBC]
