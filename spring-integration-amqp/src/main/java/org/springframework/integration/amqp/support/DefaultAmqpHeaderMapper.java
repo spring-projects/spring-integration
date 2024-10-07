@@ -38,7 +38,7 @@ import org.springframework.util.StringUtils;
 /**
  * Default implementation of {@link AmqpHeaderMapper}.
  * <p>
- * By default this implementation will only copy AMQP properties (e.g. contentType) to and from
+ * By default, this implementation will only copy AMQP properties (e.g. contentType) to and from
  * Spring Integration MessageHeaders. Any user-defined headers within the AMQP
  * MessageProperties will NOT be copied to or from an AMQP Message unless
  * explicitly identified via 'requestHeaderNames' and/or 'replyHeaderNames'
@@ -146,6 +146,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 					.acceptIfHasText(AmqpHeaders.RECEIVED_USER_ID,
 							amqpMessageProperties.getReceivedUserId(), headers::put);
 
+			headers.put(AmqpHeaders.RETRY_COUNT, amqpMessageProperties.getRetryCount());
+
 			for (String jsonHeader : JsonHeaders.HEADERS) {
 				Object value = amqpMessageProperties.getHeaders().get(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""));
 				if (value instanceof String && StringUtils.hasText((String) value)) {
@@ -205,6 +207,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 						amqpMessageProperties::setDeliveryTag)
 				.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.EXPIRATION, String.class),
 						amqpMessageProperties::setExpiration)
+				.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.RETRY_COUNT, Long.class),
+						amqpMessageProperties::setRetryCount)
 				.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.MESSAGE_COUNT, Integer.class),
 						amqpMessageProperties::setMessageCount);
 		String messageId = getHeaderIfAvailable(headers, AmqpHeaders.MESSAGE_ID, String.class);
