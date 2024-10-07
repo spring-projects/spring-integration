@@ -33,7 +33,6 @@ import org.reactivestreams.Publisher;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
@@ -386,7 +385,6 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			CompletableFuture<Object> replyFuture = new CompletableFuture<>();
 
 			reactiveReply
-					.publishOn(Schedulers.boundedElastic())
 					/*
 					The MonoToCompletableFuture in Project Reactor does not support context propagation,
 					 and it does not suppose to, since there is no guarantee how this Future is going to

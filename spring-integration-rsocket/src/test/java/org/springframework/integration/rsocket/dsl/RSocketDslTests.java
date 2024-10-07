@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
- *
  * @since 5.2
  */
 @SpringJUnitConfig
@@ -86,7 +86,9 @@ public class RSocketDslTests {
 		IntegrationFlow flow =
 				f -> f
 						.handle(RSockets.outboundGateway("/lowercase")
-								.clientRSocketConnector(this.clientRSocketConnector))
+										.clientRSocketConnector(this.clientRSocketConnector),
+								endpoint -> endpoint.customizeMonoReply((message, mono) ->
+										mono.publishOn(Schedulers.boundedElastic())))
 						.transform("{ firstResult: payload }")
 						.enrich(e -> e
 								.requestPayloadExpression("payload.firstResult")
