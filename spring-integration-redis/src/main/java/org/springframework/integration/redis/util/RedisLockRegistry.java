@@ -759,7 +759,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			long now = System.currentTimeMillis();
 			if (time == -1L) {
 				while (!obtainLock()) {
-					Thread.sleep(idleBetweenTries.toMillis()); //NOSONAR
+					Thread.sleep(RedisLockRegistry.this.idleBetweenTries.toMillis()); //NOSONAR
 				}
 				return true;
 			}
@@ -767,7 +767,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				long expire = now + TimeUnit.MILLISECONDS.convert(time, TimeUnit.MILLISECONDS);
 				boolean acquired;
 				while (!(acquired = obtainLock()) && System.currentTimeMillis() < expire) { //NOSONAR
-					Thread.sleep(idleBetweenTries.toMillis()); //NOSONAR
+					Thread.sleep(RedisLockRegistry.this.idleBetweenTries.toMillis()); //NOSONAR
 				}
 				return acquired;
 			}
