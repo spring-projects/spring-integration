@@ -764,7 +764,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("queues/%2f/si.test.queue?foo#bar")));
 
 		assertThat(restTemplate.actualUrl.get())
-				.isEqualTo("https://my.rabbitmq.com/api/queues/%2f/si.test.queue?foo#bar");
+				.isEqualTo("https://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar");
 	}
 
 	@Test
