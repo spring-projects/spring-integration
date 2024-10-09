@@ -17,6 +17,7 @@
 package org.springframework.integration.redis.util;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -87,6 +88,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Myeonghyeon Lee
  * @author Roman Zabaluev
  * @author Alex Peelman
+ * @author Oleksandr Ichanskyi
  *
  * @since 4.0
  *
@@ -99,7 +101,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private static final int DEFAULT_CAPACITY = 100_000;
 
+	private static final int DEFAULT_IDLE = 100;
+
 	private final Lock lock = new ReentrantLock();
+
+	private Duration idleBetweenTries = Duration.ofMillis(DEFAULT_IDLE);
 
 	private final Map<String, RedisLock> locks =
 			new LinkedHashMap<>(16, 0.75F, true) {
@@ -210,6 +216,16 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.cacheCapacity = cacheCapacity;
 	}
 
+	/**
+	 * Specify a @link Duration} to sleep between obtainLock attempts.
+	 * Defaults to 100 milliseconds.
+	 * @param idleBetweenTries the {@link Duration} to sleep between obtainLock attempts.
+	 * @since 6.2.10
+	 */
+	public void setIdleBetweenTries(Duration idleBetweenTries) {
+		Assert.notNull(idleBetweenTries, "'idleBetweenTries' must not be null");
+		this.idleBetweenTries = idleBetweenTries;
+	}
 
 	/**
 	 * Set {@link RedisLockType} mode to work in.
@@ -281,7 +297,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	public enum RedisLockType {
 
 		/**
-		 * The lock is acquired by periodically(100ms) checking whether the lock can be acquired.
+		 * The lock is acquired by periodically(idleBetweenTries property) checking whether the lock can be acquired.
 		 */
 		SPIN_LOCK,
 
@@ -744,7 +760,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			long now = System.currentTimeMillis();
 			if (time == -1L) {
 				while (!obtainLock()) {
-					Thread.sleep(100); //NOSONAR
+					Thread.sleep(RedisLockRegistry.this.idleBetweenTries.toMillis()); //NOSONAR
 				}
 				return true;
 			}
@@ -752,7 +768,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				long expire = now + TimeUnit.MILLISECONDS.convert(time, TimeUnit.MILLISECONDS);
 				boolean acquired;
 				while (!(acquired = obtainLock()) && System.currentTimeMillis() < expire) { //NOSONAR
-					Thread.sleep(100); //NOSONAR
+					Thread.sleep(RedisLockRegistry.this.idleBetweenTries.toMillis()); //NOSONAR
 				}
 				return acquired;
 			}
