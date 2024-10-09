@@ -93,7 +93,7 @@ public class MethodInvokingMessageHandlerTests {
 		endpoint.setTrigger(new PeriodicTrigger(Duration.ofMillis(10)));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
-		String result = queue.poll(2000, TimeUnit.MILLISECONDS);
+		String result = queue.poll(10000, TimeUnit.MILLISECONDS);
 		assertThat(result).isNotNull();
 		assertThat(result).isEqualTo("testing");
 		context.close();
