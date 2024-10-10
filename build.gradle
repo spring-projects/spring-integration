@@ -17,14 +17,14 @@ buildscript {
 plugins {
     id 'base'
     id 'io.spring.nohttp' version '0.0.11' apply false
-    id 'org.ajoberstar.grgit' version '5.2.2'
+    id 'org.ajoberstar.grgit' version '5.3.0'
     id 'io.spring.dependency-management' version '1.1.6'
     id 'org.jetbrains.dokka' version '1.9.20'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.github.spotbugs' version '6.0.24'
     id 'com.google.protobuf' version '0.9.4' apply false
-    id 'io.freefair.aggregate-javadoc' version '8.6'
+    id 'io.freefair.aggregate-javadoc' version '8.10.2'
 }
 
 if (isCI) {
@@ -54,7 +54,7 @@ ext {
                     }
     modifiedFiles.finalizeValueOnRead()
 
-    apacheSshdVersion = '2.13.2'
+    apacheSshdVersion = '2.14.0'
     artemisVersion = '2.37.0'
     aspectjVersion = '1.9.22.1'
     assertjVersion = '3.26.3'
@@ -63,16 +63,16 @@ ext {
     awaitilityVersion = '4.2.2'
     camelVersion = '4.8.0'
     commonsDbcp2Version = '2.12.0'
-    commonsIoVersion = '2.16.1'
+    commonsIoVersion = '2.17.0'
     commonsNetVersion = '3.11.1'
     curatorVersion = '5.7.0'
-    debeziumVersion = '2.7.3.Final'
+    debeziumVersion = '3.0.0.Final'
     derbyVersion = '10.16.1.1'
     ftpServerVersion = '1.2.0'
-    graalvmVersion = '24.0.2'
+    graalvmVersion = '24.1.0'
     greenmailVersion = '2.1.0'
     groovyVersion = '4.0.23'
-    hamcrestVersion = '2.2'
+    hamcrestVersion = '3.0'
     hazelcastVersion = '5.4.0'
     hibernateVersion = '6.6.1.Final'
     hsqldbVersion = '2.7.3'
@@ -89,13 +89,13 @@ ext {
     junitJupiterVersion = '5.11.2'
     kotlinCoroutinesVersion = '1.8.1'
     kryoVersion = '5.6.0'
-    lettuceVersion = '6.4.0.RELEASE'
+    lettuceVersion = '6.5.0.RC1'
     log4jVersion = '2.24.0'
     mailVersion = '2.0.3'
     micrometerTracingVersion = '1.4.0-SNAPSHOT'
     micrometerVersion = '1.14.0-SNAPSHOT'
-    mockitoVersion = '5.13.0'
-    mongoDriverVersion = '5.1.4'
+    mockitoVersion = '5.14.1'
+    mongoDriverVersion = '5.2.0'
     mysqlVersion = '9.0.0'
     oracleVersion = '23.5.0.24.07'
     pahoMqttClientVersion = '1.2.5'
@@ -380,7 +380,7 @@ configure(javaProjects) { subproject ->
 
     checkstyle {
         configDirectory.set(rootProject.file('src/checkstyle'))
-        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '10.12.5'
+        toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '10.18.2'
     }
 
     jar {
@@ -459,7 +459,6 @@ configure(javaProjects) { subproject ->
 project('spring-integration-test-support') {
     description = 'Spring Integration Test Support - **No SI Dependencies Allowed**'
     dependencies {
-        compileOnly 'org.apiguardian:apiguardian-api:1.0.0'
         api "org.hamcrest:hamcrest-library:$hamcrestVersion"
         api 'org.mockito:mockito-core'
         api "org.assertj:assertj-core:$assertjVersion"
