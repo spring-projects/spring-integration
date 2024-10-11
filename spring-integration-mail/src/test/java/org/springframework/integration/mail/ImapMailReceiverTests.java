@@ -109,6 +109,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Alexander Pinske
  * @author Dominik Simmen
+ * @author Filip Hrisafov
  */
 @SpringJUnitConfig
 @ContextConfiguration(

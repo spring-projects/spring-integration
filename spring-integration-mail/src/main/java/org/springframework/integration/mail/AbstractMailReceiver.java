@@ -68,6 +68,7 @@ import org.springframework.util.ObjectUtils;
  * @author Dominik Simmen
  * @author Yuxin Wang
  * @author Ngoc Nhan
+ * @author Filip Hrisafov
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean {
 
@@ -503,6 +504,12 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private void postProcessFilteredMessages(Message[] filteredMessages) throws MessagingException {
+		// It is more intuitive use a local variable Message[] messages = filteredMessages;
+		// and then call setMessageFlagsAndMaybeDeleteMessages(messages); after the if, i.e. remove the else.
+		// However, in setMessageFlagsAndMaybeDeleteMessages we are calling Message#setFlag and Message#setFlags
+		// which have different implementations in different implementations of Message.
+		// e.g. IMAPMessage has a different implementation of those two methods.
+
 		// Copy messages to cause an eager fetch
 		if (this.headerMapper == null && (this.autoCloseFolder || this.simpleContent)) {
 			Message[] originalMessages = new Message[filteredMessages.length];
