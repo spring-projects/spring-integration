@@ -68,6 +68,7 @@ import org.springframework.util.ObjectUtils;
  * @author Dominik Simmen
  * @author Yuxin Wang
  * @author Ngoc Nhan
+ * @author Filip Hrisafov
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean {
 
@@ -503,17 +504,26 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private void postProcessFilteredMessages(Message[] filteredMessages) throws MessagingException {
-		setMessageFlags(filteredMessages);
-
-		if (shouldDeleteMessages()) {
-			deleteMessages(filteredMessages);
-		}
 		// Copy messages to cause an eager fetch
+		Message[] messages = filteredMessages;
 		if (this.headerMapper == null && (this.autoCloseFolder || this.simpleContent)) {
+			messages = new Message[filteredMessages.length];
 			for (int i = 0; i < filteredMessages.length; i++) {
-				MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) filteredMessages[i]);
+				Message originalMessage = filteredMessages[i];
+				messages[i] = originalMessage;
+				MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) originalMessage);
 				filteredMessages[i] = mimeMessage;
 			}
+		}
+
+		setMessageFlagsAndMaybeDeleteMessages(messages);
+	}
+
+	private void setMessageFlagsAndMaybeDeleteMessages(Message[] messages) throws MessagingException {
+		setMessageFlags(messages);
+
+		if (shouldDeleteMessages()) {
+			deleteMessages(messages);
 		}
 	}
 

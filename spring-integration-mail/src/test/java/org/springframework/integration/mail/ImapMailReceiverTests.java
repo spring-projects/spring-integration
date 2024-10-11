@@ -17,6 +17,7 @@
 package org.springframework.integration.mail;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Handler;
@@ -88,6 +90,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MimeTypeUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -107,6 +110,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Alexander Pinske
  * @author Dominik Simmen
+ * @author Filip Hrisafov
  */
 @SpringJUnitConfig
 @ContextConfiguration(
@@ -299,6 +303,11 @@ public class ImapMailReceiverTests {
 
 	private AbstractMailReceiver receiveAndMarkAsReadDontDeleteGuts(AbstractMailReceiver receiver, Message msg1,
 			Message msg2) throws NoSuchFieldException, IllegalAccessException, MessagingException {
+		return receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2, true);
+	}
+
+	private AbstractMailReceiver receiveAndMarkAsReadDontDeleteGuts(AbstractMailReceiver receiver, Message msg1,
+			Message msg2, boolean receive) throws NoSuchFieldException, IllegalAccessException, MessagingException {
 
 		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(true);
 		receiver = spy(receiver);
@@ -326,7 +335,9 @@ public class ImapMailReceiverTests {
 		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
 		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
-		receiver.receive();
+		if (receive) {
+			receiver.receive();
+		}
 		return receiver;
 	}
 
@@ -980,6 +991,31 @@ public class ImapMailReceiverTests {
 		mailReceiver.setBeanFactory(bf);
 	}
 
+	@Test
+	public void receiveAndMarkAsReadDontDeleteWithThrowingWhenCopying() throws Exception {
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		MimeMessage msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
+		MimeMessage greenMailMsg2 = GreenMailUtil.newMimeMessage("test2");
+		TestThrowingMimeMessage msg2 = new TestThrowingMimeMessage(greenMailMsg2);
+		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2, false);
+		assertThatThrownBy(receiver::receive)
+				.isInstanceOf(MessagingException.class)
+				.hasMessage("IOException while copying message")
+				.cause()
+				.isInstanceOf(IOException.class)
+				.hasMessage("Simulated exception");
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isFalse();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
+		verify(msg1, times(0)).setFlags(Mockito.any(), Mockito.anyBoolean());
+
+		receiver.receive();
+		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
+		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
+		// msg2 is marked with the user and seen flags
+		verify(msg1, times(2)).setFlags(Mockito.any(), Mockito.anyBoolean());
+		verify(receiver, times(0)).deleteMessages(Mockito.any());
+	}
+
 	private static class ImapSearchLoggingHandler extends Handler {
 
 		private final List<String> searches = new ArrayList<>();
@@ -1013,6 +1049,23 @@ public class ImapMailReceiverTests {
 		public void close() throws SecurityException {
 		}
 
+	}
+
+	private static class TestThrowingMimeMessage extends MimeMessage {
+
+		protected final AtomicBoolean throwExceptionBeforeWrite = new AtomicBoolean(true);
+
+		private TestThrowingMimeMessage(MimeMessage source) throws MessagingException {
+			super(source);
+		}
+
+		@Override
+		public void writeTo(OutputStream os) throws IOException, MessagingException {
+			if (this.throwExceptionBeforeWrite.getAndSet(false)) {
+				throw new IOException("Simulated exception");
+			}
+			super.writeTo(os);
+		}
 	}
 
 }
