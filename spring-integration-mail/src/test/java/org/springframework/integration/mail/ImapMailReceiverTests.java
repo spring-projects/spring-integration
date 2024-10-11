@@ -1005,10 +1005,12 @@ public class ImapMailReceiverTests {
 				.hasMessage("Simulated exception");
 		assertThat(msg1.getFlags().contains(Flag.SEEN)).isFalse();
 		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
+		assertThat(msg2.getMyTestFlags().contains(Flag.SEEN)).isFalse();
 
 		receiver.receive();
 		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
 		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
+		assertThat(msg2.getMyTestFlags().contains(Flag.SEEN)).isTrue();
 		verify(receiver, times(0)).deleteMessages(Mockito.any());
 	}
 
@@ -1051,6 +1053,8 @@ public class ImapMailReceiverTests {
 
 		protected final AtomicInteger exceptionsBeforeWrite;
 
+		protected final Flags myTestFlags = new Flags();
+
 		private TestThrowingMimeMessage(MimeMessage source, int exceptionsBeforeWrite) throws MessagingException {
 			super(source);
 			this.exceptionsBeforeWrite = new AtomicInteger(exceptionsBeforeWrite);
@@ -1062,6 +1066,21 @@ public class ImapMailReceiverTests {
 				throw new IOException("Simulated exception");
 			}
 			super.writeTo(os);
+		}
+
+		@Override
+		public synchronized void setFlags(Flags flag, boolean set) throws MessagingException {
+			super.setFlags(flag, set);
+			if (set) {
+				myTestFlags.add(flag);
+			}
+			else {
+				myTestFlags.remove(flag);
+			}
+		}
+
+		private Flags getMyTestFlags() {
+			return myTestFlags;
 		}
 	}
 

@@ -504,26 +504,19 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private void postProcessFilteredMessages(Message[] filteredMessages) throws MessagingException {
-		// It is more intuitive use a local variable Message[] messages = filteredMessages;
-		// and then call setMessageFlagsAndMaybeDeleteMessages(messages); after the if, i.e. remove the else.
-		// However, in setMessageFlagsAndMaybeDeleteMessages we are calling Message#setFlag and Message#setFlags
-		// which have different implementations in different implementations of Message.
-		// e.g. IMAPMessage has a different implementation of those two methods.
-
 		// Copy messages to cause an eager fetch
+		Message[] messages = filteredMessages;
 		if (this.headerMapper == null && (this.autoCloseFolder || this.simpleContent)) {
-			Message[] originalMessages = new Message[filteredMessages.length];
+			messages = new Message[filteredMessages.length];
 			for (int i = 0; i < filteredMessages.length; i++) {
 				Message originalMessage = filteredMessages[i];
-				originalMessages[i] = originalMessage;
+				messages[i] = originalMessage;
 				MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) originalMessage);
 				filteredMessages[i] = mimeMessage;
 			}
-			setMessageFlagsAndMaybeDeleteMessages(originalMessages);
 		}
-		else {
-			setMessageFlagsAndMaybeDeleteMessages(filteredMessages);
-		}
+
+		setMessageFlagsAndMaybeDeleteMessages(messages);
 	}
 
 	private void setMessageFlagsAndMaybeDeleteMessages(Message[] messages) throws MessagingException {
