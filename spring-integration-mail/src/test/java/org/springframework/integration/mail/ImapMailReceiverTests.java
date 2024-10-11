@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Handler;
@@ -995,7 +996,7 @@ public class ImapMailReceiverTests {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		MimeMessage msg1 = GreenMailUtil.newMimeMessage("test1");
 		MimeMessage greenMailMsg2 = GreenMailUtil.newMimeMessage("test2");
-		TestThrowingMimeMessage msg2 = new TestThrowingMimeMessage(greenMailMsg2, 1);
+		TestThrowingMimeMessage msg2 = new TestThrowingMimeMessage(greenMailMsg2);
 		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2, false);
 		assertThatThrownBy(receiver::receive)
 				.isInstanceOf(MessagingException.class)
@@ -1051,18 +1052,17 @@ public class ImapMailReceiverTests {
 
 	private static class TestThrowingMimeMessage extends MimeMessage {
 
-		protected final AtomicInteger exceptionsBeforeWrite;
+		protected final AtomicBoolean throwExceptionBeforeWrite = new AtomicBoolean(true);
 
 		protected final Flags myTestFlags = new Flags();
 
-		private TestThrowingMimeMessage(MimeMessage source, int exceptionsBeforeWrite) throws MessagingException {
+		private TestThrowingMimeMessage(MimeMessage source) throws MessagingException {
 			super(source);
-			this.exceptionsBeforeWrite = new AtomicInteger(exceptionsBeforeWrite);
 		}
 
 		@Override
 		public void writeTo(OutputStream os) throws IOException, MessagingException {
-			if (this.exceptionsBeforeWrite.decrementAndGet() >= 0) {
+			if (this.throwExceptionBeforeWrite.getAndSet(false)) {
 				throw new IOException("Simulated exception");
 			}
 			super.writeTo(os);
