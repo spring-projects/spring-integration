@@ -503,17 +503,27 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private void postProcessFilteredMessages(Message[] filteredMessages) throws MessagingException {
-		setMessageFlags(filteredMessages);
-
-		if (shouldDeleteMessages()) {
-			deleteMessages(filteredMessages);
-		}
 		// Copy messages to cause an eager fetch
 		if (this.headerMapper == null && (this.autoCloseFolder || this.simpleContent)) {
+			Message[] originalMessages = new Message[filteredMessages.length];
 			for (int i = 0; i < filteredMessages.length; i++) {
-				MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) filteredMessages[i]);
+				Message originalMessage = filteredMessages[i];
+				originalMessages[i] = originalMessage;
+				MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) originalMessage);
 				filteredMessages[i] = mimeMessage;
 			}
+			setMessageFlagsAndMaybeDeleteMessages(originalMessages);
+		}
+		else {
+			setMessageFlagsAndMaybeDeleteMessages(filteredMessages);
+		}
+	}
+
+	private void setMessageFlagsAndMaybeDeleteMessages(Message[] messages) throws MessagingException {
+		setMessageFlags(messages);
+
+		if (shouldDeleteMessages()) {
+			deleteMessages(messages);
 		}
 	}
 
