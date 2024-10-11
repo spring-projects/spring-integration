@@ -994,7 +994,7 @@ public class ImapMailReceiverTests {
 	@Test
 	public void receiveAndMarkAsReadDontDeleteWithThrowingWhenCopying() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
-		MimeMessage msg1 = GreenMailUtil.newMimeMessage("test1");
+		MimeMessage msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		MimeMessage greenMailMsg2 = GreenMailUtil.newMimeMessage("test2");
 		TestThrowingMimeMessage msg2 = new TestThrowingMimeMessage(greenMailMsg2);
 		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2, false);
@@ -1006,12 +1006,13 @@ public class ImapMailReceiverTests {
 				.hasMessage("Simulated exception");
 		assertThat(msg1.getFlags().contains(Flag.SEEN)).isFalse();
 		assertThat(msg2.getFlags().contains(Flag.SEEN)).isFalse();
-		assertThat(msg2.getMyTestFlags().contains(Flag.SEEN)).isFalse();
+		verify(msg1, times(0)).setFlags(Mockito.any(), Mockito.anyBoolean());
 
 		receiver.receive();
 		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
 		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
-		assertThat(msg2.getMyTestFlags().contains(Flag.SEEN)).isTrue();
+		// msg2 is marked with the user and seen flags
+		verify(msg1, times(2)).setFlags(Mockito.any(), Mockito.anyBoolean());
 		verify(receiver, times(0)).deleteMessages(Mockito.any());
 	}
 
@@ -1054,8 +1055,6 @@ public class ImapMailReceiverTests {
 
 		protected final AtomicBoolean throwExceptionBeforeWrite = new AtomicBoolean(true);
 
-		protected final Flags myTestFlags = new Flags();
-
 		private TestThrowingMimeMessage(MimeMessage source) throws MessagingException {
 			super(source);
 		}
@@ -1066,21 +1065,6 @@ public class ImapMailReceiverTests {
 				throw new IOException("Simulated exception");
 			}
 			super.writeTo(os);
-		}
-
-		@Override
-		public synchronized void setFlags(Flags flag, boolean set) throws MessagingException {
-			super.setFlags(flag, set);
-			if (set) {
-				myTestFlags.add(flag);
-			}
-			else {
-				myTestFlags.remove(flag);
-			}
-		}
-
-		private Flags getMyTestFlags() {
-			return myTestFlags;
 		}
 	}
 
