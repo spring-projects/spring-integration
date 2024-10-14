@@ -121,17 +121,17 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.value;
  */
 class KafkaProducerMessageHandlerTests {
 
-	private static String topic1 = "testTopic1out";
+	private static final String topic1 = "testTopic1out";
 
-	private static String topic2 = "testTopic2out";
+	private static final String topic2 = "testTopic2out";
 
-	private static String topic3 = "testTopic3out";
+	private static final String topic3 = "testTopic3out";
 
-	private static String topic4 = "testTopic4out";
+	private static final String topic4 = "testTopic4out";
 
-	private static String topic5 = "testTopic5out";
+	private static final String topic5 = "testTopic5out";
 
-	private static String topic6 = "testTopic6in";
+	private static final String topic6 = "testTopic6in";
 
 	private static EmbeddedKafkaBroker embeddedKafka;
 
@@ -466,31 +466,6 @@ class KafkaProducerMessageHandlerTests {
 		assertThat(reply.getPayload()).isEqualTo("FOO");
 		assertThat(reply.getHeaders().get(KafkaHeaders.TOPIC)).isNull();
 		assertThat(reply.getHeaders().get(KafkaHeaders.CORRELATION_ID)).isNull();
-
-		final Message<?> messageToHandle1 = MessageBuilder.withPayload("foo")
-				.setHeader(KafkaHeaders.TOPIC, topic5)
-				.setHeader(KafkaHeaders.KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION, 1)
-				.setHeader(KafkaHeaders.REPLY_TOPIC, "bad")
-				.build();
-
-		assertThatExceptionOfType(MessageHandlingException.class)
-				.isThrownBy(() -> handler.handleMessage(messageToHandle1))
-				.withStackTraceContaining("The reply topic header [bad] does not match any reply container topic: "
-						+ "[" + topic6 + "]");
-
-		final Message<?> messageToHandle2 = MessageBuilder.withPayload("foo")
-				.setHeader(KafkaHeaders.TOPIC, topic5)
-				.setHeader(KafkaHeaders.KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION, 1)
-				.setHeader(KafkaHeaders.REPLY_PARTITION, 999)
-				.build();
-
-		assertThatExceptionOfType(MessageHandlingException.class)
-				.isThrownBy(() -> handler.handleMessage(messageToHandle2))
-				.withStackTraceContaining("The reply partition header [999] " +
-						"does not match any reply container partition for topic ["
-						+ topic6 + "]: [0, 1]");
 
 		template.stop();
 		// discard from the test consumer

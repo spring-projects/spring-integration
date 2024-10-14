@@ -786,7 +786,9 @@ project('spring-integration-kafka') {
     dependencies {
         api 'org.springframework.kafka:spring-kafka'
 
-        testImplementation 'org.springframework.kafka:spring-kafka-test'
+        testImplementation ('org.springframework.kafka:spring-kafka-test') {
+            exclude group: 'ch.qos.logback'
+        }
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     }
 }

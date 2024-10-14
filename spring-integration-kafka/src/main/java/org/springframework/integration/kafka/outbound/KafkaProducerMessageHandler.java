@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,9 @@ package org.springframework.integration.kafka.outbound;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -33,9 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 
 import org.springframework.expression.EvaluationContext;
@@ -423,8 +419,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	}
 
 	/**
-	 * Set the time to wait for partition assignment, when used as a gateway, to determine
-	 * the default reply-to topic/partition.
+	 * Set the time to wait for partition assignment, when used as a gateway.
 	 * @param assignmentDuration the assignmentDuration to set.
 	 * @since 6.0
 	 */
@@ -500,8 +495,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		final ProducerRecord<K, V> producerRecord;
 		boolean flush =
 				Boolean.TRUE.equals(this.flushExpression.getValue(this.evaluationContext, message, Boolean.class));
-		boolean preBuilt = message.getPayload() instanceof ProducerRecord;
-		if (preBuilt) {
+		if (message.getPayload() instanceof ProducerRecord) {
 			producerRecord = (ProducerRecord<K, V>) message.getPayload();
 		}
 		else {
@@ -517,11 +511,11 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		CompletableFuture<SendResult<K, V>> sendFuture;
 		RequestReplyFuture<K, V, Object> gatewayFuture = null;
 		try {
-			if (this.isGateway
-					&& (!preBuilt || producerRecord.headers().lastHeader(KafkaHeaders.REPLY_TOPIC) == null)) {
-				producerRecord.headers().add(new RecordHeader(KafkaHeaders.REPLY_TOPIC, getReplyTopic(message)));
-				gatewayFuture = ((ReplyingKafkaTemplate<K, V, Object>) this.kafkaTemplate)
-						.sendAndReceive(producerRecord);
+			if (this.isGateway) {
+				waitForAssignment();
+				addReplyTopicIfAny(message.getHeaders(), producerRecord.headers());
+				gatewayFuture =
+						((ReplyingKafkaTemplate<K, V, Object>) this.kafkaTemplate).sendAndReceive(producerRecord);
 				sendFuture = gatewayFuture.getSendFuture();
 			}
 			else {
@@ -552,24 +546,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			throw new MessageHandlingException(message, e.getCause()); // NOSONAR
 		}
 		return processReplyFuture(gatewayFuture);
-	}
-
-	private void sendFutureIfRequested(CompletableFuture<SendResult<K, V>> sendFuture, Object futureToken) {
-
-		if (futureToken != null) {
-			MessageChannel futures = getFuturesChannel();
-			if (futures != null) {
-				try {
-					futures.send(getMessageBuilderFactory()
-							.withPayload(sendFuture)
-							.setHeader(KafkaIntegrationHeaders.FUTURE_TOKEN, futureToken)
-							.build());
-				}
-				catch (Exception e) {
-					this.logger.error(e, "Failed to send sendFuture");
-				}
-			}
-		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -604,76 +580,16 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			payload = null;
 		}
 
-		Headers headers = null;
+		Headers headers = new RecordHeaders();
 		if (this.headerMapper != null) {
-			headers = new RecordHeaders();
 			this.headerMapper.fromHeaders(messageHeaders, headers);
 		}
+
 		return this.producerRecordCreator.create(message, topic, partitionId, timestamp, (K) messageKey, payload,
 				headers);
 	}
 
-	private byte[] getReplyTopic(Message<?> message) { // NOSONAR
-		if (this.replyTopicsAndPartitions.isEmpty()) {
-			determineValidReplyTopicsAndPartitions();
-		}
-		Object replyHeader = message.getHeaders().get(KafkaHeaders.REPLY_TOPIC);
-		byte[] replyTopic = null;
-		String topicToCheck = null;
-		if (replyHeader instanceof String) {
-			replyTopic = ((String) replyHeader).getBytes(StandardCharsets.UTF_8);
-			topicToCheck = (String) replyHeader;
-		}
-		else if (replyHeader instanceof byte[]) {
-			replyTopic = (byte[]) replyHeader;
-		}
-		else if (replyHeader != null) {
-			throw new IllegalStateException(KafkaHeaders.REPLY_TOPIC + " must be String or byte[]");
-		}
-		if (replyTopic == null) {
-			if (this.replyTopicsAndPartitions.size() == 1) {
-				replyTopic = getSingleReplyTopic();
-			}
-			else {
-				throw new IllegalStateException("No reply topic header and no default reply topic can be determined; "
-						+ "container's assigned partitions: " + this.replyTopicsAndPartitions);
-			}
-		}
-		else {
-			if (topicToCheck == null) {
-				topicToCheck = new String(replyTopic, StandardCharsets.UTF_8);
-			}
-			if (!this.replyTopicsAndPartitions.containsKey(topicToCheck)) {
-				throw new IllegalStateException("The reply topic header ["
-						+ topicToCheck +
-						"] does not match any reply container topic: " + this.replyTopicsAndPartitions.keySet());
-			}
-		}
-		Integer replyPartition = message.getHeaders().get(KafkaHeaders.REPLY_PARTITION, Integer.class);
-		if (replyPartition != null) {
-			if (topicToCheck == null) {
-				topicToCheck = new String(replyTopic, StandardCharsets.UTF_8);
-			}
-			if (!this.replyTopicsAndPartitions.get(topicToCheck).contains(replyPartition)) {
-				throw new IllegalStateException("The reply partition header ["
-						+ replyPartition + "] does not match any reply container partition for topic ["
-						+ topicToCheck + "]: " + this.replyTopicsAndPartitions.get(topicToCheck));
-			}
-		}
-		return replyTopic;
-	}
-
-	private byte[] getSingleReplyTopic() {
-		if (this.singleReplyTopic == null) {
-			this.singleReplyTopic = this.replyTopicsAndPartitions.keySet()
-					.iterator()
-					.next()
-					.getBytes(StandardCharsets.UTF_8);
-		}
-		return this.singleReplyTopic;
-	}
-
-	private void determineValidReplyTopicsAndPartitions() {
+	private void waitForAssignment() {
 		ReplyingKafkaTemplate<?, ?, ?> rkt = (ReplyingKafkaTemplate<?, ?, ?>) this.kafkaTemplate;
 		try {
 			rkt.waitForAssignment(this.assignmentDuration);
@@ -681,14 +597,39 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
-		Collection<TopicPartition> replyTopics = rkt.getAssignedReplyTopicPartitions();
-		Map<String, Set<Integer>> topicsAndPartitions = new HashMap<>();
-		if (replyTopics != null) {
-			replyTopics.forEach(tp -> {
-				topicsAndPartitions.computeIfAbsent(tp.topic(), (k) -> new TreeSet<>());
-				topicsAndPartitions.get(tp.topic()).add(tp.partition());
-			});
-			this.replyTopicsAndPartitions.putAll(topicsAndPartitions);
+	}
+
+	@Nullable
+	private void addReplyTopicIfAny(MessageHeaders messageHeaders, Headers headers) {
+		if (this.isGateway) {
+			Object replyHeader = messageHeaders.get(KafkaHeaders.REPLY_TOPIC);
+			if (replyHeader instanceof String topicString) {
+				headers.add(KafkaHeaders.REPLY_TOPIC, topicString.getBytes(StandardCharsets.UTF_8));
+			}
+			else if (replyHeader instanceof byte[] topicBytes) {
+				headers.add(KafkaHeaders.REPLY_TOPIC, topicBytes);
+			}
+			else if (replyHeader != null) {
+				throw new IllegalStateException(KafkaHeaders.REPLY_TOPIC + " must be String or byte[]");
+			}
+		}
+	}
+
+	private void sendFutureIfRequested(CompletableFuture<SendResult<K, V>> sendFuture, Object futureToken) {
+
+		if (futureToken != null) {
+			MessageChannel futures = getFuturesChannel();
+			if (futures != null) {
+				try {
+					futures.send(getMessageBuilderFactory()
+							.withPayload(sendFuture)
+							.setHeader(KafkaIntegrationHeaders.FUTURE_TOKEN, futureToken)
+							.build());
+				}
+				catch (Exception e) {
+					this.logger.error(e, "Failed to send sendFuture");
+				}
+			}
 		}
 	}
 
@@ -804,7 +745,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 * @param <K> the key type.
 	 * @param <V> the value type.
 	 *
-	 * @since 3.2.1
+	 * @since 5.4
 	 *
 	 */
 	@FunctionalInterface
