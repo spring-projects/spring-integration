@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	/**
 	 * Configure a {@link TaskScheduler} for scheduling tasks, for example in the
-	 * Polling Consumer. By default the global {@code ThreadPoolTaskScheduler} bean is used.
+	 * Polling Consumer. By default, the global {@code ThreadPoolTaskScheduler} bean is used.
 	 * This configuration is useful when there are requirements to dedicate particular threads
 	 * for polling task, for example.
 	 * @param taskScheduler the {@link TaskScheduler} to use.
@@ -144,7 +144,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	/**
 	 * Configure a list of {@link MethodInterceptor} objects to be applied, in nested order, to the
 	 * endpoint's handler. The advice objects are applied to the {@code handleMessage()} method
-	 * and therefore to the whole sub-flow afterwards.
+	 * and therefore to the whole sub-flow afterward.
 	 * @param interceptors the advice chain.
 	 * @return the endpoint spec.
 	 * @since 5.3

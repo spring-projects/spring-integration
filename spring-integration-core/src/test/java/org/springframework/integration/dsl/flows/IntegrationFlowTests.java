@@ -81,6 +81,7 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.PayloadSerializingTransformer;
 import org.springframework.integration.util.NoBeansOverrideAnnotationConfigContextLoader;
 import org.springframework.messaging.Message;
@@ -94,6 +95,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
@@ -187,10 +189,15 @@ public class IntegrationFlowTests {
 	@Autowired
 	AbstractEndpoint stringSupplierEndpoint;
 
+	@Autowired
+	TaskScheduler customScheduler;
+
 	@Test
 	public void testWithSupplierMessageSourceImpliedPoller() {
 		assertThat(this.stringSupplierEndpoint.isAutoStartup()).isFalse();
 		assertThat(this.stringSupplierEndpoint.isRunning()).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.stringSupplierEndpoint, "taskScheduler"))
+				.isSameAs(this.customScheduler);
 		this.stringSupplierEndpoint.start();
 		assertThat(this.suppliedChannel.receive(10000).getPayload()).isEqualTo("FOO");
 	}
@@ -569,8 +576,14 @@ public class IntegrationFlowTests {
 		}
 
 		@Bean
-		public IntegrationFlow supplierFlow() {
-			return IntegrationFlow.fromSupplier(stringSupplier(), c -> c.id("stringSupplierEndpoint"))
+		public TaskScheduler customScheduler() {
+			return new SimpleAsyncTaskScheduler();
+		}
+
+		@Bean
+		public IntegrationFlow supplierFlow(TaskScheduler customScheduler) {
+			return IntegrationFlow.fromSupplier(stringSupplier(),
+							c -> c.id("stringSupplierEndpoint").taskScheduler(customScheduler))
 					.transform(toUpperCaseFunction())
 					.channel("suppliedChannel")
 					.get();

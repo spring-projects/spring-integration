@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.springframework.integration.config.SourcePollingChannelAdapterFactory
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.lang.Nullable;
+import org.springframework.scheduling.TaskScheduler;
 
 /**
  * @author Artem Bilan
@@ -57,6 +58,17 @@ public class SourcePollingChannelAdapterSpec extends
 	@Override
 	public SourcePollingChannelAdapterSpec role(String role) {
 		this.endpointFactoryBean.setRole(role);
+		return this;
+	}
+
+	/**
+	 * Set a {@link TaskScheduler} for polling tasks.
+	 * @param taskScheduler the {@link TaskScheduler} for polling tasks.
+	 * @return the spec
+	 * @since 6.4
+	 */
+	public SourcePollingChannelAdapterSpec taskScheduler(TaskScheduler taskScheduler) {
+		this.endpointFactoryBean.setTaskScheduler(taskScheduler);
 		return this;
 	}
 

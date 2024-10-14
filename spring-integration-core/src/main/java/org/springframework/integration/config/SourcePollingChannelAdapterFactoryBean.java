@@ -34,6 +34,7 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -75,6 +76,8 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	private String role;
 
+	private TaskScheduler taskScheduler;
+
 	private volatile SourcePollingChannelAdapter adapter;
 
 	private volatile boolean initialized;
@@ -109,6 +112,15 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	public void setRole(String role) {
 		this.role = role;
+	}
+
+	/**
+	 * Set a {@link TaskScheduler} for polling tasks.
+	 * @param taskScheduler the {@link TaskScheduler} for polling tasks.
+	 * @since 6.4
+	 */
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		this.taskScheduler = taskScheduler;
 	}
 
 	/**
@@ -208,6 +220,9 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			spca.setBeanName(this.beanName);
 			spca.setBeanFactory(this.beanFactory);
 			spca.setTransactionSynchronizationFactory(this.pollerMetadata.getTransactionSynchronizationFactory());
+			if (this.taskScheduler != null) {
+				spca.setTaskScheduler(this.taskScheduler);
+			}
 			spca.afterPropertiesSet();
 			this.adapter = spca;
 			this.initialized = true;
