@@ -233,14 +233,14 @@ public class SocketSupportTests {
 	What is the name of your organizational unit?
 	  [Unknown]:  Spring
 	What is the name of your organization?
-	  [Unknown]:  Pivotal Software Inc.
+	  [Unknown]:  Broadcom Inc.
 	What is the name of your City or Locality?
 	  [Unknown]:  San Francisco
 	What is the name of your State or Province?
 	  [Unknown]:  CA
 	What is the two-letter country code for this unit?
 	  [Unknown]:  US
-	Is CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US correct?
+	Is CN=Spring Integration, OU=Spring, O=Broadcom Inc., L=San Francisco, ST=CA, C=US correct?
 	  [no]:  yes
 
 	Enter key password for <sitestcertkey>
@@ -259,8 +259,8 @@ public class SocketSupportTests {
 	Entry type: PrivateKeyEntry
 	Certificate chain length: 1
 	Certificate[1]:
-	Owner: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
-	Issuer: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
+	Owner: CN=Spring Integration, OU=Spring, O=Broadcom Inc., L=San Francisco, ST=CA, C=US
+	Issuer: CN=Spring Integration, OU=Spring, O=Broadcom Inc., L=San Francisco, ST=CA, C=US
 	Serial number: 3f2ab6ef
 	Valid from: Wed Aug 29 14:58:27 EDT 2018 until: Fri Aug 05 14:58:27 EDT 2118
 	Certificate fingerprints:
@@ -300,8 +300,8 @@ public class SocketSupportTests {
 	.truststore.ks
 	Enter keystore password: secret
 	Re-enter new password: secret
-	Owner: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
-	Issuer: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
+	Owner: CN=Spring Integration, OU=Spring, O=Broadcom Inc., L=San Francisco, ST=CA, C=US
+	Issuer: CN=Spring Integration, OU=Spring, O=Broadcom Inc., L=San Francisco, ST=CA, C=US
 	Serial number: 3f2ab6ef
 	Valid from: Wed Aug 29 14:58:27 EDT 2018 until: Fri Aug 05 14:58:27 EDT 2118
 	Certificate fingerprints:
@@ -342,8 +342,8 @@ public class SocketSupportTests {
 	Creation date: Aug 29, 2018
 	Entry type: trustedCertEntry
 
-	Owner: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
-	Issuer: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
+	Owner: CN=Spring Integration, OU=Spring, O=Broadcom Inc., L=San Francisco, ST=CA, C=US
+	Issuer: CN=Spring Integration, OU=Spring, O=Broadcom Inc., L=San Francisco, ST=CA, C=US
 	Serial number: 3f2ab6ef
 	Valid from: Wed Aug 29 14:58:27 EDT 2018 until: Fri Aug 05 14:58:27 EDT 2118
 	Certificate fingerprints:
