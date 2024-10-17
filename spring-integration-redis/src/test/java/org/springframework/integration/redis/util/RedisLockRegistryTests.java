@@ -51,8 +51,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -66,6 +68,7 @@ import static org.mockito.Mockito.mock;
  * @author Artem Vozhdayenko
  * @author Anton Gabov
  * @author Eddie Cho
+ * @author Youbin Wu
  *
  * @since 4.0
  *
@@ -424,6 +427,20 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		assertThatThrownBy(lock1::unlock)
 				.isInstanceOf(ConcurrentModificationException.class)
 				.hasMessageContaining("Lock was released in the store due to expiration.");
+		registry.destroy();
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testRenewalOnExpire(RedisLockType redisLockType) throws Exception {
+		long expireAfter = 300L;
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, expireAfter);
+		registry.setRenewalTaskScheduler(new SimpleAsyncTaskScheduler());
+		registry.setRedisLockType(redisLockType);
+		Lock lock1 = registry.obtain("foo");
+		assertThat(lock1.tryLock()).isTrue();
+		Thread.sleep(expireAfter * 2);
+		lock1.unlock();
 		registry.destroy();
 	}
 
@@ -898,6 +915,33 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		}
 
 		registry.destroy();
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testLockRenew(RedisLockType redisLockType) {
+		final RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(redisLockType);
+		final Lock lock = registry.obtain("foo");
+
+		assertThat(lock.tryLock()).isTrue();
+		try {
+			registry.renewLock("foo");
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testLockRenewLockNotOwned(RedisLockType redisLockType) {
+		final RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(redisLockType);
+		registry.obtain("foo");
+
+		assertThatExceptionOfType(IllegalStateException.class)
+				.isThrownBy(() -> registry.renewLock("foo"));
 	}
 
 	@Test
