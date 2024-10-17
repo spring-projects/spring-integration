@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 
 package org.springframework.integration.support.locks;
 
+import org.springframework.scheduling.TaskScheduler;
+
 /**
  * A {@link LockRegistry} implementing this interface supports the renewal
  * of the time to live of a lock.
  *
  * @author Alexandre Strubel
  * @author Artem Bilan
+ * @author Youbin Wu
  *
  * @since 5.4
  */
@@ -33,5 +36,15 @@ public interface RenewableLockRegistry extends LockRegistry {
 	 * @param lockKey The object with which the lock is associated.
 	 */
 	void renewLock(Object lockKey);
+
+	/**
+	 * Set the {@link TaskScheduler} to use for the renewal task.
+	 * When renewalTaskScheduler is set, it will be used to periodically renew the lock to ensure that
+	 * the lock does not expire while the thread is working.
+	 * @param renewalTaskScheduler renew task scheduler
+	 * @since 6.4
+	 */
+	default void setRenewalTaskScheduler(TaskScheduler renewalTaskScheduler) {
+	}
 
 }

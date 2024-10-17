@@ -59,6 +59,7 @@ See xref:zeromq.adoc[ZeroMQ Support] for more information.
 === Redis Changes
 
 Instead of throwing `IllegalStateException`, the `RedisLockRegistry.RedisLock.unlock()` method throws `ConcurrentModificationException` if the ownership of the lock is expired.
+Add a `RedisLockRegistry.setRenewalTaskScheduler()` to periodic lock renewal.
 See xref:redis.adoc[Redis Support] for more information.
 
 [[x6.4-groovy-changes]]

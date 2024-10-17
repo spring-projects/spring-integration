@@ -857,3 +857,6 @@ The pub-sub is preferred mode - less network chatter between client Redis server
 However, the Redis does not support pub-sub in the Master/Replica connections (for example in AWS ElastiCache environment), therefore a busy-spin mode is chosen as a default to make the registry working in any environment.
 
 Starting with version 6.4, instead of throwing `IllegalStateException`, the `RedisLockRegistry.RedisLock.unlock()` method throws `ConcurrentModificationException` if the ownership of the lock is expired.
+
+Starting with version 6.4, a `RedisLockRegistry.setRenewalTaskScheduler()` is added to configure the scheduler for periodic renewal of locks.
+When it is set, the lock will be automatically renewed every `1/3` of the expiration time after the lock is successfully acquired, until unlocked or the redis key is removed.

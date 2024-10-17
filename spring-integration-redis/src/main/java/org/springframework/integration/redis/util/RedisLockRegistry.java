@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.util;
 
+import java.io.Serial;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Collections;
@@ -32,6 +33,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
@@ -54,6 +56,8 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
+import org.springframework.integration.support.locks.RenewableLockRegistry;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -89,11 +93,12 @@ import org.springframework.util.ReflectionUtils;
  * @author Myeonghyeon Lee
  * @author Roman Zabaluev
  * @author Alex Peelman
+ * @author Youbin Wu
  *
  * @since 4.0
  *
  */
-public final class RedisLockRegistry implements ExpirableLockRegistry, DisposableBean {
+public final class RedisLockRegistry implements ExpirableLockRegistry, DisposableBean, RenewableLockRegistry {
 
 	private static final Log LOGGER = LogFactory.getLog(RedisLockRegistry.class);
 
@@ -109,6 +114,9 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final Map<String, RedisLock> locks =
 			new LinkedHashMap<>(16, 0.75F, true) {
+
+				@Serial
+				private static final long serialVersionUID = 7419938441348450459L;
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, RedisLock> eldest) {
@@ -137,6 +145,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	 */
 	private Executor executor =
 			Executors.newCachedThreadPool(new CustomizableThreadFactory("redis-lock-registry-"));
+
+	private TaskScheduler renewalTaskScheduler;
 
 	/**
 	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and
@@ -205,6 +215,12 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	public void setExecutor(Executor executor) {
 		this.executor = executor;
 		this.executorExplicitlySet = true;
+	}
+
+	@Override
+	public void setRenewalTaskScheduler(TaskScheduler renewalTaskScheduler) {
+		Assert.notNull(renewalTaskScheduler, "'renewalTaskScheduler' must not be null");
+		this.renewalTaskScheduler = renewalTaskScheduler;
 	}
 
 	/**
@@ -291,6 +307,26 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 	}
 
+	@Override
+	public void renewLock(Object lockKey) {
+		String path = (String) lockKey;
+		RedisLock redisLock;
+		this.lock.lock();
+		try {
+			redisLock = this.locks.computeIfAbsent(path, getRedisLockConstructor(this.redisLockType));
+		}
+		finally {
+			this.lock.unlock();
+		}
+		if (redisLock == null) {
+			throw new IllegalStateException("Could not renew mutex at " + path);
+		}
+
+		if (!redisLock.renew()) {
+			throw new IllegalStateException("Could not renew mutex at " + path);
+		}
+	}
+
 	/**
 	 * The mode in which this registry is going to work with locks.
 	 */
@@ -328,14 +364,27 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				return false
 				""";
 
-		protected static final RedisScript<Boolean>
-				OBTAIN_LOCK_REDIS_SCRIPT = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
+		private static final String RENEW_SCRIPT = """
+				if (redis.call('GET', KEYS[1]) == ARGV[1]) then
+					redis.call('PEXPIRE', KEYS[1], ARGV[2])
+					return true
+				end
+				return false
+				""";
+
+		protected static final RedisScript<Boolean> OBTAIN_LOCK_REDIS_SCRIPT =
+				new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
+
+		public static final RedisScript<Boolean> RENEW_REDIS_SCRIPT =
+				new DefaultRedisScript<>(RENEW_SCRIPT, Boolean.class);
 
 		protected final String lockKey;
 
 		private final ReentrantLock localLock = new ReentrantLock();
 
 		private volatile long lockedAt;
+
+		private volatile ScheduledFuture<?> renewFuture;
 
 		private RedisLock(String path) {
 			this.lockKey = constructLockKey(path);
@@ -454,6 +503,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					LOGGER.debug("Acquired lock; " + this);
 				}
 				this.lockedAt = System.currentTimeMillis();
+				if (RedisLockRegistry.this.renewalTaskScheduler != null) {
+					Duration delay = Duration.ofMillis(RedisLockRegistry.this.expireAfter / 3);
+					this.renewFuture =
+							RedisLockRegistry.this.renewalTaskScheduler.scheduleWithFixedDelay(this::renew, delay);
+				}
 			}
 			return acquired;
 		}
@@ -515,6 +569,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 				if (Boolean.TRUE.equals(unlinkResult)) {
 					// Lock key successfully unlinked
+					stopRenew();
 					return;
 				}
 				else if (Boolean.FALSE.equals(unlinkResult)) {
@@ -525,6 +580,26 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			if (!removeLockKeyInnerDelete()) {
 				throw new ConcurrentModificationException("Lock was released in the store due to expiration. " +
 						"The integrity of data protected by this lock may have been compromised.");
+			}
+			else {
+				stopRenew();
+			}
+		}
+
+		protected final boolean renew() {
+			boolean res = Boolean.TRUE.equals(RedisLockRegistry.this.redisTemplate.execute(
+					RENEW_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
+					RedisLockRegistry.this.clientId, String.valueOf(RedisLockRegistry.this.expireAfter)));
+			if (!res) {
+				stopRenew();
+			}
+			return res;
+		}
+
+		protected final void stopRenew() {
+			if (this.renewFuture != null) {
+				this.renewFuture.cancel(true);
+				this.renewFuture = null;
 			}
 		}
 
@@ -553,7 +628,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			int result = 1;
 			result = prime * result + getOuterType().hashCode();
 			result = prime * result + ((this.lockKey == null) ? 0 : this.lockKey.hashCode());
-			result = prime * result + (int) (this.lockedAt ^ (this.lockedAt >>> 32)); // NOSONAR magic number
+			result = prime * result + Long.hashCode(this.lockedAt);
 			result = prime * result + RedisLockRegistry.this.clientId.hashCode();
 			return result;
 		}
