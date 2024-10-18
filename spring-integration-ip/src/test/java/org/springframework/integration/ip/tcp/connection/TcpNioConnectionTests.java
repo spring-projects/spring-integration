@@ -53,7 +53,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -71,7 +70,6 @@ import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
-import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
@@ -101,7 +99,6 @@ import static org.mockito.Mockito.when;
  * @since 2.0
  *
  */
-@LogLevels(level = "trace", categories = "org.springframework.integration.ip.tcp")
 public class TcpNioConnectionTests {
 
 	private static final Log logger = LogFactory.getLog(TcpNioConnectionTests.class);
@@ -245,8 +242,6 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
-	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
-			disabledReason = "Timing is too short for CI")
 	public void testCleanup() {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
 		factory.setApplicationEventPublisher(nullPublisher);
@@ -809,8 +804,6 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
-	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
-			disabledReason = "Timing is too short for CI")
 	public void testNoDelayOnClose() throws Exception {
 		TcpNioServerConnectionFactory cf = new TcpNioServerConnectionFactory(0);
 		final CountDownLatch reading = new CountDownLatch(1);

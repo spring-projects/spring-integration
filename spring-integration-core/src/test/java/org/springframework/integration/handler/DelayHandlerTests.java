@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -416,8 +415,6 @@ public class DelayHandlerTests {
 	}
 
 	@Test
-	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
-			disabledReason = "Timing is too short for CI")
 	public void testReschedulePersistedMessagesOnStartup() throws Exception {
 		MessageGroupStore messageGroupStore = new SimpleMessageStore();
 		this.delayHandler.setDefaultDelay(2000);

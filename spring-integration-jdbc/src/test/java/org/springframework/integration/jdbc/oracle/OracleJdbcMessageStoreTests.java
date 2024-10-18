@@ -28,7 +28,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -321,8 +320,6 @@ public class OracleJdbcMessageStoreTests implements OracleContainerTest {
 
 	@Test
 	@Transactional
-	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
-			disabledReason = "Timing is too short for CI")
 	public void testExpireMessageGroupOnCreateOnly() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
@@ -342,8 +339,6 @@ public class OracleJdbcMessageStoreTests implements OracleContainerTest {
 
 	@Test
 	@Transactional
-	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
-			disabledReason = "Timing is too short for CI")
 	public void testExpireMessageGroupOnIdleOnly() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();

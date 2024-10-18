@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.mockito.Mockito;
 import org.springframework.core.io.FileSystemResource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -76,11 +77,11 @@ public class ResourceKnownHostsServerKeyVerifierTests {
 				= new ResourceKnownHostsServerKeyVerifier(
 				new FileSystemResource(KnownHostEntry.getDefaultKnownHostsFile()));
 
-		ClientFactoryManager manager = Mockito.mock(ClientFactoryManager.class);
+		ClientFactoryManager manager = mock();
 		Mockito.when(manager.getRandomFactory()).thenReturn((Factory) JceRandomFactory.INSTANCE);
 
 		HOST_KEYS.forEach((key, value) -> {
-			ClientSession session = Mockito.mock(ClientSession.class);
+			ClientSession session = mock();
 			Mockito.when(session.getFactoryManager()).thenReturn(manager);
 
 			Mockito.when(session.getConnectAddress()).thenReturn(key);
@@ -122,7 +123,7 @@ public class ResourceKnownHostsServerKeyVerifierTests {
 	}
 
 	static boolean isDefaultKnownHostsFilePresent() {
-		return System.getenv("bamboo_buildKey") == null && KnownHostEntry.getDefaultKnownHostsFile().toFile().exists();
+		return KnownHostEntry.getDefaultKnownHostsFile().toFile().exists();
 	}
 
 }

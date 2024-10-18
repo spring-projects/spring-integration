@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -324,8 +323,6 @@ public class MySqlJdbcMessageStoreTests implements MySqlContainerTest {
 
 	@Test
 	@Transactional
-	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
-			disabledReason = "Timing is too short for CI")
 	public void testExpireMessageGroupOnCreateOnly() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
@@ -345,8 +342,6 @@ public class MySqlJdbcMessageStoreTests implements MySqlContainerTest {
 
 	@Test
 	@Transactional
-	@DisabledIfEnvironmentVariable(named = "bamboo_buildKey", matches = ".*?",
-			disabledReason = "Timing is too short for CI")
 	public void testExpireMessageGroupOnIdleOnly() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
