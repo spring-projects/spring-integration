@@ -300,6 +300,7 @@ public class CorrelationHandlerTests {
 			return f -> f
 					.barrier(10000, b -> b
 							.correlationStrategy(new HeaderAttributeCorrelationStrategy(BARRIER))
+							.discardChannel("nullChannel")
 							.outputProcessor(g ->
 									g.getMessages()
 											.stream()

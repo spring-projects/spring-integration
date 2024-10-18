@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import org.springframework.integration.aggregator.DefaultAggregatingMessageGroup
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.lang.Nullable;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -43,6 +45,15 @@ public class BarrierSpec extends ConsumerEndpointSpec<BarrierSpec, BarrierMessag
 	private CorrelationStrategy correlationStrategy =
 			new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 
+	@Nullable
+	private MessageChannel discardChannel;
+
+	@Nullable
+	private String discardChannelName;
+
+	@Nullable
+	private Long triggerTimeout;
+
 	protected BarrierSpec(long timeout) {
 		super(null);
 		this.timeout = timeout;
@@ -60,9 +71,57 @@ public class BarrierSpec extends ConsumerEndpointSpec<BarrierSpec, BarrierMessag
 		return this;
 	}
 
+	/**
+	 * Set the channel to which late arriving trigger messages are sent,
+	 * or request message does not arrive in time.
+	 * @param discardChannel the message channel for discarded triggers.
+	 * @return the spec
+	 * @since 6.2.10
+	 */
+	public BarrierSpec discardChannel(@Nullable MessageChannel discardChannel) {
+		this.discardChannel = discardChannel;
+		return this;
+	}
+
+	/**
+	 * Set the channel bean name to which late arriving trigger messages are sent,
+	 * or request message does not arrive in time.
+	 * @param discardChannelName the message channel for discarded triggers.
+	 * @return the spec
+	 * @since 6.2.10
+	 */
+	public BarrierSpec discardChannel(@Nullable String discardChannelName) {
+		this.discardChannelName = discardChannelName;
+		return this;
+	}
+
+	/**
+	 * Set the timeout in milliseconds when waiting for a request message.
+	 * @param triggerTimeout the timeout in milliseconds when waiting for a request message.
+	 * @return the spec
+	 * @since 6.2.10
+	 */
+	public BarrierSpec triggerTimeout(long triggerTimeout) {
+		this.triggerTimeout = triggerTimeout;
+		return this;
+	}
+
 	@Override
 	public Tuple2<ConsumerEndpointFactoryBean, BarrierMessageHandler> doGet() {
-		this.handler = new BarrierMessageHandler(this.timeout, this.outputProcessor, this.correlationStrategy);
+		if (this.triggerTimeout == null) {
+			this.handler = new BarrierMessageHandler(this.timeout, this.outputProcessor, this.correlationStrategy);
+		}
+		else {
+			this.handler =
+					new BarrierMessageHandler(this.timeout, this.triggerTimeout, this.outputProcessor,
+							this.correlationStrategy);
+		}
+		if (this.discardChannel != null) {
+			this.handler.setDiscardChannel(this.discardChannel);
+		}
+		else if (this.discardChannelName != null) {
+			this.handler.setDiscardChannelName(this.discardChannelName);
+		}
 		return super.doGet();
 	}
 
