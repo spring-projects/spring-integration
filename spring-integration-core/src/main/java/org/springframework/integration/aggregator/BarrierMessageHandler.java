@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -170,7 +171,8 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Set the name of the channel to which late arriving trigger messages are sent.
+	 * Set the name of the channel to which late arriving trigger messages are sent,
+	 * or request message does not arrive in time.
 	 * @param discardChannelName the discard channel.
 	 * @since 5.0
 	 */
@@ -179,7 +181,8 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Set the channel to which late arriving trigger messages are sent.
+	 * Set the channel to which late arriving trigger messages are sent,
+	 * or request message does not arrive in time.
 	 * @param discardChannel the discard channel.
 	 * @since 5.0
 	 */
@@ -188,8 +191,11 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
+	 * Return the discard message channel for trigger action message.
+	 * @return a discard message channel.
 	 * @since 5.0
 	 */
+	@Nullable
 	@Override
 	public MessageChannel getDiscardChannel() {
 		String channelName = this.discardChannelName;

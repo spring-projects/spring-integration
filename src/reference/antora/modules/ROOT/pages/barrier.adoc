@@ -75,5 +75,6 @@ XML::
 Depending on which one has a message arrive first, either the thread sending a message to `in` or the thread sending a message to `release` waits for up to ten seconds until the other message arrives.
 When the message is released, the `out` channel is sent a message that combines the result of invoking the custom `MessageGroupProcessor` bean, named `myOutputProcessor`.
 If the main thread times out and a trigger arrives later, you can configure a discard channel to which the late trigger is sent.
+The trigger message is also discarded if request message does not arrive in time.
 
 For an example of this component, see the https://github.com/spring-projects/spring-integration-samples/tree/main/basic/barrier[barrier sample application].
