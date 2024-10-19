@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonUtils;
@@ -47,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Artem Vozhdayenko
+ * @author Youbin Wu
  *
  * @since 4.0
  *
@@ -192,6 +195,32 @@ class RedisChannelMessageStoreTests implements RedisContainerTest {
 		genericMessage = MessageHistory.write(genericMessage, testComponent);
 
 		String groupId = "jsonMessagesStore";
+
+		store.addMessageToGroup(groupId, genericMessage);
+		MessageGroup messageGroup = store.getMessageGroup(groupId);
+		assertThat(messageGroup.size()).isEqualTo(1);
+		List<Message<?>> messages = new ArrayList<>(messageGroup.getMessages());
+		assertThat(messages.get(0)).isEqualTo(genericMessage);
+		assertThat(messages.get(0).getHeaders()).containsKeys(MessageHistory.HEADER_NAME);
+	}
+
+	@Test
+	void testDelayJsonSerialization() {
+		RedisChannelMessageStore store = new RedisChannelMessageStore(RedisContainerTest.connectionFactory());
+		ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
+		store.setValueSerializer(serializer);
+
+		Message<?> originMessage = new GenericMessage<>(new Date());
+		Message<?> genericMessage = new DefaultMessageBuilderFactory()
+				.withPayload(new DelayHandler.DelayedMessageWrapper(originMessage, System.currentTimeMillis()))
+				.copyHeaders(originMessage.getHeaders())
+				.build();
+		NullChannel testComponent = new NullChannel();
+		testComponent.setBeanName("testChannel");
+		genericMessage = MessageHistory.write(genericMessage, testComponent);
+
+		String groupId = "delayJsonMessagesStore";
 
 		store.addMessageToGroup(groupId, genericMessage);
 		MessageGroup messageGroup = store.getMessageGroup(groupId);
