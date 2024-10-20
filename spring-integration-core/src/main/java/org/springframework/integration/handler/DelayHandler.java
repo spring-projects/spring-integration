@@ -97,6 +97,7 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Youbin Wu
  *
  * @since 1.0.3
  */
@@ -689,7 +690,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		@SuppressWarnings("serial")
 		private final Message<?> original;
 
-		DelayedMessageWrapper(Message<?> original, long requestDate) {
+		public DelayedMessageWrapper(Message<?> original, long requestDate) {
 			this.original = original;
 			this.requestDate = requestDate;
 		}
