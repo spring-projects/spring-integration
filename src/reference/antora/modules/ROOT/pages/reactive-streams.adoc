@@ -36,9 +36,9 @@ NOTE: All the Reactive Streams interaction in Spring Integration implemented wit
 The simplest point of interaction with Reactive Streams is a `@MessagingGateway` where we just make a return type of the gateway method as a `Mono<?>` - and the whole integration flow behind a gateway method call is going to be performed when a subscription happens on the returned `Mono` instance.
 See xref:gateway.adoc#reactor-mono[Reactor `Mono`] for more information.
 A similar `Mono`-reply approach is used in the framework internally for inbound gateways which are fully based on Reactive Streams compatible protocols (see xref:reactive-streams.adoc#reactive-channel-adapters[Reactive Channel Adapters] below for more information).
-The send-and-receive operation is wrapped into a `Mono.deffer()` with chaining a reply evaluation from the `replyChannel` header whenever it is available.
+The send-and-receive operation is wrapped into a `Mono.defer()` with chaining a reply evaluation from the `replyChannel` header whenever it is available.
 This way an inbound component for the particular reactive protocol (e.g. Netty) is going to be as a subscriber and initiator for a reactive flow performed on the Spring Integration.
-If the request payload is a reactive type, it would be better to handle it withing a reactive stream definition deferring a process to the initiator subscription.
+If the request payload is a reactive type, it would be better to handle it within a reactive stream definition deferring a process to the initiator subscription.
 For this purpose a handler method must return a reactive type as well.
 See the next section for more information.
 
