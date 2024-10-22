@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -35,13 +34,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.redis.RedisContainerTest;
@@ -56,14 +58,15 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
  * @author Artem Vozhdayenko
+ * @author Youbin Wu
  */
 class RedisMessageGroupStoreTests implements RedisContainerTest {
 
@@ -316,7 +319,7 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 			executor.execute(() -> {
 				store2.removeMessagesFromGroup(this.groupId, message);
 				MessageGroup group = store2.getMessageGroup(this.groupId);
-				if (group.getMessages().size() != 0) {
+				if (!group.getMessages().isEmpty()) {
 					failures.add("REMOVE");
 					throw new AssertionFailedError("Failed on Remove");
 				}
@@ -400,11 +403,17 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 		Message<?> mutableMessage = new MutableMessage<>(UUID.randomUUID());
 		Message<?> adviceMessage = new AdviceMessage<>("foo", genericMessage);
 		ErrorMessage errorMessage = new ErrorMessage(new RuntimeException("test exception"), mutableMessage);
+		var delayedMessageWrapperConstructor =
+				BeanUtils.getResolvableConstructor(DelayHandler.DelayedMessageWrapper.class);
+		Message<?> delayMessage = new GenericMessage<>(
+				BeanUtils.instantiateClass(delayedMessageWrapperConstructor, genericMessage,
+						System.currentTimeMillis()));
 
-		store.addMessagesToGroup(this.groupId, genericMessage, mutableMessage, adviceMessage, errorMessage);
+		store.addMessagesToGroup(this.groupId,
+				genericMessage, mutableMessage, adviceMessage, errorMessage, delayMessage);
 
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
-		assertThat(messageGroup.size()).isEqualTo(4);
+		assertThat(messageGroup.size()).isEqualTo(5);
 		List<Message<?>> messages = new ArrayList<>(messageGroup.getMessages());
 		assertThat(messages.get(0)).isEqualTo(genericMessage);
 		assertThat(messages.get(0).getHeaders()).containsKeys(MessageHistory.HEADER_NAME);
@@ -417,22 +426,21 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 				.isEqualTo(errorMessage.getOriginalMessage());
 		assertThat(((ErrorMessage) errorMessageResult).getPayload().getMessage())
 				.isEqualTo(errorMessage.getPayload().getMessage());
+		assertThat(messages.get(4)).isEqualTo(delayMessage);
 
 		Message<Foo> fooMessage = new GenericMessage<>(new Foo("foo"));
-		try {
-			store.addMessageToGroup(this.groupId, fooMessage)
-					.getMessages()
-					.iterator()
-					.next();
-			fail("SerializationException expected");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getCause()).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getMessage()).contains("The class with " +
-					"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo and name of " +
-					"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo " +
-					"is not in the trusted packages:");
-		}
+
+		assertThatExceptionOfType(SerializationException.class)
+				.isThrownBy(() ->
+						store.addMessageToGroup(this.groupId, fooMessage)
+								.getMessages()
+								.iterator()
+								.next())
+				.withRootCauseInstanceOf(IllegalArgumentException.class)
+				.withMessageContaining("The class with " +
+						"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo and name of " +
+						"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo " +
+						"is not in the trusted packages:");
 
 		mapper = JacksonJsonUtils.messagingAwareMapper(getClass().getPackage().getName());
 
@@ -485,43 +493,7 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 		assertThat(store.messageGroupSize("2")).isEqualTo(1);
 	}
 
-	private static class Foo {
-
-		private String foo;
-
-		Foo() {
-		}
-
-		Foo(String foo) {
-			this.foo = foo;
-		}
-
-		public String getFoo() {
-			return this.foo;
-		}
-
-		public void setFoo(String foo) {
-			this.foo = foo;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-
-			Foo foo1 = (Foo) o;
-
-			return this.foo != null ? this.foo.equals(foo1.foo) : foo1.foo == null;
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hashCode(this.foo);
-		}
+	private record Foo(String foo) {
 
 	}
 

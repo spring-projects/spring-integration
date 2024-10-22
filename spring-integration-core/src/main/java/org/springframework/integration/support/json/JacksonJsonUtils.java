@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.messaging.support.GenericMessage;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Youbin Wu
  *
  * @since 3.0
  *
@@ -63,7 +64,8 @@ public final class JacksonJsonUtils {
 					"org.springframework.integration.support",
 					"org.springframework.integration.message",
 					"org.springframework.integration.store",
-					"org.springframework.integration.history"
+					"org.springframework.integration.history",
+					"org.springframework.integration.handler"
 			);
 
 	private JacksonJsonUtils() {
