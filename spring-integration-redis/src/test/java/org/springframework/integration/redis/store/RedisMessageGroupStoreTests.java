@@ -35,6 +35,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -42,6 +43,7 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.redis.RedisContainerTest;
@@ -64,6 +66,7 @@ import static org.assertj.core.api.Assertions.fail;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Artem Vozhdayenko
+ * @author Youbin Wu
  */
 class RedisMessageGroupStoreTests implements RedisContainerTest {
 
@@ -400,11 +403,13 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 		Message<?> mutableMessage = new MutableMessage<>(UUID.randomUUID());
 		Message<?> adviceMessage = new AdviceMessage<>("foo", genericMessage);
 		ErrorMessage errorMessage = new ErrorMessage(new RuntimeException("test exception"), mutableMessage);
+		var delayedMessageWrapperConstructor = BeanUtils.getResolvableConstructor(DelayHandler.DelayedMessageWrapper.class);
+		Message<?> delayMessage = new GenericMessage<>(BeanUtils.instantiateClass(delayedMessageWrapperConstructor, genericMessage, System.currentTimeMillis()));
 
-		store.addMessagesToGroup(this.groupId, genericMessage, mutableMessage, adviceMessage, errorMessage);
+		store.addMessagesToGroup(this.groupId, genericMessage, mutableMessage, adviceMessage, errorMessage, delayMessage);
 
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
-		assertThat(messageGroup.size()).isEqualTo(4);
+		assertThat(messageGroup.size()).isEqualTo(5);
 		List<Message<?>> messages = new ArrayList<>(messageGroup.getMessages());
 		assertThat(messages.get(0)).isEqualTo(genericMessage);
 		assertThat(messages.get(0).getHeaders()).containsKeys(MessageHistory.HEADER_NAME);
@@ -417,6 +422,7 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 				.isEqualTo(errorMessage.getOriginalMessage());
 		assertThat(((ErrorMessage) errorMessageResult).getPayload().getMessage())
 				.isEqualTo(errorMessage.getPayload().getMessage());
+		assertThat(messages.get(4)).isEqualTo(delayMessage);
 
 		Message<Foo> fooMessage = new GenericMessage<>(new Foo("foo"));
 		try {
