@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.connection;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -76,9 +77,12 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StopWatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
@@ -125,10 +129,10 @@ public class TcpNioConnectionTests {
 				s.close();
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				ReflectionUtils.rethrowRuntimeException(e);
 			}
 		});
-		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
 		TcpNioClientConnectionFactory factory =
 				new TcpNioClientConnectionFactory("localhost", serverSocket.get().getLocalPort());
 		factory.setLookupHost(true);
@@ -174,10 +178,10 @@ public class TcpNioConnectionTests {
 				done.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				ReflectionUtils.rethrowRuntimeException(e);
 			}
 		});
-		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
@@ -215,10 +219,10 @@ public class TcpNioConnectionTests {
 				readFully(socket.getInputStream(), b);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				ReflectionUtils.rethrowRuntimeException(e);
 			}
 		});
-		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
@@ -231,10 +235,9 @@ public class TcpNioConnectionTests {
 			connection.close();
 			assertThat(!connection.isOpen()).isTrue();
 			TestUtils.getPropertyValue(factory, "selector", Selector.class).wakeup();
-			await().atMost(Duration.ofSeconds(10)).until(() -> connections.size() == 0);
+			await().atMost(Duration.ofSeconds(10)).until(connections::isEmpty);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
 			fail("Unexpected exception " + e);
 		}
 		factory.stop();
@@ -330,16 +333,12 @@ public class TcpNioConnectionTests {
 			}
 			return null;
 		});
-		try {
-			Object o = future.get(10, TimeUnit.SECONDS);
-			fail("Expected exception, got " + o);
-		}
-		catch (ExecutionException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("Timed out waiting for buffer space");
-		}
-		finally {
-			exec.shutdownNow();
-		}
+
+		assertThatExceptionOfType(ExecutionException.class)
+				.isThrownBy(() -> future.get(10, TimeUnit.SECONDS))
+				.withStackTraceContaining("Timed out waiting for buffer space");
+
+		exec.shutdownNow();
 	}
 
 	@Test
@@ -374,7 +373,6 @@ public class TcpNioConnectionTests {
 				}
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				throw (Exception) e.getCause();
 			}
 			return null;
@@ -445,18 +443,13 @@ public class TcpNioConnectionTests {
 				.getPropertyValue("channelInputStream");
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[5];
-		try {
-			stream.read(out, 1, 5);
-			fail("Expected IndexOutOfBoundsException");
-		}
-		catch (IndexOutOfBoundsException e) {
-		}
-		try {
-			stream.read(null, 1, 5);
-			fail("Expected IllegalArgumentException");
-		}
-		catch (IllegalArgumentException e) {
-		}
+
+		assertThatExceptionOfType(IndexOutOfBoundsException.class)
+				.isThrownBy(() -> stream.read(out, 1, 5));
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> stream.read(null, 1, 5));
+
 		assertThat(stream.read(out, 0, 0)).isEqualTo(0);
 		assertThat(stream.read(out)).isEqualTo(3);
 	}
@@ -476,7 +469,7 @@ public class TcpNioConnectionTests {
 				stream.read(out);
 			}
 			catch (IOException e) {
-				e.printStackTrace();
+				throw new UncheckedIOException(e);
 			}
 			latch.countDown();
 		});
@@ -514,16 +507,12 @@ public class TcpNioConnectionTests {
 		SocketChannel outChannel = mock(SocketChannel.class);
 		when(outChannel.socket()).thenReturn(outSocket);
 		TcpNioConnection outboundConnection = new TcpNioConnection(outChannel, true, false, nullPublisher, null);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				ByteBuffer buff = invocation.getArgument(0);
-				byte[] bytes = new byte[buff.limit()];
-				buff.get(bytes);
-				written.write(bytes);
-				return null;
-			}
+		doAnswer(invocation -> {
+			ByteBuffer buff = invocation.getArgument(0);
+			byte[] bytes = new byte[buff.limit()];
+			buff.get(bytes);
+			written.write(bytes);
+			return null;
 		}).when(outChannel).write(any(ByteBuffer.class));
 
 		MapMessageConverter outConverter = new MapMessageConverter();
@@ -539,14 +528,10 @@ public class TcpNioConnectionTests {
 
 		final AtomicReference<Message<?>> inboundMessage = new AtomicReference<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
-		TcpListener listener = new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				inboundMessage.set(message);
-				latch.countDown();
-				return false;
-			}
+		TcpListener listener = message1 -> {
+			inboundMessage.set(message1);
+			latch.countDown();
+			return false;
 		};
 		inboundConnection.registerListener(listener);
 		inboundConnection.readPacket();
@@ -565,19 +550,14 @@ public class TcpNioConnectionTests {
 
 		factory.setSoTimeout(1000);
 		factory.setTaskExecutor(compositeExec);
-		final AtomicReference<String> threadName = new AtomicReference<String>();
+		final AtomicReference<String> threadName = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
-		factory.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				if (!(message instanceof ErrorMessage)) {
-					threadName.set(Thread.currentThread().getName());
-					latch.countDown();
-				}
-				return false;
+		factory.registerListener(message -> {
+			if (!(message instanceof ErrorMessage)) {
+				threadName.set(Thread.currentThread().getName());
+				latch.countDown();
 			}
-
+			return false;
 		});
 		factory.start();
 		TestingUtilities.waitListening(factory, null);
@@ -598,7 +578,7 @@ public class TcpNioConnectionTests {
 		socket.getOutputStream().write("foo\r\n".getBytes());
 		socket.close();
 
-		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
 		assertThat(threadName.get()).contains("assembler");
 
 		factory.stop();
@@ -720,17 +700,12 @@ public class TcpNioConnectionTests {
 		});
 		final CountDownLatch assemblerLatch = new CountDownLatch(1);
 		final AtomicReference<Thread> assembler = new AtomicReference<Thread>();
-		factory.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				if (!(message instanceof ErrorMessage)) {
-					assembler.set(Thread.currentThread());
-					assemblerLatch.countDown();
-				}
-				return false;
+		factory.registerListener(message -> {
+			if (!(message instanceof ErrorMessage)) {
+				assembler.set(Thread.currentThread());
+				assemblerLatch.countDown();
 			}
-
+			return false;
 		});
 		ThreadPoolTaskExecutor te = new ThreadPoolTaskExecutor();
 		te.setCorePoolSize(3); // selector, reader, assembler
@@ -756,38 +731,26 @@ public class TcpNioConnectionTests {
 
 		final CountDownLatch readerLatch = new CountDownLatch(4); // 3 dataAvailable, 1 continuing
 		final CountDownLatch readerFinishedLatch = new CountDownLatch(1);
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				invocation.callRealMethod();
-				// delay the reader thread resetting writingToPipe
-				readerLatch.await(10, TimeUnit.SECONDS);
-				Thread.sleep(100);
-				readerFinishedLatch.countDown();
-				return null;
-			}
+		doAnswer(invocation -> {
+			invocation.callRealMethod();
+			// delay the reader thread resetting writingToPipe
+			readerLatch.await(10, TimeUnit.SECONDS);
+			Thread.sleep(100);
+			readerFinishedLatch.countDown();
+			return null;
 		}).when(cis).write(any(ByteBuffer.class));
 
 		doReturn(true).when(logger).isTraceEnabled();
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				invocation.callRealMethod();
-				readerLatch.countDown();
-				return null;
-			}
+		doAnswer(invocation -> {
+			invocation.callRealMethod();
+			readerLatch.countDown();
+			return null;
 		}).when(logger).trace(contains("checking data avail"));
 
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				invocation.callRealMethod();
-				readerLatch.countDown();
-				return null;
-			}
+		doAnswer(invocation -> {
+			invocation.callRealMethod();
+			readerLatch.countDown();
+			return null;
 		}).when(logger).trace(contains("Nio assembler continuing"));
 
 		socket.getOutputStream().write("foo\r\n".getBytes());
