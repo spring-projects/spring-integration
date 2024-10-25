@@ -266,7 +266,15 @@ public class Mqttv5PahoMessageHandler extends AbstractMqttMessageHandler<IMqttAs
 		long completionTimeout = getCompletionTimeout();
 		try {
 			if (!this.mqttClient.isConnected()) {
-				this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
+				this.lock.lock();
+				try {
+					if (!this.mqttClient.isConnected()) {
+						this.mqttClient.connect(this.connectionOptions).waitForCompletion(completionTimeout);
+					}
+				}
+				finally {
+					this.lock.unlock();
+				}
 			}
 			IMqttToken token = this.mqttClient.publish(topic, (MqttMessage) mqttMessage);
 			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
