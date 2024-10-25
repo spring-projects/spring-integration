@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,12 @@
 package org.springframework.integration.file;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Comparator;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,43 +39,40 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Gary Russell
  */
-@RunWith(MockitoJUnitRunner.class)
-public class FileReadingMessageSourceTests {
+class FileReadingMessageSourceTests {
 
 	private FileReadingMessageSource source;
 
-	@Mock
-	private File inputDirectoryMock;
+	private final File inputDirectoryMock = mock();
 
-	@Mock
-	private File fileMock;
+	private final File fileMock = mock();
 
-	@Mock
-	private FileLocker locker;
+	private final FileLocker locker = mock();
 
-	@Mock
-	private Comparator<File> comparator;
+	private final Comparator<File> comparator = mock();
 
 	public void prepResource() {
-		when(inputDirectoryMock.getAbsolutePath()).thenReturn("foo/bar");
-		when(fileMock.getAbsolutePath()).thenReturn("foo/bar/fileMock");
+		when(inputDirectoryMock.toPath()).thenReturn(Path.of("[dir]"));
+		when(fileMock.toPath()).thenReturn(Path.of("[dir]/fileMock"));
 		when(locker.lock(isA(File.class))).thenReturn(true);
 	}
 
-	@Before
+	@BeforeEach
 	public void initialize() {
 		prepResource();
 		this.source = new FileReadingMessageSource(comparator);
 		this.source.setDirectory(inputDirectoryMock);
 		this.source.setLocker(locker);
-		this.source.setBeanFactory(mock(BeanFactory.class));
+		this.source.setBeanFactory(mock());
 		this.source.afterPropertiesSet();
 	}
 
 	@Test
 	public void straightProcess() {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] {fileMock});
-		assertThat(source.receive().getPayload()).isEqualTo(fileMock);
+		Message<File> fileMessage = source.receive();
+		assertThat(fileMessage.getPayload()).isEqualTo(fileMock);
+		assertThat(fileMessage.getHeaders()).containsEntry(FileHeaders.RELATIVE_PATH, "fileMock");
 	}
 
 	@Test
@@ -88,13 +82,13 @@ public class FileReadingMessageSourceTests {
 		assertThat(received).isNotNull();
 		source.onFailure(received);
 		assertThat(source.receive().getPayload()).isEqualTo(received.getPayload());
-		verify(inputDirectoryMock, times(1)).listFiles();
+		verify(inputDirectoryMock).listFiles();
 	}
 
 	@Test
 	public void scanEachPoll() {
-		File anotherFileMock = mock(File.class);
-		when(anotherFileMock.getAbsolutePath()).thenReturn("foo/bar/anotherFileMock");
+		File anotherFileMock = mock();
+		when(anotherFileMock.toPath()).thenReturn(Path.of("[dir]/anotherFileMock"));
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] {fileMock, anotherFileMock});
 		source.setScanEachPoll(true);
 		assertThat(source.receive()).isNotNull();
@@ -139,12 +133,12 @@ public class FileReadingMessageSourceTests {
 
 	@Test
 	public void orderedReception() {
-		File file1 = mock(File.class);
-		when(file1.getAbsolutePath()).thenReturn("foo/bar/file1");
-		File file2 = mock(File.class);
-		when(file2.getAbsolutePath()).thenReturn("foo/bar/file2");
-		File file3 = mock(File.class);
-		when(file3.getAbsolutePath()).thenReturn("foo/bar/file3");
+		File file1 = mock();
+		when(file1.toPath()).thenReturn(Path.of("[dir]/file1"));
+		File file2 = mock();
+		when(file2.toPath()).thenReturn(Path.of("[dir]/file2"));
+		File file3 = mock();
+		when(file3.toPath()).thenReturn(Path.of("[dir]/file3"));
 
 		// record the comparator to reverse order the files
 		when(comparator.compare(file1, file2)).thenReturn(1);
