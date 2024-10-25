@@ -42,7 +42,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractMessageSource;
@@ -388,10 +387,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File> implem
 		if (file != null) {
 			return getMessageBuilderFactory()
 					.withPayload(file)
-					.setHeader(FileHeaders.RELATIVE_PATH,
-							file.getAbsolutePath()
-									.replaceFirst(Matcher.quoteReplacement(
-											this.directory.getAbsolutePath() + File.separator), ""))
+					.setHeader(FileHeaders.RELATIVE_PATH, this.directory.toPath().relativize(file.toPath()).toString())
 					.setHeader(FileHeaders.FILENAME, file.getName())
 					.setHeader(FileHeaders.ORIGINAL_FILE, file);
 		}
