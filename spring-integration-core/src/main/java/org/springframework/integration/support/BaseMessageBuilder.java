@@ -310,10 +310,10 @@ public abstract class BaseMessageBuilder<T, B extends BaseMessageBuilder<T, B>>
 
 			return this.originalMessage;
 		}
-		if (payload instanceof Throwable throwable) {
-			return (Message<T>) new ErrorMessage(throwable, getHeaders());
+		if (this.payload instanceof Throwable throwable) {
+			return (Message<T>) new ErrorMessage(throwable, this.headerAccessor.toMap());
 		}
-		return new GenericMessage<>(payload, getHeaders());
+		return new GenericMessage<>(this.payload, this.headerAccessor.toMap());
 	}
 
 	private boolean containsReadOnly(MessageHeaders headers) {
