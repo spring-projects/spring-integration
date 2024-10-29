@@ -84,7 +84,7 @@ public class MessageBuilderTests {
 
 	private static class PiiMessageBuilder<P> extends BaseMessageBuilder<P, PiiMessageBuilder<P>> {
 
-		public PiiMessageBuilder(P payload, @Nullable Message<P> originalMessage) {
+		PiiMessageBuilder(P payload, @Nullable Message<P> originalMessage) {
 			super(payload, originalMessage);
 		}
 
@@ -100,7 +100,7 @@ public class MessageBuilderTests {
 		@Serial
 		private static final long serialVersionUID = -354503673433669578L;
 
-		public PiiMessage(P payload, Map<String, Object> headers) {
+		PiiMessage(P payload, Map<String, Object> headers) {
 			super(payload, headers);
 		}
 
