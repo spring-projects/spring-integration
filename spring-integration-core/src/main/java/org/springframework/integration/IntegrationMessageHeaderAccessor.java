@@ -108,7 +108,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * @see #isReadOnly(String)
 	 */
 	public void setReadOnlyHeaders(String... readOnlyHeaders) {
-		Assert.noNullElements(readOnlyHeaders, "'readOnlyHeaders' must not be contain null items.");
+		Assert.noNullElements(readOnlyHeaders, "'readOnlyHeaders' must not contain null items.");
 		if (!ObjectUtils.isEmpty(readOnlyHeaders)) {
 			this.readOnlyHeaders = new HashSet<>(Arrays.asList(readOnlyHeaders));
 		}

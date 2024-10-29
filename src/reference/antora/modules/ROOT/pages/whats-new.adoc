@@ -16,6 +16,9 @@ In general the project has been moved to the latest dependency versions.
 [[x6.4-new-components]]
 === New Components
 
+A `BaseMessageBuilder` class has been extracted from the `MessageBuilder` to simplify a custom builder implementation where the most of the logic should be the same as `MessageBuilder` one.
+See xref:message.adoc#message-builder[`MessageBuilder`] for more information.
+
 The new Control Bus interaction model is implemented in the `ControlBusCommandRegistry`.
 A new `ControlBusFactoryBean` class is recommended to be used instead of deprecated `ExpressionControlBusFactoryBean`.
 See xref:control-bus.adoc[Control Bus] for more information.

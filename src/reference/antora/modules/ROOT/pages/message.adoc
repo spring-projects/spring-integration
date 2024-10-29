@@ -245,14 +245,14 @@ When messages are processed (and modified) by message-producing endpoints (such 
 One exception to this is a xref:transformer.adoc[transformer], when a complete message is returned to the framework.
 In that case, the user code is responsible for the entire outbound message.
 When a transformer just returns the payload, the inbound headers are propagated.
-Also, a header is only propagated if it does not already exist in the outbound message, letting you change header values as needed.
+Also, a header only propagated if it does not already exist in the outbound message, letting you change header values as needed.
 
 Starting with version 4.3.10, you can configure message handlers (that modify messages and produce output) to suppress the propagation of specific headers.
 To configure the header(s) you do not want to be copied, call the `setNotPropagatedHeaders()` or `addNotPropagatedHeaders()` methods on the `MessageProducingMessageHandler` abstract class.
 
 You can also globally suppress propagation of specific message headers by setting the `readOnlyHeaders` property in `META-INF/spring.integration.properties` to a comma-delimited list of headers.
 
-Starting with version 5.0, the `setNotPropagatedHeaders()` implementation on the `AbstractMessageProducingHandler` applies simple patterns (`xxx*`, `*xxx`, `*xxx*`, or `xxx*yyy`) to allow filtering headers with a common suffix or prefix.
+Starting with version 5.0, the `setNotPropagatedHeaders()` implementation on the `AbstractMessageProducingHandler` applies simple patterns (`xxx*`, `\*xxx`, `*xxx*`, or `xxx*yyy`) to allow filtering headers with a common suffix or prefix.
 See https://docs.spring.io/spring-integration/api/org/springframework/integration/util/PatternMatchUtils.html[`PatternMatchUtils` Javadoc] for more information.
 When one of the patterns is `*` (asterisk), no headers are propagated.
 All other patterns are ignored.
@@ -290,13 +290,15 @@ Throwable t = message.getPayload();
 Note that this implementation takes advantage of the fact that the `GenericMessage` base class is parameterized.
 Therefore, as shown in both examples, no casting is necessary when retrieving the `Message` payload `Object`.
 
+The mentioned `Message` class implementations are immutable.
+In some cases, when mutability is not a concern and the logic of application is well-designed to avoid concurrent modifications, a `MutableMessage` can be used.
+
 [[message-builder]]
 == The `MessageBuilder` Helper Class
 
 You may notice that the `Message` interface defines retrieval methods for its payload and headers but provides no setters.
 The reason for this is that a `Message` cannot be modified after its initial creation.
-Therefore, when a `Message` instance is sent to multiple consumers (for example,
-through a publish-subscribe Channel), if one of those consumers needs to send a reply with a different payload type, it must create a new `Message`.
+Therefore, when a `Message` instance is sent to multiple consumers (for example, through a publish-subscribe Channel), if one of those consumers needs to send a reply with a different payload type, it must create a new `Message`.
 As a result, the other consumers are not affected by those changes.
 Keep in mind that multiple consumers may access the same payload instance or header value, and whether such an instance is itself immutable is a decision left to you.
 In other words, the contract for `Message` instances is similar to that of an unmodifiable `Collection`, and the `MessageHeaders` map further exemplifies that.
@@ -359,3 +361,76 @@ assertEquals(2, lessImportantMessage.getHeaders().getPriority());
 
 The `priority` header is considered only when using a `PriorityChannel` (as described in the next chapter).
 It is defined as a `java.lang.Integer`.
+
+The `MutableMessageBuilder` is provided to deal with `MutableMessage` instances.
+The logic of this class is to create a `MutableMessage` or leave it as is and mutate its content via builder methods.
+This way there is a slight performance gain in the running application, when immutability is not a concern of message exchanges.
+
+NOTE: Starting with version 6.4, a `BaseMessageBuilder` class is extracted from the `MessageBuilder` to simplify an extension for the default message building logic.
+For example, together with a custom `MessageBuilderFactory`, a custom `BaseMessageBuilder` implementation could be used globally in the application context to provide custom `Message` instances.
+In particular, the `GenericMessage.toString()` method can be overridden to hide sensitive information from payload and headers when such a message is logged.
+
+[[message-builder-factory]]
+== The `MessageBuilderFactory` abstraction
+
+The `MessageBuilderFactory` bean with `IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME` is registered globally into an application context and used everywhere in the framework to create `Message` instances.
+By default, it is an instance of `DefaultMessageBuilderFactory`.
+Out of the box, the framework also provides a `MutableMessageBuilderFactory` to create `MutableMessage` instances in the framework components instead.
+To customize `Message` instances creation, a `MessageBuilderFactory` bean with `IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME` has to be provided in the target application context to override a default one.
+For example, a custom `MessageBuilderFactory` could be registered for an implementation of the `BaseMessageBuilder` where we would like to provide a `GenericMessage` extension with overridden `toString()` to to hide sensitive information from payload and headers when such a message is logged.
+
+Some quick implementation of these classes to demonstrate a personal identifiable information mitigation can be like this:
+[source,java]
+----
+class PiiMessageBuilderFactory implements MessageBuilderFactory {
+
+	@Override
+	public <T> PiiMessageBuilder<T> fromMessage(Message<T> message) {
+	    return new PiiMessageBuilder<>(message.getPayload(), message);
+	}
+
+	@Override
+	public <T> PiiMessageBuilder<T> withPayload(T payload) {
+	    return new PiiMessageBuilder<>(payload, null);
+	}
+
+}
+
+class PiiMessageBuilder<P> extends BaseMessageBuilder<P, PiiMessageBuilder<P>> {
+
+    public PiiMessageBuilder(P payload, @Nullable Message<P> originalMessage) {
+        super(payload, originalMessage);
+    }
+
+    @Override
+    public Message<P> build() {
+        return new PiiMessage<>(getPayload(), getHeaders());
+    }
+
+}
+
+class PiiMessage<P> extends GenericMessage<P> {
+
+    @Serial
+    private static final long serialVersionUID = -354503673433669578L;
+
+    public PiiMessage(P payload, Map<String, Object> headers) {
+        super(payload, headers);
+    }
+
+    @Override
+    public String toString() {
+        return "PiiMessage [payload=" + getPayload() + ", headers=" + maskHeaders(getHeaders()) + ']';
+    }
+
+    private static Map<String, Object> maskHeaders(Map<String, Object> headers) {
+        return headers.entrySet()
+                .stream()
+                .map((entry) -> entry.getKey().equals("password") ? Map.entry(entry.getKey(), "******") : entry)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+}
+----
+
+The this `PiiMessageBuilderFactory` could be registered as a bean, and whenever the framework logs the message (e.g. in case of `errorChannel`), the `password` header will be masked.
