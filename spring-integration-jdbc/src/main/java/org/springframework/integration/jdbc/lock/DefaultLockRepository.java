@@ -392,7 +392,7 @@ public class DefaultLockRepository
 	@Override
 	public boolean delete(String lock) {
 		return this.defaultTransactionTemplate.execute(
-				transactionStatus -> this.template.update(this.deleteQuery, this.region, lock, this.id)) > 0;
+				transactionStatus -> this.template.update(this.deleteQuery, this.region, lock, this.id)) == 1;
 	}
 
 	@Override
@@ -436,7 +436,7 @@ public class DefaultLockRepository
 	public boolean renew(String lock) {
 		final Boolean result = this.defaultTransactionTemplate.execute(
 				transactionStatus ->
-						this.template.update(this.renewQuery, epochMillis(), this.region, lock, this.id) > 0);
+						this.template.update(this.renewQuery, epochMillis(), this.region, lock, this.id) == 1);
 		return Boolean.TRUE.equals(result);
 	}
 
