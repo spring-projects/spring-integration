@@ -444,14 +444,6 @@ public class GatewayInterfaceTests {
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(result2.get().getName()).startsWith("exec-");
 
-		org.springframework.util.concurrent.ListenableFuture<Thread> result3 =
-				this.execGateway.test3(Thread.currentThread());
-		final CountDownLatch latch1 = new CountDownLatch(1);
-		result3.addCallback(data -> latch1.countDown(), ex -> {
-		});
-		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(result3.get().getName()).startsWith("exec-");
-
 		/*
 		@IntegrationComponentScan(useDefaultFilters = false,
 		includeFilters = @ComponentScan.Filter(TestMessagingGateway.class))
@@ -769,10 +761,6 @@ public class GatewayInterfaceTests {
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
 		CompletableFuture<Thread> test2(Thread caller);
-
-		@Gateway(requestChannel = "gatewayThreadChannel")
-		@SuppressWarnings("deprecation")
-		org.springframework.util.concurrent.ListenableFuture<Thread> test3(Thread caller);
 
 	}
 

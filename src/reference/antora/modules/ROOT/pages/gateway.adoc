@@ -618,9 +618,6 @@ There are two modes of operation when returning this type:
 * When the async executor is explicitly set to `null` and the return type is `CompletableFuture` or the return type is a subclass of `CompletableFuture`, the flow is invoked on the caller's thread.
 In this scenario, the downstream flow is expected to return a `CompletableFuture` of the appropriate type.
 
-NOTE: The `org.springframework.util.concurrent.ListenableFuture` has been deprecated starting with Spring Framework `6.0`.
-It is recommended now to migrate to the `CompletableFuture` which provides similar processing functionality.
-
 [[usage-scenarios]]
 ==== Usage Scenarios
 

@@ -363,9 +363,9 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 
 	/**
 	 * Set the executor for use when the gateway method returns
-	 * {@link java.util.concurrent.Future} or {@link org.springframework.util.concurrent.ListenableFuture}.
+	 * {@link Future} or {@link CompletableFuture}.
 	 * Set it to null to disable the async processing, and any
-	 * {@link java.util.concurrent.Future} return types must be returned by the downstream flow.
+	 * {@link Future} return types must be returned by the downstream flow.
 	 * @param executor The executor.
 	 */
 	public void setAsyncExecutor(@Nullable Executor executor) {
@@ -522,7 +522,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 
 	@Override
 	@Nullable
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings("removal")
 	public Object invoke(final MethodInvocation invocation) throws Throwable { // NOSONAR
 		Method method = invocation.getMethod();
 		Class<?> returnType;
@@ -542,6 +542,9 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 				return CompletableFuture.supplyAsync(invoker, this.asyncExecutor);
 			}
 			else if (org.springframework.util.concurrent.ListenableFuture.class.equals(returnType)) {
+				logger.warn("The 'org.springframework.util.concurrent.ListenableFuture' is deprecated for removal." +
+						"The 'CompletableFuture' is recommended to be used instead." +
+						"The 'ListenableFuture' support will be removed in Spring Integration 7.0.");
 				return ((org.springframework.core.task.AsyncListenableTaskExecutor) this.asyncExecutor)
 						.submitListenable(invoker::get);
 			}

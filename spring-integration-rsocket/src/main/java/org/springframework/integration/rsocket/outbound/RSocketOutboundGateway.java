@@ -50,18 +50,18 @@ import org.springframework.util.MimeType;
  * <p>
  * An RSocket operation is determined by the configured {@link RSocketInteractionModel} or respective SpEL
  * expression to be evaluated at runtime against the request message.
- * By default the {@link RSocketInteractionModel#requestResponse} operation is used.
+ * By default, the {@link RSocketInteractionModel#requestResponse} operation is used.
  * <p>
  * For a {@link Publisher}-based requests, it must be present in the request message {@code payload}.
  * The flattening via upstream {@link org.springframework.integration.channel.FluxMessageChannel} will work, too,
  * but this way we will lose a scope of particular request and every {@link Publisher} event
- * will be send in its own plain request.
+ * will be sent in its own plain request.
  * <p>
  * If reply is a {@link reactor.core.publisher.Flux}, it is wrapped to the {@link Mono} to retain a request scope.
  * The downstream flow is responsible to obtain this {@link reactor.core.publisher.Flux} from a message payload
  * and subscribe to it by itself. The {@link Mono} reply from this component is subscribed from the downstream
  * {@link org.springframework.integration.channel.FluxMessageChannel} or it is adapted to the
- * {@link org.springframework.util.concurrent.ListenableFuture} otherwise.
+ * {@link java.util.concurrent.CompletableFuture} otherwise.
  *
  * @author Artem Bilan
  *

@@ -71,7 +71,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Ngoc Nhan
  *
- * since 4.1
+ * @since 4.1
  */
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
 		implements MessageProducer, HeaderPropagationAware {
@@ -321,7 +321,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return replyChannel;
 	}
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings("removal")
 	private void doProduceOutput(Message<?> requestMessage, MessageHeaders requestHeaders, Object reply,
 			@Nullable Object replyChannelArg) {
 
@@ -361,7 +361,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		sendOutput(createOutputMessage(reply, requestHeaders), replyChannel, false);
 	}
 
-	private static Publisher<?> toPublisherReply(Object reply, @Nullable ReactiveAdapter reactiveAdapter) {
+	private Publisher<?> toPublisherReply(Object reply, @Nullable ReactiveAdapter reactiveAdapter) {
 		if (reactiveAdapter != null) {
 			return reactiveAdapter.toPublisher(reply);
 		}
@@ -371,7 +371,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	@SuppressWarnings("try")
-	private static CompletableFuture<?> toFutureReply(Object reply, @Nullable ReactiveAdapter reactiveAdapter) {
+	private CompletableFuture<?> toFutureReply(Object reply, @Nullable ReactiveAdapter reactiveAdapter) {
 		if (reactiveAdapter != null) {
 			Mono<?> reactiveReply;
 			Publisher<?> publisher = reactiveAdapter.toPublisher(reply);
@@ -419,12 +419,15 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	private static CompletableFuture<?> toCompletableFuture(Object reply) {
-		if (reply instanceof CompletableFuture<?>) {
-			return (CompletableFuture<?>) reply;
+	@SuppressWarnings("removal")
+	private CompletableFuture<?> toCompletableFuture(Object reply) {
+		if (reply instanceof CompletableFuture<?> completableFuture) {
+			return completableFuture;
 		}
 		else {
+			logger.warn("The 'org.springframework.util.concurrent.ListenableFuture' is deprecated for removal." +
+					"The 'CompletableFuture' is recommended to be used instead." +
+					"The 'ListenableFuture' support will be removed in Spring Integration 7.0.");
 			return ((org.springframework.util.concurrent.ListenableFuture<?>) reply).completable();
 		}
 	}

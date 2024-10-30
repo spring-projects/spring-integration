@@ -49,11 +49,10 @@ import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * Base {@link StompSessionManager} implementation to manage a single {@link StompSession}
- * over its {@link ListenableFuture} from the target implementation of this class.
+ * over its {@link CompletableFuture} from the target implementation of this class.
  * <p>
  * The connection to the {@link StompSession} is made during {@link #start()}.
  * <p>
