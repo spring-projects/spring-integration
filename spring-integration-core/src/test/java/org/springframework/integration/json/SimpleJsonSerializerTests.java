@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.json;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 
@@ -29,10 +29,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 5.0
  *
  */
-public class SimpleJsonSerializerTests {
+class SimpleJsonSerializerTests {
 
 	@Test
-	public void test() throws Exception {
+	void verifySimpleJsonSerializerAgainstSimpleContent() throws Exception {
 		Foo foo = new Foo("foo");
 		String json = SimpleJsonSerializer.toJson(foo, "fileInfo");
 		Foo fooOut = JsonObjectMapperProvider.newInstance().fromJson(json, Foo.class);
@@ -43,7 +43,15 @@ public class SimpleJsonSerializerTests {
 		assertThat(fooOut.fileInfo).isNull();
 	}
 
-	public static class Foo {
+	@Test
+	void verifySimpleJsonSerializerAgainstDollarContent() throws Exception {
+		Foo foo = new Foo("some content with $");
+		String json = SimpleJsonSerializer.toJson(foo);
+		Foo fooOut = JsonObjectMapperProvider.newInstance().fromJson(json, Foo.class);
+		assertThat(fooOut.fileInfo).isEqualTo("some content with $");
+	}
+
+	static class Foo {
 
 		private final String foo = "bar";
 
@@ -55,12 +63,11 @@ public class SimpleJsonSerializerTests {
 
 		private String fileInfo;
 
-		public Foo() {
-			super();
+		Foo() {
 		}
 
-		public Foo(String info) {
-			this.fileInfo = "foo";
+		Foo(String info) {
+			this.fileInfo = info;
 		}
 
 		public String getFoo() {
@@ -79,7 +86,11 @@ public class SimpleJsonSerializerTests {
 			return this.bool;
 		}
 
-		public String fileInfo() {
+		public void setFileInfo(String fileInfo) {
+			this.fileInfo = fileInfo;
+		}
+
+		public String getFileInfo() {
 			return this.fileInfo;
 		}
 
