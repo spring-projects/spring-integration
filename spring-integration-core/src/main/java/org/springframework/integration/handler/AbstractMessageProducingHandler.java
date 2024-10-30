@@ -427,7 +427,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		else {
 			logger.warn("The 'org.springframework.util.concurrent.ListenableFuture' is deprecated for removal." +
 					"The 'CompletableFuture' is recommended to be used instead." +
-					"The 'ListenableFuture' support will be removed in Spring Integration 7.0.");
+					"The 'ListenableFuture' support will be removed in Spring Integration 6.5.");
 			return ((org.springframework.util.concurrent.ListenableFuture<?>) reply).completable();
 		}
 	}

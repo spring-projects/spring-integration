@@ -544,7 +544,7 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 			else if (org.springframework.util.concurrent.ListenableFuture.class.equals(returnType)) {
 				logger.warn("The 'org.springframework.util.concurrent.ListenableFuture' is deprecated for removal." +
 						"The 'CompletableFuture' is recommended to be used instead." +
-						"The 'ListenableFuture' support will be removed in Spring Integration 7.0.");
+						"The 'ListenableFuture' support will be removed in Spring Integration 6.5.");
 				return ((org.springframework.core.task.AsyncListenableTaskExecutor) this.asyncExecutor)
 						.submitListenable(invoker::get);
 			}
