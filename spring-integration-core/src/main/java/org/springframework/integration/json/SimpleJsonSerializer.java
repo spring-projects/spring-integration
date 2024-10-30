@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -100,7 +99,7 @@ public final class SimpleJsonSerializer {
 			return result.toString();
 		}
 		else {
-			return "\"" + (result == null ? "null" : Matcher.quoteReplacement(result.toString())) + "\"";
+			return "\"" + (result == null ? "null" : result.toString().replace("\\", "\\\\")) + "\"";
 		}
 	}
 
