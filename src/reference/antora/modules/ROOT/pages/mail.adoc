@@ -328,7 +328,7 @@ The following example configures an IMAP `idle` mail channel:
 
 You can provide `javaMailProperties` by creating and populating a regular `java.utils.Properties` object -- for example, by using the `util` namespace provided by Spring.
 
-IMPORTANT: If your username contains the '@' character, use '%40' instead of '@' to avoid parsing errors from the underlying JavaMail API.
+IMPORTANT: If your username contains the `@` character, use `%40` instead of `@` to avoid parsing errors from the underlying JavaMail API.
 
 The following example shows how to configure a `java.util.Properties` object:
 
@@ -459,8 +459,11 @@ If `shouldMarkMessagesAsRead` is true, the IMAP adapters set the `\Seen` flag.
 In addition, when an email server does not support the `\Recent` flag, the IMAP adapters mark messages with a user flag (by default, `spring-integration-mail-adapter`), as long as the server supports user flags.
 If not, `Flag.FLAGGED` is set to `true`.
 These flags are applied regardless of the `shouldMarkMessagesRead` setting.
+However, starting with version 6.4, the `\Flagged` can be disabled, too.
+The `AbstractMailReceiver` exposes a `setFlaggedAsFallback(boolean flaggedAsFallback)` option to skip setting `\Flagged`.
+In some scenarios such a flag on the message in mailbox is not desirable, regardless `\Recent` or user flag is not suppoerted as well.
 
-As discussed in xref:mail.adoc#search-term[null], the default `SearchTermStrategy` ignore messages that are so flagged.
+As discussed in xref:mail.adoc#search-term[`SearchTerm`], the default `SearchTermStrategy` ignore messages that are so flagged.
 
 Starting with version 4.2.2, you can set the name of the user flag by using `setUserFlag` on the `MailReceiver`.
 Doing so lets multiple receivers use a different flag (as long as the mail server supports user flags).
@@ -473,12 +476,12 @@ Very often, you may encounter a requirement to filter incoming messages (for exa
 You can accomplish this by connecting an inbound mail adapter with an expression-based `Filter`.
 Although it would work, there is a downside to this approach.
 Since messages would be filtered after going through the inbound mail adapter, all such messages would be marked as read (`SEEN`) or unread (depending on the value of `should-mark-messages-as-read` attribute).
-However, in reality, it be more useful to mark messages as `SEEN` only if they pass the filtering criteria.
+However, in reality, it is more useful to mark messages as `SEEN` only if they pass the filtering criteria.
 This is similar to looking at your email client while scrolling through all the messages in the preview pane, but only flagging messages that were actually opened and read as `SEEN`.
 
 Spring Integration 2.0.4 introduced the `mail-filter-expression` attribute on `inbound-channel-adapter` and `imap-idle-channel-adapter`.
 This attribute lets you provide an expression that is a combination of SpEL and a regular expression.
-For example if you would like to read only emails that contain 'Spring Integration' in the subject line, you would configure the `mail-filter-expression` attribute like as follows: `mail-filter-expression="subject matches '(?i).*Spring Integration.*"`.
+For example if you would like to read only emails that contain 'Spring Integration' in the subject line, you would configure the `mail-filter-expression` attribute like as follows: `mail-filter-expression="subject matches '(?i).\*Spring Integration.*"`.
 
 Since `jakarta.mail.internet.MimeMessage` is the root context of the SpEL evaluation context, you can filter on any value available through `MimeMessage`, including the actual body of the message.
 This one is particularly important, since reading the body of the message typically results in such messages being marked as `SEEN` by default.

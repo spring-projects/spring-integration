@@ -269,6 +269,19 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 		return _this();
 	}
 
+	/**
+	 * Whether the {@link jakarta.mail.Flags.Flag#FLAGGED} flag should be added to the message
+	 * when {@code \Recent} or user flags are not supported on mail server.
+	 * @param flaggedAsFallback {@code false} to not add {@link jakarta.mail.Flags.Flag#FLAGGED} flag as a fallback.
+	 * @return the spec.
+	 * @since 6.4
+	 */
+	public S flaggedAsFallback(boolean flaggedAsFallback) {
+		assertReceiver();
+		this.receiver.setFlaggedAsFallback(flaggedAsFallback);
+		return _this();
+	}
+
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		return Collections.singletonMap(this.receiver, this.receiver.getComponentName());

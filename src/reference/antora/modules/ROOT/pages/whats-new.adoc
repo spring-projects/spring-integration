@@ -97,3 +97,9 @@ See xref:zip.adoc[Zip Support] for more information.
 
 The Python scripts evaluation is now migrated to the GraalVM Polyglot.
 See xref:scripting.adoc[Scripting Support] for more information.
+
+[[x6.4-mail-changes]]
+=== Mail Changes
+
+The `AbstractMailReceiver` exposes an option to disable setting `Flags.Flag.FLAGGED` into a received message as fallback flag.
+See xref:mail.adoc[Mail Support] for more information.

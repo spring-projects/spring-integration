@@ -114,6 +114,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private boolean autoCloseFolder = true;
 
+	private boolean flaggedAsFallback = true;
+
 	private volatile Store store;
 
 	private volatile Folder folder;
@@ -291,6 +293,16 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 */
 	public void setAutoCloseFolder(boolean autoCloseFolder) {
 		this.autoCloseFolder = autoCloseFolder;
+	}
+
+	/**
+	 * Whether the {@link Flags.Flag#FLAGGED} flag should be added to the message
+	 * when {@code \Recent} or user flags are not supported on mail server.
+	 * @param flaggedAsFallback {@code false} to not add {@link Flags.Flag#FLAGGED} flag as a fallback.
+	 * @since 6.4
+	 */
+	public void setFlaggedAsFallback(boolean flaggedAsFallback) {
+		this.flaggedAsFallback = flaggedAsFallback;
 	}
 
 	protected Folder getFolder() {
@@ -544,7 +556,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					siFlags.add(this.userFlag);
 					message.setFlags(siFlags, true);
 				}
-				else {
+				else if (this.flaggedAsFallback) {
 					this.logger.debug("USER flags are not supported by this mail server. " +
 							"Flagging message with system flag");
 					message.setFlag(Flags.Flag.FLAGGED, true);
@@ -554,10 +566,6 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 	}
 
-	/**
-	 * Will filter Messages thru selector. Messages that did not pass selector filtering criteria
-	 * will be filtered out and remain on the server as never touched.
-	 */
 	private MimeMessage[] filterMessagesThruSelector(Message[] messages) throws MessagingException {
 		List<MimeMessage> filteredMessages = new LinkedList<>();
 		for (Message message1 : messages) {
@@ -567,13 +575,13 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 						this.selectorExpression.getValue(this.evaluationContext, message, Boolean.class))) {
 					filteredMessages.add(message);
 				}
-				else if (this.logger.isDebugEnabled()) {
+				else {
 					if (message.isExpunged()) {
 						this.logger.debug("Expunged message discarded and will not be further processed.");
 					}
 					else {
 						String subject = message.getSubject();
-						this.logger.debug("Fetched email with subject '" + subject +
+						this.logger.debug(() -> "Fetched email with subject '" + subject +
 								"' will be discarded by the matching filter and will not be flagged as SEEN.");
 					}
 				}
@@ -586,7 +594,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	/**
-	 * Fetches the specified messages from this receiver's folder. Default
+	 * Fetch the specified messages from this receiver's folder. Default
 	 * implementation {@link Folder#fetch(Message[], FetchProfile) fetches}
 	 * every {@link jakarta.mail.FetchProfile.Item}.
 	 * @param messages the messages to fetch
@@ -601,7 +609,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	/**
-	 * Deletes the given messages from this receiver's folder.
+	 * Delete the given messages from this receiver's folder.
 	 * @param messages the messages to delete
 	 * @throws MessagingException in case of JavaMail errors
 	 */
