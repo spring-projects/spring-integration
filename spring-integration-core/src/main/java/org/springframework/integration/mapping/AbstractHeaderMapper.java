@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -490,13 +491,13 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			Assert.notNull(patterns, "Patterns must no be null");
 			Assert.notEmpty(patterns, "At least one pattern must be specified");
 			for (String pattern : patterns) {
-				this.patterns.add(pattern.toLowerCase());
+				this.patterns.add(pattern.toLowerCase(Locale.ROOT));
 			}
 		}
 
 		@Override
 		public boolean matchHeader(String headerName) {
-			String header = headerName.toLowerCase();
+			String header = headerName.toLowerCase(Locale.ROOT);
 			for (String pattern : this.patterns) {
 				if (PatternMatchUtils.simpleMatch(pattern, header)) {
 					if (LOGGER.isDebugEnabled()) {
@@ -534,13 +535,13 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 
 		public SinglePatternBasedHeaderMatcher(String pattern, boolean negate) {
 			Assert.notNull(pattern, "Pattern must no be null");
-			this.pattern = pattern.toLowerCase();
+			this.pattern = pattern.toLowerCase(Locale.ROOT);
 			this.negate = negate;
 		}
 
 		@Override
 		public boolean matchHeader(String headerName) {
-			String header = headerName.toLowerCase();
+			String header = headerName.toLowerCase(Locale.ROOT);
 			if (PatternMatchUtils.simpleMatch(this.pattern, header)) {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug(MessageFormat.format(
