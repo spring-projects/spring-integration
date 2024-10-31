@@ -382,11 +382,10 @@ public class ImapMailReceiverTests {
 		Expression selectorExpression = new SpelExpressionParser().parseExpression("false");
 		receiver.setSelectorExpression(selectorExpression);
 		receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
-		verify(logger, times(2)).isDebugEnabled();
-		verify(msg1, never()).isExpunged();
-		verify(msg2, never()).isExpunged();
-		verify(msg1, never()).getSubject();
-		verify(msg2, never()).getSubject();
+		verify(msg1).isExpunged();
+		verify(msg2).isExpunged();
+		verify(msg1).getSubject();
+		verify(msg2).getSubject();
 		verify(logger, never()).debug(Mockito.startsWith("Expunged message received"));
 		verify(logger, never()).debug(org.mockito.ArgumentMatchers.contains("will be discarded by the matching filter"));
 	}
@@ -407,13 +406,11 @@ public class ImapMailReceiverTests {
 		Expression selectorExpression = new SpelExpressionParser().parseExpression("false");
 		receiver.setSelectorExpression(selectorExpression);
 		receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
-		verify(logger, times(2)).isDebugEnabled();
 		verify(msg1).isExpunged();
 		verify(msg2).isExpunged();
 		verify(msg1, never()).getSubject();
 		verify(msg2).getSubject();
 		verify(logger).debug(Mockito.startsWith("Expunged message discarded"));
-		verify(logger).debug(org.mockito.ArgumentMatchers.contains("'msg2' will be discarded by the matching filter"));
 	}
 
 	@Test
@@ -1066,6 +1063,7 @@ public class ImapMailReceiverTests {
 			}
 			super.writeTo(os);
 		}
+
 	}
 
 }
