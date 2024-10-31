@@ -18,6 +18,7 @@ package org.springframework.integration.mail;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
@@ -79,7 +80,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	public ImapMailReceiver(String url) {
 		super(url);
 		if (url != null) {
-			Assert.isTrue(url.toLowerCase().startsWith(PROTOCOL),
+			Assert.isTrue(url.toLowerCase(Locale.ROOT).startsWith(PROTOCOL),
 					"URL must start with 'imap' for the IMAP Mail receiver.");
 		}
 		else {

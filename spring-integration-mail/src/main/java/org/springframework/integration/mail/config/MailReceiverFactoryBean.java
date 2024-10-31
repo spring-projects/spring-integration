@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mail.config;
 
+import java.util.Locale;
 import java.util.Properties;
 
 import jakarta.mail.Authenticator;
@@ -162,8 +163,8 @@ public class MailReceiverFactoryBean extends AbstractFactoryBean<MailReceiver> {
 
 	private MailReceiver createReceiver() { // NOSONAR
 		verifyProtocol();
-		boolean isPop3 = this.protocol.toLowerCase().startsWith("pop3");
-		boolean isImap = this.protocol.toLowerCase().startsWith("imap");
+		boolean isPop3 = this.protocol.toLowerCase(Locale.ROOT).startsWith("pop3");
+		boolean isImap = this.protocol.toLowerCase(Locale.ROOT).startsWith("imap");
 		Assert.isTrue(isPop3 || isImap, "the store URI must begin with 'pop3' or 'imap'");
 		AbstractMailReceiver mailReceiver = isPop3
 				? new Pop3MailReceiver(this.storeUri)
