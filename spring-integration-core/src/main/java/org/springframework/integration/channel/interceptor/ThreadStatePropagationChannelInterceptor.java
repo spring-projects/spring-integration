@@ -16,8 +16,8 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import io.micrometer.common.lang.Nullable;
 
@@ -104,14 +104,14 @@ public abstract class ThreadStatePropagationChannelInterceptor<S> implements Exe
 		private final Queue<Object> stateQueue;
 
 		MessageWithThreadState(Message<?> message, Object state) {
-			this(message, new LinkedList<>());
+			this(message, new LinkedBlockingQueue<>());
 			this.stateQueue.add(state);
 		}
 
 		@SuppressWarnings("unchecked")
 		private MessageWithThreadState(Message<?> message, Queue<Object> stateQueue) {
 			this.message = (Message<Object>) message;
-			this.stateQueue = new LinkedList<>(stateQueue);
+			this.stateQueue = new LinkedBlockingQueue<>(stateQueue);
 		}
 
 		@Override
