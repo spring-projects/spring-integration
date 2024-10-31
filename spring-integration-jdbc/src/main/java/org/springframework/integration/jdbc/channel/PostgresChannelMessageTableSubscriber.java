@@ -19,6 +19,7 @@ package org.springframework.integration.jdbc.channel;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -212,7 +213,7 @@ public final class PostgresChannelMessageTableSubscriber implements SmartLifecyc
 				try {
 					PgConnection conn = this.connectionSupplier.get();
 					try (Statement stmt = conn.createStatement()) {
-						stmt.execute("LISTEN " + this.tablePrefix.toLowerCase() + "channel_message_notify");
+						stmt.execute("LISTEN " + this.tablePrefix.toLowerCase(Locale.ROOT) + "channel_message_notify");
 					}
 					catch (Exception ex) {
 						try {

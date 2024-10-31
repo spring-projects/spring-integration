@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -202,10 +202,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	static {
 		for (String header : HTTP_REQUEST_HEADER_NAMES) {
-			HTTP_REQUEST_HEADER_NAMES_LOWER.add(header.toLowerCase());
+			HTTP_REQUEST_HEADER_NAMES_LOWER.add(header.toLowerCase(Locale.ROOT));
 		}
 		for (String header : HTTP_RESPONSE_HEADER_NAMES) {
-			HTTP_RESPONSE_HEADER_NAMES_LOWER.add(header.toLowerCase());
+			HTTP_RESPONSE_HEADER_NAMES_LOWER.add(header.toLowerCase(Locale.ROOT));
 		}
 	}
 
@@ -266,13 +266,13 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				outboundHeaderNamesLower[i] = this.outboundHeaderNames[i];
 			}
 			else {
-				outboundHeaderNamesLower[i] = this.outboundHeaderNames[i].toLowerCase();
+				outboundHeaderNamesLower[i] = this.outboundHeaderNames[i].toLowerCase(Locale.ROOT);
 			}
 		}
 		this.outboundHeaderNamesLowerWithContentType =
 				Arrays.copyOf(outboundHeaderNamesLower, this.outboundHeaderNames.length + 1);
 		this.outboundHeaderNamesLowerWithContentType[this.outboundHeaderNamesLowerWithContentType.length - 1]
-				= MessageHeaders.CONTENT_TYPE.toLowerCase();
+				= MessageHeaders.CONTENT_TYPE.toLowerCase(Locale.ROOT);
 	}
 
 	/**
@@ -298,7 +298,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				this.inboundHeaderNamesLower[i] = this.inboundHeaderNames[i];
 			}
 			else {
-				this.inboundHeaderNamesLower[i] = this.inboundHeaderNames[i].toLowerCase();
+				this.inboundHeaderNamesLower[i] = this.inboundHeaderNames[i].toLowerCase(Locale.ROOT);
 			}
 		}
 	}
@@ -360,7 +360,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		for (Entry<String, Object> entry : headers.entrySet()) {
 			String name = entry.getKey();
 			Object value = entry.getValue();
-			String lowerName = name.toLowerCase();
+			String lowerName = name.toLowerCase(Locale.ROOT);
 			if (value != null && shouldMapOutboundHeader(lowerName)) {
 				if (!HTTP_REQUEST_HEADER_NAMES_LOWER.contains(lowerName) &&
 						!HTTP_RESPONSE_HEADER_NAMES_LOWER.contains(lowerName) &&
@@ -380,7 +380,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	private void setHttpHeader(HttpHeaders target, String name, Object value) { // NOSONAR
-		switch (name.toLowerCase()) {
+		switch (name.toLowerCase(Locale.ROOT)) {
 			case ACCEPT_LOWER:
 				setAccept(target, value);
 				break;
@@ -775,7 +775,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		Map<String, Object> target = new HashMap<>();
 		Set<String> headerNames = source.keySet();
 		for (String name : headerNames) {
-			String lowerName = name.toLowerCase();
+			String lowerName = name.toLowerCase(Locale.ROOT);
 			if (shouldMapInboundHeader(lowerName)) {
 				if (!HTTP_REQUEST_HEADER_NAMES_LOWER.contains(lowerName)
 						&& !HTTP_RESPONSE_HEADER_NAMES_LOWER.contains(lowerName)) {
@@ -810,49 +810,51 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	protected Object getHttpHeader(HttpHeaders source, String name) { // NOSONAR
-		switch (name.toLowerCase()) {
-			case ACCEPT_LOWER:
-				return source.getAccept();
-			case ACCEPT_CHARSET_LOWER:
-				return source.getAcceptCharset();
-			case ALLOW_LOWER:
-				return source.getAllow();
-			case CACHE_CONTROL_LOWER:
+		return switch (name.toLowerCase(Locale.ROOT)) {
+			case ACCEPT_LOWER -> source.getAccept();
+			case ACCEPT_CHARSET_LOWER -> source.getAcceptCharset();
+			case ALLOW_LOWER -> source.getAllow();
+			case CACHE_CONTROL_LOWER -> {
 				String cacheControl = source.getCacheControl();
-				return (StringUtils.hasText(cacheControl)) ? cacheControl : null;
-			case CONTENT_LENGTH_LOWER:
+				yield (StringUtils.hasText(cacheControl)) ? cacheControl : null;
+			}
+			case CONTENT_LENGTH_LOWER -> {
 				long contentLength = source.getContentLength();
-				return (contentLength > -1) ? contentLength : null;
-			case CONTENT_TYPE_LOWER:
-				return source.getContentType();
-			case DATE_LOWER:
+				yield (contentLength > -1) ? contentLength : null;
+			}
+			case CONTENT_TYPE_LOWER -> source.getContentType();
+			case DATE_LOWER -> {
 				long date = source.getDate();
-				return (date > -1) ? date : null;
-			case ETAG_LOWER:
+				yield (date > -1) ? date : null;
+			}
+			case ETAG_LOWER -> {
 				String eTag = source.getETag();
-				return (StringUtils.hasText(eTag)) ? eTag : null;
-			case EXPIRES_LOWER:
+				yield (StringUtils.hasText(eTag)) ? eTag : null;
+			}
+			case EXPIRES_LOWER -> {
 				long expires = source.getExpires();
-				return (expires > -1) ? expires : null;
-			case IF_NONE_MATCH_LOWER:
-				return source.getIfNoneMatch();
-			case IF_MODIFIED_SINCE_LOWER:
+				yield (expires > -1) ? expires : null;
+			}
+			case IF_NONE_MATCH_LOWER -> source.getIfNoneMatch();
+			case IF_MODIFIED_SINCE_LOWER -> {
 				long modifiedSince = source.getIfModifiedSince();
-				return (modifiedSince > -1) ? modifiedSince : null;
-			case IF_UNMODIFIED_SINCE_LOWER:
+				yield (modifiedSince > -1) ? modifiedSince : null;
+			}
+			case IF_UNMODIFIED_SINCE_LOWER -> {
 				long unmodifiedSince = source.getIfUnmodifiedSince();
-				return (unmodifiedSince > -1) ? unmodifiedSince : null;
-			case LAST_MODIFIED_LOWER:
+				yield (unmodifiedSince > -1) ? unmodifiedSince : null;
+			}
+			case LAST_MODIFIED_LOWER -> {
 				long lastModified = source.getLastModified();
-				return (lastModified > -1) ? lastModified : null;
-			case LOCATION_LOWER:
-				return source.getLocation();
-			case PRAGMA_LOWER:
+				yield (lastModified > -1) ? lastModified : null;
+			}
+			case LOCATION_LOWER -> source.getLocation();
+			case PRAGMA_LOWER -> {
 				String pragma = source.getPragma();
-				return (StringUtils.hasText(pragma)) ? pragma : null;
-			default:
-				return source.get(name);
-		}
+				yield (StringUtils.hasText(pragma)) ? pragma : null;
+			}
+			default -> source.get(name);
+		};
 	}
 
 	private void setMessageHeader(Map<String, Object> target, String name, Object value) {

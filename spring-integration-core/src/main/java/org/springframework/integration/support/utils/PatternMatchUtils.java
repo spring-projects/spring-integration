@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.support.utils;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * Utility methods for pattern matching.
@@ -48,9 +49,9 @@ public final class PatternMatchUtils {
 	 */
 	public static Boolean smartMatchIgnoreCase(String str, String... patterns) {
 		if (patterns != null) {
-			return smartMatch(str.toLowerCase(),
+			return smartMatch(str.toLowerCase(Locale.ROOT),
 					Arrays.stream(patterns)
-							.map(String::toLowerCase)
+							.map((pattern) -> pattern.toLowerCase(Locale.ROOT))
 							.toArray(String[]::new));
 		}
 
