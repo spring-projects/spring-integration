@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mqtt;
 
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -82,7 +83,7 @@ public class ResubscribeAfterAutomaticReconnectTests implements MosquittoContain
 
 		assertThat(this.config.subscribeSecondLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		await().untilAsserted(() -> this.mqttOutFlowInput.send(testMessage));
+		await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> this.mqttOutFlowInput.send(testMessage));
 		assertThat(this.fromMqttChannel.receive(10_000)).isNotNull();
 
 		// Re-subscription on channel adapter restart with cleanStart

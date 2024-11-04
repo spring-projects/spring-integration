@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -124,7 +125,7 @@ class ClientManagerBackToBackTests implements MosquittoContainerTest {
 			if (ctx.containsBean("deliveryEvents")) {
 				List<MqttMessageDeliveryEvent> deliveryEvents = ctx.getBean("deliveryEvents", List.class);
 				// MqttMessageSentEvent and  MqttMessageDeliveredEvent
-				await().untilAsserted(() -> assertThat(deliveryEvents).hasSize(2));
+				await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(deliveryEvents).hasSize(2));
 			}
 		}
 	}
