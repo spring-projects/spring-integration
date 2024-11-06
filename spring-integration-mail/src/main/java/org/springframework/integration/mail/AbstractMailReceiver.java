@@ -516,6 +516,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 
 		setMessageFlagsAndMaybeDeleteMessages(messages);
+		if (filteredMessages.length > 0 && filteredMessages[0] instanceof IntegrationMimeMessage) {
+			setMessageFlagsAndMaybeDeleteMessages(filteredMessages);
+		}
 	}
 
 	private void setMessageFlagsAndMaybeDeleteMessages(Message[] messages) throws MessagingException {

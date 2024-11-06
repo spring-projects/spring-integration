@@ -452,7 +452,7 @@ public class ImapMailReceiverTests {
 		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
 		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
 
-		verify(receiver, times(1)).deleteMessages(Mockito.any());
+		verify(receiver, times(2)).deleteMessages(Mockito.any());
 	}
 
 	@Test
