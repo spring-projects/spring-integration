@@ -1,0 +1,28 @@
+name: Update Version for project on spring.io
+
+on:
+  workflow_dispatch:
+    inputs:
+      newVersion:
+        description: 'Version to update on website, e.g 3.0.0-M1, 3.1.0-RC1, 3.2.0 etc.'
+
+jobs:
+  update-version-on-website:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - name: Checkout Common Repo
+        uses: actions/checkout@v4
+        with:
+          repository: spring-io/spring-github-workflows
+          path: spring-github-workflows
+          show-progress: false
+
+      - name: Build and Publish
+        uses: ./spring-github-workflows/.github/actions/spring-website-project-version-update
+        with:
+          newVersion: ${{ inputs.newVersion }}
+          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
