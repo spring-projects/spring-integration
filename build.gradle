@@ -75,7 +75,7 @@ ext {
     hamcrestVersion = '2.2'
     hazelcastVersion = '5.4.0'
     hibernateVersion = '6.4.10.Final'
-    hsqldbVersion = '2.7.3'
+    hsqldbVersion = '2.7.4'
     h2Version = '2.2.224'
     jacksonVersion = '2.17.3'
     jaxbVersion = '4.0.5'
@@ -120,7 +120,7 @@ ext {
     testcontainersVersion = '1.19.8'
     tomcatVersion = '10.1.31'
     xmlUnitVersion = '2.9.1'
-    xstreamVersion = '1.4.20'
+    xstreamVersion = '1.4.21'
     ztZipVersion = '1.17'
 
     javaProjects = subprojects - project(':spring-integration-bom')
