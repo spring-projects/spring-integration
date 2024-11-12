@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -57,7 +57,7 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		Map<String, Object> encodedMessageToCheck =
-				objectMapper.readValue(encodedMessage, new TypeReference<Map<String, Object>>() {
+				objectMapper.readValue(encodedMessage, new TypeReference<>() {
 
 				});
 
@@ -140,7 +140,7 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		Map<String, Object> encodedMessageToCheck =
-				objectMapper.readValue(encodedMessage, new TypeReference<Map<String, Object>>() {
+				objectMapper.readValue(encodedMessage, new TypeReference<>() {
 
 				});
 

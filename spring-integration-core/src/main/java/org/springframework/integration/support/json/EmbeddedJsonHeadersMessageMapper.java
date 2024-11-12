@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,15 +42,16 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * For outbound messages, uses a message-aware Jackson object mapper to render the message
  * as JSON. For messages with {@code byte[]} payloads, if rendered as JSON, Jackson
- * performs Base64 conversion on the bytes. If the {@link #setRawBytes(boolean) rawBytes}
- * property is true (default), the result has the form
- * &lt;headersLen&gt;&lt;headers&gt;&lt;payloadLen&gt;&lt;payload&gt;; with the headers
+ * performs Base64 conversion on the bytes. If payload is {@code byte[]} and
+ * the {@link #setRawBytes(boolean) rawBytes} property is true (default), the result has the form
+ * {@code [headersLen][headers][payloadLen][payload]}; with the headers
  * rendered in JSON and the payload unchanged.
+ * Otherwise, message is fully serialized and deserialized with Jackson object mapper.
  * <p>
  * By default, all headers are included; you can provide simple patterns to specify a
  * subset of headers.
  * <p>
- * If neither expected format is detected, or an error occurs during conversion, the
+ * If neither expected format is detected, nor an error occurs during conversion, the
  * payload of the message is the original {@code byte[]}.
  * <p>
  * <b>IMPORTANT</b>
@@ -63,7 +64,9 @@ import org.springframework.messaging.support.GenericMessage;
  *	"org.springframework.messaging.support",
  *	"org.springframework.integration.support",
  *	"org.springframework.integration.message",
- *	"org.springframework.integration.store"
+ *	"org.springframework.integration.store",
+ *	"org.springframework.integration.history",
+ * 	"org.springframework.integration.handler"
  * </pre>
  * <p>
  * To add more packages, create an object mapper using
@@ -133,9 +136,9 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	/**
 	 * For messages with {@code byte[]} payloads, if rendered as JSON, Jackson performs
 	 * Base64 conversion on the bytes. If this property is true (default), the result has
-	 * the form &lt;headersLen&gt;&lt;headers&gt;&lt;payloadLen&gt;&lt;payload&gt;; with
-	 * the headers rendered in JSON and the payload unchanged. Set to false to render
-	 * the bytes as base64.
+	 * the form {@code [headersLen][headers][payloadLen][payload]}; with
+	 * the headers rendered in JSON and the payload unchanged.
+	 * Set to {@code false} to render the bytes as base64.
 	 * @param rawBytes false to encode as base64.
 	 */
 	public void setRawBytes(boolean rawBytes) {
@@ -143,9 +146,9 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	}
 
 	/**
-	 * Set to true to make the header name pattern match case sensitive.
+	 * Set to true to make the header name pattern match case-sensitive.
 	 * Default false.
-	 * @param caseSensitive true to make case sensitive.
+	 * @param caseSensitive true to make case-sensitive.
 	 */
 	public void setCaseSensitive(boolean caseSensitive) {
 		this.caseSensitive = caseSensitive;
@@ -162,8 +165,8 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 						? message.getHeaders()
 						: pruneHeaders(message.getHeaders());
 
-		if (this.rawBytes && message.getPayload() instanceof byte[]) {
-			return fromBytesPayload((byte[]) message.getPayload(), headersToEncode);
+		if (this.rawBytes && message.getPayload() instanceof byte[] bytes) {
+			return fromBytesPayload(bytes, headersToEncode);
 		}
 		else {
 			Message<?> messageToEncode = message;
@@ -182,8 +185,8 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 			try {
 				return this.objectMapper.writeValueAsBytes(messageToEncode);
 			}
-			catch (JsonProcessingException e) {
-				throw new UncheckedIOException(e);
+			catch (JsonProcessingException ex) {
+				throw new UncheckedIOException(ex);
 			}
 		}
 	}
@@ -212,8 +215,8 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 			buffer.put(payload);
 			return buffer.array();
 		}
-		catch (JsonProcessingException e) {
-			throw new UncheckedIOException(e);
+		catch (JsonProcessingException ex) {
+			throw new UncheckedIOException(ex);
 		}
 	}
 
@@ -223,15 +226,15 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 		try {
 			message = decodeNativeFormat(bytes, headers);
 		}
-		catch (@SuppressWarnings("unused") Exception e) {
-			this.logger.debug("Failed to decode native format", e);
+		catch (@SuppressWarnings("unused") Exception ex) {
+			this.logger.debug("Failed to decode native format", ex);
 		}
 		if (message == null) {
 			try {
 				message = (Message<?>) this.objectMapper.readValue(bytes, Object.class);
 			}
-			catch (Exception e) {
-				this.logger.debug("Failed to decode JSON", e);
+			catch (Exception ex) {
+				this.logger.debug("Failed to decode JSON", ex);
 			}
 		}
 		if (message != null) {
