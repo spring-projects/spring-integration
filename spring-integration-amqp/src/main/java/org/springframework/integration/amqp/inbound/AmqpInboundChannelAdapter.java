@@ -124,6 +124,8 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	private BatchMode batchMode = BatchMode.MESSAGES;
 
+	private String headerNameForBatchedHeaders = CONSOLIDATED_HEADERS;
+
 	/**
 	 * Construct an instance using the provided container.
 	 * @param listenerContainer the container.
@@ -137,7 +139,8 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		this.messageListenerContainer = listenerContainer;
 		this.messageListenerContainer.setAutoStartup(false);
 		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
-		this.abstractListenerContainer = listenerContainer instanceof AbstractMessageListenerContainer abstractMessageListenerContainer
+		this.abstractListenerContainer =
+				listenerContainer instanceof AbstractMessageListenerContainer abstractMessageListenerContainer
 				? abstractMessageListenerContainer
 				: null;
 	}
@@ -218,6 +221,20 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 	public void setBatchMode(BatchMode batchMode) {
 		Assert.notNull(batchMode, "'batchMode' cannot be null");
 		this.batchMode = batchMode;
+	}
+
+	/**
+	 * Set a header name containing {@code List<Map<String, Object>} headers when batch mode
+	 * is {@link BatchMode#EXTRACT_PAYLOADS_WITH_HEADERS}.
+	 * Defaults to {@link #CONSOLIDATED_HEADERS}.
+	 * @param headerNameForBatchedHeaders the name of header
+	 * containing {@code List<Map<String, Object>} headers when batch mode
+	 * is {@link BatchMode#EXTRACT_PAYLOADS_WITH_HEADERS}.
+	 * @since 6.4
+	 */
+	public void setHeaderNameForBatchedHeaders(String headerNameForBatchedHeaders) {
+		Assert.hasText(headerNameForBatchedHeaders, "'headerNameForBatchedHeaders' must not be empty");
+		this.headerNameForBatchedHeaders = headerNameForBatchedHeaders;
 	}
 
 	@Override
@@ -436,7 +453,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 				headers.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, new AtomicInteger());
 			}
 			if (listHeaders != null) {
-				headers.put(CONSOLIDATED_HEADERS, listHeaders);
+				headers.put(AmqpInboundChannelAdapter.this.headerNameForBatchedHeaders, listHeaders);
 			}
 			return getMessageBuilderFactory()
 					.withPayload(payload)
