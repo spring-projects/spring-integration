@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
@@ -30,6 +29,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.InterceptableChannel;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +44,7 @@ public class GlobalChannelInterceptorProcessorTests {
 
 	private ListableBeanFactory beanFactory;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		this.globalChannelInterceptorProcessor = new GlobalChannelInterceptorProcessor();
 		this.beanFactory = mock(ListableBeanFactory.class);
@@ -58,7 +58,7 @@ public class GlobalChannelInterceptorProcessorTests {
 		this.globalChannelInterceptorProcessor.afterSingletonsInstantiated();
 		verify(this.beanFactory)
 				.getBeansOfType(GlobalChannelInterceptorWrapper.class);
-		verify(this.beanFactory, Mockito.never())
+		verify(this.beanFactory, never())
 				.getBeansOfType(InterceptableChannel.class);
 	}
 
@@ -66,11 +66,11 @@ public class GlobalChannelInterceptorProcessorTests {
 	public void testProcessorWithInterceptorDefaultPattern() {
 		Map<String, GlobalChannelInterceptorWrapper> interceptors = new HashMap<>();
 		Map<String, InterceptableChannel> channels = new HashMap<>();
-		ChannelInterceptor channelInterceptor = Mockito.mock(ChannelInterceptor.class);
+		ChannelInterceptor channelInterceptor = mock();
 		GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper =
 				new GlobalChannelInterceptorWrapper(channelInterceptor);
 
-		InterceptableChannel channel = Mockito.mock(InterceptableChannel.class);
+		InterceptableChannel channel = mock();
 
 		interceptors.put("Test-1", globalChannelInterceptorWrapper);
 		channels.put("Test-1", channel);
@@ -89,11 +89,11 @@ public class GlobalChannelInterceptorProcessorTests {
 	public void testProcessorWithInterceptorMatchingPattern() {
 		Map<String, GlobalChannelInterceptorWrapper> interceptors = new HashMap<>();
 		Map<String, InterceptableChannel> channels = new HashMap<>();
-		ChannelInterceptor channelInterceptor = Mockito.mock(ChannelInterceptor.class);
+		ChannelInterceptor channelInterceptor = mock();
 		GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper =
 				new GlobalChannelInterceptorWrapper(channelInterceptor);
 
-		InterceptableChannel channel = Mockito.mock(InterceptableChannel.class);
+		InterceptableChannel channel = mock();
 
 		globalChannelInterceptorWrapper.setPatterns(new String[] {"Te*"});
 		interceptors.put("Test-1", globalChannelInterceptorWrapper);
@@ -112,11 +112,11 @@ public class GlobalChannelInterceptorProcessorTests {
 	public void testProcessorWithInterceptorNotMatchingPattern() {
 		Map<String, GlobalChannelInterceptorWrapper> interceptors = new HashMap<>();
 		Map<String, InterceptableChannel> channels = new HashMap<>();
-		ChannelInterceptor channelInterceptor = Mockito.mock(ChannelInterceptor.class);
+		ChannelInterceptor channelInterceptor = mock();
 		GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper =
 				new GlobalChannelInterceptorWrapper(channelInterceptor);
 
-		InterceptableChannel channel = Mockito.mock(InterceptableChannel.class);
+		InterceptableChannel channel = mock();
 
 		globalChannelInterceptorWrapper.setPatterns(new String[] {"te*"});
 		interceptors.put("Test-1", globalChannelInterceptorWrapper);
@@ -128,7 +128,7 @@ public class GlobalChannelInterceptorProcessorTests {
 
 		this.globalChannelInterceptorProcessor.afterSingletonsInstantiated();
 
-		verify(channel, Mockito.never())
+		verify(channel, never())
 				.addInterceptor(channelInterceptor);
 	}
 
@@ -136,11 +136,11 @@ public class GlobalChannelInterceptorProcessorTests {
 	public void testProcessorWithInterceptorMatchingNegativePattern() {
 		Map<String, GlobalChannelInterceptorWrapper> interceptors = new HashMap<>();
 		Map<String, InterceptableChannel> channels = new HashMap<>();
-		ChannelInterceptor channelInterceptor = Mockito.mock(ChannelInterceptor.class);
+		ChannelInterceptor channelInterceptor = mock();
 		GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper =
 				new GlobalChannelInterceptorWrapper(channelInterceptor);
 
-		InterceptableChannel channel = Mockito.mock(InterceptableChannel.class);
+		InterceptableChannel channel = mock();
 
 		globalChannelInterceptorWrapper.setPatterns(new String[] {"!te*", "!Te*"});
 		interceptors.put("Test-1", globalChannelInterceptorWrapper);
@@ -151,7 +151,7 @@ public class GlobalChannelInterceptorProcessorTests {
 				.thenReturn(channels);
 		this.globalChannelInterceptorProcessor.afterSingletonsInstantiated();
 
-		verify(channel, Mockito.never())
+		verify(channel, never())
 				.addInterceptor(channelInterceptor);
 	}
 

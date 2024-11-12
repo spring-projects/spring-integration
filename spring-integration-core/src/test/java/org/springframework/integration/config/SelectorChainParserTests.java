@@ -18,19 +18,18 @@ package org.springframework.integration.config;
 
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.selector.MessageSelectorChain;
 import org.springframework.integration.selector.MessageSelectorChain.VotingStrategy;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,8 +38,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Iwein Fuld
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class SelectorChainParserTests {
 
 	@Autowired
@@ -96,12 +95,11 @@ public class SelectorChainParserTests {
 
 	@SuppressWarnings("unchecked")
 	private List<MessageSelector> getSelectors(MessageSelectorChain chain) {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(chain);
-		return (List<MessageSelector>) accessor.getPropertyValue("selectors");
+		return (List<MessageSelector>) TestUtils.getPropertyValue(chain, "selectors", List.class);
 	}
 
 	private VotingStrategy getStrategy(MessageSelectorChain chain) {
-		return (VotingStrategy) new DirectFieldAccessor(chain).getPropertyValue("votingStrategy");
+		return TestUtils.getPropertyValue(chain, "votingStrategy", VotingStrategy.class);
 	}
 
 	public static class StubPojoSelector {

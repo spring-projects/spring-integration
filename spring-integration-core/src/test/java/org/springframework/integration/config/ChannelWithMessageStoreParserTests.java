@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ package org.springframework.integration.config;
 
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,7 +32,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Dave Syer
  * @author Artem Bilan
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class ChannelWithMessageStoreParserTests {
 
@@ -71,7 +70,6 @@ public class ChannelWithMessageStoreParserTests {
 	private MessageGroupStore priorityMessageStore;
 
 	@Test
-	@DirtiesContext
 	public void testActivatorSendsToPersistentQueue() throws Exception {
 
 		input.send(createMessage("123", "id1", 3, 1, null));
@@ -87,7 +85,6 @@ public class ChannelWithMessageStoreParserTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void testPriorityMessageStore() {
 		assertThat(TestUtils.getPropertyValue(this.priorityChannel, "queue.messageGroupStore"))
 				.isSameAs(this.priorityMessageStore);
@@ -96,6 +93,7 @@ public class ChannelWithMessageStoreParserTests {
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel outputChannel) {
+
 		return MessageBuilder.withPayload(payload).setCorrelationId(correlationId).setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber).setReplyChannel(outputChannel).build();
 	}

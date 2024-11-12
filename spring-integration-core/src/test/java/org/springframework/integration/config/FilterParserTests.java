@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,19 +29,20 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
+@DirtiesContext
 public class FilterParserTests {
 
 	@Autowired
@@ -136,9 +136,10 @@ public class FilterParserTests {
 		assertThat(reply).isNotNull();
 	}
 
-	@Test(expected = MessageRejectedException.class)
+	@Test
 	public void exceptionThrowingFilterRejects() {
-		exceptionInput.send(new GenericMessage<>(""));
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> exceptionInput.send(new GenericMessage<>("")));
 	}
 
 	@Test
@@ -150,20 +151,14 @@ public class FilterParserTests {
 		assertThat(adapterOutput.receive(0)).isNull();
 	}
 
-	@Test(expected = MessageRejectedException.class)
-	public void filterWithDiscardChannelAndException() throws Exception {
-		Exception exception = null;
-		try {
-			discardAndExceptionInput.send(new GenericMessage<>(""));
-		}
-		catch (Exception e) {
-			exception = e;
-		}
+	@Test
+	public void filterWithDiscardChannelAndException() {
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> discardAndExceptionInput.send(new GenericMessage<>("")));
 		Message<?> discard = discardAndExceptionOutput.receive(0);
 		assertThat(discard).isNotNull();
 		assertThat(discard.getPayload()).isEqualTo("");
 		assertThat(adapterOutput.receive(0)).isNull();
-		throw exception;
 	}
 
 	public static class TestSelectorBean {

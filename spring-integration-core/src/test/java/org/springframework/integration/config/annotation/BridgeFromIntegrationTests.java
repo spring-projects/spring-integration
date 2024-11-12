@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.annotation;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -32,8 +31,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,8 +41,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 5.0.8
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = BridgeFromIntegrationTests.RootTestConfiguration.class)
+@SpringJUnitConfig(classes = BridgeFromIntegrationTests.RootTestConfiguration.class)
+@DirtiesContext
 public class BridgeFromIntegrationTests {
 
 	@Autowired
