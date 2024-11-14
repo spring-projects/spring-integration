@@ -110,7 +110,6 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		CompletableFuture<Message<?>> f = service.returnMessageListenable("foo");
-		long start = System.currentTimeMillis();
 		final AtomicReference<Message<?>> result = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		f.whenComplete((message, throwable) -> {
@@ -120,8 +119,6 @@ public class AsyncGatewayTests {
 			}
 		});
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		long elapsed = System.currentTimeMillis() - start;
-		assertThat(elapsed >= 200).isTrue();
 		assertThat(result.get().getPayload()).isEqualTo("foobar");
 		Object thread = result.get().getHeaders().get("thread");
 		assertThat(thread).isNotEqualTo(Thread.currentThread());
@@ -363,13 +360,7 @@ public class AsyncGatewayTests {
 			Message<?> reply = MessageBuilder.withPayload(payload)
 					.copyHeaders(input.getHeaders())
 					.build();
-			try {
-				Thread.sleep(200);
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				return;
-			}
+
 			String header = (String) input.getHeaders().get("method");
 			if (header != null && header.startsWith("returnCustomFuture")) {
 				reply = MessageBuilder.withPayload(new CustomFuture(payload,
