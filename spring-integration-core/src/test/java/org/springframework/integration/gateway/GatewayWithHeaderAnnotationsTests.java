@@ -16,31 +16,32 @@
 
 package org.springframework.integration.gateway;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-public class GatewayWithHeaderAnnotations {
+@SpringJUnitConfig
+@DirtiesContext
+public class GatewayWithHeaderAnnotationsTests {
 
 	@Autowired
 	private ApplicationContext applicationContext;
 
-	@Test // INT-1205
+	@Test
 	public void priorityAsArgument() {
 		TestService gateway = (TestService) applicationContext.getBean("gateway");
 		String result = gateway.test("foo", 99, "bar", "qux");

@@ -35,6 +35,7 @@ import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @since 5.0
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class LambdaMessageProcessorTests {
 
 	@Autowired

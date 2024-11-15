@@ -19,8 +19,7 @@ package org.springframework.integration.support.mutable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -36,17 +35,19 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Stuart Williams
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
+@DirtiesContext
 public class MutableMessageBuilderFactoryTests {
 
 	@Autowired

@@ -18,8 +18,7 @@ package org.springframework.integration.router.config;
 
 import java.io.ByteArrayInputStream;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,16 +29,18 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class PayloadTypeRouterParserTests {
 
 	@Autowired
@@ -63,47 +64,37 @@ public class PayloadTypeRouterParserTests {
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
 		PollableChannel chanel3 = (PollableChannel) context.getBean("channel3");
 		PollableChannel chanel4 = (PollableChannel) context.getBean("channel4");
-		assertThat(chanel1.receive(100).getPayload() instanceof String).isTrue();
-		assertThat(chanel2.receive(100).getPayload() instanceof Integer).isTrue();
+		assertThat(chanel1.receive(100).getPayload()).isInstanceOf(String.class);
+		assertThat(chanel2.receive(100).getPayload()).isInstanceOf(Integer.class);
 		assertThat(chanel3.receive(100).getPayload().getClass().isArray()).isTrue();
 		assertThat(chanel4.receive(100).getPayload().getClass().isArray()).isTrue();
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void testNoMappingElement() {
-		ByteArrayInputStream stream = new ByteArrayInputStream(routerConfigNoMaping.getBytes());
+		ByteArrayInputStream stream = new ByteArrayInputStream(routerConfigNoMapping.getBytes());
 		GenericApplicationContext ac = new GenericApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
 		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> reader.loadBeanDefinitions(new InputStreamResource(stream)));
 	}
 
-	@SuppressWarnings("unused")
-	private final String routerConfigFakeType =
-			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-					"<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +
-					"    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:beans=\"http://www.springframework.org/schema/beans\"" +
-					"    xsi:schemaLocation=\"http://www.springframework.org/schema/beans" +
-					"		https://www.springframework.org/schema/beans/spring-beans.xsd" +
-					"		http://www.springframework.org/schema/integration" +
-					"		https://www.springframework.org/schema/integration/spring-integration.xsd\">" +
-					"   <channel id=\"routingChannel\" />" +
-					"   <payload-type-router input-channel=\"routingChannel\">" +
-					"	   <mapping type=\"FAKE_TYPE\" channel=\"channel1\" />" +
-					"  </payload-type-router>" +
-					"</beans:beans>";
+	private static final String routerConfigNoMapping =
+			"""
+					<?xml version="1.0" encoding="UTF-8"?>
+					<beans:beans xmlns="http://www.springframework.org/schema/integration"
+						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						xmlns:beans="http://www.springframework.org/schema/beans"
+						xsi:schemaLocation="http://www.springframework.org/schema/beans
+							https://www.springframework.org/schema/beans/spring-beans.xsd
+							http://www.springframework.org/schema/integration
+							https://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	private final String routerConfigNoMaping =
-			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-					"<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +
-					"    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:beans=\"http://www.springframework.org/schema/beans\"" +
-					"    xsi:schemaLocation=\"http://www.springframework.org/schema/beans" +
-					"		https://www.springframework.org/schema/beans/spring-beans.xsd" +
-					"		http://www.springframework.org/schema/integration" +
-					"		https://www.springframework.org/schema/integration/spring-integration.xsd\">" +
-					"   <channel id=\"routingChannel\" />" +
-					"   <payload-type-router input-channel=\"routingChannel\"/>" +
-					"</beans:beans>";
+						<channel id="routingChannel" />
+						<payload-type-router input-channel="routingChannel"/>
+					</beans:beans>
+					""";
 
 	public interface TestService {
 

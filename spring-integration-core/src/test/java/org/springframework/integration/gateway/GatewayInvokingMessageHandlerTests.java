@@ -16,8 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,19 +27,19 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class GatewayInvokingMessageHandlerTests {
 
@@ -95,21 +94,14 @@ public class GatewayInvokingMessageHandlerTests {
 		assertThat(result).isNotNull();
 		assertThat(result).isEqualTo("Error happened in message: echoWithRuntimeExceptionChannel");
 
-		try {
-			gatewayWithError.process("echoWithRuntimeExceptionChannel");
-			fail("SampleRuntimeException expected");
-		}
-		catch (SampleRuntimeException e) {
-			assertThat(e.getMessage()).isEqualTo("echoWithRuntimeExceptionChannel");
-		}
+		assertThatExceptionOfType(SampleRuntimeException.class)
+				.isThrownBy(() -> gatewayWithError.process("echoWithRuntimeExceptionChannel"))
+				.withMessage("echoWithRuntimeExceptionChannel");
 
-		try {
-			gatewayWithError.process("echoWithMessagingExceptionChannel");
-			fail("MessageHandlingException expected");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getFailedMessage().getPayload()).isEqualTo("echoWithMessagingExceptionChannel");
-		}
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gatewayWithError.process("echoWithMessagingExceptionChannel"))
+				.extracting("failedMessage.payload")
+				.isEqualTo("echoWithMessagingExceptionChannel");
 
 		result = gatewayWithErrorChannelAndTransformer.process("echoWithMessagingExceptionChannel");
 		assertThat(result).isNotNull();
@@ -118,13 +110,8 @@ public class GatewayInvokingMessageHandlerTests {
 
 	@Test
 	public void validateGatewayWithErrorAsync() {
-		try {
-			gatewayWithErrorAsync.process("echoWithErrorAsyncChannel");
-			fail("SampleRuntimeException expected");
-		}
-		catch (Exception e) {
-			assertThat(e.getClass()).isEqualTo(SampleRuntimeException.class);
-		}
+		assertThatExceptionOfType(SampleRuntimeException.class)
+				.isThrownBy(() -> gatewayWithErrorAsync.process("echoWithErrorAsyncChannel"));
 	}
 
 	@Test

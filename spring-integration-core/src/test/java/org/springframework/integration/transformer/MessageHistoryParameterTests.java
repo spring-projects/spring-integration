@@ -16,8 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.Transformer;
@@ -29,18 +28,20 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class MessageHistoryParameterTests {
 
 	@Autowired
@@ -51,7 +52,7 @@ public class MessageHistoryParameterTests {
 
 	@Test
 	public void test() {
-		input.send(new GenericMessage<String>("foo"));
+		input.send(new GenericMessage<>("foo"));
 		assertThat(output.receive(10000)).isNotNull();
 	}
 

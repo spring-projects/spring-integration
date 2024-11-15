@@ -7,6 +7,6 @@
             http://www.springframework.org/schema/integration
             https://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<logging-channel-adapter id="input" expression="payload.name + ':' + payload.age"/>
+	<logging-channel-adapter id="input" logger-name="test.logging.handler" expression="payload.name + ':' + payload.age"/>
 
 </beans:beans>

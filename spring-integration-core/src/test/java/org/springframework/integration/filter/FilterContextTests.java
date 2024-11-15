@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.filter;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -25,8 +24,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,8 +33,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class FilterContextTests {
 
 	@Autowired
@@ -52,7 +51,7 @@ public class FilterContextTests {
 
 	@Test
 	public void methodInvokingFilterRejects() {
-		this.input.send(new GenericMessage<String>("foo"));
+		this.input.send(new GenericMessage<>("foo"));
 		Message<?> reply = this.output.receive(0);
 		assertThat(reply).isNull();
 
@@ -65,7 +64,7 @@ public class FilterContextTests {
 
 	@Test
 	public void methodInvokingFilterAccepts() {
-		this.input.send(new GenericMessage<String>("foobar"));
+		this.input.send(new GenericMessage<>("foobar"));
 		Message<?> reply = this.output.receive(0);
 		assertThat(reply.getPayload()).isEqualTo("foobar");
 	}

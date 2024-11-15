@@ -25,9 +25,8 @@ import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.Predicate;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -39,18 +38,18 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Artem Bilan
@@ -58,9 +57,8 @@ import static org.assertj.core.api.Assertions.fail;
  *
  * @since 3.0
  */
-@ContextConfiguration(classes = JsonPathTests.JsonPathTestsContextConfiguration.class,
-		loader = AnnotationConfigContextLoader.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig(classes = JsonPathTests.JsonPathTestsContextConfiguration.class)
+@DirtiesContext
 public class JsonPathTests {
 
 	private static File JSON_FILE;
@@ -69,14 +67,14 @@ public class JsonPathTests {
 
 	private static Message<String> testMessage;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUp() throws IOException {
 		ClassPathResource jsonResource = new ClassPathResource("JsonPathTests.json", JsonPathTests.class);
 		JSON_FILE = jsonResource.getFile();
 		Scanner scanner = new Scanner(JSON_FILE);
 		JSON = scanner.useDelimiter("\\Z").next();
 		scanner.close();
-		testMessage = new GenericMessage<String>(JSON);
+		testMessage = new GenericMessage<>(JSON);
 	}
 
 	@Autowired
@@ -116,7 +114,7 @@ public class JsonPathTests {
 	private PollableChannel routerOutput2;
 
 	@Test
-	public void testInt3139JsonPathTransformer() throws IOException {
+	public void testInt3139JsonPathTransformer() {
 		this.transformerInput.send(testMessage);
 		Message<?> receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();
@@ -127,20 +125,14 @@ public class JsonPathTests {
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("Nigel Rees");
 
-		this.transformerInput.send(new GenericMessage<File>(JSON_FILE));
+		this.transformerInput.send(new GenericMessage<>(JSON_FILE));
 		receive = this.output.receive(1000);
 		assertThat(receive).isNotNull();
 
 		assertThat(receive.getPayload()).isEqualTo("Nigel Rees");
-		try {
-			this.transformerInput.send(new GenericMessage<Object>(new Object()));
-			fail("IllegalArgumentException expected");
-		}
-		catch (Exception e) {
-			//MessageTransformationException / MessageHandlingException / InvocationTargetException / IllegalArgumentException
-			Throwable cause = e.getCause().getCause().getCause();
-			assertThat(cause instanceof PathNotFoundException).isTrue();
-		}
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> this.transformerInput.send(new GenericMessage<>(new Object())))
+				.withRootCauseInstanceOf(PathNotFoundException.class);
 	}
 
 	@Test
@@ -165,13 +157,9 @@ public class JsonPathTests {
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();
 
-		try {
-			this.filterInput1.send(new GenericMessage<String>("{foo:{}}"));
-			fail("MessageRejectedException is expected.");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageRejectedException.class);
-		}
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> this.filterInput1.send(new GenericMessage<>("{foo:{}}")));
+
 		receive = this.output.receive(0);
 		assertThat(receive).isNull();
 
@@ -186,7 +174,7 @@ public class JsonPathTests {
 		for (int i = 0; i < 4; i++) {
 			Message<?> receive = this.splitterOutput.receive(10000);
 			assertThat(receive).isNotNull();
-			assertThat(receive.getPayload() instanceof Map).isTrue();
+			assertThat(receive.getPayload()).isInstanceOf(Map.class);
 		}
 	}
 
