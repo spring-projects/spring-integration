@@ -19,16 +19,16 @@ package org.springframework.integration.gateway;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 
 /**
@@ -37,8 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class InnerGatewayWithChainTests {
 
 	@Autowired
@@ -81,10 +81,11 @@ public class InnerGatewayWithChainTests {
 		assertThat(reply).isEqualTo("ERROR from errorChannelB");
 	}
 
-	// if no error channels explicitly defined exception is rethrown
-	@Test(expected = ArithmeticException.class)
+	// If no error channels explicitly defined exception is rethrown
+	@Test
 	public void testGatewaysNoErrorChannel() {
-		testGatewayWithNoErrorChannelAAA.echo(0);
+		assertThatExceptionOfType(ArithmeticException.class)
+				.isThrownBy(() -> testGatewayWithNoErrorChannelAAA.echo(0));
 	}
 
 	@Test

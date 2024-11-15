@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
@@ -46,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 @SpringJUnitConfig
 @TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
+@DirtiesContext
 public class MicrometerCustomMetricsTests {
 
 	@Autowired
