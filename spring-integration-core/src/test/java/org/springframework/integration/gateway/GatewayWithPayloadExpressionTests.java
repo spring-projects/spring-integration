@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.0
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class GatewayWithPayloadExpressionTests {
 
 	@Autowired

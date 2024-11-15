@@ -16,15 +16,14 @@
 
 package org.springframework.integration.gateway;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,10 +31,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
+@DirtiesContext
 public class HeaderEnrichedGatewayTests {
 
 	@Autowired
@@ -50,7 +51,7 @@ public class HeaderEnrichedGatewayTests {
 	private Object testPayload;
 
 	@Test
-	public void validateHeaderValueMappings() throws Exception {
+	public void validateHeaderValueMappings() {
 		testPayload = "hello";
 		gatewayWithHeaderValues.sendString((String) testPayload);
 		Message<?> message1 = channel.receive(0);
@@ -77,7 +78,7 @@ public class HeaderEnrichedGatewayTests {
 	}
 
 	@Test
-	public void validateHeaderExpressionMappings() throws Exception {
+	public void validateHeaderExpressionMappings() {
 		testPayload = "hello";
 		gatewayWithHeaderExpressions.sendString((String) testPayload);
 		Message<?> message1 = channel.receive(0);

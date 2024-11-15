@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.integration.endpoint;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -33,6 +33,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky
@@ -45,14 +46,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class MessageProducerSupportTests {
 
-	private TestApplicationContext context = TestUtils.createTestApplicationContext();
+	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		this.context.close();
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void validateExceptionIfNoErrorChannel() {
 		DirectChannel outChannel = new DirectChannel();
 
@@ -66,10 +67,11 @@ public class MessageProducerSupportTests {
 		mps.setBeanFactory(this.context);
 		mps.afterPropertiesSet();
 		mps.start();
-		mps.sendMessage(new GenericMessage<>("hello"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> mps.sendMessage(new GenericMessage<>("hello")));
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void validateExceptionIfSendToErrorChannelFails() {
 		DirectChannel outChannel = new DirectChannel();
 		outChannel.subscribe(message -> {
@@ -87,7 +89,8 @@ public class MessageProducerSupportTests {
 		mps.setBeanFactory(this.context);
 		mps.afterPropertiesSet();
 		mps.start();
-		mps.sendMessage(new GenericMessage<>("hello"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> mps.sendMessage(new GenericMessage<>("hello")));
 	}
 
 	@Test

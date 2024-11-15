@@ -40,6 +40,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,6 +56,7 @@ import static org.mockito.Mockito.verify;
  * @author Artem Bilan
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class RouterParserTests {
 
 	@Autowired

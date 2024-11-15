@@ -16,8 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,8 +25,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.mockito.Mockito.verify;
 
@@ -36,8 +35,8 @@ import static org.mockito.Mockito.verify;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class ServiceActivatorOnMockitoMockTests {
 
 	@Autowired
@@ -83,14 +82,6 @@ public class ServiceActivatorOnMockitoMockTests {
 		verify(singleMethodOnClass).move("SingleMethodOnClass");
 	}
 
-	public static class SingleMethodAcceptingHeaderOnClass {
-
-		public String move(@Header("s") String s) {
-			return s;
-		}
-
-	}
-
 	@Autowired
 	SingleMethodAcceptingHeaderOnClass singleMethodAcceptingHeaderOnClass;
 
@@ -100,6 +91,14 @@ public class ServiceActivatorOnMockitoMockTests {
 				.setHeader("s", "SingleMethodAcceptingHeaderOnClass")
 				.build());
 		verify(singleMethodAcceptingHeaderOnClass).move("SingleMethodAcceptingHeaderOnClass");
+	}
+
+	public static class SingleMethodAcceptingHeaderOnClass {
+
+		public String move(@Header("s") String s) {
+			return s;
+		}
+
 	}
 
 }

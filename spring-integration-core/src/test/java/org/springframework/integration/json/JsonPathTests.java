@@ -45,6 +45,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @since 3.0
  */
 @SpringJUnitConfig(classes = JsonPathTests.JsonPathTestsContextConfiguration.class)
+@DirtiesContext
 public class JsonPathTests {
 
 	private static File JSON_FILE;
@@ -72,7 +74,7 @@ public class JsonPathTests {
 		Scanner scanner = new Scanner(JSON_FILE);
 		JSON = scanner.useDelimiter("\\Z").next();
 		scanner.close();
-		testMessage = new GenericMessage<String>(JSON);
+		testMessage = new GenericMessage<>(JSON);
 	}
 
 	@Autowired

@@ -19,16 +19,23 @@ package org.springframework.integration.support;
 import org.springframework.integration.test.support.PayloadValidator;
 import org.springframework.integration.test.support.RequestResponseScenario;
 import org.springframework.integration.test.support.SingleRequestResponseScenarioTests;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author David Turanski
+ * @author Mark Fisher
+ * @author Artem Bilan
+ */
 @ContextConfiguration("MessageScenariosTests-context.xml")
+@DirtiesContext
 public class SingleScenarioTests extends SingleRequestResponseScenarioTests {
 
 	@Override
 	protected RequestResponseScenario defineRequestResponseScenario() {
-		RequestResponseScenario scenario = new RequestResponseScenario(
+		return new RequestResponseScenario(
 				"inputChannel", "outputChannel")
 				.setPayload("hello")
 				.setResponseValidator(new PayloadValidator<String>() {
@@ -38,7 +45,6 @@ public class SingleScenarioTests extends SingleRequestResponseScenarioTests {
 						assertThat(response).isEqualTo("HELLO");
 					}
 				});
-		return scenario;
 	}
 
 }

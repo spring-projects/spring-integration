@@ -16,8 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,17 +27,18 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class RouterWithMappingTests {
 
 	@Autowired
@@ -125,17 +125,7 @@ public class RouterWithMappingTests {
 		assertThat(this.testBean.isRunning()).isTrue();
 	}
 
-	private static class TestBean {
-
-		private final String name;
-
-		TestBean(String name) {
-			this.name = name;
-		}
-
-		public String getName() {
-			return this.name;
-		}
+	private record TestBean(String name) {
 
 	}
 
@@ -145,7 +135,7 @@ public class RouterWithMappingTests {
 
 		@SuppressWarnings("unused")
 		public String route(TestBean bean) {
-			return bean.getName();
+			return bean.name();
 		}
 
 		@Override

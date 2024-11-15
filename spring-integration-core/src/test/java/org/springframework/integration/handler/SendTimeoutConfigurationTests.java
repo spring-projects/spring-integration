@@ -16,22 +16,22 @@
 
 package org.springframework.integration.handler;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class SendTimeoutConfigurationTests {
 
 	@Autowired
@@ -39,31 +39,31 @@ public class SendTimeoutConfigurationTests {
 
 	@Test
 	public void serviceActivator() {
-		assertThat(this.getTimeout("serviceActivator")).isEqualTo(123);
+		assertThat(getTimeout("serviceActivator")).isEqualTo(123);
 	}
 
 	@Test
 	public void filter() {
-		assertThat(this.getTimeout("filter")).isEqualTo(123);
+		assertThat(getTimeout("filter")).isEqualTo(123);
 	}
 
 	@Test
 	public void transformer() {
-		assertThat(this.getTimeout("transformer")).isEqualTo(123);
+		assertThat(getTimeout("transformer")).isEqualTo(123);
 	}
 
 	@Test
 	public void splitter() {
-		assertThat(this.getTimeout("splitter")).isEqualTo(123);
+		assertThat(getTimeout("splitter")).isEqualTo(123);
 	}
 
 	@Test
 	public void router() {
-		assertThat(this.getTimeout("router")).isEqualTo(123);
+		assertThat(getTimeout("router")).isEqualTo(123);
 	}
 
 	private long getTimeout(String endpointName) {
-		return TestUtils.getPropertyValue(context.getBean(endpointName),
+		return TestUtils.getPropertyValue(this.context.getBean(endpointName),
 				"handler.messagingTemplate.sendTimeout", Long.class);
 	}
 

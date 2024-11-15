@@ -9,7 +9,7 @@
 
 	<gateway id="gateway"
 			 default-request-channel="requestChannel"
-			 service-interface="org.springframework.integration.gateway.GatewayWithHeaderAnnotations$TestService" />
+			 service-interface="org.springframework.integration.gateway.GatewayWithHeaderAnnotationsTests$TestService" />
 
 	<service-activator input-channel="requestChannel"
 		expression="payload + headers.priority + headers.$custom + headers.baz"/>
