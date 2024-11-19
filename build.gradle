@@ -70,7 +70,7 @@ ext {
     derbyVersion = '10.16.1.1'
     ftpServerVersion = '1.2.0'
     graalvmVersion = '24.1.1'
-    greenmailVersion = '2.1.0'
+    greenmailVersion = '2.1.1'
     groovyVersion = '4.0.24'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.4.0'
