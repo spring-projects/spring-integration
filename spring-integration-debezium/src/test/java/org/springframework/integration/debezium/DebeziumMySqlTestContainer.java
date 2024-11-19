@@ -38,7 +38,7 @@ public interface DebeziumMySqlTestContainer {
 
 	MySQLContainer<?> DEBEZIUM_MYSQL =
 			new MySQLContainer<>(
-					DockerImageName.parse("debezium/example-mysql:2.7.0.Final")
+					DockerImageName.parse("debezium/example-mysql:3.0.0.Final")
 							.asCompatibleSubstituteFor("mysql"))
 					.withUsername("mysqluser")
 					.withPassword("mysqlpw");

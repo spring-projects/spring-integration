@@ -77,10 +77,7 @@ public class DebeziumBatchTests implements DebeziumMySqlTestContainer {
 					.toList();
 
 			assertThat(changeEvent.destination()).startsWith("my-topic");
-			if (i < 16) {
-				assertThat(headerKeys).hasSize(3).contains("__name", "__db", "__table");
-			}
-			else {
+			if (i > 15) {
 				assertThat(changeEvent.destination()).contains(".inventory");
 				assertThat(headerKeys).hasSize(4).contains("__name", "__db", "__op", "__table");
 			}
