@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,32 @@
 
 package org.springframework.integration.channel;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class FixedSubscriberChannelTests {
 
 	@Autowired
@@ -52,150 +52,76 @@ public class FixedSubscriberChannelTests {
 
 	@Test
 	public void testHappyDay() {
-		this.in.send(new GenericMessage<String>("foo"));
+		this.in.send(new GenericMessage<>("test"));
 		Message<?> out = this.out.receive(0);
-		assertThat(out.getPayload()).isEqualTo("FOO");
+		assertThat(out.getPayload()).isEqualTo("TEST");
 		assertThat(this.in).isInstanceOf(FixedSubscriberChannel.class);
 	}
 
 	@Test
 	public void testNoSubs() {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "NoSubs-fail-context.xml",
-					this.getClass());
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanCreationException.class);
-			assertThat(e.getCause()).isInstanceOf(BeanInstantiationException.class);
-			assertThat(e.getCause().getCause()).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getCause().getCause().getMessage()).contains("Cannot instantiate a");
-		}
-		if (context != null) {
-			context.close();
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "NoSubs-fail-context.xml",
+						this.getClass()))
+				.withCauseInstanceOf(BeanInstantiationException.class)
+				.withRootCauseInstanceOf(IllegalArgumentException.class)
+				.withStackTraceContaining("Cannot instantiate a");
 	}
 
 	@Test
 	public void testTwoSubs() {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "TwoSubs-fail-context.xml",
-					this.getClass());
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
-			assertThat(e.getMessage()).contains("Only one subscriber is allowed for a FixedSubscriberChannel.");
-		}
-		if (context != null) {
-			context.close();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "TwoSubs-fail-context.xml",
+						this.getClass()))
+				.withMessageContaining("Only one subscriber is allowed for a FixedSubscriberChannel.");
 	}
 
 	@Test
 	public void testTwoSubsAfter() {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "TwoSubsAfter-fail-context.xml",
-					this.getClass());
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getMessage()).contains("Only one subscriber is allowed for a FixedSubscriberChannel.");
-		}
-		if (context != null) {
-			context.close();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "TwoSubs-fail-context.xml",
+						this.getClass()))
+				.withMessageContaining("Only one subscriber is allowed for a FixedSubscriberChannel.");
 	}
 
 	@Test
 	public void testInterceptors() {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Interceptors-fail-context.xml",
-					this.getClass());
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
-			assertThat(e.getMessage()).contains("Cannot have interceptors when 'fixed-subscriber=\"true\"'");
-		}
-		if (context != null) {
-			context.close();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Interceptors-fail-context.xml",
+						this.getClass()))
+				.withMessageContaining("Cannot have interceptors when 'fixed-subscriber=\"true\"'");
 	}
 
 	@Test
 	public void testDatatype() {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Datatype-fail-context.xml",
-					this.getClass());
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
-			assertThat(e.getMessage()).contains("Cannot have 'datatype' when 'fixed-subscriber=\"true\"'");
-		}
-		if (context != null) {
-			context.close();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Datatype-fail-context.xml",
+						this.getClass()))
+				.withMessageContaining("Cannot have 'datatype' when 'fixed-subscriber=\"true\"'");
 	}
 
 	@Test
 	public void testConverter() {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Converter-fail-context.xml",
-					this.getClass());
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
-			assertThat(e.getMessage()).contains("Cannot have 'message-converter' when 'fixed-subscriber=\"true\"'");
-		}
-		if (context != null) {
-			context.close();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Converter-fail-context.xml",
+						this.getClass()))
+				.withMessageContaining("Cannot have 'message-converter' when 'fixed-subscriber=\"true\"'");
 	}
 
 	@Test
 	public void testQueue() {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Queue-fail-context.xml",
-					this.getClass());
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
-			assertThat(e.getMessage())
-					.contains("The 'fixed-subscriber' attribute is not allowed when a <queue/> child element is present.");
-		}
-		if (context != null) {
-			context.close();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Queue-fail-context.xml",
+						this.getClass()))
+				.withMessageContaining("The 'fixed-subscriber' attribute is not allowed when a <queue/> child element is present.");
 	}
 
 	@Test
 	public void testDispatcher() {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Dispatcher-fail-context.xml",
-					this.getClass());
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
-			assertThat(e.getMessage())
-					.contains("The 'fixed-subscriber' attribute is not allowed when a <dispatcher/> child element is present.");
-		}
-		if (context != null) {
-			context.close();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "Dispatcher-fail-context.xml",
+						this.getClass()))
+				.withMessageContaining("The 'fixed-subscriber' attribute is not allowed when a <dispatcher/> child element is present.");
 	}
 
 }

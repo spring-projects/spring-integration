@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,15 @@
 
 package org.springframework.integration.channel;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,8 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.2
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class TransactionSynchronizationQueueChannelTests {
 
@@ -51,7 +48,7 @@ public class TransactionSynchronizationQueueChannelTests {
 	@Autowired
 	private QueueChannel queueChannel2;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		this.good.purge(null);
 		this.queueChannel.purge(null);
@@ -59,7 +56,7 @@ public class TransactionSynchronizationQueueChannelTests {
 	}
 
 	@Test
-	public void testCommit() throws Exception {
+	public void testCommit() {
 		GenericMessage<String> sentMessage = new GenericMessage<>("hello");
 		this.queueChannel.send(sentMessage);
 		Message<?> message = this.good.receive(10000);
@@ -69,7 +66,7 @@ public class TransactionSynchronizationQueueChannelTests {
 	}
 
 	@Test
-	public void testRollback() throws Exception {
+	public void testRollback() {
 		this.queueChannel.send(new GenericMessage<>("fail"));
 		Message<?> message = this.good.receive(10000);
 		assertThat(message).isNotNull();
@@ -77,7 +74,7 @@ public class TransactionSynchronizationQueueChannelTests {
 	}
 
 	@Test
-	public void testIncludeChannelName() throws Exception {
+	public void testIncludeChannelName() {
 		Message<String> sentMessage = MessageBuilder.withPayload("hello")
 				.setHeader("foo", "bar").build();
 		queueChannel2.send(sentMessage);

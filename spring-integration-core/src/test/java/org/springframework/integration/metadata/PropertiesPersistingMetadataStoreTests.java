@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@ package org.springframework.integration.metadata;
 import java.io.File;
 import java.util.Properties;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -33,12 +32,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class PropertiesPersistingMetadataStoreTests {
 
-	@Rule
-	public TemporaryFolder folder = new TemporaryFolder();
+	@TempDir
+	static File folder;
 
 	@Test
 	public void validateWithDefaultBaseDir() throws Exception {
@@ -61,9 +62,9 @@ public class PropertiesPersistingMetadataStoreTests {
 
 	@Test
 	public void validateWithCustomBaseDir() throws Exception {
-		File file = new File(this.folder.getRoot(), "metadata-store.properties");
+		File file = new File(folder, "metadata-store.properties");
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
-		metadataStore.setBaseDirectory(folder.getRoot().getAbsolutePath());
+		metadataStore.setBaseDirectory(folder.getAbsolutePath());
 		metadataStore.afterPropertiesSet();
 		metadataStore.put("foo", "bar");
 		metadataStore.close();
@@ -76,9 +77,9 @@ public class PropertiesPersistingMetadataStoreTests {
 
 	@Test
 	public void validateWithCustomFileName() throws Exception {
-		File file = new File(this.folder.getRoot(), "foo.properties");
+		File file = new File(folder, "foo.properties");
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
-		metadataStore.setBaseDirectory(folder.getRoot().getAbsolutePath());
+		metadataStore.setBaseDirectory(folder.getAbsolutePath());
 		metadataStore.setFileName("foo.properties");
 		metadataStore.afterPropertiesSet();
 		metadataStore.put("foo", "bar");

@@ -37,6 +37,7 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,6 +52,7 @@ import static org.mockito.Mockito.mock;
  * @since 1.0.3
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class DispatchingChannelParserTests {
 
 	@Autowired
@@ -152,9 +154,7 @@ public class DispatchingChannelParserTests {
 	}
 
 	private static Object getDispatcherProperty(String propertyName, MessageChannel channel) {
-		return new DirectFieldAccessor(
-				new DirectFieldAccessor(channel).getPropertyValue("dispatcher"))
-				.getPropertyValue(propertyName);
+		return TestUtils.getPropertyValue(channel, "dispatcher." + propertyName);
 	}
 
 	public static class SampleLoadBalancingStrategy implements LoadBalancingStrategy {

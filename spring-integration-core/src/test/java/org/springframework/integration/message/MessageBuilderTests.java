@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -36,18 +35,19 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class MessageBuilderTests {
 
 	@Autowired
@@ -59,9 +59,10 @@ public class MessageBuilderTests {
 	@Autowired
 	private MessageBuilderFactory messageBuilderFactory;
 
-	@Test(expected = IllegalArgumentException.class) // priority must be an Integer
+	@Test
 	public void testPriorityHeader() {
-		MessageBuilder.withPayload("ha").setHeader("priority", "10").build();
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> MessageBuilder.withPayload("ha").setHeader("priority", "10"));
 	}
 
 	@Test
@@ -99,16 +100,18 @@ public class MessageBuilderTests {
 		assertThat(message2.getHeaders().get("bar")).isEqualTo("2");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testIdHeaderValueReadOnly() {
 		UUID id = UUID.randomUUID();
-		MessageBuilder.withPayload("test").setHeader(MessageHeaders.ID, id);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> MessageBuilder.withPayload("test").setHeader(MessageHeaders.ID, id));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testTimestampValueReadOnly() {
 		Long timestamp = 12345L;
-		MessageBuilder.withPayload("test").setHeader(MessageHeaders.TIMESTAMP, timestamp).build();
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> MessageBuilder.withPayload("test").setHeader(MessageHeaders.TIMESTAMP, timestamp));
 	}
 
 	@Test

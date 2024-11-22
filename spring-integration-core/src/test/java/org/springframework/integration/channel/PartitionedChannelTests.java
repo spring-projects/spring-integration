@@ -42,6 +42,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -55,6 +56,7 @@ import static org.mockito.Mockito.mock;
  * @since 6.1
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class PartitionedChannelTests {
 
 	@Test
