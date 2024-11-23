@@ -26,3 +26,9 @@ See xref:control-bus.adoc[Control Bus] for more information.
 The `AbstractCorrelatingMessageHandler` does not throw an `IllegalArgumentException` for the collection of payloads as a result of the `MessageGroupProcessor`.
 Instead, such a collection is wrapped into a single reply message.
 See xref:aggregator.adoc[Aggregator] for more information.
+
+[[x6.4-message-store-with-locks]]
+== The `LockRegistry` in the `MessageStore`
+
+The `AbstractMessageGroupStore` now can be configured with a `LockRegistry` to perform series of persistent operation atomically.
+See xref:message-store.adoc#use-lock-registry[Use LockRegistry] for more information.

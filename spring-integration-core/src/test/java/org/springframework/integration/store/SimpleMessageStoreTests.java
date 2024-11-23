@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Iwein Fuld
@@ -45,7 +46,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class SimpleMessageStoreTests {
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void shouldRetainMessage() {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
@@ -124,7 +124,7 @@ public class SimpleMessageStoreTests {
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
 		store.addMessageToGroup("foo", testMessage1);
-		assertThatExceptionOfType(MessagingException.class)
+		assertThatIllegalStateException()
 				.isThrownBy(() -> store.addMessageToGroup("foo", testMessage2));
 	}
 
@@ -158,7 +158,7 @@ public class SimpleMessageStoreTests {
 		SimpleMessageStore store2 = new SimpleMessageStore(1, 1, 1);
 		store2.addMessageToGroup("foo", MessageBuilder.withPayload("foo").build());
 
-		assertThatExceptionOfType(MessagingException.class)
+		assertThatIllegalStateException()
 				.isThrownBy(() -> store2.addMessageToGroup("foo", MessageBuilder.withPayload("bar").build()));
 	}
 
@@ -178,13 +178,13 @@ public class SimpleMessageStoreTests {
 		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
 		store.addMessageToGroup("foo", testMessage1);
 
-		assertThatExceptionOfType(MessagingException.class)
+		assertThatIllegalStateException()
 				.isThrownBy(() -> store.addMessageToGroup("foo", testMessage2))
 				.withMessageContaining("was out of capacity (1) for group 'foo'");
 
 		store.removeMessagesFromGroup("foo", testMessage2);
 
-		assertThatExceptionOfType(MessagingException.class)
+		assertThatIllegalStateException()
 				.isThrownBy(() -> store.addMessageToGroup("foo", testMessage2))
 				.withMessageContaining("was out of capacity (1) for group 'foo'");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Adama Sorho
+ * @author Youbin Wu
  *
  * @since 4.0
  */
@@ -132,7 +133,7 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	}
 
 	@Override
-	public Message<?> pollMessageFromGroup(Object groupId) {
+	protected Message<?> doPollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
 		Sort sort = Sort.by(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2024 the original author or authors.
+ * Copyright 2007-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -491,6 +491,15 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 		assertThat(store.getMessageCount()).isEqualTo(1);
 		assertThat(store.messageGroupSize("1")).isEqualTo(0);
 		assertThat(store.messageGroupSize("2")).isEqualTo(1);
+	}
+
+	@Test
+	public void testMessageGroupCondition() {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		store.addMessagesToGroup(groupId, message);
+		store.setGroupCondition(groupId, "testCondition");
+		assertThat(store.getMessageGroup(groupId).getCondition()).isEqualTo("testCondition");
 	}
 
 	private record Foo(String foo) {

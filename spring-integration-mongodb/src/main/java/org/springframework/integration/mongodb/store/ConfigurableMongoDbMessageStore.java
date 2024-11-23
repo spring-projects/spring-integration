@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Ngoc Nhan
+ * @author Youbin Wu
  *
  * @since 3.0
  */
@@ -147,7 +148,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
+	protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'message' must not be null");
 
@@ -183,7 +184,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
+	protected void doRemoveMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'messageToRemove' must not be null");
 
@@ -215,7 +216,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
+	protected boolean doRemoveMessageFromGroupById(Object groupId, UUID messageId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messageId, "'messageId' must not be null");
 		Query query =
@@ -234,7 +235,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	public Message<?> pollMessageFromGroup(final Object groupId) {
+	protected Message<?> doPollMessageFromGroup(final Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 
 		Sort sort = Sort.by(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
@@ -249,17 +250,17 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+	protected void doSetLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.LAST_RELEASED_SEQUENCE, sequenceNumber));
 	}
 
 	@Override
-	public void setGroupCondition(Object groupId, String condition) {
+	protected void doSetGroupCondition(Object groupId, String condition) {
 		updateGroup(groupId, lastModifiedUpdate().set("condition", condition));
 	}
 
 	@Override
-	public void completeGroup(Object groupId) {
+	protected void doCompleteGroup(Object groupId) {
 		updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.COMPLETE, true));
 	}
 

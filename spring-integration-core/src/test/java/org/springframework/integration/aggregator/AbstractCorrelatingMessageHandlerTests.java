@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import static org.mockito.Mockito.verify;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Meherzad Lahewala
+ * @author Youbin Wu
  *
  * @since 2.2
  *
@@ -350,7 +351,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		SimpleMessageStore messageStore = new SimpleMessageStore() {
 
 			@Override
-			public void removeMessageGroup(Object groupId) {
+			protected void doRemoveMessageGroup(Object groupId) {
 				throw new RuntimeException("intentional");
 			}
 		};

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -35,22 +34,22 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Youbin Wu
  */
 public class MessageStoreTests {
 
 	@Test
-	public void shouldRegisterCallbacks() throws Exception {
+	public void shouldRegisterCallbacks() {
 		TestMessageStore store = new TestMessageStore();
-		store.setExpiryCallbacks(Collections.<MessageGroupCallback>singletonList((messageGroupStore, group) -> {
+		store.setExpiryCallbacks(Collections.singletonList((messageGroupStore, group) -> {
 		}));
 		assertThat(((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks")).size()).isEqualTo(1);
 	}
 
 	@Test
-	public void shouldExpireMessageGroup() throws Exception {
-
+	public void shouldExpireMessageGroup() {
 		TestMessageStore store = new TestMessageStore();
-		final List<String> list = new ArrayList<String>();
+		final List<String> list = new ArrayList<>();
 		store.registerMessageGroupExpiryCallback((messageGroupStore, group) -> {
 			list.add(group.getOne().getPayload().toString());
 			messageGroupStore.removeMessageGroup(group.getGroupId());
@@ -63,13 +62,13 @@ public class MessageStoreTests {
 	}
 
 	@Test
-	public void testGroupCount() throws Exception {
+	public void testGroupCount() {
 		TestMessageStore store = new TestMessageStore();
 		assertThat(store.getMessageGroupCount()).isEqualTo(1);
 	}
 
 	@Test
-	public void testGroupSizes() throws Exception {
+	public void testGroupSizes() {
 		TestMessageStore store = new TestMessageStore();
 		assertThat(store.getMessageCountForAllMessageGroups()).isEqualTo(1);
 	}
@@ -91,7 +90,7 @@ public class MessageStoreTests {
 		}
 
 		@Override
-		public void addMessagesToGroup(Object groupId, Message<?>... messages) {
+		protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -101,30 +100,30 @@ public class MessageStoreTests {
 		}
 
 		@Override
-		public void removeMessagesFromGroup(Object key, Collection<Message<?>> messages) {
+		protected void doRemoveMessagesFromGroup(Object key, Collection<Message<?>> messages) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void removeMessageGroup(Object correlationKey) {
+		protected void doRemoveMessageGroup(Object correlationKey) {
 			if (correlationKey.equals(testMessages.getGroupId())) {
 				removed = true;
 			}
 		}
 
 		@Override
-		public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+		protected void doSetLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void completeGroup(Object groupId) {
+		protected void doCompleteGroup(Object groupId) {
 
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public Message<?> pollMessageFromGroup(Object groupId) {
+		protected Message<?> doPollMessageFromGroup(Object groupId) {
 			return null;
 		}
 
