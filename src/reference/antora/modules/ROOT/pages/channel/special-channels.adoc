@@ -10,7 +10,7 @@ If there is need to do anything with such an error, the `xref:handler-advice/rea
 Any time you face channel resolution errors for a reply that you do not care about, you can set the affected component's `output-channel` attribute to 'nullChannel' (the name, 'nullChannel', is reserved within the application context).
 
 The 'errorChannel' is used internally for sending error messages and may be overridden with a custom configuration.
-This is discussed in greater detail in xref:scatter-gather.adoc#scatter-gather-error-handling[Error Handling].
+This is discussed in greater detail in xref:error-handling.adoc[Error Handling].
 
 
 See also xref:dsl/java-channels.adoc[Message Channels] in the Java DSL chapter for more information about message channel and interceptors.

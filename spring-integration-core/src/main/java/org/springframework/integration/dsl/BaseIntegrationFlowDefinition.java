@@ -541,9 +541,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate the {@code Control Bus} EI Pattern specific {@link MessageHandler} implementation
 	 * at the current {@link IntegrationFlow} chain position.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated in favor of {@link #controlBusOnRegistry()}
+	 * @deprecated in favor of {@link #controlBusOnRegistry()} - will be restored in next version.
 	 */
-	@Deprecated(since = "6.4", forRemoval = true)
+	@Deprecated(since = "6.4")
 	public B controlBus() {
 		return controlBus(null);
 	}
@@ -553,10 +553,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * at the current {@link IntegrationFlow} chain position.
 	 * @param endpointConfigurer the {@link Consumer} to accept integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated in favor of {@link #controlBusOnRegistry(Consumer)}
+	 * @deprecated in favor of {@link #controlBusOnRegistry(Consumer)} - will be restored in next version.
 	 * @see GenericEndpointSpec
 	 */
-	@Deprecated(since = "6.4", forRemoval = true)
+	@Deprecated(since = "6.4")
 	@SuppressWarnings("removal")
 	public B controlBus(@Nullable Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 		return handle(new ServiceActivatingHandler(
