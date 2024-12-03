@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class PresenceOutboundChannelAdapterParserTests {
 
 	@Autowired
@@ -74,7 +76,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 		Object eventConsumer = context.getBean("advised");
 		assertThat(eventConsumer instanceof EventDrivenConsumer).isTrue();
 		MessageHandler handler = TestUtils.getPropertyValue(eventConsumer, "handler", MessageHandler.class);
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
 

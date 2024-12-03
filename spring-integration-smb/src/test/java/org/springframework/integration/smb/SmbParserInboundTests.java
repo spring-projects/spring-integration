@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2023 the original author or authors.
+ * Copyright 2012-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Markus Spann
  * @author Prafull Kumar Soni
+ * @author Artem Bilan
  *
  */
 public class SmbParserInboundTests extends AbstractBaseTests {
@@ -41,11 +42,13 @@ public class SmbParserInboundTests extends AbstractBaseTests {
 	}
 
 	@Test
+	@SuppressWarnings("try")
 	public void testLocalFilesAutoCreationTrue() {
 		assertFileNotExists(new File("test-temp/local-10"));
-		new ClassPathXmlApplicationContext(getApplicationContextXmlFile(), this.getClass());
-		assertFileExists(new File("test-temp/local-10"));
-		assertFileNotExists(new File("test-temp/local-6"));
+		try (var ctx = new ClassPathXmlApplicationContext(getApplicationContextXmlFile(), getClass())) {
+			assertFileExists(new File("test-temp/local-10"));
+			assertFileNotExists(new File("test-temp/local-6"));
+		}
 	}
 
 	@Test

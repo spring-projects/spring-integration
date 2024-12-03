@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -36,7 +35,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
@@ -53,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.0
  */
 @SpringJUnitConfig
-@ContextConfiguration
+@DirtiesContext
 @TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
 public class EventInboundChannelAdapterParserTests {
 
@@ -73,44 +72,38 @@ public class EventInboundChannelAdapterParserTests {
 	@Test
 	public void validateEventParser() {
 		Object adapter = context.getBean("eventAdapterSimple");
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof ApplicationEventListeningMessageProducer).isTrue();
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		assertThat(adapterAccessor.getPropertyValue("outputChannel")).isEqualTo(context.getBean("input"));
-		assertThat(adapterAccessor.getPropertyValue("errorChannel")).isSameAs(errorChannel);
+		assertThat(adapter).isInstanceOf(ApplicationEventListeningMessageProducer.class);
+		assertThat(TestUtils.getPropertyValue(adapter, "outputChannel")).isEqualTo(context.getBean("input"));
+		assertThat(TestUtils.getPropertyValue(adapter, "errorChannel")).isSameAs(errorChannel);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void validateEventParserWithEventTypes() {
 		Object adapter = context.getBean("eventAdapterFiltered");
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof ApplicationEventListeningMessageProducer).isTrue();
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		assertThat(adapterAccessor.getPropertyValue("outputChannel")).isEqualTo(context.getBean("inputFiltered"));
-		Set<ResolvableType> eventTypes = (Set<ResolvableType>) adapterAccessor.getPropertyValue("eventTypes");
-		assertThat(eventTypes).isNotNull();
-		assertThat(eventTypes.size() == 3).isTrue();
-		assertThat(eventTypes.contains(ResolvableType.forClass(SampleEvent.class))).isTrue();
-		assertThat(eventTypes.contains(ResolvableType.forClass(AnotherSampleEvent.class))).isTrue();
-		assertThat(eventTypes.contains(ResolvableType.forClass(Date.class))).isTrue();
-		assertThat(adapterAccessor.getPropertyValue("errorChannel")).isNull();
+		assertThat(adapter).isInstanceOf(ApplicationEventListeningMessageProducer.class);
+		assertThat(TestUtils.getPropertyValue(adapter, "outputChannel")).isEqualTo(context.getBean("inputFiltered"));
+		Set<ResolvableType> eventTypes = TestUtils.getPropertyValue(adapter, "eventTypes", Set.class);
+		assertThat(eventTypes)
+				.hasSize(3)
+				.contains(ResolvableType.forClass(SampleEvent.class),
+						ResolvableType.forClass(AnotherSampleEvent.class),
+						ResolvableType.forClass(Date.class));
+		assertThat(TestUtils.getPropertyValue(adapter, "errorChannel")).isNull();
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void validateEventParserWithEventTypesAndPlaceholder() {
 		Object adapter = context.getBean("eventAdapterFilteredPlaceHolder");
-		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof ApplicationEventListeningMessageProducer).isTrue();
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		assertThat(adapterAccessor.getPropertyValue("outputChannel"))
+		assertThat(adapter).isInstanceOf(ApplicationEventListeningMessageProducer.class);
+		assertThat(TestUtils.getPropertyValue(adapter, "outputChannel"))
 				.isEqualTo(context.getBean("inputFilteredPlaceHolder"));
-		Set<ResolvableType> eventTypes = (Set<ResolvableType>) adapterAccessor.getPropertyValue("eventTypes");
-		assertThat(eventTypes).isNotNull();
-		assertThat(eventTypes.size() == 2).isTrue();
-		assertThat(eventTypes.contains(ResolvableType.forClass(SampleEvent.class))).isTrue();
-		assertThat(eventTypes.contains(ResolvableType.forClass(AnotherSampleEvent.class))).isTrue();
+		Set<ResolvableType> eventTypes = TestUtils.getPropertyValue(adapter, "eventTypes", Set.class);
+		assertThat(eventTypes)
+				.hasSize(2)
+				.contains(ResolvableType.forClass(SampleEvent.class), ResolvableType.forClass(AnotherSampleEvent.class));
+
 	}
 
 	@Test
@@ -132,9 +125,8 @@ public class EventInboundChannelAdapterParserTests {
 	public void validatePayloadExpression() {
 		Object adapter = context.getBean("eventAdapterSpel");
 		assertThat(adapter).isNotNull();
-		assertThat(adapter instanceof ApplicationEventListeningMessageProducer).isTrue();
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		Expression expression = (Expression) adapterAccessor.getPropertyValue("payloadExpression");
+		assertThat(adapter).isInstanceOf(ApplicationEventListeningMessageProducer.class);
+		Expression expression = TestUtils.getPropertyValue(adapter, "payloadExpression", Expression.class);
 		assertThat(expression.getExpressionString()).isEqualTo("source + '-test'");
 	}
 

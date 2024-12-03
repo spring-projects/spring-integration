@@ -41,6 +41,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @since 2.0
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class GroovyServiceActivatorTests {
 
 	@Autowired

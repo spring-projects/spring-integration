@@ -38,6 +38,7 @@ import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
@@ -54,6 +55,7 @@ import static org.mockito.Mockito.when;
  */
 
 @SpringJUnitConfig
+@DirtiesContext
 public class MarshallingWebServiceIntegrationTests {
 
 	private static final String input = "<hello/>";

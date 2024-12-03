@@ -41,6 +41,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.MultiValueMap;
 
@@ -55,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Artem Bilan
  */
 @ContextConfiguration
+@DirtiesContext
 public class XPathRouterParserTests {
 
 	String channelConfig = """

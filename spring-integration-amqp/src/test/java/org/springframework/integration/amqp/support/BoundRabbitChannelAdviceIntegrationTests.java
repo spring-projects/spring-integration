@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.integration.amqp.dsl.Amqp;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,6 +53,7 @@ import static org.mockito.Mockito.spy;
  *
  */
 @SpringJUnitConfig
+@DirtiesContext
 @RabbitAvailable(queues = BoundRabbitChannelAdviceIntegrationTests.QUEUE)
 public class BoundRabbitChannelAdviceIntegrationTests {
 

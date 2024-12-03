@@ -31,6 +31,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.scripting.PolyglotScriptExecutor;
 import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  *
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class DeriveLanguageFromExtensionTests {
 
 	@Autowired

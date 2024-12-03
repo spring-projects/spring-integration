@@ -22,6 +22,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.ReactiveMessageSourceProducer;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
@@ -29,11 +30,13 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  * to be inherited by concrete subclasses.
  *
  * @author Chris Bono
+ * @author Artem Bilan
  *
  * @since 6.2.10
  */
 @SpringJUnitConfig
 @SpringIntegrationTest(noAutoStartup = "*")
+@DirtiesContext
 class AbstractIntegrationTest {
 
 	@Configuration(proxyBeanMethods = false)

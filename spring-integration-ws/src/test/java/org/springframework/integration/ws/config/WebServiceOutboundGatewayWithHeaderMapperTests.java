@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -48,7 +47,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.xml.DomUtils;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
@@ -69,26 +68,30 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class WebServiceOutboundGatewayWithHeaderMapperTests {
 
-	private static String responseSoapMessage = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> " +
-			"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
-			"	<SOAP-ENV:Header/>" +
-			"	<SOAP-ENV:Body> " +
-			"		<root><name>jane</name></root>" +
-			"	</SOAP-ENV:Body> " +
-			"</SOAP-ENV:Envelope>";
+	private static final String responseSoapMessage = """
+			<?xml version="1.0" encoding="UTF-8" ?>
+			<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+				<SOAP-ENV:Header/>
+				<SOAP-ENV:Body>
+						<root><name>jane</name></root>
+				</SOAP-ENV:Body>
+			</SOAP-ENV:Envelope>
+			""";
 
-	private static String responseNonSoapMessage = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> " +
-			"<person><name>oleg</name></person>";
+	private static final String responseNonSoapMessage = """
+			<?xml version="1.0" encoding="UTF-8" ?>
+			<person><name>oleg</name></person>
+			""";
 
 	@Autowired
 	private ApplicationContext context;
 
 	@Test
-	public void headerMapperParserTest() throws Exception {
+	public void headerMapperParserTest() {
 		SimpleWebServiceOutboundGateway gateway =
 				TestUtils.getPropertyValue(this.context.getBean("withHeaderMapper"),
 						"handler", SimpleWebServiceOutboundGateway.class);
@@ -152,7 +155,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		Document document = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
 		DOMSource payload = new DOMSource(document);
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", true);
-		assertThat(replyMessage.getPayload() instanceof DOMSource).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(DOMSource.class);
 		assertThat(replyMessage.getHeaders().get("bar")).isEqualTo("bar");
 		assertThat(replyMessage.getHeaders().get("baz")).isNull();
 	}
@@ -164,7 +167,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		Document document = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
 		DOMSource payload = new DOMSource(document);
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", false);
-		assertThat(replyMessage.getPayload() instanceof DOMSource).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(DOMSource.class);
 		assertThat(this.extractStringResult(replyMessage).contains("<person><name>oleg</name></person>")).isTrue();
 	}
 
@@ -174,7 +177,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
 		Document payload = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", true);
-		assertThat(replyMessage.getPayload() instanceof Document).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(Document.class);
 		assertThat(replyMessage.getHeaders().get("bar")).isEqualTo("bar");
 		assertThat(replyMessage.getHeaders().get("baz")).isNull();
 	}
@@ -185,7 +188,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
 		Document payload = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", false);
-		assertThat(replyMessage.getPayload() instanceof Document).isTrue();
+		assertThat(replyMessage.getPayload()).isInstanceOf(Document.class);
 		assertThat(this.extractStringResult(replyMessage).contains("<person><name>oleg</name></person>")).isTrue();
 	}
 
@@ -198,13 +201,16 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		assertThat(replyMessage.getHeaders().get("baz")).isNull();
 	}
 
-	private Message<?> process(Object payload, String gatewayName, String channelName, final boolean soap) throws Exception {
+	private Message<?> process(Object payload, String gatewayName, String channelName, final boolean soap)
+			throws Exception {
+
 		AbstractWebServiceOutboundGateway gateway =
 				TestUtils.getPropertyValue(this.context.getBean(gatewayName), "handler",
 						AbstractWebServiceOutboundGateway.class);
 
 		if (!soap) {
-			WebServiceTemplate template = TestUtils.getPropertyValue(gateway, "webServiceTemplate", WebServiceTemplate.class);
+			WebServiceTemplate template =
+					TestUtils.getPropertyValue(gateway, "webServiceTemplate", WebServiceTemplate.class);
 			template.setMessageFactory(new DomPoxMessageFactory());
 		}
 
@@ -265,9 +271,13 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 
 		MessageChannel inputChannel = context.getBean(channelName, MessageChannel.class);
 		Message<?> message =
-				MessageBuilder.withPayload(payload).
-						setHeader("foo", "foo").setHeader("foobar", "foobar").setHeader("abaz", "abaz").setHeader("bar", "bar").
-						setHeader(WebServiceHeaders.SOAP_ACTION, "someAction").build();
+				MessageBuilder.withPayload(payload)
+						.setHeader("foo", "foo")
+						.setHeader("foobar", "foobar")
+						.setHeader("abaz", "abaz")
+						.setHeader("bar", "bar").
+						setHeader(WebServiceHeaders.SOAP_ACTION, "someAction")
+						.build();
 		inputChannel.send(message);
 		QueueChannel outputChannel = context.getBean("outputChannel", QueueChannel.class);
 		return outputChannel.receive(0);

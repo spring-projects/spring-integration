@@ -42,6 +42,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.ws.WebServiceMessageFactory;
@@ -70,6 +71,7 @@ import static org.mockito.Mockito.verify;
  * @author Artem Bilan
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class WebServiceOutboundGatewayParserTests {
 
 	private static volatile int adviceCalled;

@@ -37,6 +37,7 @@ import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizingMe
 import org.springframework.integration.smb.session.SmbSession;
 import org.springframework.integration.smb.session.SmbSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,12 +52,14 @@ import static org.mockito.Mockito.when;
  * @author Gregory Bragg
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class SmbInboundChannelAdapterParserTests {
 
 	@Autowired
 	ApplicationContext applicationContext;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testSmbInboundChannelAdapterComplete() {
 
 		final SourcePollingChannelAdapter adapter =
@@ -76,7 +79,7 @@ public class SmbInboundChannelAdapterParserTests {
 		assertThat(".working.tmp").isEqualTo(TestUtils.getPropertyValue(fisync, "temporaryFileSuffix", String.class));
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertThat(remoteFileSeparator).isNotNull();
-		assertThat("").isEqualTo(remoteFileSeparator);
+		assertThat(remoteFileSeparator).isEqualTo("");
 		FileListFilter<?> filter = TestUtils.getPropertyValue(fisync, "filter", FileListFilter.class);
 		assertThat(filter).isNotNull();
 		assertThat(filter).isInstanceOf(CompositeFileListFilter.class);
@@ -86,11 +89,12 @@ public class SmbInboundChannelAdapterParserTests {
 		assertThat(filtersIterator.next()).isInstanceOf(SmbSimplePatternFileListFilter.class);
 		assertThat(filtersIterator.next()).isInstanceOf(SmbPersistentAcceptOnceFileListFilter.class);
 		Object sessionFactory = TestUtils.getPropertyValue(fisync, "remoteFileTemplate.sessionFactory");
-		assertThat(SmbSessionFactory.class.isAssignableFrom(sessionFactory.getClass())).isTrue();
+		assertThat(sessionFactory).isInstanceOf(SmbSessionFactory.class);
 
 		FileListFilter<?> acceptAllFilter = this.applicationContext.getBean("acceptAllFilter", FileListFilter.class);
-		assertThat(TestUtils.getPropertyValue(inbound, "fileSource.scanner.filter.fileFilters", Collection.class)
-				.contains(acceptAllFilter)).isTrue();
+
+		assertThat(TestUtils.getPropertyValue(inbound, "fileSource.scanner.filter.fileFilters", Collection.class))
+				.contains(acceptAllFilter);
 	}
 
 	@Test
@@ -104,7 +108,7 @@ public class SmbInboundChannelAdapterParserTests {
 				TestUtils.getPropertyValue(adapter, "source.synchronizer", SmbInboundFileSynchronizer.class);
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertThat(remoteFileSeparator).isNotNull();
-		assertThat("/").isEqualTo(remoteFileSeparator);
+		assertThat(remoteFileSeparator).isEqualTo("/");
 	}
 
 	@Test

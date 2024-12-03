@@ -32,6 +32,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.xml.xpath.NodeMapper;
 
@@ -46,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  * @since 3.0
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class XPathTests {
 
 	private static final String XML = """

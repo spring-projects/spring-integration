@@ -18,36 +18,36 @@ package org.springframework.integration.scripting.config.jsr223;
 
 import java.beans.PropertyEditorSupport;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Fisher
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class Jsr223RefreshTests {
 
 	@Autowired
 	private MessageChannel referencedScriptInput;
 
 	@Test
-	public void referencedScript() throws Exception {
+	public void referencedScript() {
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		this.referencedScriptInput.send(MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build());
@@ -87,12 +87,12 @@ public class Jsr223RefreshTests {
 		}
 
 		@Override
-		public long lastModified() throws IOException {
+		public long lastModified() {
 			return -1;
 		}
 
 		@Override
-		public InputStream getInputStream() throws IOException {
+		public InputStream getInputStream() {
 			if (++count > scripts.length - 1) {
 				count = 0;
 			}

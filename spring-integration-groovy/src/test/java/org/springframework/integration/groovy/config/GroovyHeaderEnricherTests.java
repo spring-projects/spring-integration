@@ -18,8 +18,7 @@ package org.springframework.integration.groovy.config;
 
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.QueueChannel;
@@ -29,8 +28,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,8 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class GroovyHeaderEnricherTests {
 
 	@Autowired

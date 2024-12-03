@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,6 +55,7 @@ import static org.mockito.Mockito.verify;
  * @author Florian Schmaus
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class ChatMessageOutboundChannelAdapterParserTests {
 
 	@Autowired
@@ -72,20 +74,20 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		Object pollingConsumer = context.getBean("withHeaderMapper");
 		QueueChannel channel = (QueueChannel) TestUtils.getPropertyValue(pollingConsumer, "inputChannel");
 		assertThat(channel.getComponentName()).isEqualTo("outboundPollingChannel");
-		assertThat(pollingConsumer instanceof PollingConsumer).isTrue();
+		assertThat(pollingConsumer).isInstanceOf(PollingConsumer.class);
 	}
 
 	@Test
 	public void testEventConsumerWithNoChannel() {
 		Object eventConsumer = context.getBean("outboundNoChannelAdapter");
-		assertThat(eventConsumer instanceof SubscribableChannel).isTrue();
+		assertThat(eventConsumer).isInstanceOf(SubscribableChannel.class);
 	}
 
 	@Test
 	public void advised() {
 		MessageHandler handler = TestUtils.getPropertyValue(context.getBean("advised"),
 				"handler", MessageHandler.class);
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
 
@@ -103,7 +105,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		assertThat(requestHeaderMatcher.matchHeader("bar123")).isTrue();
 		assertThat(requestHeaderMatcher.matchHeader("biz")).isFalse();
 		assertThat(requestHeaderMatcher.matchHeader("else")).isFalse();
-		assertThat(eventConsumer instanceof EventDrivenConsumer).isTrue();
+		assertThat(eventConsumer).isInstanceOf(EventDrivenConsumer.class);
 
 		MessageHandler outboundEventAdapterHandle =
 				context.getBean("outboundEventAdapter.handler", MessageHandler.class);

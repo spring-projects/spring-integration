@@ -22,10 +22,10 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -39,10 +39,11 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -53,8 +54,8 @@ import static org.mockito.Mockito.verify;
  * @author Artem Bilan
  */
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
+@DirtiesContext
 public class ConsoleOutboundChannelAdapterParserTests {
 
 	@Autowired
@@ -82,7 +83,8 @@ public class ConsoleOutboundChannelAdapterParserTests {
 
 	@Test
 	public void stdoutAdapterWithDefaultCharset() throws IOException {
-		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "writer", BufferedWriter.class);
+		BufferedWriter bufferedWriter =
+				TestUtils.getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "writer", BufferedWriter.class);
 		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
 		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
@@ -96,7 +98,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(this.stdoutAdapterWithDefaultCharsetHandler);
 		dfa.setPropertyValue("writer", bufferedWriter);
 
-		this.stdoutAdapterWithDefaultCharsetHandler.handleMessage(new GenericMessage<String>("foo"));
+		this.stdoutAdapterWithDefaultCharsetHandler.handleMessage(new GenericMessage<>("foo"));
 
 		verify(bufferedWriter, times(1)).write(eq("foo"));
 		assertThat(TestUtils.getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "order")).isEqualTo(23);
@@ -104,11 +106,12 @@ public class ConsoleOutboundChannelAdapterParserTests {
 
 	@Test
 	public void stdoutAdapterWithProvidedCharset() throws IOException {
-		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.stdoutAdapterWithProvidedCharsetHandler, "writer", BufferedWriter.class);
+		BufferedWriter bufferedWriter =
+				TestUtils.getPropertyValue(this.stdoutAdapterWithProvidedCharsetHandler, "writer", BufferedWriter.class);
 		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
 		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
-		assertThat(writerCharset).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(writerCharset).isEqualTo(StandardCharsets.UTF_8);
 
 		Object lock = TestUtils.getPropertyValue(writer, "lock");
 		assertThat(lock).isEqualTo(System.out);
@@ -118,28 +121,23 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(this.stdoutAdapterWithProvidedCharsetHandler);
 		dfa.setPropertyValue("writer", bufferedWriter);
 
-		this.stdoutAdapterWithProvidedCharsetHandler.handleMessage(new GenericMessage<String>("bar"));
+		this.stdoutAdapterWithProvidedCharsetHandler.handleMessage(new GenericMessage<>("bar"));
 
 		verify(bufferedWriter, times(1)).write(eq("bar"));
 	}
 
 	@Test
 	public void stdoutAdapterWithInvalidCharset() {
-		BeanCreationException beanCreationException = null;
-		try {
-			new ClassPathXmlApplicationContext("invalidConsoleOutboundChannelAdapterParserTests.xml",
-					ConsoleOutboundChannelAdapterParserTests.class).close();
-		}
-		catch (BeanCreationException e) {
-			beanCreationException = e;
-		}
-		Throwable rootCause = beanCreationException.getRootCause();
-		assertThat(rootCause.getClass()).isEqualTo(UnsupportedEncodingException.class);
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("invalidConsoleOutboundChannelAdapterParserTests.xml",
+						ConsoleOutboundChannelAdapterParserTests.class))
+				.withRootCauseInstanceOf(UnsupportedEncodingException.class);
 	}
 
 	@Test
 	public void stderrAdapter() throws IOException {
-		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.stderrAdapterHandler, "writer", BufferedWriter.class);
+		BufferedWriter bufferedWriter =
+				TestUtils.getPropertyValue(this.stderrAdapterHandler, "writer", BufferedWriter.class);
 		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
 		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
@@ -153,7 +151,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(this.stderrAdapterHandler);
 		dfa.setPropertyValue("writer", bufferedWriter);
 
-		this.stderrAdapterHandler.handleMessage(new GenericMessage<String>("bar"));
+		this.stderrAdapterHandler.handleMessage(new GenericMessage<>("bar"));
 
 		verify(bufferedWriter, times(1)).write(eq("bar"));
 
@@ -162,7 +160,8 @@ public class ConsoleOutboundChannelAdapterParserTests {
 
 	@Test
 	public void stdoutAdatperWithAppendNewLine() throws IOException {
-		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.newlineAdapterHandler, "writer", BufferedWriter.class);
+		BufferedWriter bufferedWriter =
+				TestUtils.getPropertyValue(this.newlineAdapterHandler, "writer", BufferedWriter.class);
 		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
 		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
@@ -176,7 +175,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(this.newlineAdapterHandler);
 		dfa.setPropertyValue("writer", bufferedWriter);
 
-		this.newlineAdapterHandler.handleMessage(new GenericMessage<String>("bar"));
+		this.newlineAdapterHandler.handleMessage(new GenericMessage<>("bar"));
 
 		verify(bufferedWriter, times(1)).write(eq("bar"));
 		verify(bufferedWriter, times(1)).newLine();
@@ -208,7 +207,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(stdoutHandler);
 		dfa.setPropertyValue("writer", bufferedWriter);
 
-		this.stdoutInsideNestedChain.send(new GenericMessage<String>("foo"));
+		this.stdoutInsideNestedChain.send(new GenericMessage<>("foo"));
 		verify(bufferedWriter, times(1)).write(eq("foobar"));
 	}
 

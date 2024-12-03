@@ -34,6 +34,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xml.transform.StringSource;
@@ -45,8 +46,10 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class UnmarshallingTransformerParserTests {
 
 	@Autowired

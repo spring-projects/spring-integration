@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,27 @@ package org.springframework.integration.scripting.config.jsr223;
 import java.io.File;
 import java.io.IOException;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Artem Bilan
+ *
  * @since 3.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class Int3164Jsr223RefreshTests {
 
 	private static File workDir;
@@ -52,7 +52,7 @@ public class Int3164Jsr223RefreshTests {
 	@Autowired
 	private PollableChannel outputChannel;
 
-	@BeforeClass
+	@BeforeAll
 	public static void start() throws IOException {
 		String basePath = System.getProperty("java.io.tmpdir") + File.separator + "Int3164Jsr223RefreshTests";
 		workDir = new File(basePath);
@@ -64,7 +64,7 @@ public class Int3164Jsr223RefreshTests {
 		FileCopyUtils.copy("1".getBytes(), scriptFile);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void shutdown() {
 		if (workDir != null && workDir.exists()) {
 			for (File file : workDir.listFiles()) {

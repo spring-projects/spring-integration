@@ -46,6 +46,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.ws.client.WebServiceClientException;
 import org.springframework.ws.client.WebServiceIOException;
@@ -73,6 +74,7 @@ import static org.mockito.Mockito.doAnswer;
  * @since 2.1
  */
 @SpringJUnitConfig
+@DirtiesContext
 public class UriVariableTests {
 
 	@Autowired
@@ -179,7 +181,6 @@ public class UriVariableTests {
 		Mockito.verify(producer).setPriority(5);
 	}
 
-	@Disabled("Until SF for for URL parser")
 	@Test
 	public void testInt2720EmailUriVariables() {
 		final String testEmailTo = "user@example.com";
