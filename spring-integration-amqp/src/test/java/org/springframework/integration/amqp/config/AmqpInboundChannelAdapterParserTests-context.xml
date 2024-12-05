@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:amqp="http://www.springframework.org/schema/integration/amqp"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp https://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:amqp="http://www.springframework.org/schema/integration/amqp"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp https://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/rabbit https://www.springframework.org/schema/rabbit/spring-rabbit.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
@@ -20,32 +18,34 @@
 	</util:properties>
 
 	<amqp:inbound-channel-adapter id="rabbitInbound" queue-names="inboundchanneladapter.test.1"
-			batch-mode="EXTRACT_PAYLOADS"/>
+								  batch-mode="EXTRACT_PAYLOADS" tx-size="2"/>
 
 	<amqp:inbound-channel-adapter id="autoStartFalse" queue-names="inboundchanneladapter.test.2"
-		auto-startup="false" phase="123" acknowledge-mode="${ackMode}" missing-queues-fatal="false" />
+								  auto-startup="false" phase="123" acknowledge-mode="${ackMode}"
+								  missing-queues-fatal="false"
+								  batch-size="3"/>
 
 	<amqp:inbound-channel-adapter id="withHeaderMapperStandardAndCustomHeaders"
-		channel="requestChannel" queue-names="inboundchanneladapter.test.2"
-		auto-startup="false" phase="123"
-		mapped-request-headers="foo*, STANDARD_REQUEST_HEADERS"/>
+								  channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+								  auto-startup="false" phase="123"
+								  mapped-request-headers="foo*, STANDARD_REQUEST_HEADERS"/>
 
 	<amqp:inbound-channel-adapter id="withHeaderMapperOnlyCustomHeaders"
-		channel="requestChannel" queue-names="inboundchanneladapter.test.2"
-		auto-startup="false" phase="123"
-		mapped-request-headers="foo*"/>
+								  channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+								  auto-startup="false" phase="123"
+								  mapped-request-headers="foo*"/>
 
 	<amqp:inbound-channel-adapter id="withHeaderMapperNothingToMap"
-		channel="requestChannel" queue-names="inboundchanneladapter.test.2"
-		auto-startup="false" phase="123"
-		mapped-request-headers=""/>
+								  channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+								  auto-startup="false" phase="123"
+								  mapped-request-headers=""/>
 
 	<amqp:inbound-channel-adapter id="withHeaderMapperDefaultMapping"
-		channel="requestChannel" queue-names="inboundchanneladapter.test.2"
-		auto-startup="false" phase="123"/>
+								  channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+								  auto-startup="false" phase="123"/>
 
 	<amqp:inbound-channel-adapter id="dmlc" queue-names="inboundchanneladapter.test.2" consumers-per-queue="2"
-		auto-startup="false" />
+								  auto-startup="false"/>
 
 	<int:channel id="requestChannel">
 		<int:queue/>

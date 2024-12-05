@@ -10,7 +10,7 @@ Java DSL::
 +
 [source, java, role="primary"]
 ----
-@Bean // return the upper cased payload
+@Bean // return the upper-cased payload
 public IntegrationFlow amqpInboundGateway(ConnectionFactory connectionFactory) {
     return IntegrationFlow.from(Amqp.inboundGateway(connectionFactory, "foo"))
             .transform(String.class, String::toUpperCase)

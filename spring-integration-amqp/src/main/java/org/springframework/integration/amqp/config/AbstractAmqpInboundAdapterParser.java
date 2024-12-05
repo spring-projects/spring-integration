@@ -59,6 +59,7 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 			"receive-timeout",
 			"shutdown-timeout",
 			"tx-size",
+			"batch-size",
 			"missing-queues-fatal"
 	};
 
@@ -154,7 +155,13 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 		}
 		builder.addConstructorArgReference(connectionFactoryRef);
 		for (String attributeName : CONTAINER_VALUE_ATTRIBUTES) {
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attributeName);
+			// TODO remove 'tx-size' in 6.5
+			if ("tx-size".equals(attributeName)) {
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attributeName, "batchSize");
+			}
+			else {
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attributeName);
+			}
 		}
 		for (String attributeName : CONTAINER_REFERENCE_ATTRIBUTES) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attributeName);

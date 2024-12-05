@@ -87,7 +87,7 @@ XML::
                                   task-executor=""                <22>
                                   transaction-attribute=""        <23>
                                   transaction-manager=""          <24>
-                                  tx-size=""                      <25>
+                                  batch-size=""                   <25>
                                   consumers-per-queue             <26>
                                   batch-mode="MESSAGES"/>         <27>
 
@@ -146,7 +146,7 @@ By default, this value is `Integer.MAX_VALUE`, meaning that this container start
 Optional.
 <17> Tells the AMQP broker how many messages to send to each consumer in a single request.
 Often, you can set this value high to improve throughput.
-It should be greater than or equal to the transaction size (see the `tx-size` attribute, later in this list).
+It should be greater than or equal to the transaction size (see the `batch-size` attribute, later in this list).
 Optional (defaults to `1`).
 <18> Receive timeout in milliseconds.
 Optional (defaults to `1000`).
@@ -173,7 +173,7 @@ If the `channelTransacted` flag is `false`, no transaction semantics apply to th
 For further information, see
 https://docs.spring.io/spring-amqp/reference/html/%255Freference.html#%5Ftransactions[Transactions with Spring AMQP].
 Optional.
-<25> Tells the `SimpleMessageListenerContainer` how many messages to process in a single transaction (if the channel is transactional).
+<25> Tells the `SimpleMessageListenerContainer` how many messages to process in a single request.
 For best results, it should be less than or equal to the value set in `prefetch-count`.
 Not allowed when 'consumers-per-queue' is set.
 Optional (defaults to `1`).
