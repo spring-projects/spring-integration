@@ -32,7 +32,7 @@ The following adapters are available:
 * xref:amqp/inbound-gateway.adoc[Inbound Gateway]
 * xref:amqp/outbound-channel-adapter.adoc[Outbound Channel Adapter]
 * xref:amqp/outbound-gateway.adoc[Outbound Gateway]
-* xref:amqp-async-outbound-gateway[Async Outbound Gateway]
+* xref:amqp/async-outbound-gateway.adoc[Async Outbound Gateway]
 * xref:amqp/rmq-streams.adoc#rmq-stream-inbound-channel-adapter[RabbitMQ Stream Queue Inbound Channel Adapter]
 * xref:amqp/rmq-streams.adoc#rmq-stream-outbound-channel-adapter[RabbitMQ Stream Queue Outbound Channel Adapter]
 

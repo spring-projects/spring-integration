@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.amqp.config;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
@@ -37,10 +36,10 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
@@ -49,8 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 2.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class AmqpInboundChannelAdapterParserTests {
 
@@ -71,6 +69,8 @@ public class AmqpInboundChannelAdapterParserTests {
 				.isInstanceOf(SimpleMessageListenerContainer.class);
 		assertThat(TestUtils.getPropertyValue(adapter, "batchMode", BatchMode.class))
 				.isEqualTo(BatchMode.EXTRACT_PAYLOADS);
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.batchSize", Integer.class))
+				.isEqualTo(2);
 	}
 
 	@Test
@@ -95,6 +95,8 @@ public class AmqpInboundChannelAdapterParserTests {
 				.isEqualTo(AcknowledgeMode.NONE);
 		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class))
 				.isFalse();
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.batchSize", Integer.class))
+				.isEqualTo(3);
 	}
 
 	@Test
@@ -216,14 +218,13 @@ public class AmqpInboundChannelAdapterParserTests {
 
 	@Test
 	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
-		try {
-			new ClassPathXmlApplicationContext("AmqpInboundChannelAdapterParserTests-headerMapper-fail-context.xml",
-					this.getClass()).close();
-		}
-		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
-					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'")).isTrue();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"AmqpInboundChannelAdapterParserTests-headerMapper-fail-context.xml",
+								getClass()))
+				.withMessageStartingWith("Configuration problem: The 'header-mapper' attribute " +
+						"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'");
 	}
 
 }

@@ -969,7 +969,7 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 				<xsd:documentation>
 					Acknowledge Mode for the MessageListenerContainer; default 'AUTO'
 					meaning the adapter automatically acknowledges the message(s)
-					according to the tx-size.
+					according to the batch-size.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
@@ -1039,7 +1039,7 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 					<xsd:documentation>
 						Specifies how many messages to send to each consumer in a single request. Often this can be set
 						quite high
-						to improve throughput. It should be greater than or equal to the tx-size value.
+						to improve throughput. It should be greater than or equal to the batch-size value.
 					</xsd:documentation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -1117,9 +1117,22 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 			<xsd:annotation>
 				<xsd:appinfo>
 					<xsd:documentation>
+						[DEPRECATED]
 						How many messages to process in a single transaction (if the channel is transactional). For best
 						results it should be
 						less than or equal to the prefetch count.
+						Not allowed when 'consumers-per-queue' is set.
+						Deprecated in favor of 'batch-size'.
+					</xsd:documentation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="batch-size" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation>
+						How many messages to process in a single request.
+						For best results it should be less than or equal to the prefetch count.
 						Not allowed when 'consumers-per-queue' is set.
 					</xsd:documentation>
 				</xsd:appinfo>
