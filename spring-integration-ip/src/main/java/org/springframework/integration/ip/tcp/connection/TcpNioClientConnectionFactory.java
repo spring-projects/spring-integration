@@ -116,8 +116,11 @@ public class TcpNioClientConnectionFactory extends
 		}
 		catch (IOException e) {
 			try {
-				socketChannel.close();
-			} catch (IOException e2) {
+				if (socketChannel != null) {
+					socketChannel.close();
+				}
+			}
+			catch (IOException e2) {
 				logger.error(e2, "Error closing socket channel");
 			}
 			throw new UncheckedIOException(e);
