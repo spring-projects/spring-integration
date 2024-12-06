@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2023 the original author or authors.
+ * Copyright 2009-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,8 +106,9 @@ public class SimpleMessageGroupTests {
 		SimpleMessageGroup group = new SimpleMessageGroup(messages, this.key);
 		StopWatch watch = new StopWatch();
 		watch.start();
+		Collection<Message<?>> messagesInGroup = group.getMessages();
 		for (Message<?> message : messages) {
-			assertThat(group.getMessages().contains(message)).isTrue();
+			assertThat(messagesInGroup.contains(message)).isTrue();
 		}
 		watch.stop();
 		assertThat(watch.getTotalTimeMillis()).isLessThan(5000);
