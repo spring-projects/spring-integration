@@ -39,7 +39,7 @@ public interface CheckedCallable<T, E extends Throwable> {
 	 * Re-throw its exception wrapped with a {@link IllegalStateException}.
 	 * @return the Runnable (by mistake).
 	 * @deprecated since 6.3.7 in favor of {@link #uncheckedCallable()}.
-	 * Will be restored back, but with a proper {@link Callable<T>} return type.
+	 * Will be restored back, but with a proper {@link Callable} return type.
 	 */
 	@Deprecated
 	default Runnable unchecked() {
@@ -47,10 +47,10 @@ public interface CheckedCallable<T, E extends Throwable> {
 	}
 
 	/**
-	 * Wrap the {@link #call()} into unchecked {@link Callable<T>}.
+	 * Wrap the {@link #call()} into unchecked {@link Callable}.
 	 * Re-throw its exception wrapped with a {@link IllegalStateException}.
 	 * Will be replaced with a proper {@link #unchecked()} implementation in 6.5.
-	 * @return the unchecked {@link Callable<T>}.
+	 * @return the unchecked {@link Callable}.
 	 * @since 6.3.7
 	 */
 	default Callable<T> uncheckedCallable() {
