@@ -38,12 +38,11 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Ngoc Nhan
+ * @author Youbin Wu
  *
  * @since 2.1
  */
 public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore {
-
-	private static final String GROUP_ID_MUST_NOT_BE_NULL = "'groupId' must not be null";
 
 	protected static final String MESSAGE_KEY_PREFIX = "MESSAGE_";
 
@@ -206,7 +205,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
-	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
+	public void addMessagesToGroupInner(Object groupId, Message<?>... messages) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'messages' must not be null");
 
@@ -240,7 +239,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
-	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
+	public void removeMessagesFromGroupInner(Object groupId, Collection<Message<?>> messages) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'messages' must not be null");
 
@@ -283,7 +282,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
-	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
+	public boolean removeMessageFromGroupByIdInner(Object groupId, UUID messageId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messageId, "'messageId' must not be null");
 		Object mgm = doRetrieve(this.groupPrefix + groupId);
@@ -305,7 +304,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
-	public void completeGroup(Object groupId) {
+	public void completeGroupInner(Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		MessageGroupMetadata metadata = getGroupMetadata(groupId);
 		if (metadata != null) {
@@ -319,7 +318,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 * Remove the MessageGroup with the provided group ID.
 	 */
 	@Override
-	public void removeMessageGroup(Object groupId) {
+	public void removeMessageGroupInner(Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Object mgm = doRemove(this.groupPrefix + groupId);
 		if (mgm != null) {
@@ -337,7 +336,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
-	public void setGroupCondition(Object groupId, String condition) {
+	public void setGroupConditionInner(Object groupId, String condition) {
 		MessageGroupMetadata metadata = getGroupMetadata(groupId);
 		if (metadata != null) {
 			metadata.setCondition(condition);
@@ -346,7 +345,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
-	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+	public void setLastReleasedSequenceNumberForGroupInner(Object groupId, int sequenceNumber) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		MessageGroupMetadata metadata = getGroupMetadata(groupId);
 		if (metadata == null) {
@@ -359,7 +358,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	@Override
-	public Message<?> pollMessageFromGroup(Object groupId) {
+	public Message<?> pollMessageFromGroupInner(Object groupId) {
 		MessageGroupMetadata groupMetadata = getGroupMetadata(groupId);
 		if (groupMetadata != null) {
 			UUID firstId = groupMetadata.firstId();

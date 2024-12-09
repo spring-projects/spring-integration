@@ -97,6 +97,7 @@ import org.springframework.util.StringUtils;
  * @author Jodie StJohn
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Youbin Wu
  *
  * @since 2.1
  */
@@ -294,7 +295,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
+	protected void addMessagesToGroupInner(Object groupId, Message<?>... messages) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'message' must not be null");
 		Query query = whereGroupIdOrder(groupId);
@@ -328,7 +329,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
+	protected void removeMessagesFromGroupInner(Object groupId, Collection<Message<?>> messages) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'messageToRemove' must not be null");
 
@@ -367,7 +368,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
+	protected boolean removeMessageFromGroupByIdInner(Object groupId, UUID messageId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messageId, "'messageId' must not be null");
 		return this.template.remove(whereMessageIdIsAndGroupIdIs(messageId, groupId), this.collectionName)
@@ -375,7 +376,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public void removeMessageGroup(Object groupId) {
+	protected void removeMessageGroupInner(Object groupId) {
 		this.template.remove(whereGroupIdIs(groupId), this.collectionName);
 	}
 
@@ -395,7 +396,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public Message<?> pollMessageFromGroup(final Object groupId) {
+	protected Message<?> pollMessageFromGroupInner(final Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdIs(groupId).with(Sort.by(GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
 		MessageWrapper messageWrapper = this.template.findAndRemove(query, MessageWrapper.class, this.collectionName);
@@ -415,17 +416,17 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public void setGroupCondition(Object groupId, String condition) {
+	protected void setGroupConditionInner(Object groupId, String condition) {
 		updateGroup(groupId, lastModifiedUpdate().set("_condition", condition));
 	}
 
 	@Override
-	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+	public void setLastReleasedSequenceNumberForGroupInner(Object groupId, int sequenceNumber) {
 		updateGroup(groupId, lastModifiedUpdate().set(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber));
 	}
 
 	@Override
-	public void completeGroup(Object groupId) {
+	protected void completeGroupInner(Object groupId) {
 		this.updateGroup(groupId, lastModifiedUpdate().set(GROUP_COMPLETE_KEY, true));
 	}
 

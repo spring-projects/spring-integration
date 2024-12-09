@@ -61,6 +61,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Adama Sorho
+ * @author Youbin Wu
  *
  * @since 4.0
  */
@@ -201,7 +202,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	@Override
-	public void removeMessageGroup(Object groupId) {
+	protected void removeMessageGroupInner(Object groupId) {
 		this.mongoTemplate.remove(groupIdQuery(groupId), this.collectionName);
 	}
 
@@ -250,17 +251,17 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	@Override
-	public void removeMessagesFromGroup(Object key, Collection<Message<?>> messages) {
+	protected void removeMessagesFromGroupInner(Object key, Collection<Message<?>> messages) {
 		throw NOT_IMPLEMENTED;
 	}
 
 	@Override
-	public void setGroupCondition(Object groupId, String condition) {
+	protected void setGroupConditionInner(Object groupId, String condition) {
 		throw NOT_IMPLEMENTED;
 	}
 
 	@Override
-	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+	protected void setLastReleasedSequenceNumberForGroupInner(Object groupId, int sequenceNumber) {
 		throw NOT_IMPLEMENTED;
 	}
 
@@ -270,7 +271,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	@Override
-	public void completeGroup(Object groupId) {
+	protected void completeGroupInner(Object groupId) {
 		throw NOT_IMPLEMENTED;
 	}
 
@@ -280,7 +281,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	@Override
-	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
+	protected void addMessagesToGroupInner(Object groupId, Message<?>... messages) {
 		throw NOT_IMPLEMENTED;
 	}
 

@@ -45,6 +45,7 @@ import org.springframework.util.CollectionUtils;
  * @author Gary Russell
  * @author Ryan Barker
  * @author Artem Bilan
+ * @author Youbin Wu
  *
  * @since 2.0
  */
@@ -54,8 +55,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	private static final String MESSAGE_GROUP_FOR_GROUP_ID = "MessageGroup for groupId '";
 
 	private static final String UPPER_BOUND_MUST_NOT_BE_NULL = "'upperBound' must not be null.";
-
-	private static final String INTERRUPTED_WHILE_OBTAINING_LOCK = "Interrupted while obtaining lock";
 
 	private final ConcurrentMap<UUID, Message<?>> idToMessage = new ConcurrentHashMap<>();
 
@@ -70,8 +69,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	private final UpperBound individualUpperBound;
 
 	private final long upperBoundTimeout;
-
-	private LockRegistry lockRegistry;
 
 	private boolean copyOnGet = false;
 
@@ -162,6 +159,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		this.copyOnGet = copyOnGet;
 	}
 
+	@Override
 	public void setLockRegistry(LockRegistry lockRegistry) {
 		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");
 		Assert.isTrue(!(this.isUsed), "Cannot change the lock registry after the store has been used");
@@ -268,56 +266,37 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
+	protected void addMessagesToGroupInner(Object groupId, Message<?>... messages) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messages' must not be null");
 
-		Lock lock = this.lockRegistry.obtain(groupId);
-		try {
-			lock.lockInterruptibly();
-			boolean unlocked = false;
-			try {
-				UpperBound upperBound;
-				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				if (group == null) {
-					if (this.groupCapacity > 0 && messages.length > this.groupCapacity) {
-						throw outOfCapacityException(groupId);
-					}
-					group = getMessageGroupFactory().create(groupId);
-					this.groupIdToMessageGroup.put(groupId, group);
-					upperBound = new UpperBound(this.groupCapacity);
-					for (Message<?> message : messages) {
-						upperBound.tryAcquire(-1);
-						group.add(message);
-					}
-					this.groupToUpperBound.put(groupId, upperBound);
+		UpperBound upperBound;
+		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
+		if (group == null) {
+			if (this.groupCapacity > 0 && messages.length > this.groupCapacity) {
+				throw outOfCapacityException(groupId);
+			}
+			group = getMessageGroupFactory().create(groupId);
+			this.groupIdToMessageGroup.put(groupId, group);
+			upperBound = new UpperBound(this.groupCapacity);
+			for (Message<?> message : messages) {
+				upperBound.tryAcquire(-1);
+				group.add(message);
+			}
+			this.groupToUpperBound.put(groupId, upperBound);
+		}
+		else {
+			upperBound = this.groupToUpperBound.get(groupId);
+			Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
+			for (Message<?> message : messages) {
+				if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
+					throw outOfCapacityException(groupId);
 				}
-				else {
-					upperBound = this.groupToUpperBound.get(groupId);
-					Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
-					for (Message<?> message : messages) {
-						lock.unlock();
-						if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
-							unlocked = true;
-							throw outOfCapacityException(groupId);
-						}
-						lock.lockInterruptibly();
-						group.add(message);
-					}
-				}
+				group.add(message);
+			}
+		}
 
-				group.setLastModified(System.currentTimeMillis());
-			}
-			finally {
-				if (!unlocked) {
-					lock.unlock();
-				}
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
-		}
+		group.setLastModified(System.currentTimeMillis());
 	}
 
 	private MessagingException outOfCapacityException(Object groupId) {
@@ -327,58 +306,32 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public void removeMessageGroup(Object groupId) {
-		Lock lock = this.lockRegistry.obtain(groupId);
-		try {
-			lock.lockInterruptibly();
-			try {
-				MessageGroup messageGroup = this.groupIdToMessageGroup.remove(groupId);
-				if (messageGroup != null) {
-					UpperBound upperBound = this.groupToUpperBound.remove(groupId);
-					Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
-					upperBound.release(this.groupCapacity);
-				}
-			}
-			finally {
-				lock.unlock();
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
+	protected void removeMessageGroupInner(Object groupId) {
+		MessageGroup messageGroup = this.groupIdToMessageGroup.remove(groupId);
+		if (messageGroup != null) {
+			UpperBound upperBound = this.groupToUpperBound.remove(groupId);
+			Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
+			upperBound.release(this.groupCapacity);
 		}
 	}
 
 	@Override
-	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
-		Lock lock = this.lockRegistry.obtain(groupId);
-		try {
-			lock.lockInterruptibly();
-			try {
-				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group,
-						() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
-								"can not be located while attempting to remove Message(s) from the MessageGroup");
-				UpperBound upperBound = this.groupToUpperBound.get(groupId);
-				Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
-				boolean modified = false;
-				for (Message<?> messageToRemove : messages) {
-					if (group.remove(messageToRemove)) {
-						upperBound.release();
-						modified = true;
-					}
-				}
-				if (modified) {
-					group.setLastModified(System.currentTimeMillis());
-				}
-			}
-			finally {
-				lock.unlock();
+	protected void removeMessagesFromGroupInner(Object groupId, Collection<Message<?>> messages) {
+		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
+		Assert.notNull(group,
+				() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
+						"can not be located while attempting to remove Message(s) from the MessageGroup");
+		UpperBound upperBound = this.groupToUpperBound.get(groupId);
+		Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
+		boolean modified = false;
+		for (Message<?> messageToRemove : messages) {
+			if (group.remove(messageToRemove)) {
+				upperBound.release();
+				modified = true;
 			}
 		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
+		if (modified) {
+			group.setLastModified(System.currentTimeMillis());
 		}
 	}
 
@@ -397,35 +350,22 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
-		Lock lock = this.lockRegistry.obtain(groupId);
-		try {
-			lock.lockInterruptibly();
-			try {
-				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group,
-						() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
-								"can not be located while attempting to remove Message from the MessageGroup");
-				UpperBound upperBound = this.groupToUpperBound.get(groupId);
-				Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
-				for (Message<?> message : group.getMessages()) {
-					if (messageId.equals(message.getHeaders().getId())) {
-						group.remove(message);
-						upperBound.release();
-						group.setLastModified(System.currentTimeMillis());
-						return true;
-					}
-				}
-				return false;
-			}
-			finally {
-				lock.unlock();
+	protected boolean removeMessageFromGroupByIdInner(Object groupId, UUID messageId) {
+		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
+		Assert.notNull(group,
+				() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
+						"can not be located while attempting to remove Message from the MessageGroup");
+		UpperBound upperBound = this.groupToUpperBound.get(groupId);
+		Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
+		for (Message<?> message : group.getMessages()) {
+			if (messageId.equals(message.getHeaders().getId())) {
+				group.remove(message);
+				upperBound.release();
+				group.setLastModified(System.currentTimeMillis());
+				return true;
 			}
 		}
-		catch (InterruptedException ex) {
-			Thread.currentThread().interrupt();
-			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, ex);
-		}
+		return false;
 	}
 
 	@Override
@@ -434,7 +374,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public void setGroupCondition(Object groupId, String condition) {
+	protected void setGroupConditionInner(Object groupId, String condition) {
 		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 		if (group != null) {
 			group.setCondition(condition);
@@ -442,53 +382,27 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		Lock lock = this.lockRegistry.obtain(groupId);
-		try {
-			lock.lockInterruptibly();
-			try {
-				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group,
-						() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
-								"can not be located while attempting to set 'lastReleasedSequenceNumber'");
-				group.setLastReleasedMessageSequenceNumber(sequenceNumber);
-				group.setLastModified(System.currentTimeMillis());
-			}
-			finally {
-				lock.unlock();
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
-		}
+	protected void setLastReleasedSequenceNumberForGroupInner(Object groupId, int sequenceNumber) {
+		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
+		Assert.notNull(group,
+				() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
+						"can not be located while attempting to set 'lastReleasedSequenceNumber'");
+		group.setLastReleasedMessageSequenceNumber(sequenceNumber);
+		group.setLastModified(System.currentTimeMillis());
 	}
 
 	@Override
-	public void completeGroup(Object groupId) {
-		Lock lock = this.lockRegistry.obtain(groupId);
-		try {
-			lock.lockInterruptibly();
-			try {
-				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group,
-						() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
-								"can not be located while attempting to complete the MessageGroup");
-				group.complete();
-				group.setLastModified(System.currentTimeMillis());
-			}
-			finally {
-				lock.unlock();
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
-		}
+	protected void completeGroupInner(Object groupId) {
+		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
+		Assert.notNull(group,
+				() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
+						"can not be located while attempting to complete the MessageGroup");
+		group.complete();
+		group.setLastModified(System.currentTimeMillis());
 	}
 
 	@Override
-	public Message<?> pollMessageFromGroup(Object groupId) {
+	protected Message<?> pollMessageFromGroupInner(Object groupId) {
 		Collection<Message<?>> messageList = getMessageGroup(groupId).getMessages();
 		Message<?> message = null;
 		if (!CollectionUtils.isEmpty(messageList)) {
