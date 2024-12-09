@@ -155,7 +155,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			throw new ReplyRequiredException(message, "No reply produced by handler '" +
 					getComponentName() + "', and its 'requiresReply' property is set to true.");
 		}
-		else if (!isAsync()) {
+		else if (!isAsync() && isLoggingEnabled()) {
 			logger.debug(LogMessage.format("handler '%s' produced no reply for request Message: %s", this, message));
 		}
 	}
