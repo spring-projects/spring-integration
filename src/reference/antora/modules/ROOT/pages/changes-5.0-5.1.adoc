@@ -17,7 +17,7 @@ See xref:amqp/strict-ordering.adoc[Strict Message Ordering].
 === Improved Function Support
 
 The `java.util.function` interfaces now have improved integration support in the Framework components.
-Also Kotlin lambdas now can be used for handler and source methods.
+Also, Kotlin lambdas now can be used for handler and source methods.
 
 See xref:functions-support.adoc[`java.util.function` Interfaces Support].
 

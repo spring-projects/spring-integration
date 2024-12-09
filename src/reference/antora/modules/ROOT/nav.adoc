@@ -60,7 +60,7 @@
 *** xref:handler-advice/advised-properties.adoc[]
 *** xref:handler-advice/idempotent-receiver.adoc[]
 ** xref:logging-adapter.adoc[]
-*** xref:functions-support.adoc[]
+** xref:functions-support.adoc[]
 ** xref:kotlin-functions.adoc[]
 * xref:dsl.adoc[]
 ** xref:dsl/java-basics.adoc[]

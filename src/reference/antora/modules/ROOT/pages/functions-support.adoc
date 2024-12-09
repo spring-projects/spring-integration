@@ -98,3 +98,5 @@ public IntegrationFlow supplierFlow() {
 ----
 
 This function support is useful when used together with the https://cloud.spring.io/spring-cloud-function/[Spring Cloud Function] framework, where we have a function catalog and can refer to its member functions from an integration flow definition.
+
+Also, many Spring Integration channel adapters and patterns are implemented as functions auto-configuration in https://github.com/spring-cloud/spring-functions-catalog[Spring Functions Catalog] project.
