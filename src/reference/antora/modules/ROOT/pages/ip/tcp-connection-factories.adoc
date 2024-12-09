@@ -196,7 +196,9 @@ Also see xref:ip/annotation.adoc[Annotation-Based Configuration] and xref:ip/dsl
 
 [[host-verification]]
 == Host verification
-Starting from version 5.1.0, host verification is enabled by default for enhanced security. This feature ensures that the server's identity is verified during TCP connections.
+
+Starting from version 5.1.0, host verification is enabled by default for enhanced security. 
+This feature ensures that the server's identity is verified during TCP connections.
 
 If you encounter a scenario where host verification needs to be disabled (not recommended), you can configure the socket-support attribute in the tcp-connection-factory.
 
@@ -209,6 +211,7 @@ If you encounter a scenario where host verification needs to be disabled (not re
                                 socket-support="customSocketSupport"
                                 single-use="true"
                                 so-timeout="10000"/>
+
 <bean id="customSocketSupport" class="org.springframework.integration.ip.tcp.connection.DefaultTcpSocketSupport">
 	<constructor-arg value="false" />
 </bean>
