@@ -351,7 +351,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		SimpleMessageStore messageStore = new SimpleMessageStore() {
 
 			@Override
-			public void removeMessageGroupInner(Object groupId) {
+			protected void doRemoveMessageGroup(Object groupId) {
 				throw new RuntimeException("intentional");
 			}
 		};

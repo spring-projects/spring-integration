@@ -224,18 +224,18 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	@Override
 	public void removeMessagesFromGroup(Object key, Collection<Message<?>> messages) {
 		Assert.notNull(key, GROUP_ID_MUST_NOT_BE_NULL);
-		lockExecute(key, () -> removeMessagesFromGroupInner(key, messages));
+		executeLocked(key, () -> doRemoveMessagesFromGroup(key, messages));
 	}
 
-	protected abstract void removeMessagesFromGroupInner(Object key, Collection<Message<?>> messages);
+	protected abstract void doRemoveMessagesFromGroup(Object key, Collection<Message<?>> messages);
 
 	@Override
 	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		lockExecute(groupId, () -> addMessagesToGroupInner(groupId, messages));
+		executeLocked(groupId, () -> doAddMessagesToGroup(groupId, messages));
 	}
 
-	protected abstract void addMessagesToGroupInner(Object groupId, Message<?>... messages);
+	protected abstract void doAddMessagesToGroup(Object groupId, Message<?>... messages);
 
 	@Override
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
@@ -246,54 +246,54 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	@Override
 	public void removeMessageGroup(Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		lockExecute(groupId, () -> removeMessageGroupInner(groupId));
+		executeLocked(groupId, () -> doRemoveMessageGroup(groupId));
 	}
 
-	protected abstract void removeMessageGroupInner(Object groupId);
+	protected abstract void doRemoveMessageGroup(Object groupId);
 
 	@Override
 	public boolean removeMessageFromGroupById(Object groupId, UUID messageId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		return lockExecute(groupId, () -> removeMessageFromGroupByIdInner(groupId, messageId));
+		return executeLocked(groupId, () -> doRemoveMessageFromGroupById(groupId, messageId));
 	}
 
-	protected boolean removeMessageFromGroupByIdInner(Object groupId, UUID messageId) {
+	protected boolean doRemoveMessageFromGroupById(Object groupId, UUID messageId) {
 		throw new UnsupportedOperationException("Not supported for this store");
 	}
 
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		lockExecute(groupId, () -> setLastReleasedSequenceNumberForGroupInner(groupId, sequenceNumber));
+		executeLocked(groupId, () -> doSetLastReleasedSequenceNumberForGroup(groupId, sequenceNumber));
 	}
 
-	protected abstract void setLastReleasedSequenceNumberForGroupInner(Object groupId, int sequenceNumber);
+	protected abstract void doSetLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber);
 
 	@Override
 	public void completeGroup(Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		lockExecute(groupId, () -> completeGroupInner(groupId));
+		executeLocked(groupId, () -> doCompleteGroup(groupId));
 	}
 
-	protected abstract void completeGroupInner(Object groupId);
+	protected abstract void doCompleteGroup(Object groupId);
 
 	@Override
 	public void setGroupCondition(Object groupId, String condition) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		lockExecute(groupId, () -> setGroupConditionInner(groupId, condition));
+		executeLocked(groupId, () -> doSetGroupCondition(groupId, condition));
 	}
 
-	protected abstract void setGroupConditionInner(Object groupId, String condition);
+	protected abstract void doSetGroupCondition(Object groupId, String condition);
 
 	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
-		return lockExecute(groupId, () -> pollMessageFromGroupInner(groupId));
+		return executeLocked(groupId, () -> doPollMessageFromGroup(groupId));
 	}
 
-	protected abstract Message<?> pollMessageFromGroupInner(Object groupId);
+	protected abstract Message<?> doPollMessageFromGroup(Object groupId);
 
-	protected <T, E extends RuntimeException> T lockExecute(Object groupId, CheckedCallable<T, E> runnable) {
+	protected <T, E extends RuntimeException> T executeLocked(Object groupId, CheckedCallable<T, E> runnable) {
 		try {
 			return this.lockRegistry.executeLocked(groupId, runnable);
 		}
@@ -303,7 +303,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 		}
 	}
 
-	protected <E extends RuntimeException> void lockExecute(Object groupId, CheckedRunnable<E> runnable) {
+	protected <E extends RuntimeException> void executeLocked(Object groupId, CheckedRunnable<E> runnable) {
 		try {
 			this.lockRegistry.executeLocked(groupId, runnable);
 		}

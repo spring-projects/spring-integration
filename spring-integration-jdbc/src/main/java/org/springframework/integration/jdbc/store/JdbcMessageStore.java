@@ -473,7 +473,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void addMessagesToGroupInner(Object groupId, Message<?>... messages) {
+	protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
 		String groupKey = getKey(groupId);
 		MessageGroupMetadata groupMetadata = getGroupMetadata(groupKey);
 
@@ -577,7 +577,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void removeMessagesFromGroupInner(Object groupId, Collection<Message<?>> messages) {
+	protected void doRemoveMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messages' must not be null");
 
@@ -622,7 +622,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected boolean removeMessageFromGroupByIdInner(Object groupId, UUID messageId) {
+	protected boolean doRemoveMessageFromGroupById(Object groupId, UUID messageId) {
 		String groupKey = getKey(groupId);
 		String messageKey = getKey(messageId);
 		int messageToGroupRemoved =
@@ -635,7 +635,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void removeMessageGroupInner(Object groupId) {
+	protected void doRemoveMessageGroup(Object groupId) {
 		String groupKey = getKey(groupId);
 
 		this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGES_FROM_GROUP),
@@ -654,7 +654,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void completeGroupInner(Object groupId) {
+	protected void doCompleteGroup(Object groupId) {
 		final String groupKey = getKey(groupId);
 
 		if (logger.isDebugEnabled()) {
@@ -665,7 +665,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void setGroupConditionInner(Object groupId, String condition) {
+	protected void doSetGroupCondition(Object groupId, String condition) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		String groupKey = getKey(groupId);
 		Timestamp updatedDate = new Timestamp(System.currentTimeMillis());
@@ -676,7 +676,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void setLastReleasedSequenceNumberForGroupInner(Object groupId, int sequenceNumber) {
+	protected void doSetLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		String groupKey = getKey(groupId);
 
@@ -688,7 +688,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected Message<?> pollMessageFromGroupInner(Object groupId) {
+	protected Message<?> doPollMessageFromGroup(Object groupId) {
 		String key = getKey(groupId);
 
 		Message<?> polledMessage = doPollForMessage(key);

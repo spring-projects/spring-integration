@@ -266,7 +266,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void addMessagesToGroupInner(Object groupId, Message<?>... messages) {
+	protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messages' must not be null");
 
@@ -306,7 +306,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void removeMessageGroupInner(Object groupId) {
+	protected void doRemoveMessageGroup(Object groupId) {
 		MessageGroup messageGroup = this.groupIdToMessageGroup.remove(groupId);
 		if (messageGroup != null) {
 			UpperBound upperBound = this.groupToUpperBound.remove(groupId);
@@ -316,7 +316,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void removeMessagesFromGroupInner(Object groupId, Collection<Message<?>> messages) {
+	protected void doRemoveMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
 		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 		Assert.notNull(group,
 				() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
@@ -350,7 +350,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected boolean removeMessageFromGroupByIdInner(Object groupId, UUID messageId) {
+	protected boolean doRemoveMessageFromGroupById(Object groupId, UUID messageId) {
 		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 		Assert.notNull(group,
 				() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
@@ -374,7 +374,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void setGroupConditionInner(Object groupId, String condition) {
+	protected void doSetGroupCondition(Object groupId, String condition) {
 		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 		if (group != null) {
 			group.setCondition(condition);
@@ -382,7 +382,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void setLastReleasedSequenceNumberForGroupInner(Object groupId, int sequenceNumber) {
+	protected void doSetLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 		Assert.notNull(group,
 				() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
@@ -392,7 +392,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected void completeGroupInner(Object groupId) {
+	protected void doCompleteGroup(Object groupId) {
 		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 		Assert.notNull(group,
 				() -> MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
@@ -402,7 +402,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	protected Message<?> pollMessageFromGroupInner(Object groupId) {
+	protected Message<?> doPollMessageFromGroup(Object groupId) {
 		Collection<Message<?>> messageList = getMessageGroup(groupId).getMessages();
 		Message<?> message = null;
 		if (!CollectionUtils.isEmpty(messageList)) {

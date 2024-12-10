@@ -92,7 +92,7 @@ public class MessageStoreTests {
 		}
 
 		@Override
-		protected void addMessagesToGroupInner(Object groupId, Message<?>... messages) {
+		protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -102,30 +102,30 @@ public class MessageStoreTests {
 		}
 
 		@Override
-		protected void removeMessagesFromGroupInner(Object key, Collection<Message<?>> messages) {
+		protected void doRemoveMessagesFromGroup(Object key, Collection<Message<?>> messages) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		protected void removeMessageGroupInner(Object correlationKey) {
+		protected void doRemoveMessageGroup(Object correlationKey) {
 			if (correlationKey.equals(testMessages.getGroupId())) {
 				removed = true;
 			}
 		}
 
 		@Override
-		protected void setLastReleasedSequenceNumberForGroupInner(Object groupId, int sequenceNumber) {
+		protected void doSetLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		protected void completeGroupInner(Object groupId) {
+		protected void doCompleteGroup(Object groupId) {
 
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		protected Message<?> pollMessageFromGroupInner(Object groupId) {
+		protected Message<?> doPollMessageFromGroup(Object groupId) {
 			return null;
 		}
 

@@ -148,7 +148,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	protected void addMessagesToGroupInner(Object groupId, Message<?>... messages) {
+	protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'message' must not be null");
 
@@ -184,7 +184,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	protected void removeMessagesFromGroupInner(Object groupId, Collection<Message<?>> messages) {
+	protected void doRemoveMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'messageToRemove' must not be null");
 
@@ -216,7 +216,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	protected boolean removeMessageFromGroupByIdInner(Object groupId, UUID messageId) {
+	protected boolean doRemoveMessageFromGroupById(Object groupId, UUID messageId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messageId, "'messageId' must not be null");
 		Query query =
@@ -235,7 +235,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	protected Message<?> pollMessageFromGroupInner(final Object groupId) {
+	protected Message<?> doPollMessageFromGroup(final Object groupId) {
 		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 
 		Sort sort = Sort.by(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
@@ -250,17 +250,17 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	protected void setLastReleasedSequenceNumberForGroupInner(Object groupId, int sequenceNumber) {
+	protected void doSetLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.LAST_RELEASED_SEQUENCE, sequenceNumber));
 	}
 
 	@Override
-	protected void setGroupConditionInner(Object groupId, String condition) {
+	protected void doSetGroupCondition(Object groupId, String condition) {
 		updateGroup(groupId, lastModifiedUpdate().set("condition", condition));
 	}
 
 	@Override
-	protected void completeGroupInner(Object groupId) {
+	protected void doCompleteGroup(Object groupId) {
 		updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.COMPLETE, true));
 	}
 

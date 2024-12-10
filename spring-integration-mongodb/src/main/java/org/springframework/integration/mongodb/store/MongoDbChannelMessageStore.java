@@ -133,7 +133,7 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	}
 
 	@Override
-	protected Message<?> pollMessageFromGroupInner(Object groupId) {
+	protected Message<?> doPollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
 		Sort sort = Sort.by(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);

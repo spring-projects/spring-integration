@@ -202,7 +202,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	@Override
-	protected void removeMessageGroupInner(Object groupId) {
+	protected void doRemoveMessageGroup(Object groupId) {
 		this.mongoTemplate.remove(groupIdQuery(groupId), this.collectionName);
 	}
 
@@ -251,17 +251,17 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	@Override
-	protected void removeMessagesFromGroupInner(Object key, Collection<Message<?>> messages) {
+	protected void doRemoveMessagesFromGroup(Object key, Collection<Message<?>> messages) {
 		throw NOT_IMPLEMENTED;
 	}
 
 	@Override
-	protected void setGroupConditionInner(Object groupId, String condition) {
+	protected void doSetGroupCondition(Object groupId, String condition) {
 		throw NOT_IMPLEMENTED;
 	}
 
 	@Override
-	protected void setLastReleasedSequenceNumberForGroupInner(Object groupId, int sequenceNumber) {
+	protected void doSetLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		throw NOT_IMPLEMENTED;
 	}
 
@@ -271,7 +271,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	@Override
-	protected void completeGroupInner(Object groupId) {
+	protected void doCompleteGroup(Object groupId) {
 		throw NOT_IMPLEMENTED;
 	}
 
@@ -281,7 +281,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	@Override
-	protected void addMessagesToGroupInner(Object groupId, Message<?>... messages) {
+	protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
 		throw NOT_IMPLEMENTED;
 	}
 
