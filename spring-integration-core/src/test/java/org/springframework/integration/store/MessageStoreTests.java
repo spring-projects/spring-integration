@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Youbin Wu
  */
 public class MessageStoreTests {
 
@@ -91,7 +92,7 @@ public class MessageStoreTests {
 		}
 
 		@Override
-		public void addMessagesToGroup(Object groupId, Message<?>... messages) {
+		protected void doAddMessagesToGroup(Object groupId, Message<?>... messages) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -101,30 +102,30 @@ public class MessageStoreTests {
 		}
 
 		@Override
-		public void removeMessagesFromGroup(Object key, Collection<Message<?>> messages) {
+		protected void doRemoveMessagesFromGroup(Object key, Collection<Message<?>> messages) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void removeMessageGroup(Object correlationKey) {
+		protected void doRemoveMessageGroup(Object correlationKey) {
 			if (correlationKey.equals(testMessages.getGroupId())) {
 				removed = true;
 			}
 		}
 
 		@Override
-		public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+		protected void doSetLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void completeGroup(Object groupId) {
+		protected void doCompleteGroup(Object groupId) {
 
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public Message<?> pollMessageFromGroup(Object groupId) {
+		protected Message<?> doPollMessageFromGroup(Object groupId) {
 			return null;
 		}
 
