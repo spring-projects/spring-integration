@@ -194,6 +194,29 @@ As noted there, such modifications are possible if SSL is being used, or not.
 
 Also see xref:ip/annotation.adoc[Annotation-Based Configuration] and xref:ip/dsl.adoc[Using the Java DSL for TCP Components].
 
+[[host-verification]]
+== Host verification
+
+Starting from version 5.1.0, host verification is enabled by default for enhanced security. 
+This feature ensures that the server's identity is verified during TCP connections.
+
+If you encounter a scenario where host verification needs to be disabled (not recommended), you can configure the socket-support attribute in the tcp-connection-factory.
+
+[source,xml]
+----
+<int-ip:tcp-connection-factory id="client"
+                                type="client"
+                                host="localhost"
+                                port="0"
+                                socket-support="customSocketSupport"
+                                single-use="true"
+                                so-timeout="10000"/>
+
+<bean id="customSocketSupport" class="org.springframework.integration.ip.tcp.connection.DefaultTcpSocketSupport">
+	<constructor-arg value="false" />
+</bean>
+----
+
 [[custom-serializers-and-deserializers]]
 == Custom Serializers and Deserializers
 
