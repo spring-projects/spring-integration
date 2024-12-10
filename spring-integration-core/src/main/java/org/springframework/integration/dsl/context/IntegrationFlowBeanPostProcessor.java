@@ -74,6 +74,7 @@ import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.lang.Nullable;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -181,11 +182,15 @@ public class IntegrationFlowBeanPostProcessor
 			}
 			else if (component instanceof MessageChannelReference messageChannelReference) {
 				String channelBeanName = messageChannelReference.name();
+				MessageChannel channelByName;
 				if (!this.beanFactory.containsBean(channelBeanName)) {
-					DirectChannel directChannel = new DirectChannel();
-					registerComponent(directChannel, channelBeanName, flowBeanName);
-					targetIntegrationComponents.put(directChannel, channelBeanName);
+					channelByName = new DirectChannel();
+					registerComponent(channelByName, channelBeanName, flowBeanName);
 				}
+				else {
+					channelByName = this.beanFactory.getBean(channelBeanName, MessageChannel.class);
+				}
+				targetIntegrationComponents.put(channelByName, channelBeanName);
 			}
 			else if (component instanceof SourcePollingChannelAdapterSpec spec) {
 				Map<Object, String> componentsToRegister = spec.getComponentsToRegister();
