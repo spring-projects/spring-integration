@@ -570,10 +570,17 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		if (this.autoCreateDirectory) {
 			try {
 				RemoteFileUtils.makeDirectories(remoteDirectory, session, this.remoteFileSeparator, this.logger);
+				if (!temporaryRemoteDirectory.equals(remoteDirectory)) {
+					RemoteFileUtils.makeDirectories(temporaryRemoteDirectory, session, this.remoteFileSeparator,
+							this.logger);
+				}
 			}
 			catch (@SuppressWarnings("unused") IllegalStateException e) {
 				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
 				session.mkdir(remoteDirectory);
+				if (!temporaryRemoteDirectory.equals(remoteDirectory)) {
+					session.mkdir(temporaryRemoteDirectory);
+				}
 			}
 		}
 
