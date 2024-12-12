@@ -43,6 +43,7 @@ public abstract class IntegrationEvent extends ApplicationEvent {
 		this.cause = cause;
 	}
 
+	@Nullable
 	public Throwable getCause() {
 		return this.cause;
 	}
