@@ -63,7 +63,7 @@ public class SmbShare extends SmbFile {
 	 * @throws IOException if an invalid SMB URL was constructed by jCIFS
 	 */
 	public SmbShare(SmbConfig _smbConfig) throws IOException {
-		super(StringUtils.cleanPath(_smbConfig.validate().getUrl()),
+		super(StringUtils.cleanPath(_smbConfig.validate().rawUrl()),
 				SingletonContext.getInstance().withCredentials(
 						new NtlmPasswordAuthenticator(
 								_smbConfig.getDomain(), _smbConfig.getUsername(), _smbConfig.getPassword())));
@@ -76,7 +76,7 @@ public class SmbShare extends SmbFile {
 	 * @throws IOException if an invalid SMB URL was constructed by jCIFS
 	 */
 	public SmbShare(SmbConfig _smbConfig, CIFSContext _context) throws IOException {
-		super(StringUtils.cleanPath(_smbConfig.validate().getUrl()), _context);
+		super(StringUtils.cleanPath(_smbConfig.validate().rawUrl()), _context);
 	}
 
 	/**
@@ -88,7 +88,7 @@ public class SmbShare extends SmbFile {
 	 * @throws IOException if an invalid property was set or an invalid SMB URL was constructed by jCIFS
 	 */
 	public SmbShare(SmbConfig _smbConfig, Properties _props) throws IOException {
-		super(StringUtils.cleanPath(_smbConfig.validate().getUrl()),
+		super(StringUtils.cleanPath(_smbConfig.validate().rawUrl()),
 				new BaseContext(
 						new PropertyConfiguration(_props)).withCredentials(
 						new NtlmPasswordAuthenticator(

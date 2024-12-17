@@ -1,48 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-smb="http://www.springframework.org/schema/integration/smb"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-smb="http://www.springframework.org/schema/integration/smb"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration  https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/smb https://www.springframework.org/schema/integration/smb/spring-integration-smb.xsd">
 
 	<bean id="smbSessionFactory" class="org.springframework.integration.smb.session.SmbSessionFactory">
-		<property name="host"        value="localhost"/>
-		<property name="domain"      value=""/>
-		<property name="username"    value="sambaguest"/>
-		<property name="password"    value="sambaguest"/>
+		<property name="host" value="localhost"/>
+		<property name="domain" value=""/>
+		<property name="username" value="sambaguest"/>
+		<property name="password" value="sambaguest"/>
 		<property name="shareAndDir" value="smb-share/"/>
 	</bean>
 
 	<int-smb:inbound-channel-adapter id="adapterSmb"
-		session-factory="smbSessionFactory"
-		channel="smbIn"
-		filename-pattern="foo"
-		local-directory="test-temp/local-10"
-		remote-directory="test-temp/remote-10"
-		auto-create-local-directory="true"
-		delete-remote-files="false">
-		<int:poller ref="smbPoller" />
+									 session-factory="smbSessionFactory"
+									 channel="smbIn"
+									 filename-pattern="foo"
+									 local-directory="test-temp/local-10"
+									 remote-directory="test-temp/remote-10"
+									 auto-create-local-directory="true"
+									 auto-startup="false"
+									 delete-remote-files="false">
+		<int:poller ref="smbPoller"/>
 	</int-smb:inbound-channel-adapter>
 
 	<int-smb:inbound-channel-adapter id="adapterSmb2"
-		session-factory="smbSessionFactory"
-		channel="smbIn"
-		filter="filter"
-		local-directory="test-temp"
-		remote-directory="test-temp/remote-11"
-		auto-create-local-directory="true"
-		delete-remote-files="false">
-		<int:poller ref="smbPoller" />
+									 session-factory="smbSessionFactory"
+									 channel="smbIn"
+									 filter="filter"
+									 local-directory="test-temp"
+									 remote-directory="test-temp/remote-11"
+									 auto-create-local-directory="true"
+									 auto-startup="false"
+									 delete-remote-files="false">
+		<int:poller ref="smbPoller"/>
 	</int-smb:inbound-channel-adapter>
 
 	<bean id="filter" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"  type="java.lang.Class"/>
+		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter" type="java.lang.Class"/>
 	</bean>
 
-	<int:poller fixed-rate="3000" id="smbPoller" />
+	<int:poller fixed-rate="3000" id="smbPoller"/>
 
 	<int:channel id="smbIn">
 		<int:queue/>

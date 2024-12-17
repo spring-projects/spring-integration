@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2023 the original author or authors.
+ * Copyright 2012-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,10 @@ public class SmbMessageHistoryTests extends AbstractBaseTests {
 
 			String url = smbSessionFactory.getUrl();
 			URI uri = new URI(url);
-			assertThat("sambagu%40est:sambag%25uest").isEqualTo(uri.getRawUserInfo());
-			assertThat("sambagu@est:sambag%uest").isEqualTo(uri.getUserInfo());
+			assertThat(uri.getRawUserInfo()).isEqualTo("sambagu%40est:sambag%25uest");
+			assertThat(uri.getUserInfo()).isEqualTo("sambagu@est:sambag%uest");
+			assertThat(uri.getPath()).isEqualTo("/smb share/");
+			assertThat(uri.getRawPath()).isEqualTo("/smb%20share/");
 		}
 	}
 
