@@ -63,9 +63,4 @@ public class SmbParserInboundTests extends AbstractBaseTests {
 		delete("test-temp/local-10", "test-temp/local-6");
 	}
 
-	public static void main(String[] _args) throws Exception {
-		new SmbParserInboundTests().cleanUp();
-		runTests(SmbParserInboundTests.class, "testLocalFilesAutoCreationTrue", "testLocalFilesAutoCreationFalse");
-	}
-
 }

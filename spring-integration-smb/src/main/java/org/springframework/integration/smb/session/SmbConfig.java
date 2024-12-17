@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2012-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Data holder class for a SMB share configuration.
+ * Data holder class for an SMB share configuration.
  *<p>
  * SmbFile URLs syntax:
  *      smb://[[[domain;]username[:password]@]server[:port]/[[share/[dir/]file]]][?[param=value[param2=value2[...]]]
@@ -197,22 +197,50 @@ public class SmbConfig {
 	}
 
 	public final String getUrl(boolean _includePassword) {
-		String domainUserPass = getDomainUserPass(_includePassword);
+		return createUri(_includePassword).toASCIIString();
+	}
 
+	/**
+	 * Return the url string for the share connection without encoding.
+	 * Used in the {@link SmbShare} constructor delegation.
+	 * @return the url string for the share connection without encoding.
+	 * @since 6.3.8
+	 */
+	public final String rawUrl() {
+		return rawUrl(true);
+	}
+
+	/**
+	 * Return the url string for the share connection without encoding.
+	 * Used in the {@link SmbShare} constructor delegation.
+	 * @param _includePassword whether password has to be masked in credentials of URL.
+	 * @return the url string for the share connection without encoding.
+	 * @since 6.3.8
+	 */
+	public final String rawUrl(boolean _includePassword) {
+		String domainUserPass = getDomainUserPass(_includePassword);
+		String path = cleanPath();
+		return "smb://%s@%s%s".formatted(domainUserPass, getHostPort(), path);
+	}
+
+	private URI createUri(boolean _includePassword) {
+		String domainUserPass = getDomainUserPass(_includePassword);
+		String path = cleanPath();
+		try {
+			return new URI("smb", domainUserPass, this.host, this.port, path, null, null);
+		}
+		catch (URISyntaxException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	private String cleanPath() {
 		String path = StringUtils.cleanPath(this.shareAndDir);
 
 		if (!path.startsWith("/")) {
 			path = "/" + path;
 		}
-
-		try {
-			return new URI("smb", domainUserPass, this.host, this.port, path, null, null)
-					.toASCIIString();
-		}
-		catch (URISyntaxException e) {
-			throw new IllegalArgumentException(e);
-		}
-
+		return path;
 	}
 
 	@Override

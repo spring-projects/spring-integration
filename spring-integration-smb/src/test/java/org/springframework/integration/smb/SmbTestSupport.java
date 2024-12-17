@@ -68,7 +68,7 @@ public class SmbTestSupport extends RemoteFileTestSupport {
 
 	public static final String HOST = "127.0.0.1";
 
-	public static final String SHARE_AND_DIR = "smb-share";
+	public static final String SHARE_AND_DIR = "smb share";
 
 	public static final String USERNAME = "sambaguest";
 
@@ -110,7 +110,7 @@ public class SmbTestSupport extends RemoteFileTestSupport {
 	}
 
 	public static String smbServerUrl() {
-		return smbSessionFactory.getUrl().replaceFirst('/' + SHARE_AND_DIR + '/', "");
+		return smbSessionFactory.rawUrl().replaceFirst('/' + SHARE_AND_DIR + '/', "");
 	}
 
 	public static SessionFactory<SmbFile> sessionFactory() {
