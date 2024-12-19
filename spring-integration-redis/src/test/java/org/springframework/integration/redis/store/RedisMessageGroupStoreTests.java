@@ -493,6 +493,15 @@ class RedisMessageGroupStoreTests implements RedisContainerTest {
 		assertThat(store.messageGroupSize("2")).isEqualTo(1);
 	}
 
+	@Test
+	public void testMessageGroupCondition() {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		store.addMessagesToGroup(groupId, message);
+		store.setGroupCondition(groupId, "testCondition");
+		assertThat(store.getMessageGroup(groupId).getCondition()).isEqualTo("testCondition");
+	}
+
 	private record Foo(String foo) {
 
 	}
