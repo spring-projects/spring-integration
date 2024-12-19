@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.TopicPartition;
@@ -53,7 +52,6 @@ import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.kafka.support.KafkaIntegrationHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -99,7 +97,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@LogLevels(level = "debug", categories = "org.apache.kafka.clients.consumer")
 public class KafkaDslTests {
 
 	private static final Log log = LogFactory.getLog(KafkaDslTests.class);
@@ -284,7 +281,6 @@ public class KafkaDslTests {
 		@Bean
 		public ConsumerFactory<Integer, String> consumerFactory() {
 			Map<String, Object> props = KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "dsl-group", "false");
-			props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 			return new DefaultKafkaConsumerFactory<>(props);
 		}
 
