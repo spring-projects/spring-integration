@@ -389,8 +389,10 @@ public class KafkaDslTests {
 
 		@Bean
 		public IntegrationFlow sourceFlow() {
+			ConsumerProperties consumerProperties = new ConsumerProperties(TEST_TOPIC3);
+			consumerProperties.setGroupId("inboundChannelAdapterGroup");
 			return IntegrationFlow
-					.from(Kafka.inboundChannelAdapter(consumerFactory(), new ConsumerProperties(TEST_TOPIC3)),
+					.from(Kafka.inboundChannelAdapter(consumerFactory(), consumerProperties),
 							e -> e.poller(Pollers.fixedDelay(100)))
 					.handle(p -> {
 						this.fromSource = p.getPayload();
