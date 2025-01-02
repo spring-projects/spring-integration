@@ -13,3 +13,8 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 
 In general the project has been moved to the latest dependency versions.
 
+[[x6.5-general]]
+== General Changes
+
+The deprecated previously usage of `org.springframework.util.concurrent.ListenableFuture` has been removed in favor of `CompletableFuture`.
+

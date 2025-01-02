@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -321,7 +321,6 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return replyChannel;
 	}
 
-	@SuppressWarnings("removal")
 	private void doProduceOutput(Message<?> requestMessage, MessageHeaders requestHeaders, Object reply,
 			@Nullable Object replyChannelArg) {
 
@@ -331,9 +330,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 
 		if (this.async) {
-			boolean isFutureReply =
-					reply instanceof org.springframework.util.concurrent.ListenableFuture<?> ||
-							reply instanceof CompletableFuture<?>;
+			boolean isFutureReply = reply instanceof CompletableFuture<?>;
 
 			ReactiveAdapter reactiveAdapter = null;
 			if (!isFutureReply) {
@@ -366,7 +363,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			return reactiveAdapter.toPublisher(reply);
 		}
 		else {
-			return Mono.fromFuture(toCompletableFuture(reply));
+			return Mono.fromFuture((CompletableFuture<?>) reply);
 		}
 	}
 
@@ -415,20 +412,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			return replyFuture;
 		}
 		else {
-			return toCompletableFuture(reply);
-		}
-	}
-
-	@SuppressWarnings("removal")
-	private CompletableFuture<?> toCompletableFuture(Object reply) {
-		if (reply instanceof CompletableFuture<?> completableFuture) {
-			return completableFuture;
-		}
-		else {
-			logger.warn("The 'org.springframework.util.concurrent.ListenableFuture' is deprecated for removal." +
-					"The 'CompletableFuture' is recommended to be used instead." +
-					"The 'ListenableFuture' support will be removed in Spring Integration 6.5.");
-			return ((org.springframework.util.concurrent.ListenableFuture<?>) reply).completable();
+			return (CompletableFuture<?>) reply;
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -522,7 +522,6 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 
 	@Override
 	@Nullable
-	@SuppressWarnings("removal")
 	public Object invoke(final MethodInvocation invocation) throws Throwable { // NOSONAR
 		Method method = invocation.getMethod();
 		Class<?> returnType;
@@ -540,13 +539,6 @@ public class GatewayProxyFactoryBean<T> extends AbstractEndpoint
 			}
 			else if (CompletableFuture.class.equals(returnType)) { // exact
 				return CompletableFuture.supplyAsync(invoker, this.asyncExecutor);
-			}
-			else if (org.springframework.util.concurrent.ListenableFuture.class.equals(returnType)) {
-				logger.warn("The 'org.springframework.util.concurrent.ListenableFuture' is deprecated for removal." +
-						"The 'CompletableFuture' is recommended to be used instead." +
-						"The 'ListenableFuture' support will be removed in Spring Integration 6.5.");
-				return ((org.springframework.core.task.AsyncListenableTaskExecutor) this.asyncExecutor)
-						.submitListenable(invoker::get);
 			}
 			else if (Future.class.isAssignableFrom(returnType)) {
 				logger.debug(() -> "AsyncTaskExecutor submit*() return types are incompatible with the method return " +
