@@ -1113,20 +1113,6 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="tx-size" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<xsd:documentation>
-						[DEPRECATED]
-						How many messages to process in a single transaction (if the channel is transactional). For best
-						results it should be
-						less than or equal to the prefetch count.
-						Not allowed when 'consumers-per-queue' is set.
-						Deprecated in favor of 'batch-size'.
-					</xsd:documentation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="batch-size" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>

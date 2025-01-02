@@ -18,7 +18,7 @@
 	</util:properties>
 
 	<amqp:inbound-channel-adapter id="rabbitInbound" queue-names="inboundchanneladapter.test.1"
-								  batch-mode="EXTRACT_PAYLOADS" tx-size="2"/>
+								  batch-mode="EXTRACT_PAYLOADS" batch-size="2"/>
 
 	<amqp:inbound-channel-adapter id="autoStartFalse" queue-names="inboundchanneladapter.test.2"
 								  auto-startup="false" phase="123" acknowledge-mode="${ackMode}"

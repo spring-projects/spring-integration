@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.beans.factory.xml.XmlReaderContext;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.Assert;
@@ -58,7 +59,6 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 			"recovery-interval",
 			"receive-timeout",
 			"shutdown-timeout",
-			"tx-size",
 			"batch-size",
 			"missing-queues-fatal"
 	};
@@ -108,8 +108,7 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 
-		BeanDefinitionBuilder mapperBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(DefaultAmqpHeaderMapper.class);
+		BeanDefinitionBuilder mapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultAmqpHeaderMapper.class);
 		mapperBuilder.setFactoryMethod("inboundMapper");
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, mapperBuilder, null);
 
@@ -125,24 +124,24 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 	}
 
 	private BeanDefinition buildListenerContainer(Element element, ParserContext parserContext) {
+		XmlReaderContext readerContext = parserContext.getReaderContext();
 		if (!element.hasAttribute("queue-names")) {
-			parserContext.getReaderContext().error("If no 'listener-container' reference is provided, " +
-					"the 'queue-names' attribute is required.", element);
+			readerContext.error(
+					"If no 'listener-container' reference is provided, the 'queue-names' attribute is required.",
+					element);
 		}
 		String consumersPerQueue = element.getAttribute("consumers-per-queue");
 		BeanDefinitionBuilder builder;
 		if (StringUtils.hasText(consumersPerQueue)) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectMessageListenerContainer.class);
 			if (StringUtils.hasText(element.getAttribute("concurrent-consumers"))) {
-				parserContext.getReaderContext().error("'consumers-per-queue' and 'concurrent-consumers' are mutually "
-						+ "exclusive", element);
+				readerContext.error("'consumers-per-queue' and 'concurrent-consumers' are mutually exclusive", element);
 			}
 			if (StringUtils.hasText(element.getAttribute("tx-size"))) {
-				parserContext.getReaderContext().error("'tx-size' is not allowed with 'consumers-per-queue'", element);
+				readerContext.error("'tx-size' is not allowed with 'consumers-per-queue'", element);
 			}
 			if (StringUtils.hasText(element.getAttribute("receive-timeout"))) {
-				parserContext.getReaderContext().error("'receive-timeout' is not allowed with 'consumers-per-queue'",
-						element);
+				readerContext.error("'receive-timeout' is not allowed with 'consumers-per-queue'", element);
 			}
 			builder.addPropertyValue("consumersPerQueue", consumersPerQueue);
 		}
@@ -155,13 +154,7 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 		}
 		builder.addConstructorArgReference(connectionFactoryRef);
 		for (String attributeName : CONTAINER_VALUE_ATTRIBUTES) {
-			// TODO remove 'tx-size' in 6.5
-			if ("tx-size".equals(attributeName)) {
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attributeName, "batchSize");
-			}
-			else {
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attributeName);
-			}
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attributeName);
 		}
 		for (String attributeName : CONTAINER_REFERENCE_ATTRIBUTES) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attributeName);
