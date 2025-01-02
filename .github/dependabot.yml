@@ -46,6 +46,52 @@ updates:
           - org.springframework.security*
 
   - package-ecosystem: gradle
+    target-branch: 6.4.x
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+    open-pull-requests-limit: 10
+    labels:
+      - 'type: dependency-upgrade'
+    groups:
+      development-dependencies:
+        update-types:
+          - patch
+        patterns:
+          - com.gradle.*
+          - com.github.spotbugs
+          - io.spring.*
+          - org.ajoberstar.grgit
+          - org.antora
+          - com.google.protobuf
+          - io.micrometer:micrometer-docs-generator
+          - com.willowtreeapps.assertk:assertk-jvm
+          - org.jetbrains.dokka
+          - org.apache.activemq*
+          - org.aspectj*
+          - org.awaitility:awaitility
+          - org.apache.commons:commons-dbcp2
+          - org.apache.derby
+          - com.icegreen:greenmail
+          - org.hibernate.orm*
+          - org.testcontainers*
+          - org.hsqldb:hsqldb
+          - com.h2database:h2
+          - org.postgresql:postgresql
+          - mysql:mysql-connector-java
+          - com.oracle.database.jdbc:ojdbc11
+          - org.apache.tomcat.embed:tomcat-embed-websocket
+          - org.xmlunit:xmlunit-assertj3
+          - com.thoughtworks.xstream:xstream
+          - org.springframework.security*
+
+  - package-ecosystem: gradle
     target-branch: 6.3.x
     directory: /
     schedule:
@@ -92,6 +138,18 @@ updates:
           - org.springframework.security*
 
   - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: saturday
+    labels:
+      - 'type: task'
+    groups:
+      development-dependencies:
+        patterns:
+          - '*'
+  - package-ecosystem: github-actions
+    target-branch: 6.4.x
     directory: /
     schedule:
       interval: weekly

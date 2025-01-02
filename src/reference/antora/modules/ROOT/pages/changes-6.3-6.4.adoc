@@ -1,0 +1,93 @@
+[[migration-6.3-6.4]]
+= Changes between 6.3 and 6.4
+
+[[x6.4-new-components]]
+== New Components
+
+A `BaseMessageBuilder` class has been extracted from the `MessageBuilder` to simplify a custom builder implementation where the most of the logic should be the same as `MessageBuilder` one.
+See xref:message.adoc#message-builder[`MessageBuilder`] for more information.
+
+The new Control Bus interaction model is implemented in the `ControlBusCommandRegistry`.
+A new `ControlBusFactoryBean` class is recommended to be used instead of deprecated `ExpressionControlBusFactoryBean`.
+See xref:control-bus.adoc[Control Bus] for more information.
+
+Also, a `ControlBusController` (together with an `@EnableControlBusController`) is introduced for managing exposed commands by the mentioned `ControlBusCommandRegistry`.
+See xref:http.adoc[HTTP Support] for more information.
+
+The SpEL evaluation infrastructure now supports configuration for `IndexAccessor`.
+Also, an out-of-the-box `JsonIndexAccessor` is provided.
+See xref:spel.adoc[SpEL Support] for more information.
+
+[[x6.4-general]]
+== General Changes
+
+The Java DSL `SourcePollingChannelAdapterSpec` can now be configured with a custom `TaskScheduler`
+
+[[x6.4-remote-files-changes]]
+== Remote File Adapters Changes
+
+The `AbstractRemoteFileStreamingMessageSource` has now a convenient `clearFetchedCache()` API to remove references from cache for not processed remote files.
+The references stay in cache because polling configuration does not allow to process all the fetched in one cycle, and the target `SessionFactory` might be changed between polling cycles, e.g. via `RotatingServerAdvice`.
+
+[[x6.4-jdbc-changes]]
+== JDBC Changes
+
+The `LobHandler` (and respective API) has been deprecated for removal in Spring Framework `6.2`.
+Respective option on `JdbcMessageStore` (and similar) have been deprecated as well.
+The byte array handling for serialized message is fully deferred to JDBC driver.
+
+The `LockRepository.delete()` method return the result of removing ownership of a distributed lock.
+And the `JdbcLockRegistry.JdbcLock.unlock()` method throws `ConcurrentModificationException` if the ownership of the lock is expired.
+See xref:jdbc.adoc[JDBC Support] for more information.
+
+[[x6.4-zeromq-changes]]
+== ZeroMQ Changes
+
+The outbound component `ZeroMqMessageHandler` (and respective API) can now bind a TCP port instead of connecting to a given URL.
+See xref:zeromq.adoc[ZeroMQ Support] for more information.
+
+[[x6.4-redis-changes]]
+== Redis Changes
+
+Instead of throwing `IllegalStateException`, the `RedisLockRegistry.RedisLock.unlock()` method throws `ConcurrentModificationException` if the ownership of the lock is expired.
+Add a `RedisLockRegistry.setRenewalTaskScheduler()` to periodic lock renewal.
+See xref:redis.adoc[Redis Support] for more information.
+
+[[x6.4-groovy-changes]]
+== Groovy Changes
+
+The `ControlBusFactoryBean` (and respective `<int-groovy:control-bus>` XML tag) has been deprecated (for removal) in favor of new introduced `ControlBusFactoryBean` based on a new model implemented in the `ControlBusCommandRegistry`.
+See xref:control-bus.adoc[Control Bus] for more information.
+
+
+[[x6.4-sftp-changes]]
+== SFTP Support Changes
+
+The `DefaultSftpSessionFactory` now exposes a `Consumer<SshClient>` configurer property to further customize an internal `SshClient`.
+See xref:sftp/session-factory.adoc[SFTP Session Factory] for more information.
+
+[[x6.4-mqtt-support-changes]]
+== MQTT Support Changes
+
+Multiple instances of `MqttPahoMessageDrivenChannelAdapter` and `Mqttv5PahoMessageDrivenChannelAdapter` can now be added at runtime using corresponding `ClientManager` through `IntegrationFlowContext`
+Also a `MqttMessageNotDeliveredEvent` event has been introduced to emit when action callback reacts to the delivery failure.
+See xref:mqtt.adoc[MQTT Support] for more information.
+
+[[x6.4-zip-support-changes]]
+== Zip Support Changes
+
+The `ZipTransformer` now exposes a `fileNameGenerator` property to customize a target zip file (and optional zip entry) name generation.
+See xref:zip.adoc[Zip Support] for more information.
+
+
+[[x6.4-scripting-changes]]
+== Scripting Changes
+
+The Python scripts evaluation is now migrated to the GraalVM Polyglot.
+See xref:scripting.adoc[Scripting Support] for more information.
+
+[[x6.4-mail-changes]]
+== Mail Changes
+
+The `AbstractMailReceiver` exposes an option to disable setting `Flags.Flag.FLAGGED` into a received message as fallback flag.
+See xref:mail.adoc[Mail Support] for more information.
