@@ -144,6 +144,10 @@ Starting with version 6.0, the splitting behaviour, described above, works only 
 Otherwise, with any other `MessageGroupProcessor` implementation that returns a `Collection<Message>`, only a single reply message is emitted with the whole collection of messages as its payload.
 Such logic is dictated by the canonical purpose of an aggregator - collect request messages by some key and produce a single grouped message.
 
+Prior to version 6.5, if a `MessageGroupProcessor` (usually lambda from DSL) returns a collection of payloads, the `AbstractCorrelatingMessageHandler` has failed with the `IllegalArgumentException` stating that only collection of messages is possible.
+From now on such a restriction is eliminated and returned collection of payloads is emitted as a single reply message from the aggregator with just headers from the last request message.
+If headers aggregation is required alongside with a collection of payloads, an `AbstractAggregatingMessageGroupProcessor` implementations are recommended to be used instead of plain `MessageGroupProcessor` functional interface.
+
 [[releasestrategy]]
 === `ReleaseStrategy`
 

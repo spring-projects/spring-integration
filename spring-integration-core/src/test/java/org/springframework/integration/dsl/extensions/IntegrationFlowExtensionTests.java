@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.dsl.extensions;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +66,8 @@ public class IntegrationFlowExtensionTests {
 		assertThat(replyMessage)
 				.isNotNull()
 				.extracting(Message::getPayload)
-				.isEqualTo("ONE, TWO, THREE");
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
+				.containsOnly("ONE", "TWO", "THREE");
 	}
 
 	@Configuration
@@ -109,8 +110,7 @@ public class IntegrationFlowExtensionTests {
 					group.getMessages()
 							.stream()
 							.map(Message::getPayload)
-							.map(String.class::cast)
-							.collect(Collectors.joining(", ")));
+							.toList());
 		}
 
 	}

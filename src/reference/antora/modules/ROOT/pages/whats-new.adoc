@@ -21,3 +21,8 @@ The deprecated previously usage of `org.springframework.util.concurrent.Listenab
 The previously deprecated SpEL-based Control Bus components have been removed in favor of functionality around `ControlBusCommandRegistry`.
 The `<control-bus use-registry="">` attribute is deprecated now without replacement since only `ControlBusCommandRegistry` functionality is available.
 The Java DSL `controlBusOnRegistry()` operator is deprecated in favor of restored `controlBus()` which is fully based now on the `ControlBusCommandRegistry`.
+See xref:control-bus.adoc[Control Bus] for more information.
+
+The `AbstractCorrelatingMessageHandler` does not throw an `IllegalArgumentException` for the collection of payloads as a result of the `MessageGroupProcessor`.
+Instead, such a collection is wrapped into a single reply message.
+See xref:aggregator.adoc[Aggregator] for more information.
