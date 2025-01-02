@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -285,17 +285,15 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * at the current [IntegrationFlow] chain position.
 	 * @since 6.4
 	 */
+	@Deprecated("Use 'controlBus()' instead.", replaceWith = ReplaceWith("controlBus()"))
 	fun controlBusOnRegistry(endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit = {}) {
-		this.delegate.controlBusOnRegistry(endpointConfigurer)
+		controlBus(endpointConfigurer)
 	}
 
 	/**
 	 * Populate the `Control Bus` EI Pattern specific [MessageHandler] implementation
 	 * at the current [IntegrationFlow] chain position.
 	 */
-	@Deprecated("Use 'controlBusOnRegistry()' instead.",
-		replaceWith = ReplaceWith("controlBusOnRegistry()"))
-	@Suppress("DEPRECATION", "REMOVAL")
 	fun controlBus(endpointConfigurer: GenericEndpointSpec<ServiceActivatingHandler>.() -> Unit = {}) {
 		this.delegate.controlBus(endpointConfigurer)
 	}

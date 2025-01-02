@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 the original author or authors.
+ * Copyright 2019-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -518,10 +518,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * at the current {@link IntegrationFlow} chain position.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @since 6.4
+	 * @deprecated since 6.5 in favor of {@link #controlBus()}
 	 * @see ControlBusMessageProcessor
 	 */
+	@Deprecated(since = "6.5", forRemoval = true)
 	public B controlBusOnRegistry() {
-		return controlBusOnRegistry(null);
+		return controlBus();
 	}
 
 	/**
@@ -530,20 +532,20 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param endpointConfigurer the {@link Consumer} to accept integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @since 6.4
+	 * @deprecated since 6.5 in favor of {@link #controlBus(Consumer)}
 	 * @see GenericEndpointSpec
 	 * @see ControlBusMessageProcessor
 	 */
+	@Deprecated(since = "6.5", forRemoval = true)
 	public B controlBusOnRegistry(@Nullable Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
-		return handle(new ServiceActivatingHandler(new ControlBusMessageProcessor()), endpointConfigurer);
+		return controlBus(endpointConfigurer);
 	}
 
 	/**
 	 * Populate the {@code Control Bus} EI Pattern specific {@link MessageHandler} implementation
 	 * at the current {@link IntegrationFlow} chain position.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated in favor of {@link #controlBusOnRegistry()} - will be restored in next version.
 	 */
-	@Deprecated(since = "6.4")
 	public B controlBus() {
 		return controlBus(null);
 	}
@@ -553,15 +555,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * at the current {@link IntegrationFlow} chain position.
 	 * @param endpointConfigurer the {@link Consumer} to accept integration endpoint options.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @deprecated in favor of {@link #controlBusOnRegistry(Consumer)} - will be restored in next version.
 	 * @see GenericEndpointSpec
 	 */
-	@Deprecated(since = "6.4")
-	@SuppressWarnings("removal")
 	public B controlBus(@Nullable Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
-		return handle(new ServiceActivatingHandler(
-				new org.springframework.integration.handler.ExpressionCommandMessageProcessor(
-						new org.springframework.integration.expression.ControlBusMethodFilter())), endpointConfigurer);
+		return handle(new ServiceActivatingHandler(new ControlBusMessageProcessor()), endpointConfigurer);
 	}
 
 	/**

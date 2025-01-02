@@ -17,6 +17,6 @@
 			selector-expression="payload.contains('stop')" />
 	</int:recipient-list-router>
 
-	<int:control-bus input-channel="controlBusChannel" use-registry="true"/>
+	<int:control-bus input-channel="controlBusChannel"/>
 
 </beans>

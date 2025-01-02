@@ -45,7 +45,7 @@
 
 	<int:channel id="cbChannel" />
 
-	<int:control-bus input-channel="cbChannel" use-registry="true"/>
+	<int:control-bus input-channel="cbChannel"/>
 
 	<int:gateway default-request-channel="cbChannel"
 		service-interface="org.springframework.integration.ip.tcp.ClientModeControlBusTests$ControlBus"/>

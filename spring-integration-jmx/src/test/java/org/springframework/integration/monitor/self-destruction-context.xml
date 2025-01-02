@@ -14,7 +14,7 @@
 
 	<int:channel id="toControlBus" />
 
-	<int:control-bus input-channel="toControlBus" use-registry="true"/>
+	<int:control-bus input-channel="toControlBus"/>
 
 	<int-jmx:mbean-export id="integrationMbeanExporter"
 		default-domain="self-destruct" />

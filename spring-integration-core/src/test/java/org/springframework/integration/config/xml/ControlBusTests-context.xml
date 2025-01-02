@@ -15,7 +15,7 @@
 		<queue/>
 	</channel>
 
-	<control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="true" use-registry="true"/>
+	<control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="true"/>
 
 	<beans:bean id="service" class="org.springframework.integration.config.xml.ControlBusTests$Service" />
 

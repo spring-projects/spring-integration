@@ -18,3 +18,6 @@ In general the project has been moved to the latest dependency versions.
 
 The deprecated previously usage of `org.springframework.util.concurrent.ListenableFuture` has been removed in favor of `CompletableFuture`.
 
+The previously deprecated SpEL-based Control Bus components have been removed in favor of functionality around `ControlBusCommandRegistry`.
+The `<control-bus use-registry="">` attribute is deprecated now without replacement since only `ControlBusCommandRegistry` functionality is available.
+The Java DSL `controlBusOnRegistry()` operator is deprecated in favor of restored `controlBus()` which is fully based now on the `ControlBusCommandRegistry`.

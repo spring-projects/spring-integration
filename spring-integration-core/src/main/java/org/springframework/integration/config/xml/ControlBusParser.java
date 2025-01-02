@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,18 +32,8 @@ import org.springframework.integration.config.ControlBusFactoryBean;
 public class ControlBusParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	@SuppressWarnings("removal")
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ControlBusFactoryBean.class);
-		if (Boolean.FALSE.equals(Boolean.parseBoolean(element.getAttribute("use-registry")))) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(
-					org.springframework.integration.config.ExpressionControlBusFactoryBean.class);
-			parserContext.getReaderContext()
-					.warning("The 'ExpressionControlBusFactoryBean' for '<control-bus>' is deprecated (for removal) " +
-							"in favor of 'ControlBusFactoryBean'. " +
-							"Set 'use-registry' attribute to 'true' to switch to a new functionality.",
-							element);
-		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");
 		return builder;

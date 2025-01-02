@@ -10,7 +10,7 @@
 		<queue/>
 	</channel>
 
-	<control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="false" use-registry="true"/>
+	<control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="false"/>
 
 	<recipient-list-router id="simpleRouter" input-channel="routingChannelA"/>
 
