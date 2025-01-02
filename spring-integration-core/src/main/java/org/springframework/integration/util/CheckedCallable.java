@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 the original author or authors.
+ * Copyright 2023-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,25 +35,11 @@ public interface CheckedCallable<T, E extends Throwable> {
 	T call() throws E;
 
 	/**
-	 * Wrap the {@link #call()} into unchecked {@link Runnable} (by mistake).
+	 * Wrap the {@link #call()} into unchecked {@link Callable<T>}.
 	 * Re-throw its exception wrapped with a {@link IllegalStateException}.
-	 * @return the Runnable (by mistake).
-	 * @deprecated since 6.3.7 in favor of {@link #uncheckedCallable()}.
-	 * Will be restored back, but with a proper {@link Callable} return type.
+	 * @return the unchecked {@link Callable<T>}.
 	 */
-	@Deprecated
-	default Runnable unchecked() {
-		return this::uncheckedCallable;
-	}
-
-	/**
-	 * Wrap the {@link #call()} into unchecked {@link Callable}.
-	 * Re-throw its exception wrapped with a {@link IllegalStateException}.
-	 * Will be replaced with a proper {@link #unchecked()} implementation in 6.5.
-	 * @return the unchecked {@link Callable}.
-	 * @since 6.3.7
-	 */
-	default Callable<T> uncheckedCallable() {
+	default Callable<T> unchecked() {
 		return () -> {
 			try {
 				return call();
@@ -70,6 +56,18 @@ public interface CheckedCallable<T, E extends Throwable> {
 				}
 			}
 		};
+	}
+
+	/**
+	 * Wrap the {@link #call()} into unchecked {@link Callable<T>}.
+	 * Re-throw its exception wrapped with a {@link IllegalStateException}.
+	 * @return the unchecked {@link Callable<T>}.
+	 * @deprecated since 6.5 in favor of {@link #unchecked()}.
+	 * @since 6.3.7
+	 */
+	@Deprecated(since = "6.5", forRemoval = true)
+	default Callable<T> uncheckedCallable() {
+		return unchecked();
 	}
 
 }
