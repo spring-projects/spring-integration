@@ -49,7 +49,6 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -316,17 +315,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	public void setRegion(String region) {
 		Assert.hasText(region, "Region must not be null or empty.");
 		this.region = region;
-	}
-
-	/**
-	 * Override the {@link LobHandler} that is used to create and unpack large objects in SQL queries. The default is
-	 * fine for almost all platforms, but some Oracle drivers require a native implementation.
-	 * @param lobHandler a {@link LobHandler}
-	 * @deprecated since 6.4 (for removal) (with no replacement) in favor of plain JDBC driver support for byte arrays.
-	 */
-	@Deprecated(forRemoval = true, since = "6.4")
-	public void setLobHandler(LobHandler lobHandler) {
-
 	}
 
 	/**

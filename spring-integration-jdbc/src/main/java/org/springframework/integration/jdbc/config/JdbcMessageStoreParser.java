@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,17 +30,17 @@ import org.springframework.util.StringUtils;
  * Parser for {@link JdbcMessageStore}.
  *
  * @author Dave Syer
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class JdbcMessageStoreParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-
 		Object source = parserContext.extractSource(element);
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(JdbcMessageStore.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JdbcMessageStore.class);
 
 		String dataSourceRef = element.getAttribute("data-source");
 		String simpleJdbcOperationsRef = element.getAttribute("jdbc-operations");
@@ -53,18 +53,12 @@ public class JdbcMessageStoreParser extends AbstractBeanDefinitionParser {
 							+ "simple-jdbc-operations should be set for the JDBC message-store", source);
 		}
 
-		if (refToDataSourceSet) {
-			builder.addConstructorArgReference(dataSourceRef);
-		}
-		else {
-			builder.addConstructorArgReference(simpleJdbcOperationsRef);
-		}
+		builder.addConstructorArgReference(refToDataSourceSet ? dataSourceRef : simpleJdbcOperationsRef);
 
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "lob-handler");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "deserializer");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "table-prefix", "tablePrefix");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "region", "region");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "table-prefix");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "region");
 
 		return builder.getBeanDefinition();
 

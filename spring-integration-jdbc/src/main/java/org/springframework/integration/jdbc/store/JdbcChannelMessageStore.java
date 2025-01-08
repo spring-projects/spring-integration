@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,6 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -223,16 +222,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
 		Assert.notNull(jdbcTemplate, "The provided jdbcTemplate must not be null.");
 		this.jdbcTemplate = jdbcTemplate;
-	}
-
-	/**
-	 * Override the {@link LobHandler} that is used to create and unpack large objects in SQL queries. The default is
-	 * fine for almost all platforms, but some Oracle drivers require a native implementation.
-	 * @param lobHandler a {@link LobHandler}
-	 * @deprecated since 6.4 (for removal) (with no replacement) in favor of plain JDBC driver support for byte arrays.
-	 */
-	@Deprecated(forRemoval = true, since = "6.4")
-	public void setLobHandler(LobHandler lobHandler) {
 	}
 
 	/**

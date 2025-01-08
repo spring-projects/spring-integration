@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.Objects;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.util.UUIDConverter;
-import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -52,21 +51,6 @@ import org.springframework.util.Assert;
 public class ChannelMessageStorePreparedStatementSetter {
 
 	private final SerializingConverter serializer;
-
-	/**
-	 * Instantiate a {@link ChannelMessageStorePreparedStatementSetter} with the provided
-	 * serializer and lobHandler, which both must not be null.
-	 * @param serializer the {@link SerializingConverter} to build {@code byte[]} from
-	 * the request message
-	 * @param lobHandler the {@link LobHandler} to store {@code byte[]} of the request
-	 * message to prepared statement
-	 * @deprecated since 6.4 (for removal) (if favor of {@link #ChannelMessageStorePreparedStatementSetter(SerializingConverter)})
-	 * with a plain JDBC driver support for byte arrays.
-	 */
-	@Deprecated(forRemoval = true, since = "6.4")
-	public ChannelMessageStorePreparedStatementSetter(SerializingConverter serializer, LobHandler lobHandler) {
-		this(serializer);
-	}
 
 	/**
 	 * Instantiate a {@link ChannelMessageStorePreparedStatementSetter} with the provided
