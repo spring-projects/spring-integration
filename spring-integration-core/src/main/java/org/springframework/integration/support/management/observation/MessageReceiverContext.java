@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 the original author or authors.
+ * Copyright 2022-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,24 @@ public class MessageReceiverContext extends ReceiverContext<Message<?>> {
 
 	private final String handlerName;
 
+	private final String handlerType;
+
 	public MessageReceiverContext(Message<?> message, @Nullable String handlerName) {
+		this(message, handlerName, "handler");
+	}
+
+	/**
+	 * Construct an instance based on the message, the handler (or source, producer) bean name and handler type.
+	 * @param message the received message for this context.
+	 * @param handlerName the handler (or source, producer) bean name processing the message.
+	 * @param handlerType the handler type: {@code handler}, or {@code message-source}, or {@code message-producer}.
+	 * @since 6.5
+	 */
+	public MessageReceiverContext(Message<?> message, @Nullable String handlerName, String handlerType) {
 		super(MessageReceiverContext::getHeader);
 		this.message = message;
 		this.handlerName = handlerName != null ? handlerName : "unknown";
+		this.handlerType = handlerType;
 	}
 
 	@Override
@@ -49,6 +63,10 @@ public class MessageReceiverContext extends ReceiverContext<Message<?>> {
 
 	public String getHandlerName() {
 		return this.handlerName;
+	}
+
+	public String getHandlerType() {
+		return this.handlerType;
 	}
 
 	@Nullable

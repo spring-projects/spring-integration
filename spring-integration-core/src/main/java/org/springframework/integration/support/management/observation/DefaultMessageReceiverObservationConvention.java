@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2022-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class DefaultMessageReceiverObservationConvention implements MessageRecei
 				// See IntegrationObservation.HandlerTags.COMPONENT_NAME - to avoid class tangle
 				.of("spring.integration.name", context.getHandlerName())
 				// See IntegrationObservation.HandlerTags.COMPONENT_TYPE - to avoid class tangle
-				.and("spring.integration.type", "handler");
+				.and("spring.integration.type", context.getHandlerType());
 	}
 
 }

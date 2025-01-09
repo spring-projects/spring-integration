@@ -32,3 +32,10 @@ See xref:aggregator.adoc[Aggregator] for more information.
 
 The `AbstractMessageGroupStore` now can be configured with a `LockRegistry` to perform series of persistent operation atomically.
 See xref:message-store.adoc#use-lock-registry[Use LockRegistry] for more information.
+
+[[x6.4-observation-changes]]
+== Micrometer Observation Changes
+
+The `SourcePollingChannelAdapter` endpoint now starts a `CONSUMER` kind observation for the received message.
+The `MessageReceiverContext` now distinguishes between `handler`, `message-source` and `message-producer` values for the `spring.integration.type` low cardinality tag.
+See xref:metrics.adoc#micrometer-observation[Micrometer Observation] for more information.

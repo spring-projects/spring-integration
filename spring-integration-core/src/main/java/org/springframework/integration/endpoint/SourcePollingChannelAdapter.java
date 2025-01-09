@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,12 @@ package org.springframework.integration.endpoint;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AckUtils;
@@ -31,16 +35,21 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.management.observation.DefaultMessageReceiverObservationConvention;
+import org.springframework.integration.support.management.observation.IntegrationObservation;
+import org.springframework.integration.support.management.observation.MessageReceiverContext;
+import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * A Channel Adapter implementation for connecting a
- * {@link MessageSource} to a {@link MessageChannel}.
+ * A Channel Adapter implementation for connecting a {@link MessageSource} to a {@link MessageChannel}.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -49,11 +58,15 @@ import org.springframework.util.Assert;
  * @author Christian Tzolov
  */
 public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
-		implements TrackableComponent {
+		implements TrackableComponent, IntegrationManagement {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private MessageSource<?> originalSource;
+
+	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
+
+	private MessageReceiverObservationConvention observationConvention;
 
 	private volatile MessageSource<?> source;
 
@@ -67,7 +80,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	/**
 	 * Specify the source to be polled for Messages.
-	 *
 	 * @param source The message source.
 	 */
 	public void setSource(MessageSource<?> source) {
@@ -76,14 +88,13 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		Object target = extractProxyTarget(source);
 		this.originalSource = target != null ? (MessageSource<?>) target : source;
 
-		if (source instanceof ExpressionCapable) {
-			setPrimaryExpression(((ExpressionCapable) source).getExpression());
+		if (source instanceof ExpressionCapable expressionCapable) {
+			setPrimaryExpression(expressionCapable.getExpression());
 		}
 	}
 
 	/**
 	 * Specify the {@link MessageChannel} where Messages should be sent.
-	 *
 	 * @param outputChannel The output channel.
 	 */
 	public void setOutputChannel(MessageChannel outputChannel) {
@@ -105,9 +116,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	}
 
 	/**
-	 * Specify the maximum time to wait for a Message to be sent to the
-	 * output channel.
-	 *
+	 * Specify the maximum time to wait for a Message to be sent to the output channel.
 	 * @param sendTimeout The send timeout.
 	 */
 	public void setSendTimeout(long sendTimeout) {
@@ -116,7 +125,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	/**
 	 * Specify whether this component should be tracked in the Message History.
-	 *
 	 * @param shouldTrack true if the component should be tracked.
 	 */
 	@Override
@@ -125,9 +133,30 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	}
 
 	@Override
+	public void registerObservationRegistry(ObservationRegistry observationRegistry) {
+		this.observationRegistry = observationRegistry;
+	}
+
+	/**
+	 * Set a custom {@link MessageReceiverObservationConvention} for {@link IntegrationObservation#HANDLER}.
+	 * Ignored if an {@link ObservationRegistry} is not configured for this component.
+	 * @param observationConvention the {@link MessageReceiverObservationConvention} to use.
+	 * @since 6.5
+	 */
+	public void setObservationConvention(@Nullable MessageReceiverObservationConvention observationConvention) {
+		this.observationConvention = observationConvention;
+	}
+
+	@Override
+	public boolean isObserved() {
+		return !ObservationRegistry.NOOP.equals(this.observationRegistry);
+	}
+
+	@Override
 	public String getComponentType() {
-		return (this.source instanceof NamedComponent) ?
-				((NamedComponent) this.source).getComponentType() : "inbound-channel-adapter";
+		return (this.source instanceof NamedComponent namedComponent)
+				? namedComponent.getComponentType()
+				: "inbound-channel-adapter";
 	}
 
 	@Override
@@ -147,8 +176,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	@Override
 	protected void doStart() {
-		if (this.source instanceof Lifecycle) {
-			((Lifecycle) this.source).start();
+		if (this.source instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 		super.doStart();
 
@@ -160,8 +189,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void doStop() {
 		super.doStop();
-		if (this.source instanceof Lifecycle) {
-			((Lifecycle) this.source).stop();
+		if (this.source instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 
@@ -172,8 +201,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 						|| (this.outputChannelName != null && this.outputChannel == null),
 				"One and only one of 'outputChannelName' or 'outputChannel' is required.");
 		super.onInit();
-		if (this.getBeanFactory() != null) {
-			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			this.messagingTemplate.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -204,13 +234,13 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 			this.messagingTemplate.send(getOutputChannel(), message);
 			AckUtils.autoAck(ackCallback);
 		}
-		catch (Exception e) {
+		catch (Exception ex) {
 			AckUtils.autoNack(ackCallback);
-			if (e instanceof MessagingException) { // NOSONAR
-				throw (MessagingException) e;
+			if (ex instanceof MessagingException messagingException) { // NOSONAR
+				throw messagingException;
 			}
 			else {
-				throw new MessagingException(message, "Failed to send Message", e);
+				throw new MessagingException(message, "Failed to send Message", ex);
 			}
 		}
 	}
@@ -218,6 +248,41 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected Message<?> receiveMessage() {
 		return this.source.receive();
+	}
+
+	/**
+	 * Start an observation (and open scope) for the received message.
+	 * @param holder the resource holder for this component.
+	 * @param message the received message.
+	 */
+	@Override
+	protected void messageReceived(@Nullable IntegrationResourceHolder holder, Message<?> message) {
+		Observation observation =
+				IntegrationObservation.HANDLER.observation(this.observationConvention,
+						DefaultMessageReceiverObservationConvention.INSTANCE,
+						() -> new MessageReceiverContext(message, getComponentName(), "message-source"),
+						this.observationRegistry);
+
+		observation.start().openScope();
+		super.messageReceived(holder, message);
+	}
+
+	/**
+	 * Stop an observation (and close its scope) previously started
+	 * from the {@link #messageReceived(IntegrationResourceHolder, Message)}.
+	 * @param pollingTaskError an optional error as a result of the polling task.
+	 */
+	@Override
+	protected void donePollingTask(@Nullable Exception pollingTaskError) {
+		Observation.Scope currentObservationScope = this.observationRegistry.getCurrentObservationScope();
+		if (currentObservationScope != null) {
+			currentObservationScope.close();
+			Observation currentObservation = currentObservationScope.getCurrentObservation();
+			if (pollingTaskError != null) {
+				currentObservation.error(pollingTaskError);
+			}
+			currentObservation.stop();
+		}
 	}
 
 	@Override
@@ -230,16 +295,16 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		return IntegrationResourceHolder.MESSAGE_SOURCE;
 	}
 
+	@Nullable
 	private static Object extractProxyTarget(Object target) {
-		if (!(target instanceof Advised)) {
+		if (!(target instanceof Advised advised)) {
 			return target;
 		}
-		Advised advised = (Advised) target;
 		try {
 			return extractProxyTarget(advised.getTargetSource().getTarget());
 		}
-		catch (Exception e) {
-			throw new BeanCreationException("Could not extract target", e);
+		catch (Exception ex) {
+			throw new BeanCreationException("Could not extract target", ex);
 		}
 	}
 

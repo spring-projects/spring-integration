@@ -164,14 +164,15 @@ The meters are not gathered in this case independently, but delegated to an appr
 
 The following Spring Integration components are instrumented with observation logic each with a respective convention:
 
-* `MessageProducerSupport`, being the inbound endpoint of the flow, is considered as a `CONSUMER` span type and uses the `IntegrationObservation.HANDLER` API;
-* MessagingGatewaySupport` is an inbound request-reply endpoint, and is considered as a `SERVER` span type.
+* `MessageProducerSupport`, being an inbound endpoint of the flow, is considered as a `CONSUMER` span type and uses the `IntegrationObservation.HANDLER` API;
+* `MessagingGatewaySupport` is an inbound request-reply endpoint, and is considered as a `SERVER` span type.
 It uses the `IntegrationObservation.GATEWAY` API;
 * An `AbstractMessageChannel.send()` operation is the only Spring Integration API where it produces messages.
 So, it is treated as a `PRODUCER` span type and uses the `IntegrationObservation.PRODCUER` API.
 This makes more sense when a channel is a distributed implementation (e.g. `PublishSubscribeKafkaChannel` or `ZeroMqChannel`) and trace information has to be added to the message.
 So, the `IntegrationObservation.PRODUCER` observation is based on a `MessageSenderContext` where Spring Integration supplies a `MutableMessage` to allow a subsequent tracing `Propagator` to add headers, so they are available to the consumer;
-* An `AbstractMessageHandler` is a `CONSUMER` span type and uses the `IntegrationObservation.HANDLER` API.
+* An `AbstractMessageHandler` is a `CONSUMER` span type and uses the `IntegrationObservation.HANDLER` API;
+* The `SourcePollingChannelAdapter` (starting with version 6.5), being an inbound endpoint of the flow, is considered as a `CONSUMER` span type and uses the `IntegrationObservation.HANDLER` API.
 
 An observation production on the `IntegrationManagement` components can be customized via `ObservationConvention` configuration.
 For example an `AbstractMessageHandler` expects a `MessageReceiverObservationConvention` via its `setObservationConvention()` API.
