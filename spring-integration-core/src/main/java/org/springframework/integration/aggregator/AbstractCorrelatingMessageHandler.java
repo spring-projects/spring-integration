@@ -18,6 +18,7 @@ package org.springframework.integration.aggregator;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -63,6 +64,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -80,7 +82,7 @@ import org.springframework.util.ObjectUtils;
  * {@link ReleaseStrategy}, and {@link MessageGroupProcessor} implementations as
  * you require.
  * <p>
- * By default the {@link CorrelationStrategy} will be a
+ * By default, the {@link CorrelationStrategy} will be a
  * {@link HeaderAttributeCorrelationStrategy} and the {@link ReleaseStrategy} will be a
  * {@link SequenceSizeReleaseStrategy}.
  * <p>
@@ -128,6 +130,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private String discardChannelName;
 
 	private boolean sendPartialResultOnExpiry;
+
+	private boolean discardIndividuallyOnExpiry = true;
 
 	private boolean sequenceAware;
 
@@ -260,6 +264,18 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
 		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
+	}
+
+	/**
+	 * Set to {@code false} to send to discard channel a whole expired group as a single message.
+	 * This option makes sense only if {@link #sendPartialResultOnExpiry} is set to {@code false} (default).
+	 * And also if {@link #discardChannel} is injected.
+	 * @param discardIndividuallyOnExpiry false to discard the whole group as one message.
+	 * @since 6.5
+	 * @see #sendPartialResultOnExpiry
+	 */
+	public void setDiscardIndividuallyOnExpiry(boolean discardIndividuallyOnExpiry) {
+		this.discardIndividuallyOnExpiry = discardIndividuallyOnExpiry;
 	}
 
 	/**
@@ -876,8 +892,17 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (this.releaseLockBeforeSend) {
 				lock.unlock();
 			}
-			group.getMessages()
-					.forEach(this::discardMessage);
+			MessageChannel messageChannel = getDiscardChannel();
+			if (messageChannel != null) {
+				if (this.discardIndividuallyOnExpiry) {
+					group.getMessages()
+							.forEach(this::discardMessage);
+				}
+				else {
+					List<Message<?>> messagesInGroupToDiscard = new ArrayList<>(group.getMessages());
+					discardMessage(new GenericMessage<>(messagesInGroupToDiscard));
+				}
+			}
 		}
 		if (this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(

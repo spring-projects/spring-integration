@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -529,6 +530,33 @@ public class AbstractCorrelatingMessageHandlerTests {
 		await().until(groupStore::getMessageGroupCount, (count) -> count == 0);
 		verify(groupStore, atLeast(2)).expireMessageGroups(100);
 		taskScheduler.destroy();
+	}
+
+	@Test
+	public void expiredGroupIsDiscardedAsOneMessage() throws InterruptedException {
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group);
+		handler.setReleaseStrategy(group -> false);
+		QueueChannel discardChannel = new QueueChannel();
+		handler.setDiscardChannel(discardChannel);
+		handler.setExpireTimeout(1);
+		handler.setDiscardIndividuallyOnExpiry(false);
+
+		Message<String> message1 = MessageBuilder.withPayload("test1").setCorrelationId("test").build();
+		Message<String> message2 = MessageBuilder.withPayload("test2").setCorrelationId("test").build();
+
+		handler.handleMessageInternal(message1);
+		handler.handleMessageInternal(message2);
+
+		// Slight delay to let the group be treated as expired.
+		Thread.sleep(100);
+
+		handler.purgeOrphanedGroups();
+
+		Message<?> receive = discardChannel.receive(10000);
+		assertThat(receive)
+				.extracting(Message::getPayload)
+				.asInstanceOf(InstanceOfAssertFactories.LIST)
+				.containsOnly(message1, message2);
 	}
 
 }

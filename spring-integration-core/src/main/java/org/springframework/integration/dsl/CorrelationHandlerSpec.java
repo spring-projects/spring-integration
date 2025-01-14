@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,19 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 */
 	public S sendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
 		this.handler.setSendPartialResultOnExpiry(sendPartialResultOnExpiry);
+		return _this();
+	}
+
+	/**
+	 * Set to {@code false} to send to discard channel a whole expired group as a single message.
+	 * This option makes sense only if {@link #sendPartialResultOnExpiry(boolean)} is set to {@code false} (default).
+	 * And also if {@link #discardChannel(MessageChannel)} is injected.
+	 * @param discardIndividuallyOnExpiry false to discard whole expired group as a single message.
+	 * @return the handler spec.
+	 * @since 6.5
+	 */
+	public S discardIndividuallyOnExpiry(boolean discardIndividuallyOnExpiry) {
+		this.handler.setDiscardIndividuallyOnExpiry(discardIndividuallyOnExpiry);
 		return _this();
 	}
 

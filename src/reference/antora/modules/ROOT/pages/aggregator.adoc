@@ -213,6 +213,10 @@ Any new messages for this group are sent to the discard channel (if defined).
 Setting `expire-groups-upon-completion` to `true` (the default is `false`) removes the entire group, and any new messages (with the same correlation ID as the removed group) form a new group.
 You can release partial sequences by using a `MessageGroupStoreReaper` together with `send-partial-result-on-expiry` being set to `true`.
 
+Starting with version 6.5, the correlation handler can also be configured with a `discardIndividuallyOnExpiry` option to discard the whole group as a single message.
+Essentially, the payload of this message is a list of messages from the expired group.
+Works only if `sendPartialResultOnExpiry` is set to `false` (default) and `dicardChannel` is provided.
+
 IMPORTANT: To facilitate discarding of late-arriving messages, the aggregator must maintain state about the group after it has been released.
 This can eventually cause out-of-memory conditions.
 To avoid such situations, you should consider configuring a `MessageGroupStoreReaper` to remove the group metadata.
@@ -519,7 +523,7 @@ Empty groups can be removed later by using a `MessageGroupStoreReaper` in combin
 `expire-groups-upon-completion` relates to "`normal`" completion when the `ReleaseStrategy` releases the group.
 This defaults to `false`.
 
-If a group is not completed normally but is released or discarded because of a timeout, the group is normally expired.
+If a group is not complete normally but is released or discarded because of a timeout, the group is normally expired.
 Since version 4.1, you can control this behavior by using `expire-groups-upon-timeout`.
 It defaults to `true` for backwards compatibility.
 
@@ -531,12 +535,12 @@ Timed-out groups are either discarded or a partial release occurs (based on `sen
 Since version 5.0, empty groups are also scheduled for removal after `empty-group-min-timeout`.
 If `expireGroupsUponCompletion == false` and `minimumTimeoutForEmptyGroups > 0`, the task to remove the group is scheduled when normal or partial sequences release happens.
 
-Starting with version 5.4, the aggregator (and resequencer) can be configured to expire orphaned groups (groups in a persistent message store that might not otherwise be released).
+Starting with version 5.4, the aggregator (and resequencer) can be configured to expire orphaned groups (those in a persistent message store that might not otherwise be released).
 The `expireTimeout` (if greater than `0`) indicates that groups older than this value in the store should be purged.
 The `purgeOrphanedGroups()` method is called on start up and, together with the provided `expireDuration`, periodically within a scheduled task.
 This method is also can be called externally at any time.
 The expiration logic is fully delegated to the `forceComplete(MessageGroup)` functionality according to the provided expiration options mentioned above.
-Such a periodic purge functionality is useful when a message store is needed to be cleaned up from those old groups which are not going to be released any more with regular message arrival logic.
+Such a periodic purge functionality is useful when a message store is needed to be cleaned up from those old groups which are not going to be released anymore with regular message arrival logic.
 In most cases this happens after an application restart, when using a persistent message group store.
 The functionality is similar to the `MessageGroupStoreReaper` with a scheduled task, but provides a convenient way to deal with old groups within specific components, when using group timeout instead of a reaper.
 The `MessageGroupStore` must be provided exclusively for the current correlation endpoint.
@@ -695,7 +699,7 @@ Otherwise, it is discarded.
 There is a difference between `groupTimeout` behavior and `MessageGroupStoreReaper` (see xref:aggregator.adoc#aggregator-xml[Configuring an Aggregator with XML]).
 The reaper initiates forced completion for all `MessageGroup` s in the `MessageGroupStore` periodically.
 The `groupTimeout` does it for each `MessageGroup` individually if a new message does not arrive during the `groupTimeout`.
-Also, the reaper can be used to remove empty groups (empty groups are retained in order to discard late messages if `expire-groups-upon-completion` is false).
+Also, the reaper can be used to remove empty groups (those retained in order to discard late messages if `expire-groups-upon-completion` is false).
 
 Starting with version 5.5, the `groupTimeoutExpression` can be evaluated to a `java.util.Date` instance.
 This can be useful in cases like determining a scheduled task moment based on the group creation time (`MessageGroup.getTimestamp()`) instead of a current message arrival as it is calculated when `groupTimeoutExpression` is evaluated to `long`:

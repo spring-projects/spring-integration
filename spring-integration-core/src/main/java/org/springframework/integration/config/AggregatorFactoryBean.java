@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2024 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 	private String discardChannelName;
 
 	private Boolean sendPartialResultOnExpiry;
+
+	private Boolean discardIndividuallyOnExpiry;
 
 	private Long minimumTimeoutForEmptyGroups;
 
@@ -195,6 +197,16 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.groupConditionSupplier = groupConditionSupplier;
 	}
 
+	/**
+	 * Set to {@code false} to send to discard channel a whole expired group as a single message.
+	 * @param discardIndividuallyOnExpiry  false to discard the whole group as one message.
+	 * @since 6.5
+	 * @see org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler#setDiscardIndividuallyOnExpiry(boolean)
+	 */
+	public void setDiscardIndividuallyOnExpiry(Boolean discardIndividuallyOnExpiry) {
+		this.discardIndividuallyOnExpiry = discardIndividuallyOnExpiry;
+	}
+
 	@Override
 	protected AggregatingMessageHandler createHandler() {
 		MessageGroupProcessor outputProcessor;
@@ -242,7 +254,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 				.acceptIfNotNull(this.expireDuration,
 						(duration) -> aggregator.setExpireDuration(Duration.ofMillis(duration)))
 				.acceptIfNotNull(this.groupConditionSupplier, aggregator::setGroupConditionSupplier)
-				.acceptIfNotNull(this.expireTimeout, aggregator::setExpireTimeout);
+				.acceptIfNotNull(this.expireTimeout, aggregator::setExpireTimeout)
+				.acceptIfNotNull(this.discardIndividuallyOnExpiry, aggregator::setDiscardIndividuallyOnExpiry);
 
 		return aggregator;
 	}

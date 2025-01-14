@@ -27,6 +27,12 @@ The `AbstractCorrelatingMessageHandler` does not throw an `IllegalArgumentExcept
 Instead, such a collection is wrapped into a single reply message.
 See xref:aggregator.adoc[Aggregator] for more information.
 
+[[x6.4-correlation-changes]]
+== The `discardIndividuallyOnExpiry` Option For Correlation Handlers
+
+The aggregator and resequencer can now discard the whole expired group as a single message via setting `discardIndividuallyOnExpiry` to `false`.
+See xref:aggregator.adoc#releasestrategy[ReleaseStrategy] for more information.
+
 [[x6.4-message-store-with-locks]]
 == The `LockRegistry` in the `MessageStore`
 
