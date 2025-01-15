@@ -45,3 +45,9 @@ See xref:message-store.adoc#use-lock-registry[Use LockRegistry] for more informa
 The `SourcePollingChannelAdapter` endpoint now starts a `CONSUMER` kind observation for the received message.
 The `MessageReceiverContext` now distinguishes between `handler`, `message-source` and `message-producer` values for the `spring.integration.type` low cardinality tag.
 See xref:metrics.adoc#micrometer-observation[Micrometer Observation] for more information.
+
+[[x6.4-mqtt-changes]]
+== Optional Paho MQTT Dependencies
+
+The `org.eclipse.paho:org.eclipse.paho.client.mqttv3` dependency for `spring-integration-mqtt` is now also optional as `org.eclipse.paho:org.eclipse.paho.mqttv5.client` always was.
+See xref:mqtt.adoc[MQTT Support] for more information.

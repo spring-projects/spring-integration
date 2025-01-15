@@ -27,6 +27,7 @@ compile "org.springframework.integration:spring-integration-mqtt:{project-versio
 ======
 
 The current implementation uses the https://www.eclipse.org/paho/[Eclipse Paho MQTT Client] library.
+Starting with version 6.5, the `org.eclipse.paho:org.eclipse.paho.client.mqttv3` dependency is an `optional` dependency, so has to be included explicitly in the target project for MQTT v3 support.
 
 IMPORTANT: The XML configuration and most of this chapter are about MQTT v3.1 protocol support and respective Paho Client.
 See xref:mqtt.adoc#mqtt-v5[MQTT v5 Support] paragraph for respective protocol support.
