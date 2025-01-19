@@ -99,7 +99,7 @@ ext {
     mysqlVersion = '9.1.0'
     oracleVersion = '23.5.0.24.07'
     pahoMqttClientVersion = '1.2.5'
-    postgresVersion = '42.7.4'
+    postgresVersion = '42.7.5'
     protobufVersion = '4.28.3'
     r2dbch2Version = '1.0.0.RELEASE'
     reactorVersion = '2024.0.1'
