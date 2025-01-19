@@ -102,7 +102,7 @@ ext {
     postgresVersion = '42.7.5'
     protobufVersion = '4.28.3'
     r2dbch2Version = '1.0.0.RELEASE'
-    reactorVersion = '2024.0.1'
+    reactorVersion = '2024.0.2'
     resilience4jVersion = '2.2.0'
     romeToolsVersion = '2.1.0'
     rsocketVersion = '1.1.4'
