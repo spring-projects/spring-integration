@@ -61,7 +61,7 @@ ext {
     assertkVersion = '0.28.1'
     avroVersion = '1.12.0'
     awaitilityVersion = '4.2.2'
-    camelVersion = '4.8.2'
+    camelVersion = '4.8.3'
     commonsDbcp2Version = '2.12.0'
     commonsIoVersion = '2.17.0'
     commonsNetVersion = '3.11.1'
