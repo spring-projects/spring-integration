@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2024 the original author or authors.
+ * Copyright 2012-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.smb.session;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import jcifs.DialectVersion;
 
@@ -163,16 +165,19 @@ public class SmbConfig {
 		this.smbMaxVersion = _smbMaxVersion;
 	}
 
-	String getDomainUserPass(boolean _includePassword) {
+	String getDomainUserPass(boolean _includePassword, boolean _urlEncode) {
 		String domainUserPass;
+		String username = _urlEncode ? URLEncoder.encode(this.username, StandardCharsets.UTF_8) : this.username;
+		String password = _urlEncode ? URLEncoder.encode(this.password, StandardCharsets.UTF_8) : this.password;
 		if (StringUtils.hasText(this.domain)) {
-			domainUserPass = String.format("%s;%s", this.domain, this.username);
+			String domain = _urlEncode ? URLEncoder.encode(this.domain, StandardCharsets.UTF_8) : this.domain;
+			domainUserPass = String.format("%s;%s", domain, username);
 		}
 		else {
-			domainUserPass = this.username;
+			domainUserPass = username;
 		}
-		if (StringUtils.hasText(this.password)) {
-			domainUserPass += ":" + (_includePassword ? this.password : "********");
+		if (StringUtils.hasText(password)) {
+			domainUserPass += ":" + (_includePassword ? password : "********");
 		}
 		return domainUserPass;
 	}
@@ -211,20 +216,24 @@ public class SmbConfig {
 	}
 
 	/**
-	 * Return the url string for the share connection without encoding.
+	 * Return the url string for the share connection without encoding
+	 * the host and path. The {@code domainUserPass} is encoded, as
+	 * {@link java.net.URL} identifies the host part by looking
+	 * for the first {@code @} character, which fails if the
+	 * domain, username or password contains that character.
 	 * Used in the {@link SmbShare} constructor delegation.
 	 * @param _includePassword whether password has to be masked in credentials of URL.
 	 * @return the url string for the share connection without encoding.
 	 * @since 6.3.8
 	 */
 	public final String rawUrl(boolean _includePassword) {
-		String domainUserPass = getDomainUserPass(_includePassword);
+		String domainUserPass = getDomainUserPass(_includePassword, true);
 		String path = cleanPath();
 		return "smb://%s@%s%s".formatted(domainUserPass, getHostPort(), path);
 	}
 
 	private URI createUri(boolean _includePassword) {
-		String domainUserPass = getDomainUserPass(_includePassword);
+		String domainUserPass = getDomainUserPass(_includePassword, false);
 		String path = cleanPath();
 		try {
 			return new URI("smb", domainUserPass, this.host, this.port, path, null, null);
