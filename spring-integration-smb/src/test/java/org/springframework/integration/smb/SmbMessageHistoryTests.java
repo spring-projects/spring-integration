@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2024 the original author or authors.
+ * Copyright 2012-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,12 @@
 package org.springframework.integration.smb;
 
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Properties;
 
+import jcifs.CIFSContext;
+import jcifs.config.PropertyConfiguration;
+import jcifs.context.BaseContext;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -32,11 +36,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Prafull Kumar Soni
  * @author Artem Bilan
  * @author Gregory Bragg
+ * @author Jelle Smits
  */
 public class SmbMessageHistoryTests extends AbstractBaseTests {
 
 	@Test
-	public void testMessageHistory() throws URISyntaxException {
+	public void testMessageHistory() throws Exception {
 		try (ClassPathXmlApplicationContext applicationContext = getApplicationContext()) {
 			SourcePollingChannelAdapter adapter = applicationContext
 					.getBean("smbInboundChannelAdapter", SourcePollingChannelAdapter.class);
@@ -51,6 +56,12 @@ public class SmbMessageHistoryTests extends AbstractBaseTests {
 			assertThat(uri.getUserInfo()).isEqualTo("sambagu@est:sambag%uest");
 			assertThat(uri.getPath()).isEqualTo("/smb share/");
 			assertThat(uri.getRawPath()).isEqualTo("/smb%20share/");
+
+			CIFSContext context = new BaseContext(new PropertyConfiguration(new Properties()));
+			URL rawUrl = new URL(null, smbSessionFactory.rawUrl(true), context.getUrlHandler());
+			assertThat(rawUrl.getHost()).isEqualTo("localhost");
+			assertThat(rawUrl.getUserInfo()).isEqualTo("sambagu%40est:sambag%25uest");
+			assertThat(rawUrl.getPath()).isEqualTo("/smb share/");
 		}
 	}
 
