@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,12 +166,14 @@ class MessageDrivenAdapterTests {
 		assertThat(received).isNotNull();
 
 		MessageHeaders headers = received.getHeaders();
-		assertThat(headers.get(KafkaHeaders.RECEIVED_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION)).isEqualTo(0);
-		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
-		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
+		assertThat(headers)
+				.containsEntry(KafkaHeaders.RECEIVED_KEY, 1)
+				.containsEntry(KafkaHeaders.RECEIVED_TOPIC, topic1)
+				.containsEntry(KafkaHeaders.RECEIVED_PARTITION, 0)
+				.containsEntry(KafkaHeaders.OFFSET, 0L)
+				.containsEntry(KafkaHeaders.RECEIVED_TIMESTAMP, 1487694048607L)
+				.containsEntry(KafkaHeaders.TIMESTAMP_TYPE, "CREATE_TIME")
+				.containsKeys(MessageHeaders.TIMESTAMP, MessageHeaders.ID);
 
 		assertThat(headers.get("testHeader")).isEqualTo("testValue");
 

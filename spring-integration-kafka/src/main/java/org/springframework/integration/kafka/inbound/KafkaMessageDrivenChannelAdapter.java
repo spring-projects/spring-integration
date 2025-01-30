@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,6 +133,9 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 		if (JacksonPresent.isJackson2Present()) {
 			MessagingMessageConverter messageConverter = new MessagingMessageConverter();
+			// For consistency with the rest of Spring Integration channel adapters
+			messageConverter.setGenerateMessageId(true);
+			messageConverter.setGenerateTimestamp(true);
 			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
 			headerMapper.addTrustedPackages(JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES.toArray(new String[0]));
 			messageConverter.setHeaderMapper(headerMapper);
@@ -217,8 +220,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * channel is configured). Only used if a
 	 * {@link #setRetryTemplate(RetryTemplate)} is specified. Default is an
 	 * {@link ErrorMessageSendingRecoverer} if an error channel has been provided. Set to
-	 * null if you wish to throw the exception back to the container after retries are
-	 * exhausted.
+	 * null if you wish to throw the exception back to the container after retries are exhausted.
 	 * @param recoveryCallback the recovery callback.
 	 */
 	public void setRecoveryCallback(RecoveryCallback<?> recoveryCallback) {

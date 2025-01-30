@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 the original author or authors.
+ * Copyright 2018-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ import org.springframework.kafka.support.LogIfLevelEnabled.Level;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -297,6 +298,7 @@ class MessageSourceTests {
 		assertThat(received.getHeaders().get(KafkaHeaders.RAW_DATA)).isInstanceOf(ConsumerRecord.class);
 		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA))
 				.isSameAs(received.getHeaders().get(KafkaHeaders.RAW_DATA));
+		assertThat(received.getHeaders()).containsKeys(MessageHeaders.TIMESTAMP, MessageHeaders.ID);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
 				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received = source.receive();

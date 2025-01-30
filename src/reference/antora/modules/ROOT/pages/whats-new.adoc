@@ -27,27 +27,34 @@ The `AbstractCorrelatingMessageHandler` does not throw an `IllegalArgumentExcept
 Instead, such a collection is wrapped into a single reply message.
 See xref:aggregator.adoc[Aggregator] for more information.
 
-[[x6.4-correlation-changes]]
+[[x6.5-correlation-changes]]
 == The `discardIndividuallyOnExpiry` Option For Correlation Handlers
 
 The aggregator and resequencer can now discard the whole expired group as a single message via setting `discardIndividuallyOnExpiry` to `false`.
 See xref:aggregator.adoc#releasestrategy[ReleaseStrategy] for more information.
 
-[[x6.4-message-store-with-locks]]
+[[x6.5-message-store-with-locks]]
 == The `LockRegistry` in the `MessageStore`
 
 The `AbstractMessageGroupStore` now can be configured with a `LockRegistry` to perform series of persistent operation atomically.
 See xref:message-store.adoc#use-lock-registry[Use LockRegistry] for more information.
 
-[[x6.4-observation-changes]]
+[[x6.5-observation-changes]]
 == Micrometer Observation Changes
 
 The `SourcePollingChannelAdapter` endpoint now starts a `CONSUMER` kind observation for the received message.
 The `MessageReceiverContext` now distinguishes between `handler`, `message-source` and `message-producer` values for the `spring.integration.type` low cardinality tag.
 See xref:metrics.adoc#micrometer-observation[Micrometer Observation] for more information.
 
-[[x6.4-mqtt-changes]]
+[[x6.5-mqtt-changes]]
 == Optional Paho MQTT Dependencies
 
 The `org.eclipse.paho:org.eclipse.paho.client.mqttv3` dependency for `spring-integration-mqtt` is now also optional as `org.eclipse.paho:org.eclipse.paho.mqttv5.client` always was.
 See xref:mqtt.adoc[MQTT Support] for more information.
+
+[[x6.5-kafka-changes]]
+== Apache Kafka support Changes
+
+The `KafkaMessageSource` and `KafkaMessageDrivenChannelAdapter` now generate `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` headers by default as the rest of Spring Integration channel adapters.
+The behavior can be restored to the previous with injection of the `MessagingMessageConverter` with default settings.
+See xref:kafka.adoc[Apache Kafka Support] for more information.

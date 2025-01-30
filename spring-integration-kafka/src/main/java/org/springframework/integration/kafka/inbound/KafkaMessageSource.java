@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 the original author or authors.
+ * Copyright 2018-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -256,10 +256,15 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 				Duration.ofMillis(Math.max(this.pollTimeout.toMillis() * 20, MIN_ASSIGN_TIMEOUT)); // NOSONAR - magic
 		this.commitTimeout = consumerProperties.getSyncCommitTimeout();
 
+		MessagingMessageConverter messagingMessageConverter = (MessagingMessageConverter) this.messageConverter;
+		// For consistency with the rest of Spring Integration channel adapters
+		messagingMessageConverter.setGenerateMessageId(true);
+		messagingMessageConverter.setGenerateTimestamp(true);
+
 		if (JacksonPresent.isJackson2Present()) {
 			DefaultKafkaHeaderMapper headerMapper = new DefaultKafkaHeaderMapper();
 			headerMapper.addTrustedPackages(JacksonJsonUtils.DEFAULT_TRUSTED_PACKAGES.toArray(new String[0]));
-			((MessagingMessageConverter) this.messageConverter).setHeaderMapper(headerMapper);
+			messagingMessageConverter.setHeaderMapper(headerMapper);
 		}
 	}
 
@@ -843,7 +848,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 										i.setRolledBack(true);
 										return i.getRecord().offset();
 									})
-									.collect(Collectors.toList());
+									.toList();
 					if (!rewound.isEmpty()) {
 						this.logger.warn(() -> "Rolled back " + KafkaUtils.format(record)
 								+ " later in-flight offsets "
