@@ -68,7 +68,7 @@ ext {
     curatorVersion = '5.7.1'
     debeziumVersion = '3.0.7.Final'
     derbyVersion = '10.16.1.1'
-    ftpServerVersion = '1.2.0'
+    ftpServerVersion = '1.2.1'
     graalvmVersion = '24.1.2'
     greenmailVersion = '2.1.2'
     groovyVersion = '4.0.25'
