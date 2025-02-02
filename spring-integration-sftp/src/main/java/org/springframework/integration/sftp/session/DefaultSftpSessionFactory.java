@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2025 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ import org.apache.sshd.common.util.net.SshdSocketAddress;
 import org.apache.sshd.common.util.security.SecurityUtils;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.client.SftpErrorDataHandler;
-import org.apache.sshd.sftp.client.SftpMessage;
 import org.apache.sshd.sftp.client.SftpVersionSelector;
 import org.apache.sshd.sftp.client.impl.AbstractSftpClient;
 import org.apache.sshd.sftp.client.impl.DefaultSftpClient;
@@ -439,7 +438,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 	 */
 	protected class ConcurrentSftpClient extends DefaultSftpClient {
 
-		private final Lock sftpWriteLock = new ReentrantLock();
+		private final Lock sendLock = new ReentrantLock();
 
 		protected ConcurrentSftpClient(ClientSession clientSession, SftpVersionSelector initialVersionSelector,
 				SftpErrorDataHandler errorDataHandler) throws IOException {
@@ -448,15 +447,13 @@ public class DefaultSftpSessionFactory implements SessionFactory<SftpClient.DirE
 		}
 
 		@Override
-		public SftpMessage write(int cmd, Buffer buffer) throws IOException {
-			this.sftpWriteLock.lock();
+		public int send(int cmd, Buffer buffer) throws IOException {
+			this.sendLock.lock();
 			try {
-				SftpMessage sftpMessage = super.write(cmd, buffer);
-				sftpMessage.waitUntilSent();
-				return sftpMessage;
+				return super.send(cmd, buffer);
 			}
 			finally {
-				this.sftpWriteLock.unlock();
+				this.sendLock.unlock();
 			}
 		}
 
