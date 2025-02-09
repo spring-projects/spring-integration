@@ -105,7 +105,7 @@ ext {
     reactorVersion = '2024.0.2'
     resilience4jVersion = '2.2.0'
     romeToolsVersion = '2.1.0'
-    rsocketVersion = '1.1.4'
+    rsocketVersion = '1.1.5'
     servletApiVersion = '6.0.0'
     smackVersion = '4.4.8'
     springAmqpVersion = '3.2.2'
