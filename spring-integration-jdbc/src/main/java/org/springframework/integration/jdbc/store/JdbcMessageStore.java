@@ -368,7 +368,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore
 	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
 		this.checkDatabaseOnStart = checkDatabaseOnStart;
 		if (!checkDatabaseOnStart) {
-			logger.info("The 'DefaultLockRepository' won't be started automatically " +
+			logger.info("The 'JdbcMessageStore' won't be started automatically " +
 					"and required table is not going be checked.");
 		}
 	}
