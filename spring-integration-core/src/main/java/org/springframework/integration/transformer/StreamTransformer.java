@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 /**
- * Transforms an InputStream payload to a byte[] or String (if a
- * charset is provided).
+ * Transforms an {@link InputStream} payload to a {@code byte[]} or {@link String} if a charset is provided.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -40,8 +42,7 @@ public class StreamTransformer extends AbstractTransformer {
 	private final String charset;
 
 	/**
-	 * Construct an instance to transform an {@link InputStream} to
-	 * a {@code byte[]}.
+	 * Construct an instance to transform an {@link InputStream} to a {@code byte[]}.
 	 */
 	public StreamTransformer() {
 		this(null);
@@ -49,7 +50,7 @@ public class StreamTransformer extends AbstractTransformer {
 
 	/**
 	 * Construct an instance with the charset to convert the stream to a
-	 * String; if null a {@code byte[]} will be produced instead.
+	 * String; if {@code null} a {@code byte[]} will be produced instead.
 	 * @param charset the charset.
 	 */
 	public StreamTransformer(String charset) {
@@ -63,14 +64,20 @@ public class StreamTransformer extends AbstractTransformer {
 			InputStream stream = (InputStream) message.getPayload();
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			FileCopyUtils.copy(stream, baos);
+			Object result = this.charset == null ? baos.toByteArray() : baos.toString(this.charset);
 			Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(message);
 			if (closeableResource != null) {
 				closeableResource.close();
+				result = getMessageBuilderFactory()
+						.withPayload(result)
+						.copyHeaders(message.getHeaders())
+						.removeHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)
+						.build();
 			}
-			return this.charset == null ? baos.toByteArray() : baos.toString(this.charset);
+			return result;
 		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
 	}
 
