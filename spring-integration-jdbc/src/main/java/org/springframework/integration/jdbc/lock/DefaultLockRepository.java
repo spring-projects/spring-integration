@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -306,6 +306,19 @@ public class DefaultLockRepository
 		return this.renewQuery;
 	}
 
+	/**
+	 * The flag to perform a database check query on start or not.
+	 * @param checkDatabaseOnStart false to not perform the database check.
+	 * @since 6.2
+	 */
+	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
+		this.checkDatabaseOnStart = checkDatabaseOnStart;
+		if (!checkDatabaseOnStart) {
+			LOGGER.info("The 'DefaultLockRepository' won't be started automatically " +
+					"and required table is not going be checked.");
+		}
+	}
+
 	@Override
 	public void afterPropertiesSet() {
 		this.deleteQuery = String.format(this.deleteQuery, this.prefix);
@@ -346,19 +359,6 @@ public class DefaultLockRepository
 		transactionDefinition.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
 
 		this.readCommittedTransactionTemplate = new TransactionTemplate(this.transactionManager, transactionDefinition);
-	}
-
-	/**
-	 * The flag to perform a database check query on start or not.
-	 * @param checkDatabaseOnStart false to not perform the database check.
-	 * @since 6.2
-	 */
-	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
-		this.checkDatabaseOnStart = checkDatabaseOnStart;
-		if (!checkDatabaseOnStart) {
-			LOGGER.info("The 'DefaultLockRepository' won't be started automatically " +
-					"and required table is not going be checked.");
-		}
 	}
 
 	@Override

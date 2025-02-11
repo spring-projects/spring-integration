@@ -417,7 +417,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	public void setCheckDatabaseOnStart(boolean checkDatabaseOnStart) {
 		this.checkDatabaseOnStart = checkDatabaseOnStart;
 		if (!checkDatabaseOnStart) {
-			LOGGER.info("The 'DefaultLockRepository' won't be started automatically " +
+			LOGGER.info("The 'JdbcChannelMessageStore' won't be started automatically " +
 					"and required table is not going be checked.");
 		}
 	}
