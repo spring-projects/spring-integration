@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 the original author or authors.
+ * Copyright 2022-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,6 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 			$BODY$
 			LANGUAGE PLPGSQL;
 			^^^ END OF SCRIPT ^^^
-
 			CREATE TRIGGER INT_CHANNEL_MESSAGE_NOTIFY_TRG
 				AFTER INSERT ON INT_CHANNEL_MESSAGE
 				FOR EACH ROW
@@ -150,6 +149,8 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 			latch.countDown();
 		});
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+		// A little delay to avoid race condition with CREATED_DATE value
+		Thread.sleep(100);
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(payloads).containsExactly("1", "2");
@@ -165,6 +166,8 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 			latch.countDown();
 		});
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+		// A little delay to avoid race condition with CREATED_DATE value
+		Thread.sleep(100);
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
 		postgresChannelMessageTableSubscriber.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -189,6 +192,8 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		postgresSubscribableChannel.subscribe(messageHandler);
 
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+		// A little delay to avoid race condition with CREATED_DATE value
+		Thread.sleep(100);
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
 
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -294,6 +299,8 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 		assertThat(connectionLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("1"));
+		// A little delay to avoid race condition with CREATED_DATE value
+		Thread.sleep(100);
 		messageStore.addMessageToGroup(groupId, new GenericMessage<>("2"));
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(payloads).containsExactlyInAnyOrder("1", "2");
