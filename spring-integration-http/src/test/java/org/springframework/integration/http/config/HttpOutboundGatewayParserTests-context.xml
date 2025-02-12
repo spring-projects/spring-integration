@@ -93,8 +93,8 @@
 
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
 
-	<beans:bean id="testErrorHandler"
-				class="org.springframework.integration.http.config.HttpOutboundGatewayParserTests$StubErrorHandler"/>
+	<util:constant id="testErrorHandler"
+				   static-field="org.springframework.integration.http.config.HttpOutboundGatewayParserTests.mockResponseErrorHandler"/>
 
 	<util:list id="converterList">
 		<beans:bean class="org.springframework.integration.http.config.StubHttpMessageConverter"/>
