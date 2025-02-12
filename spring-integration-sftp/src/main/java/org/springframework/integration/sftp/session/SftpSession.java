@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 		boolean isPattern = remoteFile != null && remoteFile.contains("*");
 
 		if (!isPattern && remoteFile != null) {
-			SftpClient.Attributes attributes = this.sftpClient.lstat(path);
+			SftpClient.Attributes attributes = this.sftpClient.stat(path);
 			if (!attributes.isDirectory()) {
 				return Stream.of(new SftpClient.DirEntry(remoteFile, path, attributes));
 			}
@@ -201,7 +201,7 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 	@Override
 	public boolean exists(String path) {
 		try {
-			this.sftpClient.lstat(normalizePath(path));
+			this.sftpClient.stat(normalizePath(path));
 			return true;
 		}
 		catch (SftpException ex) {

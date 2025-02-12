@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -279,15 +279,15 @@ public class SftpOutboundTests {
 
 		willReturn(new SftpClient.Attributes())
 				.given(sftpClient)
-				.lstat("/exist");
+				.stat("/exist");
 
 		willThrow(new SftpException(SftpConstants.SSH_FX_NO_SUCH_FILE, "notExist"))
 				.given(sftpClient)
-				.lstat("/notExist");
+				.stat("/notExist");
 
 		willThrow(new SshException(SshConstants.SSH_OPEN_CONNECT_FAILED, "Connection lost."))
 				.given(sftpClient)
-				.lstat(and(not(eq("/exist")), not(eq("/notExist"))));
+				.stat(and(not(eq("/exist")), not(eq("/notExist"))));
 
 		SftpSession sftpSession = new SftpSession(sftpClient);
 

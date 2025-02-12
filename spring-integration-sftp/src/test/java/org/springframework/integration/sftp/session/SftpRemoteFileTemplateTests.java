@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		assertThat(template.exists("foo/foobar.txt")).isTrue();
 		template.executeWithClient((ClientCallbackWithoutResult<SftpClient>) client -> {
 			try {
-				SftpClient.Attributes file = client.lstat("foo/foobar.txt");
+				SftpClient.Attributes file = client.stat("foo/foobar.txt");
 				assertThat(file.getSize()).isEqualTo(6);
 			}
 			catch (IOException e) {
