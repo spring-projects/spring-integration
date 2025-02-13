@@ -28,10 +28,6 @@
 		<beans:constructor-arg ref="sftpSessionFactory"/>
 	</beans:bean>
 
-	<util:properties id="sessionConfig">
-		<beans:prop key="StrictHostKeyChecking">no</beans:prop>
-	</util:properties>
-
 	<sftp:inbound-channel-adapter id="cachingAdapter"
 								  session-factory="csf"
 								  channel="requestChannel"
