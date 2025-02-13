@@ -72,6 +72,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
@@ -162,6 +163,10 @@ public class IntegrationFlowTests {
 	@Autowired
 	@Qualifier("bridgeFlow2Input")
 	private MessageChannel bridgeFlow2Input;
+
+	@Autowired
+	@Qualifier("delayer.handler")
+	DelayHandler delayHandler;
 
 	@Autowired
 	@Qualifier("bridgeFlow2Output")
@@ -266,6 +271,8 @@ public class IntegrationFlowTests {
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("test");
 		assertThat(this.delayedAdvice.getInvoked()).isTrue();
+
+		assertThat(TestUtils.getPropertyValue(this.delayHandler, "taskScheduler")).isSameAs(this.customScheduler);
 	}
 
 	@Test
@@ -825,7 +832,7 @@ public class IntegrationFlowTests {
 		}
 
 		@Bean
-		public IntegrationFlow bridgeFlow2() {
+		public IntegrationFlow bridgeFlow2(TaskScheduler customScheduler) {
 			return IntegrationFlow.from("bridgeFlow2Input")
 					.bridge(c -> c.autoStartup(false).id("bridge"))
 					.fixedSubscriberChannel()
@@ -833,7 +840,9 @@ public class IntegrationFlowTests {
 							.messageGroupId("delayer")
 							.delayExpression("200")
 							.advice(this.delayedAdvice)
-							.messageStore(this.messageStore()))
+							.messageStore(messageStore())
+							.taskScheduler(customScheduler)
+							.id("delayer"))
 					.channel(MessageChannels.queue("bridgeFlow2Output"))
 					.get();
 		}
@@ -846,8 +855,8 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow claimCheckFlow() {
 			return IntegrationFlow.from("claimCheckInput")
-					.claimCheckIn(this.messageStore())
-					.claimCheckOut(this.messageStore())
+					.claimCheckIn(messageStore())
+					.claimCheckOut(messageStore())
 					.get();
 		}
 

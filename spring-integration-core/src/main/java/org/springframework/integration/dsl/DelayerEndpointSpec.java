@@ -30,6 +30,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
@@ -241,6 +242,18 @@ public class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpe
 	public DelayerEndpointSpec messageGroupId(String messageGroupId) {
 		this.handler.setMessageGroupId(messageGroupId);
 		return this;
+	}
+
+	/**
+	 * Set a provided {@link TaskScheduler} into the {@link DelayHandler},
+	 * as well as call {@code super} to set it into an endpoint for this handler (if necessary).
+	 * @param taskScheduler the {@link TaskScheduler} to use.
+	 * @return the spec
+	 */
+	@Override
+	public DelayerEndpointSpec taskScheduler(TaskScheduler taskScheduler) {
+		this.handler.setTaskScheduler(taskScheduler);
+		return super.taskScheduler(taskScheduler);
 	}
 
 }
