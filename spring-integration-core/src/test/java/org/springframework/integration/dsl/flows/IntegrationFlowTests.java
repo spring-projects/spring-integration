@@ -95,6 +95,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
