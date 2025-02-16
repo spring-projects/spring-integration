@@ -118,7 +118,7 @@ ext {
     springVersion = '6.1.16'
     springWsVersion = '4.0.11'
     testcontainersVersion = '1.19.8'
-    tomcatVersion = '10.1.34'
+    tomcatVersion = '10.1.35'
     xmlUnitVersion = '2.9.1'
     xstreamVersion = '1.4.21'
     ztZipVersion = '1.17'
