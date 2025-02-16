@@ -193,7 +193,7 @@ public class IntegrationFlowTests {
 	AbstractEndpoint stringSupplierEndpoint;
 
 	@Autowired
-	TaskScheduler customTaskScheduler;
+	TaskScheduler customScheduler;
 
 	@Test
 	public void testWithSupplierMessageSourceImpliedPoller() {
