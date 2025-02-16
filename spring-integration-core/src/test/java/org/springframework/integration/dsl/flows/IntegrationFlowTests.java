@@ -192,6 +192,9 @@ public class IntegrationFlowTests {
 	@Autowired
 	AbstractEndpoint stringSupplierEndpoint;
 
+	@Autowired
+	TaskScheduler customTaskScheduler;
+
 	@Test
 	public void testWithSupplierMessageSourceImpliedPoller() {
 		assertThat(this.stringSupplierEndpoint.isAutoStartup()).isFalse();
@@ -596,6 +599,11 @@ public class IntegrationFlowTests {
 			return threadPoolTaskScheduler;
 		}
 
+		@Bean
+		public TaskScheduler customScheduler() {
+			return new SimpleAsyncTaskScheduler();
+		}
+		
 		@Bean
 		public QueueChannelSpec suppliedChannel() {
 			return MessageChannels.queue(10);
