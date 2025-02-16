@@ -605,7 +605,7 @@ public class IntegrationFlowTests {
 		public TaskScheduler customScheduler() {
 			return new SimpleAsyncTaskScheduler();
 		}
-		
+
 		@Bean
 		public QueueChannelSpec suppliedChannel() {
 			return MessageChannels.queue(10);
