@@ -108,7 +108,7 @@ ext {
     rsocketVersion = '1.1.5'
     servletApiVersion = '6.1.0'
     smackVersion = '4.4.8'
-    springAmqpVersion = '3.2.2'
+    springAmqpVersion = '3.2.3'
     springDataVersion = '2024.1.3'
     springGraphqlVersion = '1.3.3'
     springKafkaVersion = '3.3.2'
