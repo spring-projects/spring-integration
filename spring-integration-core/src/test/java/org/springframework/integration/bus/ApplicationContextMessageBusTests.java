@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -43,8 +45,10 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.util.ClassUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -67,14 +71,21 @@ public class ApplicationContextMessageBusTests {
 	}
 
 	@Test
-	public void endpointRegistrationWithInputChannelReference() {
+	public void endpointRegistrationWithInputChannelReference() throws ClassNotFoundException {
+		this.context.registerBean(IntegrationContextUtils.APPLICATION_RUNNING_CONTROLLER_BEAN_NAME,
+				BeanUtils.instantiateClass(
+						ClassUtils.forName(
+								IntegrationContextUtils.BASE_PACKAGE + ".config.ApplicationRunningController", null)));
 		QueueChannel sourceChannel = new QueueChannel();
+		sourceChannel.setApplicationContext(this.context);
 		QueueChannel targetChannel = new QueueChannel();
 		this.context.registerChannel("sourceChannel", sourceChannel);
 		this.context.registerChannel("targetChannel", targetChannel);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setReplyChannelName("targetChannel").build();
-		sourceChannel.send(message);
+		assertThatExceptionOfType(MessageDispatchingException.class)
+				.isThrownBy(() -> sourceChannel.send(message))
+				.withMessageStartingWith("The application context is not ready to dispatch messages.");
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 
 			@Override
@@ -88,8 +99,15 @@ public class ApplicationContextMessageBusTests {
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 		this.context.registerEndpoint("testEndpoint", endpoint);
 		this.context.refresh();
+		sourceChannel.send(message);
 		Message<?> result = targetChannel.receive(10000);
 		assertThat(result.getPayload()).isEqualTo("test");
+
+		this.context.stop();
+
+		assertThatExceptionOfType(MessageDispatchingException.class)
+				.isThrownBy(() -> sourceChannel.send(message))
+				.withMessageStartingWith("The application context is not ready to dispatch messages.");
 	}
 
 	@Test

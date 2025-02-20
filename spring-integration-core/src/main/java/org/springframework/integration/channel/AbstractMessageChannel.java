@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,14 @@ import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
@@ -109,6 +113,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	private TimerFacade failureTimer;
 
 	private volatile String fullChannelName;
+
+	private volatile boolean applicationRunning;
+
+	private volatile Lifecycle applicationRunningController;
 
 	@Override
 	public String getComponentType() {
@@ -319,6 +327,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	public boolean send(Message<?> messageArg, long timeout) {
 		Assert.notNull(messageArg, "message must not be null");
 		Assert.notNull(messageArg.getPayload(), "message payload must not be null");
+		assertApplicationRunning(messageArg);
 		Message<?> message = messageArg;
 		if (this.shouldTrack) {
 			message = MessageHistory.write(message, this, getMessageBuilderFactory());
@@ -335,6 +344,39 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 	}
 
+	private void assertApplicationRunning(Message<?> message) {
+		if (!this.applicationRunning) {
+			ApplicationContext applicationContext = getApplicationContext();
+			this.applicationRunning =
+					applicationContext == null ||
+							!applicationContext.containsBean(
+									IntegrationContextUtils.APPLICATION_RUNNING_CONTROLLER_BEAN_NAME);
+
+			if (!this.applicationRunning) {
+				if (((ConfigurableApplicationContext) applicationContext).isActive()) {
+					this.applicationRunningController =
+							applicationContext.getBean(IntegrationContextUtils.APPLICATION_RUNNING_CONTROLLER_BEAN_NAME,
+									Lifecycle.class);
+					this.applicationRunning = this.applicationRunningController.isRunning();
+				}
+			}
+		}
+
+		if (this.applicationRunning && this.applicationRunningController != null) {
+			this.applicationRunning = this.applicationRunningController.isRunning();
+		}
+
+		if (!this.applicationRunning) {
+			throw new MessageDispatchingException(message,
+					"""
+							The application context is not ready to dispatch messages. \
+							It has to be refreshed or started first. \
+							Also, messages must not be emitted from initialization phase, \
+							like 'afterPropertiesSet()', '@PostConstruct' or bean definition methods. \
+							Consider to use 'SmartLifecycle.start()' instead.""");
+		}
+	}
+
 	private boolean sendWithObservation(Message<?> message, long timeout) {
 		MutableMessage<?> messageToSend = MutableMessage.of(message);
 		Observation observation = IntegrationObservation.PRODUCER.observation(
@@ -343,15 +385,15 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				() -> new MessageSenderContext(messageToSend, getComponentName()),
 				this.observationRegistry);
 		Boolean observe = observation.observe(() -> {
-					Message<?> messageToSendInternal = messageToSend;
-					if (message instanceof ErrorMessage errorMessage) {
-						messageToSendInternal =
-								new ErrorMessage(errorMessage.getPayload(),
-										messageToSend.getHeaders(),
-										errorMessage.getOriginalMessage());
-					}
-					return sendInternal(messageToSendInternal, timeout);
-				});
+			Message<?> messageToSendInternal = messageToSend;
+			if (message instanceof ErrorMessage errorMessage) {
+				messageToSendInternal =
+						new ErrorMessage(errorMessage.getPayload(),
+								messageToSend.getHeaders(),
+								errorMessage.getOriginalMessage());
+			}
+			return sendInternal(messageToSendInternal, timeout);
+		});
 		return Boolean.TRUE.equals(observe);
 	}
 

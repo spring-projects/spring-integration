@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.event.GenericApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.core.Ordered;
 import org.springframework.core.ResolvableType;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -49,9 +49,9 @@ import org.springframework.util.Assert;
 public class ApplicationEventListeningMessageProducer extends ExpressionMessageProducerSupport
 		implements GenericApplicationListener {
 
-	private volatile Set<ResolvableType> eventTypes;
-
 	private ApplicationEventMulticaster applicationEventMulticaster;
+
+	private volatile Set<ResolvableType> eventTypes;
 
 	private volatile long stoppedAt;
 
@@ -106,12 +106,17 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (isActive() || ((event instanceof ContextStoppedEvent || event instanceof ContextClosedEvent)
-				&& stoppedRecently())) {
+		boolean contextFinished = event instanceof ContextStoppedEvent || event instanceof ContextClosedEvent;
+		if (isActive() || (contextFinished && stoppedRecently())) {
 
-			Object source = event.getSource();
-			if (source instanceof Message<?>) {
-				sendMessage((Message<?>) source);
+			if (contextFinished && getRequiredOutputChannel() instanceof AbstractMessageChannel) {
+				logger.warn("Messages for 'ContextStoppedEvent' or 'ContextClosedEvent' cannot be dispatched " +
+						"via 'AbstractMessageChannel' beans: the application context is in the finished state." +
+						"Consider to use custom 'MessageChannel' implementation without dispatching logic.");
+			}
+
+			if (event.getSource() instanceof Message<?> message) {
+				sendMessage(message);
 			}
 			else {
 				Message<?> message;
@@ -128,8 +133,8 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	}
 
 	private Object extractObjectToSend(Object root) {
-		if (root instanceof PayloadApplicationEvent) {
-			return ((PayloadApplicationEvent<?>) root).getPayload();
+		if (root instanceof PayloadApplicationEvent<?> payloadApplicationEvent) {
+			return payloadApplicationEvent.getPayload();
 		}
 		return evaluatePayloadExpression(root);
 	}
@@ -168,13 +173,8 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	}
 
 	@Override
-	public boolean supportsSourceType(Class<?> sourceType) {
-		return true;
-	}
-
-	@Override
 	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
+		return HIGHEST_PRECEDENCE;
 	}
 
 	@Override

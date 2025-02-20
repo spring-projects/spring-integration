@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@ package org.springframework.integration.event.inbound;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
@@ -341,17 +344,42 @@ public class ApplicationEventListeningMessageProducerTests {
 
 	}
 
-	private static class TestApplicationListener implements ApplicationListener<ApplicationEvent> {
-
-		private final AtomicInteger counter;
-
-		private TestApplicationListener(AtomicInteger counter) {
-			this.counter = counter;
-		}
+	private record TestApplicationListener(AtomicInteger counter) implements ApplicationListener<ApplicationEvent> {
 
 		@Override
 		public void onApplicationEvent(ApplicationEvent event) {
 			this.counter.incrementAndGet();
+		}
+
+	}
+
+	static final class ContextEventsChannel implements PollableChannel {
+
+		private final BlockingQueue<Message<?>> internalQueue = new LinkedBlockingQueue<>();
+
+		@Override
+		public Message<?> receive() {
+			return receive(-1);
+		}
+
+		@Override
+		public Message<?> receive(long timeout) {
+			try {
+				return this.internalQueue.poll(timeout, TimeUnit.MILLISECONDS);
+			}
+			catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		@Override
+		public boolean send(Message<?> message, long timeout) {
+			try {
+				return this.internalQueue.offer(message, timeout, TimeUnit.MILLISECONDS);
+			}
+			catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 	}

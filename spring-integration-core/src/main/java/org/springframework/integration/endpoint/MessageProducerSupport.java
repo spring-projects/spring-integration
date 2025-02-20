@@ -334,7 +334,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 		return ErrorMessageUtils.getAttributeAccessor(message, null);
 	}
 
-	private MessageChannel getRequiredOutputChannel() {
+	protected MessageChannel getRequiredOutputChannel() {
 		MessageChannel messageChannel = getOutputChannel();
 		Assert.state(messageChannel != null, "The 'outputChannel' or `outputChannelName` must be configured");
 		return messageChannel;

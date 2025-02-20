@@ -27,6 +27,10 @@ The `AbstractCorrelatingMessageHandler` does not throw an `IllegalArgumentExcept
 Instead, such a collection is wrapped into a single reply message.
 See xref:aggregator.adoc[Aggregator] for more information.
 
+The `AbstractMessageChannel` beans now throw a special `MessageDispatchingException` when an attempt to send a message to not running application is done.
+In general, it is a design error to try to produce a message from `afterPropertiesSet()`, `@PostConstruct` or bean definition methods.
+The `SmartLifecycle.start()` is preferred way for this kind of logic, or better to do that via inbound channel adapters.
+
 [[x6.5-correlation-changes]]
 == The `discardIndividuallyOnExpiry` Option For Correlation Handlers
 

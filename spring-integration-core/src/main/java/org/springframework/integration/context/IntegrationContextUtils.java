@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,6 +101,8 @@ public abstract class IntegrationContextUtils {
 	public static final String LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationListMessageHandlerMethodFactory";
 
 	public static final String CONTROL_BUS_COMMAND_REGISTRY_BEAN_NAME = "controlBusCommandRegistry";
+
+	public static final String APPLICATION_RUNNING_CONTROLLER_BEAN_NAME = "applicationRunningController";
 
 	/**
 	 * The default timeout for blocking operations like send and receive messages.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,6 +129,7 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 		registerListMessageHandlerMethodFactory();
 		registerIntegrationConfigurationReport();
 		registerControlBusCommandRegistry();
+		registerApplicationRunningController();
 	}
 
 	@Override
@@ -449,6 +450,17 @@ public class DefaultConfiguringBeanFactoryPostProcessor implements BeanDefinitio
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.CONTROL_BUS_COMMAND_REGISTRY_BEAN_NAME,
+					builder.getBeanDefinition());
+		}
+	}
+
+	private void registerApplicationRunningController() {
+		if (!this.beanFactory.containsBean(IntegrationContextUtils.APPLICATION_RUNNING_CONTROLLER_BEAN_NAME)) {
+			BeanDefinitionBuilder builder =
+					BeanDefinitionBuilder.genericBeanDefinition(ApplicationRunningController.class)
+							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+			this.registry.registerBeanDefinition(IntegrationContextUtils.APPLICATION_RUNNING_CONTROLLER_BEAN_NAME,
 					builder.getBeanDefinition());
 		}
 	}
