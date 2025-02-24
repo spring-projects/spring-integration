@@ -433,4 +433,4 @@ class PiiMessage<P> extends GenericMessage<P> {
 }
 ----
 
-The this `PiiMessageBuilderFactory` could be registered as a bean, and whenever the framework logs the message (e.g. in case of `errorChannel`), the `password` header will be masked.
+Then this `PiiMessageBuilderFactory` could be registered as a bean, and whenever the framework logs the message (e.g. in case of `errorChannel`), the `password` header will be masked.

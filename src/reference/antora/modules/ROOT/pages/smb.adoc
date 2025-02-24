@@ -95,6 +95,23 @@ public SmbSessionFactory smbSessionFactory() {
 }
 ----
 
+[[smb-session-caching]]
+== SMB Session Caching
+
+The `SmbSessionFactory` initiates a new connection every time when a `Session` is requested.
+In most cases that is not necessary and `Session` could be cached.
+For that purpose, the `SmbSessionFactory` as mentioned earlier should be wrapped into an instance of `CachingSessionFactory`:
+[source,java]
+----
+@Bean
+public CachingSessionFactory cachingSessionFactory(SmbSessionFactory smbSessionFactory) {
+    cachingSessionFactory cachingSessionFactory = new CachingSessionFactory(smbSessionFactory, 10);
+    cachingSessionFactory.setSessionWaitTimeout(1000);
+    return cachingSessionFactory;
+}
+----
+And then its bean can be injected into channel adapters described below.
+
 [[smb-inbound]]
 == SMB Inbound Channel Adapter
 
