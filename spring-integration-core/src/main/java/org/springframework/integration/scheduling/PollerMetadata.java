@@ -68,8 +68,6 @@ public class PollerMetadata {
 
 	private Executor taskExecutor;
 
-	private long sendTimeout;
-
 	private TransactionSynchronizationFactory transactionSynchronizationFactory;
 
 	public void setTransactionSynchronizationFactory(
@@ -136,16 +134,6 @@ public class PollerMetadata {
 
 	public Executor getTaskExecutor() {
 		return this.taskExecutor;
-	}
-
-	@Deprecated(forRemoval = true, since = "6.3.9")
-	public long getSendTimeout() {
-		return this.sendTimeout;
-	}
-
-	@Deprecated(forRemoval = true, since = "6.3.9")
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
 	}
 
 	/**

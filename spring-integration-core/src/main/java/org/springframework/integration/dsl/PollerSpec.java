@@ -189,17 +189,6 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 		return this;
 	}
 
-	/**
-	 * The timeout for blocking send on channels.
-	 * @param sendTimeout the timeout to use.
-	 * @return the spec.
-	 * @deprecated in favor of {@link SourcePollingChannelAdapterSpec#sendTimeout(long)}
-	 */
-	@Deprecated(forRemoval = true, since = "6.3.9")
-	public PollerSpec sendTimeout(long sendTimeout) {
-		return this;
-	}
-
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		return this.componentsToRegister;
