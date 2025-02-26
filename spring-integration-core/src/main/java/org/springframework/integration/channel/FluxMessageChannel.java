@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2024 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,15 +86,21 @@ public class FluxMessageChannel extends AbstractMessageChannel
 					.setHeader(IntegrationMessageHeaderAccessor.REACTOR_CONTEXT, contextView)
 					.build();
 		}
-		return switch (this.sink.tryEmitNext(messageToEmit)) {
-			case OK -> true;
-			case FAIL_NON_SERIALIZED, FAIL_OVERFLOW -> false;
-			case FAIL_ZERO_SUBSCRIBER ->
-					throw new IllegalStateException("The [" + this + "] doesn't have subscribers to accept messages");
-			case FAIL_TERMINATED, FAIL_CANCELLED ->
-					throw new IllegalStateException("Cannot emit messages into the cancelled or terminated sink: "
-							+ this.sink);
-		};
+
+		if (this.active) {
+			return switch (this.sink.tryEmitNext(messageToEmit)) {
+				case OK -> true;
+				case FAIL_NON_SERIALIZED, FAIL_OVERFLOW -> false;
+				case FAIL_ZERO_SUBSCRIBER ->
+						throw new IllegalStateException("The [" + this + "] doesn't have subscribers to accept messages");
+				case FAIL_TERMINATED, FAIL_CANCELLED ->
+						throw new IllegalStateException("Cannot emit messages into the cancelled or terminated sink: "
+								+ this.sink);
+			};
+		}
+		else {
+			return false;
+		}
 	}
 
 	@Override
@@ -171,7 +177,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	public void destroy() {
 		this.active = false;
 		this.upstreamSubscriptions.dispose();
-		this.sink.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
+		this.sink.emitComplete(Sinks.EmitFailureHandler.busyLooping(Duration.ofSeconds(1)));
 		super.destroy();
 	}
 
