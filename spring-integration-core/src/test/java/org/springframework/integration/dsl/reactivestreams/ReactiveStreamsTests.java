@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.ReactiveMessageSourceProducer;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -122,6 +123,7 @@ public class ReactiveStreamsTests {
 
 		disposable.dispose();
 		assertThat(this.messageSource.isRunning()).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.messageSource, "messagingTemplate.sendTimeout")).isEqualTo(256L);
 	}
 
 	@Test
@@ -275,6 +277,7 @@ public class ReactiveStreamsTests {
 			return IntegrationFlow
 					.from(() -> new GenericMessage<>("a,b,c,d,e,f"),
 							e -> e.poller(p -> p.trigger(ctx -> this.invoked.getAndSet(true) ? null : Instant.now()))
+									.sendTimeout(256)
 									.id("reactiveStreamsMessageSource"))
 					.split(String.class, p -> p.split(","))
 					.log()
