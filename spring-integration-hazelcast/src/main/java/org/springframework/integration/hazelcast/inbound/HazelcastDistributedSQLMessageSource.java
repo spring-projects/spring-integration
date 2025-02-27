@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ import org.springframework.util.CollectionUtils;
  *
  * @since 6.0
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes", "removal" })
+@Deprecated(forRemoval = true, since = "6.5")
 public class HazelcastDistributedSQLMessageSource extends AbstractMessageSource {
 
 	private final IMap<?, ?> distributedMap;

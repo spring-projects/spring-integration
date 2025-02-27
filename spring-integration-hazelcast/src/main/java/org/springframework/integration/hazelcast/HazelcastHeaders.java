@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ package org.springframework.integration.hazelcast;
  *
  * @since 6.0
  */
+@Deprecated(forRemoval = true, since = "6.5")
 public abstract class HazelcastHeaders {
 
 	private static final String PREFIX = "hazelcast_";

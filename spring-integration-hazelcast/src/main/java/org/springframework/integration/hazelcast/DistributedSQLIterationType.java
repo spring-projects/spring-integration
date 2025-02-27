@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ package org.springframework.integration.hazelcast;
  * @see org.springframework.integration.hazelcast.inbound.HazelcastDistributedSQLMessageSource
  * @see com.hazelcast.map.IMap
  */
+@Deprecated(forRemoval = true, since = "6.5")
 public enum DistributedSQLIterationType {
 
 	/**

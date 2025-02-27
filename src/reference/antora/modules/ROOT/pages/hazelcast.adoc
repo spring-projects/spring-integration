@@ -1,6 +1,9 @@
 [[hazelcast]]
 = Hazelcast Support
 
+IMPORTANT: This module has been deprecated in version 6.5 and will be removed altogether in 7.0.
+Due to Hazelcast migration of many important features, this module depends on, to the https://docs.hazelcast.com/hazelcast/5.5/migrate/community-to-enterprise[Enterprise Edition], we cannot provide an Open Source support here anymore.
+
 Spring Integration provides channel adapters and other utility components to interact with an in-memory data grid https://hazelcast.com[Hazelcast].
 
 You need to include this dependency into your project:

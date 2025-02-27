@@ -69,3 +69,9 @@ See xref:kafka.adoc[Apache Kafka Support] for more information.
 The `AbstractRecentFileListFilter` strategy has been introduced to accept only those files which are not old enough according to the provided `age`.
 The respective implementations are provided: `RecentFileListFilter`, `FtpRecentFileListFilter`, `SftpRecentFileListFilter` and `SmbRecentFileListFilter`.
 See xref:file/reading.adoc[Reading Files] for more information.
+
+[[x6.5-hazelcast-changes]]
+== Hazelcast Support Deprecation
+
+The `spring-integration-hazelcast` module has been deprecated due to Hazelcast migration to Enterprise Edition.
+See xref:hazelcast.adoc[Hazelcast Support] for more information.
