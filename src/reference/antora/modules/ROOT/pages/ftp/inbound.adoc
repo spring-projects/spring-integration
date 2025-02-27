@@ -103,6 +103,8 @@ This filter can be configured with an `age` property so that only files older th
 The age defaults to 60 seconds, but you should choose an age that is large enough to avoid picking up a file early (due to, say, network glitches).
 Look into its Javadoc for more information.
 
+In contrast, starting with version 6.5, an `FtpRecentFileListFilter` has been introduced to accept only those files which are not older than provided `age`.
+
 [[more-on-file-filtering-and-incomplete-files]]
 == More on File Filtering and Incomplete Files
 

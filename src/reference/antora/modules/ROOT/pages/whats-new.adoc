@@ -62,3 +62,10 @@ See xref:mqtt.adoc[MQTT Support] for more information.
 The `KafkaMessageSource` and `KafkaMessageDrivenChannelAdapter` now generate `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` headers by default as the rest of Spring Integration channel adapters.
 The behavior can be restored to the previous with injection of the `MessagingMessageConverter` with default settings.
 See xref:kafka.adoc[Apache Kafka Support] for more information.
+
+[[x6.5-file-filter-changes]]
+== The Recent File Filter Support
+
+The `AbstractRecentFileListFilter` strategy has been introduced to accept only those files which are not old enough according to the provided `age`.
+The respective implementations are provided: `RecentFileListFilter`, `FtpRecentFileListFilter`, `SftpRecentFileListFilter` and `SmbRecentFileListFilter`.
+See xref:file/reading.adoc[Reading Files] for more information.
