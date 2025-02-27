@@ -101,6 +101,7 @@ If set to `false`, however, the entire `Message` is available as a source for pa
 +
 If no procedure parameters are passed in, this property defaults to `true`.
 This means that, by using a default `BeanPropertySqlParameterSourceFactory`, the bean properties of the payload are used as a source for parameter values for the stored procedure or stored function.
+Or, starting with version `6.5`. as keys if the mention payload is a `Map`.
 +
 However, if procedure parameters are passed in, this property (by default) evaluates to `false`.
 `ProcedureParameter` lets SpEL Expressions be provided.

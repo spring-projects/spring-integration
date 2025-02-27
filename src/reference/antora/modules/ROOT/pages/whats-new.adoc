@@ -75,3 +75,11 @@ See xref:file/reading.adoc[Reading Files] for more information.
 
 The `spring-integration-hazelcast` module has been deprecated due to Hazelcast migration to Enterprise Edition.
 See xref:hazelcast.adoc[Hazelcast Support] for more information.
+
+[[x6.5-jdbc-changes]]
+== JDBC Support
+
+The `BeanPropertySqlParameterSourceFactory` uses now internally the `MapSqlParameterSource` if provided input is a `Map`.
+Also, `JdbcMessageHandler` exposes a `usePayloadAsParameterSource` flag to allow to deal with parameter source only against message payload.
+That's where the mentioned `MapSqlParameterSource` comes useful for request messages with map payloads.
+See xref:jdbc.adoc[JDBC Support] for more information.

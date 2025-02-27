@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.jdbc.config;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -85,10 +86,11 @@ public class JdbcMessageHandlerParserTests {
 	public void testMapPayloadOutboundChannelAdapter() {
 		setUp("handlingMapPayloadJdbcOutboundChannelAdapterTest.xml", getClass());
 		assertThat(context.containsBean("jdbcAdapter")).isTrue();
-		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
+		UUID testId = UUID.randomUUID();
+		Message<?> message = MessageBuilder.withPayload(Map.of("id", testId, "foo", "bar")).build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
-		assertThat(map.get("ID")).as("Wrong id").isEqualTo(message.getHeaders().getId().toString());
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(testId.toString());
 		assertThat(map.get("name")).as("Wrong name").isEqualTo("bar");
 	}
 

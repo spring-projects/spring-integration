@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  * {@link JdbcOperations#batchUpdate(String, BatchPreparedStatementSetter)} function.
  * <p>
  * NOTE: The batch update is not supported when {@link #keysGenerated} is in use.
- *
+ * <p>
  * N.B. do not use quotes to escape the header keys. The default SQL parameter source (from Spring JDBC) can also handle
  * headers with dotted names (e.g. <code>business.id</code>)
  *
@@ -96,6 +96,8 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	private boolean keysGenerated;
 
 	private MessagePreparedStatementSetter preparedStatementSetter;
+
+	private boolean usePayloadAsParameterSource;
 
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be obtained and the select query to
@@ -135,6 +137,18 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 */
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
+	}
+
+	/**
+	 * If set to 'true', the payload of the Message will be used as a source for
+	 * providing parameters. If false the entire {@link Message} will be available
+	 * as a source for parameters.
+	 * Makes sense only if {@link #setPreparedStatementSetter(MessagePreparedStatementSetter)} is not provided.
+	 * @param usePayloadAsParameterSource false for the entire {@link Message} as parameter source.
+	 * @since 6.5
+	 */
+	public void setUsePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
+		this.usePayloadAsParameterSource = usePayloadAsParameterSource;
 	}
 
 	/**
@@ -210,21 +224,23 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 			}
 			else {
 				KeyHolder keyHolder = new GeneratedKeyHolder();
+				Object parameterSource = this.usePayloadAsParameterSource ? message.getPayload() : message;
 				this.jdbcOperations.update(this.updateSql,
-						this.sqlParameterSourceFactory.createParameterSource(message), keyHolder);
+						this.sqlParameterSourceFactory.createParameterSource(parameterSource), keyHolder);
 				return keyHolder.getKeyList();
 			}
 		}
 		else {
-			if (message.getPayload() instanceof Iterable) {
-				Stream<? extends Message<?>> messageStream =
-						StreamSupport.stream(((Iterable<?>) message.getPayload()).spliterator(), false)
-								.map(payload -> payloadToMessage(payload, message.getHeaders()));
+			if (message.getPayload() instanceof Iterable<?> iterable) {
+				Stream<?> payloadStream = StreamSupport.stream(iterable.spliterator(), false);
 
 				int[] updates;
 
 				if (this.preparedStatementSetter != null) {
-					Message<?>[] messages = messageStream.toArray(Message<?>[]::new);
+					Message<?>[] messages =
+							payloadStream
+									.map(payload -> payloadToMessage(payload, message.getHeaders()))
+									.toArray(Message<?>[]::new);
 
 					updates = this.jdbcOperations.getJdbcOperations()
 							.batchUpdate(this.updateSql, new BatchPreparedStatementSetter() {
@@ -243,7 +259,12 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 				}
 				else {
 					SqlParameterSource[] sqlParameterSources =
-							messageStream.map(this.sqlParameterSourceFactory::createParameterSource)
+							payloadStream
+									.map((payload) ->
+											this.usePayloadAsParameterSource
+													? payload :
+													payloadToMessage(payload, message.getHeaders()))
+									.map(this.sqlParameterSourceFactory::createParameterSource)
 									.toArray(SqlParameterSource[]::new);
 
 					updates = this.jdbcOperations.batchUpdate(this.updateSql, sqlParameterSources);
@@ -265,8 +286,9 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 							.update(this.updateSql, ps -> this.preparedStatementSetter.setValues(ps, message));
 				}
 				else {
+					Object parameterSource = this.usePayloadAsParameterSource ? message.getPayload() : message;
 					updated = this.jdbcOperations.update(this.updateSql,
-							this.sqlParameterSourceFactory.createParameterSource(message));
+							this.sqlParameterSourceFactory.createParameterSource(parameterSource));
 				}
 
 				LinkedCaseInsensitiveMap<Object> map = new LinkedCaseInsensitiveMap<>();

@@ -21,6 +21,7 @@ You can inject a different `SqlParameterSourceFactory` to get different behavior
 
 The outbound adapter requires a reference to either a `DataSource` or a `JdbcTemplate`.
 You can also inject a `SqlParameterSourceFactory` to control the binding of each incoming message to a query.
+To make use of `SqlParameterSourceFactory` (especially default `BeanPropertySqlParameterSourceFactory` with its `MapSqlParameterSource`) more smooth, starting with version 6.5, the `JdbcMessageHandler` exposes a `usePayloadAsParameterSource` flag to indicate whether the whole message should be passed as parameter source input.
 
 If the input channel is a direct channel, the outbound adapter runs its query in the same thread and, therefore, the same transaction (if there is one) as the sender of the message.
 

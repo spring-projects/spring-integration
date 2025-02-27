@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.jdbc;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -97,7 +98,11 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 	@Test
 	public void testStoredProcOutboundGatewayInsideChain() {
-		Message<User> requestMessage = new GenericMessage<>(new User("myUsername", "myPassword", "myEmail"));
+		Message<Map<String, String>> requestMessage =
+				new GenericMessage<>(
+						Map.of("username", "myUsername",
+								"password", "myPassword",
+								"email", "myEmail"));
 
 		storedProcOutboundGatewayInsideChain.send(requestMessage);
 

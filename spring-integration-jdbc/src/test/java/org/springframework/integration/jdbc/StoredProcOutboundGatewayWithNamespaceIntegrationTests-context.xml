@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
@@ -12,41 +12,37 @@
 	<int:poller id="defaultPoller" default="true" fixed-rate="5000"/>
 
 	<int:gateway id="startGateway" default-request-channel="startChannel"
-			service-interface="org.springframework.integration.jdbc.storedproc.CreateUser" />
+				 service-interface="org.springframework.integration.jdbc.storedproc.CreateUser"/>
 
 	<int:channel id="startChannel"/>
 
 	<int-jdbc:stored-proc-outbound-gateway request-channel="startChannel"
-			stored-procedure-name="CREATE_USER_RETURN_ALL" data-source="dataSource"
-			auto-startup="true"
-			id="gateway"
-			ignore-column-meta-data="false"
-			is-function="false"
-			expect-single-result="true"
-			reply-channel="outputChannel">
+										   stored-procedure-name="CREATE_USER_RETURN_ALL" data-source="dataSource"
+										   auto-startup="true"
+										   id="gateway"
+										   expect-single-result="true"
+										   reply-channel="outputChannel">
 		<int-jdbc:parameter name="username" expression="payload.username"/>
 		<int-jdbc:parameter name="password" expression="payload.password"/>
-		<int-jdbc:parameter name="email"    expression="@testService.quote(payload.email)"/>
-		<int-jdbc:returning-resultset name="out" row-mapper="org.springframework.integration.jdbc.storedproc.UserMapper" />
+		<int-jdbc:parameter name="email" expression="@testService.quote(payload.email)"/>
+		<int-jdbc:returning-resultset name="out"
+									  row-mapper="org.springframework.integration.jdbc.storedproc.UserMapper"/>
 	</int-jdbc:stored-proc-outbound-gateway>
 
 
 	<int:channel id="outputChannel"/>
 
-	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer" />
-	<bean id="consumer" class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithNamespaceIntegrationTests$Consumer"/>
+	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer"/>
+	<bean id="consumer"
+		  class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithNamespaceIntegrationTests$Consumer"/>
 
 	<int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
 
 	<int:chain input-channel="storedProcOutboundGatewayInsideChain" output-channel="replyChannel">
 		<int-jdbc:stored-proc-outbound-gateway stored-procedure-name="CREATE_USER_RETURN_ALL" data-source="dataSource"
-											   ignore-column-meta-data="false"
-											   is-function="false"
 											   expect-single-result="true">
-			<int-jdbc:parameter name="username" expression="payload.username"/>
-			<int-jdbc:parameter name="password" expression="payload.password"/>
-			<int-jdbc:parameter name="email"    expression="payload.email"/>
-			<int-jdbc:returning-resultset name="out" row-mapper="org.springframework.integration.jdbc.storedproc.UserMapper" />
+			<int-jdbc:returning-resultset name="out"
+										  row-mapper="org.springframework.integration.jdbc.storedproc.UserMapper"/>
 		</int-jdbc:stored-proc-outbound-gateway>
 	</int:chain>
 
@@ -54,6 +50,7 @@
 		<int:queue/>
 	</int:channel>
 
-	<bean id="testService" class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithNamespaceIntegrationTests$TestService"/>
+	<bean id="testService"
+		  class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithNamespaceIntegrationTests$TestService"/>
 
 </beans>

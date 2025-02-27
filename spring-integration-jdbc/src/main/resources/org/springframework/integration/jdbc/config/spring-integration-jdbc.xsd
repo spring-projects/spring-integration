@@ -247,6 +247,16 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="payload-as-parameter-source" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								Whether to use only payload from request message as parameter source for 'sql-parameter-source-factory'.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
 					<xsd:attribute name="prepared-statement-setter" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
