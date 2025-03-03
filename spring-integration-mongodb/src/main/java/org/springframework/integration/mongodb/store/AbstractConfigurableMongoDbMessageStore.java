@@ -167,14 +167,14 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	protected void createIndexes() {
 		IndexOperations indexOperations = this.mongoTemplate.indexOps(this.collectionName);
 
-		indexOperations.ensureIndex(new Index(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC));
+		indexOperations.createIndex(new Index(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC));
 
-		indexOperations.ensureIndex(
+		indexOperations.createIndex(
 				new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
 						.on(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC)
 						.unique());
 
-		indexOperations.ensureIndex(
+		indexOperations.createIndex(
 				new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
 						.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.DESC)
 						.on(MessageDocumentFields.SEQUENCE, Sort.Direction.DESC));

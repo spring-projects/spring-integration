@@ -205,7 +205,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		IndexOperations indexOperations = this.template.indexOps(this.collectionName);
 
-		indexOperations.ensureIndex(
+		indexOperations.createIndex(
 				new Index(GROUP_ID_KEY, Sort.Direction.ASC)
 						.on(GROUP_UPDATE_TIMESTAMP_KEY, Sort.Direction.DESC)
 						.on(SEQUENCE, Sort.Direction.DESC));

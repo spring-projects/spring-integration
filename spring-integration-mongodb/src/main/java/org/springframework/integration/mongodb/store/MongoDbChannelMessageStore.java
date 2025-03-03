@@ -100,7 +100,7 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 		super.createIndexes();
 		getMongoTemplate()
 				.indexOps(this.collectionName)
-				.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
+				.createIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
 						.on(MessageDocumentFields.PRIORITY, Sort.Direction.DESC)
 						.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.ASC)
 						.on(MessageDocumentFields.SEQUENCE, Sort.Direction.ASC));
