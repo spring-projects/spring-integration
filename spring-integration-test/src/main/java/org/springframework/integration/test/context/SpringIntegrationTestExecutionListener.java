@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.test.context;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -36,6 +37,8 @@ import org.springframework.util.PatternMatchUtils;
  */
 class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 
+	private List<AbstractEndpoint> autoStartupCandidates;
+
 	@Override
 	public void prepareTestInstance(TestContext testContext) {
 		SpringIntegrationTest springIntegrationTest =
@@ -45,7 +48,8 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 
 		ApplicationContext applicationContext = testContext.getApplicationContext();
 		MockIntegrationContext mockIntegrationContext = applicationContext.getBean(MockIntegrationContext.class);
-		mockIntegrationContext.getAutoStartupCandidates()
+		this.autoStartupCandidates = mockIntegrationContext.getAutoStartupCandidates();
+		this.autoStartupCandidates
 				.stream()
 				.filter(endpoint -> !match(endpoint.getBeanName(), patterns))
 				.peek(endpoint -> endpoint.setAutoStartup(true))
@@ -54,13 +58,10 @@ class SpringIntegrationTestExecutionListener implements TestExecutionListener {
 
 	@Override
 	public void afterTestClass(TestContext testContext) {
-		ApplicationContext applicationContext = testContext.getApplicationContext();
-		MockIntegrationContext mockIntegrationContext = applicationContext.getBean(MockIntegrationContext.class);
-		mockIntegrationContext.getAutoStartupCandidates()
-				.forEach(AbstractEndpoint::stop);
+		this.autoStartupCandidates.forEach(AbstractEndpoint::stop);
 	}
 
-	private boolean match(String name, String[] patterns) {
+	private static boolean match(String name, String[] patterns) {
 		return patterns.length > 0 &&
 				Arrays.stream(patterns)
 						.anyMatch(pattern -> PatternMatchUtils.simpleMatch(pattern, name));
