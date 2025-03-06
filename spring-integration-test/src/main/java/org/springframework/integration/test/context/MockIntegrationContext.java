@@ -19,6 +19,7 @@ package org.springframework.integration.test.context;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import reactor.core.publisher.Mono;
@@ -59,6 +60,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Artem Bilan
  * @author Yicheng Feng
+ * @author Alexander Hain
  *
  * @since 5.0
  *
@@ -111,7 +113,7 @@ public class MockIntegrationContext implements BeanPostProcessor, SmartInitializ
 	}
 
 	List<AbstractEndpoint> getAutoStartupCandidates() {
-		return this.autoStartupCandidates;
+		return Collections.unmodifiableList(this.autoStartupCandidates);
 	}
 
 	/**
