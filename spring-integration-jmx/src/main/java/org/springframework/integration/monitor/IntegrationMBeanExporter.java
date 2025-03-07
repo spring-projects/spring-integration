@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -243,19 +243,18 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 			this.singletonsInstantiated = true;
 		}
-		catch (RuntimeException e) {
+		catch (RuntimeException ex) {
 			unregisterBeans();
-			throw e;
+			throw ex;
 		}
 	}
 
 	private void populateMessageHandlers() {
 		Map<String, MessageHandler> messageHandlers = this.applicationContext.getBeansOfType(MessageHandler.class);
 		for (Entry<String, MessageHandler> entry : messageHandlers.entrySet()) {
-
 			String beanName = entry.getKey();
 			MessageHandler bean = entry.getValue();
-			if (this.handlerInAnonymousWrapper(bean) != null) {
+			if (handlerInAnonymousWrapper(bean) != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Skipping " + beanName + " because it wraps another handler");
 				}
@@ -263,9 +262,9 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			}
 			// If the handler is proxied, we have to extract the target to expose as an MBean.
 			// The MetadataMBeanInfoAssembler does not support JDK dynamic proxies.
-			MessageHandler monitor = (MessageHandler) extractTarget(bean);
-			if (monitor instanceof IntegrationManagement) {
-				this.handlers.put(beanName, (IntegrationManagement) monitor);
+			MessageHandler monitor = extractTarget(bean);
+			if (monitor instanceof IntegrationManagement management) {
+				this.handlers.put(beanName, management);
 			}
 		}
 	}
@@ -316,15 +315,15 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		if (this.singletonsInstantiated) {
 			try {
 				if (bean instanceof MessageChannel) {
-					MessageChannel monitor = (MessageChannel) extractTarget(bean);
-					if (monitor instanceof IntegrationManagement) {
-						this.channels.put(beanName, (IntegrationManagement) monitor);
-						registerChannel((IntegrationManagement) monitor);
+					MessageChannel monitor = extractTarget(bean);
+					if (monitor instanceof IntegrationManagement management) {
+						this.channels.put(beanName, management);
+						registerChannel(management);
 						this.runtimeBeans.add(bean);
 					}
 				}
-				else if (bean instanceof MessageProducer && bean instanceof Lifecycle) {
-					registerProducer((MessageProducer) bean);
+				else if (bean instanceof MessageProducer producer && bean instanceof Lifecycle) {
+					registerProducer(producer);
 					this.runtimeBeans.add(bean);
 				}
 				else if (bean instanceof AbstractEndpoint) {
@@ -341,11 +340,10 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	private void postProcessAbstractEndpoint(Object bean) {
 		if (bean instanceof IntegrationConsumer integrationConsumer) {
 			MessageHandler handler = integrationConsumer.getHandler();
-			MessageHandler monitor = (MessageHandler) extractTarget(handler);
-			if (monitor instanceof IntegrationManagement) {
-				registerHandler((IntegrationManagement) monitor, integrationConsumer);
-				this.handlers.put(((IntegrationManagement) monitor).getComponentName(),
-						(IntegrationManagement) monitor);
+			MessageHandler monitor = extractTarget(handler);
+			if (monitor instanceof IntegrationManagement management) {
+				registerHandler(management, integrationConsumer);
+				this.handlers.put(management.getComponentName(), management);
 				this.runtimeBeans.add(monitor);
 			}
 			return;
@@ -353,7 +351,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		else if (bean instanceof SourcePollingChannelAdapter pollingChannelAdapter) {
 			MessageSource<?> messageSource = pollingChannelAdapter.getMessageSource();
 			if (messageSource instanceof IntegrationInboundManagement) {
-				IntegrationInboundManagement monitor = (IntegrationInboundManagement) extractTarget(messageSource);
+				IntegrationInboundManagement monitor = extractTarget(messageSource);
 				registerSource(monitor);
 				this.sourceLifecycles.put(monitor, pollingChannelAdapter);
 				this.runtimeBeans.add(monitor);
@@ -366,7 +364,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	private void registerProducer(MessageProducer messageProducer) {
-		Lifecycle target = (Lifecycle) extractTarget(messageProducer);
+		Lifecycle target = extractTarget(messageProducer);
 		if (!(target instanceof AbstractMessageProducingHandler)) {
 			this.inboundLifecycleMessageProducers.add(target);
 		}
@@ -387,22 +385,22 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			ObjectName objectName = this.objectNames.remove(bean);
 			if (objectName != null) {
 				doUnregister(objectName);
-				if (bean instanceof AbstractEndpoint) {
-					this.endpointNames.remove(((AbstractEndpoint) bean).getComponentName());
+				if (bean instanceof AbstractEndpoint endpoint) {
+					this.endpointNames.remove(endpoint.getComponentName());
 				}
 				else {
 
 					this.endpointsByMonitor.remove(bean);
-					if (bean instanceof IntegrationManagement && bean instanceof MessageChannel) {
-						this.channels.remove(((NamedComponent) bean).getComponentName());
+					if (bean instanceof IntegrationManagement management && management instanceof MessageChannel) {
+						this.channels.remove(management.getComponentName());
 					}
-					else if (bean instanceof IntegrationManagement && bean instanceof MessageHandler) {
-						this.handlers.remove(((NamedComponent) bean).getComponentName());
-						this.endpointNames.remove(((NamedComponent) bean).getComponentName());
+					else if (bean instanceof IntegrationManagement management && management instanceof MessageHandler) {
+						this.handlers.remove(management.getComponentName());
+						this.endpointNames.remove(management.getComponentName());
 					}
-					else if (bean instanceof IntegrationInboundManagement && bean instanceof MessageSource) {
-						this.sources.remove(((NamedComponent) bean).getComponentName());
-						this.endpointNames.remove(((NamedComponent) bean).getComponentName());
+					else if (bean instanceof IntegrationInboundManagement management && bean instanceof MessageSource) {
+						this.sources.remove(management.getComponentName());
+						this.endpointNames.remove(management.getComponentName());
 					}
 				}
 			}
@@ -553,7 +551,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	@ManagedOperation
 	public void stopActiveChannels() {
-		// Stop any "active" channels (JMS etc).
+		// Stop any "active" channels (JMS etc.)
 		for (IntegrationManagement metrics : this.channels.values()) {
 			if (metrics instanceof Lifecycle) {
 				if (logger.isInfoEnabled()) {
@@ -759,15 +757,16 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		return match != null && match;
 	}
 
-	private Object extractTarget(Object bean) {
+	@SuppressWarnings("unchecked")
+	private <T> T extractTarget(Object bean) {
 		if (!(bean instanceof Advised advised)) {
-			return bean;
+			return (T) bean;
 		}
 		try {
 			return extractTarget(advised.getTargetSource().getTarget());
 		}
-		catch (Exception e) {
-			logger.error("Could not extract target", e);
+		catch (Exception ex) {
+			logger.error("Could not extract target", ex);
 			return null;
 		}
 	}
@@ -979,11 +978,11 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			}
 
 			MessageChannel outputChannel = null;
-			if (target instanceof MessagingGatewaySupport) {
-				outputChannel = ((MessagingGatewaySupport) target).getRequestChannel();
+			if (target instanceof MessagingGatewaySupport gatewaySupport) {
+				outputChannel = gatewaySupport.getRequestChannel();
 			}
-			else if (target instanceof SourcePollingChannelAdapter) {
-				outputChannel = ((SourcePollingChannelAdapter) target).getOutputChannel();
+			else if (target instanceof SourcePollingChannelAdapter pollingChannelAdapter) {
+				outputChannel = pollingChannelAdapter.getOutputChannel();
 			}
 
 			if (outputChannel != null) {
