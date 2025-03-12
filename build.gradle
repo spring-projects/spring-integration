@@ -54,7 +54,7 @@ ext {
                     }
     modifiedFiles.finalizeValueOnRead()
 
-    apacheSshdVersion = '2.14.0'
+    apacheSshdVersion = '2.15.0'
     artemisVersion = '2.39.0'
     aspectjVersion = '1.9.22.1'
     assertjVersion = '3.27.3'
