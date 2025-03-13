@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2024-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,8 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.core.annotation.RepeatableContainers;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -115,14 +117,15 @@ public class ControlBusCommandRegistry
 	 * @param bean the bean for registration
 	 */
 	public void registerControlBusCommands(String beanName, Object bean) {
-		Class<?> beanClass = bean.getClass();
-		if (bean instanceof Lifecycle || bean instanceof CustomizableThreadCreator
-				|| AnnotationUtils.findAnnotation(beanClass, ManagedResource.class) != null
-				|| AnnotationUtils.findAnnotation(beanClass, IntegrationManagedResource.class) != null) {
-
-			ReflectionUtils.doWithMethods(beanClass, method -> populateExpressionForCommand(beanName, method),
+		if (isBeanEligible(bean)) {
+			ReflectionUtils.doWithMethods(bean.getClass(), method -> populateExpressionForCommand(beanName, method),
 					CONTROL_BUS_METHOD_FILTER);
 		}
+	}
+
+	@Override
+	public boolean requiresDestruction(Object bean) {
+		return isBeanEligible(bean);
 	}
 
 	@Override
@@ -219,6 +222,17 @@ public class ControlBusCommandRegistry
 						.formatted(commandMethod.methodName, bean, Arrays.toString(commandMethod.parameterTypes)));
 
 		return buildExpressionForMethodToCall(commandMethod, methodForCommand.get());
+	}
+
+	private static boolean isBeanEligible(Object bean) {
+		MergedAnnotations mergedAnnotations =
+				MergedAnnotations.from(bean.getClass(), MergedAnnotations.SearchStrategy.TYPE_HIERARCHY,
+						RepeatableContainers.none());
+
+		return bean instanceof Lifecycle
+				|| bean instanceof CustomizableThreadCreator
+				|| mergedAnnotations.isPresent(ManagedResource.class)
+				|| mergedAnnotations.isPresent(IntegrationManagedResource.class);
 	}
 
 	private static Expression buildExpressionForMethodToCall(CommandMethod commandMethod, Method methodForCommand) {
