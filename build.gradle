@@ -56,7 +56,7 @@ ext {
 
     apacheSshdVersion = '2.14.0'
     artemisVersion = '2.37.0'
-    aspectjVersion = '1.9.22.1'
+    aspectjVersion = '1.9.23'
     assertjVersion = '3.26.3'
     assertkVersion = '0.28.1'
     avroVersion = '1.12.0'
@@ -74,7 +74,7 @@ ext {
     groovyVersion = '4.0.26'
     hamcrestVersion = '3.0'
     hazelcastVersion = '5.4.0'
-    hibernateVersion = '6.6.10.Final'
+    hibernateVersion = '6.6.11.Final'
     hsqldbVersion = '2.7.4'
     h2Version = '2.3.232'
     jacksonVersion = '2.18.3'
