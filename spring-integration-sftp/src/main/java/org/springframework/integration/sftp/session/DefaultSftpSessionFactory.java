@@ -18,6 +18,7 @@ package org.springframework.integration.sftp.session;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.time.Duration;
@@ -316,7 +317,7 @@ public class DefaultSftpSessionFactory
 				sftpClient = createSftpClient(initClientSession(), this.sftpVersionSelector, SftpErrorDataHandler.EMPTY);
 				freshSftpClient = true;
 			}
-			sftpSession = new SftpSession(sftpClient);
+			sftpSession = new SftpSession(sftpClient, this.isSharedSession);
 			sftpSession.connect();
 			if (this.isSharedSession && freshSftpClient) {
 				this.sharedSftpClient = sftpClient;
@@ -448,6 +449,26 @@ public class DefaultSftpSessionFactory
 	public void destroy() {
 		if (this.isInnerClient && this.sshClient != null && this.sshClient.isStarted()) {
 			this.sshClient.stop();
+		}
+
+		SftpClient sharedSftpClientToClose = this.sharedSftpClient;
+		if (sharedSftpClientToClose != null) {
+			try {
+				sharedSftpClientToClose.close();
+			}
+			catch (IOException ex) {
+				throw new UncheckedIOException("failed to close an SFTP client", ex);
+			}
+
+			try {
+				ClientSession session = sharedSftpClientToClose.getSession();
+				if (session != null && session.isOpen()) {
+					session.close();
+				}
+			}
+			catch (IOException ex) {
+				throw new UncheckedIOException("failed to close an SFTP client (session)", ex);
+			}
 		}
 	}
 

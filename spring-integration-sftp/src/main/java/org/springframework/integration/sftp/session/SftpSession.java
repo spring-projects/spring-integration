@@ -55,9 +55,23 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 
 	private final SftpClient sftpClient;
 
+	private final boolean isSharedClient;
+
 	public SftpSession(SftpClient sftpClient) {
+		this(sftpClient, false);
+	}
+
+	/**
+	 * Construct an instance based on a {@link SftpClient} and its {@code shared} status.
+	 * When {@code isSharedClient == true}, the {@link #close()} is void.
+	 * @param sftpClient the {@link SftpClient} to use.
+	 * @param isSharedClient whether the {@link SftpClient} is shared.
+	 * @since 6.3.9
+	 */
+	public SftpSession(SftpClient sftpClient, boolean isSharedClient) {
 		Assert.notNull(sftpClient, "'sftpClient' must not be null");
 		this.sftpClient = sftpClient;
+		this.isSharedClient = isSharedClient;
 	}
 
 	@Override
@@ -152,6 +166,10 @@ public class SftpSession implements Session<SftpClient.DirEntry> {
 
 	@Override
 	public void close() {
+		if (this.isSharedClient) {
+			return;
+		}
+
 		try {
 			this.sftpClient.close();
 		}
