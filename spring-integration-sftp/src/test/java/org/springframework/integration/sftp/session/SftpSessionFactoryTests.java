@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,11 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import org.apache.sshd.client.SshClient;
@@ -35,6 +40,8 @@ import org.apache.sshd.common.SshException;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.sftp.client.SftpClient;
+import org.apache.sshd.sftp.client.SftpErrorDataHandler;
+import org.apache.sshd.sftp.client.SftpVersionSelector;
 import org.apache.sshd.sftp.client.impl.AbstractSftpClient;
 import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.junit.jupiter.api.Test;
@@ -260,4 +267,65 @@ public class SftpSessionFactoryTests {
 			sftpSessionFactory.destroy();
 		}
 	}
+
+	@Test
+	void sharedSessionConcurrentAccess() throws Exception {
+		try (SshServer server = SshServer.setUpDefaultServer()) {
+			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
+			server.setPort(0);
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
+			server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
+			server.start();
+
+			AtomicInteger clientInstances = new AtomicInteger();
+
+			DefaultSftpSessionFactory sftpSessionFactory = new DefaultSftpSessionFactory(true) {
+
+				@Override
+				protected SftpClient createSftpClient(ClientSession clientSession,
+						SftpVersionSelector initialVersionSelector, SftpErrorDataHandler errorDataHandler)
+						throws IOException {
+
+					clientInstances.incrementAndGet();
+					return super.createSftpClient(clientSession, initialVersionSelector, errorDataHandler);
+				}
+
+			};
+			sftpSessionFactory.setHost("localhost");
+			sftpSessionFactory.setPort(server.getPort());
+			sftpSessionFactory.setUser("user");
+			sftpSessionFactory.setPassword("pass");
+			sftpSessionFactory.setAllowUnknownKeys(true);
+
+			ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+			CountDownLatch executionLatch = new CountDownLatch(20);
+			List<Exception> errors = Collections.synchronizedList(new ArrayList<>());
+
+			for (int i = 0; i < 20; i++) {
+				executorService.execute(() -> {
+					try (SftpSession session = sftpSessionFactory.getSession()) {
+						session.list(".");
+					}
+					catch (Exception e) {
+						errors.add(e);
+					}
+					executionLatch.countDown();
+				});
+			}
+
+			assertThat(executionLatch.await(10, TimeUnit.SECONDS)).isTrue();
+			synchronized (errors) {
+				assertThat(errors).isEmpty();
+			}
+
+			assertThat(clientInstances).hasValue(1);
+
+			executorService.shutdown();
+			assertThat(executorService.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+
+			sftpSessionFactory.destroy();
+		}
+	}
+
 }
