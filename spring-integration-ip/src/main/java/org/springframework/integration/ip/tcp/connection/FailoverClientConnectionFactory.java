@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,12 @@ import org.springframework.util.Assert;
 
 /**
  * Given a list of connection factories, serves up {@link TcpConnection}s
- * that can iterate over a connection from each factory until the write
+ * that can iterate over a connection from each factory until the {@code write}
  * succeeds or the list is exhausted.
  *
  * @author Gary Russell
  * @author Christian Tzolov
+ * @author Artem Bilan
  *
  * @since 2.2
  *
@@ -163,8 +164,9 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			return sharedConnection;
 		}
 		FailoverTcpConnection failoverTcpConnection = new FailoverTcpConnection(this.factories);
-		if (getListener() != null) {
-			failoverTcpConnection.registerListener(getListener());
+		TcpListener listener = getListener();
+		if (listener != null) {
+			failoverTcpConnection.registerListener(listener);
 		}
 		failoverTcpConnection.incrementEpoch();
 		if (shared) {
@@ -286,9 +288,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 					}
 					catch (RuntimeException e) {
 						if (logger.isDebugEnabled()) {
-							logger.debug(nextFactory + " failed with "
-									+ e.toString()
-									+ ", trying another");
+							logger.debug(nextFactory + " failed with " + e + ", trying another");
 						}
 						if (restartedList && (lastFactoryToTry == null || lastFactoryToTry.equals(nextFactory))) {
 							logger.debug("Failover failed to find a connection");

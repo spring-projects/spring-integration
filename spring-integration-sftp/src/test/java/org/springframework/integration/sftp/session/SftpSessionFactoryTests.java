@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,7 +49,6 @@ import org.apache.sshd.sftp.client.impl.AbstractSftpClient;
 import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -133,20 +133,27 @@ public class SftpSessionFactoryTests {
 			sftpSessionFactory.setPassword("pass");
 			sftpSessionFactory.setAllowUnknownKeys(true);
 
-			List<SftpSession> concurrentSessions = new ArrayList<>();
+			List<CompletableFuture<SftpSession>> concurrentSessions = new ArrayList<>();
 
-			AsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
-			for (int i = 0; i < 3; i++) {
-				asyncTaskExecutor.execute(() -> concurrentSessions.add(sftpSessionFactory.getSession()));
+			try (var asyncTaskExecutor = new SimpleAsyncTaskExecutor()) {
+				for (int i = 0; i < 3; i++) {
+					concurrentSessions.add(asyncTaskExecutor.submitCompletable(sftpSessionFactory::getSession));
+				}
 			}
 
-			await().atMost(Duration.ofSeconds(30)).until(() -> concurrentSessions.size() == 3);
+			assertThat(CompletableFuture.allOf(concurrentSessions.toArray(CompletableFuture[]::new)))
+					.succeedsWithin(Duration.ofSeconds(10));
 
-			assertThat(concurrentSessions.get(0))
-					.isNotEqualTo(concurrentSessions.get(1))
-					.isNotEqualTo(concurrentSessions.get(2));
+			List<SftpSession> sftpSessions = concurrentSessions
+					.stream()
+					.map(CompletableFuture::join)
+					.toList();
 
-			assertThat(concurrentSessions.get(1)).isNotEqualTo(concurrentSessions.get(2));
+			assertThat(sftpSessions.get(0))
+					.isNotEqualTo(sftpSessions.get(1))
+					.isNotEqualTo(sftpSessions.get(2));
+
+			assertThat(sftpSessions.get(1)).isNotEqualTo(sftpSessions.get(2));
 
 			sftpSessionFactory.destroy();
 		}
