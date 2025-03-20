@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,11 +100,11 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		this.publisher = IntegrationReactiveUtils.messageChannelToFlux(inputChannel);
 		this.subscriber = subscriber;
 		this.lifecycleDelegate = subscriber instanceof Lifecycle ? (Lifecycle) subscriber : null;
-		if (subscriber instanceof MessageHandlerSubscriber) {
-			this.handler = ((MessageHandlerSubscriber) subscriber).messageHandler;
+		if (subscriber instanceof MessageHandlerSubscriber messageHandlerSubscriber) {
+			this.handler = messageHandlerSubscriber.messageHandler;
 		}
-		else if (subscriber instanceof MessageHandler) {
-			this.handler = (MessageHandler) subscriber;
+		else if (subscriber instanceof MessageHandler messageHandler) {
+			this.handler = messageHandler;
 		}
 		else {
 			this.handler = this.subscriber::onNext;
@@ -126,7 +126,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		this.publisher = IntegrationReactiveUtils.messageChannelToFlux(inputChannel);
 		this.subscriber = null;
 		this.lifecycleDelegate =
-				reactiveMessageHandler instanceof Lifecycle ? (Lifecycle) reactiveMessageHandler : null;
+				reactiveMessageHandler instanceof Lifecycle lifecycle ? lifecycle : null;
 	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
@@ -146,11 +146,11 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 	@Override
 	public MessageChannel getOutputChannel() {
-		if (this.handler instanceof MessageProducer) {
-			return ((MessageProducer) this.handler).getOutputChannel();
+		if (this.handler instanceof MessageProducer messageProducer) {
+			return messageProducer.getOutputChannel();
 		}
-		else if (this.handler instanceof MessageRouter) {
-			return ((MessageRouter) this.handler).getDefaultOutputChannel();
+		else if (this.handler instanceof MessageRouter messageRouter) {
+			return messageRouter.getDefaultOutputChannel();
 		}
 		else {
 			return null;
@@ -258,15 +258,15 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 		@Override
 		public void start() {
-			if (this.messageHandler instanceof Lifecycle) {
-				((Lifecycle) this.messageHandler).start();
+			if (this.messageHandler instanceof Lifecycle lifecycle) {
+				lifecycle.start();
 			}
 		}
 
 		@Override
 		public void stop() {
-			if (this.messageHandler instanceof Lifecycle) {
-				((Lifecycle) this.messageHandler).stop();
+			if (this.messageHandler instanceof Lifecycle lifecycle) {
+				lifecycle.stop();
 			}
 		}
 

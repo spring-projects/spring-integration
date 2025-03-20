@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageProducerSupport} sub-class that provides {@linkplain #payloadExpression}
+ * A {@link MessageProducerSupport} subclass that provides {@linkplain #payloadExpression}
  * evaluation with result as a payload for Message to send.
  *
  * @author David Turanski

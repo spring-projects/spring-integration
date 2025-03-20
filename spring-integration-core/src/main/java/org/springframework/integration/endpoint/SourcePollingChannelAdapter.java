@@ -62,6 +62,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
+	private final Lock lock = new ReentrantLock();
+
 	private MessageSource<?> originalSource;
 
 	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
@@ -75,8 +77,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	private volatile String outputChannelName;
 
 	private volatile boolean shouldTrack;
-
-	private final Lock lock = new ReentrantLock();
 
 	/**
 	 * Specify the source to be polled for Messages.

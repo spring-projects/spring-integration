@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,8 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 		}
 		this.inputChannel = inputChannel;
 		this.handler = handler;
-		if (this.inputChannel instanceof ExecutorChannelInterceptorAware) {
-			this.channelInterceptors = ((ExecutorChannelInterceptorAware) this.inputChannel).getInterceptors();
+		if (this.inputChannel instanceof ExecutorChannelInterceptorAware executorChannelInterceptorAware) {
+			this.channelInterceptors = executorChannelInterceptorAware.getInterceptors();
 		}
 		else {
 			this.channelInterceptors = null;
@@ -93,11 +93,11 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 
 	@Override
 	public MessageChannel getOutputChannel() {
-		if (this.handler instanceof MessageProducer) {
-			return ((MessageProducer) this.handler).getOutputChannel();
+		if (this.handler instanceof MessageProducer messageProducer) {
+			return messageProducer.getOutputChannel();
 		}
-		else if (this.handler instanceof MessageRouter) {
-			return ((MessageRouter) this.handler).getDefaultOutputChannel();
+		else if (this.handler instanceof MessageRouter messageRouter) {
+			return messageRouter.getDefaultOutputChannel();
 		}
 		else {
 			return null;
@@ -127,16 +127,16 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 
 	@Override
 	protected void doStart() {
-		if (this.handler instanceof Lifecycle) {
-			((Lifecycle) this.handler).start();
+		if (this.handler instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 		super.doStart();
 	}
 
 	@Override
 	protected void doStop() {
-		if (this.handler instanceof Lifecycle) {
-			((Lifecycle) this.handler).stop();
+		if (this.handler instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 		super.doStop();
 	}
@@ -180,8 +180,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 	private Message<?> applyBeforeHandle(Message<?> message, Deque<ExecutorChannelInterceptor> interceptorStack) {
 		Message<?> theMessage = message;
 		for (ChannelInterceptor interceptor : this.channelInterceptors) {
-			if (interceptor instanceof ExecutorChannelInterceptor) {
-				ExecutorChannelInterceptor executorInterceptor = (ExecutorChannelInterceptor) interceptor;
+			if (interceptor instanceof ExecutorChannelInterceptor executorInterceptor) {
 				theMessage = executorInterceptor.beforeHandle(theMessage, this.inputChannel, this.handler);
 				if (theMessage == null) {
 					logger.debug(() -> executorInterceptor.getClass().getSimpleName()

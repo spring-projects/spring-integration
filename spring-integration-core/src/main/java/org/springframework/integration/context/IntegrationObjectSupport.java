@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -71,8 +70,6 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	private static final IdGenerator ID_GENERATOR = new AlternativeJdkIdGenerator();
 
 	protected final LogAccessor logger = new LogAccessor(getClass()); // NOSONAR protected
-
-	private final ConversionService defaultConversionService = DefaultConversionService.getSharedInstance();
 
 	private DestinationResolver<MessageChannel> channelResolver;
 

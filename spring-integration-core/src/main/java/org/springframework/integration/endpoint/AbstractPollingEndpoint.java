@@ -26,7 +26,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
 import org.reactivestreams.Subscription;
@@ -153,8 +152,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	/**
 	 * Configure a cap for messages to poll from the source per scheduling cycle.
 	 * A negative number means retrieve unlimited messages until the {@code MessageSource} returns {@code null}.
-	 * Zero means do not poll for any records - it
-	 * can be considered as pausing if 'maxMessagesPerPoll' is later changed to a non-zero value.
+	 * Zero means do not poll for any records -
+	 * it can be considered as pausing if 'maxMessagesPerPoll' is later changed to a non-zero value.
 	 * The polling cycle may exit earlier if the source returns null for the current receive call.
 	 * @param maxMessagesPerPoll the number of message to poll per schedule.
 	 */
@@ -176,8 +175,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.beanClassLoader = classLoader;
 	}
 
-	public void setTransactionSynchronizationFactory(TransactionSynchronizationFactory
-			transactionSynchronizationFactory) {
+	public void setTransactionSynchronizationFactory(
+			TransactionSynchronizationFactory transactionSynchronizationFactory) {
 
 		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
@@ -189,7 +188,9 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * @since 4.3
 	 */
 	public MessageChannel getDefaultErrorChannel() {
-		if (!this.errorHandlerIsDefault && this.errorHandler instanceof MessagePublishingErrorHandler messagePublishingErrorHandler) {
+		if (!this.errorHandlerIsDefault && this.errorHandler
+				instanceof MessagePublishingErrorHandler messagePublishingErrorHandler) {
+
 			return messagePublishingErrorHandler.getDefaultErrorChannel();
 		}
 		else {
@@ -323,7 +324,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			receiveOnlyAdviceChain = this.adviceChain.stream()
 					.filter(this::isReceiveOnlyAdvice)
-					.collect(Collectors.toList());
+					.toList();
 		}
 
 		Callable<Message<?>> task = this::doPoll;
@@ -423,15 +424,15 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 		catch (Exception ex) {
 			pollingTaskError = ex;
-			if (ex instanceof MessagingException) { // NOSONAR
-				throw (MessagingException) ex;
+			if (ex instanceof MessagingException messagingException) { // NOSONAR
+				throw messagingException;
 			}
 			else {
 				Message<?> failedMessage = null;
 				if (this.transactionSynchronizationFactory != null) {
 					Object resource = TransactionSynchronizationManager.getResource(getResourceToBind());
-					if (resource instanceof IntegrationResourceHolder) {
-						failedMessage = ((IntegrationResourceHolder) resource).getMessage();
+					if (resource instanceof IntegrationResourceHolder integrationResourceHolder) {
+						failedMessage = integrationResourceHolder.getMessage();
 					}
 				}
 				throw new MessagingException(failedMessage, ex); // NOSONAR (null failedMessage)

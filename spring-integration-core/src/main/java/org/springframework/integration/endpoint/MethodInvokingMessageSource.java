@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,15 +93,15 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object> i
 
 	@Override
 	public void start() {
-		if (this.object instanceof Lifecycle) {
-			((Lifecycle) this.object).start();
+		if (this.object instanceof Lifecycle lifecycle) {
+			lifecycle.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.object instanceof Lifecycle) {
-			((Lifecycle) this.object).stop();
+		if (this.object instanceof Lifecycle lifecycle) {
+			lifecycle.stop();
 		}
 	}
 

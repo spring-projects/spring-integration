@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public abstract class AbstractFetchLimitingMessageSource<T> extends AbstractMess
 	}
 
 	/**
-	 * Subclasses must implement this method. Typically the returned value will be the
+	 * Subclasses must implement this method. Typically, the returned value will be the
 	 * payload of type T, but the returned value may also be a Message instance whose
 	 * payload is of type T.
 	 * @param maxFetchSizeToReceive the maximum number of messages to fetch if a fetch is

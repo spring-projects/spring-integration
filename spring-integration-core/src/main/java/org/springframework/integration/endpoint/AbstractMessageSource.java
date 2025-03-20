@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,11 +156,11 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 		}
 		Message<?> message;
 		Map<String, Object> headers = evaluateHeaders();
-		if (result instanceof AbstractIntegrationMessageBuilder<?>) {
+		if (result instanceof AbstractIntegrationMessageBuilder<?> messageBuilder) {
 			if (!CollectionUtils.isEmpty(headers)) {
-				((AbstractIntegrationMessageBuilder<?>) result).copyHeaders(headers);
+				messageBuilder.copyHeaders(headers);
 			}
-			message = ((AbstractIntegrationMessageBuilder<?>) result).build();
+			message = messageBuilder.build();
 		}
 		else if (result instanceof Message<?>) {
 			message = (Message<?>) result;
@@ -216,7 +216,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	/**
-	 * Subclasses must implement this method. Typically the returned value will be the {@code payload} of
+	 * Subclasses must implement this method. Typically, the returned value will be the {@code payload} of
 	 * type T, but the returned value may also be a {@link Message} instance whose payload is of type T;
 	 * also can be {@link AbstractIntegrationMessageBuilder} which is used for additional headers population.
 	 * @return The value returned.
