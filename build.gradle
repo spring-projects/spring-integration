@@ -113,7 +113,7 @@ ext {
     springGraphqlVersion = '1.4.0-M1'
     springKafkaVersion = '3.3.4'
     springRetryVersion = '2.0.11'
-    springSecurityVersion = '6.5.0-M3'
+    springSecurityVersion = '6.5.0-SNAPSHOT'
     springVersion = '6.2.4'
     springWsVersion = '4.1.0-M1'
     testcontainersVersion = '1.20.6'
