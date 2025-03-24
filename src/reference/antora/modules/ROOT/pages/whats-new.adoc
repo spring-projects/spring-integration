@@ -31,6 +31,12 @@ The `AbstractMessageChannel` beans now throw a special `MessageDispatchingExcept
 In general, it is a design error to try to produce a message from `afterPropertiesSet()`, `@PostConstruct` or bean definition methods.
 The `SmartLifecycle.start()` is preferred way for this kind of logic, or better to do that via inbound channel adapters.
 
+[[x6.5-lock-request-handler-advice]]
+== The `LockRequestHandlerAdvice`
+
+A new `LockRequestHandlerAdvice` is introduced to keep the lock for a key based on a request message for message handler invocation.
+See xref:handler-advice.adoc[] for more information.
+
 [[x6.5-correlation-changes]]
 == The `discardIndividuallyOnExpiry` Option For Correlation Handlers
 

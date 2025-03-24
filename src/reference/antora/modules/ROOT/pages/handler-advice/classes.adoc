@@ -10,6 +10,7 @@ In addition to providing the general mechanism to apply AOP advice classes, Spri
 * `CacheRequestHandlerAdvice` (described in xref:handler-advice/classes.adoc#cache-advice[Caching Advice])
 * `ReactiveRequestHandlerAdvice` (described in xref:handler-advice/reactive.adoc[Reactive Advice])
 * `ContextHolderRequestHandlerAdvice` (described in xref:handler-advice/context-holder.adoc[Context Holder Advice])
+* `LockRequestHandlerAdvice` (described in xref:handler-advice/lock.adoc[Lock Advice])
 
 
 [[expression-advice]]

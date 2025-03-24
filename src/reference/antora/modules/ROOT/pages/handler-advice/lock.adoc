@@ -1,0 +1,49 @@
+[[lock-advice]]
+= Lock Advice
+
+Starting with version 6.5, the `LockRequestHandlerAdvice` has been introduced.
+This advice evaluates a lock key against request message and performs `LockRegistry.executeLocked()` API.
+The goal of the advice is to achieve exclusive access to the service invocation according to the `lockKey` context, meaning that different keys may still get concurrent access to the service.
+
+The `LockRequestHandlerAdvice` requires a xref:distributed-locks.adoc[LockRegistry], and a static, SpEL or function-based lock key callback.
+If `lockKey` is evaluated to `null`, no locking is held around service call.
+However, a `discardChannel` can be provided - and such a message with null key will be sent to this channel instead.
+Also, a `waitLockDuration` option can be provided to use `Lock.tryLock(long, TimeUnit)` API instead of `Lock.lockInterruptibly()`.
+
+Following is a sample how a `LockRequestHandlerAdvice` can be used:
+
+[source, java]
+----
+@Bean
+LockRegistry lockRegistry() {
+    return new DefaultLockRegistry();
+}
+
+@Bean
+QueueChannel discardChannel() {
+    return new QueueChannel();
+}
+
+@Bean
+LockRequestHandlerAdvice lockRequestHandlerAdvice(LockRegistry lockRegistry, QueueChannel discardChannel) {
+    LockRequestHandlerAdvice lockRequestHandlerAdvice =
+            new LockRequestHandlerAdvice(lockRegistry, (message) -> message.getHeaders().get(LOCK_KEY_HEADER));
+    lockRequestHandlerAdvice.setDiscardChannel(discardChannel);
+    lockRequestHandlerAdvice.setWaitLockDurationExpressionString("'PT1s'");
+    return lockRequestHandlerAdvice;
+}
+
+AtomicInteger counter = new AtomicInteger();
+
+@ServiceActivator(inputChannel = "inputChannel", adviceChain = "lockRequestHandlerAdvice")
+String handleWithDelay(String payload) throws InterruptedException {
+    int currentCount = this.counter.incrementAndGet();
+    Thread.sleep("longer_process".equals(payload) ? 2000 : 500);
+    try {
+        return payload + "-" + currentCount;
+    }
+    finally {
+        this.counter.decrementAndGet();
+    }
+}
+----
