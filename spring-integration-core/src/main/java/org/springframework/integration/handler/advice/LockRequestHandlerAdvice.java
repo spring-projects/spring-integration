@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  * based on the {@code lockKey} from message.
  * <p>
  * If {@code lockKey} for the message is {@code null}, the no locking around the call.
- * However, if {@link }
+ * However, if {@link #setDiscardChannel(MessageChannel)} is provided, such a message will be sent there instead.
  *
  * @author Artem Bilan
  *
@@ -157,10 +157,10 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 			Duration waitLockDuration = getWaitLockDuration(message);
 			try {
 				if (waitLockDuration == null) {
-					return lockRegistry.executeLocked(lockKey, callback::execute);
+					return this.lockRegistry.executeLocked(lockKey, callback::execute);
 				}
 				else {
-					return lockRegistry.executeLocked(lockKey, waitLockDuration, callback::execute);
+					return this.lockRegistry.executeLocked(lockKey, waitLockDuration, callback::execute);
 				}
 			}
 			catch (InterruptedException ex) {
