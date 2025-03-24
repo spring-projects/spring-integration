@@ -16,9 +16,12 @@
 
 package org.springframework.integration.redis.outbound;
 
+import java.util.function.Function;
+
 import reactor.core.publisher.Mono;
 
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -59,6 +62,9 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 
 	@Nullable
 	private HashMapper<String, ?, ?> hashMapper;
+
+	@Nullable
+	private Function<Message<?>, RedisStreamCommands.XAddOptions> addOptionsFunction;
 
 	/**
 	 * Create an instance based on provided {@link ReactiveRedisConnectionFactory} and key for stream.
@@ -106,6 +112,16 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 		this.extractPayload = extractPayload;
 	}
 
+	/**
+	 * Set a function to create a {@link RedisStreamCommands.XAddOptions} based on the request message.
+	 * Cannot be null and cannot return null.
+	 * @param addOptionsFunction the function to provide a {@link RedisStreamCommands.XAddOptions}.
+	 * @since 6.5
+	 */
+	public void setAddOptionsFunction(Function<Message<?>, RedisStreamCommands.XAddOptions> addOptionsFunction) {
+		this.addOptionsFunction = addOptionsFunction;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "redis:stream-outbound-channel-adapter";
@@ -145,7 +161,12 @@ public class ReactiveRedisStreamMessageHandler extends AbstractReactiveMessageHa
 							StreamRecords.objectBacked(value)
 									.withStreamKey(streamKey);
 
-					return this.reactiveStreamOperations.add(record);
+					if (this.addOptionsFunction == null) {
+						return this.reactiveStreamOperations.add(record);
+					}
+					else {
+						return this.reactiveStreamOperations.add(record, this.addOptionsFunction.apply(message));
+					}
 				})
 				.then();
 	}

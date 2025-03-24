@@ -83,3 +83,9 @@ The `BeanPropertySqlParameterSourceFactory` uses now internally the `MapSqlParam
 Also, `JdbcMessageHandler` exposes a `usePayloadAsParameterSource` flag to allow to deal with parameter source only against message payload.
 That's where the mentioned `MapSqlParameterSource` comes useful for request messages with map payloads.
 See xref:jdbc.adoc[JDBC Support] for more information.
+
+[[x6.5-redis-changes]]
+== Redis Stream Support
+
+The `ReactiveRedisStreamMessageHandler` now exposes a `Function<Message<?>, RedisStreamCommands.XAddOptions>` to provide additional `XADD` option via convenient `RedisStreamCommands.XAddOptions` API.
+See xref:redis.adoc#redis-stream-outbound[Redis Support] for more information.

@@ -761,6 +761,8 @@ Another constructor variant is based on a SpEL expression to evaluate a stream k
 Or use the whole message as a value.
 It defaults to `true`.
 
+Starting with version 6.5, the `ReactiveRedisStreamMessageHandler` provides a `setAddOptionsFunction(Function<Message<?>, RedisStreamCommands.XAddOptions> addOptionsFunction)` to build `RedisStreamCommands.XAddOptions` based on the request message for the internal `ReactiveStreamOperations.add(Record<K, ?> record, XAddOptions xAddOptions)` call.
+
 [[redis-stream-inbound]]
 == Redis Stream Inbound Channel Adapter
 
