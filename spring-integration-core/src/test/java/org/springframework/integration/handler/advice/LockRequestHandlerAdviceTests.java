@@ -125,7 +125,7 @@ public class LockRequestHandlerAdviceTests {
 		@ServiceActivator(inputChannel = "inputChannel", adviceChain = "lockRequestHandlerAdvice")
 		String handleWithDelay(String payload) throws InterruptedException {
 			int currentCount = this.counter.incrementAndGet();
-			Thread.sleep("longer_process".equals(payload) ? 2000 : 500);
+			Thread.sleep("longer_process".equals(payload) ? 5000 : 500);
 			try {
 				return payload + "-" + currentCount;
 			}
