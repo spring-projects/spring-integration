@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,18 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.Assert;
 
 /**
- * A {@link InitializingBean} implementation that is responsible for creating
+ * An {@link InitializingBean} implementation that is responsible for creating
  * channels that are not explicitly defined but identified via the 'input-channel'
  * attribute of the corresponding endpoints.
- *
+ * <p>
  * This bean plays a role of pre-instantiator since it is instantiated and
- * initialized as the very first bean of all SI beans using
+ * initialized as the very first bean of all Spring Integration beans using
  * {@link org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler}.
  *
  * @author Oleg Zhurakousky
@@ -48,7 +49,7 @@ public final class ChannelInitializer implements BeanFactoryAware, InitializingB
 
 	private static final Log LOGGER = LogFactory.getLog(ChannelInitializer.class);
 
-	private volatile BeanFactory beanFactory;
+	private volatile DefaultListableBeanFactory beanFactory;
 
 	private volatile boolean autoCreate = true;
 
@@ -61,49 +62,38 @@ public final class ChannelInitializer implements BeanFactoryAware, InitializingB
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
+		this.beanFactory = (DefaultListableBeanFactory) beanFactory;
 	}
 
 	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "'beanFactory' must not be null");
-		if (!this.autoCreate) {
-			return;
-		}
-		else {
+		if (this.autoCreate) {
 			AutoCreateCandidatesCollector channelCandidatesCollector =
 					this.beanFactory.getBean(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME,
 							AutoCreateCandidatesCollector.class);
 			// at this point channelNames are all resolved with placeholders and SpEL
-			Collection<String> channelNames = channelCandidatesCollector.getChannelNames();
+			Collection<String> channelNames = channelCandidatesCollector.channelNames;
 			if (channelNames != null) {
 				for (String channelName : channelNames) {
 					if (!this.beanFactory.containsBean(channelName)) {
 						if (LOGGER.isDebugEnabled()) {
 							LOGGER.debug("Auto-creating channel '" + channelName + "' as DirectChannel");
 						}
-						IntegrationConfigUtils.autoCreateDirectChannel(channelName,
-								(BeanDefinitionRegistry) this.beanFactory);
+						DirectChannel channelToRegister = new DirectChannel();
+						this.beanFactory.registerSingleton(channelName, channelToRegister);
+						this.beanFactory.initializeBean(channelToRegister, channelName);
 					}
 				}
 			}
 		}
 	}
 
-	/*
-	 * Collects candidate channel names to be auto-created by ChannelInitializer
+	/**
+	 * Collects candidate channel names to be auto-created by {@link ChannelInitializer}.
+	 * @param channelNames the auto-create candidate channel bean names.
 	 */
-	public static class AutoCreateCandidatesCollector {
-
-		private final Collection<String> channelNames;
-
-		AutoCreateCandidatesCollector(Collection<String> channelNames) {
-			this.channelNames = channelNames;
-		}
-
-		public Collection<String> getChannelNames() {
-			return this.channelNames;
-		}
+	public record AutoCreateCandidatesCollector(Collection<String> channelNames) {
 
 	}
 
