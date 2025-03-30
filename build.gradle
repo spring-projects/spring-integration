@@ -24,7 +24,7 @@ plugins {
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
     id 'com.github.spotbugs' version '6.1.7'
     id 'com.google.protobuf' version '0.9.4' apply false
-    id 'io.freefair.aggregate-javadoc' version '8.13'
+    id 'io.freefair.aggregate-javadoc' version '8.13.1'
 }
 
 if (isCI) {
