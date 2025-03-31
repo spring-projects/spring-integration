@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler.advice;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +61,9 @@ public class LockRequestHandlerAdviceTests {
 	@Autowired
 	QueueChannel discardChannel;
 
+	@Autowired
+	Config config;
+
 	@Test
 	void verifyLockAroundHandler() throws ExecutionException, InterruptedException, TimeoutException {
 		AsyncMessagingTemplate messagingTemplate = new AsyncMessagingTemplate();
@@ -89,12 +93,16 @@ public class LockRequestHandlerAdviceTests {
 		Future<Object> test4 =
 				messagingTemplate.asyncConvertSendAndReceive(this.inputChannel, "test4", messagePostProcessor);
 
-		assertThat(test3.get(10, TimeUnit.SECONDS)).isEqualTo("longer_process-1");
-
+		// It is  hard to achieve exclusive access in time, so expect failure first,
+		// then unblock count-down-latch barrier to let success pass.
 		assertThat(test4).failsWithin(10, TimeUnit.SECONDS)
 				.withThrowableOfType(ExecutionException.class)
 				.withRootCauseInstanceOf(TimeoutException.class)
 				.withStackTraceContaining("Could not acquire the lock in time: PT1S");
+
+		this.config.longProcessLatch.countDown();
+
+		assertThat(test3.get(10, TimeUnit.SECONDS)).isEqualTo("longer_process-1");
 	}
 
 	@Configuration
@@ -122,10 +130,19 @@ public class LockRequestHandlerAdviceTests {
 
 		AtomicInteger counter = new AtomicInteger();
 
+		CountDownLatch longProcessLatch = new CountDownLatch(1);
+
 		@ServiceActivator(inputChannel = "inputChannel", adviceChain = "lockRequestHandlerAdvice")
 		String handleWithDelay(String payload) throws InterruptedException {
 			int currentCount = this.counter.incrementAndGet();
-			Thread.sleep("longer_process".equals(payload) ? 5000 : 500);
+			if ("longer_process".equals(payload)) {
+				// Hard to achieve blocking expectations just with timeouts.
+				// So, wait for count-down-latch to be fulfilled.
+				longProcessLatch.await(10, TimeUnit.SECONDS);
+			}
+			else {
+				Thread.sleep(500);
+			}
 			try {
 				return payload + "-" + currentCount;
 			}
