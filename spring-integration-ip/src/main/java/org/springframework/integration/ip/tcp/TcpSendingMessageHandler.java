@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			connection = this.clientConnectionFactory.getConnection();
 		}
 		catch (Exception ex) {
-			logger.error(ex, "Error creating connection");
 			throw new MessageHandlingException(message, "Failed to obtain a connection in the [" + this + ']', ex);
 		}
 		return connection;
@@ -123,7 +122,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 				connection.send(message);
 			}
 			catch (Exception ex) {
-				logger.error(ex, "Error sending message");
 				connection.close();
 				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
 						() -> "Error sending message in the [" + this + ']', ex);
@@ -135,7 +133,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			}
 		}
 		else {
-			logger.error(() -> "Unable to find outbound socket for " + message);
 			MessageHandlingException messageHandlingException =
 					new MessageHandlingException(message, "Unable to find outbound socket in the [" + this + ']');
 			publishNoConnectionEvent(messageHandlingException, connectionId);
