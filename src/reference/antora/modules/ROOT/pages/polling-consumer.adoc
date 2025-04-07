@@ -68,15 +68,27 @@ When used with pollable message sources, the value of the header is an instance 
 [source, java]
 ----
 @FunctionalInterface
-public interface AcknowledgmentCallback {
+public interface AcknowledgmentCallback extends SimpleAcknowledgment {
 
     void acknowledge(Status status);
 
-    boolean isAcknowledged();
+    @Override
+    default void acknowledge() {
+        acknowledge(Status.ACCEPT);
+    }
 
-    void noAutoAck();
+    default boolean isAcknowledged() {
+        return false;
+    }
 
-    default boolean isAutoAck();
+
+    default void noAutoAck() {
+        throw new UnsupportedOperationException("You cannot disable auto acknowledgment with this implementation");
+    }
+
+    default boolean isAutoAck() {
+        return true;
+    }
 
     enum Status {
 
