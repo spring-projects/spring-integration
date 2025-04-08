@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,32 +37,33 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ma Jiandong
  *
  * @since 1.0.3
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class DefaultConfigurationTests {
+class DefaultConfigurationTests {
 
 	@Autowired
 	private ApplicationContext context;
 
 	@Test
-	public void verifyErrorChannel() {
+	void verifyErrorChannel() {
 		Object errorChannel = context.getBean("errorChannel");
 		assertThat(errorChannel).isNotNull();
 		assertThat(errorChannel.getClass()).isEqualTo(PublishSubscribeChannel.class);
 	}
 
 	@Test
-	public void verifyNullChannel() {
+	void verifyNullChannel() {
 		Object nullChannel = context.getBean("nullChannel");
 		assertThat(nullChannel).isNotNull();
 		assertThat(nullChannel.getClass()).isEqualTo(NullChannel.class);
 	}
 
 	@Test
-	public void verifyTaskScheduler() {
+	void verifyTaskScheduler() {
 		Object taskScheduler = context.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
 		assertThat(taskScheduler.getClass()).isEqualTo(ThreadPoolTaskScheduler.class);
 		ErrorHandler errorHandler = TestUtils.getPropertyValue(taskScheduler, "errorHandler", ErrorHandler.class);

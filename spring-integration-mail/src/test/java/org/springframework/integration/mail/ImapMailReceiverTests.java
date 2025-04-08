@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,6 +111,7 @@ import static org.mockito.Mockito.when;
  * @author Alexander Pinske
  * @author Dominik Simmen
  * @author Filip Hrisafov
+ * @author Ma Jiandong
  */
 @SpringJUnitConfig
 @ContextConfiguration(
@@ -167,7 +168,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testIdleWithServerCustomSearch() throws Exception {
+	void idleWithServerCustomSearch() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSearchTermStrategy((supportedFlags, folder) -> {
@@ -183,7 +184,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testIdleWithServerDefaultSearch() throws Exception {
+	void idleWithServerDefaultSearch() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		testIdleWithServerGuts(receiver, false);
@@ -191,7 +192,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testIdleWithMessageMapping() throws Exception {
+	void idleWithMessageMapping() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
@@ -200,7 +201,7 @@ public class ImapMailReceiverTests {
 
 	@Test
 	@Disabled
-	public void testIdleWithServerDefaultSearchSimple() throws Exception {
+	void idleWithServerDefaultSearchSimple() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSimpleContent(true);
@@ -209,7 +210,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testIdleWithMessageMappingSimple() throws Exception {
+	void idleWithMessageMappingSimple() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSimpleContent(true);
@@ -289,7 +290,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndMarkAsReadDontDelete() throws Exception {
+	void receiveAndMarkAsReadDontDelete() throws Exception {
 		user.deliver(GreenMailUtil.createTextEmail("user", "sender", "subject", "body",
 				imapIdleServer.getImap().getServerSetup()));
 		AbstractMailReceiver receiver = new ImapMailReceiver();
@@ -342,7 +343,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndMarkAsReadDontDeletePassingFilter() throws Exception {
+	void receiveAndMarkAsReadDontDeletePassingFilter() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		Message msg1 = GreenMailUtil.newMimeMessage("test1");
 		Message msg2 = GreenMailUtil.newMimeMessage("test2");
@@ -355,7 +356,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndMarkAsReadDontDeleteFiltered() throws Exception {
+	void receiveAndMarkAsReadDontDeleteFiltered() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		Message msg1 = GreenMailUtil.newMimeMessage("test1");
 		Message msg2 = spy(GreenMailUtil.newMimeMessage("test2"));
@@ -370,7 +371,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndDebugIsDisabledNotLogFiltered() throws Exception {
+	void receiveAndDebugIsDisabledNotLogFiltered() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 
 		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
@@ -391,7 +392,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveExpungedAndNotExpungedLogFiltered() throws Exception {
+	void receiveExpungedAndNotExpungedLogFiltered() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 
 		LogAccessor logger = spy(TestUtils.getPropertyValue(receiver, "logger", LogAccessor.class));
@@ -414,7 +415,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveMarkAsReadAndDelete() throws Exception {
+	void receiveMarkAsReadAndDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(true);
 		receiver.setShouldDeleteMessages(true);
@@ -453,7 +454,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndDontMarkAsRead() throws Exception {
+	void receiveAndDontMarkAsRead() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
@@ -482,7 +483,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndDontMarkAsReadButDelete() throws Exception {
+	void receiveAndDontMarkAsReadButDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldDeleteMessages(true);
 		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(false);
@@ -522,7 +523,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndIgnoreMarkAsReadDontDelete() throws Exception {
+	void receiveAndIgnoreMarkAsReadDontDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
@@ -557,7 +558,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testMessageHistory() throws Exception {
+	void messageHistory() throws Exception {
 		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 		adapter.setReconnectDelay(10);
 
@@ -600,7 +601,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testIdleChannelAdapterException() throws Exception {
+	void idleChannelAdapterException() throws Exception {
 		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
 		//ImapMailReceiver receiver = (ImapMailReceiver) TestUtils.getPropertyValue(adapter, "mailReceiver");
@@ -653,7 +654,7 @@ public class ImapMailReceiverTests {
 
 	@SuppressWarnings("resource")
 	@Test
-	public void testNoInitialIdleDelayWhenRecentNotSupported() throws Exception {
+	void noInitialIdleDelayWhenRecentNotSupported() throws Exception {
 		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
 		QueueChannel channel = new QueueChannel();
@@ -721,7 +722,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testInitialIdleDelayWhenRecentIsSupported() throws Exception {
+	void initialIdleDelayWhenRecentIsSupported() throws Exception {
 		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
 		QueueChannel channel = new QueueChannel();
@@ -776,7 +777,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testConnectionException() throws Exception {
+	void connectionException() throws Exception {
 		ImapMailReceiver mailReceiver = new ImapMailReceiver("imap:foo");
 		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(mailReceiver);
 		final AtomicReference<Object> theEvent = new AtomicReference<>();
@@ -795,8 +796,9 @@ public class ImapMailReceiverTests {
 		adapter.stop();
 	}
 
-	@Test // see INT-1801
-	public void testImapLifecycleForRaceCondition() throws Exception {
+	// see INT-1801
+	@Test
+	void imapLifecycleForRaceCondition() throws Exception {
 		final AtomicInteger failed = new AtomicInteger(0);
 		for (int i = 0; i < 100; i++) {
 			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
@@ -838,7 +840,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testAttachments() throws Exception {
+	void attachments() throws Exception {
 		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 		Folder folder = testAttachmentsGuts(receiver);
 		Message[] messages = (Message[]) receiver.receive();
@@ -850,7 +852,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testAttachmentsWithMappingMultiAsBytes() throws Exception {
+	void attachmentsWithMappingMultiAsBytes() throws Exception {
 		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		testAttachmentsGuts(receiver);
@@ -865,7 +867,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testAttachmentsWithMapping() throws Exception {
+	void attachmentsWithMapping() throws Exception {
 		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		receiver.setEmbeddedPartsAsBytes(false);
@@ -897,7 +899,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testNullMessages() throws Exception {
+	void nullMessages() throws Exception {
 		Message message1 = GreenMailUtil.newMimeMessage("test1");
 		Message message2 = GreenMailUtil.newMimeMessage("test2");
 		final Message[] messages1 = new Message[] {null, null, message1};
@@ -944,7 +946,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testIdleReconnects() throws Exception {
+	void idleReconnects() throws Exception {
 		ImapMailReceiver receiver = spy(new ImapMailReceiver("imap:foo"));
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
@@ -989,7 +991,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndMarkAsReadDontDeleteWithThrowingWhenCopying() throws Exception {
+	void receiveAndMarkAsReadDontDeleteWithThrowingWhenCopying() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		MimeMessage msg1 = spy(GreenMailUtil.newMimeMessage("test1"));
 		MimeMessage greenMailMsg2 = GreenMailUtil.newMimeMessage("test2");

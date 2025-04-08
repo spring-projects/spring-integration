@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,18 +43,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Alexander Pinske
- *
+ * @author Ma Jiandong
  * @since 5.0
  *
  */
-public class Pop3Tests {
+class Pop3Tests {
 
 	private static GreenMail pop3Server;
 
 	private static GreenMailUser user;
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		ServerSetup pop3 = ServerSetupTest.POP3.dynamicPort();
 		pop3.setServerStartupTimeout(10000);
 		pop3Server = new GreenMail(pop3);
@@ -63,12 +63,12 @@ public class Pop3Tests {
 	}
 
 	@AfterAll
-	public static void tearDown() {
+	static void tearDown() {
 		pop3Server.stop();
 	}
 
 	@Test
-	public void testPop3() throws MessagingException {
+	void pop3() throws MessagingException {
 		MimeMessage mimeMessage =
 				GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>, Bar2 <bar2@baz>", "Test Email",
 						"foo\r\n", pop3Server.getPop3().getServerSetup());

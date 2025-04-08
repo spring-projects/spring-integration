@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,12 +42,13 @@ import static org.mockito.Mockito.when;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Ma Jiandong
  */
-public class ImapIdleIntegrationTests {
+class ImapIdleIntegrationTests {
 
 	@SuppressWarnings("resource")
 	@Test
-	public void testWithTransactionSynchronization() throws Exception {
+	void withTransactionSynchronization() throws Exception {
 		final AtomicBoolean block = new AtomicBoolean(false);
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("imap-idle-mock-integration-config.xml", this.getClass());

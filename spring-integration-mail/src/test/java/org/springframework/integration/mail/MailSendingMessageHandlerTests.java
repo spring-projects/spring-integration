@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,26 +35,27 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Ma Jiandong
  */
-public class MailSendingMessageHandlerTests {
+class MailSendingMessageHandlerTests {
 
 	private MailSendingMessageHandler handler;
 
 	private StubJavaMailSender mailSender;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 		this.mailSender = new StubJavaMailSender(new MimeMessage((Session) null));
 		this.handler = new MailSendingMessageHandler(this.mailSender);
 	}
 
 	@AfterEach
-	public void reset() {
+	void reset() {
 		this.mailSender.reset();
 	}
 
 	@Test
-	public void textMessage() {
+	void textMessage() {
 		this.handler.handleMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertThat(mailSender.getSentMimeMessages().size()).as("no mime message should have been sent").isEqualTo(0);
@@ -65,7 +66,7 @@ public class MailSendingMessageHandlerTests {
 	}
 
 	@Test
-	public void byteArrayMessage() throws Exception {
+	void byteArrayMessage() throws Exception {
 		byte[] payload = {1, 2, 3};
 		org.springframework.messaging.Message<byte[]> message =
 				MessageBuilder.withPayload(payload)
@@ -86,7 +87,7 @@ public class MailSendingMessageHandlerTests {
 	}
 
 	@Test
-	public void mailHeaders() {
+	void mailHeaders() {
 		this.handler.handleMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertThat(mailSender.getSentMimeMessages().size()).as("no mime message should have been sent").isEqualTo(0);
@@ -97,7 +98,7 @@ public class MailSendingMessageHandlerTests {
 	}
 
 	@Test
-	public void simpleMailMessage() {
+	void simpleMailMessage() {
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		String[] toHeaders = mailMessage.getTo();
 		this.handler.handleMessage(MessageBuilder.withPayload(mailMessage).build());
@@ -108,7 +109,7 @@ public class MailSendingMessageHandlerTests {
 	}
 
 	@Test
-	public void simpleMailMessageOverrideWithHeaders() {
+	void simpleMailMessageOverrideWithHeaders() {
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		mailMessage.getTo();
 		this.handler.handleMessage(MessageBuilder.withPayload(mailMessage)

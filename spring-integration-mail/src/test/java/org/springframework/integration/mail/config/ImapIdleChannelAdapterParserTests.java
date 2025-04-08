@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,10 +43,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ma Jiandong
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class ImapIdleChannelAdapterParserTests {
+class ImapIdleChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
@@ -59,7 +60,7 @@ public class ImapIdleChannelAdapterParserTests {
 	private ImapIdleChannelAdapter autoChannelAdapter;
 
 	@Test
-	public void simpleAdapter() {
+	void simpleAdapter() {
 		Object adapter = context.getBean("simpleAdapter");
 		assertThat(adapter).isInstanceOf(ImapIdleChannelAdapter.class);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -86,7 +87,7 @@ public class ImapIdleChannelAdapterParserTests {
 	}
 
 	@Test
-	public void simpleAdapterWithErrorChannel() {
+	void simpleAdapterWithErrorChannel() {
 		Object adapter = context.getBean("simpleAdapterWithErrorChannel");
 		assertThat(adapter).isInstanceOf(ImapIdleChannelAdapter.class);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -110,7 +111,7 @@ public class ImapIdleChannelAdapterParserTests {
 	}
 
 	@Test
-	public void simpleAdapterWithMarkMessagesAsRead() {
+	void simpleAdapterWithMarkMessagesAsRead() {
 		Object adapter = this.context.getBean("simpleAdapterMarkAsRead");
 		assertThat(adapter).isInstanceOf(ImapIdleChannelAdapter.class);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -131,7 +132,7 @@ public class ImapIdleChannelAdapterParserTests {
 	}
 
 	@Test
-	public void simpleAdapterWithMarkMessagesAsReadFalse() {
+	void simpleAdapterWithMarkMessagesAsReadFalse() {
 		Object adapter = context.getBean("simpleAdapterMarkAsReadFalse");
 		assertThat(adapter).isInstanceOf(ImapIdleChannelAdapter.class);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -151,7 +152,7 @@ public class ImapIdleChannelAdapterParserTests {
 	}
 
 	@Test
-	public void customAdapter() {
+	void customAdapter() {
 		Object adapter = context.getBean("customAdapter");
 		assertThat(adapter).isInstanceOf(ImapIdleChannelAdapter.class);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -171,12 +172,12 @@ public class ImapIdleChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testAutoChannel() {
+	void autoChannel() {
 		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 
 	@Test
-	public void transactionalAdapter() {
+	void transactionalAdapter() {
 		Object adapter = context.getBean("transactionalAdapter");
 		assertThat(adapter).isInstanceOf(ImapIdleChannelAdapter.class);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);

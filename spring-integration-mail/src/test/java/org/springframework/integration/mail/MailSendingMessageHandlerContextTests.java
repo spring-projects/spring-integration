@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,10 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Marius Bogoevici
  * @author Artem Bilan
+ * @author Ma Jiandong
  */
 @SpringJUnitConfig
-public class MailSendingMessageHandlerContextTests {
+class MailSendingMessageHandlerContextTests {
 
 	@Autowired
 	@Qualifier("mailSendingMessageConsumer")
@@ -65,12 +66,12 @@ public class MailSendingMessageHandlerContextTests {
 	private BeanFactory beanFactory;
 
 	@BeforeEach
-	public void reset() {
+	void reset() {
 		this.mailSender.reset();
 	}
 
 	@Test
-	public void stringMessagesWithConfiguration() {
+	void stringMessagesWithConfiguration() {
 		this.handler.handleMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertThat(this.mailSender.getSentMimeMessages().size()).as("no mime message should have been sent")
@@ -82,7 +83,7 @@ public class MailSendingMessageHandlerContextTests {
 	}
 
 	@Test
-	public void byteArrayMessage() throws Exception {
+	void byteArrayMessage() throws Exception {
 		byte[] payload = {1, 2, 3};
 		org.springframework.messaging.Message<?> message =
 				MessageBuilder.withPayload(payload)
@@ -107,14 +108,15 @@ public class MailSendingMessageHandlerContextTests {
 	}
 
 	@Test
-	public void byteArrayMessageWithoutAttachmentFileName() {
+	void byteArrayMessageWithoutAttachmentFileName() {
 		byte[] payload = {1, 2, 3};
 		assertThatExceptionOfType(MessageMappingException.class)
 				.isThrownBy(() -> this.handler.handleMessage(new GenericMessage<>(payload)));
 	}
 
-	@Test //INT-2275
-	public void mailOutboundChannelAdapterWithinChain() {
+	//INT-2275
+	@Test
+	void mailOutboundChannelAdapterWithinChain() {
 		assertThat(this.beanFactory
 				.getBean("org.springframework.integration.handler.MessageHandlerChain#0$child" +
 						".mail-outbound-channel-adapter-within-chain.handler"))
@@ -130,7 +132,7 @@ public class MailSendingMessageHandlerContextTests {
 	}
 
 	@Test
-	public void testOutboundChannelAdapterWithSimpleMailSender() {
+	void outboundChannelAdapterWithSimpleMailSender() {
 		this.simpleEmailChannel.send(MailTestsHelper.createIntegrationMessage());
 		assertThat(this.simpleMailSender.getSentMessages().size()).isEqualTo(1);
 		assertThat(this.simpleMailSender.getSentMessages().get(0)).isEqualTo(MailTestsHelper.createSimpleMailMessage());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,16 +37,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Alexander Pinske
- *
+ * @author Ma Jiandong
  * @since 5.0
  *
  */
-public class SmtpTests {
+class SmtpTests {
 
 	private static GreenMail smtpServer;
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		ServerSetup smtp = ServerSetupTest.SMTP.dynamicPort();
 		smtp.setServerStartupTimeout(10000);
 		smtpServer = new GreenMail(smtp);
@@ -55,12 +55,12 @@ public class SmtpTests {
 	}
 
 	@AfterAll
-	public static void tearDown() {
+	static void tearDown() {
 		smtpServer.stop();
 	}
 
 	@Test
-	public void testSmtp() throws Exception {
+	void smtp() throws Exception {
 		JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 		mailSender.setHost("localhost");
 		mailSender.setPort(smtpServer.getSmtp().getPort());

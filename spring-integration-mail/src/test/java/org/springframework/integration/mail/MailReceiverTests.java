@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,14 +40,15 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ma Jiandong
  *
  * @since 3.0.6
  *
  */
-public class MailReceiverTests {
+class MailReceiverTests {
 
 	@Test
-	public void testStoreConnectAndFolderCloseWhenNoMessages() throws Exception {
+	void storeConnectAndFolderCloseWhenNoMessages() throws Exception {
 		AbstractMailReceiver receiver = new AbstractMailReceiver() {
 
 			@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ma Jiandong
  */
-public class MailReceivingMessageSourceTests {
+class MailReceivingMessageSourceTests {
 
 	@Test
-	public void testPolling() {
+	void polling() {
 		StubMailReceiver mailReceiver = new StubMailReceiver();
 		MimeMessage message1 = Mockito.mock(MimeMessage.class);
 		MimeMessage message2 = Mockito.mock(MimeMessage.class);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,12 +46,12 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
- *
+ * @author Ma Jiandong
  * @since 1.0.5
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class InboundChannelAdapterParserTests {
+class InboundChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
@@ -65,7 +65,7 @@ public class InboundChannelAdapterParserTests {
 
 	//==================== INT-982 =====================
 	@Test
-	public void pop3ShouldDeleteTrue() {
+	void pop3ShouldDeleteTrue() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteTrue");
 		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
@@ -77,7 +77,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapShouldMarkMessagesAsRead() {
+	void imapShouldMarkMessagesAsRead() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldMarkAsReadTrue");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
@@ -88,7 +88,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void pop3ShouldDeleteFalse() {
+	void pop3ShouldDeleteFalse() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteFalse");
 		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
@@ -96,7 +96,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapShouldDeleteTrue() {
+	void imapShouldDeleteTrue() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldDeleteTrue");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
@@ -106,7 +106,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapShouldDeleteFalse() {
+	void imapShouldDeleteFalse() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldDeleteFalse");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
@@ -117,7 +117,7 @@ public class InboundChannelAdapterParserTests {
 
 	//==================== INT-1158 ====================
 	@Test
-	public void pop3ShouldDeleteTrueProperty() {
+	void pop3ShouldDeleteTrueProperty() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteTrueProperty");
 		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
@@ -125,7 +125,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void pop3ShouldDeleteFalseProperty() {
+	void pop3ShouldDeleteFalseProperty() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteFalseProperty");
 		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
@@ -133,7 +133,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapShouldDeleteTrueProperty() {
+	void imapShouldDeleteTrueProperty() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldDeleteTrueProperty");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
@@ -142,7 +142,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapShouldDeleteFalseProperty() {
+	void imapShouldDeleteFalseProperty() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldDeleteFalseProperty");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
@@ -151,7 +151,7 @@ public class InboundChannelAdapterParserTests {
 
 	//==================== INT-1159 ====================
 	@Test
-	public void pop3WithAuthenticator() {
+	void pop3WithAuthenticator() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithAuthenticator");
 		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Object authenticator = new DirectFieldAccessor(receiver).getPropertyValue("javaMailAuthenticator");
@@ -160,7 +160,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapWithAuthenticator() {
+	void imapWithAuthenticator() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithAuthenticator");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object authenticator = new DirectFieldAccessor(receiver).getPropertyValue("javaMailAuthenticator");
@@ -169,7 +169,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapIdleWithAuthenticator() {
+	void imapIdleWithAuthenticator() {
 		AbstractMailReceiver receiver = this.getReceiver("imapIdleWithAuthenticator");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object authenticator = new DirectFieldAccessor(receiver).getPropertyValue("javaMailAuthenticator");
@@ -184,7 +184,7 @@ public class InboundChannelAdapterParserTests {
 
 	//==================== INT-1160 ====================
 	@Test
-	public void pop3WithMaxFetchSize() {
+	void pop3WithMaxFetchSize() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithMaxFetchSize");
 		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Object value = new DirectFieldAccessor(receiver).getPropertyValue("maxFetchSize");
@@ -192,7 +192,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void pop3WithMaxFetchSizeFallsBackToPollerMax() {
+	void pop3WithMaxFetchSizeFallsBackToPollerMax() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithMaxFetchSizeFallsBackToPollerMax");
 		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Object value = new DirectFieldAccessor(receiver).getPropertyValue("maxFetchSize");
@@ -200,7 +200,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapWithMaxFetchSize() {
+	void imapWithMaxFetchSize() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithMaxFetchSize");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object value = new DirectFieldAccessor(receiver).getPropertyValue("maxFetchSize");
@@ -208,7 +208,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapIdleWithMaxFetchSize() {
+	void imapIdleWithMaxFetchSize() {
 		AbstractMailReceiver receiver = this.getReceiver("imapIdleWithMaxFetchSize");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object value = new DirectFieldAccessor(receiver).getPropertyValue("maxFetchSize");
@@ -217,7 +217,7 @@ public class InboundChannelAdapterParserTests {
 
 	//==================== INT-1161 ====================
 	@Test
-	public void pop3WithSession() {
+	void pop3WithSession() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithSession");
 		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Object session = new DirectFieldAccessor(receiver).getPropertyValue("session");
@@ -226,7 +226,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapWithSession() {
+	void imapWithSession() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithSession");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object session = new DirectFieldAccessor(receiver).getPropertyValue("session");
@@ -235,7 +235,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapIdleWithSession() {
+	void imapIdleWithSession() {
 		AbstractMailReceiver receiver = this.getReceiver("imapIdleWithSession");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object session = new DirectFieldAccessor(receiver).getPropertyValue("session");
@@ -245,7 +245,7 @@ public class InboundChannelAdapterParserTests {
 
 	//==================== INT-1162 ====================
 	@Test
-	public void pop3WithoutStoreUri() {
+	void pop3WithoutStoreUri() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithoutStoreUri");
 		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Object url = new DirectFieldAccessor(receiver).getPropertyValue("url");
@@ -253,7 +253,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapWithoutStoreUri() {
+	void imapWithoutStoreUri() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithoutStoreUri");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object url = new DirectFieldAccessor(receiver).getPropertyValue("url");
@@ -261,7 +261,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void imapIdleWithoutStoreUri() {
+	void imapIdleWithoutStoreUri() {
 		AbstractMailReceiver receiver = this.getReceiver("imapIdleWithoutStoreUri");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object url = new DirectFieldAccessor(receiver).getPropertyValue("url");
@@ -270,7 +270,7 @@ public class InboundChannelAdapterParserTests {
 
 	//==================== INT-1163 ====================
 	@Test
-	public void inboundChannelAdapterRequiresShouldDeleteMessages() {
+	void inboundChannelAdapterRequiresShouldDeleteMessages() {
 		assertThatExceptionOfType(BeanDefinitionStoreException.class)
 				.isThrownBy(() -> new ClassPathXmlApplicationContext(
 						"InboundChannelAdapterParserTests-invalidContext.xml", getClass()))
@@ -279,7 +279,7 @@ public class InboundChannelAdapterParserTests {
 
 	//==================== INT-2800 ====================
 	@Test
-	public void imapWithSearchTermStrategy() {
+	void imapWithSearchTermStrategy() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithSearch");
 		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
@@ -290,7 +290,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void pop3WithSearchTermStrategy() {
+	void pop3WithSearchTermStrategy() {
 		assertThatExceptionOfType(BeanCreationException.class)
 				.isThrownBy(() -> new ClassPathXmlApplicationContext(
 						"InboundChannelAdapterParserTests-pop3Search-context.xml", getClass()))
@@ -307,7 +307,7 @@ public class InboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testAutoChannel() {
+	void autoChannel() {
 		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 

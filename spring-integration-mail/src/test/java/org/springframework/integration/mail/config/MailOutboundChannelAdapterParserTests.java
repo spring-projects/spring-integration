@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,13 +40,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Ma Jiandong
  */
 public class MailOutboundChannelAdapterParserTests {
 
 	public static volatile int adviceCalled;
 
 	@Test
-	public void adapterWithMailSenderReference() {
+	void adapterWithMailSenderReference() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		Object adapter = context.getBean("adapterWithMailSenderReference.adapter");
@@ -60,7 +61,7 @@ public class MailOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void advised() {
+	void advised() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		Object adapter = context.getBean("advised.adapter");
@@ -72,7 +73,7 @@ public class MailOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void adapterWithHostProperty() {
+	void adapterWithHostProperty() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		Object adapter = context.getBean("adapterWithHostProperty.adapter");
@@ -85,7 +86,7 @@ public class MailOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void adapterWithPollableChannel() {
+	void adapterWithPollableChannel() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		PollingConsumer pc = context.getBean("adapterWithPollableChannel", PollingConsumer.class);
@@ -95,7 +96,7 @@ public class MailOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void adapterWithJavaMailProperties() {
+	void adapterWithJavaMailProperties() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"MailOutboundWithJavamailProperties-context.xml", this.getClass());
 		Object adapter = context.getBean("adapterWithHostProperty.adapter");

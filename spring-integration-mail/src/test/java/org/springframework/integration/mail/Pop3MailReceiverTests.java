@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,12 +38,12 @@ import static org.mockito.Mockito.when;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
- *
+ * @author Ma Jiandong
  */
-public class Pop3MailReceiverTests {
+class Pop3MailReceiverTests {
 
 	@Test
-	public void receiveAndDelete() throws Exception {
+	void receiveAndDelete() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver.setShouldDeleteMessages(true);
 		receiver = spy(receiver);
@@ -79,7 +79,7 @@ public class Pop3MailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndDontDelete() throws Exception {
+	void receiveAndDontDelete() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver.setShouldDeleteMessages(false);
 		receiver = spy(receiver);
@@ -108,7 +108,7 @@ public class Pop3MailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndDontSetDeleteWithUrl() throws Exception {
+	void receiveAndDontSetDeleteWithUrl() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
@@ -136,7 +136,7 @@ public class Pop3MailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndDontSetDeleteWithoutUrl() throws Exception {
+	void receiveAndDontSetDeleteWithoutUrl() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,19 +40,19 @@ import static org.mockito.Mockito.when;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
- *
+ * @author Ma Jiandong
  */
 public class ImapMailSearchTermsTests {
 
 	@Test
-	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlags() throws Exception {
+	void validateSearchTermsWhenShouldMarkAsReadNoExistingFlags() throws Exception {
 		String userFlag = AbstractMailReceiver.DEFAULT_SI_USER_FLAG;
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsGuts(userFlag, receiver);
 	}
 
 	@Test
-	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsCustom() throws Exception {
+	void validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsCustom() throws Exception {
 		String userFlag = "foo";
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setUserFlag(userFlag);
@@ -82,7 +82,7 @@ public class ImapMailSearchTermsTests {
 	}
 
 	@Test
-	public void validateSearchTermsWhenShouldMarkAsReadWithExistingFlags() throws Exception {
+	void validateSearchTermsWhenShouldMarkAsReadWithExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(true);
 		receiver.setBeanFactory(mock(BeanFactory.class));
@@ -112,7 +112,7 @@ public class ImapMailSearchTermsTests {
 	}
 
 	@Test
-	public void validateSearchTermsWhenShouldNotMarkAsReadNoExistingFlags() throws Exception {
+	void validateSearchTermsWhenShouldNotMarkAsReadNoExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(false);
 		receiver.setBeanFactory(mock(BeanFactory.class));

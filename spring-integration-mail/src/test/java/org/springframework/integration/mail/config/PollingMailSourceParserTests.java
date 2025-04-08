@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,15 +36,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Ma Jiandong
  */
 @SpringJUnitConfig
-public class PollingMailSourceParserTests {
+class PollingMailSourceParserTests {
 
 	@Autowired
 	private ApplicationContext context;
 
 	@Test
-	public void imapAdapter() {
+	void imapAdapter() {
 		Object adapter = context.getBean("imapAdapter");
 		assertThat(adapter.getClass()).isEqualTo(SourcePollingChannelAdapter.class);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -63,7 +64,7 @@ public class PollingMailSourceParserTests {
 	}
 
 	@Test
-	public void pop3Adapter() {
+	void pop3Adapter() {
 		Object adapter = context.getBean("pop3Adapter");
 		assertThat(adapter.getClass()).isEqualTo(SourcePollingChannelAdapter.class);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);

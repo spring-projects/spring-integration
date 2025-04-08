@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,15 +65,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Alexander Pinske
+ * @author Ma Jiandong
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class MailTests {
+class MailTests {
 
 	private static GreenMail mailServer;
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		ServerSetup smtp = ServerSetupTest.SMTP.dynamicPort();
 		smtp.setServerStartupTimeout(10000);
 		ServerSetup imap = ServerSetupTest.IMAP.dynamicPort();
@@ -113,7 +114,7 @@ public class MailTests {
 	private ImapIdleChannelAdapter imapIdleAdapter;
 
 	@Test
-	public void testSmtp() throws Exception {
+	void smtp() throws Exception {
 		assertThat(TestUtils.getPropertyValue(this.sendMailHandler, "mailSender.host")).isEqualTo("localhost");
 
 		Properties javaMailProperties = TestUtils.getPropertyValue(this.sendMailHandler,
@@ -134,7 +135,7 @@ public class MailTests {
 	}
 
 	@Test
-	public void testPop3() throws Exception {
+	void pop3() throws Exception {
 		MimeMessage mimeMessage =
 				GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>, Bar2 <bar2@baz>", "Test Email",
 						"foo\r\n", mailServer.getPop3().getServerSetup());
@@ -153,7 +154,7 @@ public class MailTests {
 	}
 
 	@Test
-	public void testImap() throws Exception {
+	void imap() throws Exception {
 		MimeMessage mimeMessage =
 				GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n",
 						mailServer.getImap().getServerSetup());
@@ -173,7 +174,7 @@ public class MailTests {
 	}
 
 	@Test
-	public void testImapIdle() throws Exception {
+	void imapIdle() throws Exception {
 		MimeMessage mimeMessage =
 				GreenMailUtil.createTextEmail("Foo <foo@bar>", "Bar <bar@baz>", "Test Email", "foo\r\n",
 						mailServer.getImap().getServerSetup());
