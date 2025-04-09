@@ -90,6 +90,10 @@ public class LockRequestHandlerAdviceTests {
 		Future<Object> test3 =
 				messagingTemplate.asyncConvertSendAndReceive(this.inputChannel, "longer_process", messagePostProcessor);
 
+		// Ensure that we have entered a long process before sending new message.
+		// Otherwise, there is no guarantee which message would reach the service first.
+		assertThat(this.config.longProcessEnteredLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
 		Future<Object> test4 =
 				messagingTemplate.asyncConvertSendAndReceive(this.inputChannel, "test4", messagePostProcessor);
 
@@ -130,6 +134,8 @@ public class LockRequestHandlerAdviceTests {
 
 		AtomicInteger counter = new AtomicInteger();
 
+		CountDownLatch longProcessEnteredLatch = new CountDownLatch(1);
+
 		CountDownLatch longProcessLatch = new CountDownLatch(1);
 
 		@ServiceActivator(inputChannel = "inputChannel", adviceChain = "lockRequestHandlerAdvice")
@@ -138,6 +144,7 @@ public class LockRequestHandlerAdviceTests {
 			if ("longer_process".equals(payload)) {
 				// Hard to achieve blocking expectations just with timeouts.
 				// So, wait for count-down-latch to be fulfilled.
+				longProcessEnteredLatch.countDown();
 				longProcessLatch.await(10, TimeUnit.SECONDS);
 			}
 			else {
