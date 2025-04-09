@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,6 @@ import org.springframework.security.messaging.access.intercept.AuthorizationChan
 import org.springframework.security.messaging.context.SecurityContextPropagationChannelInterceptor;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
@@ -80,6 +79,7 @@ import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -211,6 +211,7 @@ public class HttpDslTests {
 	}
 
 	@Autowired
+	@Qualifier("customValidator")
 	private Validator validator;
 
 	@Test
@@ -299,6 +300,7 @@ public class HttpDslTests {
 	@Configuration
 	@EnableWebSecurity
 	@EnableIntegration
+	@EnableWebMvc
 	public static class ContextConfiguration {
 
 		@Bean
@@ -327,7 +329,7 @@ public class HttpDslTests {
 			return http
 					.authorizeHttpRequests((authorizeHttpRequests) ->
 							authorizeHttpRequests
-									.requestMatchers(new AntPathRequestMatcher("/service/internal/**")).hasRole("ADMIN")
+									.requestMatchers("/service/internal/**").hasRole("ADMIN")
 									.anyRequest().permitAll())
 					.httpBasic(Customizer.withDefaults())
 					.csrf(AbstractHttpConfigurer::disable)
