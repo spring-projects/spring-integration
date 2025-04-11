@@ -52,8 +52,7 @@ public class DefaultMailHeaderMapper implements HeaderMapper<MimeMessage> {
 			MultiValueMap<String, String> rawHeaders = new LinkedMultiValueMap<String, String>();
 			while (allHeaders.hasMoreElements()) {
 				Object headerInstance = allHeaders.nextElement();
-				if (headerInstance instanceof Header) {
-					Header header = (Header) headerInstance;
+				if (headerInstance instanceof Header header) {
 					rawHeaders.add(header.getName(), header.getValue());
 				}
 			}

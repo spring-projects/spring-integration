@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * @author Marius Bogoevici
  * @author Artem Bilan
+ * @author Ma Jiandong
  */
 @SpringJUnitConfig
 public class MailSendingMessageHandlerContextTests {
@@ -77,7 +78,7 @@ public class MailSendingMessageHandlerContextTests {
 				.isEqualTo(0);
 		assertThat(this.mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
 				.isEqualTo(1);
-		assertThat(this.mailSender.getSentSimpleMailMessages().get(0)).as("message content different from expected")
+		assertThat(this.mailSender.getSentSimpleMailMessages().get(0)).as("message content same as expected")
 				.isEqualTo(mailMessage);
 	}
 
@@ -90,19 +91,19 @@ public class MailSendingMessageHandlerContextTests {
 						.setHeader(MailHeaders.TO, MailTestsHelper.TO)
 						.build();
 		this.handler.handleMessage(message);
-		assertThat(this.mailSender.getSentMimeMessages().size()).as("no mime message should have been sent")
+		assertThat(this.mailSender.getSentMimeMessages().size()).as("only one mime message should have been sent")
 				.isEqualTo(1);
-		assertThat(this.mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
+		assertThat(this.mailSender.getSentSimpleMailMessages().size()).as("no simple message must be sent")
 				.isEqualTo(0);
 		byte[] buffer = new byte[1024];
 		MimeMessage mimeMessage = this.mailSender.getSentMimeMessages().get(0);
 		assertThat(mimeMessage.getContent() instanceof Multipart).as("message must be multipart").isTrue();
 		int size = new DataInputStream(((Multipart) mimeMessage.getContent()).getBodyPart(0).getInputStream())
 				.read(buffer);
-		assertThat(size).as("buffer size does not match").isEqualTo(payload.length);
+		assertThat(size).as("buffer size does match").isEqualTo(payload.length);
 		byte[] messageContent = new byte[size];
 		System.arraycopy(buffer, 0, messageContent, 0, payload.length);
-		assertThat(messageContent).as("buffer content does not match").isEqualTo(payload);
+		assertThat(messageContent).as("buffer content does match").isEqualTo(payload);
 		assertThat(MailTestsHelper.TO.length).isEqualTo(mimeMessage.getRecipients(Message.RecipientType.TO).length);
 	}
 
@@ -125,7 +126,7 @@ public class MailSendingMessageHandlerContextTests {
 				.isEqualTo(0);
 		assertThat(this.mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
 				.isEqualTo(1);
-		assertThat(this.mailSender.getSentSimpleMailMessages().get(0)).as("message content different from expected")
+		assertThat(this.mailSender.getSentSimpleMailMessages().get(0)).as("message content same as expected")
 				.isEqualTo(mailMessage);
 	}
 

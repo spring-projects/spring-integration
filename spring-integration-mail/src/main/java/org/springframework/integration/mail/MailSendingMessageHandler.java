@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
- *
+ * @author Ma Jiandong
  * @see MailHeaders
  */
 public class MailSendingMessageHandler extends AbstractMessageHandler {
@@ -73,14 +73,14 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 	@Override
 	protected final void handleMessageInternal(Message<?> message) {
 		MailMessage mailMessage = convertMessageToMailMessage(message);
-		if (mailMessage instanceof SimpleMailMessage) {
-			this.mailSender.send((SimpleMailMessage) mailMessage);
+		if (mailMessage instanceof SimpleMailMessage simpleMailMessage) {
+			this.mailSender.send(simpleMailMessage);
 		}
-		else if (mailMessage instanceof MimeMailMessage) {
+		else if (mailMessage instanceof MimeMailMessage mimeMailMessage) {
 			Assert.state(this.mailSender instanceof JavaMailSender,
 					"this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'");
 
-			((JavaMailSender) this.mailSender).send(((MimeMailMessage) mailMessage).getMimeMessage());
+			((JavaMailSender) this.mailSender).send(mimeMailMessage.getMimeMessage());
 		}
 		else {
 			throw new IllegalArgumentException(
@@ -92,11 +92,11 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 	private MailMessage convertMessageToMailMessage(Message<?> message) {
 		MailMessage mailMessage;
 		Object payload = message.getPayload();
-		if (payload instanceof MimeMessage) {
-			mailMessage = new MimeMailMessage((MimeMessage) payload);
+		if (payload instanceof MimeMessage mimeMessage) {
+			mailMessage = new MimeMailMessage(mimeMessage);
 		}
-		else if (payload instanceof MailMessage) {
-			mailMessage = (MailMessage) payload;
+		else if (payload instanceof MailMessage mailMsg) {
+			mailMessage = mailMsg;
 		}
 		else if (payload instanceof byte[]) {
 			mailMessage = createMailMessageFromByteArrayMessage((Message<byte[]>) message);
@@ -168,8 +168,8 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		if (to != null) {
 			mailMessage.setTo(to);
 		}
-		if (mailMessage instanceof SimpleMailMessage) {
-			Assert.state(!ObjectUtils.isEmpty(((SimpleMailMessage) mailMessage).getTo()),
+		if (mailMessage instanceof SimpleMailMessage simpleMailMessage) {
+			Assert.state(!ObjectUtils.isEmpty(simpleMailMessage.getTo()),
 					"No recipient has been provided on the MailMessage or the 'MailHeaders.TO' header.");
 		}
 		String[] cc = retrieveHeaderValueAsStringArray(headers, MailHeaders.CC);

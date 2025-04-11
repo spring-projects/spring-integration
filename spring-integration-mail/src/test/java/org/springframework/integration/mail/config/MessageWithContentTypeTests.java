@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,14 @@ import java.util.Properties;
 
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.mail.MailSendingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,22 +43,9 @@ import static org.mockito.Mockito.when;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
- *
+ * @author Ma Jiandong
  */
 public class MessageWithContentTypeTests {
-
-	@Test
-	@Disabled
-	public void testSendEmail() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext(
-				"MessageWithContentTypeTests-context.xml", this.getClass());
-		MessageChannel inputChannel = ac.getBean("inputChannel", MessageChannel.class);
-		StringWriter writer = new StringWriter();
-		FileReader reader = new FileReader("src/test/java/org/springframework/integration/mail/config/test.html");
-		FileCopyUtils.copy(reader, writer);
-		inputChannel.send(new GenericMessage<>(writer.getBuffer().toString()));
-		ac.close();
-	}
 
 	@Test
 	public void testMessageConversionWithHtmlAndContentType() throws Exception {
