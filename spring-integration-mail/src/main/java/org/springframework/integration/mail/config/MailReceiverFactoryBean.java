@@ -244,9 +244,9 @@ public class MailReceiverFactoryBean extends AbstractFactoryBean<MailReceiver> {
 
 	@Override
 	public void destroy() {
-		if (this.receiver != null && this.receiver instanceof DisposableBean) {
+		if (this.receiver != null && this.receiver instanceof DisposableBean disposableReceiver) {
 			try {
-				((DisposableBean) this.receiver).destroy();
+				disposableReceiver.destroy();
 			}
 			catch (Exception e) {
 				throw new IllegalStateException(e);

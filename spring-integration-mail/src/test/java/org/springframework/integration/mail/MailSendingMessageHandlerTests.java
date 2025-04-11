@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Ma Jiandong
  */
 public class MailSendingMessageHandlerTests {
 
@@ -60,7 +61,7 @@ public class MailSendingMessageHandlerTests {
 		assertThat(mailSender.getSentMimeMessages().size()).as("no mime message should have been sent").isEqualTo(0);
 		assertThat(mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
 				.isEqualTo(1);
-		assertThat(mailSender.getSentSimpleMailMessages().get(0)).as("message content different from expected")
+		assertThat(mailSender.getSentSimpleMailMessages().get(0)).as("message content same as expected")
 				.isEqualTo(mailMessage);
 	}
 
@@ -78,10 +79,10 @@ public class MailSendingMessageHandlerTests {
 		assertThat(mimeMessage.getContent() instanceof Multipart).as("message must be multipart").isTrue();
 		int size = new DataInputStream(((Multipart) mimeMessage.getContent()).getBodyPart(0).getInputStream())
 				.read(buffer);
-		assertThat(size).as("buffer size does not match").isEqualTo(payload.length);
+		assertThat(size).as("buffer size does match").isEqualTo(payload.length);
 		byte[] messageContent = new byte[size];
 		System.arraycopy(buffer, 0, messageContent, 0, payload.length);
-		assertThat(messageContent).as("buffer content does not match").isEqualTo(payload);
+		assertThat(messageContent).as("buffer content does match").isEqualTo(payload);
 		assertThat(MailTestsHelper.TO.length).isEqualTo(mimeMessage.getRecipients(Message.RecipientType.TO).length);
 	}
 
@@ -92,7 +93,7 @@ public class MailSendingMessageHandlerTests {
 		assertThat(mailSender.getSentMimeMessages().size()).as("no mime message should have been sent").isEqualTo(0);
 		assertThat(mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
 				.isEqualTo(1);
-		assertThat(mailSender.getSentSimpleMailMessages().get(0)).as("message content different from expected")
+		assertThat(mailSender.getSentSimpleMailMessages().get(0)).as("message content same as expected")
 				.isEqualTo(mailMessage);
 	}
 
