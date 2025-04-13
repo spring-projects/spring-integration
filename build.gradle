@@ -56,7 +56,7 @@ ext {
 
     apacheSshdVersion = '2.12.1'
     artemisVersion = '2.33.0'
-    aspectjVersion = '1.9.23'
+    aspectjVersion = '1.9.24'
     assertjVersion = '3.25.3'
     assertkVersion = '0.28.1'
     avroVersion = '1.11.4'
@@ -118,7 +118,7 @@ ext {
     springVersion = '6.1.18'
     springWsVersion = '4.0.12'
     testcontainersVersion = '1.19.8'
-    tomcatVersion = '10.1.39'
+    tomcatVersion = '10.1.40'
     xmlUnitVersion = '2.9.1'
     xstreamVersion = '1.4.21'
     ztZipVersion = '1.17'
