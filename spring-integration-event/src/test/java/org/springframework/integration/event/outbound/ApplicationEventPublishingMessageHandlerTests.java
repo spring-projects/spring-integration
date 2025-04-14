@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Ma Jiandong
  */
 public class ApplicationEventPublishingMessageHandlerTests {
 
@@ -40,7 +41,7 @@ public class ApplicationEventPublishingMessageHandlerTests {
 		assertThat(publisher.getLastEvent()).isNull();
 		Message<?> message = new GenericMessage<>("testing");
 		handler.handleMessage(message);
-		ApplicationEvent event = publisher.getLastEvent();
+		Object event = publisher.getLastEvent();
 		assertThat(event.getClass()).isEqualTo(MessagingEvent.class);
 		assertThat(((MessagingEvent) event).getMessage()).isEqualTo(message);
 	}
@@ -53,27 +54,36 @@ public class ApplicationEventPublishingMessageHandlerTests {
 		assertThat(publisher.getLastEvent()).isNull();
 		Message<?> message = new GenericMessage<>(new TestEvent("foo"));
 		handler.handleMessage(message);
-		ApplicationEvent event = publisher.getLastEvent();
+		Object event = publisher.getLastEvent();
 		assertThat(event.getClass()).isEqualTo(TestEvent.class);
-		assertThat((event).getSource()).isEqualTo("foo");
+		assertThat(((ApplicationEvent) event).getSource()).isEqualTo("foo");
+	}
+
+	@Test
+	public void payloadAsIs() {
+		TestApplicationEventPublisher publisher = new TestApplicationEventPublisher();
+		ApplicationEventPublishingMessageHandler handler = new ApplicationEventPublishingMessageHandler();
+		handler.setApplicationEventPublisher(publisher);
+		handler.setPublishPayload(true);
+		assertThat(publisher.getLastEvent()).isNull();
+		Message<?> message = new GenericMessage<>("testing");
+		handler.handleMessage(message);
+		Object event = publisher.getLastEvent();
+		assertThat(event.getClass()).isEqualTo(String.class);
+		assertThat(((String) event)).isEqualTo("testing");
 	}
 
 	private static class TestApplicationEventPublisher implements ApplicationEventPublisher {
 
-		private volatile ApplicationEvent lastEvent;
+		private volatile Object lastEvent;
 
-		public ApplicationEvent getLastEvent() {
-			return this.lastEvent;
-		}
-
-		@Override
-		public void publishEvent(ApplicationEvent event) {
-			this.lastEvent = event;
+		public Object getLastEvent() {
+			return lastEvent;
 		}
 
 		@Override
 		public void publishEvent(Object event) {
-
+			this.lastEvent = event;
 		}
 
 	}

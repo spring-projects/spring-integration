@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ import org.springframework.util.Assert;
  * Spring's {@link ApplicationEvent} used by this adapter to simply wrap the
  * {@link Message}.
  * <p>
- * If the {@link #publishPayload} flag is specified to {@code true}, the {@code payload}
+ * However, if the {@code payload} is an instance of {@link ApplicationEvent}, or
+ * if the {@link #publishPayload} flag is specified to {@code true}, the {@code payload}
  * will be published as is without wrapping to any {@link ApplicationEvent}.
  *
  * @author Mark Fisher
@@ -63,8 +64,8 @@ public class ApplicationEventPublishingMessageHandler extends AbstractMessageHan
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Assert.notNull(this.applicationEventPublisher, "applicationEventPublisher is required");
-		if (message.getPayload() instanceof ApplicationEvent) {
-			this.applicationEventPublisher.publishEvent((ApplicationEvent) message.getPayload());
+		if (message.getPayload() instanceof ApplicationEvent applicationEvent) {
+			this.applicationEventPublisher.publishEvent(applicationEvent);
 		}
 		else if (this.publishPayload) {
 			this.applicationEventPublisher.publishEvent(message.getPayload());
