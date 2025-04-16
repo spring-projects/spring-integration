@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-hazelcast="http://www.springframework.org/schema/integration/hazelcast"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/hazelcast
+	https://www.springframework.org/schema/integration/hazelcast/spring-integration-hazelcast.xsd">
+
+	<import resource="classpath:org/springframework/integration/hazelcast/common-config.xml"/>
+
+	<int:channel id="firstMapChannel"/>
+
+	<int:channel id="secondMapChannel"/>
+
+	<int:channel id="thirdMapChannel"/>
+
+	<int:channel id="fourthMapChannel"/>
+
+	<int:channel id="fifthMapChannel"/>
+
+	<int:channel id="sixthMapChannel"/>
+
+	<int:channel id="bulkMapChannel"/>
+
+	<int:channel id="multiMapChannel"/>
+
+	<int:channel id="replicatedMapChannel"/>
+
+	<int:channel id="bulkReplicatedMapChannel"/>
+
+	<int:channel id="listChannel"/>
+
+	<int:channel id="bulkListChannel"/>
+
+	<int:channel id="setChannel"/>
+
+	<int:channel id="bulkSetChannel"/>
+
+	<int:channel id="queueChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="bulkQueueChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="topicChannel"/>
+
+	<bean id="testFirstMapRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="100"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="firstMapChannel" cache="distributedMap" key-expression="payload.id">
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testFirstMapRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testSecondMapRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="100"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="secondMapChannel" cache-expression="@distributedMap" key-expression="payload.id">
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testSecondMapRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testThirdMapRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="100"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="thirdMapChannel" key-expression="payload.id">
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testThirdMapRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testFourthMapRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="100"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="fourthMapChannel" key-expression="payload.id" extract-payload="false">
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testFourthMapRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<int-hazelcast:outbound-channel-adapter channel="fifthMapChannel" key-expression="payload.id" />
+
+	<int-hazelcast:outbound-channel-adapter channel="sixthMapChannel" />
+
+	<bean id="testBulkMapRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="1"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="bulkMapChannel" cache="distributedBulkMap" key-expression="payload.id">
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testBulkMapRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testMultiMapRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="100"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="multiMapChannel" cache="multiMap" key-expression="payload.id">
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testMultiMapRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testReplicatedMapRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="100"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="replicatedMapChannel" cache="replicatedMap" key-expression="payload.id">
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testReplicatedMapRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testBulkReplicatedMapRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="1"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="bulkReplicatedMapChannel" cache="bulkReplicatedMap" key-expression="payload.id">
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testBulkReplicatedMapRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testListRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="100"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="listChannel" cache="distributedList">
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testListRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testBulkListRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		  <constructor-arg type="int" value="1"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="bulkListChannel" cache="distributedBulkList">
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testBulkListRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testSetRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="100"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="setChannel" cache="distributedSet" >
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testSetRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testBulkSetRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="1"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="bulkSetChannel" cache="distributedBulkSet" >
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testBulkSetRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testQueueRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="100"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="queueChannel" cache="distributedQueue">
+		<int:poller fixed-delay="100"/>
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testQueueRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testBulkQueueRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="1"/>
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="bulkQueueChannel" cache="distributedBulkQueue">
+		<int:poller fixed-delay="100"/>
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testBulkQueueRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<bean id="testTopicRequestHandlerAdvice"
+		  class="org.springframework.integration.hazelcast.HazelcastTestRequestHandlerAdvice">
+		<constructor-arg type="int" value="100" />
+	</bean>
+
+	<int-hazelcast:outbound-channel-adapter channel="topicChannel" cache="topic" >
+		<int-hazelcast:request-handler-advice-chain>
+			<ref bean="testTopicRequestHandlerAdvice"/>
+		</int-hazelcast:request-handler-advice-chain>
+	</int-hazelcast:outbound-channel-adapter>
+
+	<int-hazelcast:outbound-channel-adapter id="lockChannel" cache="myLock" />
+
+	<bean id="distributedMap" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="distributedMap"/>
+	</bean>
+
+	<bean id="distributedBulkMap" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="distributedBulkMap"/>
+	</bean>
+
+	<bean id="distributedList" factory-bean="instance" factory-method="getList">
+		<constructor-arg value="distributedList"/>
+	</bean>
+
+	<bean id="distributedBulkList" factory-bean="instance" factory-method="getList">
+		<constructor-arg value="distributedBulkList"/>
+	</bean>
+
+	<bean id="distributedSet" factory-bean="instance" factory-method="getSet">
+		<constructor-arg value="distributedSet"/>
+	</bean>
+
+	<bean id="distributedBulkSet" factory-bean="instance" factory-method="getSet">
+		<constructor-arg value="distributedBulkSet"/>
+	</bean>
+
+	<bean id="distributedQueue" factory-bean="instance" factory-method="getQueue">
+		<constructor-arg value="distributedQueue"/>
+	</bean>
+
+	<bean id="distributedBulkQueue" factory-bean="instance" factory-method="getQueue">
+		<constructor-arg value="distributedBulkQueue"/>
+	</bean>
+
+	<bean id="multiMap" factory-bean="instance" factory-method="getMultiMap">
+		<constructor-arg value="multiMap"/>
+	</bean>
+
+	<bean id="replicatedMap" factory-bean="instance" factory-method="getReplicatedMap">
+		<constructor-arg value="replicatedMap"/>
+	</bean>
+
+	<bean id="bulkReplicatedMap" factory-bean="instance" factory-method="getReplicatedMap">
+		<constructor-arg value="bulkReplicatedMap"/>
+	</bean>
+
+	<bean id="topic" factory-bean="instance" factory-method="getTopic">
+		<constructor-arg value="topic"/>
+	</bean>
+
+	<bean id="cpSubsystem" factory-bean="instance" factory-method="getCPSubsystem"/>
+
+	<bean id="myLock" factory-bean="cpSubsystem" factory-method="getLock">
+		<constructor-arg value="myLock"/>
+	</bean>
+
+</beans>

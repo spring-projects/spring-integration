@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-hazelcast="http://www.springframework.org/schema/integration/hazelcast"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/hazelcast
+	https://www.springframework.org/schema/integration/hazelcast/spring-integration-hazelcast.xsd">
+
+	<import resource="classpath:org/springframework/integration/hazelcast/common-config.xml"/>
+
+	<int:channel id="edMapChannel1">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="edMapChannel2">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="edMapChannel3">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="edMapChannel4">
+		<int:queue/>
+	</int:channel>
+
+	<int-hazelcast:inbound-channel-adapter channel="edMapChannel1" cache="edDistributedMap1"/>
+
+	<int-hazelcast:inbound-channel-adapter channel="edMapChannel2" cache="edDistributedMap2" cache-events="UPDATED"/>
+
+	<int-hazelcast:inbound-channel-adapter channel="edMapChannel3" cache="edDistributedMap3" cache-events="REMOVED"/>
+
+	<int-hazelcast:inbound-channel-adapter channel="edMapChannel4" cache="edDistributedMap4"
+										   cache-events="ADDED,REMOVED,UPDATED,CLEAR_ALL"/>
+
+	<bean id="edDistributedMap1" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="edDistributedMap1"/>
+	</bean>
+
+	<bean id="edDistributedMap2" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="edDistributedMap2"/>
+	</bean>
+
+	<bean id="edDistributedMap3" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="edDistributedMap3"/>
+	</bean>
+
+	<bean id="edDistributedMap4" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="edDistributedMap4"/>
+	</bean>
+
+</beans>

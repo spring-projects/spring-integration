@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-hazelcast="http://www.springframework.org/schema/integration/hazelcast"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/hazelcast
+	https://www.springframework.org/schema/integration/hazelcast/spring-integration-hazelcast.xsd">
+
+	<import resource="classpath:org/springframework/integration/hazelcast/common-config.xml"/>
+
+	<int:channel id="dsMapChannel1">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="dsMapChannel2">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="dsMapChannel3">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="dsMapChannel4">
+		<int:queue/>
+	</int:channel>
+
+	<int-hazelcast:ds-inbound-channel-adapter channel="dsMapChannel1" cache="dsDistributedMap1" iteration-type="ENTRY"
+											  distributed-sql="age = 40">
+		<int:poller fixed-delay="100"/>
+	</int-hazelcast:ds-inbound-channel-adapter>
+
+	<int-hazelcast:ds-inbound-channel-adapter channel="dsMapChannel2" cache="dsDistributedMap2" iteration-type="KEY"
+											  distributed-sql="age > 0 AND age &lt;= 10">
+		<int:poller fixed-delay="100"/>
+	</int-hazelcast:ds-inbound-channel-adapter>
+
+	<int-hazelcast:ds-inbound-channel-adapter channel="dsMapChannel3" cache="dsDistributedMap3"
+											  iteration-type="KEY" distributed-sql="age > 10 AND age &lt;= 20">
+		<int:poller fixed-delay="100"/>
+	</int-hazelcast:ds-inbound-channel-adapter>
+
+	<int-hazelcast:ds-inbound-channel-adapter channel="dsMapChannel4" cache="dsDistributedMap4"
+											  distributed-sql="age > 20 AND age &lt;= 30">
+		<int:poller fixed-delay="100"/>
+	</int-hazelcast:ds-inbound-channel-adapter>
+
+	<bean id="dsDistributedMap1" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="dsDistributedMap1"/>
+	</bean>
+
+	<bean id="dsDistributedMap2" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="dsDistributedMap2"/>
+	</bean>
+
+	<bean id="dsDistributedMap3" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="dsDistributedMap3"/>
+	</bean>
+
+	<bean id="dsDistributedMap4" factory-bean="instance" factory-method="getMap">
+		<constructor-arg value="dsDistributedMap4"/>
+	</bean>
+
+</beans>
