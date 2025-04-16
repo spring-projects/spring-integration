@@ -77,9 +77,9 @@ The respective implementations are provided: `RecentFileListFilter`, `FtpRecentF
 See xref:file/reading.adoc[Reading Files] for more information.
 
 [[x6.5-hazelcast-changes]]
-== Hazelcast Support Deprecation
+== Hazelcast Module Deprecations
 
-The `spring-integration-hazelcast` module has been deprecated due to Hazelcast migration to Enterprise Edition.
+The `HazelcastLockRegistry` and Hazelcast `LeaderInitiator` have been deprecated due to Hazelcast CP Subsystem migration to Enterprise Edition.
 See xref:hazelcast.adoc[Hazelcast Support] for more information.
 
 [[x6.5-jdbc-changes]]

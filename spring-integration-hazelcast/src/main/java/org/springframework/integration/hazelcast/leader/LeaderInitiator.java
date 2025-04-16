@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2024 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,11 @@ import org.springframework.util.Assert;
  * @author Robert Höglund
  * @author Christian Tzolov
  * @author Emil Palm
+ *
+ * @deprecated with no replacement since this class relies on the CP Subsystem
+ * which is not Open Source anymore since Hazelcast 5.5.
  */
+@Deprecated(forRemoval = true, since = "6.5")
 public class LeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
 
 	private static final LogAccessor logger = new LogAccessor(LeaderInitiator.class);

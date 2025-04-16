@@ -221,8 +221,6 @@
 		</int-hazelcast:request-handler-advice-chain>
 	</int-hazelcast:outbound-channel-adapter>
 
-	<int-hazelcast:outbound-channel-adapter id="lockChannel" cache="myLock" />
-
 	<bean id="distributedMap" factory-bean="instance" factory-method="getMap">
 		<constructor-arg value="distributedMap"/>
 	</bean>
@@ -269,12 +267,6 @@
 
 	<bean id="topic" factory-bean="instance" factory-method="getTopic">
 		<constructor-arg value="topic"/>
-	</bean>
-
-	<bean id="cpSubsystem" factory-bean="instance" factory-method="getCPSubsystem"/>
-
-	<bean id="myLock" factory-bean="cpSubsystem" factory-method="getLock">
-		<constructor-arg value="myLock"/>
 	</bean>
 
 </beans>

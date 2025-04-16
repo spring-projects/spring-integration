@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.integration.hazelcast.listener.HazelcastMembershipListener;
 
 /**
  * This class creates an internal configuration {@link MultiMap} to cache Hazelcast instances' socket
@@ -39,7 +38,10 @@ import org.springframework.integration.hazelcast.listener.HazelcastMembershipLis
  * @author Artem Bilan
  *
  * @since 6.0
+ *
+ * @deprecated in favor of {@link com.hazelcast.cluster.Cluster} API.
  */
+@Deprecated(forRemoval = true, since = "6.5")
 public class HazelcastLocalInstanceRegistrar implements SmartInitializingSingleton {
 
 	private static final Log logger = LogFactory.getLog(HazelcastLocalInstanceRegistrar.class);
@@ -77,12 +79,15 @@ public class HazelcastLocalInstanceRegistrar implements SmartInitializingSinglet
 		this.hazelcastInstance = hazelcastInstance;
 	}
 
+	@SuppressWarnings("removal")
 	@Override
 	public void afterSingletonsInstantiated() {
 		if (this.hazelcastInstance == null) {
 			if (!Hazelcast.getAllHazelcastInstances().isEmpty()) {
 				HazelcastInstance anyHazelcastInstance = Hazelcast.getAllHazelcastInstances().iterator().next();
-				anyHazelcastInstance.getCluster().addMembershipListener(new HazelcastMembershipListener());
+				anyHazelcastInstance.getCluster()
+						.addMembershipListener(
+								new org.springframework.integration.hazelcast.listener.HazelcastMembershipListener());
 				syncConfigurationMultiMap(anyHazelcastInstance);
 			}
 			else {
@@ -91,7 +96,9 @@ public class HazelcastLocalInstanceRegistrar implements SmartInitializingSinglet
 		}
 		else {
 			syncConfigurationMultiMap(this.hazelcastInstance);
-			this.hazelcastInstance.getCluster().addMembershipListener(new HazelcastMembershipListener());
+			this.hazelcastInstance.getCluster()
+					.addMembershipListener(
+							new org.springframework.integration.hazelcast.listener.HazelcastMembershipListener());
 		}
 	}
 

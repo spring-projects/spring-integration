@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2024 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,10 +142,6 @@ public class HazelcastOutboundChannelAdapterTests {
 	@Autowired
 	@Qualifier("topicChannel")
 	private MessageChannel topicChannel;
-
-	@Autowired
-	@Qualifier("lockChannel")
-	private MessageChannel lockChannel;
 
 	@Autowired
 	private Map<?, ?> distributedMap;
@@ -437,12 +433,6 @@ public class HazelcastOutboundChannelAdapterTests {
 				.isThrownBy(() -> this.sixthMapChannel.send(message));
 	}
 
-	@Test
-	public void testWriteToLock() {
-		assertThatExceptionOfType(MessageHandlingException.class)
-				.isThrownBy(() -> this.lockChannel.send(new GenericMessage<>("foo")));
-	}
-
 	private void sendMessageWithCacheHeaderToChannel(final MessageChannel channel,
 			final String headerName, final String distributedObjectName) {
 
@@ -461,7 +451,7 @@ public class HazelcastOutboundChannelAdapterTests {
 		for (Entry<Integer, Message<HazelcastIntegrationTestUser>> entry : map.entrySet()) {
 			assertThat(entry).isNotNull();
 			assertThat(entry.getKey().intValue()).isEqualTo(index);
-			assertThat(entry.getValue().getHeaders().size() > 0).isTrue();
+			assertThat(!entry.getValue().getHeaders().isEmpty()).isTrue();
 			HazelcastOutboundChannelAdapterTestUtils
 					.verifyHazelcastIntegrationTestUser(entry.getValue().getPayload(), index);
 			index++;

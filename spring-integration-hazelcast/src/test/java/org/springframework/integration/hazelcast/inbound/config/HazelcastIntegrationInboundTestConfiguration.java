@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.hazelcast.DistributedSQLIterationType;
 import org.springframework.integration.hazelcast.HazelcastIntegrationTestUser;
-import org.springframework.integration.hazelcast.HazelcastLocalInstanceRegistrar;
 import org.springframework.integration.hazelcast.inbound.HazelcastClusterMonitorMessageProducer;
 import org.springframework.integration.hazelcast.inbound.HazelcastContinuousQueryMessageProducer;
 import org.springframework.integration.hazelcast.inbound.HazelcastDistributedSQLMessageSource;
@@ -223,11 +222,6 @@ public class HazelcastIntegrationInboundTestConfiguration {
 	@Bean(destroyMethod = "shutdown")
 	public HazelcastInstance testHazelcastInstance() {
 		return Hazelcast.newHazelcastInstance(hazelcastConfig());
-	}
-
-	@Bean(HazelcastLocalInstanceRegistrar.BEAN_NAME)
-	public HazelcastLocalInstanceRegistrar hazelcastLocalInstanceRegistrar() {
-		return new HazelcastLocalInstanceRegistrar(testHazelcastInstance());
 	}
 
 	@Bean

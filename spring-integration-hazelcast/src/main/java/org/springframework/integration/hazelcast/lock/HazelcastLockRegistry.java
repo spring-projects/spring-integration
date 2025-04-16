@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,11 @@ import org.springframework.util.Assert;
  * A {@link LockRegistry} implementation Hazelcast distributed locks.
  *
  * @author Artem Bilan
+ *
+ * @deprecated with no replacement since this class relies on the CP Subsystem
+ * which is not Open Source anymore since Hazelcast 5.5.
  */
+@Deprecated(forRemoval = true, since = "6.5")
 public class HazelcastLockRegistry implements LockRegistry {
 
 	private final HazelcastInstance client;

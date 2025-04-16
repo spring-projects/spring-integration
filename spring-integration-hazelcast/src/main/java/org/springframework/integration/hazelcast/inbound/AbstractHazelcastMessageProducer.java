@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2024 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,8 @@
 package org.springframework.integration.hazelcast.inbound;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -33,14 +31,12 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.instance.EndpointQualifier;
 import com.hazelcast.map.AbstractIMapEvent;
 import com.hazelcast.map.MapEvent;
-import com.hazelcast.multimap.MultiMap;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.hazelcast.CacheEventType;
 import org.springframework.integration.hazelcast.CacheListeningPolicyType;
 import org.springframework.integration.hazelcast.HazelcastHeaders;
 import org.springframework.integration.hazelcast.HazelcastIntegrationDefinitionValidator;
-import org.springframework.integration.hazelcast.HazelcastLocalInstanceRegistrar;
 import org.springframework.integration.hazelcast.message.EntryEventMessagePayload;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -112,40 +108,20 @@ public abstract class AbstractHazelcastMessageProducer extends MessageProducerSu
 
 		protected void sendMessage(E event, InetSocketAddress socketAddress,
 				CacheListeningPolicyType cacheListeningPolicyType) {
-			if (CacheListeningPolicyType.ALL == cacheListeningPolicyType || isEventAcceptable(socketAddress)) {
+			if (CacheListeningPolicyType.ALL == cacheListeningPolicyType || isEventLocal(socketAddress)) {
 				AbstractHazelcastMessageProducer.this.sendMessage(toMessage(event));
 			}
 		}
 
-		private boolean isEventAcceptable(final InetSocketAddress socketAddress) {
-			final Set<HazelcastInstance> hazelcastInstanceSet = Hazelcast.getAllHazelcastInstances();
-			final Set<SocketAddress> localSocketAddressesSet = getLocalSocketAddresses(hazelcastInstanceSet);
-			return localSocketAddressesSet.isEmpty() ||
-					localSocketAddressesSet.contains(socketAddress)
-					|| isEventComingFromNonRegisteredHazelcastInstance(hazelcastInstanceSet.iterator().next(),
-					localSocketAddressesSet, socketAddress);
-
-		}
-
-		private Set<SocketAddress> getLocalSocketAddresses(final Set<HazelcastInstance> hazelcastInstanceSet) {
-			final Set<SocketAddress> localSocketAddressesSet = new HashSet<>();
+		private boolean isEventLocal(InetSocketAddress socketAddress) {
+			Set<HazelcastInstance> hazelcastInstanceSet = Hazelcast.getAllHazelcastInstances();
 			for (HazelcastInstance hazelcastInstance : hazelcastInstanceSet) {
-				localSocketAddressesSet.add(hazelcastInstance.getLocalEndpoint().getSocketAddress());
+				if (socketAddress.equals(hazelcastInstance.getLocalEndpoint().getSocketAddress())) {
+					return true;
+				}
 			}
 
-			return localSocketAddressesSet;
-		}
-
-		private boolean isEventComingFromNonRegisteredHazelcastInstance(
-				final HazelcastInstance hazelcastInstance,
-				final Set<SocketAddress> localSocketAddressesSet,
-				final InetSocketAddress socketAddressOfEvent) {
-			final MultiMap<SocketAddress, SocketAddress> configMultiMap = hazelcastInstance
-					.getMultiMap(HazelcastLocalInstanceRegistrar.SPRING_INTEGRATION_INTERNAL_CLUSTER_MULTIMAP);
-			return configMultiMap.size() > 0
-					&& !configMultiMap.values().contains(socketAddressOfEvent)
-					&& localSocketAddressesSet.contains(configMultiMap.keySet().iterator().next());
-
+			return false;
 		}
 
 	}

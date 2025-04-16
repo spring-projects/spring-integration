@@ -528,6 +528,8 @@ public LeaderInitiator initiator() {
 
 When a node is elected leader it will send an `OnGrantedEvent` to all application listeners.
 
+NOTE: The `LeaderInitiator` has been deprecated since version 6.5, since it relies on CP Subsystem which had been moved out of Open Source since Hazelcast 5.5.
+
 [[hazelcast-message-store]]
 == Hazelcast Message Store
 
@@ -589,6 +591,8 @@ public LockRegistry lockRegistry() {
 }
 ----
 
+NOTE: The `HazelcastLockRegistry` has been deprecated since version 6.5, since it relies on CP Subsystem which had been moved out of Open Source since Hazelcast 5.5.
+
 When used with a shared `MessageGroupStore` (e.g. `Aggregator` store management), the `HazelcastLockRegistry` can be used to provide this functionality across multiple application instances, such that only one instance can manipulate the group at a time.
 
 NOTE: For all the distributed operations the CP Subsystem must be enabled on `HazelcastInstance`.
@@ -596,7 +600,7 @@ NOTE: For all the distributed operations the CP Subsystem must be enabled on `Ha
 [[hazelcast-message-channels]]
 == Message Channels with Hazelcast
 
-The Hazelcast `IQueue` and `ITopic` distributed objects are, essentially, messaging primitives and can be use with Spring Integration core components without extra implementations in this Hazelcast module.
+The Hazelcast `IQueue` and `ITopic` distributed objects are, essentially, messaging primitives and can be used with Spring Integration core components without extra implementations in this Hazelcast module.
 
 The xref:channel/implementations.adoc#channel-implementations-queuechannel[`QueueChannel`] can be supplied by any `java.util.Queue`, including the mentioned Hazelcast distributed `IQueue`:
 
