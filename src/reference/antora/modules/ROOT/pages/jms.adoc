@@ -303,7 +303,8 @@ public IntegrationFlow jmsOutboundFlow() {
     return IntegrationFlow.from("exampleChannel")
                 .handle(Jms.outboundAdapter(cachingConnectionFactory())
                     .destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
-                    .configureJmsTemplate(t -> t.id("jmsOutboundFlowTemplate")));
+                    .configureJmsTemplate(t -> t.id("jmsOutboundFlowTemplate")))
+                .get();
 }
 ----
 
