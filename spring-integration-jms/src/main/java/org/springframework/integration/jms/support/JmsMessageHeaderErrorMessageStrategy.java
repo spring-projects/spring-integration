@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2024-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,8 @@ public class JmsMessageHeaderErrorMessageStrategy implements ErrorMessageStrateg
 			headers.put(JMS_RAW_MESSAGE, context.getAttribute(JMS_RAW_MESSAGE));
 			headers.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, context.getAttribute(JMS_RAW_MESSAGE));
 		}
-		if (inputMessage instanceof Message) {
-			return new ErrorMessage(throwable, headers, (Message<?>) inputMessage);
+		if (inputMessage instanceof Message<?> message) {
+			return new ErrorMessage(throwable, headers, message);
 		}
 		else {
 			return new ErrorMessage(throwable, headers);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -467,11 +467,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 		if (this.requestDestinationExpressionProcessor != null) {
 			Object result = this.requestDestinationExpressionProcessor.processMessage(message);
-			if (result instanceof Destination) {
-				return (Destination) result;
+			if (result instanceof Destination destination) {
+				return destination;
 			}
-			if (result instanceof String) {
-				return resolveRequestDestination((String) result, session);
+			if (result instanceof String destinationName) {
+				return resolveRequestDestination(destinationName, session);
 			}
 			throw new MessageDeliveryException(message,
 					"Evaluation of requestDestinationExpression failed " +
@@ -496,11 +496,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 		if (this.replyDestinationExpressionProcessor != null) {
 			Object result = this.replyDestinationExpressionProcessor.processMessage(message);
-			if (result instanceof Destination) {
-				return (Destination) result;
+			if (result instanceof Destination destination) {
+				return destination;
 			}
-			if (result instanceof String) {
-				return resolveReplyDestination((String) result, session);
+			if (result instanceof String destinationName) {
+				return resolveReplyDestination(destinationName, session);
 			}
 			throw new MessageDeliveryException(message,
 					"Evaluation of replyDestinationExpression failed to produce a Destination or destination name. " +
@@ -771,8 +771,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 				}
 			}
 
-			if (reply instanceof jakarta.jms.Message) {
-				return buildReply((jakarta.jms.Message) reply);
+			if (reply instanceof jakarta.jms.Message jmsMessage) {
+				return buildReply(jmsMessage);
 			}
 			else {
 				return reply;
@@ -799,8 +799,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			// do not propagate back the gateway's internal correlation id
 			jmsReplyHeaders.remove(this.correlationKey);
 		}
-		if (result instanceof Message) {
-			return getMessageBuilderFactory().fromMessage((Message<?>) result).copyHeaders(jmsReplyHeaders);
+		if (result instanceof Message<?> message) {
+			return getMessageBuilderFactory().fromMessage(message).copyHeaders(jmsReplyHeaders);
 		}
 		else {
 			return getMessageBuilderFactory().withPayload(result).copyHeaders(jmsReplyHeaders);
@@ -850,8 +850,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 			 * Remove the gateway's internal correlation Id to avoid conflicts with an upstream
 			 * gateway.
 			 */
-			if (reply instanceof jakarta.jms.Message) {
-				((jakarta.jms.Message) reply).setJMSCorrelationID(null);
+			if (reply instanceof jakarta.jms.Message jmsMessage) {
+				jmsMessage.setJMSCorrelationID(null);
 			}
 			return reply;
 		}
@@ -1239,11 +1239,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler
 	 */
 	private void deleteDestinationIfTemporary(Destination destination) {
 		try {
-			if (destination instanceof TemporaryQueue) {
-				((TemporaryQueue) destination).delete();
+			if (destination instanceof TemporaryQueue temporaryQueue) {
+				temporaryQueue.delete();
 			}
-			else if (destination instanceof TemporaryTopic) {
-				((TemporaryTopic) destination).delete();
+			else if (destination instanceof TemporaryTopic temporaryTopic) {
+				temporaryTopic.delete();
 			}
 		}
 		catch (@SuppressWarnings("unused") JMSException e) {

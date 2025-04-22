@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 
 /**
+ * A JMS-backed channel from which messages can be received through polling.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -75,9 +77,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
 		try {
-			if (isLoggingEnabled()) {
-				logger.trace(() -> "preReceive on channel '" + this + "'");
-			}
+			logger.trace(() -> "preReceive on channel '" + this + "'");
 			if (!interceptorList.getInterceptors().isEmpty()) {
 				interceptorStack = new ArrayDeque<>();
 
@@ -118,26 +118,15 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		}
 
 		if (object == null) {
-			if (isLoggingEnabled()) {
-				logger.trace(() -> "postReceive on channel '" + this + "', message is null");
-			}
+			logger.trace(() -> "postReceive on channel '" + this + "', message is null");
 			return null;
 		}
-		else {
-			Message<?> message;
-			if (object instanceof Message<?>) {
-				message = (Message<?>) object;
-			}
-			else {
-				message = getMessageBuilderFactory()
-						.withPayload(object)
-						.build();
-			}
-			if (isLoggingEnabled()) {
-				logger.debug(() -> "postReceive on channel '" + this + "', message: " + message);
-			}
-			return message;
-		}
+		Message<?> message = object instanceof Message<?> msg
+				? msg
+				: getMessageBuilderFactory().withPayload(object).build();
+		logger.debug(() -> "postReceive on channel '" + this + "', message: " + message);
+
+		return message;
 	}
 
 	private void incrementReceiveCounter() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -338,9 +338,7 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 	private static boolean waitUntilRegisteredWithDestination(SubscribableJmsChannel channel, long timeout) {
 		AbstractMessageListenerContainer container =
 				(AbstractMessageListenerContainer) new DirectFieldAccessor(channel).getPropertyValue("container");
-		if (container instanceof DefaultMessageListenerContainer) {
-			DefaultMessageListenerContainer listenerContainer =
-					(DefaultMessageListenerContainer) container;
+		if (container instanceof DefaultMessageListenerContainer listenerContainer) {
 			if (listenerContainer.getCacheLevel() != DefaultMessageListenerContainer.CACHE_CONSUMER) {
 				return true;
 			}
