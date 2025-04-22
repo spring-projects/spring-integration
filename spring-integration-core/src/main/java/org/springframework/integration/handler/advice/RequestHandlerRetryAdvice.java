@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler.advice;
 
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -78,7 +79,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 
 	@Override
 	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
-		IntegrationRetryCallback retryCallback = new IntegrationRetryCallback(message, callback);
+		IntegrationRetryCallback retryCallback = new IntegrationRetryCallback(message, callback, target);
 		RetryState retryState = this.retryStateGenerator.determineRetryState(message);
 		try {
 			return this.retryTemplate.execute(retryCallback, this.recoveryCallback, retryState);
@@ -113,12 +114,19 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 
 	}
 
-	private record IntegrationRetryCallback(Message<?> messageToTry, ExecutionCallback callback)
+	private record IntegrationRetryCallback(Message<?> messageToTry, ExecutionCallback callback, Object target)
 			implements RetryCallback<Object, Exception> {
 
 		@Override
 		public Object doWithRetry(RetryContext context) {
 			return this.callback.cloneAndExecute();
+		}
+
+		@Override
+		public String getLabel() {
+			return this.target instanceof AbstractReplyProducingMessageHandler.RequestHandler requestHandler
+					? requestHandler.getAdvisedHandler().getComponentName()
+					: this.target.getClass().getName();
 		}
 
 	}

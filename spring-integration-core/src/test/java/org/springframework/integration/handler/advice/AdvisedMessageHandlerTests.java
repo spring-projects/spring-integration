@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -58,6 +61,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.DefaultRetryState;
+import org.springframework.retry.support.MetricsRetryListener;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
@@ -991,6 +995,46 @@ public class AdvisedMessageHandlerTests {
 		assertThat(payload.getCause().getMessage()).isEqualTo("baz");
 		assertThat(payload.getFailedMessage().getPayload()).isEqualTo("bar");
 		assertThat(((ErrorMessage) error).getOriginalMessage().getPayload()).isEqualTo("foo");
+	}
+
+	@Test
+	public void retryAdviceWithMetricsListener() {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				throw new RuntimeException("intentional");
+			}
+		};
+
+		MeterRegistry meterRegistry = new SimpleMeterRegistry();
+
+		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
+		RetryTemplate retryTemplate = new RetryTemplate();
+		retryTemplate.registerListener(new MetricsRetryListener(meterRegistry));
+		advice.setRetryTemplate(retryTemplate);
+		advice.setBeanFactory(mock(BeanFactory.class));
+		advice.afterPropertiesSet();
+
+		List<Advice> adviceChain = new ArrayList<>();
+		adviceChain.add(advice);
+		handler.setAdviceChain(adviceChain);
+		handler.setBeanName("testEndpoint");
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+
+		Message<String> message = new GenericMessage<>("Hello, world!");
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withRootCauseInstanceOf(RuntimeException.class)
+				.withStackTraceContaining("intentional");
+
+		Timer retryTimer = meterRegistry.find(MetricsRetryListener.TIMER_NAME)
+				.tag("name", "testEndpoint")
+				.tag("retry.count", "3")
+				.timer();
+
+		assertThat(retryTimer.count()).isEqualTo(1);
 	}
 
 	private interface Bar {
