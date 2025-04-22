@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -406,8 +406,8 @@ public class ChannelPublishingJmsMessageListener
 				headers.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, new AtomicInteger());
 			}
 			requestMessage =
-					(result instanceof Message<?>) ?
-							this.messageBuilderFactory.fromMessage((Message<?>) result).copyHeaders(headers).build() :
+					result instanceof Message<?> message ?
+							this.messageBuilderFactory.fromMessage(message).copyHeaders(headers).build() :
 							this.messageBuilderFactory.withPayload(result).copyHeaders(headers).build();
 		}
 		catch (RuntimeException e) {

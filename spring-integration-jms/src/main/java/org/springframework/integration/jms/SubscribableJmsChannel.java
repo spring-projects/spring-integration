@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,8 +218,8 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 				}
 				if (converted != null) {
 					messageToSend =
-							converted instanceof Message<?>
-									? (Message<?>) converted
+							converted instanceof Message<?> convertedMessage
+									? convertedMessage
 									: this.messageBuilderFactory.withPayload(converted).build();
 					this.dispatcher.dispatch(messageToSend);
 				}

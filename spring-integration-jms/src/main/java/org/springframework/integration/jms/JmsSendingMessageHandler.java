@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,11 +212,11 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 	}
 
 	private void send(Object destination, Object objectToSend, MessagePostProcessor messagePostProcessor) {
-		if (destination instanceof Destination) {
-			this.jmsTemplate.convertAndSend((Destination) destination, objectToSend, messagePostProcessor);
+		if (destination instanceof Destination destinationObj) {
+			this.jmsTemplate.convertAndSend(destinationObj, objectToSend, messagePostProcessor);
 		}
-		else if (destination instanceof String) {
-			this.jmsTemplate.convertAndSend((String) destination, objectToSend, messagePostProcessor);
+		else if (destination instanceof String destinationStr) {
+			this.jmsTemplate.convertAndSend(destinationStr, objectToSend, messagePostProcessor);
 		}
 		else { // fallback to default destination of the template
 			this.jmsTemplate.convertAndSend(objectToSend, messagePostProcessor);

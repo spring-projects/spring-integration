@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,9 +159,9 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 		if (jmsCorrelationId instanceof Number) {
 			jmsCorrelationId = jmsCorrelationId.toString();
 		}
-		if (jmsCorrelationId instanceof String) {
+		if (jmsCorrelationId instanceof String jmsCorrelationIdStr) {
 			try {
-				jmsMessage.setJMSCorrelationID((String) jmsCorrelationId);
+				jmsMessage.setJMSCorrelationID(jmsCorrelationIdStr);
 			}
 			catch (Exception ex) {
 				LOGGER.info("Failed to set JMSCorrelationID, skipping", ex);
@@ -171,9 +171,9 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 
 	private void populateReplyToPropertyFromHeaders(MessageHeaders headers, jakarta.jms.Message jmsMessage) {
 		Object jmsReplyTo = headers.get(JmsHeaders.REPLY_TO);
-		if (jmsReplyTo instanceof Destination) {
+		if (jmsReplyTo instanceof Destination destination) {
 			try {
-				jmsMessage.setJMSReplyTo((Destination) jmsReplyTo);
+				jmsMessage.setJMSReplyTo(destination);
 			}
 			catch (Exception ex) {
 				LOGGER.info("Failed to set JMSReplyTo, skipping", ex);
@@ -183,9 +183,9 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 
 	private void populateTypePropertyFromHeaders(MessageHeaders headers, jakarta.jms.Message jmsMessage) {
 		Object jmsType = headers.get(JmsHeaders.TYPE);
-		if (jmsType instanceof String) {
+		if (jmsType instanceof String jmsTypeStr) {
 			try {
-				jmsMessage.setJMSType((String) jmsType);
+				jmsMessage.setJMSType(jmsTypeStr);
 			}
 			catch (Exception ex) {
 				LOGGER.info("Failed to set JMSType, skipping", ex);

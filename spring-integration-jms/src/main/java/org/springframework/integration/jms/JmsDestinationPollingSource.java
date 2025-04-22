@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,8 +137,8 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 				}
 			}
 			AbstractIntegrationMessageBuilder<?> builder =
-					(object instanceof Message)
-							? getMessageBuilderFactory().fromMessage((Message<?>) object)
+					(object instanceof Message<?> message)
+							? getMessageBuilderFactory().fromMessage(message)
 							: getMessageBuilderFactory().withPayload(object);
 			return builder.copyHeadersIfAbsent(mappedHeaders);
 		}
@@ -148,7 +148,7 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 	}
 
 	private jakarta.jms.Message doReceiveJmsMessage() {
-		jakarta.jms.Message jmsMessage = null;
+		jakarta.jms.Message jmsMessage;
 		if (this.destination != null) {
 			jmsMessage = this.jmsTemplate.receiveSelected(this.destination, this.messageSelector);
 		}

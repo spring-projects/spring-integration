@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ import org.springframework.util.ErrorHandler;
 import org.springframework.util.StringUtils;
 
 /**
+ * An {@link AbstractFactoryBean} implementation for creating {@link AbstractJmsChannel} instances.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -434,8 +436,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		container.setSubscriptionDurable(this.subscriptionDurable);
 		container.setSubscriptionShared(this.subscriptionShared);
 
-		if (container instanceof DefaultMessageListenerContainer) {
-			DefaultMessageListenerContainer dmlc = (DefaultMessageListenerContainer) container;
+		if (container instanceof DefaultMessageListenerContainer dmlc) {
 			JavaUtils.INSTANCE
 					.acceptIfNotNull(this.cacheLevelName, dmlc::setCacheLevelName)
 					.acceptIfNotNull(this.cacheLevel, dmlc::setCacheLevel)
@@ -454,8 +455,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 					.acceptIfNotNull(this.transactionName, dmlc::setTransactionName)
 					.acceptIfNotNull(this.transactionTimeout, dmlc::setTransactionTimeout);
 		}
-		else if (container instanceof SimpleMessageListenerContainer) {
-			SimpleMessageListenerContainer smlc = (SimpleMessageListenerContainer) container;
+		else if (container instanceof SimpleMessageListenerContainer smlc) {
 			JavaUtils.INSTANCE
 					.acceptIfHasText(this.concurrency, smlc::setConcurrency)
 					.acceptIfNotNull(this.concurrentConsumers, smlc::setConcurrentConsumers);
@@ -471,38 +471,38 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	@Override
 	public boolean isAutoStartup() {
-		return this.channel instanceof SubscribableJmsChannel && ((SubscribableJmsChannel) this.channel).isAutoStartup();
+		return this.channel instanceof SubscribableJmsChannel jmsChannel && jmsChannel.isAutoStartup();
 	}
 
 	@Override
 	public int getPhase() {
-		return (this.channel instanceof SubscribableJmsChannel) ?
-				((SubscribableJmsChannel) this.channel).getPhase() : 0;
+		return (this.channel instanceof SubscribableJmsChannel jmsChannel) ?
+				jmsChannel.getPhase() : 0;
 	}
 
 	@Override
 	public boolean isRunning() {
-		return this.channel instanceof SubscribableJmsChannel && ((SubscribableJmsChannel) this.channel).isRunning();
+		return this.channel instanceof SubscribableJmsChannel jmsChannel && jmsChannel.isRunning();
 	}
 
 	@Override
 	public void start() {
-		if (this.channel instanceof SubscribableJmsChannel) {
-			((SubscribableJmsChannel) this.channel).start();
+		if (this.channel instanceof SubscribableJmsChannel jmsChannel) {
+			jmsChannel.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.channel instanceof SubscribableJmsChannel) {
-			((SubscribableJmsChannel) this.channel).stop();
+		if (this.channel instanceof SubscribableJmsChannel jmsChannel) {
+			jmsChannel.stop();
 		}
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		if (this.channel instanceof SubscribableJmsChannel) {
-			((SubscribableJmsChannel) this.channel).stop(callback);
+		if (this.channel instanceof SubscribableJmsChannel jmsChannel) {
+			jmsChannel.stop(callback);
 		}
 		else {
 			callback.run();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,14 @@ import org.springframework.jms.support.destination.JmsDestinationAccessor;
 import org.springframework.util.Assert;
 
 /**
+ * A {@code JmsTemplate} implementation used by {@link JmsSendingMessageHandler} for
+ * propagating QoS properties from the request message into the underlying {@code
+ * producer.send(message, getDeliveryMode(), getPriority(), getTimeToLive())} API.
+ * Propagation is only applied when {@code explicitQosEnabled} is true.
+ * Starting with version 5.0.8, a default value of the receive-timeout is -1 (no wait)
+ * for the {@link CachingConnectionFactory} and {@code cacheConsumers}, otherwise
+ * it is 1 second.
+ *
  * @author Mark Fisher
  * @author Artem Bilan
  *
@@ -45,8 +53,8 @@ public class DynamicJmsTemplate extends JmsTemplate {
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		super.setConnectionFactory(connectionFactory);
 		if (!this.receiveTimeoutExplicitlySet) {
-			if (connectionFactory instanceof CachingConnectionFactory &&
-					((CachingConnectionFactory) connectionFactory).isCacheConsumers()) {
+			if (connectionFactory instanceof CachingConnectionFactory cachingConnectionFactory &&
+					cachingConnectionFactory.isCacheConsumers()) {
 				super.setReceiveTimeout(JmsDestinationAccessor.RECEIVE_TIMEOUT_NO_WAIT);
 			}
 			else {
