@@ -28,6 +28,7 @@ import org.springframework.util.Assert;
  * propagating QoS properties from the request message into the underlying {@code
  * producer.send(message, getDeliveryMode(), getPriority(), getTimeToLive())} API.
  * Propagation is only applied when {@code explicitQosEnabled} is true.
+ * <p>
  * Starting with version 5.0.8, a default value of the receive-timeout is -1 (no wait)
  * for the {@link CachingConnectionFactory} and {@code cacheConsumers}, otherwise
  * it is 1 second.
