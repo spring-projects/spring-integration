@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class JpaExecutorTests {
 				.isThrownBy(jpaExecutor::poll)
 				.withMessage("For the polling operation, one of "
 						+ "the following properties must be specified: "
-						+ "query, namedQuery or entityClass.");
+						+ "jpaQuery, nativeQuery, namedQuery or entityClass.");
 	}
 
 	@Test
