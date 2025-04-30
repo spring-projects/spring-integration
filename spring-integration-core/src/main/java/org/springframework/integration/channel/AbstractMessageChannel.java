@@ -344,6 +344,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 	}
 
+	protected boolean isApplicationRunning() {
+		return this.applicationRunning;
+	}
+
 	private void assertApplicationRunning(Message<?> message) {
 		if (!this.applicationRunning) {
 			ApplicationContext applicationContext = getApplicationContext();

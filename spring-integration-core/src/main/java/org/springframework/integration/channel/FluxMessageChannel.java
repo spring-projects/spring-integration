@@ -17,6 +17,8 @@
 package org.springframework.integration.channel;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
@@ -30,6 +32,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.util.context.ContextView;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
@@ -38,10 +41,14 @@ import org.springframework.integration.util.IntegrationReactiveUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * The {@link AbstractMessageChannel} implementation for the
  * Reactive Streams {@link Publisher} based on the Project Reactor {@link Flux}.
+ * <p>
+ * This class implements {@link Lifecycle} to control subscriptions to publishers
+ * attached via {@link #subscribeTo(Publisher)}, when this channel is restarted.
  *
  * @author Artem Bilan
  * @author Gary Russell
@@ -50,11 +57,13 @@ import org.springframework.util.Assert;
  * @since 5.0
  */
 public class FluxMessageChannel extends AbstractMessageChannel
-		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
+		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel, Lifecycle {
 
 	private final Sinks.Many<Message<?>> sink = Sinks.many().multicast().onBackpressureBuffer(1, false);
 
-	private final Disposable.Composite upstreamSubscriptions = Disposables.composite();
+	private final List<Publisher<? extends Message<?>>> sourcePublishers = new ArrayList<>();
+
+	private volatile Disposable.Composite upstreamSubscriptions = Disposables.composite();
 
 	private volatile boolean active = true;
 
@@ -111,6 +120,56 @@ public class FluxMessageChannel extends AbstractMessageChannel
 				.subscribe(subscriber);
 	}
 
+	@Override
+	public void start() {
+		this.active = true;
+		this.upstreamSubscriptions = Disposables.composite();
+		this.sourcePublishers.forEach(this::doSubscribeTo);
+	}
+
+	@Override
+	public void stop() {
+		this.active = false;
+		this.upstreamSubscriptions.dispose();
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.active;
+	}
+
+	private void disposeUpstreamSubscription(AtomicReference<Disposable> disposableReference) {
+		Disposable disposable = disposableReference.get();
+		if (disposable != null) {
+			this.upstreamSubscriptions.remove(disposable);
+			disposable.dispose();
+		}
+	}
+
+	@Override
+	public void subscribeTo(Publisher<? extends Message<?>> publisher) {
+		this.sourcePublishers.add(publisher);
+		doSubscribeTo(publisher);
+	}
+
+	private void doSubscribeTo(Publisher<? extends Message<?>> publisher) {
+		Flux<Object> upstreamPublisher =
+				Flux.from(publisher)
+						.doOnComplete(() -> this.sourcePublishers.remove(publisher))
+						.delaySubscription(
+								Mono.fromCallable(this.sink::currentSubscriberCount)
+										.filter((value) -> value > 0)
+										.repeatWhenEmpty((repeat) ->
+												this.active ? repeat.delayElements(Duration.ofMillis(100)) : repeat))
+						.flatMap((message) ->
+								Mono.just(message)
+										.handle((messageToHandle, syncSink) -> sendReactiveMessage(messageToHandle))
+										.contextWrite(StaticMessageHeaderAccessor.getReactorContext(message)))
+						.contextCapture();
+
+		addPublisherToSubscribe(upstreamPublisher);
+	}
+
 	private void addPublisherToSubscribe(Flux<?> publisher) {
 		AtomicReference<Disposable> disposableReference = new AtomicReference<>();
 
@@ -124,32 +183,6 @@ public class FluxMessageChannel extends AbstractMessageChannel
 				disposableReference.set(disposable);
 			}
 		}
-	}
-
-	private void disposeUpstreamSubscription(AtomicReference<Disposable> disposableReference) {
-		Disposable disposable = disposableReference.get();
-		if (disposable != null) {
-			this.upstreamSubscriptions.remove(disposable);
-			disposable.dispose();
-		}
-	}
-
-	@Override
-	public void subscribeTo(Publisher<? extends Message<?>> publisher) {
-		Flux<Object> upstreamPublisher =
-				Flux.from(publisher)
-						.delaySubscription(
-								Mono.fromCallable(this.sink::currentSubscriberCount)
-										.filter((value) -> value > 0)
-										.repeatWhenEmpty((repeat) ->
-												this.active ? repeat.delayElements(Duration.ofMillis(100)) : repeat))
-						.flatMap((message) ->
-								Mono.just(message)
-										.handle((messageToHandle, syncSink) -> sendReactiveMessage(messageToHandle))
-										.contextWrite(StaticMessageHeaderAccessor.getReactorContext(message)))
-						.contextCapture();
-
-		addPublisherToSubscribe(upstreamPublisher);
 	}
 
 	private void sendReactiveMessage(Message<?> message) {
@@ -169,7 +202,12 @@ public class FluxMessageChannel extends AbstractMessageChannel
 			}
 		}
 		catch (Exception ex) {
-			logger.warn(ex, LogMessage.format("Error during processing event: %s", messageToSend));
+			if (isApplicationRunning()) {
+				logger.error(ex, LogMessage.format("Error during processing event: %s", messageToSend));
+			}
+			else {
+				ReflectionUtils.rethrowRuntimeException(ex);
+			}
 		}
 	}
 
@@ -177,6 +215,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	public void destroy() {
 		this.active = false;
 		this.upstreamSubscriptions.dispose();
+		this.sourcePublishers.clear();
 		this.sink.emitComplete(Sinks.EmitFailureHandler.busyLooping(Duration.ofSeconds(1)));
 		super.destroy();
 	}
