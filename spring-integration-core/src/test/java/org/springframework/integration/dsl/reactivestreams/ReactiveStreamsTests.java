@@ -38,6 +38,7 @@ import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -266,6 +267,35 @@ public class ReactiveStreamsTests {
 				.verify(Duration.ofSeconds(10));
 	}
 
+	@Autowired
+	QueueChannel fromPublisherResult;
+
+	@Autowired
+	ConfigurableApplicationContext applicationContext;
+
+	@Test
+	@DirtiesContext
+		// Use disruptive this.applicationContext.start()
+	void verifyFluxMessageChannelRestart() {
+		for (long i = 0; i < 3L; i++) {
+			assertThat(this.fromPublisherResult.receive(10_000)).extracting(Message::getPayload).isEqualTo(i);
+		}
+
+		this.applicationContext.stop();
+
+		this.fromPublisherResult.purge(null);
+
+		this.applicationContext.start();
+
+		// The applicationContext restart causes all the endpoint to be started,
+		// while we really don't have a subscription to this producer
+		this.testMessageProducer.stop();
+
+		for (long i = 0; i < 3L; i++) {
+			assertThat(this.fromPublisherResult.receive(10_000)).extracting(Message::getPayload).isEqualTo(i);
+		}
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -323,6 +353,13 @@ public class ReactiveStreamsTests {
 			return IntegrationFlow
 					.from(testMessageProducerSpec)
 					.toReactivePublisher(true);
+		}
+
+		@Bean
+		IntegrationFlow fromPublisher() {
+			return IntegrationFlow.from(Flux.interval(Duration.ofMillis(100)).map(GenericMessage::new))
+					.channel(c -> c.queue("fromPublisherResult"))
+					.get();
 		}
 
 	}
