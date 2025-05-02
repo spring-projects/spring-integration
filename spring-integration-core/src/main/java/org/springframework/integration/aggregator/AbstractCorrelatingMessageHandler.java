@@ -283,7 +283,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	 */
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
 		if (!this.releaseStrategySet && releasePartialSequences) {
-			setReleaseStrategy(new SequenceSizeReleaseStrategy());
+			setReleaseStrategy(new SequenceSizeReleaseStrategy(releasePartialSequences));
 		}
 		this.releasePartialSequences = releasePartialSequences;
 	}
