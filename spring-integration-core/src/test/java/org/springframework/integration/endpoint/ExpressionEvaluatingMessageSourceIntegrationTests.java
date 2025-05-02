@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,7 @@ public class ExpressionEvaluatingMessageSourceIntegrationTests {
 		adapter.setErrorHandler(t -> {
 			throw new IllegalStateException("unexpected exception in test", t);
 		});
+		adapter.afterPropertiesSet();
 		adapter.start();
 		List<Message<?>> messages = new ArrayList<>();
 		for (int i = 0; i < 3; i++) {

@@ -81,7 +81,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 
 	private TaskScheduler taskScheduler;
 
-	private IntegrationProperties integrationProperties = new IntegrationProperties();
+	private IntegrationProperties integrationProperties;
 
 	private ConversionService conversionService;
 

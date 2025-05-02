@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,7 @@ public class MessageHandlerChainTests {
 		chain.setHandlers(handlers);
 		chain.setOutputChannel(outputChannel);
 		chain.setBeanFactory(mock(BeanFactory.class));
+		chain.afterPropertiesSet();
 		chain.handleMessage(message);
 		Mockito.verify(outputChannel).send(Mockito.eq(message), eq(30000L));
 	}
@@ -107,6 +108,7 @@ public class MessageHandlerChainTests {
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
 		chain.setBeanFactory(mock(BeanFactory.class));
+		chain.afterPropertiesSet();
 		chain.handleMessage(message);
 	}
 
@@ -121,6 +123,7 @@ public class MessageHandlerChainTests {
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
 		chain.setBeanFactory(mock(BeanFactory.class));
+		chain.afterPropertiesSet();
 		chain.handleMessage(message);
 		Mockito.verify(outputChannel).send(Mockito.any(Message.class), eq(30000L));
 	}
@@ -138,6 +141,7 @@ public class MessageHandlerChainTests {
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
 		chain.setBeanFactory(beanFactory);
+		chain.afterPropertiesSet();
 		chain.handleMessage(message);
 		Mockito.verify(outputChannel).send(Mockito.eq(message), eq(30000L));
 	}
