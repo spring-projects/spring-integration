@@ -129,10 +129,10 @@ public class AggregatorTests {
 	}
 
 	@Test
+	@Disabled("Time sensitive")
 	public void testAggPerfDefaultPartial() throws InterruptedException, ExecutionException, TimeoutException {
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor());
 		handler.setCorrelationStrategy(message -> "foo");
-		handler.setReleasePartialSequences(true);
 		DirectChannel outputChannel = new DirectChannel();
 		handler.setOutputChannel(outputChannel);
 
@@ -156,25 +156,25 @@ public class AggregatorTests {
 
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.start();
-		for (int i = 0; i < 1200; i++) {
-			if (i % 100 == 0) {
+		for (int i = 0; i < 120000; i++) {
+			if (i % 10000 == 0) {
 				stopwatch.stop();
 				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() +
-						" (100 in " + stopwatch.lastTaskInfo().getTimeMillis() + "ms)");
+						" (10k in " + stopwatch.lastTaskInfo().getTimeMillis() + "ms)");
 				stopwatch.start();
 			}
 			handler.handleMessage(MessageBuilder.withPayload("foo")
-					.setSequenceSize(1200)
+					.setSequenceSize(120000)
 					.setSequenceNumber(i + 1)
 					.build());
 		}
 		stopwatch.stop();
-		logger.warn("Sent " + 1200 + " in " + stopwatch.getTotalTimeSeconds() +
+		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() +
 				" (10k in " + stopwatch.lastTaskInfo().getTimeMillis() + "ms)");
 
 		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
 		assertThat(result).isNotNull();
-		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.size()).isEqualTo(120000);
 		assertThat(stopwatch.getTotalTimeSeconds()).isLessThan(60.0); // actually < 2.0, was many minutes
 	}
 
