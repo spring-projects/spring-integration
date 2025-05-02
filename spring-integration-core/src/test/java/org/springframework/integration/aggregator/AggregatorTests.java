@@ -151,8 +151,6 @@ public class AggregatorTests {
 		store.setMessageGroupFactory(messageGroupFactory);
 
 		handler.setMessageStore(store);
-		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.afterPropertiesSet();
 
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.start();
