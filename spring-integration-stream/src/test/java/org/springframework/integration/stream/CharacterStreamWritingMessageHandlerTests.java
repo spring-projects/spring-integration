@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void twoStringsAndNoNewLinesByDefault() {
 		endpoint.setMaxMessagesPerPoll(1);
 		endpoint.setTrigger(trigger);
+		endpoint.afterPropertiesSet();
 		channel.send(new GenericMessage<>("foo"), 0);
 		channel.send(new GenericMessage<>("bar"), 0);
 		endpoint.start();
@@ -103,6 +104,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		handler.setShouldAppendNewLine(true);
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(1);
+		endpoint.afterPropertiesSet();
 		channel.send(new GenericMessage<>("foo"), 0);
 		channel.send(new GenericMessage<>("bar"), 0);
 		endpoint.start();
@@ -121,6 +123,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void maxMessagesPerTaskSameAsMessageCount() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
+		endpoint.afterPropertiesSet();
 		channel.send(new GenericMessage<>("foo"), 0);
 		channel.send(new GenericMessage<>("bar"), 0);
 		endpoint.start();
@@ -134,10 +137,12 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(10);
 		endpoint.setReceiveTimeout(0);
+		endpoint.afterPropertiesSet();
 		handler.setShouldAppendNewLine(true);
 		channel.send(new GenericMessage<>("foo"), 0);
 		channel.send(new GenericMessage<>("bar"), 0);
 		endpoint.start();
+		endpoint.afterPropertiesSet();
 		trigger.await();
 		endpoint.stop();
 		String newLine = System.getProperty("line.separator");
@@ -148,6 +153,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void singleNonStringObject() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(1);
+		endpoint.afterPropertiesSet();
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<>(testObject));
 		endpoint.start();
@@ -161,6 +167,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setReceiveTimeout(0);
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
+		endpoint.afterPropertiesSet();
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<>(testObject1), 0);
@@ -177,6 +184,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setReceiveTimeout(0);
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setTrigger(trigger);
+		endpoint.afterPropertiesSet();
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<>(testObject1), 0);
