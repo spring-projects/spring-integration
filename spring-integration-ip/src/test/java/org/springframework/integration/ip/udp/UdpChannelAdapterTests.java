@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -43,7 +42,7 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 
@@ -60,13 +59,9 @@ import static org.mockito.Mockito.mock;
  * @since 2.0
  *
  */
+@Multicast
+@LogLevels(categories = "org.springframework.integration.ip.udp", level = "TRACE")
 public class UdpChannelAdapterTests {
-
-	@Rule
-	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.trace();
-
-	@Rule
-	public MulticastRule multicastRule = new MulticastRule();
 
 	@Test
 	public void testUnicastReceiver() throws Exception {
@@ -250,12 +245,12 @@ public class UdpChannelAdapterTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testMulticastReceiver() throws Exception {
+	public void testMulticastReceiver(MulticastCondition multicastCondition) throws Exception {
 		QueueChannel channel = new QueueChannel(2);
 		MulticastReceivingChannelAdapter adapter =
-				new MulticastReceivingChannelAdapter(this.multicastRule.getGroup(), 0);
+				new MulticastReceivingChannelAdapter(multicastCondition.getGroup(), 0);
 		adapter.setOutputChannel(channel);
-		NetworkInterface nic = this.multicastRule.getNic();
+		NetworkInterface nic = multicastCondition.getNic();
 		if (nic != null) {
 			adapter.setLocalAddress(nic.getInetAddresses().nextElement().getHostName());
 		}
@@ -266,7 +261,7 @@ public class UdpChannelAdapterTests {
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
-		packet.setSocketAddress(new InetSocketAddress(this.multicastRule.getGroup(), port));
+		packet.setSocketAddress(new InetSocketAddress(multicastCondition.getGroup(), port));
 		InetAddress inetAddress = null;
 		if (nic != null) {
 			Enumeration<InetAddress> addressesFromNetworkInterface = nic.getInetAddresses();
@@ -295,12 +290,12 @@ public class UdpChannelAdapterTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testMulticastSender() {
+	public void testMulticastSender(MulticastCondition multicastCondition) {
 		QueueChannel channel = new QueueChannel(2);
 		UnicastReceivingChannelAdapter adapter =
-				new MulticastReceivingChannelAdapter(this.multicastRule.getGroup(), 0);
+				new MulticastReceivingChannelAdapter(multicastCondition.getGroup(), 0);
 		adapter.setOutputChannel(channel);
-		NetworkInterface nic = this.multicastRule.getNic();
+		NetworkInterface nic = multicastCondition.getNic();
 		if (nic != null) {
 			adapter.setLocalAddress(nic.getInetAddresses().nextElement().getHostName());
 		}
@@ -308,7 +303,7 @@ public class UdpChannelAdapterTests {
 		SocketTestUtils.waitListening(adapter);
 
 		MulticastSendingMessageHandler handler =
-				new MulticastSendingMessageHandler(this.multicastRule.getGroup(), adapter.getPort());
+				new MulticastSendingMessageHandler(multicastCondition.getGroup(), adapter.getPort());
 		if (nic != null) {
 			handler.setLocalAddress(nic.getInetAddresses().nextElement().getHostName());
 		}

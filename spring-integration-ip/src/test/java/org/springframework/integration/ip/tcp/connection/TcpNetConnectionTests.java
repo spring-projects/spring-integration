@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -162,9 +162,7 @@ public class TcpNetConnectionTests {
 			}
 		};
 		server.setApplicationEventPublisher(publisher);
-		server.registerListener(message -> {
-			return false;
-		});
+		server.registerListener(message -> false);
 		server.afterPropertiesSet();
 		server.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
