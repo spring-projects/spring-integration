@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -47,13 +46,11 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
+@Multicast
 public class DatagramPacketMulticastSendingHandlerTests {
 
-	@Rule
-	public MulticastRule multicastRule = new MulticastRule();
-
 	@Test
-	public void verifySendMulticast() throws Exception {
+	public void verifySendMulticast(MulticastCondition multicastCondition) throws Exception {
 		MulticastSocket socket;
 		try {
 			socket = new MulticastSocket();
@@ -62,7 +59,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 			return;
 		}
 		final int testPort = socket.getLocalPort();
-		final String multicastAddress = this.multicastRule.getGroup();
+		final String multicastAddress = multicastCondition.getGroup();
 		final String payload = "foo";
 		final CountDownLatch listening = new CountDownLatch(2);
 		final CountDownLatch received = new CountDownLatch(2);
@@ -71,7 +68,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				byte[] buffer = new byte[8];
 				DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 				MulticastSocket socket1 = new MulticastSocket(testPort);
-				socket1.setNetworkInterface(multicastRule.getNic());
+				socket1.setNetworkInterface(multicastCondition.getNic());
 				InetAddress group = InetAddress.getByName(multicastAddress);
 				socket1.joinGroup(new InetSocketAddress(group, 0), null);
 				listening.countDown();
@@ -96,7 +93,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		assertThat(listening.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		MulticastSendingMessageHandler handler = new MulticastSendingMessageHandler(multicastAddress, testPort);
 		handler.setBeanFactory(mock(BeanFactory.class));
-		NetworkInterface nic = this.multicastRule.getNic();
+		NetworkInterface nic = multicastCondition.getNic();
 		if (nic != null) {
 			String hostName = null;
 			Enumeration<InetAddress> addressesFromNetworkInterface = nic.getInetAddresses();
@@ -122,7 +119,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 	}
 
 	@Test
-	public void verifySendMulticastWithAcks() throws Exception {
+	public void verifySendMulticastWithAcks(MulticastCondition multicastCondition) throws Exception {
 
 		MulticastSocket socket;
 		try {
@@ -134,18 +131,18 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		final int testPort = socket.getLocalPort();
 		final AtomicInteger ackPort = new AtomicInteger();
 
-		final String multicastAddress = this.multicastRule.getGroup();
+		final String multicastAddress = multicastCondition.getGroup();
 		final String payload = "foobar";
 		final CountDownLatch listening = new CountDownLatch(2);
 		final CountDownLatch ackListening = new CountDownLatch(1);
 		final CountDownLatch ackSent = new CountDownLatch(2);
-		NetworkInterface nic = this.multicastRule.getNic();
+		NetworkInterface nic = multicastCondition.getNic();
 		Runnable catcher = () -> {
 			try {
 				byte[] buffer = new byte[1000];
 				DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 				MulticastSocket socket1 = new MulticastSocket(testPort);
-				socket1.setNetworkInterface(multicastRule.getNic());
+				socket1.setNetworkInterface(multicastCondition.getNic());
 				socket1.setSoTimeout(8000);
 				InetAddress group = InetAddress.getByName(multicastAddress);
 				socket1.joinGroup(new InetSocketAddress(group, 0), null);

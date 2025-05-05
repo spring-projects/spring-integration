@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.ip.udp;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.util.SocketTestUtils;
@@ -47,7 +47,7 @@ public class MultiClientTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@Ignore
+	@Disabled
 	public void testNoAck() throws Exception {
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
@@ -93,7 +93,7 @@ public class MultiClientTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@Ignore
+	@Disabled
 	public void testAck() throws Exception {
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
@@ -141,7 +141,7 @@ public class MultiClientTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@Ignore
+	@Disabled
 	public void testAckWithLength() throws Exception {
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
