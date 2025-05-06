@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -31,6 +31,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -43,15 +44,17 @@ public class ExpressionEvaluatingCorrelationStrategyTests {
 
 	private ExpressionEvaluatingCorrelationStrategy strategy;
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testCreateInstanceWithEmptyExpressionFails() throws Exception {
-		strategy = new ExpressionEvaluatingCorrelationStrategy("");
+	@Test
+	public void testCreateInstanceWithEmptyExpressionFails() {
+		assertThatThrownBy(() -> strategy = new ExpressionEvaluatingCorrelationStrategy(""))
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testCreateInstanceWithNullExpressionFails() throws Exception {
+	@Test
+	public void testCreateInstanceWithNullExpressionFails() {
 		Expression nullExpression = null;
-		strategy = new ExpressionEvaluatingCorrelationStrategy(nullExpression);
+		assertThatThrownBy(() -> strategy = new ExpressionEvaluatingCorrelationStrategy(nullExpression))
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -45,6 +45,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Mark Fisher
@@ -61,10 +62,11 @@ public class DatatypeChannelTests {
 		assertThat(channel.send(new GenericMessage<String>("test"))).isTrue();
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void unsupportedTypeAndNoConversionService() {
 		MessageChannel channel = createChannel(Integer.class);
-		channel.send(new GenericMessage<String>("123"));
+		assertThatThrownBy(() -> channel.send(new GenericMessage<String>("123")))
+				.isInstanceOf(MessageDeliveryException.class);
 	}
 
 	@Test
@@ -77,14 +79,15 @@ public class DatatypeChannelTests {
 		assertThat(channel.send(new GenericMessage<String>("123"))).isTrue();
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void unsupportedTypeAndConversionServiceDoesNotSupport() {
 		QueueChannel channel = createChannel(Integer.class);
 		ConversionService conversionService = new DefaultConversionService();
 		DefaultDatatypeChannelMessageConverter converter = new DefaultDatatypeChannelMessageConverter();
 		converter.setConversionService(conversionService);
 		channel.setMessageConverter(converter);
-		assertThat(channel.send(new GenericMessage<Boolean>(Boolean.TRUE))).isTrue();
+		assertThatThrownBy(() -> assertThat(channel.send(new GenericMessage<Boolean>(Boolean.TRUE))).isTrue())
+				.isInstanceOf(MessageDeliveryException.class);
 	}
 
 	@Test
@@ -199,10 +202,11 @@ public class DatatypeChannelTests {
 		assertThat(channel.send(new ErrorMessage(new MessagingException("test")))).isTrue();
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void superclassOfAcceptedTypeNotAccepted() {
 		MessageChannel channel = createChannel(RuntimeException.class);
-		channel.send(new ErrorMessage(new Exception("test")));
+		assertThatThrownBy(() -> channel.send(new ErrorMessage(new Exception("test"))))
+				.isInstanceOf(MessageDeliveryException.class);
 	}
 
 	@Test

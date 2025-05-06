@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
@@ -36,6 +35,7 @@ import org.springframework.messaging.MessageHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,18 +43,15 @@ import static org.mockito.Mockito.when;
  * @author Iwein Fuld
  * @author Gary Russell
  */
-@RunWith(MockitoJUnitRunner.class)
 public class CorrelatingMessageBarrierTests {
 
 	private CorrelatingMessageBarrier barrier;
 
-	@Mock
-	private CorrelationStrategy correlationStrategy;
+	private final CorrelationStrategy correlationStrategy = mock();
 
-	@Mock
-	private ReleaseStrategy releaseStrategy;
+	private final ReleaseStrategy releaseStrategy = mock();
 
-	@Before
+	@BeforeEach
 	public void initializeBarrier() {
 		barrier = new CorrelatingMessageBarrier();
 		barrier.setCorrelationStrategy(correlationStrategy);
@@ -83,7 +80,8 @@ public class CorrelatingMessageBarrierTests {
 		assertThat(barrier.receive()).isNull();
 	}
 
-	@Test(timeout = 10000)
+	@Test
+	@Timeout(value = 10000, unit = TimeUnit.MILLISECONDS)
 	public void shouldNotDropMessageOrBlockSendingThread() {
 		OneMessagePerKeyReleaseStrategy trackingReleaseStrategy = new OneMessagePerKeyReleaseStrategy();
 		barrier.setReleaseStrategy(trackingReleaseStrategy);

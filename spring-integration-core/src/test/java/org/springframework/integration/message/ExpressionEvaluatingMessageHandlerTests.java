@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.message;
 
 import java.util.HashMap;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
@@ -31,6 +31,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -42,7 +43,7 @@ public class ExpressionEvaluatingMessageHandlerTests {
 
 	private ExpressionParser parser;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		parser = new SpelExpressionParser();
 	}
@@ -76,20 +77,23 @@ public class ExpressionEvaluatingMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<String>("testtest", headers));
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void expressionWithReturnValue() {
 		Message<?> message = new GenericMessage<Float>(.1f);
-		try {
-			Expression expression = parser.parseExpression("T(System).out.printf('$%4.2f', payload)");
-			ExpressionEvaluatingMessageHandler handler = new ExpressionEvaluatingMessageHandler(expression);
-			handler.setBeanFactory(mock(BeanFactory.class));
-			handler.afterPropertiesSet();
-			handler.handleMessage(message);
-		}
-		catch (MessagingException e) {
-			assertThat(message).isEqualTo(e.getFailedMessage());
-			throw e;
-		}
+		Expression expression = parser.parseExpression("T(System).out.printf('$%4.2f', payload)");
+		ExpressionEvaluatingMessageHandler handler = new ExpressionEvaluatingMessageHandler(expression);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		assertThatThrownBy(() -> {
+			try {
+				handler.handleMessage(message);
+			}
+			catch (MessagingException e) {
+				assertThat(message).isEqualTo(e.getFailedMessage());
+				throw e;
+			}
+		}).isInstanceOf(MessagingException.class);
+
 	}
 
 }

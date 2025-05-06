@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,15 @@ package org.springframework.integration.aggregator.scenarios;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,8 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class AggregationResendTests {
 
 	@Autowired
@@ -61,7 +58,7 @@ public class AggregationResendTests {
 	 * <p>We should <em>not</em> get another 3 after the 1 second.
 	 */
 	@Test
-	@Ignore // timeout is no longer supported
+	@Disabled // timeout is no longer supported
 	public void testAggregatorWithoutExplicitTimeoutReturnsOnlyOneMessage() {
 		sendMessage(this.input_for_aggregator_with_explicit_timeout, 2000);
 	}
@@ -75,7 +72,7 @@ public class AggregationResendTests {
 	 * <p>We should <em>not</em> get another 3 after the 60 seconds.
 	 */
 	@Test
-	@Ignore // disabling from normal testing, should be the same behavior whether explicit or default
+	@Disabled // disabling from normal testing, should be the same behavior whether explicit or default
 	public void testAggregatorWithTimeoutReturnsOnlyOneMessage() {
 		sendMessage(this.input_for_aggregator_without_explicit_timeout, 62000);
 	}

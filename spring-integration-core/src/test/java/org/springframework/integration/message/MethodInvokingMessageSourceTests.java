@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.message;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
@@ -30,6 +30,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -68,31 +69,34 @@ public class MethodInvokingMessageSourceTests {
 		assertThat(result.getHeaders().get("bar")).isEqualTo(123);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void testNoMatchingMethodName() {
 		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
 		source.setBeanFactory(mock(BeanFactory.class));
 		source.setObject(new TestBean());
 		source.setMethodName("noMatchingMethod");
-		source.receive();
+		assertThatThrownBy(() -> source.receive())
+				.isInstanceOf(MessagingException.class);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void testInvalidMethodWithArg() {
 		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
 		source.setBeanFactory(mock(BeanFactory.class));
 		source.setObject(new TestBean());
 		source.setMethodName("invalidMethodWithArg");
-		source.receive();
+		assertThatThrownBy(() -> source.receive())
+				.isInstanceOf(MessagingException.class);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void testInvalidMethodWithNoReturnValue() {
 		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
 		source.setBeanFactory(mock(BeanFactory.class));
 		source.setObject(new TestBean());
 		source.setMethodName("invalidMethodWithNoReturnValue");
-		source.receive();
+		assertThatThrownBy(() -> source.receive())
+				.isInstanceOf(MessagingException.class);
 	}
 
 	@Test

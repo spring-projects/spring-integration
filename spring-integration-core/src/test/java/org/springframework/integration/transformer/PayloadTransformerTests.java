@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package org.springframework.integration.transformer;
 
 import java.util.Date;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Mark Fisher
@@ -39,18 +40,20 @@ public class PayloadTransformerTests {
 		assertThat(result.getPayload()).isEqualTo(3);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void testExceptionThrownByTransformer() {
 		TestPayloadTransformer transformer = new TestPayloadTransformer();
 		Message<?> message = new GenericMessage<String>("bad");
-		transformer.transform(message);
+		assertThatThrownBy(() -> transformer.transform(message))
+				.isInstanceOf(MessagingException.class);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void testWrongPayloadType() {
 		TestPayloadTransformer transformer = new TestPayloadTransformer();
 		Message<?> message = new GenericMessage<Date>(new Date());
-		transformer.transform(message);
+		assertThatThrownBy(() -> transformer.transform(message))
+				.isInstanceOf(MessagingException.class);
 	}
 
 	private static class TestPayloadTransformer extends AbstractPayloadTransformer<String, Integer> {

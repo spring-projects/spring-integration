@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -49,6 +46,7 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,15 +60,13 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@RunWith(MockitoJUnitRunner.class)
 public class MethodInvokingMessageGroupProcessorTests {
 
 	private final List<Message<?>> messagesUpForProcessing = new ArrayList<>(3);
 
-	@Mock
-	private MessageGroup messageGroupMock;
+	private final MessageGroup messageGroupMock = mock();
 
-	@Before
+	@BeforeEach
 	public void initializeMessagesUpForProcessing() {
 		this.messagesUpForProcessing.add(MessageBuilder.withPayload(1).build());
 		this.messagesUpForProcessing.add(MessageBuilder.withPayload(2).build());
@@ -488,7 +484,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		assertThat(aggregator.aggregatePayloads(group, aggregator.aggregateHeaders(group))).isEqualTo("foobar");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void multipleAnnotations() {
 
 		class MultipleAnnotationTestBean {
@@ -506,7 +502,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MultipleAnnotationTestBean bean = new MultipleAnnotationTestBean();
-		new MethodInvokingMessageGroupProcessor(bean);
+		assertThatThrownBy(() -> new MethodInvokingMessageGroupProcessor(bean))
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
@@ -534,7 +531,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		assertThat(aggregator.aggregatePayloads(group, null)).isEqualTo("foo");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void multiplePublicMethods() {
 
 		@SuppressWarnings("unused")
@@ -551,10 +548,11 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MultiplePublicMethodTestBean bean = new MultiplePublicMethodTestBean();
-		new MethodInvokingMessageGroupProcessor(bean);
+		assertThatThrownBy(() -> new MethodInvokingMessageGroupProcessor(bean))
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void noPublicMethods() {
 
 		@SuppressWarnings("unused")
@@ -567,7 +565,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		NoPublicMethodTestBean bean = new NoPublicMethodTestBean();
-		new MethodInvokingMessageGroupProcessor(bean);
+		assertThatThrownBy(() -> new MethodInvokingMessageGroupProcessor(bean))
+				.isInstanceOf(IllegalStateException.class);
 	}
 
 	@Test

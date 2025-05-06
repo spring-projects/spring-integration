@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -38,6 +38,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -103,7 +104,7 @@ public class RecipientListRouterTests {
 		assertThat(result2).isNull();
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void sendFailureOnFirstRecipientTriggersExceptionByDefault() {
 		QueueChannel channelA = new QueueChannel(1);
 		QueueChannel channelB = new QueueChannel(1);
@@ -120,20 +121,22 @@ public class RecipientListRouterTests {
 		router.setChannels(channels);
 		channelA.send(new GenericMessage<String>("blocker"));
 		Message<String> message = new GenericMessage<String>("test");
-		try {
-			router.handleMessage(message);
-		}
-		catch (RuntimeException e) {
-			Message<?> result1a = channelA.receive(0);
-			assertThat(result1a).isNotNull();
-			assertThat(result1a.getPayload()).isEqualTo("blocker");
-			assertThat(channelB.receive(0)).isNull();
-			assertThat(channelC.receive(0)).isNull();
-			throw e;
-		}
+		assertThatThrownBy(() -> {
+			try {
+				router.handleMessage(message);
+			}
+			catch (RuntimeException e) {
+				Message<?> result1a = channelA.receive(0);
+				assertThat(result1a).isNotNull();
+				assertThat(result1a.getPayload()).isEqualTo("blocker");
+				assertThat(channelB.receive(0)).isNull();
+				assertThat(channelC.receive(0)).isNull();
+				throw e;
+			}
+		}).isInstanceOf(MessageDeliveryException.class);
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void sendFailureOnMiddleRecipientTriggersExceptionByDefault() {
 		QueueChannel channelA = new QueueChannel(1);
 		QueueChannel channelB = new QueueChannel(1);
@@ -150,22 +153,24 @@ public class RecipientListRouterTests {
 		router.setChannels(channels);
 		channelB.send(new GenericMessage<String>("blocker"));
 		Message<String> message = new GenericMessage<String>("test");
-		try {
-			router.handleMessage(message);
-		}
-		catch (RuntimeException e) {
-			Message<?> result1a = channelA.receive(0);
-			assertThat(result1a).isNotNull();
-			assertThat(result1a.getPayload()).isEqualTo("test");
-			Message<?> result1b = channelB.receive(0);
-			assertThat(result1b).isNotNull();
-			assertThat(result1b.getPayload()).isEqualTo("blocker");
-			assertThat(channelC.receive(0)).isNull();
-			throw e;
-		}
+		assertThatThrownBy(() -> {
+			try {
+				router.handleMessage(message);
+			}
+			catch (RuntimeException e) {
+				Message<?> result1a = channelA.receive(0);
+				assertThat(result1a).isNotNull();
+				assertThat(result1a.getPayload()).isEqualTo("test");
+				Message<?> result1b = channelB.receive(0);
+				assertThat(result1b).isNotNull();
+				assertThat(result1b.getPayload()).isEqualTo("blocker");
+				assertThat(channelC.receive(0)).isNull();
+				throw e;
+			}
+		}).isInstanceOf(MessageDeliveryException.class);
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void sendFailureOnLastRecipientTriggersExceptionByDefault() {
 		QueueChannel channelA = new QueueChannel(1);
 		QueueChannel channelB = new QueueChannel(1);
@@ -182,21 +187,23 @@ public class RecipientListRouterTests {
 		router.setChannels(channels);
 		channelC.send(new GenericMessage<String>("blocker"));
 		Message<String> message = new GenericMessage<String>("test");
-		try {
-			router.handleMessage(message);
-		}
-		catch (RuntimeException e) {
-			Message<?> result1a = channelA.receive(0);
-			assertThat(result1a).isNotNull();
-			assertThat(result1a.getPayload()).isEqualTo("test");
-			Message<?> result1b = channelB.receive(0);
-			assertThat(result1b).isNotNull();
-			assertThat(result1b.getPayload()).isEqualTo("test");
-			Message<?> result1c = channelC.receive(0);
-			assertThat(result1c).isNotNull();
-			assertThat(result1c.getPayload()).isEqualTo("blocker");
-			throw e;
-		}
+		assertThatThrownBy(() -> {
+			try {
+				router.handleMessage(message);
+			}
+			catch (RuntimeException e) {
+				Message<?> result1a = channelA.receive(0);
+				assertThat(result1a).isNotNull();
+				assertThat(result1a.getPayload()).isEqualTo("test");
+				Message<?> result1b = channelB.receive(0);
+				assertThat(result1b).isNotNull();
+				assertThat(result1b.getPayload()).isEqualTo("test");
+				Message<?> result1c = channelC.receive(0);
+				assertThat(result1c).isNotNull();
+				assertThat(result1c.getPayload()).isEqualTo("blocker");
+				throw e;
+			}
+		}).isInstanceOf(MessageDeliveryException.class);
 	}
 
 	@Test
@@ -346,17 +353,21 @@ public class RecipientListRouterTests {
 				.isEqualTo(message.getHeaders().getId());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void nullChannelListRejected() {
 		RecipientListRouter router = new RecipientListRouter();
-		router.setChannels(null);
+		assertThatThrownBy(() -> {
+			router.setChannels(null);
+		}).isInstanceOf(IllegalArgumentException.class);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void emptyChannelListRejected() {
 		RecipientListRouter router = new RecipientListRouter();
-		List<MessageChannel> channels = new ArrayList<MessageChannel>();
-		router.setChannels(channels);
+		List<MessageChannel> channels = new ArrayList<>();
+		assertThatThrownBy(() -> {
+			router.setChannels(channels);
+		}).isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test

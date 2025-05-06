@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.router;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -54,7 +54,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	private final QueueChannel defaultChannel = new QueueChannel();
 
-	@Before
+	@BeforeEach
 	public void prepare() {
 		this.context.registerBean("illegalArgumentChannel", this.illegalArgumentChannel);
 		this.context.registerBean("runtimeExceptionChannel", this.runtimeExceptionChannel);
@@ -64,7 +64,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		this.context.refresh();
 	}
 
-	@After
+	@AfterEach
 	public void terDown() {
 		this.context.close();
 	}
