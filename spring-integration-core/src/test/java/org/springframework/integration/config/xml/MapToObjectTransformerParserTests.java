@@ -33,7 +33,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky
@@ -126,9 +126,9 @@ public class MapToObjectTransformerParserTests {
 
 	@Test
 	public void testNonPrototypeFailure() {
-		assertThatThrownBy(() -> new ClassPathXmlApplicationContext("MapToObjectTransformerParserTests-context-fail.xml",
-				MapToObjectTransformerParserTests.class).close())
-				.isInstanceOf(BeanCreationException.class);
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("MapToObjectTransformerParserTests-context-fail.xml",
+						MapToObjectTransformerParserTests.class));
 	}
 
 	public static class Person {

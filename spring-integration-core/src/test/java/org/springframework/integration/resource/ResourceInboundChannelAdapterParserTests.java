@@ -34,7 +34,7 @@ import org.springframework.integration.util.CollectionFilter;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Oleg Zhurakousky
@@ -85,8 +85,8 @@ public class ResourceInboundChannelAdapterParserTests {
 
 	@Test
 	public void testDefaultConfigNoLocationPattern() {
-		assertThatThrownBy(() -> new ClassPathXmlApplicationContext("ResourcePatternResolver-config-fail.xml", getClass()).close())
-				.isInstanceOf(BeanCreationException.class);
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("ResourcePatternResolver-config-fail.xml", getClass()));
 	}
 
 	@Test

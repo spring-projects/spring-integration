@@ -26,7 +26,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
@@ -60,8 +60,8 @@ public class MessageFilterTests {
 		filter.setThrowExceptionOnRejection(true);
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
-		assertThatThrownBy(() -> filter.handleMessage(new GenericMessage<String>("test")))
-				.isInstanceOf(MessageRejectedException.class);
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> filter.handleMessage(new GenericMessage<String>("test")));
 	}
 
 	@Test
@@ -102,8 +102,8 @@ public class MessageFilterTests {
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
 		Message<?> message = new GenericMessage<String>("test");
-		assertThatThrownBy(() -> assertThat(inputChannel.send(message)).isTrue())
-				.isInstanceOf(MessageRejectedException.class);
+		assertThatExceptionOfType(MessageRejectedException.class)
+				.isThrownBy(() -> assertThat(inputChannel.send(message)).isTrue());
 	}
 
 	@Test
@@ -136,21 +136,20 @@ public class MessageFilterTests {
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
 		Message<?> message = new GenericMessage<String>("test");
-		assertThatThrownBy(() -> {
-			try {
-				assertThat(inputChannel.send(message)).isTrue();
-			}
-			catch (Exception e) {
-				throw e;
-			}
-			finally {
-				Message<?> reply = discardChannel.receive(0);
-				assertThat(reply).isNotNull();
-				assertThat(reply).isEqualTo(message);
-				assertThat(outputChannel.receive(0)).isNull();
-			}
-
-		}).isInstanceOf(MessageRejectedException.class);
+		Exception caughtException = null;
+		try {
+			assertThat(inputChannel.send(message)).isTrue();
+		}
+		catch (Exception e) {
+			caughtException = e;
+		}
+		finally {
+			Message<?> reply = discardChannel.receive(0);
+			assertThat(reply).isNotNull();
+			assertThat(reply).isEqualTo(message);
+			assertThat(outputChannel.receive(0)).isNull();
+		}
+		assertThat(caughtException).isInstanceOf(MessageRejectedException.class);
 
 	}
 

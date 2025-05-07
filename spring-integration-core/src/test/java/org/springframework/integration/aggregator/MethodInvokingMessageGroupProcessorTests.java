@@ -46,7 +46,8 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -502,8 +503,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MultipleAnnotationTestBean bean = new MultipleAnnotationTestBean();
-		assertThatThrownBy(() -> new MethodInvokingMessageGroupProcessor(bean))
-				.isInstanceOf(IllegalArgumentException.class);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MethodInvokingMessageGroupProcessor(bean));
 	}
 
 	@Test
@@ -548,8 +549,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MultiplePublicMethodTestBean bean = new MultiplePublicMethodTestBean();
-		assertThatThrownBy(() -> new MethodInvokingMessageGroupProcessor(bean))
-				.isInstanceOf(IllegalArgumentException.class);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MethodInvokingMessageGroupProcessor(bean));
 	}
 
 	@Test
@@ -565,8 +566,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		NoPublicMethodTestBean bean = new NoPublicMethodTestBean();
-		assertThatThrownBy(() -> new MethodInvokingMessageGroupProcessor(bean))
-				.isInstanceOf(IllegalStateException.class);
+		assertThatIllegalStateException()
+				.isThrownBy(() -> new MethodInvokingMessageGroupProcessor(bean));
 	}
 
 	@Test

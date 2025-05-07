@@ -25,7 +25,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -88,19 +88,16 @@ public class MethodInvokingSelectorTests {
 	public void voidReturningMethodWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "returnVoid");
 		selector.setBeanFactory(mock(BeanFactory.class));
-		assertThatThrownBy(() -> selector.accept(new GenericMessage<>("test")))
-				.isInstanceOf(IllegalArgumentException.class);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> selector.accept(new GenericMessage<>("test")));
 	}
 
 	@Test
 	public void voidReturningMethodWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method method = testBean.getClass().getMethod("returnVoid", Message.class);
-		assertThatThrownBy(() -> {
-			MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
-			selector.setBeanFactory(mock(BeanFactory.class));
-			selector.accept(new GenericMessage<>("test"));
-		}).isInstanceOf(IllegalArgumentException.class);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MethodInvokingSelector(testBean, method));
 	}
 
 	@SuppressWarnings("unused")

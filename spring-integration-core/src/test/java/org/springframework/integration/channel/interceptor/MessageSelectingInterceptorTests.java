@@ -27,7 +27,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
@@ -52,8 +52,8 @@ public class MessageSelectingInterceptorTests {
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector);
 		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
-		assertThatThrownBy(() -> channel.send(new GenericMessage<>("test1")))
-				.isInstanceOf(MessageDeliveryException.class);
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> channel.send(new GenericMessage<>("test1")));
 	}
 
 	@Test

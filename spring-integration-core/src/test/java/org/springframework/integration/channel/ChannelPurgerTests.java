@@ -24,7 +24,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Mark Fisher
@@ -142,15 +142,15 @@ public class ChannelPurgerTests {
 	@Test
 	public void testNullChannel() {
 		QueueChannel channel = null;
-		assertThatThrownBy(() -> new ChannelPurger(channel))
-				.isInstanceOf(IllegalArgumentException.class);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new ChannelPurger(channel));
 	}
 
 	@Test
 	public void testEmptyChannelArray() {
 		QueueChannel[] channels = new QueueChannel[0];
-		assertThatThrownBy(() -> new ChannelPurger(channels))
-				.isInstanceOf(IllegalArgumentException.class);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new ChannelPurger(channels));
 	}
 
 }

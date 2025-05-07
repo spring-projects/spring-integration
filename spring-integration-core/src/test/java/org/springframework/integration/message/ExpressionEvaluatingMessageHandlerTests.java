@@ -30,8 +30,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -84,16 +83,10 @@ public class ExpressionEvaluatingMessageHandlerTests {
 		ExpressionEvaluatingMessageHandler handler = new ExpressionEvaluatingMessageHandler(expression);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		assertThatThrownBy(() -> {
-			try {
-				handler.handleMessage(message);
-			}
-			catch (MessagingException e) {
-				assertThat(message).isEqualTo(e.getFailedMessage());
-				throw e;
-			}
-		}).isInstanceOf(MessagingException.class);
-
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.extracting(MessagingException::getFailedMessage)
+				.isEqualTo(message);
 	}
 
 }

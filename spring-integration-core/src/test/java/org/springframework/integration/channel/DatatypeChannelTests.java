@@ -45,7 +45,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
@@ -65,8 +65,8 @@ public class DatatypeChannelTests {
 	@Test
 	public void unsupportedTypeAndNoConversionService() {
 		MessageChannel channel = createChannel(Integer.class);
-		assertThatThrownBy(() -> channel.send(new GenericMessage<String>("123")))
-				.isInstanceOf(MessageDeliveryException.class);
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> channel.send(new GenericMessage<String>("123")));
 	}
 
 	@Test
@@ -86,8 +86,8 @@ public class DatatypeChannelTests {
 		DefaultDatatypeChannelMessageConverter converter = new DefaultDatatypeChannelMessageConverter();
 		converter.setConversionService(conversionService);
 		channel.setMessageConverter(converter);
-		assertThatThrownBy(() -> assertThat(channel.send(new GenericMessage<Boolean>(Boolean.TRUE))).isTrue())
-				.isInstanceOf(MessageDeliveryException.class);
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> assertThat(channel.send(new GenericMessage<Boolean>(Boolean.TRUE))).isTrue());
 	}
 
 	@Test
@@ -205,8 +205,8 @@ public class DatatypeChannelTests {
 	@Test
 	public void superclassOfAcceptedTypeNotAccepted() {
 		MessageChannel channel = createChannel(RuntimeException.class);
-		assertThatThrownBy(() -> channel.send(new ErrorMessage(new Exception("test"))))
-				.isInstanceOf(MessageDeliveryException.class);
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> channel.send(new ErrorMessage(new Exception("test"))));
 	}
 
 	@Test
