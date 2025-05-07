@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -31,6 +31,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -149,11 +150,12 @@ public class ServiceActivatorEndpointTests {
 		assertThat(reply.getPayload()).isEqualTo("FOO");
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void noReplyTarget() {
 		ServiceActivatingHandler endpoint = this.createEndpoint();
 		Message<?> message = MessageBuilder.withPayload("foo").build();
-		endpoint.handleMessage(message);
+		assertThatThrownBy(() -> endpoint.handleMessage(message))
+				.isInstanceOf(MessagingException.class);
 	}
 
 	@Test
@@ -168,7 +170,7 @@ public class ServiceActivatorEndpointTests {
 		assertThat(channel.receive(0)).isNull();
 	}
 
-	@Test(expected = ReplyRequiredException.class)
+	@Test
 	public void noReplyMessageWithRequiresReply() {
 		QueueChannel channel = new QueueChannel(1);
 		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(new TestNullReplyBean(), "handle");
@@ -177,7 +179,8 @@ public class ServiceActivatorEndpointTests {
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo").build();
-		endpoint.handleMessage(message);
+		assertThatThrownBy(() -> endpoint.handleMessage(message))
+				.isInstanceOf(ReplyRequiredException.class);
 	}
 
 	@Test

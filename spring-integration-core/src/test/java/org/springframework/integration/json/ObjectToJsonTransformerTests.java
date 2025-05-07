@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
@@ -37,6 +37,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Mark Fisher
@@ -105,10 +106,11 @@ public class ObjectToJsonTransformerTests {
 		assertThat(result.getHeaders().get(MessageHeaders.CONTENT_TYPE)).isEqualTo("text/xml");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void withProvidedContentTypeAsNull() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
-		transformer.setContentType(null);
+		assertThatThrownBy(() -> transformer.setContentType(null))
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test

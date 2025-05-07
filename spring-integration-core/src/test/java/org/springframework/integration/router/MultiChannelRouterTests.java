@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
@@ -30,6 +30,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -63,7 +64,7 @@ public class MultiChannelRouterTests {
 		assertThat(result2.getPayload()).isEqualTo("test");
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void channelNameLookupFailure() {
 		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 
@@ -74,10 +75,10 @@ public class MultiChannelRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new GenericMessage<>("test");
-		router.handleMessage(message);
+		assertThatThrownBy(() -> router.handleMessage(message)).isInstanceOf(MessagingException.class);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void channelMappingNotAvailable() {
 		AbstractMappingMessageRouter router =
 				new AbstractMappingMessageRouter() {
@@ -88,7 +89,8 @@ public class MultiChannelRouterTests {
 				};
 		router.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = new GenericMessage<>("test");
-		router.handleMessage(message);
+		assertThatThrownBy(() -> router.handleMessage(message))
+				.isInstanceOf(MessagingException.class);
 	}
 
 }

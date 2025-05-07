@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
@@ -29,6 +29,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
 /**
@@ -346,7 +347,7 @@ public class PayloadTypeRouterTests {
 		assertThat(result).isNotNull();
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void ambiguityFailure() {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
@@ -370,7 +371,8 @@ public class PayloadTypeRouterTests {
 
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<String> message = new GenericMessage<>("test");
-		router.handleMessage(message);
+		assertThatThrownBy(() -> router.handleMessage(message))
+				.isInstanceOf(MessageHandlingException.class);
 	}
 
 	@Test
@@ -499,7 +501,7 @@ public class PayloadTypeRouterTests {
 		assertThat(c2Channel.receive(100)).isNotNull();
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void classLosesOverLessDistantAmbiguousInterfaces() {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
@@ -529,10 +531,11 @@ public class PayloadTypeRouterTests {
 
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<>(new C1());
-		router.handleMessage(message);
+		assertThatThrownBy(() -> router.handleMessage(message))
+				.isInstanceOf(MessageHandlingException.class);
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void classLosesOverAmbiguousInterfacesAtSameLevel() {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
@@ -562,7 +565,8 @@ public class PayloadTypeRouterTests {
 
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<>(new C1());
-		router.handleMessage(message);
+		assertThatThrownBy(() -> router.handleMessage(message))
+				.isInstanceOf(MessageHandlingException.class);
 	}
 
 	@SuppressWarnings("serial")

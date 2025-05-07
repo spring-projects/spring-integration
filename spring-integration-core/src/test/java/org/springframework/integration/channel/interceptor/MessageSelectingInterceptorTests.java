@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.channel.interceptor;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSelector;
@@ -27,6 +27,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
@@ -44,14 +45,15 @@ public class MessageSelectingInterceptorTests {
 		assertThat(channel.send(new GenericMessage<>("test1"))).isTrue();
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void testSingleSelectorRejects() {
 		final AtomicInteger counter = new AtomicInteger();
 		MessageSelector selector = new TestMessageSelector(false, counter);
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector);
 		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
-		channel.send(new GenericMessage<>("test1"));
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> channel.send(new GenericMessage<>("test1")));
 	}
 
 	@Test

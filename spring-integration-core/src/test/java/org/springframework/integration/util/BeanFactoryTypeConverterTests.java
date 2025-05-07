@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -295,7 +295,7 @@ public class BeanFactoryTypeConverterTests {
 	}
 
 	@Test
-	@Ignore("Too sensitive for the time")
+	@Disabled("Too sensitive for the time")
 	public void initialConcurrency() throws Exception {
 		ConversionService conversionService = mock(ConversionService.class); // can convert nothing so we drop down to
 		// P.E.s

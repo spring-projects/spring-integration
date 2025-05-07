@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
@@ -34,6 +34,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -44,7 +45,7 @@ import static org.mockito.Mockito.mock;
  */
 public class RouterTests {
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void nullChannelRaisesMessageDeliveryExceptionByDefault() {
 		AbstractMappingMessageRouter router =
 				new AbstractMappingMessageRouter() {
@@ -55,10 +56,11 @@ public class RouterTests {
 					}
 				};
 		Message<String> message = new GenericMessage<>("test");
-		router.handleMessage(message);
+		assertThatThrownBy(() -> router.handleMessage(message))
+				.isInstanceOf(MessageDeliveryException.class);
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void nullChannelIdentifierUsingChannelResolverRaisesMessageDeliveryExceptionByDefault() {
 		AbstractMappingMessageRouter router =
 				new AbstractMappingMessageRouter() {
@@ -71,10 +73,11 @@ public class RouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new GenericMessage<>("test");
-		router.handleMessage(message);
+		assertThatThrownBy(() -> router.handleMessage(message))
+				.isInstanceOf(MessageDeliveryException.class);
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void nullChannelIdentifierInListRaisesMessageDeliveryExceptionByDefault() {
 		AbstractMappingMessageRouter router =
 				new AbstractMappingMessageRouter() {
@@ -87,10 +90,11 @@ public class RouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new GenericMessage<>("test");
-		router.handleMessage(message);
+		assertThatThrownBy(() -> router.handleMessage(message))
+				.isInstanceOf(MessageDeliveryException.class);
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void emptyChannelNameArrayRaisesMessageDeliveryExceptionByDefault() {
 		AbstractMappingMessageRouter router =
 				new AbstractMappingMessageRouter() {
@@ -102,10 +106,11 @@ public class RouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new GenericMessage<>("test");
-		router.handleMessage(message);
+		assertThatThrownBy(() -> router.handleMessage(message))
+				.isInstanceOf(MessageDeliveryException.class);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void channelMappingIsRequiredWhenResolvingChannelNames() {
 		AbstractMappingMessageRouter router =
 				new AbstractMappingMessageRouter() {
@@ -115,7 +120,8 @@ public class RouterTests {
 					}
 				};
 		router.setBeanFactory(mock(BeanFactory.class));
-		router.handleMessage(new GenericMessage<>("this should fail"));
+		assertThatThrownBy(() -> router.handleMessage(new GenericMessage<>("this should fail")))
+				.isInstanceOf(MessageDeliveryException.class);
 	}
 
 	@Test
@@ -172,7 +178,7 @@ public class RouterTests {
 		context.close();
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void channelResolutionIsRequiredByDefault() {
 		AbstractMappingMessageRouter router =
 				new AbstractMappingMessageRouter() {
@@ -188,8 +194,9 @@ public class RouterTests {
 		context.refresh();
 
 		router.setBeanFactory(context);
-		router.handleMessage(new GenericMessage<>("test"));
 
+		assertThatThrownBy(() -> router.handleMessage(new GenericMessage<>("test")))
+				.isInstanceOf(MessagingException.class);
 	}
 
 	@Test
@@ -242,7 +249,7 @@ public class RouterTests {
 		context.close();
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void beanFactoryWithRouterAndChannelPrefixFailing() {
 		AbstractMappingMessageRouter router =
 				new AbstractMappingMessageRouter() {
@@ -260,7 +267,8 @@ public class RouterTests {
 		context.refresh();
 
 		router.setBeanFactory(context);
-		router.handleMessage(new GenericMessage<>("test"));
+		assertThatThrownBy(() -> router.handleMessage(new GenericMessage<>("test")))
+				.isInstanceOf(MessagingException.class);
 
 		context.close();
 	}
@@ -290,7 +298,7 @@ public class RouterTests {
 		context.close();
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void beanFactoryWithRouterAndChannelSuffixFailing() {
 		AbstractMappingMessageRouter router =
 				new AbstractMappingMessageRouter() {
@@ -308,7 +316,8 @@ public class RouterTests {
 		context.refresh();
 
 		router.setBeanFactory(context);
-		router.handleMessage(new GenericMessage<>("test"));
+		assertThatThrownBy(() -> router.handleMessage(new GenericMessage<>("test")))
+				.isInstanceOf(MessagingException.class);
 
 		context.close();
 	}
@@ -439,7 +448,7 @@ public class RouterTests {
 
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void beanFactoryWithRouterAndRetrieveChannelIdentifierUsingDefaultConversionServiceFailing() {
 
 		final QueueChannel testChannel1 = new QueueChannel();
@@ -458,7 +467,9 @@ public class RouterTests {
 		context.refresh();
 
 		router.setBeanFactory(context);
-		router.handleMessage(new GenericMessage<>("test"));
+
+		assertThatThrownBy(() -> router.handleMessage(new GenericMessage<>("test")))
+				.isInstanceOf(MessagingException.class);
 	}
 
 }

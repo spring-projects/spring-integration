@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.springframework.integration.endpoint;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -35,6 +35,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ErrorHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -62,7 +63,7 @@ public class PollingConsumerEndpointTests {
 
 	private PollableChannel channelMock;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		this.channelMock = mock(PollableChannel.class);
 		this.endpoint = new PollingConsumer(this.channelMock, this.consumer);
@@ -76,7 +77,7 @@ public class PollingConsumerEndpointTests {
 		this.taskScheduler.afterPropertiesSet();
 	}
 
-	@After
+	@AfterEach
 	public void stop() {
 		taskScheduler.destroy();
 	}
@@ -124,25 +125,27 @@ public class PollingConsumerEndpointTests {
 		}
 	}
 
-	@Test(expected = MessageRejectedException.class)
-	public void rejectedMessage() throws Throwable {
+	@Test
+	public void rejectedMessage() {
 		Mockito.when(this.channelMock.receive()).thenReturn(this.badMessage);
 		this.endpoint.start();
 		this.trigger.await();
 		this.endpoint.stop();
 		assertThat(this.consumer.counter.get()).isEqualTo(1);
-		this.errorHandler.throwLastErrorIfAvailable();
+		assertThatThrownBy(this.errorHandler::throwLastErrorIfAvailable)
+				.isInstanceOf(MessageRejectedException.class);
 	}
 
-	@Test(expected = MessageRejectedException.class)
-	public void droppedMessage_onePerPoll() throws Throwable {
+	@Test
+	public void droppedMessage_onePerPoll() {
 		Mockito.when(this.channelMock.receive()).thenReturn(this.badMessage);
 		this.endpoint.setMaxMessagesPerPoll(10);
 		this.endpoint.start();
 		this.trigger.await();
 		this.endpoint.stop();
 		assertThat(this.consumer.counter.get()).isEqualTo(1);
-		this.errorHandler.throwLastErrorIfAvailable();
+		assertThatThrownBy(this.errorHandler::throwLastErrorIfAvailable)
+				.isInstanceOf(MessageRejectedException.class);
 	}
 
 	@Test

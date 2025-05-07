@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,13 @@ package org.springframework.integration.channel;
 
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Mark Fisher
@@ -138,16 +139,18 @@ public class ChannelPurgerTests {
 		assertThat(channel2.receive(0)).isNotNull();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testNullChannel() {
 		QueueChannel channel = null;
-		new ChannelPurger(channel);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new ChannelPurger(channel));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testEmptyChannelArray() {
 		QueueChannel[] channels = new QueueChannel[0];
-		new ChannelPurger(channels);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new ChannelPurger(channels));
 	}
 
 }

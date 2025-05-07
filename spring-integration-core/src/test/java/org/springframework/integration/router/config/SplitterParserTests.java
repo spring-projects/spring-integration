@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.router.config;
 
 import java.util.Collections;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -31,6 +31,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Mark Fisher
@@ -99,13 +100,14 @@ public class SplitterParserTests {
 		context.close();
 	}
 
-	@Test(expected = ReplyRequiredException.class)
+	@Test
 	public void splitterParserTestWithRequiresReply() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"splitterParserTests.xml", this.getClass());
 		context.start();
 		DirectChannel inputChannel = context.getBean("requiresReplyInput", DirectChannel.class);
-		inputChannel.send(MessageBuilder.withPayload(Collections.emptyList()).build());
+		assertThatThrownBy(() -> inputChannel.send(MessageBuilder.withPayload(Collections.emptyList()).build()))
+				.isInstanceOf(ReplyRequiredException.class);
 		context.close();
 	}
 

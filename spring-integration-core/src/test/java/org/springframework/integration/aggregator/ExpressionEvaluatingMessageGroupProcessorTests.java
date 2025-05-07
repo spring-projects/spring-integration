@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.store.MessageGroup;
@@ -42,17 +39,15 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ExpressionEvaluatingMessageGroupProcessorTests {
 
 	private ExpressionEvaluatingMessageGroupProcessor processor;
 
-	@Mock
-	private MessageGroup group;
+	private final MessageGroup group = mock();
 
 	private final List<Message<?>> messages = new ArrayList<>();
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		messages.clear();
 		for (int i = 0; i < 5; i++) {
