@@ -87,7 +87,7 @@ public class DatatypeChannelTests {
 		converter.setConversionService(conversionService);
 		channel.setMessageConverter(converter);
 		assertThatExceptionOfType(MessageDeliveryException.class)
-				.isThrownBy(() -> assertThat(channel.send(new GenericMessage<Boolean>(Boolean.TRUE))).isTrue());
+				.isThrownBy(() -> channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
 	}
 
 	@Test
