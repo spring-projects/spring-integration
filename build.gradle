@@ -95,7 +95,7 @@ ext {
     micrometerTracingVersion = '1.5.0-SNAPSHOT'
     micrometerVersion = '1.15.0-SNAPSHOT'
     mockitoVersion = '5.16.1'
-    mongoDriverVersion = '5.3.1'
+    mongoDriverVersion = '5.5.0'
     mysqlVersion = '9.2.0'
     oracleVersion = '23.7.0.25.01'
     pahoMqttClientVersion = '1.2.5'
@@ -179,6 +179,7 @@ allprojects {
             mavenBom "org.springframework:spring-framework-bom:$springVersion"
             mavenBom "org.springframework.ws:spring-ws-bom:$springWsVersion"
             mavenBom "org.testcontainers:testcontainers-bom:$testcontainersVersion"
+            mavenBom "org.mongodb:mongodb-driver-bom:$mongoDriverVersion"
         }
 
     }
@@ -816,8 +817,8 @@ project('spring-integration-mongodb') {
     dependencies {
         api 'org.springframework.data:spring-data-mongodb'
 
-        optionalApi "org.mongodb:mongodb-driver-sync:$mongoDriverVersion"
-        optionalApi "org.mongodb:mongodb-driver-reactivestreams:$mongoDriverVersion"
+        optionalApi 'org.mongodb:mongodb-driver-sync'
+        optionalApi 'org.mongodb:mongodb-driver-reactivestreams'
 
         testImplementation 'org.testcontainers:mongodb'
     }
