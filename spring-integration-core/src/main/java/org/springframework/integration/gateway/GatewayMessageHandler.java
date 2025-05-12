@@ -24,6 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.lang.Nullable;
@@ -66,7 +67,7 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 
 	private boolean errorOnTimeout;
 
-	private Executor executor;
+	private Executor executor = new SimpleAsyncTaskExecutor();
 
 	public void setRequestChannel(MessageChannel requestChannel) {
 		this.requestChannel = requestChannel;
@@ -147,6 +148,7 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 		this.gatewayProxyFactoryBean.setDefaultReplyChannelName(this.replyChannelName);
 		this.gatewayProxyFactoryBean.setErrorChannel(this.errorChannel);
 		this.gatewayProxyFactoryBean.setErrorChannelName(this.errorChannelName);
+		this.gatewayProxyFactoryBean.setErrorOnTimeout(this.errorOnTimeout);
 		this.gatewayProxyFactoryBean.setAsyncExecutor(this.executor);
 		if (this.requestTimeout != null) {
 			this.gatewayProxyFactoryBean.setDefaultRequestTimeout(this.requestTimeout);
