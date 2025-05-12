@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,22 @@
 
 package org.springframework.integration.gateway;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 
 /**
- * Interface for a request/reply Message exchange. This will be used as a default
- * by {@link GatewayProxyFactoryBean} if no 'service-interface' property has been provided.
+ * Messaging gateway contract for async request/reply Message exchange.
  *
- * @author Oleg Zhurakousky
- * @author Mark Fisher
  * @author Artem Bilan
  *
- * @since 2.0
+ * @since 6.5
  *
- * @see AsyncRequestReplyExchanger
+ * @see RequestReplyExchanger
  */
 @FunctionalInterface
-public interface RequestReplyExchanger {
+public interface AsyncRequestReplyExchanger {
 
-	Message<?> exchange(Message<?> request) throws MessagingException;
+	CompletableFuture<Message<?>> exchange(Message<?> request);
 
 }

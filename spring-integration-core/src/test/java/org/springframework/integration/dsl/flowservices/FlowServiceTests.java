@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +118,7 @@ public class FlowServiceTests {
 		Message<?> message = replyChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("FOO");
+		assertThat(message.getHeaders().get("currentThread", String.class)).startsWith("SimpleAsyncTaskExecutor-");
 	}
 
 	@Autowired
@@ -155,8 +156,9 @@ public class FlowServiceTests {
 
 		@Bean
 		public IntegrationFlow testGateway() {
-			return f -> f.gateway("processChannel", g -> g.replyChannel("replyChannel"))
-					.log();
+			return f -> f.gateway("processChannel", g -> g.replyChannel("replyChannel").async(true))
+					.enrichHeaders(headers ->
+							headers.headerExpression("currentThread", "T (Thread).currentThread().name"));
 		}
 
 		@Bean

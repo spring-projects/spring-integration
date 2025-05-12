@@ -34,3 +34,6 @@ private static IntegrationFlow subFlow() {
 IMPORTANT: If the downstream flow does not always return a reply, you should set the `requestTimeout` to 0 to prevent hanging the calling thread indefinitely.
 In that case, the flow will end at that point and the thread released for further work.
 
+Starting with version 6.5, this `gateway()` operator fully supports an `async(true)` behaviour.
+Internally, an `AsyncRequestReplyExchanger` service interface is provided for the `GatewayProxyFactoryBean`.
+And since `AsyncRequestReplyExchanger` contract is a `CompletableFuture<Message<?>>`, the whole request-reply is executed in asynchronous manner.

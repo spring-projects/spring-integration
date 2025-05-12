@@ -560,6 +560,12 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);
 
 For a more detailed example, see the https://github.com/spring-projects/spring-integration-samples/tree/main/intermediate/async-gateway[async-gateway] sample in the Spring Integration samples.
 
+Also, starting with version 6.5, the Java DSL `gateway()` operator fully supports an `async(true)` behaviour.
+Internally, an `AsyncRequestReplyExchanger` service interface is provided for the `GatewayProxyFactoryBean`.
+And since `AsyncRequestReplyExchanger` contract is a `CompletableFuture<Message<?>>`, the whole request-reply is executed in asynchronous manner.
+This behavior is useful, for example, in case of splitter-aggregator scenario when another flow has to be called for each item.
+However, the order is not important - only their group gathering on the aggregator after all processing.
+
 [[gateway-asynctaskexecutor]]
 === `AsyncTaskExecutor`
 

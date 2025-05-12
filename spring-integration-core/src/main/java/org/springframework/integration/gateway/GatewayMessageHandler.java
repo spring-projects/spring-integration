@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,17 @@
 
 package org.springframework.integration.gateway;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.management.ManageableLifecycle;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
@@ -37,52 +40,79 @@ import org.springframework.messaging.MessageChannel;
  */
 public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler implements ManageableLifecycle {
 
-	private final GatewayProxyFactoryBean<?> gatewayProxyFactoryBean;
+	private final Lock lock = new ReentrantLock();
 
-	private volatile RequestReplyExchanger exchanger;
+	private volatile GatewayProxyFactoryBean<?> gatewayProxyFactoryBean;
+
+	private volatile Object exchanger;
 
 	private volatile boolean running;
 
-	private final Lock lock = new ReentrantLock();
+	private MessageChannel requestChannel;
 
-	public GatewayMessageHandler() {
-		this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean<>();
-	}
+	private String requestChannelName;
+
+	private MessageChannel replyChannel;
+
+	private String replyChannelName;
+
+	private MessageChannel errorChannel;
+
+	private String errorChannelName;
+
+	private Long requestTimeout;
+
+	private Long replyTimeout;
+
+	private boolean errorOnTimeout;
+
+	private Executor executor;
 
 	public void setRequestChannel(MessageChannel requestChannel) {
-		this.gatewayProxyFactoryBean.setDefaultRequestChannel(requestChannel);
+		this.requestChannel = requestChannel;
 	}
 
 	public void setRequestChannelName(String requestChannel) {
-		this.gatewayProxyFactoryBean.setDefaultRequestChannelName(requestChannel);
+		this.requestChannelName = requestChannel;
 	}
 
 	public void setReplyChannel(MessageChannel replyChannel) {
-		this.gatewayProxyFactoryBean.setDefaultReplyChannel(replyChannel);
+		this.replyChannel = replyChannel;
 	}
 
 	public void setReplyChannelName(String replyChannel) {
-		this.gatewayProxyFactoryBean.setDefaultReplyChannelName(replyChannel);
+		this.replyChannelName = replyChannel;
 	}
 
 	public void setErrorChannel(MessageChannel errorChannel) {
-		this.gatewayProxyFactoryBean.setErrorChannel(errorChannel);
+		this.errorChannel = errorChannel;
 	}
 
 	public void setErrorChannelName(String errorChannel) {
-		this.gatewayProxyFactoryBean.setErrorChannelName(errorChannel);
+		this.errorChannelName = errorChannel;
 	}
 
 	public void setRequestTimeout(Long requestTimeout) {
-		this.gatewayProxyFactoryBean.setDefaultRequestTimeout(requestTimeout);
+		this.requestTimeout = requestTimeout;
 	}
 
 	public void setReplyTimeout(Long replyTimeout) {
-		this.gatewayProxyFactoryBean.setDefaultReplyTimeout(replyTimeout);
+		this.replyTimeout = replyTimeout;
 	}
 
 	public void setErrorOnTimeout(boolean errorOnTimeout) {
-		this.gatewayProxyFactoryBean.setErrorOnTimeout(errorOnTimeout);
+		this.errorOnTimeout = errorOnTimeout;
+	}
+
+	/**
+	 * Set the executor for use when the gateway method returns
+	 * {@link Future} or {@link CompletableFuture}.
+	 * Set it to null to disable the async processing, and any
+	 * {@link Future} return types must be returned by the downstream flow.
+	 * @param executor The executor.
+	 */
+	public void setAsyncExecutor(@Nullable Executor executor) {
+		this.executor = executor;
 	}
 
 	@Override
@@ -98,18 +128,38 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 				this.lock.unlock();
 			}
 		}
-		return this.exchanger.exchange(requestMessage);
+		return isAsync()
+				? ((AsyncRequestReplyExchanger) this.exchanger).exchange(requestMessage)
+				: ((RequestReplyExchanger) this.exchanger).exchange(requestMessage);
 	}
 
 	private void initialize() {
-		BeanFactory beanFactory = getBeanFactory();
+		if (isAsync()) {
+			this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean<>(AsyncRequestReplyExchanger.class);
+		}
+		else {
+			this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean<>(RequestReplyExchanger.class);
+		}
 
-		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			((ConfigurableListableBeanFactory) beanFactory).initializeBean(this.gatewayProxyFactoryBean,
-					getComponentName() + "#gpfb");
+		this.gatewayProxyFactoryBean.setDefaultRequestChannel(this.requestChannel);
+		this.gatewayProxyFactoryBean.setDefaultRequestChannelName(this.requestChannelName);
+		this.gatewayProxyFactoryBean.setDefaultReplyChannel(this.replyChannel);
+		this.gatewayProxyFactoryBean.setDefaultReplyChannelName(this.replyChannelName);
+		this.gatewayProxyFactoryBean.setErrorChannel(this.errorChannel);
+		this.gatewayProxyFactoryBean.setErrorChannelName(this.errorChannelName);
+		this.gatewayProxyFactoryBean.setAsyncExecutor(this.executor);
+		if (this.requestTimeout != null) {
+			this.gatewayProxyFactoryBean.setDefaultRequestTimeout(this.requestTimeout);
+		}
+		if (this.replyTimeout != null) {
+			this.gatewayProxyFactoryBean.setDefaultReplyTimeout(this.replyTimeout);
+		}
+
+		if (getBeanFactory() instanceof ConfigurableListableBeanFactory configurableListableBeanFactory) {
+			configurableListableBeanFactory.initializeBean(this.gatewayProxyFactoryBean, getComponentName() + "#gpfb");
 		}
 		try {
-			this.exchanger = (RequestReplyExchanger) this.gatewayProxyFactoryBean.getObject();
+			this.exchanger = this.gatewayProxyFactoryBean.getObject();
 		}
 		catch (Exception e) {
 			throw new BeanCreationException("Can't instantiate the GatewayProxyFactoryBean: " + this, e);
@@ -123,6 +173,17 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 
 	@Override
 	public void start() {
+		if (this.exchanger == null) {
+			this.lock.lock();
+			try {
+				if (this.exchanger == null) {
+					initialize();
+				}
+			}
+			finally {
+				this.lock.unlock();
+			}
+		}
 		this.gatewayProxyFactoryBean.start();
 		this.running = true;
 	}

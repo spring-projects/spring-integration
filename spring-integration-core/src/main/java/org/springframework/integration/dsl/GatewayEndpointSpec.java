@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.concurrent.Executor;
+
 import org.springframework.integration.gateway.GatewayMessageHandler;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -107,6 +110,19 @@ public class GatewayEndpointSpec extends ConsumerEndpointSpec<GatewayEndpointSpe
 	 */
 	public GatewayEndpointSpec errorOnTimeout(boolean errorOnTimeout) {
 		this.handler.setErrorOnTimeout(errorOnTimeout);
+		return this;
+	}
+
+	/**
+	 * Set an {@link Executor} for async request-reply scenarios.
+	 * @param executor the executor to use.
+	 * @return the spec.
+	 * @since 6.5
+	 * @see org.springframework.integration.gateway.GatewayProxyFactoryBean#setAsyncExecutor(Executor)
+	 */
+
+	public GatewayEndpointSpec asyncExecutor(@Nullable Executor executor) {
+		this.handler.setAsyncExecutor(executor);
 		return this;
 	}
 

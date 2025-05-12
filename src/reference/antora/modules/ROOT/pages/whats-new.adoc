@@ -31,6 +31,9 @@ The `AbstractMessageChannel` beans now throw a special `MessageDispatchingExcept
 In general, it is a design error to try to produce a message from `afterPropertiesSet()`, `@PostConstruct` or bean definition methods.
 The `SmartLifecycle.start()` is preferred way for this kind of logic, or better to do that via inbound channel adapters.
 
+The Java DSL `gateway()` operator now fully supports an `async(true)` behavior.
+See xref:gateway.adoc[] for more information.
+
 [[x6.5-lock-request-handler-advice]]
 == The `LockRequestHandlerAdvice`
 
