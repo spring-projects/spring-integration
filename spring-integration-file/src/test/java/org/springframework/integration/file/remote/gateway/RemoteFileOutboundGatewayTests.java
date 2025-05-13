@@ -968,10 +968,11 @@ public class RemoteFileOutboundGatewayTests {
 
 		Message<String> appendMessage = requestMessageBuilder.setHeader("file.exists.mode", FileExistsMode.APPEND)
 				.build();
-
-		assertThatExceptionOfType(IllegalArgumentException.class)
-				.isThrownBy(() -> gw.handleRequestMessage(appendMessage))
-				.withStackTraceContaining("Cannot append when using a temporary file name");
+		path = (String) gw.handleRequestMessage(appendMessage);
+		assertThat(path).isEqualTo("foo/bar.txt");
+		captor = ArgumentCaptor.forClass(String.class);
+		verify(session).append(any(InputStream.class), captor.capture());
+		assertThat(captor.getValue()).isEqualTo("foo/bar.txt");
 
 		Message<String> ignoreMessage = requestMessageBuilder.setHeader("file.exists.mode", FileExistsMode.IGNORE)
 				.build();
@@ -979,7 +980,7 @@ public class RemoteFileOutboundGatewayTests {
 		assertThat(path).isEqualTo("foo/bar.txt");
 		// no more writes/appends
 		verify(session, times(2)).write(any(InputStream.class), anyString());
-		verify(session, times(0)).append(any(InputStream.class), anyString());
+		verify(session, times(1)).append(any(InputStream.class), anyString());
 	}
 
 	@Test

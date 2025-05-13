@@ -524,9 +524,6 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	public void setFileExistsMode(FileExistsMode fileExistsMode) {
 		this.fileExistsMode = fileExistsMode;
-		if (FileExistsMode.APPEND.equals(fileExistsMode)) {
-			this.remoteFileTemplate.setUseTemporaryFileName(false);
-		}
 	}
 
 	/**
