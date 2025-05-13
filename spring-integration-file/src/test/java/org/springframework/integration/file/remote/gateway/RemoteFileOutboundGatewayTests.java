@@ -71,6 +71,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  * @author Liu Jiong
  * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
  * @since 2.1
  */
