@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
@@ -640,6 +641,65 @@ public class RemoteFileOutboundGatewayTests {
 		outFile.delete();
 	}
 
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testGetExistsExpression() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
+		gw.setFileExistsModeExpression("headers[\"file.exists.mode\"]");
+		gw.setLocalDirectory(new File(this.tmpDir));
+		gw.afterPropertiesSet();
+		File outFile = new File(this.tmpDir + "/f1");
+		FileOutputStream fos = new FileOutputStream(outFile);
+		fos.write("foo".getBytes());
+		fos.close();
+		when(sessionFactory.getSession()).thenReturn(new TestSession() {
+
+			@Override
+			public TestLsEntry[] list(String path) {
+				return new TestLsEntry[] {
+						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
+				};
+			}
+
+			@Override
+			public void read(String source, OutputStream outputStream)
+					throws IOException {
+				outputStream.write("testfile".getBytes());
+			}
+
+		});
+
+		// default (null)
+		MessageBuilder<File> out;
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(new GenericMessage<>("f1")))
+				.withMessageContaining("already exists");
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(
+						new GenericMessage<>("f1", Map.of("file.exists.mode", FileExistsMode.FAIL))))
+				.withMessageContaining("already exists");
+
+		out = (MessageBuilder<File>) gw.handleRequestMessage(
+				new GenericMessage<>("f1", Map.of("file.exists.mode", FileExistsMode.IGNORE)));
+		assertThat(out.getPayload()).isEqualTo(outFile);
+		assertContents("foo", outFile);
+
+		out = (MessageBuilder<File>) gw.handleRequestMessage(
+				new GenericMessage<>("f1", Map.of("file.exists.mode", FileExistsMode.APPEND)));
+		assertThat(out.getPayload()).isEqualTo(outFile);
+		assertContents("footestfile", outFile);
+
+		out = (MessageBuilder<File>) gw.handleRequestMessage(
+				new GenericMessage<>("f1", Map.of("file.exists.mode", FileExistsMode.REPLACE)));
+		assertThat(out.getPayload()).isEqualTo(outFile);
+		assertContents("testfile", outFile);
+
+		outFile.delete();
+	}
+
 	private void assertContents(String expected, File outFile) throws Exception {
 		BufferedReader reader = new BufferedReader(new FileReader(outFile));
 		assertThat(reader.readLine()).isEqualTo(expected);
@@ -858,6 +918,68 @@ public class RemoteFileOutboundGatewayTests {
 		// no more writes/appends
 		verify(session, times(2)).write(any(InputStream.class), anyString());
 		verify(session, times(1)).append(any(InputStream.class), anyString());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testPutExistsExpression() throws Exception {
+		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
+		Session<TestLsEntry> session = mock(Session.class);
+		willReturn(Boolean.TRUE)
+				.given(session)
+				.exists(anyString());
+		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
+		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		template.setBeanFactory(mock(BeanFactory.class));
+		template.afterPropertiesSet();
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", "payload");
+		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
+		handler.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		gw.afterPropertiesSet();
+		gw.setFileExistsModeExpression("headers[\"file.exists.mode\"]");
+		when(sessionFactory.getSession()).thenReturn(session);
+		MessageBuilder<String> requestMessageBuilder = MessageBuilder.withPayload("hello")
+				.setHeader(FileHeaders.FILENAME, "bar.txt");
+
+		Message<String> defaultMessage = requestMessageBuilder.build();
+		String path = (String) gw.handleRequestMessage(defaultMessage);
+		assertThat(path).isEqualTo("foo/bar.txt");
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(session).write(any(InputStream.class), captor.capture());
+		assertThat(captor.getValue()).isEqualTo("foo/bar.txt.writing");
+		verify(session).rename("foo/bar.txt.writing", "foo/bar.txt");
+
+		Message<String> failMessage = requestMessageBuilder.setHeader("file.exists.mode", FileExistsMode.FAIL)
+				.build();
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(failMessage))
+				.withStackTraceContaining("The destination file already exists");
+
+		Message<String> replaceMessage = requestMessageBuilder.setHeader("file.exists.mode", FileExistsMode.REPLACE)
+				.build();
+		path = (String) gw.handleRequestMessage(replaceMessage);
+		assertThat(path).isEqualTo("foo/bar.txt");
+		captor = ArgumentCaptor.forClass(String.class);
+		verify(session, times(2)).write(any(InputStream.class), captor.capture());
+		assertThat(captor.getValue()).isEqualTo("foo/bar.txt.writing");
+		verify(session, times(2)).rename("foo/bar.txt.writing", "foo/bar.txt");
+
+		Message<String> appendMessage = requestMessageBuilder.setHeader("file.exists.mode", FileExistsMode.APPEND)
+				.build();
+
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(appendMessage))
+				.withStackTraceContaining("Cannot append when using a temporary file name");
+
+		Message<String> ignoreMessage = requestMessageBuilder.setHeader("file.exists.mode", FileExistsMode.IGNORE)
+				.build();
+		path = (String) gw.handleRequestMessage(ignoreMessage);
+		assertThat(path).isEqualTo("foo/bar.txt");
+		// no more writes/appends
+		verify(session, times(2)).write(any(InputStream.class), anyString());
+		verify(session, times(0)).append(any(InputStream.class), anyString());
 	}
 
 	@Test

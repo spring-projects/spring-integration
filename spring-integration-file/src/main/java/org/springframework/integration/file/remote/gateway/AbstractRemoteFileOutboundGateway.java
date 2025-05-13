@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Mauro Molinari
+ * @author Jooyoung Pyoung
  *
  * @since 2.1
  */
@@ -113,6 +114,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private FileListFilter<File> mputFilter;
 
 	private Expression localFilenameGeneratorExpression;
+
+	private Expression fileExistsModeExpression;
 
 	private FileExistsMode fileExistsMode;
 
@@ -487,6 +490,32 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Specify a SpEL expression to determine the action to take when files already exist.
+	 * Expression evaluation should return a {@link FileExistsMode} object.
+	 * Used for GET and MGET operations when the file already exists locally,
+	 * or PUT and MPUT when the file exists on the remote system.
+	 * @param fileExistsModeExpression the expression to use.
+	 * @since 6.5
+	 */
+	public void setFileExistsModeExpression(Expression fileExistsModeExpression) {
+		Assert.notNull(fileExistsModeExpression, "'fileExistsModeExpression' must not be null");
+		this.fileExistsModeExpression = fileExistsModeExpression;
+	}
+
+	/**
+	 * Specify a SpEL expression to determine the action to take when files already exist.
+	 * Expression evaluation should return a {@link FileExistsMode} object.
+	 * Used for GET and MGET operations when the file already exists locally,
+	 * or PUT and MPUT when the file exists on the remote system.
+	 * @param fileExistsModeExpression the String in SpEL syntax.
+	 * @since 6.5
+	 */
+	public void setFileExistsModeExpression(String fileExistsModeExpression) {
+		Assert.hasText(fileExistsModeExpression, "'fileExistsModeExpression' must not be empty");
+		this.fileExistsModeExpression = EXPRESSION_PARSER.parseExpression(fileExistsModeExpression);
+	}
+
+	/**
 	 * Determine the action to take when using GET and MGET operations when the file
 	 * already exists locally, or PUT and MPUT when the file exists on the remote
 	 * system.
@@ -845,7 +874,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @since 5.0
 	 */
 	protected String put(Message<?> message, Session<F> session, String subDirectory) {
-		String path = this.remoteFileTemplate.send(message, subDirectory, this.fileExistsMode);
+		FileExistsMode existsMode = resolveFileExistsMode(message);
+		String path = this.remoteFileTemplate.send(message, subDirectory, existsMode);
 		if (path == null) {
 			throw new MessagingException(message, "No local file found for " + message);
 		}
@@ -1130,7 +1160,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		final File localFile =
 				new File(generateLocalDirectory(message, remoteDir), generateLocalFileName(message, remoteFilename));
-		FileExistsMode existsMode = this.fileExistsMode;
+		FileExistsMode existsMode = resolveFileExistsMode(message);
 		boolean appending = FileExistsMode.APPEND.equals(existsMode);
 		boolean exists = localFile.exists();
 		boolean replacing = exists && (FileExistsMode.REPLACE.equals(existsMode)
@@ -1349,6 +1379,15 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		else {
 			return remoteFilePath.substring(index + 1);
 		}
+	}
+
+	private FileExistsMode resolveFileExistsMode(Message<?> message) {
+		if (this.fileExistsModeExpression != null) {
+			EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+			evaluationContext.setVariable("fileExistsMode", this.fileExistsMode);
+			return this.fileExistsModeExpression.getValue(evaluationContext, message, FileExistsMode.class);
+		}
+		return this.fileExistsMode;
 	}
 
 	private File generateLocalDirectory(Message<?> message, String remoteDirectory) {
