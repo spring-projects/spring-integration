@@ -647,7 +647,8 @@ public class RemoteFileOutboundGatewayTests {
 	public void testGetExistsExpression() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
-		gw.setFileExistsModeExpression("headers[\"file.exists.mode\"]");
+		gw.setFileExistsModeExpressionString("headers[\"file.exists.mode\"]");
+
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		File outFile = new File(this.tmpDir + "/f1");
@@ -684,12 +685,12 @@ public class RemoteFileOutboundGatewayTests {
 				.withMessageContaining("already exists");
 
 		out = (MessageBuilder<File>) gw.handleRequestMessage(
-				new GenericMessage<>("f1", Map.of("file.exists.mode", FileExistsMode.IGNORE)));
+				new GenericMessage<>("f1", Map.of("file.exists.mode", "IGNORE")));
 		assertThat(out.getPayload()).isEqualTo(outFile);
 		assertContents("foo", outFile);
 
 		out = (MessageBuilder<File>) gw.handleRequestMessage(
-				new GenericMessage<>("f1", Map.of("file.exists.mode", FileExistsMode.APPEND)));
+				new GenericMessage<>("f1", Map.of("file.exists.mode", "append")));
 		assertThat(out.getPayload()).isEqualTo(outFile);
 		assertContents("footestfile", outFile);
 
@@ -939,7 +940,7 @@ public class RemoteFileOutboundGatewayTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();
-		gw.setFileExistsModeExpression("headers[\"file.exists.mode\"]");
+		gw.setFileExistsModeExpressionString("headers[\"file.exists.mode\"]");
 		when(sessionFactory.getSession()).thenReturn(session);
 		MessageBuilder<String> requestMessageBuilder = MessageBuilder.withPayload("hello")
 				.setHeader(FileHeaders.FILENAME, "bar.txt");
@@ -958,7 +959,7 @@ public class RemoteFileOutboundGatewayTests {
 				.isThrownBy(() -> gw.handleRequestMessage(failMessage))
 				.withStackTraceContaining("The destination file already exists");
 
-		Message<String> replaceMessage = requestMessageBuilder.setHeader("file.exists.mode", FileExistsMode.REPLACE)
+		Message<String> replaceMessage = requestMessageBuilder.setHeader("file.exists.mode", "replace")
 				.build();
 		path = (String) gw.handleRequestMessage(replaceMessage);
 		assertThat(path).isEqualTo("foo/bar.txt");
@@ -967,7 +968,7 @@ public class RemoteFileOutboundGatewayTests {
 		assertThat(captor.getValue()).isEqualTo("foo/bar.txt.writing");
 		verify(session, times(2)).rename("foo/bar.txt.writing", "foo/bar.txt");
 
-		Message<String> appendMessage = requestMessageBuilder.setHeader("file.exists.mode", FileExistsMode.APPEND)
+		Message<String> appendMessage = requestMessageBuilder.setHeader("file.exists.mode", "APPEND")
 				.build();
 		path = (String) gw.handleRequestMessage(appendMessage);
 		assertThat(path).isEqualTo("foo/bar.txt");

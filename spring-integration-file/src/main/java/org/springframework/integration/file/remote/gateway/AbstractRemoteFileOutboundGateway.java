@@ -119,6 +119,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private FileExistsMode fileExistsMode;
 
+	private EvaluationContext standardEvaluationContext;
+
 	private Integer chmod;
 
 	private boolean remoteFileTemplateExplicitlySet;
@@ -510,7 +512,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param fileExistsModeExpression the String in SpEL syntax.
 	 * @since 6.5
 	 */
-	public void setFileExistsModeExpression(String fileExistsModeExpression) {
+	public void setFileExistsModeExpressionString(String fileExistsModeExpression) {
 		Assert.hasText(fileExistsModeExpression, "'fileExistsModeExpression' must not be empty");
 		this.fileExistsModeExpression = EXPRESSION_PARSER.parseExpression(fileExistsModeExpression);
 	}
@@ -579,6 +581,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 							Option.RECURSIVE.toString() + " to obtain files in subdirectories");
 		}
 
+		if (FileExistsMode.APPEND.equals(this.fileExistsMode) && this.remoteFileTemplate.isUseTemporaryFileName()) {
+			logger.warn("FileExistsMode.APPEND is incompatible with useTemporaryFileName=true. " +
+					"Temporary filename will be ignored for APPEND mode.");
+		}
+
+		this.standardEvaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+
 		populateBeanFactoryIntoComponentsIfAny();
 		if (!this.remoteFileTemplateExplicitlySet) {
 			this.remoteFileTemplate.afterPropertiesSet();
@@ -599,7 +608,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private void setupLocalDirectory() {
 		File localDirectory =
 				ExpressionUtils.expressionToFile(this.localDirectoryExpression,
-						ExpressionUtils.createStandardEvaluationContext(getBeanFactory()), null,
+						this.standardEvaluationContext, null,
 						"localDirectoryExpression");
 		if (!localDirectory.exists()) {
 			try {
@@ -1380,19 +1389,37 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private FileExistsMode resolveFileExistsMode(Message<?> message) {
 		if (this.fileExistsModeExpression != null) {
-			EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-			evaluationContext.setVariable("fileExistsMode", this.fileExistsMode);
-			return this.fileExistsModeExpression.getValue(evaluationContext, message, FileExistsMode.class);
+			Object evaluationResult = this.fileExistsModeExpression.getValue(this.standardEvaluationContext, message);
+			if (evaluationResult == null) {
+				return this.fileExistsMode;
+			}
+			else if (evaluationResult instanceof FileExistsMode resolvedMode) {
+				return resolvedMode;
+			}
+			else if (evaluationResult instanceof String modeAsString) {
+				try {
+					return FileExistsMode.valueOf(modeAsString.toUpperCase());
+				}
+				catch (IllegalArgumentException ex) {
+					throw new MessagingException(message,
+							"Invalid FileExistsMode string: '" + modeAsString + "'. Expected one of: " +
+									Arrays.toString(FileExistsMode.values()), ex);
+				}
+			}
+			else {
+				throw new MessagingException(message,
+						"Expression returned invalid type for FileExistsMode: " +
+								evaluationResult.getClass().getName() + ". Expected FileExistsMode or String.");
+			}
 		}
 		return this.fileExistsMode;
 	}
 
 	private File generateLocalDirectory(Message<?> message, String remoteDirectory) {
-		EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (remoteDirectory != null) {
-			evaluationContext.setVariable("remoteDirectory", remoteDirectory);
+			this.standardEvaluationContext.setVariable("remoteDirectory", remoteDirectory);
 		}
-		File localDir = ExpressionUtils.expressionToFile(this.localDirectoryExpression, evaluationContext, message,
+		File localDir = ExpressionUtils.expressionToFile(this.localDirectoryExpression, this.standardEvaluationContext, message,
 				"Local Directory");
 		if (!localDir.exists()) {
 			Assert.isTrue(localDir.mkdirs(), () -> "Failed to make local directory: " + localDir);
@@ -1402,9 +1429,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private String generateLocalFileName(Message<?> message, String remoteFileName) {
 		if (this.localFilenameGeneratorExpression != null) {
-			EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-			evaluationContext.setVariable("remoteFileName", remoteFileName);
-			return this.localFilenameGeneratorExpression.getValue(evaluationContext, message, String.class);
+			this.standardEvaluationContext.setVariable("remoteFileName", remoteFileName);
+			return this.localFilenameGeneratorExpression.getValue(this.standardEvaluationContext, message, String.class);
 		}
 		return remoteFileName;
 	}

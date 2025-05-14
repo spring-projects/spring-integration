@@ -565,8 +565,8 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		// write remote file first with temporary file extension if enabled
 
 		String tempFilePath = tempRemoteFilePath;
-		if (!FileExistsMode.APPEND.equals(mode)) {
-			tempFilePath += this.useTemporaryFileName ? this.temporaryFileSuffix : "";
+		if (!FileExistsMode.APPEND.equals(mode) && this.useTemporaryFileName) {
+			tempFilePath += this.temporaryFileSuffix;
 		}
 
 		if (this.autoCreateDirectory) {

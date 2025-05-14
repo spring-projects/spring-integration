@@ -79,6 +79,13 @@ The `AbstractRecentFileListFilter` strategy has been introduced to accept only t
 The respective implementations are provided: `RecentFileListFilter`, `FtpRecentFileListFilter`, `SftpRecentFileListFilter` and `SmbRecentFileListFilter`.
 See xref:file/reading.adoc[Reading Files] for more information.
 
+[[x6.5-file-exists-mode-expression]]
+== FileExistsMode Expression Support
+
+The remote file gateways (`AbstractRemoteFileOutboundGateway`) now support dynamic resolution of `FileExistsMode` at runtime via SpEL expressions. This allows determining the action to take when files already exist based on message content or other conditions.
+The expression can evaluate to a `FileExistsMode` enum value or a string representation (case-insensitive). If the expression returns `null`, the default `fileExistsMode` configured on the gateway will be used.
+See xref:ftp/rft.adoc[Remote File Gateways] for more information.
+
 [[x6.5-hazelcast-changes]]
 == Hazelcast Module Deprecations
 
