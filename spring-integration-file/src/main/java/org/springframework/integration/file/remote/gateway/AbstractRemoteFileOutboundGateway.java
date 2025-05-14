@@ -1390,10 +1390,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private FileExistsMode resolveFileExistsMode(Message<?> message) {
 		if (this.fileExistsModeExpression != null) {
 			Object evaluationResult = this.fileExistsModeExpression.getValue(this.standardEvaluationContext, message);
-			if (evaluationResult == null) {
-				return this.fileExistsMode;
-			}
-			else if (evaluationResult instanceof FileExistsMode resolvedMode) {
+			if (evaluationResult instanceof FileExistsMode resolvedMode) {
 				return resolvedMode;
 			}
 			else if (evaluationResult instanceof String modeAsString) {
@@ -1406,7 +1403,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 									Arrays.toString(FileExistsMode.values()), ex);
 				}
 			}
-			else {
+			else if (evaluationResult != null) {
 				throw new MessagingException(message,
 						"Expression returned invalid type for FileExistsMode: " +
 								evaluationResult.getClass().getName() + ". Expected FileExistsMode or String.");

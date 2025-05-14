@@ -37,9 +37,8 @@ This is useful when you need to perform several high-level operations of the `Re
 For example, `AbstractRemoteFileOutboundGateway` uses it with the `mput` command implementation, where we perform a `put` operation for each file in the provided directory and recursively for its sub-directories.
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileOperations.html#invoke[Javadoc] for more information.
 
-Starting with version 6.5, the `AbstractRemoteFileOutboundGateway` supports dynamic resolution of `FileExistsMode`
-at runtime via SpEL expressions. This allows you to determine the action to take when files already
-exist based on message content or other conditions.
+Starting with version 6.5, the `AbstractRemoteFileOutboundGateway` supports dynamic resolution of `FileExistsMode` at runtime via SpEL expressions.
+This allows you to determine the action to take when files already exist based on message content or other conditions.
 
 To use this feature, configure the `fileExistsModeExpression` property on the gateway.
 The expression can evaluate to:
@@ -53,7 +52,6 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 
 [IMPORTANT]
 ====
-When using `FileExistsMode.APPEND`, temporary filename functionality is automatically disabled
-regardless of the `useTemporaryFileName` setting. This is because appending to a temporary file
-and then renaming it would not achieve the intended append behavior.
+When using `FileExistsMode.APPEND`, temporary filename functionality is automatically disabled regardless of the `useTemporaryFileName` setting.
+This is because appending to a temporary file and then renaming it would not achieve the intended append behavior.
 ====

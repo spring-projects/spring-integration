@@ -388,6 +388,20 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	}
 
 	/**
+	 * Specify a {@link Function} to determine the action to take when files already exist.
+	 * Expression evaluation should return a {@link FileExistsMode} or a String representation.
+	 * Used for GET and MGET operations when the file already exists locally,
+	 * or PUT and MPUT when the file exists on the remote system.
+	 * @param fileExistsModeFunction the {@link Function} to use.
+	 * @param <P> the expected payload type.
+	 * @return the Spec.
+	 * @since 6.5
+	 */
+	public <P> S fileExistsModeFunction(Function<Message<P>, String> fileExistsModeFunction) {
+		return remoteDirectoryExpression(new FunctionExpression<>(fileExistsModeFunction));
+	}
+
+	/**
 	 * Determine whether the remote directory should automatically be created when
 	 * sending files to the remote system.
 	 * @param autoCreateDirectory true to create the directory.
