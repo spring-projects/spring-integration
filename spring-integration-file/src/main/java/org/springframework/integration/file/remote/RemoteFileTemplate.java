@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Alen Turkovic
+ * @author Jooyoung Pyoung
  *
  * @since 3.0
  *
@@ -303,8 +304,6 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private String send(Message<?> message, String subDirectory, FileExistsMode mode) {
 		Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
-		Assert.isTrue(!FileExistsMode.APPEND.equals(mode) || !this.useTemporaryFileName,
-				"Cannot append when using a temporary file name");
 		Assert.isTrue(!FileExistsMode.REPLACE_IF_MODIFIED.equals(mode),
 				"FilExistsMode.REPLACE_IF_MODIFIED can only be used for local files");
 		final StreamHolder inputStreamHolder = payloadToInputStream(message);
@@ -565,7 +564,10 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
 		// write remote file first with temporary file extension if enabled
 
-		String tempFilePath = tempRemoteFilePath + (this.useTemporaryFileName ? this.temporaryFileSuffix : "");
+		String tempFilePath = tempRemoteFilePath;
+		if (!FileExistsMode.APPEND.equals(mode) && this.useTemporaryFileName) {
+			tempFilePath += this.temporaryFileSuffix;
+		}
 
 		if (this.autoCreateDirectory) {
 			try {

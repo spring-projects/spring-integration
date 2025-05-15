@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.messaging.Message;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jooyoung Pyoung
  *
  * @since 5.0
  */
@@ -356,6 +357,48 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	public S fileExistsMode(FileExistsMode fileExistsMode) {
 		this.target.setFileExistsMode(fileExistsMode);
 		return _this();
+	}
+
+	/**
+	 * Specify a SpEL expression to determine the action to take when files already exist.
+	 * Expression evaluation should return a {@link FileExistsMode} or a String representation.
+	 * Used for GET and MGET operations when the file already exists locally,
+	 * or PUT and MPUT when the file exists on the remote system.
+	 * @param fileExistsModeExpression a SpEL expression to evaluate the file exists mode
+	 * @return the Spec.
+	 * @since 6.5
+	 */
+	public S fileExistsModeExpression(Expression fileExistsModeExpression) {
+		this.target.setFileExistsModeExpression(fileExistsModeExpression);
+		return _this();
+	}
+
+	/**
+	 * Specify a SpEL expression to determine the action to take when files already exist.
+	 * Expression evaluation should return a {@link FileExistsMode} or a String representation.
+	 * Used for GET and MGET operations when the file already exists locally,
+	 * or PUT and MPUT when the file exists on the remote system.
+	 * @param fileExistsModeExpression the String in SpEL syntax.
+	 * @return the Spec.
+	 * @since 6.5
+	 */
+	public S fileExistsModeExpression(String fileExistsModeExpression) {
+		this.target.setFileExistsModeExpressionString(fileExistsModeExpression);
+		return _this();
+	}
+
+	/**
+	 * Specify a {@link Function} to determine the action to take when files already exist.
+	 * Expression evaluation should return a {@link FileExistsMode} or a String representation.
+	 * Used for GET and MGET operations when the file already exists locally,
+	 * or PUT and MPUT when the file exists on the remote system.
+	 * @param fileExistsModeFunction the {@link Function} to use.
+	 * @param <P> the expected payload type.
+	 * @return the Spec.
+	 * @since 6.5
+	 */
+	public <P> S fileExistsModeFunction(Function<Message<P>, Object> fileExistsModeFunction) {
+		return fileExistsModeExpression(new FunctionExpression<>(fileExistsModeFunction));
 	}
 
 	/**

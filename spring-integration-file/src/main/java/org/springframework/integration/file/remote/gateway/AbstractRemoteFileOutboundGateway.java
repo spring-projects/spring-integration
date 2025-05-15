@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Mauro Molinari
+ * @author Jooyoung Pyoung
  *
  * @since 2.1
  */
@@ -114,7 +115,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private Expression localFilenameGeneratorExpression;
 
+	private Expression fileExistsModeExpression;
+
 	private FileExistsMode fileExistsMode;
+
+	private EvaluationContext standardEvaluationContext;
 
 	private Integer chmod;
 
@@ -487,6 +492,32 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Specify a SpEL expression to determine the action to take when files already exist.
+	 * Expression evaluation should return a {@link FileExistsMode} object.
+	 * Used for GET and MGET operations when the file already exists locally,
+	 * or PUT and MPUT when the file exists on the remote system.
+	 * @param fileExistsModeExpression the expression to use.
+	 * @since 6.5
+	 */
+	public void setFileExistsModeExpression(Expression fileExistsModeExpression) {
+		Assert.notNull(fileExistsModeExpression, "'fileExistsModeExpression' must not be null");
+		this.fileExistsModeExpression = fileExistsModeExpression;
+	}
+
+	/**
+	 * Specify a SpEL expression to determine the action to take when files already exist.
+	 * Expression evaluation should return a {@link FileExistsMode} object.
+	 * Used for GET and MGET operations when the file already exists locally,
+	 * or PUT and MPUT when the file exists on the remote system.
+	 * @param fileExistsModeExpression the String in SpEL syntax.
+	 * @since 6.5
+	 */
+	public void setFileExistsModeExpressionString(String fileExistsModeExpression) {
+		Assert.hasText(fileExistsModeExpression, "'fileExistsModeExpression' must not be empty");
+		this.fileExistsModeExpression = EXPRESSION_PARSER.parseExpression(fileExistsModeExpression);
+	}
+
+	/**
 	 * Determine the action to take when using GET and MGET operations when the file
 	 * already exists locally, or PUT and MPUT when the file exists on the remote
 	 * system.
@@ -495,9 +526,6 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	public void setFileExistsMode(FileExistsMode fileExistsMode) {
 		this.fileExistsMode = fileExistsMode;
-		if (FileExistsMode.APPEND.equals(fileExistsMode)) {
-			this.remoteFileTemplate.setUseTemporaryFileName(false);
-		}
 	}
 
 	/**
@@ -539,6 +567,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			Assert.isNull(this.filter, "Filters are not supported with the rm and get commands");
 		}
 
+		this.standardEvaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if ((Command.GET.equals(this.command) && !this.options.contains(Option.STREAM))
 				|| Command.MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectoryExpression, "localDirectory must not be null");
@@ -551,6 +580,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			Assert.isTrue(!(this.options.contains(Option.SUBDIRS)),
 					() -> "Cannot use " + Option.SUBDIRS.toString() + " when using 'mget' use " +
 							Option.RECURSIVE.toString() + " to obtain files in subdirectories");
+		}
+
+		if (FileExistsMode.APPEND.equals(this.fileExistsMode) && this.remoteFileTemplate.isUseTemporaryFileName()) {
+			logger.warn("FileExistsMode.APPEND is incompatible with useTemporaryFileName=true. " +
+					"Temporary filename will be ignored for APPEND mode.");
 		}
 
 		populateBeanFactoryIntoComponentsIfAny();
@@ -573,7 +607,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private void setupLocalDirectory() {
 		File localDirectory =
 				ExpressionUtils.expressionToFile(this.localDirectoryExpression,
-						ExpressionUtils.createStandardEvaluationContext(getBeanFactory()), null,
+						this.standardEvaluationContext, null,
 						"localDirectoryExpression");
 		if (!localDirectory.exists()) {
 			try {
@@ -845,7 +879,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @since 5.0
 	 */
 	protected String put(Message<?> message, Session<F> session, String subDirectory) {
-		String path = this.remoteFileTemplate.send(message, subDirectory, this.fileExistsMode);
+		FileExistsMode existsMode = resolveFileExistsMode(message);
+		String path = this.remoteFileTemplate.send(message, subDirectory, existsMode);
 		if (path == null) {
 			throw new MessagingException(message, "No local file found for " + message);
 		}
@@ -1130,7 +1165,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		final File localFile =
 				new File(generateLocalDirectory(message, remoteDir), generateLocalFileName(message, remoteFilename));
-		FileExistsMode existsMode = this.fileExistsMode;
+		FileExistsMode existsMode = resolveFileExistsMode(message);
 		boolean appending = FileExistsMode.APPEND.equals(existsMode);
 		boolean exists = localFile.exists();
 		boolean replacing = exists && (FileExistsMode.REPLACE.equals(existsMode)
@@ -1349,6 +1384,31 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		else {
 			return remoteFilePath.substring(index + 1);
 		}
+	}
+
+	private FileExistsMode resolveFileExistsMode(Message<?> message) {
+		if (this.fileExistsModeExpression != null) {
+			Object evaluationResult = this.fileExistsModeExpression.getValue(this.standardEvaluationContext, message);
+			if (evaluationResult instanceof FileExistsMode resolvedMode) {
+				return resolvedMode;
+			}
+			else if (evaluationResult instanceof String modeAsString) {
+				try {
+					return FileExistsMode.valueOf(modeAsString.toUpperCase());
+				}
+				catch (IllegalArgumentException ex) {
+					throw new MessagingException(message,
+							"Invalid FileExistsMode string: '" + modeAsString + "'. Expected one of: " +
+									Arrays.toString(FileExistsMode.values()), ex);
+				}
+			}
+			else if (evaluationResult != null) {
+				throw new MessagingException(message,
+						"Expression returned invalid type for FileExistsMode: " +
+								evaluationResult.getClass().getName() + ". Expected FileExistsMode or String.");
+			}
+		}
+		return this.fileExistsMode;
 	}
 
 	private File generateLocalDirectory(Message<?> message, String remoteDirectory) {
