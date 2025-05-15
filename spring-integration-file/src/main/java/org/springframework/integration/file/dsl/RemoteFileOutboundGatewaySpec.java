@@ -397,8 +397,8 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 * @return the Spec.
 	 * @since 6.5
 	 */
-	public <P> S fileExistsModeFunction(Function<Message<P>, String> fileExistsModeFunction) {
-		return remoteDirectoryExpression(new FunctionExpression<>(fileExistsModeFunction));
+	public <P> S fileExistsModeFunction(Function<Message<P>, Object> fileExistsModeFunction) {
+		return fileExistsModeExpression(new FunctionExpression<>(fileExistsModeFunction));
 	}
 
 	/**

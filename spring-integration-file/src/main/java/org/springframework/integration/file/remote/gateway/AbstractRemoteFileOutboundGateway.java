@@ -567,6 +567,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			Assert.isNull(this.filter, "Filters are not supported with the rm and get commands");
 		}
 
+		this.standardEvaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if ((Command.GET.equals(this.command) && !this.options.contains(Option.STREAM))
 				|| Command.MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectoryExpression, "localDirectory must not be null");
@@ -585,8 +586,6 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			logger.warn("FileExistsMode.APPEND is incompatible with useTemporaryFileName=true. " +
 					"Temporary filename will be ignored for APPEND mode.");
 		}
-
-		this.standardEvaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 
 		populateBeanFactoryIntoComponentsIfAny();
 		if (!this.remoteFileTemplateExplicitlySet) {
@@ -1413,10 +1412,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	private File generateLocalDirectory(Message<?> message, String remoteDirectory) {
+		EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (remoteDirectory != null) {
-			this.standardEvaluationContext.setVariable("remoteDirectory", remoteDirectory);
+			evaluationContext.setVariable("remoteDirectory", remoteDirectory);
 		}
-		File localDir = ExpressionUtils.expressionToFile(this.localDirectoryExpression, this.standardEvaluationContext, message,
+		File localDir = ExpressionUtils.expressionToFile(this.localDirectoryExpression, evaluationContext, message,
 				"Local Directory");
 		if (!localDir.exists()) {
 			Assert.isTrue(localDir.mkdirs(), () -> "Failed to make local directory: " + localDir);
@@ -1426,8 +1426,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private String generateLocalFileName(Message<?> message, String remoteFileName) {
 		if (this.localFilenameGeneratorExpression != null) {
-			this.standardEvaluationContext.setVariable("remoteFileName", remoteFileName);
-			return this.localFilenameGeneratorExpression.getValue(this.standardEvaluationContext, message, String.class);
+			EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+			evaluationContext.setVariable("remoteFileName", remoteFileName);
+			return this.localFilenameGeneratorExpression.getValue(evaluationContext, message, String.class);
 		}
 		return remoteFileName;
 	}
