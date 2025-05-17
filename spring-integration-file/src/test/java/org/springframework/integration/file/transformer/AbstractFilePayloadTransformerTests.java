@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.springframework.integration.file.transformer;
 import java.io.File;
 import java.io.FileOutputStream;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.MessageBuilder;
@@ -46,7 +46,7 @@ public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFile
 
 	File sourceFile;
 
-	@Before
+	@BeforeEach
 	public void setUpCommonTestData() throws Exception {
 		sourceFile = File.createTempFile("anyFile", ".txt");
 		sourceFile.deleteOnExit();
@@ -55,7 +55,7 @@ public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFile
 		message = MessageBuilder.withPayload(sourceFile).build();
 	}
 
-	@After
+	@AfterEach
 	public void tearDownCommonTestData() {
 		if (sourceFile.exists()) {
 			sourceFile.delete();

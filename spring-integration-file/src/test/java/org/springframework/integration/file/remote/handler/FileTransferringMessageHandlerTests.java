@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -38,6 +38,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -124,7 +125,7 @@ public class FileTransferringMessageHandlerTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public <F> void testEmptyTemporaryFileSuffixCannotBeNull() throws Exception {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		Session<F> session = mock(Session.class);
@@ -132,8 +133,8 @@ public class FileTransferringMessageHandlerTests {
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.setRemoteDirectoryExpressionString("headers['path']");
-		handler.setTemporaryFileSuffix(null);
-		handler.onInit();
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> handler.setTemporaryFileSuffix(null));
 	}
 
 	@SuppressWarnings("unchecked")

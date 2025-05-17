@@ -18,11 +18,11 @@
 				   static-field="org.springframework.integration.file.config.FileOutboundGatewayParserTests.tempFolder"/>
 
 	<int-file:outbound-gateway id="ordered"
-							   request-channel="someChannel" reply-timeout="777" directory="#{temporaryFolder.root}"
+							   request-channel="someChannel" reply-timeout="777" directory="#{temporaryFolder}"
 							   auto-startup="false" order="777" filename-generator-expression="'foo.txt'"/>
 
 	<int-file:outbound-gateway id="gatewayWithDirectoryExpression"
-							   request-channel="someChannel" directory-expression="temporaryFolder.root"
+							   request-channel="someChannel" directory-expression="temporaryFolder"
 							   auto-startup="false" order="777" filename-generator-expression="'foo.txt'"
 							   requires-reply="false">
 		<int-file:request-handler-advice-chain>
@@ -33,32 +33,32 @@
 	<int-file:outbound-gateway id="gatewayWithReplaceMode"
 							   request-channel="gatewayWithReplaceModeChannel"
 							   filename-generator-expression="'fileToAppend.txt'" mode="REPLACE"
-							   directory="#{temporaryFolder.root}" requires-reply="false"/>
+							   directory="#{temporaryFolder}" requires-reply="false"/>
 
 	<int-file:outbound-gateway id="gatewayWithAppendMode"
 							   request-channel="gatewayWithAppendModeChannel"
 							   filename-generator-expression="'fileToAppend.txt'" mode="APPEND"
-							   directory="#{temporaryFolder.root}"/>
+							   directory="#{temporaryFolder}"/>
 
 	<int-file:outbound-gateway id="gatewayWithFailMode"
 							   request-channel="gatewayWithFailModeChannel"
 							   filename-generator-expression="'fileToAppend.txt'" mode="FAIL"
-							   directory="#{temporaryFolder.root}"/>
+							   directory="#{temporaryFolder}"/>
 
 	<int-file:outbound-gateway id="gatewayWithIgnoreMode"
 							   request-channel="gatewayWithIgnoreModeChannel"
 							   filename-generator-expression="'fileToAppend.txt'" mode="IGNORE"
-							   directory="#{temporaryFolder.root}"/>
+							   directory="#{temporaryFolder}"/>
 
 	<int-file:outbound-gateway id="gatewayWithFailModeLowercase"
 							   request-channel="gatewayWithFailModeLowercaseChannel"
 							   filename-generator-expression="'fileToAppend.txt'" mode="fail"
-							   directory="#{temporaryFolder.root}"/>
+							   directory="#{temporaryFolder}"/>
 
 	<int-file:outbound-gateway id="gatewayWithAppendNewLine"
 							   request-channel="gatewayWithAppendNewLineChannel"
 							   filename-generator-expression="'fileToAppend.txt'"
 							   append-new-line="true"
-							   directory="#{temporaryFolder.root}"/>
+							   directory="#{temporaryFolder}"/>
 
 </beans:beans>

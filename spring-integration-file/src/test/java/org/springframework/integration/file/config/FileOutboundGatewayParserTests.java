@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,8 @@ package org.springframework.integration.file.config;
 
 import java.io.File;
 
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +37,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,12 +49,11 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Artem Bilan
  * @author Tony Falabella
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class FileOutboundGatewayParserTests {
 
-	@ClassRule
-	public static final TemporaryFolder tempFolder = new TemporaryFolder();
+	public static File tempFolder = new File(System.getProperty("java.io.tmpdir"), "FileOutboundGatewayParserTests");
 
 	@Autowired
 	private EventDrivenConsumer ordered;
@@ -89,9 +85,12 @@ public class FileOutboundGatewayParserTests {
 
 	private static volatile int adviceCalled;
 
-	@Before
+	@BeforeEach
 	public void setup() {
-		tempFolder.delete();
+		File[] files = tempFolder.listFiles();
+		for (File file : files) {
+			file.delete();
+		}
 	}
 
 	@Test
@@ -120,7 +119,7 @@ public class FileOutboundGatewayParserTests {
 		FileWritingMessageHandler handler =
 				TestUtils.getPropertyValue(gatewayWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
 		assertThat(TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class)
-				.getExpressionString()).isEqualTo("temporaryFolder.root");
+				.getExpressionString()).isEqualTo("temporaryFolder");
 		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
@@ -140,7 +139,7 @@ public class FileOutboundGatewayParserTests {
 		messagingTemplate.setDefaultDestination(this.gatewayWithIgnoreModeChannel);
 
 		final String expectedFileContent = "Initial File Content:";
-		final File testFile = new File(tempFolder.getRoot(), "fileToAppend.txt");
+		final File testFile = new File(tempFolder, "fileToAppend.txt");
 
 		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 
@@ -172,7 +171,7 @@ public class FileOutboundGatewayParserTests {
 
 		String expectedFileContent = "Initial File Content:";
 
-		File testFile = new File(tempFolder.getRoot(), "fileToAppend.txt");
+		File testFile = new File(tempFolder, "fileToAppend.txt");
 
 		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 
@@ -199,7 +198,7 @@ public class FileOutboundGatewayParserTests {
 
 		String expectedFileContent = "Initial File Content:";
 
-		File testFile = new File(tempFolder.getRoot(), "fileToAppend.txt");
+		File testFile = new File(tempFolder, "fileToAppend.txt");
 
 		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 
@@ -228,7 +227,7 @@ public class FileOutboundGatewayParserTests {
 
 		String expectedFileContent = "Initial File Content:String content:";
 
-		File testFile = new File(tempFolder.getRoot(), "fileToAppend.txt");
+		File testFile = new File(tempFolder, "fileToAppend.txt");
 
 		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 		Message<?> m = messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));
@@ -263,7 +262,7 @@ public class FileOutboundGatewayParserTests {
 
 		String expectedFileContent = "String content:";
 
-		File testFile = new File(tempFolder.getRoot(), "fileToAppend.txt");
+		File testFile = new File(tempFolder, "fileToAppend.txt");
 
 		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 		Message<?> m = messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));

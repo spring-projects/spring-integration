@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@
 package org.springframework.integration.amqp.support;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.BrokerRunning;
+import org.springframework.amqp.rabbit.junit.RabbitAvailable;
+import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.rabbit.support.DefaultMessagePropertiesConverter;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.integration.json.ObjectToJsonTransformer;
@@ -39,24 +39,22 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 4.3
  *
  */
+@RabbitAvailable(queues = {JsonConverterCompatibilityTests.JSON_TESTQ})
 public class JsonConverterCompatibilityTests {
 
-	private static final String JSON_TESTQ = "si.json.tests";
-
-	@Rule
-	public BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues(JSON_TESTQ);
+	public static final String JSON_TESTQ = "si.json.tests";
 
 	private RabbitTemplate rabbitTemplate;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.rabbitTemplate = new RabbitTemplate(new CachingConnectionFactory("localhost"));
 		this.rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
-		this.brokerRunning.removeTestQueues();
+		RabbitAvailableCondition.getBrokerRunning().removeTestQueues();
 		((CachingConnectionFactory) this.rabbitTemplate.getConnectionFactory()).destroy();
 	}
 
