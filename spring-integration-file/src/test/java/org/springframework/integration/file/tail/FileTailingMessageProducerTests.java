@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -53,12 +53,10 @@ import static org.mockito.Mockito.mock;
  *
  * @since 3.0
  */
+@ExtendWith(TailCondition.class)
 public class FileTailingMessageProducerTests {
 
 	private static final String TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES = "-F -n +0";
-
-	@Rule
-	public TailRule tailRule = new TailRule(TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES);
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -68,14 +66,14 @@ public class FileTailingMessageProducerTests {
 
 	private FileTailingMessageProducerSupport adapter;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		File f = new File(tmpDir, "FileTailingMessageProducerTests");
 		f.mkdir();
 		this.testDir = f;
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		if (this.adapter != null) {
 			adapter.stop();

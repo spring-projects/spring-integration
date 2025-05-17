@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 
@@ -49,15 +48,16 @@ public class RecursiveDirectoryScannerTests {
 
 	private File subSubLevelFile;
 
-	@Rule
-	public TemporaryFolder recursivePath = new TemporaryFolder();
+	@TempDir
+	public File recursivePath;
 
-	@Before
+	@BeforeEach
 	public void setup() throws IOException {
-		this.subFolder = this.recursivePath.newFolder("subFolder");
+		this.subFolder = new File(this.recursivePath, "subFolder");
 		this.subSubFolder = new File(this.subFolder, "subSubFolder");
-		this.subSubFolder.mkdir();
-		this.topLevelFile = this.recursivePath.newFile("file1");
+		this.subSubFolder.mkdirs();
+		this.topLevelFile = new File(this.recursivePath, "file1");
+		this.topLevelFile.createNewFile();
 		this.subLevelFile = new File(this.subFolder, "file2");
 		this.subLevelFile.createNewFile();
 		this.subSubLevelFile = new File(this.subSubFolder, "file3");
@@ -68,7 +68,7 @@ public class RecursiveDirectoryScannerTests {
 	public void shouldReturnAllFilesIncludingDirs() throws IOException {
 		RecursiveDirectoryScanner scanner = new RecursiveDirectoryScanner();
 		scanner.setFilter(new AcceptOnceFileListFilter<>());
-		List<File> files = scanner.listFiles(this.recursivePath.getRoot());
+		List<File> files = scanner.listFiles(this.recursivePath);
 		assertThat(files.size()).isEqualTo(5);
 		assertThat(files).contains(this.topLevelFile);
 		assertThat(files).contains(this.subLevelFile);
@@ -77,7 +77,7 @@ public class RecursiveDirectoryScannerTests {
 		assertThat(files).contains(this.subSubFolder);
 		File file = new File(this.subSubFolder, "file4");
 		file.createNewFile();
-		files = scanner.listFiles(this.recursivePath.getRoot());
+		files = scanner.listFiles(this.recursivePath);
 		assertThat(files.size()).isEqualTo(1);
 		assertThat(files).contains(file);
 	}

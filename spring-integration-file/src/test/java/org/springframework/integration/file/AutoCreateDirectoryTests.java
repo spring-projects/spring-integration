@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.springframework.integration.file;
 
 import java.io.File;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 
@@ -44,8 +44,8 @@ public class AutoCreateDirectoryTests {
 
 	private static final String OUTBOUND_PATH = BASE_PATH + File.separator + "outbound";
 
-	@Before
-	@After
+	@BeforeEach
+	@AfterEach
 	public void clearDirectories() {
 		File baseDir = new File(BASE_PATH);
 		File inboundDir = new File(INBOUND_PATH);
@@ -92,13 +92,14 @@ public class AutoCreateDirectoryTests {
 		assertThat(new File(OUTBOUND_PATH).exists()).isTrue();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void autoCreateForOutboundDisabled() {
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(
 				new File(OUTBOUND_PATH));
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.setAutoCreateDirectory(false);
-		handler.afterPropertiesSet();
+		assertThatIllegalArgumentException()
+				.isThrownBy(handler::afterPropertiesSet);
 	}
 
 }

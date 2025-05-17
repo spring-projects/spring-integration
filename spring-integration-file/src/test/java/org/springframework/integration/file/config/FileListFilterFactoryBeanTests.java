@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.file.filters.AbstractFileListFilter;
@@ -31,6 +31,7 @@ import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.test.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Mark Fisher
@@ -39,13 +40,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class FileListFilterFactoryBeanTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void customFilterAndFilenamePatternAreMutuallyExclusive() throws Exception {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
 		factory.setIgnoreHidden(false);
 		factory.setFilter(new TestFilter());
 		factory.setFilenamePattern("foo");
-		factory.getObject();
+		assertThatIllegalArgumentException().isThrownBy(factory::getObject);
 	}
 
 	@Test
