@@ -10,9 +10,7 @@
 
 		<int:message-history/>
 
-	<bean id="input" class="org.junit.rules.TemporaryFolder" init-method="create" destroy-method="delete"/>
-
-		<int-file:inbound-channel-adapter id="fileAdapter" directory="#{input.root}"
+		<int-file:inbound-channel-adapter id="fileAdapter" directory="#{T (org.springframework.integration.file.config.FileMessageHistoryTests).tempFolder}"
                              auto-startup="true" 
                              channel="outChannel"
                              auto-create-directory="true">

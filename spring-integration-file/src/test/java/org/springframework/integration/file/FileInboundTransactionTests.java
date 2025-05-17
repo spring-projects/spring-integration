@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,8 @@ import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +33,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
@@ -52,13 +49,12 @@ import static org.mockito.Mockito.verify;
  * @since 2.2
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class FileInboundTransactionTests {
 
-	@ClassRule
-	public static TemporaryFolder tmpDir = new TemporaryFolder();
+	@TempDir
+	public static File tmpDir;
 
 	@Autowired
 	private SourcePollingChannelAdapter pseudoTx;
@@ -102,14 +98,14 @@ public class FileInboundTransactionTests {
 			latch.countDown();
 		});
 		pseudoTx.start();
-		File file = new File(tmpDir.getRoot(), "si-test1/foo");
+		File file = new File(tmpDir, "si-test1/foo");
 		file.createNewFile();
 		Message<?> result = successChannel.receive(60000);
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload()).isEqualTo(Boolean.TRUE);
 		assertThat(file.delete()).isFalse();
 		crash.set(true);
-		file = new File(tmpDir.getRoot(), "si-test1/bar");
+		file = new File(tmpDir, "si-test1/bar");
 		file.createNewFile();
 		result = failureChannel.receive(60000);
 		assertThat(result).isNotNull();
@@ -119,7 +115,7 @@ public class FileInboundTransactionTests {
 		assertThat(transactionManager.getCommitted()).isFalse();
 		assertThat(transactionManager.getRolledBack()).isFalse();
 
-		verify(fileListFilter).remove(new File(tmpDir.getRoot(), "si-test1/foo"));
+		verify(fileListFilter).remove(new File(tmpDir, "si-test1/foo"));
 	}
 
 	@Test
@@ -133,7 +129,7 @@ public class FileInboundTransactionTests {
 			latch.countDown();
 		});
 		realTx.start();
-		File file = new File(tmpDir.getRoot(), "si-test2/baz");
+		File file = new File(tmpDir, "si-test2/baz");
 		file.createNewFile();
 		Message<?> result = successChannel.receive(60000);
 		assertThat(result).isNotNull();
@@ -141,7 +137,7 @@ public class FileInboundTransactionTests {
 		assertThat(file.delete()).isTrue();
 		assertThat(transactionManager.getCommitted()).isTrue();
 		crash.set(true);
-		file = new File(tmpDir.getRoot(), "si-test2/qux");
+		file = new File(tmpDir, "si-test2/qux");
 		file.createNewFile();
 		result = failureChannel.receive(60000);
 		assertThat(result).isNotNull();
