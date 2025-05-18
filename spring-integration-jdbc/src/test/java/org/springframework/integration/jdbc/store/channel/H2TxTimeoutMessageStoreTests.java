@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.jdbc.store.channel;
 
-import org.junit.Rule;
-
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.integration.test.condition.LongRunningTest;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
  *
@@ -27,9 +26,8 @@ import org.springframework.integration.test.support.LongRunningIntegrationTest;
  * @author Manuel Jordan
  * @since 4.3
  */
+@LongRunningTest
+@ContextConfiguration
 public class H2TxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests {
-
-	@Rule
-	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 }

@@ -28,7 +28,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -53,7 +52,6 @@ import static org.mockito.Mockito.mock;
  *
  * @since 3.0
  */
-@ExtendWith(TailCondition.class)
 public class FileTailingMessageProducerTests {
 
 	private static final String TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES = "-F -n +0";

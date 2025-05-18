@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.jms.config;
 
 import jakarta.jms.DeliveryMode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -33,6 +33,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
@@ -162,15 +163,11 @@ public class JmsOutboundChannelAdapterParserTests {
 		context.close();
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void adapterWithEmptyConnectionFactory() {
-		try {
-			new ClassPathXmlApplicationContext("jmsOutboundWithEmptyConnectionFactory.xml", this.getClass()).close();
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getMessage().contains("connection-factory")).isTrue();
-			throw e;
-		}
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("jmsOutboundWithEmptyConnectionFactory.xml", this.getClass()))
+				.withMessageContaining("connection-factory");
 	}
 
 	@Test

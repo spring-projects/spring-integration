@@ -47,7 +47,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.springframework.integration.amqp.inbound.ManualAckTests.ManualAckConfig;
 
 /**
  * @author Gary Russell
@@ -55,7 +54,7 @@ import static org.springframework.integration.amqp.inbound.ManualAckTests.Manual
  *
  */
 @RabbitAvailable
-@SpringJUnitConfig(ManualAckConfig.class)
+@SpringJUnitConfig(ManualAckTests.ManualAckConfig.class)
 @DirtiesContext
 public class ManualAckTests {
 

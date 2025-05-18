@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.jms.config;
 
 import java.util.Properties;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -32,6 +32,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Mark Fisher
@@ -102,21 +103,18 @@ public class JmsInboundChannelAdapterParserTests {
 		}
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
+	@Test
 	public void adapterWithConnectionFactoryOnly() {
-		new ClassPathXmlApplicationContext("jmsInboundWithConnectionFactoryOnly.xml", this.getClass()).close();
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("jmsInboundWithConnectionFactoryOnly.xml", this.getClass()));
 	}
 
-	@Test(expected = BeanCreationException.class)
+	@Test
 	public void adapterWithDestinationOnly() {
-		try {
-			new ClassPathXmlApplicationContext("jmsInboundWithDestinationOnly.xml", this.getClass()).close();
-		}
-		catch (BeanCreationException e) {
-			Throwable rootCause = e.getRootCause();
-			assertThat(rootCause.getClass()).isEqualTo(NoSuchBeanDefinitionException.class);
-			throw e;
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("jmsInboundWithDestinationOnly.xml", this.getClass()))
+				.extracting(e -> e.getRootCause().getClass())
+				.isEqualTo(NoSuchBeanDefinitionException.class);
 	}
 
 	@Test
@@ -131,9 +129,10 @@ public class JmsInboundChannelAdapterParserTests {
 		}
 	}
 
-	@Test(expected = BeanCreationException.class)
+	@Test
 	public void adapterWithDestinationNameOnly() {
-		new ClassPathXmlApplicationContext("jmsInboundWithDestinationNameOnly.xml", this.getClass()).close();
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext("jmsInboundWithDestinationNameOnly.xml", this.getClass()));
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -42,6 +42,8 @@ import org.springframework.util.MimeType;
 import org.springframework.util.StopWatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Oleg Zhurakousky
@@ -55,14 +57,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 
 	// ACCEPT tests
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void validateAcceptHeaderWithNoSlash() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put("Accept", "bar");
 		HttpHeaders headers = new HttpHeaders();
 
-		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		MessageHeaders messageHeadersObj = new MessageHeaders(messageHeaders);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> mapper.fromHeaders(messageHeadersObj, headers));
 	}
 
 	@Test
@@ -158,13 +162,15 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 
 	// ACCEPT_CHARSET tests
 
-	@Test(expected = UnsupportedCharsetException.class)
+	@Test
 	public void validateAcceptCharsetHeaderWithWrongCharset() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put("Accept-Charset", "foo");
 		HttpHeaders headers = new HttpHeaders();
-		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		MessageHeaders messageHeadersObj = new MessageHeaders(messageHeaders);
+		assertThatExceptionOfType(UnsupportedCharsetException.class)
+				.isThrownBy(() -> mapper.fromHeaders(messageHeadersObj, headers));
 	}
 
 	@Test
@@ -298,26 +304,30 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertThat(headers.getContentLength()).isEqualTo(1);
 	}
 
-	@Test(expected = NumberFormatException.class)
+	@Test
 	public void validateContentLengthAsNonNumericString() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put("Content-Length", "foo");
 		HttpHeaders headers = new HttpHeaders();
 
-		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		MessageHeaders messageHeadersObj = new MessageHeaders(messageHeaders);
+		assertThatExceptionOfType(NumberFormatException.class)
+				.isThrownBy(() -> mapper.fromHeaders(messageHeadersObj, headers));
 	}
 
 	// Content-Type test
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void validateContentTypeWrongValue() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put(MessageHeaders.CONTENT_TYPE, "foo");
 		HttpHeaders headers = new HttpHeaders();
 
-		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		MessageHeaders messageHeadersObj = new MessageHeaders(messageHeaders);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> mapper.fromHeaders(messageHeadersObj, headers));
 	}
 
 	@Test
@@ -542,7 +552,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void perf() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 
