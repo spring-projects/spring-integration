@@ -112,7 +112,7 @@ ext {
     springDataVersion = '2025.0.0-SNAPSHOT'
     springGraphqlVersion = '1.4.0-SNAPSHOT'
     springKafkaVersion = '3.3.5'
-    springRetryVersion = '2.0.11'
+    springRetryVersion = '2.0.12'
     springSecurityVersion = '6.5.0-SNAPSHOT'
     springVersion = '6.2.6'
     springWsVersion = '4.1.0-SNAPSHOT'
