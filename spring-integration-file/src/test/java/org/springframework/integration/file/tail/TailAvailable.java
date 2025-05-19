@@ -34,9 +34,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public @interface TailAvailable {
 
 	/**
-	 * the options for the 'tail' command.
+	 * The options for the 'tail' command.
 	 * @return the options.
-	 *
+	 * @author Jiandong Ma
 	 * @since 6.5
 	 */
 	String options() default "";

@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@SpringJUnitConfig(locations = "file-message-history-context.xml")
+@SpringJUnitConfig
 public class FileMessageHistoryTests {
 
 	@TempDir

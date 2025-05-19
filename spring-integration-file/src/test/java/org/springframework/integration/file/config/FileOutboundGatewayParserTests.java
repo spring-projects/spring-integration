@@ -20,6 +20,7 @@ import java.io.File;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @DirtiesContext
 public class FileOutboundGatewayParserTests {
 
-	public static File tempFolder = new File(System.getProperty("java.io.tmpdir"), "FileOutboundGatewayParserTests");
+	@TempDir
+	public static File tempFolder;
 
 	@Autowired
 	private EventDrivenConsumer ordered;

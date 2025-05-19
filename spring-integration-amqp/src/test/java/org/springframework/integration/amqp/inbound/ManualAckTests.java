@@ -54,7 +54,7 @@ import static org.mockito.Mockito.mock;
  *
  */
 @RabbitAvailable
-@SpringJUnitConfig(ManualAckTests.ManualAckConfig.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class ManualAckTests {
 
