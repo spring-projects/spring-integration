@@ -164,7 +164,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 	 * @param errorMessageStrategy the {@link ErrorMessageStrategy}.
 	 * @since 4.3.10
 	 */
-	public final void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+	public void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
 		Assert.notNull(errorMessageStrategy, "'errorMessageStrategy' cannot be null");
 		this.errorMessageStrategy = errorMessageStrategy;
 	}

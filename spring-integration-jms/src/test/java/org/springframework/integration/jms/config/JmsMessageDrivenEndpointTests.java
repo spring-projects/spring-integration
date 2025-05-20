@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 the original author or authors.
+ * Copyright 2018-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -61,7 +62,9 @@ public class JmsMessageDrivenEndpointTests extends ActiveMQMultiContextTests {
 
 	@Test
 	public void testStopStart(@Autowired JmsTemplate template,
-			@Autowired JmsMessageDrivenEndpoint endpoint, @Autowired QueueChannel out) {
+			@Autowired JmsMessageDrivenEndpoint endpoint, @Autowired QueueChannel out,
+			@Autowired ErrorMessageStrategy mockErrorMessageStrategy) {
+
 		template.convertAndSend("stop.start", "foo");
 		assertThat(out.receive(10_000).getPayload()).isEqualTo("foo");
 		endpoint.stop();
@@ -69,6 +72,9 @@ public class JmsMessageDrivenEndpointTests extends ActiveMQMultiContextTests {
 		endpoint.start();
 		template.convertAndSend("stop.start", "bar");
 		assertThat(out.receive(10_000).getPayload()).isEqualTo("bar");
+
+		assertThat(TestUtils.getPropertyValue(endpoint, "listener.gatewayDelegate.errorMessageStrategy"))
+				.isSameAs(mockErrorMessageStrategy);
 	}
 
 	@Configuration
@@ -81,8 +87,15 @@ public class JmsMessageDrivenEndpointTests extends ActiveMQMultiContextTests {
 		}
 
 		@Bean
-		public JmsMessageDrivenEndpoint inbound() {
-			return new JmsMessageDrivenEndpoint(container(), listener());
+		ErrorMessageStrategy mockErrorMessageStrategy() {
+			return mock();
+		}
+
+		@Bean
+		public JmsMessageDrivenEndpoint inbound(ErrorMessageStrategy mockErrorMessageStrategy) {
+			JmsMessageDrivenEndpoint jmsMessageDrivenEndpoint = new JmsMessageDrivenEndpoint(container(), listener());
+			jmsMessageDrivenEndpoint.setErrorMessageStrategy(mockErrorMessageStrategy);
+			return jmsMessageDrivenEndpoint;
 		}
 
 		@Bean
