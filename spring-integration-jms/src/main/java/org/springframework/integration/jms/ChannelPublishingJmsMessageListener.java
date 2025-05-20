@@ -42,6 +42,7 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.jms.support.JmsMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.management.TrackableComponent;
@@ -335,6 +336,10 @@ public class ChannelPublishingJmsMessageListener
 	 */
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
+	}
+
+	public void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+		this.gatewayDelegate.setErrorMessageStrategy(errorMessageStrategy);
 	}
 
 	public void setMetricsCaptor(MetricsCaptor captor) {

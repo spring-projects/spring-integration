@@ -23,6 +23,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -135,6 +136,12 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	public void setShouldTrack(boolean shouldTrack) {
 		super.setShouldTrack(shouldTrack);
 		this.listener.setShouldTrack(shouldTrack);
+	}
+
+	@Override
+	public void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+		super.setErrorMessageStrategy(errorMessageStrategy);
+		this.listener.setErrorMessageStrategy(errorMessageStrategy);
 	}
 
 	/**
