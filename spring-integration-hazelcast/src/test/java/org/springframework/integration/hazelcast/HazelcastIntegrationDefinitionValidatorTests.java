@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,15 @@ import java.util.Set;
 import com.hazelcast.collection.IList;
 import com.hazelcast.core.DistributedObject;
 import com.hazelcast.instance.impl.HazelcastInstanceFactory;
-import org.junit.AfterClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * Hazelcast Integration Definition Validator Test Class
@@ -41,8 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 6.0
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
 @SuppressWarnings({"rawtypes"})
 public class HazelcastIntegrationDefinitionValidatorTests {
@@ -50,7 +48,7 @@ public class HazelcastIntegrationDefinitionValidatorTests {
 	@Autowired
 	private IList distList;
 
-	@AfterClass
+	@AfterAll
 	public static void shutdown() {
 		HazelcastInstanceFactory.terminateAll();
 	}
@@ -67,11 +65,11 @@ public class HazelcastIntegrationDefinitionValidatorTests {
 		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testValidateEnumTypeWithInvalidValue() {
-		final String cacheEventTypes = "Invalid_Enum_Type";
-		HazelcastIntegrationDefinitionValidator
-				.validateEnumType(CacheEventType.class, cacheEventTypes);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> HazelcastIntegrationDefinitionValidator
+						.validateEnumType(CacheEventType.class, "Invalid_Enum_Type"));
 	}
 
 	@Test
@@ -83,12 +81,13 @@ public class HazelcastIntegrationDefinitionValidatorTests {
 				.validateCacheEventsByDistributedObject(this.distList, cacheEventTypeSet);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testValidateCacheEventsByDistributedObjectWithInvalidValue() {
 		Set<String> cacheEventTypeSet = new HashSet<>(1);
 		cacheEventTypeSet.add("Invalid_Cache_Event_Type");
-		HazelcastIntegrationDefinitionValidator
-				.validateCacheEventsByDistributedObject(this.distList, cacheEventTypeSet);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> HazelcastIntegrationDefinitionValidator
+						.validateCacheEventsByDistributedObject(this.distList, cacheEventTypeSet));
 	}
 
 	@Test
@@ -97,32 +96,35 @@ public class HazelcastIntegrationDefinitionValidatorTests {
 				.validateCacheTypeForEventDrivenMessageProducer(this.distList);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testValidateCacheTypeForEventDrivenMessageProducerWithUnexpectedDistObject() {
-		HazelcastIntegrationDefinitionValidator
-				.validateCacheTypeForEventDrivenMessageProducer(new DistributedObject() {
+		DistributedObject distributedObject = new DistributedObject() {
 
-					@Override
-					public String getPartitionKey() {
-						return null;
-					}
+			@Override
+			public String getPartitionKey() {
+				return null;
+			}
 
-					@Override
-					public String getName() {
-						return null;
-					}
+			@Override
+			public String getName() {
+				return null;
+			}
 
-					@Override
-					public String getServiceName() {
-						return null;
-					}
+			@Override
+			public String getServiceName() {
+				return null;
+			}
 
-					@Override
-					public void destroy() {
+			@Override
+			public void destroy() {
 
-					}
+			}
 
-				});
+		};
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> HazelcastIntegrationDefinitionValidator
+						.validateCacheTypeForEventDrivenMessageProducer(distributedObject));
 	}
 
 }

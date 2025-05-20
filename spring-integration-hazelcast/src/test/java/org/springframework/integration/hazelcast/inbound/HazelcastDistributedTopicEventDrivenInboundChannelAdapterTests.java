@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2022 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,23 @@
 package org.springframework.integration.hazelcast.inbound;
 
 import com.hazelcast.topic.ITopic;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.hazelcast.inbound.util.HazelcastInboundChannelAdapterTestUtils;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * Hazelcast Distributed Topic Event Driven Inbound Channel Adapter Test
  *
  * @author Eren Avsarogullari
+ * @author Artem Bilan
+ *
  * @since 6.0
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class HazelcastDistributedTopicEventDrivenInboundChannelAdapterTests {
