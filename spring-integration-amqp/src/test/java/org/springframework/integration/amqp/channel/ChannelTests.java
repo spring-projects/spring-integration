@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,8 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
-import org.junit.After;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageListener;
@@ -33,7 +31,8 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.BrokerRunning;
+import org.springframework.amqp.rabbit.junit.RabbitAvailable;
+import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.rabbit.listener.BlockingQueueConsumer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConversionException;
@@ -49,8 +48,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -65,14 +63,10 @@ import static org.mockito.Mockito.mock;
  * @since 4.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@RabbitAvailable(queues = {"pollableWithEP", "withEP", "testConvertFail"})
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class ChannelTests {
-
-	@ClassRule
-	public static final BrokerRunning brokerIsRunning =
-			BrokerRunning.isRunningWithEmptyQueues("pollableWithEP", "withEP", "testConvertFail");
 
 	@Autowired
 	private PublishSubscribeAmqpChannel channel;
@@ -98,10 +92,10 @@ public class ChannelTests {
 	@Autowired
 	private AmqpHeaderMapper mapperOut;
 
-	@After
+	@AfterEach
 	public void tearDown() {
-		brokerIsRunning.deleteExchanges("si.fanout.foo", "si.fanout.channel", "si.fanout.pubSubWithEP");
-		brokerIsRunning.removeTestQueues();
+		RabbitAvailableCondition.getBrokerRunning().deleteExchanges("si.fanout.foo", "si.fanout.channel", "si.fanout.pubSubWithEP");
+		RabbitAvailableCondition.getBrokerRunning().removeTestQueues();
 	}
 
 	@Test

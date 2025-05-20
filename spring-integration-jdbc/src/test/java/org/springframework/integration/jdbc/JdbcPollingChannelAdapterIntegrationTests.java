@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -50,7 +50,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 
 	private static JdbcTemplate jdbcTemplate;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUp() {
 		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
 		builder.setType(EmbeddedDatabaseType.DERBY)
@@ -59,12 +59,12 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		jdbcTemplate = new JdbcTemplate(embeddedDatabase);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown() {
 		embeddedDatabase.shutdown();
 	}
 
-	@After
+	@AfterEach
 	public void cleanup() {
 		jdbcTemplate.execute("DELETE FROM item");
 		jdbcTemplate.execute("DELETE FROM copy");

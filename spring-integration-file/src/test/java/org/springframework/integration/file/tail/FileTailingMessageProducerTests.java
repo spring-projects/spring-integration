@@ -25,10 +25,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -57,9 +56,6 @@ public class FileTailingMessageProducerTests {
 
 	private static final String TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES = "-F -n +0";
 
-	@Rule
-	public TailRule tailRule = new TailRule(TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES);
-
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final String tmpDir = System.getProperty("java.io.tmpdir");
@@ -68,14 +64,14 @@ public class FileTailingMessageProducerTests {
 
 	private FileTailingMessageProducerSupport adapter;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		File f = new File(tmpDir, "FileTailingMessageProducerTests");
 		f.mkdir();
 		this.testDir = f;
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		if (this.adapter != null) {
 			adapter.stop();

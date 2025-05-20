@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,23 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+
 /**
  * @author Gary Russell
  * @since 3.0
  *
  */
+@ExtendWith(TailCondition.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface TailAvailable {
 
+	/**
+	 * The options for the 'tail' command.
+	 * @return the options.
+	 * @author Jiandong Ma
+	 * @since 6.5
+	 */
+	String options() default "";
 }

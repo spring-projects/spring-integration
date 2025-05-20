@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.Properties;
 
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,20 +39,22 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
+@SpringJUnitConfig
 public class FileMessageHistoryTests {
+
+	@TempDir
+	public static File tempFolder;
+
+	@Autowired
+	PollableChannel outChannel;
 
 	@Test
 	public void testMessageHistory() throws Exception {
-		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("file-message-history-context.xml", getClass());
-
-		TemporaryFolder input = context.getBean(TemporaryFolder.class);
-		File file = input.newFile("FileMessageHistoryTest.txt");
+		File file = new File(tempFolder, "FileMessageHistoryTest.txt");
 		BufferedWriter out = new BufferedWriter(new FileWriter(file));
 		out.write("hello");
 		out.close();
 
-		PollableChannel outChannel = context.getBean("outChannel", PollableChannel.class);
 		Message<?> message = outChannel.receive(10000);
 		assertThat(message).isNotNull();
 		MessageHistory history = MessageHistory.read(message);
@@ -60,7 +63,6 @@ public class FileMessageHistoryTests {
 		assertThat(componentHistoryRecord).isNotNull();
 		assertThat(componentHistoryRecord.get("type")).isEqualTo("file:inbound-channel-adapter");
 
-		context.close();
 	}
 
 }

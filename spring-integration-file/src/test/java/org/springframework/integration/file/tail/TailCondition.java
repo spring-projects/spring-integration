@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.AnnotatedElement;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -30,12 +32,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Test;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.jupiter.api.extension.ConditionEvaluationResult;
+import org.junit.jupiter.api.extension.ExecutionCondition;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.core.annotation.MergedAnnotations;
 
 /**
  * Ignores tests annotated with {@link TailAvailable} if 'tail' with the requested options
@@ -43,36 +44,40 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
- * @since 3.0
+ * @since 6.5
  *
  */
-public class TailRule extends TestWatcher {
+public class TailCondition implements ExecutionCondition {
 
-	private static final Log logger = LogFactory.getLog(TailRule.class);
+	private static final Log logger = LogFactory.getLog(TailCondition.class);
 
 	private static final String tmpDir = System.getProperty("java.io.tmpdir");
 
-	private final String commandToTest;
+	private String commandToTest;
 
-	public TailRule(String optionsToTest) {
+	private static final ConditionEvaluationResult ENABLED = ConditionEvaluationResult.enabled(
+			"@TailAvailable is not present");
+
+	public void setOptionsToTest(String optionsToTest) {
 		this.commandToTest = "tail " + optionsToTest + " ";
 	}
 
 	@Override
-	public Statement apply(Statement base, Description description) {
-		if (description.getAnnotation(TailAvailable.class) != null) {
+	public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
+		Optional<AnnotatedElement> element = context.getElement();
+		MergedAnnotations annotations = MergedAnnotations.from(element.get(),
+				MergedAnnotations.SearchStrategy.TYPE_HIERARCHY);
+		if (annotations.get(TailAvailable.class).isPresent()) {
+			TailAvailable tail = annotations.get(TailAvailable.class).synthesize();
+			setOptionsToTest(tail.options());
 			if (!tailWorksOnThisMachine()) {
-				return new Statement() {
-
-					@Override
-					public void evaluate() {
-						// skip
-					}
-				};
+				return ConditionEvaluationResult.disabled(
+						"Tests Ignored: 'Tail' command does not work on this platform");
 			}
 		}
-		return super.apply(base, description);
+		return ENABLED;
 	}
 
 	private boolean tailWorksOnThisMachine() {
@@ -127,15 +132,4 @@ public class TailRule extends TestWatcher {
 		}
 		return result == 0;
 	}
-
-	public static class TestRule {
-
-		@Test
-		public void test1() {
-			TailRule rule = new TailRule("-BLAH");
-			assertThat(rule.tailWorksOnThisMachine()).isFalse();
-		}
-
-	}
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ package org.springframework.integration.jdbc.store;
 
 import java.util.List;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -47,7 +47,7 @@ public class JdbcMessageStoreRegionTests {
 
 	private JdbcMessageStore messageStore2;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupDatabase() {
 		dataSource = new EmbeddedDatabaseBuilder()
 				.setType(EmbeddedDatabaseType.H2)
@@ -56,12 +56,12 @@ public class JdbcMessageStoreRegionTests {
 				.build();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void shutDownDatabase() {
 		dataSource.shutdown();
 	}
 
-	@Before
+	@BeforeEach
 	public void beforeTest() {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 		this.messageStore1 = new JdbcMessageStore(dataSource);
@@ -71,7 +71,7 @@ public class JdbcMessageStoreRegionTests {
 		this.messageStore2.setRegion("region2");
 	}
 
-	@After
+	@AfterEach
 	public void afterTest() {
 		this.jdbcTemplate.execute("delete from INT_GROUP_TO_MESSAGE");
 		this.jdbcTemplate.execute("delete from INT_MESSAGE");
