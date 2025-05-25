@@ -22,7 +22,7 @@ plugins {
     id 'org.jetbrains.dokka' version '1.9.20'
     id 'org.antora' version '1.0.0'
     id 'io.spring.antora.generate-antora-yml' version '0.0.1'
-    id 'com.github.spotbugs' version '6.1.11'
+    id 'com.github.spotbugs' version '6.1.12'
     id 'com.google.protobuf' version '0.9.5' apply false
     id 'io.freefair.aggregate-javadoc' version '8.13.1'
 }
@@ -118,7 +118,7 @@ ext {
     springWsVersion = '4.1.0'
     testcontainersVersion = '1.21.0'
     tomcatVersion = '11.0.7'
-    xmlUnitVersion = '2.10.0'
+    xmlUnitVersion = '2.10.2'
     xstreamVersion = '1.4.21'
     ztZipVersion = '1.17'
 
