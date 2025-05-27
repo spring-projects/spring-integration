@@ -156,9 +156,7 @@ public class FlowServiceTests {
 
 		@Bean
 		public IntegrationFlow testGateway() {
-			return f -> f.gateway("processChannel", g -> g.replyChannel("replyChannel").async(true))
-					.enrichHeaders(headers ->
-							headers.headerExpression("currentThread", "T (Thread).currentThread().name"));
+			return f -> f.gateway("processChannel", g -> g.replyChannel("replyChannel").async(true));
 		}
 
 		@Bean
@@ -166,6 +164,8 @@ public class FlowServiceTests {
 			return IntegrationFlow
 					.from("processChannel")
 					.<String, String>transform(String::toUpperCase)
+					.enrichHeaders(headers ->
+							headers.headerExpression("currentThread", "T (Thread).currentThread().name"))
 					.channel("replyChannel")
 					.get();
 		}
