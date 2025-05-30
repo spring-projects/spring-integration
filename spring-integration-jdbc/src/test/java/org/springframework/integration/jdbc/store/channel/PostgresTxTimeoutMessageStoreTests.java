@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jdbc.store.channel;
 
-import org.junit.jupiter.api.Disabled;
-
+import org.springframework.integration.jdbc.postgres.PostgresContainerTest;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -26,8 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Artem Bilan
  *
  */
-@Disabled
 @ContextConfiguration
-public class PostgresTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests {
+public class PostgresTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests implements PostgresContainerTest {
 
 }

@@ -63,7 +63,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext // close at the end after class
 public abstract class AbstractTxTimeoutMessageStoreTests {
 
-	private static final Log log = LogFactory.getLog(AbstractTxTimeoutMessageStoreTests.class);
+	protected final Log log = LogFactory.getLog(this.getClass());
 
 	@Autowired
 	protected DataSource dataSource;

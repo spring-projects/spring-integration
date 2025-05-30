@@ -1,25 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	xsi:schemaLocation="
-		http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<import resource="classpath:org/springframework/integration/jdbc/store/channel/DataSource-common-context.xml" />
 
-	<bean id="dataSource" class="oracle.jdbc.pool.OracleDataSource" destroy-method="close">
-		<property name="connectionCachingEnabled" value="true" />
-		<property name="URL" value="jdbc:oracle:thin:@//[HOST]:1521/XE" />
-		<property name="user"     value="[USER]" />
-		<property name="password" value="[PASSWORD]" />
-		<property name="connectionCacheProperties">
-			<props merge="default">
-				 <prop key="MinLimit">3</prop>
-				 <prop key="MaxLimit">20</prop>
-			</props>
-		 </property>
-	</bean>
+	<bean id="dataSource" class="org.springframework.integration.jdbc.oracle.OracleContainerTest"
+		  factory-method="dataSource"/>
 
 	<bean id="queryProvider" class="org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider"/>
 

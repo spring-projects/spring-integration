@@ -19,14 +19,13 @@
 	<tx:annotation-driven/>
 	<int:annotation-config/>
 
-	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
-		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-		<property name="url" value="jdbc:mysql://localhost:3306/int30"/>
-		<property name="username" value="root"/>
-		<property name="password" value="root"/>
-		<property name="maxActive" value="10"/>
-		<property name="defaultAutoCommit" value="false"/>
-	</bean>
+	<bean id="dataSource" class="org.springframework.integration.jdbc.mysql.MySqlContainerTest"
+		  factory-method="dataSource"/>
+
+	<jdbc:initialize-database>
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-drop-mysql.sql" />
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-mysql.sql" />
+	</jdbc:initialize-database>
 
 	<int-jdbc:message-store id="messageStore" data-source="dataSource" region="MessageStoreMultipleChannelTests"/>
 

@@ -28,7 +28,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,8 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-@Disabled
-public class MySqlJdbcMessageStoreMultipleChannelTests {
+public class MySqlJdbcMessageStoreMultipleChannelTests implements MySqlContainerTest {
 
 	private static final Log LOG = LogFactory.getLog(MySqlJdbcMessageStoreMultipleChannelTests.class);
 
