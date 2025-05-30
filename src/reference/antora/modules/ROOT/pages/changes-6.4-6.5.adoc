@@ -1,0 +1,94 @@
+[[migration-6.4-6.5]]
+= Changes between 6.4 and 6.5
+
+[[x6.5-general]]
+== General Changes
+
+The deprecated previously usage of `org.springframework.util.concurrent.ListenableFuture` has been removed in favor of `CompletableFuture`.
+
+The previously deprecated SpEL-based Control Bus components have been removed in favor of functionality around `ControlBusCommandRegistry`.
+The `<control-bus use-registry="">` attribute is deprecated now without replacement since only `ControlBusCommandRegistry` functionality is available.
+The Java DSL `controlBusOnRegistry()` operator is deprecated in favor of restored `controlBus()` which is fully based now on the `ControlBusCommandRegistry`.
+See xref:control-bus.adoc[Control Bus] for more information.
+
+The `AbstractCorrelatingMessageHandler` does not throw an `IllegalArgumentException` for the collection of payloads as a result of the `MessageGroupProcessor`.
+Instead, such a collection is wrapped into a single reply message.
+See xref:aggregator.adoc[Aggregator] for more information.
+
+The `AbstractMessageChannel` beans now throw a special `MessageDispatchingException` when an attempt to send a message to not running application is done.
+In general, it is a design error to try to produce a message from `afterPropertiesSet()`, `@PostConstruct` or bean definition methods.
+The `SmartLifecycle.start()` is preferred way for this kind of logic, or better to do that via inbound channel adapters.
+
+The Java DSL `gateway()` operator now fully supports an `async(true)` behavior.
+See xref:gateway.adoc[] for more information.
+
+[[x6.5-lock-request-handler-advice]]
+== The `LockRequestHandlerAdvice`
+
+A new `LockRequestHandlerAdvice` is introduced to keep the lock for a key based on a request message for message handler invocation.
+See xref:handler-advice.adoc[] for more information.
+
+[[x6.5-correlation-changes]]
+== The `discardIndividuallyOnExpiry` Option For Correlation Handlers
+
+The aggregator and resequencer can now discard the whole expired group as a single message via setting `discardIndividuallyOnExpiry` to `false`.
+See xref:aggregator.adoc#releasestrategy[ReleaseStrategy] for more information.
+
+[[x6.5-message-store-with-locks]]
+== The `LockRegistry` in the `MessageStore`
+
+The `AbstractMessageGroupStore` now can be configured with a `LockRegistry` to perform series of persistent operation atomically.
+See xref:message-store.adoc#use-lock-registry[Use LockRegistry] for more information.
+
+[[x6.5-observation-changes]]
+== Micrometer Observation Changes
+
+The `SourcePollingChannelAdapter` endpoint now starts a `CONSUMER` kind observation for the received message.
+The `MessageReceiverContext` now distinguishes between `handler`, `message-source` and `message-producer` values for the `spring.integration.type` low cardinality tag.
+See xref:metrics.adoc#micrometer-observation[Micrometer Observation] for more information.
+
+[[x6.5-mqtt-changes]]
+== Optional Paho MQTT Dependencies
+
+The `org.eclipse.paho:org.eclipse.paho.client.mqttv3` dependency for `spring-integration-mqtt` is now also optional as `org.eclipse.paho:org.eclipse.paho.mqttv5.client` always was.
+See xref:mqtt.adoc[MQTT Support] for more information.
+
+[[x6.5-kafka-changes]]
+== Apache Kafka support Changes
+
+The `KafkaMessageSource` and `KafkaMessageDrivenChannelAdapter` now generate `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` headers by default as the rest of Spring Integration channel adapters.
+The behavior can be restored to the previous with injection of the `MessagingMessageConverter` with default settings.
+See xref:kafka.adoc[Apache Kafka Support] for more information.
+
+[[x6.5-file-filter-changes]]
+== The Recent File Filter Support
+
+The `AbstractRecentFileListFilter` strategy has been introduced to accept only those files which are not old enough according to the provided `age`.
+The respective implementations are provided: `RecentFileListFilter`, `FtpRecentFileListFilter`, `SftpRecentFileListFilter` and `SmbRecentFileListFilter`.
+See xref:file/reading.adoc[Reading Files] for more information.
+
+[[x6.5-file-exists-mode-expression]]
+== FileExistsMode Expression Support
+
+The remote file gateways (`AbstractRemoteFileOutboundGateway`) now support dynamic resolution of `FileExistsMode` at runtime via SpEL expressions.
+See xref:ftp/rft.adoc[Remote File Gateways] for more information.
+
+[[x6.5-hazelcast-changes]]
+== Hazelcast Module Deprecations
+
+The `HazelcastLockRegistry` and Hazelcast `LeaderInitiator` have been deprecated due to Hazelcast CP Subsystem migration to Enterprise Edition.
+See xref:hazelcast.adoc[Hazelcast Support] for more information.
+
+[[x6.5-jdbc-changes]]
+== JDBC Support
+
+The `BeanPropertySqlParameterSourceFactory` uses now internally the `MapSqlParameterSource` if provided input is a `Map`.
+Also, `JdbcMessageHandler` exposes a `usePayloadAsParameterSource` flag to allow to deal with parameter source only against message payload.
+That's where the mentioned `MapSqlParameterSource` comes useful for request messages with map payloads.
+See xref:jdbc.adoc[JDBC Support] for more information.
+
+[[x6.5-redis-changes]]
+== Redis Stream Support
+
+The `ReactiveRedisStreamMessageHandler` now exposes a `Function<Message<?>, RedisStreamCommands.XAddOptions>` to provide additional `XADD` option via convenient `RedisStreamCommands.XAddOptions` API.
+See xref:redis.adoc#redis-stream-outbound[Redis Support] for more information.
