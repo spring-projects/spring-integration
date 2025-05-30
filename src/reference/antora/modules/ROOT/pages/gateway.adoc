@@ -720,7 +720,7 @@ where such a gateway can be used in some service which deals with the `Flux` of 
 @Autowired
 TestGateway testGateway;
 
-public void hadnleFlux() {
+public void handleFlux() {
     Flux.just("1", "2", "3", "4", "5")
             .map(Integer::parseInt)
             .flatMap(this.testGateway::multiply)

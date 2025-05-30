@@ -15,7 +15,8 @@ The `AbstractCorrelatingMessageHandler` does not throw an `IllegalArgumentExcept
 Instead, such a collection is wrapped into a single reply message.
 See xref:aggregator.adoc[Aggregator] for more information.
 
-The `AbstractMessageChannel` beans now throw a special `MessageDispatchingException` when an attempt to send a message to not running application is done.
+The `AbstractMessageChannel` beans now throw a special `MessageDispatchingException` when an attempt is made to send a message to an application that is not running.
+
 In general, it is a design error to try to produce a message from `afterPropertiesSet()`, `@PostConstruct` or bean definition methods.
 The `SmartLifecycle.start()` is preferred way for this kind of logic, or better to do that via inbound channel adapters.
 
@@ -82,8 +83,8 @@ See xref:hazelcast.adoc[Hazelcast Support] for more information.
 [[x6.5-jdbc-changes]]
 == JDBC Support
 
-The `BeanPropertySqlParameterSourceFactory` uses now internally the `MapSqlParameterSource` if provided input is a `Map`.
-Also, `JdbcMessageHandler` exposes a `usePayloadAsParameterSource` flag to allow to deal with parameter source only against message payload.
+The `BeanPropertySqlParameterSourceFactory` now internally uses the `MapSqlParameterSource` if provided input is a `Map`.
+Also, `JdbcMessageHandler` exposes a `usePayloadAsParameterSource` flag to allow working with parameter source only against message payload.
 That's where the mentioned `MapSqlParameterSource` comes useful for request messages with map payloads.
 See xref:jdbc.adoc[JDBC Support] for more information.
 
