@@ -3,9 +3,16 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:int="http://www.springframework.org/schema/integration"
+    xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd
-		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+
+	<util:properties id="props">
+		<prop key="concurrentPoll.fixedRate">200</prop>
+		<prop key="concurrentPoll.fixedDelay">100</prop>
+	</util:properties>
 
 	<int:transaction-synchronization-factory id="syncFactory">
 		<int:before-commit expression="@store.removeFromIdCache(headers.id.toString())"/>
@@ -69,7 +76,7 @@
 	</int:channel>
 
 	<int:bridge input-channel="first" output-channel="second">
-		<int:poller fixed-rate="200" task-executor="threadPoolTaskExecutor" max-messages-per-poll="3">
+		<int:poller fixed-rate="#{props['concurrentPoll.fixedRate']}" task-executor="threadPoolTaskExecutor" max-messages-per-poll="3">
 			<int:transactional transaction-manager="transactionManager"/>
 		</int:poller>
 	</int:bridge>
@@ -79,7 +86,7 @@
 	</bean>
 
 	<int:outbound-channel-adapter channel="second" expression="@successfulLatch.countDown()">
-		<int:poller fixed-delay="100">
+		<int:poller fixed-delay="#{props['concurrentPoll.fixedDelay']}">
 			<int:transactional transaction-manager="transactionManager"/>
 		</int:poller>
 	</int:outbound-channel-adapter>

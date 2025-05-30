@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+
+	<util:properties id="props">
+		<prop key="concurrentPoll.fixedRate">2000</prop>
+		<prop key="concurrentPoll.fixedDelay">1000</prop>
+	</util:properties>
 
 	<import resource="classpath:org/springframework/integration/jdbc/store/channel/DataSource-hsql-context.xml"/>
 

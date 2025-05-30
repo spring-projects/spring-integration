@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2024-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,9 @@ class MySqlMetadataStoreTests implements MySqlContainerTest {
 		@Value("org/springframework/integration/jdbc/schema-mysql.sql")
 		Resource createSchemaScript;
 
+		@Value("org/springframework/integration/jdbc/schema-drop-mysql.sql")
+		Resource dropSchemaScript;
+
 		@Bean
 		DataSource dataSource() {
 			return MySqlContainerTest.dataSource();
@@ -84,7 +87,7 @@ class MySqlMetadataStoreTests implements MySqlContainerTest {
 		DataSourceInitializer dataSourceInitializer(DataSource dataSource) {
 			DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
 			dataSourceInitializer.setDataSource(dataSource);
-			dataSourceInitializer.setDatabasePopulator(new ResourceDatabasePopulator(this.createSchemaScript));
+			dataSourceInitializer.setDatabasePopulator(new ResourceDatabasePopulator(this.dropSchemaScript, this.createSchemaScript));
 			return dataSourceInitializer;
 		}
 

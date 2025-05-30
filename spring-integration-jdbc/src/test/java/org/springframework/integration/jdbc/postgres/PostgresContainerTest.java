@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 the original author or authors.
+ * Copyright 2022-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.integration.jdbc.postgres;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -58,6 +61,15 @@ public interface PostgresContainerTest {
 
 	static String getPassword() {
 		return POSTGRES_CONTAINER.getPassword();
+	}
+
+	static DataSource dataSource() {
+		BasicDataSource dataSource = new BasicDataSource();
+		dataSource.setDriverClassName(POSTGRES_CONTAINER.getDriverClassName());
+		dataSource.setUrl(POSTGRES_CONTAINER.getJdbcUrl());
+		dataSource.setUsername(POSTGRES_CONTAINER.getUsername());
+		dataSource.setPassword(POSTGRES_CONTAINER.getPassword());
+		return dataSource;
 	}
 
 }
