@@ -16,14 +16,27 @@
 
 package org.springframework.integration.jdbc;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcOperations;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.messaging.Message;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -34,28 +47,23 @@ import static org.mockito.Mockito.mock;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 2.1
  *
  */
+@SpringJUnitConfig
+@DirtiesContext
 public class JdbcOutboundGatewayTests {
 
-	private static EmbeddedDatabase dataSource;
+	@Autowired
+	private DataSource dataSource;
 
-	@BeforeAll
-	public static void setup() {
-		dataSource = new EmbeddedDatabaseBuilder().build();
-	}
-
-	@AfterAll
-	public static void teardown() {
-		dataSource.shutdown();
-	}
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	@Test
 	public void testSetMaxRowsPerPollWithoutSelectQuery() {
-		EmbeddedDatabase dataSource = new EmbeddedDatabaseBuilder().build();
-
 		JdbcOutboundGateway jdbcOutboundGateway = new JdbcOutboundGateway(dataSource, "update something");
 
 		try {
@@ -69,8 +77,6 @@ public class JdbcOutboundGatewayTests {
 			assertThat(e.getMessage())
 					.isEqualTo("If you want to set 'maxRows', then you must provide a 'selectQuery'.");
 		}
-
-		dataSource.shutdown();
 	}
 
 	@Test
@@ -118,4 +124,54 @@ public class JdbcOutboundGatewayTests {
 		}
 	}
 
+	@Test
+	public void testQueryForStream() {
+		// GIVEN
+		int rowCnt = 30_000;
+		for (int i = 0; i < rowCnt; i++) {
+			jdbcTemplate.update("insert into item values(%s,0)".formatted(i + 1));
+		}
+		JdbcOutboundGateway jdbcOutboundGateway = new JdbcOutboundGateway(dataSource, null, "select * from item");
+		jdbcOutboundGateway.setRowMapper((RowMapper<Item>) (rs, rowNum) -> new Item(rs.getInt(1), rs.getInt(2)));
+		jdbcOutboundGateway.setQueryForStream(true);
+		List<Item> resultList = new ArrayList<>();
+		jdbcOutboundGateway.setStreamConsumer(obj -> {
+			Item item = (Item) obj;
+			resultList.add(item);
+		});
+		QueueChannel replyChannel = new QueueChannel();
+		jdbcOutboundGateway.setOutputChannel(replyChannel);
+		jdbcOutboundGateway.setBeanFactory(mock(BeanFactory.class));
+		jdbcOutboundGateway.afterPropertiesSet();
+		// WHEN
+		jdbcOutboundGateway.handleMessage(MessageBuilder.withPayload("foo").build());
+		// THEN
+		assertThat(resultList).hasSize(rowCnt);
+		for (int i = 0; i < rowCnt; i++) {
+			assertThat(resultList.get(i).id).isEqualTo(i + 1);
+			assertThat(resultList.get(i).status).isEqualTo(0);
+		}
+		Message<?> replyMessage = replyChannel.receive();
+		List<?> payload = (List<?>) replyMessage.getPayload();
+		assertThat(payload).isEmpty();
+	}
+
+	record Item(int id, int status) { }
+
+	@Configuration
+	public static class Config {
+
+		@Bean
+		public DataSource dataSource() {
+			return new EmbeddedDatabaseBuilder()
+					.setType(EmbeddedDatabaseType.HSQL)
+					.addScript("classpath:org/springframework/integration/jdbc/jdbcOutboundGatewayTest.sql")
+					.build();
+		}
+
+		@Bean
+		public JdbcTemplate jdbcTemplate() {
+			return new JdbcTemplate(dataSource());
+		}
+	}
 }

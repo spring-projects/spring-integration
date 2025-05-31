@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.jdbc;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
@@ -36,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jiandong Ma
  *
  * @since 2.0
  */
@@ -52,6 +55,10 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private boolean keysGenerated;
 
 	private Integer maxRows;
+
+	private boolean queryForStream = false;
+
+	private Consumer<Object> streamConsumer;
 
 	/**
 	 * Construct an instance based on the provided {@link DataSource} and update SQL.
@@ -158,7 +165,6 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
-	 /**
 	 * Set a {@link SqlParameterSourceFactory} for select query.
 	 * @param sqlParameterSourceFactory the {@link SqlParameterSourceFactory} to use.
 	 */
@@ -175,6 +181,26 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.poller.setRowMapper(rowMapper);
 	}
 
+	/**
+	 * Set whether to use {@code queryForStream} for message polling.
+	 * @param queryForStream the {@code queryForStream} to use.
+	 * @since 7.0.0
+	 */
+	public void setQueryForStream(boolean queryForStream) {
+		this.queryForStream = queryForStream;
+	}
+
+	/**
+	 * Set stream consumer for processing {@code Stream} elements.
+	 * This consumer is only applicable when {@code queryForStream} is set to true.
+	 * @param streamConsumer the {@link Consumer to use}.
+	 * @since 7.0.0
+	 */
+	public void setStreamConsumer(Consumer<Object> streamConsumer) {
+		Assert.notNull(streamConsumer, "'streamConsumer' cannot be null");
+		this.streamConsumer = streamConsumer;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "jdbc:outbound-gateway";
@@ -185,6 +211,10 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 		if (this.maxRows != null) {
 			Assert.notNull(this.poller, "If you want to set 'maxRows', then you must provide a 'selectQuery'.");
 			this.poller.setMaxRows(this.maxRows);
+		}
+		if (this.queryForStream) {
+			Assert.notNull(this.streamConsumer, "If you want to use 'queryForStream', then you must provide a 'streamConsumer'.");
+			this.poller.setMaxRows(0); // select all records in stream mode.
 		}
 
 		BeanFactory beanFactory = getBeanFactory();
@@ -218,7 +248,15 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 					sqlQueryParameterSource = this.sqlParameterSourceFactory.createParameterSource(list);
 				}
 			}
-			list = this.poller.doPoll(sqlQueryParameterSource);
+			if (this.queryForStream) {
+				try (Stream<?> stream = this.poller.doPollForStream(sqlQueryParameterSource)) {
+					stream.forEach(this.streamConsumer);
+				}
+				return Collections.emptyList();
+			}
+			else {
+				list = this.poller.doPoll(sqlQueryParameterSource);
+			}
 		}
 		Object payload = list;
 		if (list.size() == 1 && (this.maxRows == null || this.maxRows == 1)) {

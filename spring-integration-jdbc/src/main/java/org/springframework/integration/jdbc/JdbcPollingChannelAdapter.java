@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@ package org.springframework.integration.jdbc;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
@@ -49,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Jonas Partner
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 2.0
  */
@@ -194,7 +197,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	@Override
 	protected Object doReceive() {
 		List<?> payload = doPoll(this.sqlQueryParameterSource);
-		if (payload.size() < 1) {
+		if (payload.isEmpty()) {
 			payload = null;
 		}
 		if (payload != null && this.updateSql != null) {
@@ -221,6 +224,20 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		}
 		else {
 			return this.jdbcOperations.query(this.selectQuery, this.rowMapper);
+		}
+	}
+
+	/**
+	 * Perform a select against provided {@link SqlParameterSource}.
+	 * @param sqlQueryParameterSource the {@link SqlParameterSource} to use. Optional.
+	 * @return the {@link Stream} of the query.
+	 */
+	protected Stream<?> doPollForStream(@Nullable SqlParameterSource sqlQueryParameterSource) {
+		if (sqlQueryParameterSource != null) {
+			return this.jdbcOperations.queryForStream(this.selectQuery, sqlQueryParameterSource, this.rowMapper);
+		}
+		else {
+			return this.jdbcOperations.queryForStream(this.selectQuery, new HashMap<>(), this.rowMapper);
 		}
 	}
 
