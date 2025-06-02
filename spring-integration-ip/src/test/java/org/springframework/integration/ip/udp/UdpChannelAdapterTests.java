@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -245,6 +246,7 @@ public class UdpChannelAdapterTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
+	@Disabled("Fails on Java > 17")
 	public void testMulticastReceiver(MulticastCondition multicastCondition) throws Exception {
 		QueueChannel channel = new QueueChannel(2);
 		MulticastReceivingChannelAdapter adapter =

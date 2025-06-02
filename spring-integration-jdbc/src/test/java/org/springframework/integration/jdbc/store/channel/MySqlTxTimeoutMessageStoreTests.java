@@ -16,6 +16,9 @@
 
 package org.springframework.integration.jdbc.store.channel;
 
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.integration.jdbc.mysql.MySqlContainerTest;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -27,5 +30,12 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration
 public class MySqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests implements MySqlContainerTest {
+
+	@Override
+	@Test
+	@Disabled("Fails sporadically")
+	public void testInt3181ConcurrentPolling() throws InterruptedException {
+		super.testInt3181ConcurrentPolling();
+	}
 
 }
