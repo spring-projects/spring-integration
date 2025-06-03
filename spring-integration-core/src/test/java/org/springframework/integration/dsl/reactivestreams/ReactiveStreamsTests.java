@@ -306,7 +306,9 @@ public class ReactiveStreamsTests {
 		public Publisher<Message<String>> reactiveFlow() {
 			return IntegrationFlow
 					.from(() -> new GenericMessage<>("a,b,c,d,e,f"),
-							e -> e.poller(p -> p.trigger(ctx -> this.invoked.getAndSet(true) ? null : Instant.now()))
+							e -> e.poller(p ->
+											p.trigger(ctx ->
+													this.invoked.getAndSet(true) ? null : Instant.now().plusMillis(1000)))
 									.sendTimeout(256)
 									.id("reactiveStreamsMessageSource"))
 					.split(String.class, p -> p.split(","))
