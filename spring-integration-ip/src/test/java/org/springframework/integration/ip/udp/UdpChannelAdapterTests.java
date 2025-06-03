@@ -32,6 +32,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -292,6 +294,7 @@ public class UdpChannelAdapterTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
+	@DisabledOnOs(value = OS.MAC, disabledReason = "Multicast tests don't work on MacOS")
 	public void testMulticastSender(MulticastCondition multicastCondition) {
 		QueueChannel channel = new QueueChannel(2);
 		UnicastReceivingChannelAdapter adapter =
