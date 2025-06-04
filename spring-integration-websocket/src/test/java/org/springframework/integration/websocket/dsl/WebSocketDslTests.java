@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 the original author or authors.
+ * Copyright 2021-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.server.HandshakeHandler;
-import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
+import org.springframework.web.socket.server.standard.StandardWebSocketUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -155,7 +155,7 @@ public class WebSocketDslTests {
 
 		@Bean
 		public DefaultHandshakeHandler handshakeHandler() {
-			return new DefaultHandshakeHandler(new TomcatRequestUpgradeStrategy());
+			return new DefaultHandshakeHandler(new StandardWebSocketUpgradeStrategy());
 		}
 
 	}

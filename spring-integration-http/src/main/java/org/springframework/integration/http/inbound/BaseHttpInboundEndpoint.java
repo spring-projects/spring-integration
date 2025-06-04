@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -36,7 +38,6 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.http.support.IntegrationWebExchangeBindException;
 import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;

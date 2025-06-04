@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,8 +100,8 @@ class WebFluxRequestExecutingMessageHandlerTests {
 	void noContentLengthHeaderForGetMethod() {
 		ClientHttpConnector httpConnector =
 				new HttpHandlerConnector((request, response) -> {
-					assertThat(request.getHeaders())
-							.doesNotContainKey(org.springframework.http.HttpHeaders.CONTENT_LENGTH);
+					assertThat(request.getHeaders().headerNames())
+							.doesNotContain(org.springframework.http.HttpHeaders.CONTENT_LENGTH);
 					response.setStatusCode(HttpStatus.OK);
 					return Mono.defer(response::setComplete);
 				});

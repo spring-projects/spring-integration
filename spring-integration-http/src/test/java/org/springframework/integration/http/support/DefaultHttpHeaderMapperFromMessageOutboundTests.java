@@ -616,7 +616,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		messageHeaders.put("abcdef", "abcdef-value");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertThat(headers).hasSize(3);
+		assertThat(headers.headerSet()).hasSize(3);
 		assertThat(headers.get("1x")).isNull();
 		assertThat(headers.get("z1")).isNull();
 		assertThat(headers.get("abc")).isNull();
@@ -639,7 +639,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		messageHeaders.put("Accept", "text/xml");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertThat(headers).hasSize(3);
+		assertThat(headers.headerSet()).hasSize(3);
 		assertThat(headers.get("foobar")).hasSize(1);
 		assertThat(headers.getFirst("foobar")).isEqualTo("abc");
 		assertThat(headers.getContentType().toString()).isEqualTo("text/html");

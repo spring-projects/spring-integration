@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ class KotlinEnricherSpec(override val delegate: EnricherSpec)
 		this.delegate.requestPayloadExpression(requestPayloadExpression)
 	}
 
-	fun <P> requestPayload(function: (Message<P>) -> Any) {
+	fun <P: Any> requestPayload(function: (Message<P>) -> Any) {
 		this.delegate.requestPayload(function)
 	}
 
@@ -93,7 +93,7 @@ class KotlinEnricherSpec(override val delegate: EnricherSpec)
 		this.delegate.propertyExpression(key, expression)
 	}
 
-	fun <P> propertyFunction(key: String, function: (Message<P>) -> Any) {
+	fun <P: Any> propertyFunction(key: String, function: (Message<P>) -> Any) {
 		this.delegate.propertyFunction(key, function)
 	}
 
@@ -105,7 +105,7 @@ class KotlinEnricherSpec(override val delegate: EnricherSpec)
 		this.delegate.header(name, expression, overwrite)
 	}
 
-	fun <P> headerFunction(name: String, function: (Message<P>) -> Any, overwrite: Boolean?) {
+	fun <P: Any> headerFunction(name: String, function: (Message<P>) -> Any, overwrite: Boolean?) {
 		this.delegate.header(name, function, overwrite)
 	}
 

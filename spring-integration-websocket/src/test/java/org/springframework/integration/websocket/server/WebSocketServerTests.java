@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ import org.springframework.web.socket.handler.WebSocketHandlerDecoratorFactory;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 import org.springframework.web.socket.server.RequestUpgradeStrategy;
-import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
+import org.springframework.web.socket.server.standard.StandardWebSocketUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
@@ -362,7 +362,7 @@ public class WebSocketServerTests {
 
 	}
 
-	public static class MyTomcatRequestUpgradeStrategy extends TomcatRequestUpgradeStrategy implements Lifecycle {
+	public static class MyTomcatRequestUpgradeStrategy extends StandardWebSocketUpgradeStrategy implements Lifecycle {
 
 		@Override
 		public void start() {

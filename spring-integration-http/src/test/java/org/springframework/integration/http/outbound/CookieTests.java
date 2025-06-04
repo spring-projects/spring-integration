@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,10 +78,10 @@ public class CookieTests {
 		assertThat(br.readLine()).isNull();
 		br.close();
 		assertThat(allHeaders.size()).isEqualTo(3);
-		assertThat(allHeaders.get(0).containsKey("Cookie")).isFalse();
-		assertThat(allHeaders.get(1).containsKey("Cookie")).isTrue();
+		assertThat(allHeaders.get(0).containsHeader("Cookie")).isFalse();
+		assertThat(allHeaders.get(1).containsHeader("Cookie")).isTrue();
 		assertThat(allHeaders.get(1).get("Cookie").get(0)).isEqualTo("JSESSIONID=X123");
-		assertThat(allHeaders.get(2).containsKey("Cookie")).isTrue();
+		assertThat(allHeaders.get(2).containsHeader("Cookie")).isTrue();
 		assertThat(allHeaders.get(2).get("Cookie").get(0)).isEqualTo("JSESSIONID=X124");
 	}
 
@@ -92,7 +92,7 @@ public class CookieTests {
 		public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
 			return new ClientHttpRequest() {
 
-				private HttpHeaders headers = new HttpHeaders();
+				private final HttpHeaders headers = new HttpHeaders();
 
 				public HttpHeaders getHeaders() {
 					return headers;

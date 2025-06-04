@@ -901,7 +901,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * the `org.springframework.integration.handler.LoggingHandler`
 	 * as a default logging category and function for the log message.
 	 */
-	fun <P> log(function: (Message<P>) -> Any) {
+	fun <P: Any> log(function: (Message<P>) -> Any) {
 		this.delegate.log(function)
 	}
 
@@ -948,7 +948,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * the `org.springframework.integration.handler.LoggingHandler`
 	 * as a default logging category and function for the log message.
 	 */
-	fun <P> log(level: LoggingHandler.Level, function: (Message<P>) -> Any) {
+	fun <P: Any> log(level: LoggingHandler.Level, function: (Message<P>) -> Any) {
 		this.delegate.log(level, function)
 	}
 
@@ -958,7 +958,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * [LoggingHandler.Level] logging level,
 	 * the provided logging category and function for the log message.
 	 */
-	fun <P> log(category: String, function: (Message<P>) -> Any) {
+	fun <P: Any> log(category: String, function: (Message<P>) -> Any) {
 		this.delegate.log(category, function)
 	}
 
@@ -968,7 +968,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * [LoggingHandler.Level] logging level, logging category
 	 * and function for the log message.
 	 */
-	fun <P> log(level: LoggingHandler.Level, category: String, function: (Message<P>) -> Any) {
+	fun <P: Any> log(level: LoggingHandler.Level, category: String, function: (Message<P>) -> Any) {
 		this.delegate.log(level, category, function)
 	}
 
@@ -1075,7 +1075,7 @@ class KotlinIntegrationFlowDefinition(@PublishedApi internal val delegate: Integ
 	 * wrap it to a [Flux], apply provided function via [Flux.transform]
 	 * and emit the result to one more [FluxMessageChannel], subscribed in the downstream flow.
 	 */
-	fun <I, O> fluxTransform(fluxFunction: (Flux<Message<I>>) -> Publisher<O>) {
+	fun <I: Any, O> fluxTransform(fluxFunction: (Flux<Message<I>>) -> Publisher<O>) {
 		this.delegate.fluxTransform(fluxFunction)
 	}
 

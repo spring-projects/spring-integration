@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestAttributes;
@@ -129,7 +128,7 @@ public class HttpProxyScenarioTests {
 					assertThat(httpHeaders.getFirst("If-Unmodified-Since")).isEqualTo(ifUnmodifiedSinceValue);
 					assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
 
-					MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<>(httpHeaders);
+					HttpHeaders responseHeaders = HttpHeaders.copyOf(httpHeaders);
 					responseHeaders.set("Connection", "close");
 					responseHeaders.set("Content-Disposition", contentDispositionValue);
 					return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
@@ -190,7 +189,7 @@ public class HttpProxyScenarioTests {
 					assertThat(((MultiValueMap<String, ?>) entity.getBody()).getFirst("foo"))
 							.isEqualTo("foo".getBytes());
 
-					MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<>(httpHeaders);
+					HttpHeaders responseHeaders = HttpHeaders.copyOf(httpHeaders);
 					responseHeaders.set("Connection", "close");
 					responseHeaders.set("Content-Type", "text/plain");
 					return new ResponseEntity<>(responseHeaders, HttpStatus.OK);

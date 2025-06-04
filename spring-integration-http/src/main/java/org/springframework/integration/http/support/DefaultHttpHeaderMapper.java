@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -51,7 +52,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -773,7 +773,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			this.logger.debug("inboundHeaderNames=" + Arrays.toString(this.inboundHeaderNames));
 		}
 		Map<String, Object> target = new HashMap<>();
-		Set<String> headerNames = source.keySet();
+		Set<String> headerNames = source.headerNames();
 		for (String name : headerNames) {
 			String lowerName = name.toLowerCase(Locale.ROOT);
 			if (shouldMapInboundHeader(lowerName)) {
@@ -793,7 +793,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		String prefixedName = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix)
 				? name
 				: this.userDefinedHeaderPrefix + name;
-		Object value = source.containsKey(prefixedName)
+		Object value = source.containsHeader(prefixedName)
 				? getHttpHeader(source, prefixedName)
 				: getHttpHeader(source, name);
 		if (value != null) {
