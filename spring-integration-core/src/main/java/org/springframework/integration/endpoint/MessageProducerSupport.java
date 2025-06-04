@@ -80,6 +80,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint
 
 	private volatile Subscription subscription;
 
+	@SuppressWarnings("this-escape")
 	protected MessageProducerSupport() {
 		setPhase(Integer.MAX_VALUE / 2);
 	}

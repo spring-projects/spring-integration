@@ -122,6 +122,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private volatile boolean initialized;
 
+	@SuppressWarnings("this-escape")
 	public AbstractPollingEndpoint() {
 		this.setPhase(Integer.MAX_VALUE / 2);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,11 +53,13 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 		}
 	};
 
+	@SuppressWarnings("this-escape")
 	public MessagePublishingErrorHandler() {
 		setErrorMessageStrategy(DEFAULT_ERROR_MESSAGE_STRATEGY);
 		setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
 
+	@SuppressWarnings("this-escape")
 	public MessagePublishingErrorHandler(DestinationResolver<MessageChannel> channelResolver) {
 		this();
 		setChannelResolver(channelResolver);
