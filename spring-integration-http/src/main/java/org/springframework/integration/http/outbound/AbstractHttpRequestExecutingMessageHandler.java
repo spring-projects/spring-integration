@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,8 +92,10 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	private final Expression uriExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private SimpleEvaluationContext simpleEvaluationContext;
 
 	private boolean trustedSpel;
@@ -314,7 +317,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 				() -> "'uriExpression' evaluation must result in a 'String' or 'URI' instance, not: "
 						+ (uri == null ? "null" : uri.getClass()));
 
-		Map<String, ?> uriVariables = null;
+		Map<String, ?> uriVariables = Collections.emptyMap();
 
 		if (uri instanceof String) {
 			uriVariables = determineUriVariables(requestMessage);
@@ -325,7 +328,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	@Nullable
 	protected abstract Object exchange(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
-			@Nullable Object expectedResponseType, Message<?> requestMessage, @Nullable Map<String, ?> uriVariables);
+			Object expectedResponseType, Message<?> requestMessage, Map<String, ?> uriVariables);
 
 	protected Object getReply(ResponseEntity<?> httpResponse) {
 		HttpHeaders httpHeaders = httpResponse.getHeaders();
@@ -518,12 +521,10 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		}
 	}
 
-	@Nullable
 	private Object determineExpectedResponseType(Message<?> requestMessage) {
 		return evaluateTypeFromExpression(requestMessage, this.expectedResponseTypeExpression, "expectedResponseType");
 	}
 
-	@Nullable
 	protected Object evaluateTypeFromExpression(Message<?> requestMessage, @Nullable Expression expression,
 			String property) {
 
@@ -547,6 +548,9 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 					throw new IllegalStateException("Cannot load class for name: " + type, e);
 				}
 			}
+		}
+		else {
+			type = Void.class;
 		}
 		return type;
 	}

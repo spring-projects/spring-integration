@@ -116,11 +116,19 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 */
 	public HttpRequestExecutingMessageHandler(Expression uriExpression, @Nullable RestTemplate restTemplate) {
 		super(uriExpression);
-		this.restTemplateExplicitlySet = restTemplate != null;
-		this.restTemplate = (this.restTemplateExplicitlySet ? restTemplate : new RestTemplate());
-		if (!this.restTemplateExplicitlySet) {
-			this.restTemplate.setUriTemplateHandler(this.uriFactory);
+		RestTemplate restTemplateToSet;
+
+		if (restTemplate != null) {
+			restTemplateToSet = restTemplate;
+			this.restTemplateExplicitlySet = true;
 		}
+		else {
+			restTemplateToSet = new RestTemplate();
+			restTemplateToSet.setUriTemplateHandler(this.uriFactory);
+			this.restTemplateExplicitlySet = false;
+		}
+
+		this.restTemplate = restTemplateToSet;
 	}
 
 	@Override
@@ -174,7 +182,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	@Override
 	@Nullable
 	protected Object exchange(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
-			@Nullable Object expectedResponseType, Message<?> requestMessage, @Nullable Map<String, ?> uriVariables) {
+			Object expectedResponseType, Message<?> requestMessage, Map<String, ?> uriVariables) {
 
 		ResponseEntity<?> httpResponse;
 		try {

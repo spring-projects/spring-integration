@@ -54,7 +54,6 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.isNull;
 
 /**
  * @author Artem Bilan
@@ -134,7 +133,7 @@ public class HttpProxyScenarioTests {
 					return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
 				}).when(template)
 				.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class),
-						Mockito.any(HttpEntity.class), (Class<?>) isNull(), Mockito.anyMap());
+						Mockito.any(HttpEntity.class), Mockito.<Class<?>>any(), Mockito.anyMap());
 
 		PropertyAccessor dfa = new DirectFieldAccessor(this.handler);
 		dfa.setPropertyValue("restTemplate", template);
@@ -195,7 +194,7 @@ public class HttpProxyScenarioTests {
 					return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
 				}).when(template)
 				.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class),
-						Mockito.any(HttpEntity.class), (Class<?>) isNull(), Mockito.anyMap());
+						Mockito.any(HttpEntity.class), Mockito.<Class<?>>any(), Mockito.anyMap());
 
 		PropertyAccessor dfa = new DirectFieldAccessor(this.handlermp);
 		dfa.setPropertyValue("restTemplate", template);

@@ -25,6 +25,7 @@ plugins {
     id 'com.github.spotbugs' version '6.1.13'
     id 'com.google.protobuf' version '0.9.5' apply false
     id 'io.freefair.aggregate-javadoc' version '8.13.1'
+    id 'io.spring.nullability' version '0.0.1' apply false
 }
 
 if (isCI) {
@@ -202,6 +203,7 @@ configure(javaProjects) { subproject ->
     apply plugin: 'checkstyle'
     apply plugin: 'kotlin'
     apply plugin: 'kotlin-spring'
+    apply plugin: 'io.spring.nullability'
 
     apply from: "${rootDir}/gradle/publish-maven.gradle"
 
