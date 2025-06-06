@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -210,7 +210,7 @@ class KafkaDslKotlinTests {
 
 		@Bean
 		fun consumerFactory(): ConsumerFactory<Int, String> {
-			val props = KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "kotlin-group-test1", "false")
+			val props = KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "kotlin-group-test1", false)
 			props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
 			return DefaultKafkaConsumerFactory(props)
 		}

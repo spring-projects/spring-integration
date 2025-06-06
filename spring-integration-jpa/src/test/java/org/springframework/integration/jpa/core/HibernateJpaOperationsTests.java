@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.jpa.core;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -168,13 +169,11 @@ public class HibernateJpaOperationsTests {
 
 		Object[] retrievedStudent = (Object[]) students.iterator().next();
 
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
-
 		assertThat(retrievedStudent[0]).isNotNull();
 		assertThat(retrievedStudent[1]).isEqualTo("First One");
 		assertThat(retrievedStudent[2]).isEqualTo("Last One");
 		assertThat(retrievedStudent[3]).isEqualTo("M");
-		assertThat(retrievedStudent[4]).isEqualTo(formatter.parse("1980/01/01"));
+		assertThat(retrievedStudent[4]).isEqualTo(LocalDate.parse("1980-01-01"));
 		assertThat(retrievedStudent[5]).isNotNull();
 
 	}

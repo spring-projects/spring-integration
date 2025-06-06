@@ -48,6 +48,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0.1
  *
@@ -59,7 +60,10 @@ public class AmqpMessageSourceTests {
 		Channel channel = mock(Channel.class);
 		willReturn(true).given(channel).isOpen();
 		Envelope envelope = new Envelope(123L, false, "ex", "rk");
-		BasicProperties props = new BasicProperties.Builder().build();
+		BasicProperties props =
+				new BasicProperties.Builder()
+						.contentType(MessageProperties.DEFAULT_CONTENT_TYPE)
+						.build();
 		GetResponse getResponse = new GetResponse(envelope, props, "bar".getBytes(), 0);
 		willReturn(getResponse).given(channel).basicGet("foo", false);
 		Connection connection = mock(Connection.class);
@@ -107,7 +111,10 @@ public class AmqpMessageSourceTests {
 		Channel channel = mock(Channel.class);
 		willReturn(true).given(channel).isOpen();
 		Envelope envelope = new Envelope(123L, false, "ex", "rk");
-		BasicProperties props = new BasicProperties.Builder().build();
+		BasicProperties props =
+				new BasicProperties.Builder()
+						.contentType(MessageProperties.DEFAULT_CONTENT_TYPE)
+						.build();
 		GetResponse getResponse = new GetResponse(envelope, props, "bar".getBytes(), 0);
 		willReturn(getResponse).given(channel).basicGet("foo", false);
 		Connection connection = mock(Connection.class);
@@ -145,10 +152,10 @@ public class AmqpMessageSourceTests {
 		willReturn(true).given(channel).isOpen();
 		Envelope envelope = new Envelope(123L, false, "ex", "rk");
 		BasicProperties props = new BasicProperties.Builder()
-				.headers(batched.getMessage().getMessageProperties().getHeaders())
+				.headers(batched.message().getMessageProperties().getHeaders())
 				.contentType("text/plain")
 				.build();
-		GetResponse getResponse = new GetResponse(envelope, props, batched.getMessage().getBody(), 0);
+		GetResponse getResponse = new GetResponse(envelope, props, batched.message().getBody(), 0);
 		willReturn(getResponse).given(channel).basicGet("foo", false);
 		Connection connection = mock(Connection.class);
 		willReturn(true).given(connection).isOpen();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.test.MockPartitioner;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -102,7 +103,7 @@ class KafkaOutboundAdapterParserTests {
 	@Test
 	void testSyncMode() {
 		MockProducer<Integer, String> mockProducer =
-				new MockProducer<>(false, new IntegerSerializer(), new StringSerializer()) {
+				new MockProducer<>(false, new MockPartitioner(), new IntegerSerializer(), new StringSerializer()) {
 
 					@Override
 					public void close(Duration timeout) {
@@ -128,12 +129,12 @@ class KafkaOutboundAdapterParserTests {
 
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		executorService.submit(() -> {
-					RuntimeException exception = new RuntimeException("Async Producer Mock exception");
-					while (!mockProducer.errorNext(exception)) {
-						Thread.sleep(100);
-					}
-					return null;
-				});
+			RuntimeException exception = new RuntimeException("Async Producer Mock exception");
+			while (!mockProducer.errorNext(exception)) {
+				Thread.sleep(100);
+			}
+			return null;
+		});
 
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))

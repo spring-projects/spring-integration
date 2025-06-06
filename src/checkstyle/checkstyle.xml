@@ -87,7 +87,6 @@
 				org.mockito.AdditionalAnswers.*,
 				org.mockito.ArgumentMatchers.*,
 				org.mockito.AdditionalMatchers.*,
-				org.springframework.integration.gemfire.config.xml.ParserTestUtil.*,
 				org.springframework.kafka.test.assertj.KafkaConditions.*,
 				org.springframework.integration.test.mock.MockIntegration.*,
 				org.springframework.integration.test.util.TestUtils.*,
