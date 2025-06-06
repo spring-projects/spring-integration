@@ -26,10 +26,12 @@ import org.springframework.jdbc.core.JdbcOperations;
  * A {@link MessageHandlerSpec} for a {@link JdbcOutboundChannelAdapterSpec}.
  *
  * @author Jiandong Ma
+ * @author Artem Bilan
  *
  * @since 7.0
  */
-public class JdbcOutboundChannelAdapterSpec extends MessageHandlerSpec<JdbcOutboundChannelAdapterSpec, JdbcMessageHandler> {
+public class JdbcOutboundChannelAdapterSpec
+		extends MessageHandlerSpec<JdbcOutboundChannelAdapterSpec, JdbcMessageHandler> {
 
 	protected JdbcOutboundChannelAdapterSpec(JdbcOperations jdbcOperations, String updateQuery) {
 		this.target = new JdbcMessageHandler(jdbcOperations, updateQuery);
@@ -42,7 +44,7 @@ public class JdbcOutboundChannelAdapterSpec extends MessageHandlerSpec<JdbcOutbo
 	 */
 	public JdbcOutboundChannelAdapterSpec keysGenerated(boolean keysGenerated) {
 		this.target.setKeysGenerated(keysGenerated);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -50,9 +52,11 @@ public class JdbcOutboundChannelAdapterSpec extends MessageHandlerSpec<JdbcOutbo
 	 * @return the spec
 	 * @see JdbcMessageHandler#setSqlParameterSourceFactory(SqlParameterSourceFactory)
 	 */
-	public JdbcOutboundChannelAdapterSpec sqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+	public JdbcOutboundChannelAdapterSpec sqlParameterSourceFactory(
+			SqlParameterSourceFactory sqlParameterSourceFactory) {
+
 		this.target.setSqlParameterSourceFactory(sqlParameterSourceFactory);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -62,7 +66,7 @@ public class JdbcOutboundChannelAdapterSpec extends MessageHandlerSpec<JdbcOutbo
 	 */
 	public JdbcOutboundChannelAdapterSpec usePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
 		this.target.setUsePayloadAsParameterSource(usePayloadAsParameterSource);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -70,9 +74,11 @@ public class JdbcOutboundChannelAdapterSpec extends MessageHandlerSpec<JdbcOutbo
 	 * @return the spec
 	 * @see JdbcMessageHandler#setPreparedStatementSetter(MessagePreparedStatementSetter)
 	 */
-	public JdbcOutboundChannelAdapterSpec preparedStatementSetter(MessagePreparedStatementSetter preparedStatementSetter) {
+	public JdbcOutboundChannelAdapterSpec preparedStatementSetter(
+			MessagePreparedStatementSetter preparedStatementSetter) {
+
 		this.target.setPreparedStatementSetter(preparedStatementSetter);
-		return _this();
+		return this;
 	}
 
 }

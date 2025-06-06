@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -37,6 +38,7 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.jdbc.BeanPropertySqlParameterSourceFactory;
 import org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory;
+import org.springframework.integration.jdbc.StoredProcExecutor;
 import org.springframework.integration.jdbc.config.JdbcTypesEnum;
 import org.springframework.integration.jdbc.storedproc.ClobSqlReturnType;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
@@ -48,7 +50,6 @@ import org.springframework.integration.support.json.JsonInboundMessageMapper;
 import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.SqlReturnType;
@@ -68,12 +69,13 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Jiandong Ma
+ * @author Artem Bilan
  *
  * @since 7.0
  */
 @SpringJUnitConfig
 @DirtiesContext
-class JdbcTest {
+class JdbcTests {
 
 	@Autowired
 	private JdbcTemplate h2JdbcTemplate;
@@ -123,27 +125,26 @@ class JdbcTest {
 	void testInboundFlow() {
 		Message<?> message = this.inboundFlowPollerChannel.receive(10_000);
 		List<?> rows = (List<?>) message.getPayload();
-		assertThat(rows.size()).isEqualTo(2);
-		assertThat(rows.get(0) instanceof Inbound).isTrue();
-		Inbound item = (Inbound) rows.get(0);
-		assertThat(item.id()).isEqualTo(1);
-		assertThat(item.status()).isEqualTo(2);
+		assertThat(rows).hasSize(2);
+		assertThat(rows.get(0))
+				.asInstanceOf(InstanceOfAssertFactories.type(Inbound.class))
+				.hasFieldOrPropertyWithValue("id", 1)
+				.hasFieldOrPropertyWithValue("status", 2);
 
-		Integer countOfStatusTwo = h2JdbcTemplate.queryForObject("select count(*) from inbound where status = 2", Integer.class);
+		Integer countOfStatusTwo =
+				h2JdbcTemplate.queryForObject("select count(*) from inbound where status = 2", Integer.class);
 		assertThat(countOfStatusTwo).isEqualTo(0);
 
-		Integer countOfStatusTen = h2JdbcTemplate.queryForObject("select count(*) from inbound where status = 10", Integer.class);
+		Integer countOfStatusTen =
+				h2JdbcTemplate.queryForObject("select count(*) from inbound where status = 10", Integer.class);
 		assertThat(countOfStatusTen).isEqualTo(2);
-	}
-
-	record Inbound(int id, int status) {
 	}
 
 	@Test
 	void testOutboundFlow() {
 		outboundFlowInputChannel.send(new GenericMessage<>("foo"));
 		Map<String, Object> map = h2JdbcTemplate.queryForMap("select * from outbound where id=?", 1);
-		assertThat(map.get("name")).isEqualTo("foo");
+		assertThat(map).containsEntry("name", "foo");
 	}
 
 	@Test
@@ -154,8 +155,9 @@ class JdbcTest {
 		List<?> payload = (List<?>) message.getPayload();
 		assertThat(payload).hasSize(1);
 		Object item = payload.get(0);
-		assertThat(item).isInstanceOf(Map.class);
-		assertThat(((Map<?, ?>) item).get("status")).isEqualTo(10);
+		assertThat(item)
+				.asInstanceOf(InstanceOfAssertFactories.map(String.class, Integer.class))
+				.containsEntry("status", 10);
 	}
 
 	@Test
@@ -164,8 +166,9 @@ class JdbcTest {
 		Message<?> message = outboundGatewayNoSelectQueryReplyChannel.receive(10_000);
 		assertThat(message).isNotNull();
 		Object payload = message.getPayload();
-		assertThat(payload).isInstanceOf(Map.class);
-		assertThat(((Map<?, ?>) payload).get("UPDATED")).isEqualTo(1);
+		assertThat(payload)
+				.asInstanceOf(InstanceOfAssertFactories.map(String.class, Integer.class))
+				.containsEntry("UPDATED", 1);
 	}
 
 	@Test
@@ -174,20 +177,17 @@ class JdbcTest {
 		assertThat(message).isNotNull();
 		Object payload = message.getPayload();
 		assertThat(payload).isNotNull();
-		assertThat(payload).isInstanceOf(List.class);
-
-		List<Integer> primeNumbers = (List<Integer>) payload;
-
-		assertThat(primeNumbers.size() == 4).isTrue();
+		assertThat(payload).asInstanceOf(InstanceOfAssertFactories.list(Integer.class)).hasSize(4);
 	}
 
 	@Test
 	void testStoredProcOutboundFlow() {
-		storedProcOutboundFlowInputChannel.send(MessageBuilder.withPayload(new User("username", "password", "email")).build());
+		storedProcOutboundFlowInputChannel.send(new GenericMessage<>(new User("username", "password", "email")));
 		Map<String, Object> map = this.derbyJdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
-		assertThat(map.get("USERNAME")).as("Wrong username").isEqualTo("username");
-		assertThat(map.get("PASSWORD")).as("Wrong password").isEqualTo("password");
-		assertThat(map.get("EMAIL")).as("Wrong email").isEqualTo("email");
+		assertThat(map)
+				.containsEntry("USERNAME", "username")
+				.containsEntry("PASSWORD", "password")
+				.containsEntry("EMAIL", "email");
 	}
 
 	@Test
@@ -204,7 +204,7 @@ class JdbcTest {
 
 		assertThat(resultMessage).isNotNull();
 		Object resultPayload = resultMessage.getPayload();
-		assertThat(resultPayload instanceof String).isTrue();
+		assertThat(resultPayload).isInstanceOf(String.class);
 		Message<?> message = new JsonInboundMessageMapper(String.class, new Jackson2JsonMessageParser())
 				.toMessage((String) resultPayload);
 		assertThat(message.getPayload()).isEqualTo(testMessage.getPayload());
@@ -224,7 +224,7 @@ class JdbcTest {
 			sqlParameterSourceFactory.setBeanFactory(mock());
 			return IntegrationFlow.from(Jdbc.inboundAdapter(h2DataSource, "select * from inbound")
 									.maxRows(2)
-									.rowMapper((RowMapper<Inbound>) (rs, rowNum) -> new Inbound(rs.getInt(1), rs.getInt(2)))
+									.rowMapper((rs, rowNum) -> new Inbound(rs.getInt(1), rs.getInt(2)))
 									.updateSql("update inbound set status = 10 where id in (:id)")
 									.updatePerRow(false)
 									.updateSqlParameterSourceFactory(sqlParameterSourceFactory)
@@ -237,14 +237,12 @@ class JdbcTest {
 		@Bean
 		public IntegrationFlow outboundFlow(DataSource h2DataSource) {
 			return flow -> flow
-					.handle(Jdbc.outboundAdapter(h2DataSource, "insert into outbound (id, status, name) values (1, 0, ?)")
-							.preparedStatementSetter((ps, requestMessage) -> {
-								ps.setObject(1, requestMessage.getPayload());
-							})
+					.handle(Jdbc.outboundAdapter(h2DataSource,
+									"insert into outbound (id, status, name) values (1, 0, ?)")
+							.preparedStatementSetter((ps, requestMessage) ->
+									ps.setObject(1, requestMessage.getPayload()))
 							.usePayloadAsParameterSource(false)
-							.sqlParameterSourceFactory(null)
-							.keysGenerated(false)
-					);
+							.keysGenerated(false));
 		}
 
 		@Bean
@@ -280,15 +278,11 @@ class JdbcTest {
 											.ignoreColumnMetaData(true)
 											.isFunction(false)
 											.storedProcedureName("GET_PRIME_NUMBERS")
-											.procedureParameters(List.of(
-													new ProcedureParameter("beginRange", 1, null),
-													new ProcedureParameter("endRange", 10, null)
-											))
-											.sqlParameters(List.of(
-													new SqlParameter("beginRange", Types.INTEGER),
-													new SqlParameter("endRange", Types.INTEGER)
-											))
-											.returningResultSetRowMappers(Map.of("out", new PrimeMapper()))
+											.procedureParameter(new ProcedureParameter("beginRange", 1, null))
+											.procedureParameter(new ProcedureParameter("endRange", 10, null))
+											.sqlParameter(new SqlParameter("beginRange", Types.INTEGER))
+											.sqlParameter(new SqlParameter("endRange", Types.INTEGER))
+											.returningResultSetRowMapper("out", new PrimeMapper())
 									),
 							e -> e.poller(p -> p.trigger(new OnlyOnceTrigger())))
 					.channel(c -> c.queue("storedProcInboundPollerChannel"))
@@ -296,19 +290,21 @@ class JdbcTest {
 		}
 
 		@Bean
-		public IntegrationFlow storedProcOutboundAdapter(DataSource derbyDataSource) {
-			return flow -> flow
-					.handle(Jdbc.storedProcOutboundAdapter(derbyDataSource)
-							.configurerStoredProcExecutor(configurer -> configurer
-									.storedProcedureName("CREATE_USER")
-									.sqlParameterSourceFactory(new BeanPropertySqlParameterSourceFactory())
-									.usePayloadAsParameterSource(true)
-							)
-					);
+		StoredProcExecutorSpec storedProcExecutor(DataSource derbyDataSource) {
+			return Jdbc.storedProcExecutorSpec(derbyDataSource)
+					.storedProcedureName("CREATE_USER")
+					.sqlParameterSourceFactory(new BeanPropertySqlParameterSourceFactory())
+					.usePayloadAsParameterSource(true);
 		}
 
 		@Bean
-		public IntegrationFlow storedProcOutboundGateway(DataSource derbyDataSource) throws Exception {
+		public IntegrationFlow storedProcOutboundAdapter(StoredProcExecutor storedProcExecutor) {
+			return flow -> flow
+					.handle(Jdbc.storedProcOutboundAdapter(storedProcExecutor));
+		}
+
+		@Bean
+		public IntegrationFlow storedProcOutboundGateway(DataSource derbyDataSource) {
 
 			return flow -> flow
 					.handle(Jdbc.storedProcOutboundGateway(derbyDataSource)
@@ -372,6 +368,11 @@ class JdbcTest {
 		public PlatformTransactionManager derbyTransactionManager() {
 			return new DataSourceTransactionManager(derbyDataSource());
 		}
+
+	}
+
+	record Inbound(int id, int status) {
+
 	}
 
 }

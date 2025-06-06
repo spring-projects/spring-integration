@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.jdbc.StoredProcExecutor;
@@ -30,6 +32,7 @@ import org.springframework.util.Assert;
  * A {@link MessageHandlerSpec} for a {@link JdbcStoredProcOutboundChannelAdapterSpec}.
  *
  * @author Jiandong Ma
+ * @author Artem Bilan
  *
  * @since 7.0
  */
@@ -39,11 +42,16 @@ public class JdbcStoredProcOutboundChannelAdapterSpec
 
 	private final StoredProcExecutor storedProcExecutor;
 
-	private final StoredProcExecutorConfigurer storedProcExecutorConfigurer;
+	private @Nullable StoredProcExecutorSpec storedProcExecutorSpec;
+
+	protected JdbcStoredProcOutboundChannelAdapterSpec(StoredProcExecutorSpec storedProcExecutorSpec) {
+		this(storedProcExecutorSpec.getObject());
+		this.storedProcExecutorSpec = storedProcExecutorSpec;
+	}
 
 	protected JdbcStoredProcOutboundChannelAdapterSpec(StoredProcExecutor storedProcExecutor) {
 		this.storedProcExecutor = storedProcExecutor;
-		this.storedProcExecutorConfigurer = new StoredProcExecutorConfigurer(this.storedProcExecutor);
+		this.storedProcExecutorSpec = null;
 		this.target = new StoredProcMessageHandler(this.storedProcExecutor);
 	}
 
@@ -52,14 +60,19 @@ public class JdbcStoredProcOutboundChannelAdapterSpec
 	 * @param configurer the configurer.
 	 * @return the spec
 	 */
-	public JdbcStoredProcOutboundChannelAdapterSpec configurerStoredProcExecutor(Consumer<StoredProcExecutorConfigurer> configurer) {
+	public JdbcStoredProcOutboundChannelAdapterSpec configurerStoredProcExecutor(
+			Consumer<StoredProcExecutorSpec> configurer) {
+
 		Assert.notNull(configurer, "'configurer' must not be null");
-		configurer.accept(this.storedProcExecutorConfigurer);
-		return _this();
+		Assert.notNull(this.storedProcExecutorSpec,
+				"The externally provided 'StoredProcExecutor' cannot be mutated in this spec");
+		configurer.accept(this.storedProcExecutorSpec);
+		return this;
 	}
 
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		return Collections.singletonMap(this.storedProcExecutor, null);
 	}
+
 }

@@ -26,6 +26,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * Factory class for JDBC components.
  *
  * @author Jiandong Ma
+ * @author Artem Bilan
  *
  * @since 7.0
  */
@@ -109,7 +110,9 @@ public final class Jdbc {
 	 * @param selectQuery the select query to build on
 	 * @return the {@link JdbcOutboundGatewaySpec} instance
 	 */
-	public static JdbcOutboundGatewaySpec outboundGateway(JdbcOperations jdbcOperations, String updateQuery, String selectQuery) {
+	public static JdbcOutboundGatewaySpec outboundGateway(JdbcOperations jdbcOperations, String updateQuery,
+			String selectQuery) {
+
 		return new JdbcOutboundGatewaySpec(jdbcOperations, updateQuery, selectQuery);
 	}
 
@@ -119,7 +122,18 @@ public final class Jdbc {
 	 * @return the {@link JdbcStoredProcInboundChannelAdapterSpec} instance
 	 */
 	public static JdbcStoredProcInboundChannelAdapterSpec storedProcInboundAdapter(DataSource dataSource) {
-		return new JdbcStoredProcInboundChannelAdapterSpec(new StoredProcExecutor(dataSource));
+		return new JdbcStoredProcInboundChannelAdapterSpec(storedProcExecutorSpec(dataSource));
+	}
+
+	/**
+	 * The factory to produce a {@link JdbcStoredProcInboundChannelAdapterSpec}.
+	 * @param storedProcExecutor the {@link StoredProcExecutor} to use
+	 * @return the {@link JdbcStoredProcInboundChannelAdapterSpec} instance
+	 */
+	public static JdbcStoredProcInboundChannelAdapterSpec storedProcInboundAdapter(
+			StoredProcExecutor storedProcExecutor) {
+
+		return new JdbcStoredProcInboundChannelAdapterSpec(storedProcExecutor);
 	}
 
 	/**
@@ -128,7 +142,18 @@ public final class Jdbc {
 	 * @return the {@link JdbcStoredProcOutboundChannelAdapterSpec} instance
 	 */
 	public static JdbcStoredProcOutboundChannelAdapterSpec storedProcOutboundAdapter(DataSource dataSource) {
-		return new JdbcStoredProcOutboundChannelAdapterSpec(new StoredProcExecutor(dataSource));
+		return new JdbcStoredProcOutboundChannelAdapterSpec(storedProcExecutorSpec(dataSource));
+	}
+
+	/**
+	 * The factory to produce a {@link JdbcStoredProcOutboundChannelAdapterSpec}.
+	 * @param storedProcExecutor the {@link StoredProcExecutor} to use
+	 * @return the {@link JdbcStoredProcOutboundChannelAdapterSpec} instance
+	 */
+	public static JdbcStoredProcOutboundChannelAdapterSpec storedProcOutboundAdapter(
+			StoredProcExecutor storedProcExecutor) {
+
+		return new JdbcStoredProcOutboundChannelAdapterSpec(storedProcExecutor);
 	}
 
 	/**
@@ -137,7 +162,25 @@ public final class Jdbc {
 	 * @return the {@link JdbcStoredProcOutboundGatewaySpec} instance
 	 */
 	public static JdbcStoredProcOutboundGatewaySpec storedProcOutboundGateway(DataSource dataSource) {
-		return new JdbcStoredProcOutboundGatewaySpec(new StoredProcExecutor(dataSource));
+		return new JdbcStoredProcOutboundGatewaySpec(storedProcExecutorSpec(dataSource));
+	}
+
+	/**
+	 * The factory to produce a {@link JdbcStoredProcOutboundGatewaySpec}.
+	 * @param storedProcExecutor the {@link StoredProcExecutor} to use
+	 * @return the {@link JdbcStoredProcOutboundGatewaySpec} instance
+	 */
+	public static JdbcStoredProcOutboundGatewaySpec storedProcOutboundGateway(StoredProcExecutor storedProcExecutor) {
+		return new JdbcStoredProcOutboundGatewaySpec(storedProcExecutor);
+	}
+
+	/**
+	 * The factory to produce a {@link StoredProcExecutorSpec}.
+	 * @param dataSource the {@link DataSource} to build on
+	 * @return the {@link StoredProcExecutorSpec} instance
+	 */
+	public static StoredProcExecutorSpec storedProcExecutorSpec(DataSource dataSource) {
+		return new StoredProcExecutorSpec(dataSource);
 	}
 
 	private Jdbc() {

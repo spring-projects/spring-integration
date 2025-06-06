@@ -1,0 +1,61 @@
+[[jdbc-dsl]]
+= Java DSL for JDBC Components
+
+Version 7.0 introduced the Java DSL API for channel adapters in JDBC module.
+The central Java DSL class (and usually starting point) is a `org.springframework.integration.jdbc.dsl.Jdbc` factory.
+It provides self-explanatory method to initiate configuration for target channel adapter or gateway.
+The standard `IntegrationComponentSpec` implementations for out-of-the-box channel adapters are:
+
+* `JdbcInboundChannelAdapterSpec extends MessageSourceSpec<JdbcInboundChannelAdapterSpec, JdbcPollingChannelAdapter>`
+* `JdbcOutboundChannelAdapterSpec extends MessageHandlerSpec<JdbcOutboundChannelAdapterSpec, JdbcMessageHandler>`
+* `JdbcOutboundGatewaySpec extends MessageHandlerSpec<JdbcOutboundGatewaySpec, JdbcOutboundGateway>`
+* `JdbcStoredProcInboundChannelAdapterSpec extends MessageSourceSpec<JdbcStoredProcInboundChannelAdapterSpec, StoredProcPollingChannelAdapter>`
+* `JdbcStoredProcOutboundChannelAdapterSpec extends MessageHandlerSpec<JdbcStoredProcOutboundChannelAdapterSpec, StoredProcMessageHandler>`
+* `JdbcStoredProcOutboundGatewaySpec extends MessageHandlerSpec<JdbcStoredProcOutboundGatewaySpec, StoredProcOutboundGateway>`
+
+In addition, the `StoredProcExecutorSpec`, a convenient, builder-like component is provided for a `StoredProcExecutor` creation and configuration.
+
+Here are some examples how `Jdbc` factory can be used for configuration an `IntegrationFlow`:
+
+[source, java]
+----
+@Bean
+public DataSource h2DataSource() {
+    return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.H2)
+            .addScripts("classpath:dsl-h2.sql", "classpath:h2-stored-procedures.sql")
+            .build();
+}
+
+@Bean
+public IntegrationFlow outboundFlow(DataSource h2DataSource) {
+    return flow -> flow
+            .handle(Jdbc.outboundAdapter(h2DataSource,
+                            "insert into outbound (id, status, name) values (1, 0, ?)")
+                    .preparedStatementSetter((ps, requestMessage) ->
+                            ps.setObject(1, requestMessage.getPayload()))
+                    .usePayloadAsParameterSource(false)
+                    .keysGenerated(false));
+}
+
+@Bean
+public IntegrationFlow storedProcInboundFlow(DataSource h2DataSource) {
+    return IntegrationFlow.from(Jdbc.storedProcInboundAdapter(h2DataSource)
+                            .expectSingleResult(true)
+                            .configurerStoredProcExecutor(configurer -> configurer
+                                    .ignoreColumnMetaData(true)
+                                    .isFunction(false)
+                                    .storedProcedureName("GET_PRIME_NUMBERS")
+                                    .procedureParameter(new ProcedureParameter("beginRange", 1, null))
+                                    .procedureParameter(new ProcedureParameter("endRange", 10, null))
+                                    .sqlParameter(new SqlParameter("beginRange", Types.INTEGER))
+                                    .sqlParameter(new SqlParameter("endRange", Types.INTEGER))
+                                    .returningResultSetRowMapper("out", new PrimeMapper())
+                            ),
+                    e -> e.poller(p -> p.trigger(new OnlyOnceTrigger())))
+            .channel(c -> c.queue("storedProcInboundPollerChannel"))
+            .get();
+}
+----
+
+This Java DSL API can be used as is with the xref:kotlin-dsl.adoc[Kotlin] and xref:groovy-dsl.adoc[Groovy] DSLs.

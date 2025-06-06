@@ -184,6 +184,7 @@
 ** xref:jdbc/outbound-gateway.adoc[]
 ** xref:jdbc/message-store.adoc[]
 ** xref:jdbc/stored-procedures.adoc[]
+** xref:jdbc/dsl.adoc[]
 ** xref:jdbc/lock-registry.adoc[]
 ** xref:jdbc/metadata-store.adoc[]
 * xref:jpa.adoc[]

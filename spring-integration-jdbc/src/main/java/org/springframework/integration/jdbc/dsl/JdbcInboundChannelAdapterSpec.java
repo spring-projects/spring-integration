@@ -27,10 +27,12 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  * A {@link MessageSourceSpec} for a {@link JdbcInboundChannelAdapterSpec}.
  *
  * @author Jiandong Ma
+ * @author Artem Bilan
  *
  * @since 7.0
  */
-public class JdbcInboundChannelAdapterSpec extends MessageSourceSpec<JdbcInboundChannelAdapterSpec, JdbcPollingChannelAdapter> {
+public class JdbcInboundChannelAdapterSpec
+		extends MessageSourceSpec<JdbcInboundChannelAdapterSpec, JdbcPollingChannelAdapter> {
 
 	protected JdbcInboundChannelAdapterSpec(JdbcOperations jdbcOperations, String selectQuery) {
 		this.target = new JdbcPollingChannelAdapter(jdbcOperations, selectQuery);
@@ -43,7 +45,7 @@ public class JdbcInboundChannelAdapterSpec extends MessageSourceSpec<JdbcInbound
 	 */
 	public JdbcInboundChannelAdapterSpec rowMapper(RowMapper<?> rowMapper) {
 		this.target.setRowMapper(rowMapper);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -53,7 +55,7 @@ public class JdbcInboundChannelAdapterSpec extends MessageSourceSpec<JdbcInbound
 	 */
 	public JdbcInboundChannelAdapterSpec updateSql(String updateSql) {
 		this.target.setUpdateSql(updateSql);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -63,7 +65,7 @@ public class JdbcInboundChannelAdapterSpec extends MessageSourceSpec<JdbcInbound
 	 */
 	public JdbcInboundChannelAdapterSpec updatePerRow(boolean updatePerRow) {
 		this.target.setUpdatePerRow(updatePerRow);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -71,9 +73,11 @@ public class JdbcInboundChannelAdapterSpec extends MessageSourceSpec<JdbcInbound
 	 * @return the spec
 	 * @see JdbcPollingChannelAdapter#setUpdateSqlParameterSourceFactory(SqlParameterSourceFactory)
 	 */
-	public JdbcInboundChannelAdapterSpec updateSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+	public JdbcInboundChannelAdapterSpec updateSqlParameterSourceFactory(
+			SqlParameterSourceFactory sqlParameterSourceFactory) {
+
 		this.target.setUpdateSqlParameterSourceFactory(sqlParameterSourceFactory);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -83,7 +87,7 @@ public class JdbcInboundChannelAdapterSpec extends MessageSourceSpec<JdbcInbound
 	 */
 	public JdbcInboundChannelAdapterSpec selectSqlParameterSource(SqlParameterSource sqlQueryParameterSource) {
 		this.target.setSelectSqlParameterSource(sqlQueryParameterSource);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -93,7 +97,7 @@ public class JdbcInboundChannelAdapterSpec extends MessageSourceSpec<JdbcInbound
 	 */
 	public JdbcInboundChannelAdapterSpec maxRows(int maxRows) {
 		this.target.setMaxRows(maxRows);
-		return _this();
+		return this;
 	}
 
 }

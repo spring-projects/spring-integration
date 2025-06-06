@@ -27,6 +27,7 @@ import org.springframework.jdbc.core.RowMapper;
  * A {@link MessageHandlerSpec} for a {@link JdbcOutboundGatewaySpec}.
  *
  * @author Jiandong Ma
+ * @author Artem Bilan
  *
  * @since 7.0
  */
@@ -43,7 +44,7 @@ public class JdbcOutboundGatewaySpec extends MessageHandlerSpec<JdbcOutboundGate
 	 */
 	public JdbcOutboundGatewaySpec maxRows(Integer maxRows) {
 		this.target.setMaxRows(maxRows);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -53,7 +54,7 @@ public class JdbcOutboundGatewaySpec extends MessageHandlerSpec<JdbcOutboundGate
 	 */
 	public JdbcOutboundGatewaySpec keysGenerated(boolean keysGenerated) {
 		this.target.setKeysGenerated(keysGenerated);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -61,9 +62,11 @@ public class JdbcOutboundGatewaySpec extends MessageHandlerSpec<JdbcOutboundGate
 	 * @return the spec
 	 * @see JdbcOutboundGateway#setRequestSqlParameterSourceFactory(SqlParameterSourceFactory)
 	 */
-	public JdbcOutboundGatewaySpec requestSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+	public JdbcOutboundGatewaySpec requestSqlParameterSourceFactory(
+			SqlParameterSourceFactory sqlParameterSourceFactory) {
+
 		this.target.setRequestSqlParameterSourceFactory(sqlParameterSourceFactory);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -71,9 +74,11 @@ public class JdbcOutboundGatewaySpec extends MessageHandlerSpec<JdbcOutboundGate
 	 * @return the spec
 	 * @see JdbcOutboundGateway#setRequestPreparedStatementSetter(MessagePreparedStatementSetter)
 	 */
-	public JdbcOutboundGatewaySpec requestPreparedStatementSetter(MessagePreparedStatementSetter preparedStatementSetter) {
+	public JdbcOutboundGatewaySpec requestPreparedStatementSetter(
+			MessagePreparedStatementSetter preparedStatementSetter) {
+
 		this.target.setRequestPreparedStatementSetter(preparedStatementSetter);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -83,7 +88,7 @@ public class JdbcOutboundGatewaySpec extends MessageHandlerSpec<JdbcOutboundGate
 	 */
 	public JdbcOutboundGatewaySpec replySqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.target.setReplySqlParameterSourceFactory(sqlParameterSourceFactory);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -93,7 +98,7 @@ public class JdbcOutboundGatewaySpec extends MessageHandlerSpec<JdbcOutboundGate
 	 */
 	public JdbcOutboundGatewaySpec rowMapper(RowMapper<?> rowMapper) {
 		this.target.setRowMapper(rowMapper);
-		return _this();
+		return this;
 	}
 
 }

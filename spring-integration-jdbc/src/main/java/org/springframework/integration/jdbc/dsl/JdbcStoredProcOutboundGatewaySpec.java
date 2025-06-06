@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.jdbc.StoredProcExecutor;
@@ -30,6 +32,7 @@ import org.springframework.util.Assert;
  * A {@link MessageHandlerSpec} for a {@link JdbcStoredProcOutboundGatewaySpec}.
  *
  * @author Jiandong Ma
+ * @author Artem Bilan
  *
  * @since 7.0
  */
@@ -39,11 +42,16 @@ public class JdbcStoredProcOutboundGatewaySpec
 
 	private final StoredProcExecutor storedProcExecutor;
 
-	private final StoredProcExecutorConfigurer storedProcExecutorConfigurer;
+	private @Nullable StoredProcExecutorSpec storedProcExecutorSpec;
+
+	protected JdbcStoredProcOutboundGatewaySpec(StoredProcExecutorSpec storedProcExecutorSpec) {
+		this(storedProcExecutorSpec.getObject());
+		this.storedProcExecutorSpec = storedProcExecutorSpec;
+	}
 
 	protected JdbcStoredProcOutboundGatewaySpec(StoredProcExecutor storedProcExecutor) {
 		this.storedProcExecutor = storedProcExecutor;
-		this.storedProcExecutorConfigurer = new StoredProcExecutorConfigurer(this.storedProcExecutor);
+		this.storedProcExecutorSpec = null;
 		this.target = new StoredProcOutboundGateway(this.storedProcExecutor);
 	}
 
@@ -52,10 +60,12 @@ public class JdbcStoredProcOutboundGatewaySpec
 	 * @param configurer the configurer.
 	 * @return the spec
 	 */
-	public JdbcStoredProcOutboundGatewaySpec configurerStoredProcExecutor(Consumer<StoredProcExecutorConfigurer> configurer) {
+	public JdbcStoredProcOutboundGatewaySpec configurerStoredProcExecutor(Consumer<StoredProcExecutorSpec> configurer) {
 		Assert.notNull(configurer, "'configurer' must not be null");
-		configurer.accept(this.storedProcExecutorConfigurer);
-		return _this();
+		Assert.notNull(this.storedProcExecutorSpec,
+				"The externally provided 'StoredProcExecutor' cannot be mutated in this spec");
+		configurer.accept(this.storedProcExecutorSpec);
+		return this;
 	}
 
 	/**
@@ -65,7 +75,7 @@ public class JdbcStoredProcOutboundGatewaySpec
 	 */
 	public JdbcStoredProcOutboundGatewaySpec requiresReply(boolean requiresReply) {
 		this.target.setRequiresReply(requiresReply);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -75,11 +85,12 @@ public class JdbcStoredProcOutboundGatewaySpec
 	 */
 	public JdbcStoredProcOutboundGatewaySpec expectSingleResult(boolean expectSingleResult) {
 		this.target.setExpectSingleResult(expectSingleResult);
-		return _this();
+		return this;
 	}
 
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		return Collections.singletonMap(this.storedProcExecutor, null);
 	}
+
 }
