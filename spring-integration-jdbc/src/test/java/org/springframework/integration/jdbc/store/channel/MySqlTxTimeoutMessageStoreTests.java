@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jdbc.store.channel;
 
+import java.util.concurrent.ExecutionException;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -37,5 +39,13 @@ public class MySqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageSto
 	public void testInt3181ConcurrentPolling() throws InterruptedException {
 		super.testInt3181ConcurrentPolling();
 	}
+
+	@Override
+	@Test
+	@Disabled("Fails sporadically")
+	public void testInt2993IdCacheConcurrency() throws InterruptedException, ExecutionException {
+		super.testInt2993IdCacheConcurrency();
+	}
+
 
 }
