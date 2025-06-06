@@ -47,5 +47,4 @@ public class MySqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageSto
 		super.testInt2993IdCacheConcurrency();
 	}
 
-
 }
