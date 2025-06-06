@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.webflux.outbound;
 import java.net.URI;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,7 +40,6 @@ import org.springframework.http.client.reactive.ClientHttpResponse;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.AbstractHttpRequestExecutingMessageHandler;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -78,12 +78,13 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 	private boolean replyPayloadToFlux;
 
-	private BodyExtractor<?, ? super ClientHttpResponse> bodyExtractor;
+	private @Nullable BodyExtractor<?, ? super ClientHttpResponse> bodyExtractor;
 
-	private Expression publisherElementTypeExpression;
+	private @Nullable Expression publisherElementTypeExpression;
 
-	private Expression attributeVariablesExpression;
+	private @Nullable Expression attributeVariablesExpression;
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
 	/**
@@ -131,14 +132,18 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	 * {@link org.springframework.beans.factory.BeanFactory}.
 	 * @param webClient The WebClient to use.
 	 */
+	@SuppressWarnings("this-escape")
 	public WebFluxRequestExecutingMessageHandler(Expression uriExpression, @Nullable WebClient webClient) {
 		super(uriExpression);
-		this.webClientExplicitlySet = webClient != null;
-		this.webClient =
-				!this.webClientExplicitlySet
-						? WebClient.builder().uriBuilderFactory(this.uriFactory).build()
-						: webClient;
-		this.setAsync(true);
+		if (webClient != null) {
+			this.webClientExplicitlySet = true;
+			this.webClient = webClient;
+		}
+		else {
+			this.webClientExplicitlySet = false;
+			this.webClient = WebClient.builder().uriBuilderFactory(this.uriFactory).build();
+		}
+		setAsync(true);
 	}
 
 	private void assertLocalWebClient(String option) {
@@ -244,6 +249,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		}
 	}
 
+	@SuppressWarnings(UNCHECKED)
 	private WebClient.RequestBodySpec createRequestBodySpec(Object uri, HttpMethod httpMethod,
 			HttpEntity<?> httpRequest, Message<?> requestMessage, Map<String, ?> uriVariables) {
 
@@ -259,8 +265,10 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 		requestSpec = requestSpec.headers(headers -> headers.putAll(httpRequest.getHeaders()));
 
-		if (this.attributeVariablesExpression != null) {
-			Map<String, Object> attributeMap = evaluateAttributeVariables(requestMessage);
+		Expression attributeVariablesExpressionToUse = this.attributeVariablesExpression;
+		if (attributeVariablesExpressionToUse != null) {
+			Map<String, Object> attributeMap =
+					attributeVariablesExpressionToUse.getValue(this.evaluationContext, requestMessage, Map.class);
 			if (!CollectionUtils.isEmpty(attributeMap)) {
 				requestSpec = requestSpec.attributes(map -> map.putAll(attributeMap));
 			}
@@ -271,11 +279,6 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 			requestSpec.body(inserter);
 		}
 		return requestSpec;
-	}
-
-	@SuppressWarnings(UNCHECKED)
-	private Map<String, Object> evaluateAttributeVariables(Message<?> requestMessage) {
-		return this.attributeVariablesExpression.getValue(this.evaluationContext, requestMessage, Map.class);
 	}
 
 	@Nullable
@@ -323,10 +326,9 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		return inserter;
 	}
 
-	@Nullable
 	@SuppressWarnings(UNCHECKED)
-	private static BodyInserters.FormInserter<?> buildBodyInserterForMultiValueMap(
-			MultiValueMap<?, ?> requestBody, MediaType contentType) {
+	private static BodyInserters.@Nullable FormInserter<?> buildBodyInserterForMultiValueMap(
+			MultiValueMap<?, ?> requestBody, @Nullable MediaType contentType) {
 
 		if (MediaType.APPLICATION_FORM_URLENCODED.equals(contentType)) {
 			return BodyInserters.fromFormData((MultiValueMap<String, String>) requestBody);
@@ -349,7 +351,8 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 	@SuppressWarnings({UNCHECKED, "rawtypes"})
 	private BodyExtractor<Flux<Object>, ? super ClientHttpResponse> createBodyExtractor(Object expectedResponseType) {
-		if (expectedResponseType != null) {
+		BodyExtractor<?, ? super ClientHttpResponse> bodyExtractorToUse = this.bodyExtractor;
+		if (expectedResponseType != Void.class) {
 			if (this.replyPayloadToFlux) {
 				if (expectedResponseType instanceof ParameterizedTypeReference parameterizedTypeReference) {
 					return BodyExtractors.toFlux(parameterizedTypeReference);
@@ -369,9 +372,9 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 				return (inputMessage, context) -> Flux.from(monoExtractor.extract(inputMessage, context));
 			}
 		}
-		else if (this.bodyExtractor != null) {
+		else if (bodyExtractorToUse != null) {
 			return (inputMessage, context) -> {
-				Object body = this.bodyExtractor.extract(inputMessage, context);
+				Object body = bodyExtractorToUse.extract(inputMessage, context);
 				if (body instanceof Publisher publisher) {
 					return Flux.from(publisher);
 				}
