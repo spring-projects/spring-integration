@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -299,7 +299,7 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @param lockRegistry the {@link LockRegistry} to use.
 	 * @return the endpoint spec.
 	 */
-	public S lockRegistry(LockRegistry lockRegistry) {
+	public S lockRegistry(LockRegistry<?> lockRegistry) {
 		Assert.notNull(lockRegistry, "'lockRegistry' must not be null.");
 		this.handler.setLockRegistry(lockRegistry);
 		return _this();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,6 +65,7 @@ import static org.mockito.Mockito.mock;
  * @author Unseok Kim
  * @author Artem Vozhdayenko
  * @author Anton Gabov
+ * @author Eddie Cho
  *
  * @since 4.0
  *
@@ -105,6 +107,48 @@ class RedisLockRegistryTests implements RedisContainerTest {
 			lock.lock();
 			try {
 				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+		registry.expireUnusedOlderThan(-1000);
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testLockWithCustomTtl(RedisLockType testRedisLockType) throws InterruptedException {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
+		registry.setRedisLockType(testRedisLockType);
+		for (int i = 0; i < 3; i++) {
+			DistributedLock lock = registry.obtain("foo");
+			lock.lock(500, TimeUnit.MILLISECONDS);
+			try {
+				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
+				Thread.sleep(400);
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+		registry.expireUnusedOlderThan(-1000);
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+		registry.destroy();
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testTryLockWithCustomTtl(RedisLockType testRedisLockType) throws InterruptedException {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
+		registry.setRedisLockType(testRedisLockType);
+		for (int i = 0; i < 3; i++) {
+			DistributedLock lock = registry.obtain("foo");
+			lock.tryLock(100, TimeUnit.MILLISECONDS, 500, TimeUnit.MILLISECONDS);
+			try {
+				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
+				Thread.sleep(400);
 			}
 			finally {
 				lock.unlock();

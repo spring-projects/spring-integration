@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.integration.util.CheckedRunnable;
 
 /**
  * Strategy for maintaining a registry of shared locks.
+ * @param <L> The expected class of the lock implementation
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -34,14 +35,14 @@ import org.springframework.integration.util.CheckedRunnable;
  * @since 2.1.1
  */
 @FunctionalInterface
-public interface LockRegistry {
+public interface LockRegistry<L extends Lock> {
 
 	/**
 	 * Obtain the lock associated with the parameter object.
 	 * @param lockKey The object with which the lock is associated.
 	 * @return The associated lock.
 	 */
-	Lock obtain(Object lockKey);
+	L obtain(Object lockKey);
 
 	/**
 	 * Perform the provided task when the lock for the key is locked.

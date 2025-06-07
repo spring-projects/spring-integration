@@ -38,6 +38,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.test.annotation.DirtiesContext;
@@ -116,6 +117,42 @@ public class JdbcLockRegistryTests {
 	}
 
 	@Test
+	void testLockWithCustomTtl() throws Exception {
+		for (int i = 0; i < 10; i++) {
+			DistributedLock lock = this.registry.obtain("foo");
+			lock.lock(100, TimeUnit.MILLISECONDS);
+			try {
+				assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(1);
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+
+		Thread.sleep(10);
+		this.registry.expireUnusedOlderThan(0);
+		assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(0);
+	}
+
+	@Test
+	void testTryLockWithCustomTtl() throws Exception {
+		for (int i = 0; i < 10; i++) {
+			DistributedLock lock = this.registry.obtain("foo");
+			lock.tryLock(100, TimeUnit.MILLISECONDS, 100, TimeUnit.MILLISECONDS);
+			try {
+				assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(1);
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+
+		Thread.sleep(10);
+		this.registry.expireUnusedOlderThan(0);
+		assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(0);
+	}
+
+	@Test
 	public void testReentrantLock() {
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = this.registry.obtain("foo");
@@ -152,11 +189,10 @@ public class JdbcLockRegistryTests {
 	@Test
 	public void testReentrantLockAfterExpiration() throws Exception {
 		DefaultLockRepository client = new DefaultLockRepository(dataSource);
-		client.setTimeToLive(1);
 		client.setApplicationContext(this.context);
 		client.afterPropertiesSet();
 		client.afterSingletonsInstantiated();
-		JdbcLockRegistry registry = new JdbcLockRegistry(client);
+		JdbcLockRegistry registry = new JdbcLockRegistry(client, 1);
 		Lock lock1 = registry.obtain("foo");
 		assertThat(lock1.tryLock()).isTrue();
 		Thread.sleep(100);

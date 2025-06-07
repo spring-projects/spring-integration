@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	private JdbcLockRegistry registry;
 
 	@Autowired
-	private LockRepository client;
+	private DefaultLockRepository client;
 
 	@Autowired
 	private ConfigurableApplicationContext context;
@@ -78,6 +78,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	public void clear() {
 		this.registry.expireUnusedOlderThan(0);
 		this.client.close();
+		this.client.afterPropertiesSet();
 		this.child = new AnnotationConfigApplicationContext();
 		this.child.registerBean("childLockRepository", DefaultLockRepository.class, this.dataSource);
 		this.child.setParent(this.context);
@@ -282,24 +283,23 @@ public class JdbcLockRegistryDifferentClientTests {
 
 	@Test
 	public void testOutOfDateLockTaken() throws Exception {
+		long ttl = 100;
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
-		client1.setTimeToLive(100);
 		client1.setApplicationContext(this.context);
 		client1.afterPropertiesSet();
 		client1.afterSingletonsInstantiated();
 		DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
-		client2.setTimeToLive(100);
 		client2.setApplicationContext(this.context);
 		client2.afterPropertiesSet();
 		client2.afterSingletonsInstantiated();
-		Lock lock1 = new JdbcLockRegistry(client1).obtain("foo");
+		Lock lock1 = new JdbcLockRegistry(client1, ttl).obtain("foo");
 		final BlockingQueue<Integer> data = new LinkedBlockingQueue<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		lock1.lockInterruptibly();
 		Thread.sleep(500);
 		new SimpleAsyncTaskExecutor()
 				.execute(() -> {
-					Lock lock2 = new JdbcLockRegistry(client2).obtain("foo");
+					Lock lock2 = new JdbcLockRegistry(client2, ttl).obtain("foo");
 					try {
 						lock2.lockInterruptibly();
 						data.add(1);
@@ -324,17 +324,16 @@ public class JdbcLockRegistryDifferentClientTests {
 
 	@Test
 	public void testRenewLock() throws Exception {
+		long ttl = 500;
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
-		client1.setTimeToLive(500);
 		client1.setApplicationContext(this.context);
 		client1.afterPropertiesSet();
 		client1.afterSingletonsInstantiated();
 		DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
-		client2.setTimeToLive(500);
 		client2.setApplicationContext(this.context);
 		client2.afterPropertiesSet();
 		client2.afterSingletonsInstantiated();
-		JdbcLockRegistry registry = new JdbcLockRegistry(client1);
+		JdbcLockRegistry registry = new JdbcLockRegistry(client1, ttl);
 		Lock lock1 = registry.obtain("foo");
 		final BlockingQueue<Integer> data = new LinkedBlockingQueue<>();
 		final CountDownLatch latch1 = new CountDownLatch(2);
@@ -342,7 +341,7 @@ public class JdbcLockRegistryDifferentClientTests {
 		lock1.lockInterruptibly();
 		new SimpleAsyncTaskExecutor()
 				.execute(() -> {
-					Lock lock2 = new JdbcLockRegistry(client2).obtain("foo");
+					Lock lock2 = new JdbcLockRegistry(client2, ttl).obtain("foo");
 					try {
 						latch1.countDown();
 						lock2.lockInterruptibly();

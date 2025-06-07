@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,19 @@
 
 package org.springframework.integration.support.locks;
 
+import java.util.concurrent.locks.Lock;
+
 /**
  * A {@link LockRegistry} implementing this interface supports the renewal
  * of the time to live of a lock.
+ * @param <L> The expected class of the lock implementation
  *
  * @author Alexandre Strubel
  * @author Artem Bilan
  *
  * @since 5.4
  */
-public interface RenewableLockRegistry extends LockRegistry {
+public interface RenewableLockRegistry<L extends Lock> extends LockRegistry<L> {
 
 	/**
 	 * Renew the time to live of the lock is associated with the parameter object.

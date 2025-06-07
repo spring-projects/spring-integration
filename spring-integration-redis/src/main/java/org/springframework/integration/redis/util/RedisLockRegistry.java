@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
@@ -90,7 +91,7 @@ import org.springframework.util.ReflectionUtils;
  * @since 4.0
  *
  */
-public final class RedisLockRegistry implements ExpirableLockRegistry, DisposableBean {
+public final class RedisLockRegistry implements ExpirableLockRegistry<DistributedLock>, DisposableBean {
 
 	private static final Log LOGGER = LogFactory.getLog(RedisLockRegistry.class);
 
@@ -224,7 +225,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	}
 
 	@Override
-	public Lock obtain(Object lockKey) {
+	public DistributedLock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = (String) lockKey;
 		this.lock.lock();
@@ -296,7 +297,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		};
 	}
 
-	private abstract class RedisLock implements Lock {
+	private abstract class RedisLock implements DistributedLock {
 
 		private static final String OBTAIN_LOCK_SCRIPT = """
 				local lockClientId = redis.call('GET', KEYS[1])
@@ -334,11 +335,12 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		/**
 		 * Attempt to acquire a lock in redis.
 		 * @param time the maximum time(milliseconds) to wait for the lock, -1 infinity
+		 * @param expireAfter the time-to-live(milliseconds) for the lock status data
 		 * @return true if the lock was acquired and false if the waiting time elapsed before the lock was acquired
 		 * @throws InterruptedException –
 		 * if the current thread is interrupted while acquiring the lock (and interruption of lock acquisition is supported)
 		 */
-		protected abstract boolean tryRedisLockInner(long time) throws ExecutionException, InterruptedException;
+		protected abstract boolean tryRedisLockInner(long time, long expireAfter) throws ExecutionException, InterruptedException;
 
 		/**
 		 * Unlock the lock using the unlink method in redis.
@@ -352,10 +354,16 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		@Override
 		public final void lock() {
+			this.lock(RedisLockRegistry.this.expireAfter, TimeUnit.MILLISECONDS);
+		}
+
+		@Override
+		public void lock(long customTtl, TimeUnit customTtlUnit) {
 			this.localLock.lock();
 			while (true) {
 				try {
-					if (tryRedisLock(-1L)) {
+					long customTtlInMilliseconds = TimeUnit.MILLISECONDS.convert(customTtl, customTtlUnit);
+					if (tryRedisLock(-1L, customTtlInMilliseconds)) {
 						return;
 					}
 				}
@@ -382,7 +390,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			this.localLock.lockInterruptibly();
 			while (true) {
 				try {
-					if (tryRedisLock(-1L)) {
+					if (tryRedisLock(-1L, RedisLockRegistry.this.expireAfter)) {
 						return;
 					}
 				}
@@ -411,12 +419,18 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		@Override
 		public final boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+			return this.tryLock(time, unit, RedisLockRegistry.this.expireAfter, TimeUnit.MILLISECONDS);
+		}
+
+		@Override
+		public boolean tryLock(long time, TimeUnit unit, long customTtl, TimeUnit customTtlUnit) throws InterruptedException {
 			if (!this.localLock.tryLock(time, unit)) {
 				return false;
 			}
 			try {
 				long waitTime = TimeUnit.MILLISECONDS.convert(time, unit);
-				boolean acquired = tryRedisLock(waitTime);
+				long customTtlInMilliseconds = TimeUnit.MILLISECONDS.convert(customTtl, customTtlUnit);
+				boolean acquired = tryRedisLock(waitTime, customTtlInMilliseconds);
 				if (!acquired) {
 					this.localLock.unlock();
 				}
@@ -429,8 +443,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			return false;
 		}
 
-		private boolean tryRedisLock(long time) throws ExecutionException, InterruptedException {
-			final boolean acquired = tryRedisLockInner(time);
+		private boolean tryRedisLock(long time, long expireAfter) throws ExecutionException, InterruptedException {
+			final boolean acquired = tryRedisLockInner(time, expireAfter);
 			if (acquired) {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Acquired lock; " + this);
@@ -440,11 +454,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			return acquired;
 		}
 
-		protected final Boolean obtainLock() {
+		protected final Boolean obtainLock(long expireAfter) {
 			return RedisLockRegistry.this.redisTemplate
 					.execute(OBTAIN_LOCK_REDIS_SCRIPT, Collections.singletonList(this.lockKey),
 							RedisLockRegistry.this.clientId,
-							String.valueOf(RedisLockRegistry.this.expireAfter));
+							String.valueOf(expireAfter));
 		}
 
 		@Override
@@ -598,8 +612,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		@Override
-		protected boolean tryRedisLockInner(long time) throws ExecutionException, InterruptedException {
-			return subscribeLock(time);
+		protected boolean tryRedisLockInner(long time, long expireAfter) throws ExecutionException, InterruptedException {
+			return subscribeLock(time, expireAfter);
 		}
 
 		@Override
@@ -618,9 +632,9 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					RedisLockRegistry.this.clientId, RedisLockRegistry.this.unLockChannelKey));
 		}
 
-		private boolean subscribeLock(long time) throws ExecutionException, InterruptedException {
+		private boolean subscribeLock(long time, long expireAfter) throws ExecutionException, InterruptedException {
 			final long expiredTime = System.currentTimeMillis() + time;
-			if (obtainLock()) {
+			if (obtainLock(expireAfter)) {
 				return true;
 			}
 
@@ -635,7 +649,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					Future<String> future =
 							RedisLockRegistry.this.unlockNotifyMessageListener.subscribeLock(this.lockKey);
 					//DCL
-					if (obtainLock()) {
+					if (obtainLock(expireAfter)) {
 						return true;
 					}
 					try {
@@ -645,7 +659,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					}
 					catch (TimeoutException ignore) {
 					}
-					if (obtainLock()) {
+					if (obtainLock(expireAfter)) {
 						return true;
 					}
 				}
@@ -737,10 +751,10 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		@Override
-		protected boolean tryRedisLockInner(long time) throws InterruptedException {
+		protected boolean tryRedisLockInner(long time, long expireAfter) throws InterruptedException {
 			long now = System.currentTimeMillis();
 			if (time == -1L) {
-				while (!obtainLock()) {
+				while (!obtainLock(expireAfter)) {
 					Thread.sleep(100); //NOSONAR
 				}
 				return true;
@@ -748,7 +762,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			else {
 				long expire = now + TimeUnit.MILLISECONDS.convert(time, TimeUnit.MILLISECONDS);
 				boolean acquired;
-				while (!(acquired = obtainLock()) && System.currentTimeMillis() < expire) { //NOSONAR
+				while (!(acquired = obtainLock(expireAfter)) && System.currentTimeMillis() < expire) { //NOSONAR
 					Thread.sleep(100); //NOSONAR
 				}
 				return acquired;
