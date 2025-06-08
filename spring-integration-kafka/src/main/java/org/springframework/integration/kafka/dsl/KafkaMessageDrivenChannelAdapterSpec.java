@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,7 +168,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 
 	/**
 	 * Specify a {@link BiConsumer} for seeks management during
-	 * {@link ConsumerSeekAware.ConsumerSeekCallback#onPartitionsAssigned(Map, ConsumerSeekAware.ConsumerSeekCallback)}
+	 * {@link ConsumerSeekAware#onPartitionsAssigned(Map, ConsumerSeekAware.ConsumerSeekCallback)}
 	 * call from the {@link org.springframework.kafka.listener.KafkaMessageListenerContainer}.
 	 * @param onPartitionsAssignedCallback the {@link BiConsumer} to use
 	 * @return the spec
