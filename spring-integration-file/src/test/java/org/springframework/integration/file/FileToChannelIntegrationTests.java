@@ -19,6 +19,7 @@ package org.springframework.integration.file;
 import java.io.File;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
@@ -36,6 +37,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class FileToChannelIntegrationTests {
+
+	@TempDir
+	public static File tempDir;
 
 	@Autowired
 	File inputDirectory;

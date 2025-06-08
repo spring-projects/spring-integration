@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import java.util.Map;
 
 import javax.management.MBeanServer;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 
@@ -40,7 +40,7 @@ public class MBeanTreePollingMessageSourceTests {
 
 	private static MBeanServer server;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setup() {
 		factoryBean = new MBeanServerFactoryBean();
 		factoryBean.setLocateExistingServerIfPossible(true);
@@ -48,7 +48,7 @@ public class MBeanTreePollingMessageSourceTests {
 		server = factoryBean.getObject();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown() {
 		factoryBean.destroy();
 	}

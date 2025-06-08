@@ -20,6 +20,7 @@ import java.io.File;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig
 @DirtiesContext
 public class FileLockingNamespaceTests {
+
+	@TempDir
+	public static File tempDir;
 
 	@Autowired
 	@Qualifier("nioLockingAdapter.adapter")

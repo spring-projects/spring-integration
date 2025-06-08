@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.jmx.config;
 
-import org.junit.Test;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -27,9 +28,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class MBeanExporterNameTests {
 
-	@Test(expected = BeanDefinitionParsingException.class)
-	public void testHandlerMBeanRegistration() throws Exception {
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass()).close();
+	@Test
+	public void testHandlerMBeanRegistration() {
+		Assertions.assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() -> new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass()));
 	}
 
 	public static class Source {

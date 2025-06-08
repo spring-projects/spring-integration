@@ -19,11 +19,8 @@
 			directory="#{inputDirectory.path}"
 			channel="fileMessages" filter="compositeFilter"/>
 
-	<bean id="temp" class="org.junit.rules.TemporaryFolder"
-		  init-method="create" destroy-method="delete"/>
-
 	<bean id="inputDirectory" class="java.io.File">
-		<constructor-arg value="#{temp.newFolder('FileToChannelIntegrationTests').path}"/>
+		<constructor-arg value="#{T(org.springframework.integration.file.FileToChannelIntegrationTests).tempDir.path}"/>
 	</bean>
 
 	<si:channel id="fileMessages">

@@ -11,17 +11,19 @@
 			https://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
     <!-- under test -->
-    <file:inbound-channel-adapter id="customLockingAdapter" directory="#{directory.root}">
+    <file:inbound-channel-adapter id="customLockingAdapter" directory="#{directory}">
         <file:locker ref="customLocker"/>
     </file:inbound-channel-adapter>
 
-    <file:inbound-channel-adapter id="nioLockingAdapter" directory="#{directory.root}">
+    <file:inbound-channel-adapter id="nioLockingAdapter" directory="#{directory}">
         <file:nio-locker/>
     </file:inbound-channel-adapter>
 
     <bean id="customLocker" class="org.springframework.integration.file.locking.FileLockingNamespaceTests$StubLocker"/>
 
-    <bean id="directory" class="org.junit.rules.TemporaryFolder" init-method="create" destroy-method="delete"/>
+	<bean id="directory" class="java.io.File">
+		<constructor-arg value="#{T(org.springframework.integration.file.locking.FileLockingNamespaceTests).tempDir.path}"/>
+	</bean>
 
     <si:poller default="true" fixed-delay="100000000"/>
 
