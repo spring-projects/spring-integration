@@ -96,7 +96,7 @@ ext {
     micrometerTracingVersion = '1.5.0'
     micrometerVersion = '1.15.0'
     mockitoVersion = '5.18.0'
-    mongoDriverVersion = '5.5.0'
+    mongoDriverVersion = '5.5.1'
     mysqlVersion = '9.3.0'
     oracleVersion = '23.8.0.25.04'
     pahoMqttClientVersion = '1.2.5'
