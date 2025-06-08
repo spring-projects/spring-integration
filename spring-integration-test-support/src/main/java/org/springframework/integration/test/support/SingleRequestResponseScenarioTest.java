@@ -25,10 +25,8 @@ import java.util.List;
  * @author David Turanski
  * @author Jiandong Ma
  *
- * @deprecated since 7.0 in favor of {@link SingleRequestResponseScenarioTest}
  */
-@Deprecated(since = "7.0", forRemoval = true)
-public abstract class SingleRequestResponseScenarioTests extends AbstractRequestResponseScenarioTests {
+public abstract class SingleRequestResponseScenarioTest extends AbstractRequestResponseScenarioTest {
 
 	@Override
 	protected List<RequestResponseScenario> defineRequestResponseScenarios() {

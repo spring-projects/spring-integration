@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,21 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import org.springframework.integration.test.condition.LongRunningTest;
+
 /**
  * Rule to prevent long running tests from running on every build; set environment
  * variable RUN_LONG_INTEGRATION_TESTS on a CI nightly build to ensure coverage.
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Jiandong Ma
  *
  * @since 3.0
  *
+ * @deprecated since 7.0 in favor of {@link LongRunningTest}.
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public class LongRunningIntegrationTest extends TestWatcher {
 
 	private static final Log LOGGER = LogFactory.getLog(LongRunningIntegrationTest.class);
