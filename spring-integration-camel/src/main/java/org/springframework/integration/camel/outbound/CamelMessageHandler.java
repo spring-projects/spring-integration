@@ -17,7 +17,6 @@
 package org.springframework.integration.camel.outbound;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.camel.CamelContext;
@@ -69,7 +68,7 @@ import org.springframework.util.StringUtils;
  */
 public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	@Nullable
+	@SuppressWarnings("NullAway.Init")
 	private ProducerTemplate producerTemplate;
 
 	private Expression exchangePatternExpression = new ValueExpression<>(ExchangePattern.InOnly);
@@ -85,7 +84,7 @@ public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 	@Nullable
 	private Expression exchangePropertiesExpression;
 
-	@Nullable
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
 	public CamelMessageHandler() {
@@ -202,43 +201,35 @@ public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 	@Override
 	@Nullable
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		StandardEvaluationContext localEvaluationContext = Objects.requireNonNull(this.evaluationContext,
-				"'evaluationContext' must not be null");
 		ExchangePattern exchangePattern =
-				this.exchangePatternExpression.getValue(localEvaluationContext, requestMessage, ExchangePattern.class);
+				this.exchangePatternExpression.getValue(this.evaluationContext, requestMessage, ExchangePattern.class);
 
 		Assert.notNull(exchangePattern, "'exchangePatternExpression' must not evaluate to null");
 
 		Endpoint endpoint = resolveEndpoint(requestMessage);
 		Exchange exchange = prepareInExchange(endpoint, exchangePattern, requestMessage);
 
-		ProducerTemplate localProducerTemplate = Objects.requireNonNull(this.producerTemplate,
-				"'producerTemplate' must not be null");
 		if (isAsync()) {
-			CompletableFuture<Exchange> result = localProducerTemplate.asyncSend(endpoint, exchange);
+			CompletableFuture<Exchange> result = this.producerTemplate.asyncSend(endpoint, exchange);
 			return result.thenApply(resultExchange -> buildReply(exchangePattern, resultExchange));
 		}
 		else {
-			Exchange result = localProducerTemplate.send(endpoint, exchange);
+			Exchange result = this.producerTemplate.send(endpoint, exchange);
 			return buildReply(exchangePattern, result);
 		}
 	}
 
 	private Endpoint resolveEndpoint(Message<?> requestMessage) {
-		StandardEvaluationContext localEvaluationContext = Objects.requireNonNull(this.evaluationContext,
-				"'evaluationContext' must not be null");
 		String endpointUri =
 				this.endpointUriExpression != null
-						? this.endpointUriExpression.getValue(localEvaluationContext, requestMessage, String.class)
+						? this.endpointUriExpression.getValue(this.evaluationContext, requestMessage, String.class)
 						: null;
 
-		ProducerTemplate localProducerTemplate = Objects.requireNonNull(this.producerTemplate,
-				"'producerTemplate' must not be null");
 		if (StringUtils.hasText(endpointUri)) {
-			return localProducerTemplate.getCamelContext().getEndpoint(endpointUri);
+			return this.producerTemplate.getCamelContext().getEndpoint(endpointUri);
 		}
 		else {
-			return localProducerTemplate.getDefaultEndpoint();
+			return this.producerTemplate.getDefaultEndpoint();
 		}
 	}
 
@@ -246,11 +237,9 @@ public class CamelMessageHandler extends AbstractReplyProducingMessageHandler {
 	private Exchange prepareInExchange(Endpoint endpoint, ExchangePattern exchangePattern, Message<?> requestMessage) {
 		Exchange exchange = endpoint.createExchange(exchangePattern);
 
-		StandardEvaluationContext localEvaluationContext = Objects.requireNonNull(this.evaluationContext,
-				"'evaluationContext' must not be null");
 		Map<String, Object> exchangeProperties =
 				this.exchangePropertiesExpression != null
-						? this.exchangePropertiesExpression.getValue(localEvaluationContext, requestMessage, Map.class)
+						? this.exchangePropertiesExpression.getValue(this.evaluationContext, requestMessage, Map.class)
 						: null;
 
 		if (exchangeProperties != null) {
