@@ -17,6 +17,8 @@ Java 17 is still baseline, but Java 24 is supported.
 [[x7.0-general]]
 == General Changes
 
+Junit 4 Based Support Components are deprecated.
+
 [[x7.0-new-components]]
 == New Components
 

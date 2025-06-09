@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ import javax.management.MBeanServer;
 import javax.management.Notification;
 import javax.management.ObjectName;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -59,13 +59,13 @@ public class NotificationListeningMessageProducerTests {
 
 	private ObjectName objectName;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupClass() {
 		serverFactoryBean = new MBeanServerFactoryBean();
 		serverFactoryBean.afterPropertiesSet();
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		this.server = serverFactoryBean.getObject();
 		MBeanExporter exporter = new MBeanExporter();
@@ -75,12 +75,12 @@ public class NotificationListeningMessageProducerTests {
 		exporter.registerManagedResource(this.numberHolder, this.objectName);
 	}
 
-	@After
+	@AfterEach
 	public void cleanup() throws Exception {
 		this.server.unregisterMBean(this.objectName);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown() {
 		serverFactoryBean.destroy();
 	}

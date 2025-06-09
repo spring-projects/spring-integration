@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import java.util.Map;
 
 import javax.management.MBeanServer;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
@@ -39,6 +39,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -61,24 +62,24 @@ public class OperationInvokingMessageHandlerTests {
 
 	private final String objectName = "si:name=test";
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupClass() {
 		factoryBean = new MBeanServerFactoryBean();
 		factoryBean.afterPropertiesSet();
 		server = factoryBean.getObject();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown() {
 		factoryBean.destroy();
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		server.registerMBean(new TestOps(), ObjectNameManager.getInstance(this.objectName));
 	}
 
-	@After
+	@AfterEach
 	public void cleanup() throws Exception {
 		server.unregisterMBean(ObjectNameManager.getInstance(this.objectName));
 	}
@@ -115,7 +116,7 @@ public class OperationInvokingMessageHandlerTests {
 		handler.handleMessage(message);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void invocationWithMapPayloadNotEnoughParameters() {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler(server);
@@ -127,10 +128,8 @@ public class OperationInvokingMessageHandlerTests {
 		Map<String, Object> params = new HashMap<>();
 		params.put("p1", "foo");
 		Message<?> message = MessageBuilder.withPayload(params).build();
-		handler.handleMessage(message);
-		Message<?> reply = outputChannel.receive(0);
-		assertThat(reply).isNotNull();
-		assertThat(reply.getPayload()).isEqualTo("foobar");
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> handler.handleMessage(message));
 	}
 
 	@Test

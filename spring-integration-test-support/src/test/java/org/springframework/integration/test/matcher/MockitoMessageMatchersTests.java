@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,9 @@ package org.springframework.integration.test.matcher;
 import java.util.Date;
 
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.exceptions.verification.opentest4j.ArgumentsAreDifferent;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -33,6 +30,7 @@ import org.springframework.messaging.support.MessageBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,7 +41,6 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  *
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
 public class MockitoMessageMatchersTests {
 
 	static final Date SOME_PAYLOAD = new Date();
@@ -52,15 +49,13 @@ public class MockitoMessageMatchersTests {
 
 	static final String SOME_HEADER_KEY = "test.foo";
 
-	@Mock
-	MessageHandler handler;
+	MessageHandler handler = mock();
 
-	@Mock
-	MessageChannel channel;
+	MessageChannel channel = mock();
 
 	Message<Date> message;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		this.message =
 				MessageBuilder.withPayload(SOME_PAYLOAD)

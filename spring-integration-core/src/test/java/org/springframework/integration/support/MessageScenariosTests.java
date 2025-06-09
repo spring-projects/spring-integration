@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.integration.test.predicate.MessagePredicate;
-import org.springframework.integration.test.support.AbstractRequestResponseScenarioTests;
+import org.springframework.integration.test.support.AbstractRequestResponseScenarioTest;
 import org.springframework.integration.test.support.MessageValidator;
 import org.springframework.integration.test.support.PayloadValidator;
 import org.springframework.integration.test.support.RequestResponseScenario;
@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @ContextConfiguration
 @DirtiesContext
-public class MessageScenariosTests extends AbstractRequestResponseScenarioTests {
+public class MessageScenariosTests extends AbstractRequestResponseScenarioTest {
 
 	@Override
 	protected List<RequestResponseScenario> defineRequestResponseScenarios() {

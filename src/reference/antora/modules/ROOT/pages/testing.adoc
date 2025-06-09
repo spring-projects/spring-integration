@@ -114,20 +114,18 @@ public void testWithEntityClass() throws Exception {
 
 The `org.springframework.integration.test.support` package contains various abstract classes that you should implement in target tests
 
-* https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/AbstractRequestResponseScenarioTests.html[`AbstractRequestResponseScenarioTests`]
+* https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/AbstractRequestResponseScenarioTest.html[`AbstractRequestResponseScenarioTest`]
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/AbstractResponseValidator.html[`AbstractResponseValidator`]
-* https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/LogAdjustingTestSupport.html[`LogAdjustingTestSupport`] (Deprecated)
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/MessageValidator.html[`MessageValidator`]
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/PayloadValidator.html[`PayloadValidator`]
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/RequestResponseScenario.html[`RequestResponseScenario`]
-* https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/SingleRequestResponseScenarioTests.html[`SingleRequestResponseScenarioTests`]
+* https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/SingleRequestResponseScenarioTest.html[`SingleRequestResponseScenarioTest`]
 
-[[test-junit-rules]]
-=== JUnit Rules and Conditions
+[[test-junit-conditions]]
+=== JUnit Conditions
 
-The `LongRunningIntegrationTest` JUnit 4 test rule is present to indicate if test should be run if `RUN_LONG_INTEGRATION_TESTS` environment or system property is set to `true`.
+The `@LongRunningTest` conditional annotation is present to indicate if test should be run if `RUN_LONG_INTEGRATION_TESTS` environment or system property is set to `true`.
 Otherwise, it is skipped.
-For the same reason since version 5.1, a `@LongRunningTest` conditional annotation is provided for JUnit 5 tests.
 
 [[hamcrest-and-mockito-matchers]]
 === Hamcrest and Mockito Matchers
@@ -231,7 +229,7 @@ After test is performed you can restore the state of endpoint beans to the real 
 
 [source,java]
 ----
-@After
+@AfterEach
 public void tearDown() {
     this.mockIntegrationContext.resetBeans();
 }

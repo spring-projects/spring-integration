@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.springframework.integration.stream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
@@ -51,7 +51,7 @@ public class ByteStreamWritingMessageHandlerTests {
 
 	private ThreadPoolTaskScheduler scheduler;
 
-	@Before
+	@BeforeEach
 	public void initialize() {
 		stream = new ByteArrayOutputStream();
 		handler = new ByteStreamWritingMessageHandler(stream);
@@ -65,7 +65,7 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 	}
 
-	@After
+	@AfterEach
 	public void stop() throws Exception {
 		scheduler.destroy();
 	}
