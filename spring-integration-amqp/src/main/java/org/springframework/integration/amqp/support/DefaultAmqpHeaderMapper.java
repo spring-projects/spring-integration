@@ -16,12 +16,7 @@
 
 package org.springframework.integration.amqp.support;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
@@ -30,10 +25,11 @@ import org.springframework.amqp.utils.JavaUtils;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.support.JsonHeaders;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.MimeType;
 import org.springframework.util.StringUtils;
+
+import java.util.*;
 
 /**
  * Default implementation of {@link AmqpHeaderMapper}.

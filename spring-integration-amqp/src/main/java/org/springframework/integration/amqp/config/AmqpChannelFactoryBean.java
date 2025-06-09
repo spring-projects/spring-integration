@@ -16,17 +16,11 @@
 
 package org.springframework.integration.amqp.config;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Executor;
-
 import org.aopalliance.aop.Advice;
 
-import org.springframework.amqp.core.AcknowledgeMode;
-import org.springframework.amqp.core.AmqpAdmin;
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.FanoutExchange;
-import org.springframework.amqp.core.MessageDeliveryMode;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.RabbitAccessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -46,12 +40,15 @@ import org.springframework.integration.amqp.channel.PollableAmqpChannel;
 import org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Executor;
 
 /**
  * If point-to-point, we send to the default exchange with the routing key

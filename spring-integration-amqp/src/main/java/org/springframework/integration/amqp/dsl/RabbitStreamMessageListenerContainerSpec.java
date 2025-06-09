@@ -16,16 +16,18 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import java.util.function.Consumer;
-
 import com.rabbitmq.stream.Codec;
 import com.rabbitmq.stream.Environment;
+
 import org.aopalliance.aop.Advice;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.rabbit.stream.listener.ConsumerCustomizer;
 import org.springframework.rabbit.stream.listener.StreamListenerContainer;
 import org.springframework.rabbit.stream.support.converter.StreamMessageConverter;
+
+import java.util.function.Consumer;
 
 /**
  * Spec for {@link StreamListenerContainer}.
