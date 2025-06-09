@@ -21,7 +21,7 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.ContentTypeDelegatingMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.MimeType;
