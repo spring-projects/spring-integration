@@ -16,14 +16,13 @@
 
 package org.springframework.integration.amqp.dsl;
 
+import java.util.function.Consumer;
+
 import com.rabbitmq.stream.Codec;
 import com.rabbitmq.stream.Environment;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.rabbit.stream.listener.StreamListenerContainer;
-
-import java.util.function.Consumer;
 
 /**
  * Spec for an inbound channel adapter with a {@link StreamListenerContainer}.

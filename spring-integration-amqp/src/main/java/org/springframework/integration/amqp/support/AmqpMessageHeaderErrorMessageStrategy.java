@@ -16,18 +16,17 @@
 
 package org.springframework.integration.amqp.support;
 
-import org.jspecify.annotations.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * An {@link ErrorMessageStrategy} extension that adds the raw AMQP message as

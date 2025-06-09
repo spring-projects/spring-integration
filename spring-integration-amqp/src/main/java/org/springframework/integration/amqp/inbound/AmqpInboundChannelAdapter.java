@@ -16,9 +16,13 @@
 
 package org.springframework.integration.amqp.inbound;
 
-import com.rabbitmq.client.Channel;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.jspecify.annotations.Nullable;
+import com.rabbitmq.client.Channel;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
@@ -44,18 +48,13 @@ import org.springframework.integration.amqp.support.EndpointUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryOperations;
 import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into

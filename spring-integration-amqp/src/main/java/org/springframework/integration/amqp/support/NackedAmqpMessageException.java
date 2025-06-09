@@ -17,7 +17,6 @@
 package org.springframework.integration.amqp.support;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 

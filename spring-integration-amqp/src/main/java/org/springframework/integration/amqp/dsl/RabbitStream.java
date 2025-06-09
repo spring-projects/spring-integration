@@ -20,7 +20,6 @@ import com.rabbitmq.stream.Codec;
 import com.rabbitmq.stream.Environment;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.rabbit.stream.listener.StreamListenerContainer;
 import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
 
