@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,6 +97,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * @param requestHeaderNames the header names that should be mapped from a request to {@link MessageHeaders}
 	 * @param replyHeaderNames the header names that should be mapped to a response from {@link MessageHeaders}
 	 */
+	@SuppressWarnings("this-escape")
 	protected AbstractHeaderMapper(String standardHeaderPrefix,
 			Collection<String> requestHeaderNames, Collection<String> replyHeaderNames) {
 

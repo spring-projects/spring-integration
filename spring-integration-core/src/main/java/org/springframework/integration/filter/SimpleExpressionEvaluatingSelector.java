@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2024-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,14 @@ public class SimpleExpressionEvaluatingSelector extends AbstractMessageProcessin
 
 	private final String expressionString;
 
+	@SuppressWarnings("this-escape")
 	public SimpleExpressionEvaluatingSelector(String expressionString) {
 		super(new ExpressionEvaluatingMessageProcessor<>(expressionString, Boolean.class));
 		((ExpressionEvaluatingMessageProcessor<?>) getMessageProcessor()).setSimpleEvaluationContext(true);
 		this.expressionString = expressionString;
 	}
 
+	@SuppressWarnings("this-escape")
 	public SimpleExpressionEvaluatingSelector(Expression expression) {
 		super(new ExpressionEvaluatingMessageProcessor<>(expression, Boolean.class));
 		((ExpressionEvaluatingMessageProcessor<?>) getMessageProcessor()).setSimpleEvaluationContext(true);

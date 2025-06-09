@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,6 +128,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 	 * @param context the {@link ZContext} to use.
 	 * @param pubSub the communication model: push/pull or pub/sub.
 	 */
+	@SuppressWarnings("this-escape")
 	public ZeroMqChannel(ZContext context, boolean pubSub) {
 		Assert.notNull(context, "'context' must not be null");
 		this.context = context;
@@ -141,6 +142,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		this.subscriberData = prepareSubscriberDataFlux();
 	}
 
+	@SuppressWarnings("this-escape")
 	private Mono<Integer> prepareProxyMono() {
 		return Mono.defer(() -> {
 					if (this.zeroMqProxy != null) {

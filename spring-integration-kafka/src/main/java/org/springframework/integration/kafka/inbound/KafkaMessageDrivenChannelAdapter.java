@@ -120,6 +120,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * @param messageListenerContainer the container.
 	 * @param mode the mode.
 	 */
+	@SuppressWarnings("this-escape")
 	public KafkaMessageDrivenChannelAdapter(AbstractMessageListenerContainer<K, V> messageListenerContainer,
 			ListenerMode mode) {
 

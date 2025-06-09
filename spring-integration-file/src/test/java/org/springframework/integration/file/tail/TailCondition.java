@@ -45,6 +45,7 @@ import org.springframework.core.annotation.MergedAnnotations;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Jiandong Ma
+ * @author Jooyoung Pyoung
  *
  * @since 6.5
  *
@@ -94,7 +95,8 @@ public class TailCondition implements ExecutionCondition {
 			ExecutorService newSingleThreadExecutor = Executors.newSingleThreadExecutor();
 			Future<Process> future =
 					newSingleThreadExecutor.submit(() -> {
-						final Process process = Runtime.getRuntime().exec(commandToTest + " " + file.getAbsolutePath());
+						ProcessBuilder pb = new ProcessBuilder(commandToTest, file.getAbsolutePath());
+						final Process process = pb.start();
 						ExecutorService executorService = Executors.newSingleThreadExecutor();
 						executorService.execute(() -> {
 							try {

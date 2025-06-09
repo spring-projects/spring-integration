@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 the original author or authors.
+ * Copyright 2019-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * in this expression evaluation, for example using some bean with an appropriate logic.
 	 * @param routeExpression the SpEL expression to use.
 	 */
+	@SuppressWarnings("this-escape")
 	public RSocketOutboundGateway(Expression routeExpression) {
 		Assert.notNull(routeExpression, "'routeExpression' must not be null");
 		this.routeExpression = routeExpression;

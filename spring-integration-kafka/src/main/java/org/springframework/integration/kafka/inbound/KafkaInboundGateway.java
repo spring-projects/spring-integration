@@ -97,6 +97,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	 * @param messageListenerContainer the container.
 	 * @param kafkaTemplate the kafka template.
 	 */
+	@SuppressWarnings("this-escape")
 	public KafkaInboundGateway(AbstractMessageListenerContainer<K, V> messageListenerContainer,
 			KafkaTemplate<K, R> kafkaTemplate) {
 

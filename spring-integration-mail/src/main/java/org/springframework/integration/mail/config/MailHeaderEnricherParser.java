@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.integration.mail.MailHeaders;
  */
 public class MailHeaderEnricherParser extends HeaderEnricherParserSupport {
 
+	@SuppressWarnings("this-escape")
 	public MailHeaderEnricherParser() {
 		this.addElementToHeaderMapping("subject", MailHeaders.SUBJECT);
 		this.addElementToHeaderMapping("to", MailHeaders.TO);

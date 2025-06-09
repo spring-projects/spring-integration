@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 the original author or authors.
+ * Copyright 2022-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ public class Mqttv5ClientManager
 		this(buildDefaultConnectionOptions(url), clientId);
 	}
 
+	@SuppressWarnings("this-escape")
 	public Mqttv5ClientManager(MqttConnectionOptions connectionOptions, String clientId) {
 		super(clientId);
 		Assert.notNull(connectionOptions, "'connectionOptions' is required");

@@ -120,6 +120,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 * @param lockRegistry       The lock registry.
 	 * @since 4.3
 	 */
+	@SuppressWarnings("this-escape")
 	public SimpleMessageStore(int individualCapacity, int groupCapacity, long upperBoundTimeout,
 			LockRegistry lockRegistry) {
 

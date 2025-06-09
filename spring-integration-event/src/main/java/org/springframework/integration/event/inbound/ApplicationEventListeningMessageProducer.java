@@ -58,6 +58,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	/**
 	 * Construct an instance.
 	 */
+	@SuppressWarnings("this-escape")
 	public ApplicationEventListeningMessageProducer() {
 		setPhase(Integer.MAX_VALUE / 2 - 1000); // NOSONAR magic number
 	}

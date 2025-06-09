@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.fail;
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
  * @since 2.2
  */
@@ -49,7 +50,7 @@ public class ChainElementsTests {
 	@BeforeEach
 	public void setUp() {
 		localeBeforeTest = Locale.getDefault();
-		Locale.setDefault(new Locale("en", "US"));
+		Locale.setDefault(Locale.US);
 	}
 
 	@AfterEach
