@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<SftpC
 	 * @param sessionFactory the session factory.
 	 * @param messageSessionCallback the callback.
 	 */
+	@SuppressWarnings("this-escape")
 	public SftpOutboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory,
 			MessageSessionCallback<SftpClient.DirEntry, ?> messageSessionCallback) {
 
@@ -77,6 +78,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<SftpC
 	 * @param command the command.
 	 * @param expression the remote path expression.
 	 */
+	@SuppressWarnings("this-escape")
 	public SftpOutboundGateway(SessionFactory<SftpClient.DirEntry> sessionFactory, String command,
 			@Nullable String expression) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jooyoung Pyoung
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -63,7 +64,7 @@ public class XmlPayloadValidatingFilterParserTests {
 	@BeforeEach
 	public void setUp() {
 		localeBeforeTest = Locale.getDefault();
-		Locale.setDefault(new Locale("en", "US"));
+		Locale.setDefault(Locale.US);
 	}
 
 	@AfterEach

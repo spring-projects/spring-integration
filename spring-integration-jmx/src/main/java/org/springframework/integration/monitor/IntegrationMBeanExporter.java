@@ -153,6 +153,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private volatile boolean singletonsInstantiated;
 
+	@SuppressWarnings("this-escape")
 	public IntegrationMBeanExporter() {
 		// Shouldn't be necessary, but to be on the safe side...
 		setAutodetect(false);

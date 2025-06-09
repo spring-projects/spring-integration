@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.ws.client.support.destination.DestinationProvider;
  */
 public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
 
+	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
 			Unmarshaller unmarshaller, WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
@@ -63,6 +64,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 		this(destinationProvider, marshaller, (WebServiceMessageFactory) null);
 	}
 
+	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller, Unmarshaller unmarshaller,
 			WebServiceMessageFactory messageFactory) {
 		super(uri, messageFactory);
@@ -88,6 +90,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	 * @param webServiceTemplate the WebServiceTemplate
 	 * @since 5.0
 	 */
+	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(String uri, WebServiceTemplate webServiceTemplate) {
 		super(uri, null);
 		doSetWebServiceTemplate(webServiceTemplate);
@@ -99,6 +102,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	 * @param webServiceTemplate the WebServiceTemplate
 	 * @since 5.0
 	 */
+	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider,
 			WebServiceTemplate webServiceTemplate) {
 		super(destinationProvider, null);
@@ -111,6 +115,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	 * @param marshaller The marshaller.
 	 * @param unmarshallerArg The unmarshaller.
 	 */
+	@SuppressWarnings("this-escape")
 	private void configureMarshallers(Marshaller marshaller, @Nullable Unmarshaller unmarshallerArg) {
 		Unmarshaller unmarshaller = unmarshallerArg;
 		Assert.notNull(marshaller, "marshaller must not be null");

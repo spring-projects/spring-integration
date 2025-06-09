@@ -219,6 +219,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param command the command.
 	 * @param expressionArg the remote path.
 	 */
+	@SuppressWarnings("this-escape")
 	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, Command command,
 			@Nullable String expressionArg) {
 

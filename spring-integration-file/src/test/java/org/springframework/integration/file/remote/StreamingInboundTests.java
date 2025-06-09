@@ -269,11 +269,13 @@ public class StreamingInboundTests {
 
 		ConcurrentHashMap<String, String> metadataMap = new ConcurrentHashMap<>();
 
+		@SuppressWarnings("this-escape")
 		protected Streamer(RemoteFileTemplate<String> template) {
 			super(template, null);
 			doSetFilter(null);
 		}
 
+		@SuppressWarnings("this-escape")
 		protected Streamer(RemoteFileTemplate<String> template, Comparator<String> comparator) {
 			super(template, comparator);
 			doSetFilter(new StringPersistentFileListFilter(new SimpleMetadataStore(this.metadataMap), "streamer"));

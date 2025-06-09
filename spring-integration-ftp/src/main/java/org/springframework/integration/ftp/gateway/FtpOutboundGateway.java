@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	 * @param sessionFactory the session factory.
 	 * @param messageSessionCallback the callback.
 	 */
+	@SuppressWarnings("this-escape")
 	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory,
 			MessageSessionCallback<FTPFile, ?> messageSessionCallback) {
 
@@ -91,6 +92,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	 * @param command the command.
 	 * @param expression the remote path expression.
 	 */
+	@SuppressWarnings("this-escape")
 	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory, String command, @Nullable String expression) {
 		this(new FtpRemoteFileTemplate(sessionFactory), command, expression);
 		((FtpRemoteFileTemplate) getRemoteFileTemplate()).setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLST);

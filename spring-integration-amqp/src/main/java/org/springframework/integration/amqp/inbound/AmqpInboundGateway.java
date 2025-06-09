@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,6 +98,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private boolean replyHeadersMappedLast;
 
+	@SuppressWarnings("this-escape")
 	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer) {
 		this(listenerContainer, new RabbitTemplate(listenerContainer.getConnectionFactory()), false);
 	}
@@ -108,10 +109,12 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	 * @param listenerContainer the {@link MessageListenerContainer} to receive AMQP messages.
 	 * @param amqpTemplate the {@link AmqpTemplate} to send reply messages.
 	 */
+	@SuppressWarnings("this-escape")
 	public AmqpInboundGateway(MessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
 		this(listenerContainer, amqpTemplate, true);
 	}
 
+	@SuppressWarnings("this-escape")
 	private AmqpInboundGateway(MessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate,
 			boolean amqpTemplateExplicitlySet) {
 

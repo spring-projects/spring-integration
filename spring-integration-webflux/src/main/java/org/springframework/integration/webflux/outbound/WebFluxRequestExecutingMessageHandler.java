@@ -131,6 +131,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	 * {@link org.springframework.beans.factory.BeanFactory}.
 	 * @param webClient The WebClient to use.
 	 */
+	@SuppressWarnings("this-escape")
 	public WebFluxRequestExecutingMessageHandler(Expression uriExpression, @Nullable WebClient webClient) {
 		super(uriExpression);
 		this.webClientExplicitlySet = webClient != null;

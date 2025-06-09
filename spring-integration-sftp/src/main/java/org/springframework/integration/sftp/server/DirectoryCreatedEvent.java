@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.lang.Nullable;
  * An event emitted when a directory is created.
  *
  * @author Gary Russell
+ * @author Jooyoung Pyoung
  * @since 5.2
  *
  */
@@ -34,7 +35,7 @@ public class DirectoryCreatedEvent extends ApacheMinaSftpEvent {
 
 	private transient Path path;
 
-	private final Map<String, ?> attrs;
+	private final transient Map<String, ?> attrs;
 
 	public DirectoryCreatedEvent(Object source, Path path, Map<String, ?> attrs) {
 		super(source);

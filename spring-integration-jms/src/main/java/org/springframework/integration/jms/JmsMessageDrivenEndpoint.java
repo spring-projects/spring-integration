@@ -59,6 +59,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	 * @param listenerContainer the container.
 	 * @param listener the listener.
 	 */
+	@SuppressWarnings("this-escape")
 	public JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer,
 			ChannelPublishingJmsMessageListener listener) {
 
@@ -74,6 +75,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	 * @param externalContainer true if the container is externally configured and should not have its ack mode
 	 * coerced when no sessionAcknowledgeMode was supplied.
 	 */
+	@SuppressWarnings("this-escape")
 	private JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer,
 			ChannelPublishingJmsMessageListener listener, boolean externalContainer) {
 
