@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -36,7 +37,6 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
 import org.springframework.integration.zeromq.ZeroMqProxy;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
