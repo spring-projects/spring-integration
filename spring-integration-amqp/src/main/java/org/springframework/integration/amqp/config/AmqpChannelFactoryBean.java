@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.AmqpAdmin;
@@ -46,7 +47,6 @@ import org.springframework.integration.amqp.channel.PollableAmqpChannel;
 import org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttribute;

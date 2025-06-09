@@ -16,6 +16,8 @@
 
 package org.springframework.integration.amqp.dsl;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
@@ -24,7 +26,6 @@ import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.amqp.channel.PollableAmqpChannel;
 import org.springframework.integration.amqp.inbound.AmqpMessageSource.AmqpAckCallbackFactory;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Factory class for AMQP components.
