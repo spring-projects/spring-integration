@@ -2,6 +2,5 @@
  * Provides supporting classes for JavaDSL with Apache Camel components.
  */
 
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.camel.dsl;
