@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.jpa.test.entity;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,8 +28,6 @@ import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 /**
  * The JPA Entity for the Student class
@@ -47,7 +46,8 @@ import jakarta.persistence.TemporalType;
 		@NamedQuery(name = "selectStudent", query = "select s from Student s where s.lastName = 'Last One'"),
 		@NamedQuery(name = "updateStudent", query = "update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
 })
-@NamedNativeQuery(resultClass = StudentDomain.class, name = "updateStudentNativeQuery", query = "update Student s set s.lastName = :lastName, lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
+@NamedNativeQuery(resultClass = StudentDomain.class, name = "updateStudentNativeQuery",
+		query = "update Student s set s.lastName = :lastName, lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
 @SequenceGenerator(name = "student_sequence", initialValue = 1004, allocationSize = 1)
 public class StudentDomain {
 
@@ -66,12 +66,10 @@ public class StudentDomain {
 	private String gender;
 
 	@Column(name = "dateOfBirth")
-	@Temporal(TemporalType.DATE)
-	private Date dateOfBirth;
+	private LocalDate dateOfBirth;
 
 	@Column(name = "lastUpdated")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date lastUpdated;
+	private LocalDateTime lastUpdated;
 
 	public Long getRollNumber() {
 		return rollNumber;
@@ -105,19 +103,19 @@ public class StudentDomain {
 		this.gender = gender.getIdentifier();
 	}
 
-	public Date getDateOfBirth() {
+	public LocalDate getDateOfBirth() {
 		return dateOfBirth;
 	}
 
-	public void setDateOfBirth(Date dateOfBirth) {
+	public void setDateOfBirth(LocalDate dateOfBirth) {
 		this.dateOfBirth = dateOfBirth;
 	}
 
-	public Date getLastUpdated() {
+	public LocalDateTime getLastUpdated() {
 		return lastUpdated;
 	}
 
-	public void setLastUpdated(Date lastUpdated) {
+	public void setLastUpdated(LocalDateTime lastUpdated) {
 		this.lastUpdated = lastUpdated;
 	}
 
@@ -143,12 +141,12 @@ public class StudentDomain {
 		return this;
 	}
 
-	public StudentDomain withDateOfBirth(Date dateOfBirth) {
+	public StudentDomain withDateOfBirth(LocalDate dateOfBirth) {
 		setDateOfBirth(dateOfBirth);
 		return this;
 	}
 
-	public StudentDomain withLastUpdated(Date lastUpdated) {
+	public StudentDomain withLastUpdated(LocalDateTime lastUpdated) {
 		setLastUpdated(lastUpdated);
 		return this;
 	}

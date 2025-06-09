@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.jpa.dsl;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.EntityManagerFactory;
@@ -122,15 +122,12 @@ public class JpaTests {
 		assertThat(results1).isNotNull();
 		assertThat(results1.size() == 3).isTrue();
 
-		Calendar dateOfBirth = Calendar.getInstance();
-		dateOfBirth.set(1981, 9, 27);
-
 		StudentDomain student = new StudentDomain()
 				.withFirstName("Artem")
 				.withLastName("Bilan")
 				.withGender(Gender.MALE)
-				.withDateOfBirth(dateOfBirth.getTime())
-				.withLastUpdated(new Date());
+				.withDateOfBirth(LocalDate.of(1981, 10, 27))
+				.withLastUpdated(LocalDateTime.now());
 
 		assertThat(student.getRollNumber()).isNull();
 
@@ -145,15 +142,12 @@ public class JpaTests {
 
 	@Test
 	public void testUpdatingGatewayFlow() {
-		Calendar dateOfBirth = Calendar.getInstance();
-		dateOfBirth.set(1981, 9, 27);
-
 		StudentDomain student = new StudentDomain()
 				.withFirstName("Artem")
 				.withLastName("Bilan")
 				.withGender(Gender.MALE)
-				.withDateOfBirth(dateOfBirth.getTime())
-				.withLastUpdated(new Date());
+				.withDateOfBirth(LocalDate.of(1981, 10, 27))
+				.withLastUpdated(LocalDateTime.now());
 
 		assertThat(student.getRollNumber()).isNull();
 

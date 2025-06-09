@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.jpa.test;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
@@ -32,6 +32,7 @@ import org.springframework.messaging.MessageChannel;
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -43,24 +44,19 @@ public final class JpaTestUtils {
 
 	public static StudentDomain getTestStudent() {
 
-		Calendar dateOfBirth = Calendar.getInstance();
-		dateOfBirth.set(1984, 0, 31);
-
-		StudentDomain student = new StudentDomain()
+		return new StudentDomain()
 				.withFirstName("First Executor")
 				.withLastName("Last Executor")
 				.withGender(Gender.MALE)
-				.withDateOfBirth(dateOfBirth.getTime())
-				.withLastUpdated(new Date());
-
-		return student;
+				.withDateOfBirth(LocalDate.of(1984, 1, 31))
+				.withLastUpdated(LocalDateTime.now());
 	}
 
 	public static SourcePollingChannelAdapter getSourcePollingChannelAdapter(MessageSource<?> adapter,
 			MessageChannel channel,
 			PollerMetadata poller,
 			GenericApplicationContext context,
-			ClassLoader beanClassLoader) throws Exception {
+			ClassLoader beanClassLoader) {
 
 		SourcePollingChannelAdapterFactoryBean fb = new SourcePollingChannelAdapterFactoryBean();
 		fb.setSource(adapter);

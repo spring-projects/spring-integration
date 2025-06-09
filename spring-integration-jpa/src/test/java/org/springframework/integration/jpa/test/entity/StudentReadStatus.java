@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 package org.springframework.integration.jpa.test.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 /**
  * The Entity for Student read status
@@ -40,8 +38,7 @@ public class StudentReadStatus {
 	private int rollNumber;
 
 	@Column(name = "readAt")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date readAt;
+	private LocalDateTime readAt;
 
 	public int getRollNumber() {
 		return rollNumber;
@@ -51,11 +48,11 @@ public class StudentReadStatus {
 		this.rollNumber = rollNumber;
 	}
 
-	public Date getReadAt() {
+	public LocalDateTime getReadAt() {
 		return readAt;
 	}
 
-	public void setReadAt(Date readAt) {
+	public void setReadAt(LocalDateTime readAt) {
 		this.readAt = readAt;
 	}
 

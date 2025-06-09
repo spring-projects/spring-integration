@@ -17,7 +17,6 @@
 package org.springframework.integration.jpa.core;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -148,14 +147,11 @@ public class HibernateJpaOperationsTests {
 
 		StudentDomain retrievedStudent = (StudentDomain) students.iterator().next();
 
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
-
-		assertThat(retrievedStudent.getDateOfBirth()).isEqualTo(formatter.parse("1980/01/01"));
+		assertThat(retrievedStudent.getDateOfBirth()).isEqualTo(LocalDate.of(1980, 1, 1));
 		assertThat(retrievedStudent.getFirstName()).isEqualTo("First One");
 		assertThat(retrievedStudent.getGender()).isEqualTo(Gender.MALE);
 		assertThat(retrievedStudent.getLastName()).isEqualTo("Last One");
 		assertThat(retrievedStudent.getLastUpdated()).isNotNull();
-
 	}
 
 	@Test
