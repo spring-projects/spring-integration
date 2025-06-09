@@ -26,7 +26,7 @@ import org.junit.runners.model.Statement;
 import org.springframework.integration.test.condition.LongRunningTest;
 
 /**
- * Rule to prevent long running tests from running on every build; set environment
+ * Rule to prevent long-running tests from running on every build; set environment
  * variable RUN_LONG_INTEGRATION_TESTS on a CI nightly build to ensure coverage.
  *
  * @author Gary Russell

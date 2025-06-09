@@ -25,6 +25,7 @@ import java.util.List;
  * @author David Turanski
  * @author Jiandong Ma
  *
+ * @since 7.0
  */
 public abstract class SingleRequestResponseScenarioTest extends AbstractRequestResponseScenarioTest {
 

@@ -208,7 +208,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		try {
 			Confirm confirm = correlationData.getFuture().get(this.waitForConfirmTimeout.toMillis(),
 					TimeUnit.MILLISECONDS);
-			if (!confirm.isAck()) {
+			if (!confirm.ack()) {
 				throw new AmqpException("Negative publisher confirm received: " + confirm);
 			}
 			if (correlationData.getReturned() != null) {

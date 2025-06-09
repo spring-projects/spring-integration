@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,7 +229,7 @@ public class AmqpOutboundEndpointTests {
 		assertThat(returned.getPayload()).isEqualTo(message.getPayload());
 		Confirm confirm = corrData.getFuture().get(10, TimeUnit.SECONDS);
 		assertThat(confirm).isNotNull();
-		assertThat(confirm.isAck()).isTrue();
+		assertThat(confirm.ack()).isTrue();
 		assertThat(corrData.getReturned()).isNotNull();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -477,7 +477,7 @@ public class InboundEndpointTests {
 		bs.addToBatch("foo", "bar", message);
 		message = new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties);
 		MessageBatch batched = bs.addToBatch("foo", "bar", message);
-		listener.onMessage(batched.getMessage(), null);
+		listener.onMessage(batched.message(), null);
 		Message<?> received = out.receive(0);
 		assertThat(received).isNotNull();
 		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
@@ -503,12 +503,12 @@ public class InboundEndpointTests {
 		bs.addToBatch("foo", "bar", message);
 		message = new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties);
 		MessageBatch batched = bs.addToBatch("foo", "bar", message);
-		listener.onMessage(batched.getMessage(), null);
+		listener.onMessage(batched.message(), null);
 		Message<?> received = out.receive(0);
 		assertThat(received).isNotNull();
 		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
 		org.springframework.amqp.core.Message sourceData = StaticMessageHeaderAccessor.getSourceData(received);
-		assertThat(sourceData).isSameAs(batched.getMessage());
+		assertThat(sourceData).isSameAs(batched.message());
 	}
 
 	@SuppressWarnings({"unchecked"})

@@ -28,6 +28,7 @@ import java.util.List;
  * @deprecated since 7.0 in favor of {@link SingleRequestResponseScenarioTest}
  */
 @Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("removal")
 public abstract class SingleRequestResponseScenarioTests extends AbstractRequestResponseScenarioTests {
 
 	@Override
