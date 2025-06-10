@@ -77,18 +77,11 @@ public class DefaultLockRepository
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
-	/**
-	 * Default value for the time-to-live property.
-	 */
-	public static final Duration DEFAULT_TTL = Duration.ofSeconds(10);
-
 	private final String id;
 
 	private final JdbcTemplate template;
 
 	private final AtomicBoolean started = new AtomicBoolean();
-
-	private Duration ttl = DEFAULT_TTL;
 
 	private String prefix = DEFAULT_TABLE_PREFIX;
 
@@ -101,7 +94,7 @@ public class DefaultLockRepository
 
 	private String deleteExpiredQuery = """
 			DELETE FROM %sLOCK
-			WHERE REGION=? AND CREATED_DATE<?
+			WHERE REGION=? AND EXPIRED_AFTER<?
 			""";
 
 	private String deleteAllQuery = """
@@ -111,24 +104,24 @@ public class DefaultLockRepository
 
 	private String updateQuery = """
 			UPDATE %sLOCK
-			SET CLIENT_ID=?, CREATED_DATE=?
-			WHERE REGION=? AND LOCK_KEY=? AND (CLIENT_ID=? OR CREATED_DATE<?)
+			SET CLIENT_ID=?, EXPIRED_AFTER=?
+			WHERE REGION=? AND LOCK_KEY=? AND (CLIENT_ID=? OR EXPIRED_AFTER<?)
 			""";
 
 	private String insertQuery = """
-			INSERT INTO %sLOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE)
+			INSERT INTO %sLOCK (REGION, LOCK_KEY, CLIENT_ID, EXPIRED_AFTER)
 			VALUES (?, ?, ?, ?)
 			""";
 
 	private String countQuery = """
 			SELECT COUNT(REGION)
 			FROM %sLOCK
-			WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=? AND CREATED_DATE>=?
+			WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=? AND EXPIRED_AFTER>=?
 			""";
 
 	private String renewQuery = """
 			UPDATE %sLOCK
-			SET CREATED_DATE=?
+			SET EXPIRED_AFTER=?
 			WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?
 			""";
 
@@ -190,14 +183,6 @@ public class DefaultLockRepository
 	}
 
 	/**
-	 * Specify the time (in milliseconds) to expire deadlocks.
-	 * @param timeToLive the time to expire deadlocks.
-	 */
-	public void setTimeToLive(int timeToLive) {
-		this.ttl = Duration.ofMillis(timeToLive);
-	}
-
-	/**
 	 * Set a {@link PlatformTransactionManager} for operations.
 	 * Otherwise, a primary {@link PlatformTransactionManager} bean is obtained
 	 * from the application context.
@@ -220,8 +205,8 @@ public class DefaultLockRepository
 	 * <pre class="code">
 	 * {@code
 	 *  UPDATE %sLOCK
-	 * 			SET CLIENT_ID=?, CREATED_DATE=?
-	 * 			WHERE REGION=? AND LOCK_KEY=? AND (CLIENT_ID=? OR CREATED_DATE<?)
+	 * 			SET CLIENT_ID=?, EXPIRED_AFTER=?
+	 * 			WHERE REGION=? AND LOCK_KEY=? AND (CLIENT_ID=? OR EXPIRED_AFTER<?)
 	 * }
 	 * </pre>
 	 * @param updateQuery the query to update a lock record.
@@ -248,7 +233,7 @@ public class DefaultLockRepository
 	 * Set a custom {@code INSERT} query for a lock record.
 	 * The {@link #getInsertQuery()} can be used as a template for customization.
 	 * The default query is
-	 * {@code INSERT INTO %sLOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE) VALUES (?, ?, ?, ?)}.
+	 * {@code INSERT INTO %sLOCK (REGION, LOCK_KEY, CLIENT_ID, EXPIRED_AFTER) VALUES (?, ?, ?, ?)}.
 	 * For example a PostgreSQL {@code ON CONFLICT DO NOTHING} hint can be provided like this:
 	 * <pre class="code">
 	 * {@code
@@ -282,7 +267,7 @@ public class DefaultLockRepository
 	 * <pre class="code">
 	 * {@code
 	 *  UPDATE %sLOCK
-	 * 			SET CREATED_DATE=?
+	 * 			SET EXPIRED_AFTER=?
 	 * 			WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?
 	 * }
 	 * </pre>
@@ -396,17 +381,17 @@ public class DefaultLockRepository
 	}
 
 	@Override
-	public boolean acquire(String lock) {
+	public boolean acquire(String lock, Duration ttlDuration) {
 		Boolean result =
 				this.readCommittedTransactionTemplate.execute(
 						transactionStatus -> {
-							if (this.template.update(this.updateQuery, this.id, epochMillis(),
-									this.region, lock, this.id, ttlEpochMillis()) > 0) {
+							if (this.template.update(this.updateQuery, this.id, ttlEpochMillis(ttlDuration),
+									this.region, lock, this.id, epochMillis()) > 0) {
 								return true;
 							}
 							try {
 								return this.template.update(this.insertQuery, this.region, lock, this.id,
-										epochMillis()) > 0;
+										ttlEpochMillis(ttlDuration)) > 0;
 							}
 							catch (DataIntegrityViolationException ex) {
 								return false;
@@ -421,7 +406,7 @@ public class DefaultLockRepository
 				transactionStatus ->
 						Integer.valueOf(1).equals(
 								this.template.queryForObject(this.countQuery,
-										Integer.class, this.region, lock, this.id, ttlEpochMillis())));
+										Integer.class, this.region, lock, this.id, epochMillis())));
 		return Boolean.TRUE.equals(result);
 	}
 
@@ -429,19 +414,19 @@ public class DefaultLockRepository
 	public void deleteExpired() {
 		this.defaultTransactionTemplate.executeWithoutResult(
 				transactionStatus ->
-						this.template.update(this.deleteExpiredQuery, this.region, ttlEpochMillis()));
+						this.template.update(this.deleteExpiredQuery, this.region, epochMillis()));
 	}
 
 	@Override
-	public boolean renew(String lock) {
+	public boolean renew(String lock, Duration ttlDuration) {
 		final Boolean result = this.defaultTransactionTemplate.execute(
 				transactionStatus ->
-						this.template.update(this.renewQuery, epochMillis(), this.region, lock, this.id) == 1);
+						this.template.update(this.renewQuery, ttlEpochMillis(ttlDuration), this.region, lock, this.id) == 1);
 		return Boolean.TRUE.equals(result);
 	}
 
-	private Timestamp ttlEpochMillis() {
-		return Timestamp.valueOf(currentTime().minus(this.ttl));
+	private Timestamp ttlEpochMillis(Duration ttl) {
+		return Timestamp.valueOf(currentTime().plus(ttl));
 	}
 
 	private static Timestamp epochMillis() {

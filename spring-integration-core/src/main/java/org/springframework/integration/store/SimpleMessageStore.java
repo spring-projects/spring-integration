@@ -106,7 +106,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 * @param lockRegistry       The lock registry.
 	 * @see #SimpleMessageStore(int, int, long, LockRegistry)
 	 */
-	public SimpleMessageStore(int individualCapacity, int groupCapacity, LockRegistry lockRegistry) {
+	public SimpleMessageStore(int individualCapacity, int groupCapacity, LockRegistry<?> lockRegistry) {
 		this(individualCapacity, groupCapacity, 0, lockRegistry);
 	}
 
@@ -122,7 +122,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 */
 	@SuppressWarnings("this-escape")
 	public SimpleMessageStore(int individualCapacity, int groupCapacity, long upperBoundTimeout,
-			LockRegistry lockRegistry) {
+			LockRegistry<?> lockRegistry) {
 
 		super(false);
 		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");

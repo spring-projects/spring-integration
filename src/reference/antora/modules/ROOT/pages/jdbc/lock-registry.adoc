@@ -59,3 +59,11 @@ lockRepository.setInsertQuery(lockRepository.getInsertQuery() + " ON CONFLICT DO
 
 Starting with version 6.4, the `LockRepository.delete()` method return the result of removing ownership of a distributed lock.
 And the `JdbcLockRegistry.JdbcLock.unlock()` method throws `ConcurrentModificationException` if the ownership of the lock is expired.
+
+Starting with version 7.0, the `JdbcLock` implements `DistributedLock` interface to support the feature of customized time-to-live (TTL) for the lock status data.
+The `JdbcLockRegistry` now provides new `renewLock()` method, allowing you to renew the lock with a custom time-to-live value.
+The APIs of `LockRepository` and `DefaultLockRepository` are also modified to support the feature.
+[IMPORTANT]
+====
+The `CREATED_DATE` column in the `INT_LOCK` table has been replaced with `EXPIRED_AFTER` to support the custom time-to-live feature.
+====

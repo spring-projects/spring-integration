@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.util.RedisLockRegistry.RedisLockType;
+import org.springframework.integration.support.locks.DistributedLock;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
@@ -118,6 +119,48 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 		registry.destroy();
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testLockWithCustomTtl(RedisLockType testRedisLockType) throws InterruptedException {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
+		long sleepTimeLongerThanDefaultTTL = 200;
+		registry.setRedisLockType(testRedisLockType);
+		for (int i = 0; i < 3; i++) {
+			DistributedLock lock = registry.obtain("foo");
+			lock.lock(500, TimeUnit.MILLISECONDS);
+			try {
+				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
+				Thread.sleep(sleepTimeLongerThanDefaultTTL);
+			}
+			finally {
+				assertThatNoException().isThrownBy(lock::unlock);
+			}
+		}
+		registry.expireUnusedOlderThan(-1000);
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testTryLockWithCustomTtl(RedisLockType testRedisLockType) throws InterruptedException {
+		RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey, 100);
+		long sleepTimeLongerThanDefaultTTL = 200;
+		registry.setRedisLockType(testRedisLockType);
+		for (int i = 0; i < 3; i++) {
+			DistributedLock lock = registry.obtain("foo");
+			lock.tryLock(100, TimeUnit.MILLISECONDS, 500, TimeUnit.MILLISECONDS);
+			try {
+				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
+				Thread.sleep(sleepTimeLongerThanDefaultTTL);
+			}
+			finally {
+				assertThatNoException().isThrownBy(lock::unlock);
+			}
+		}
+		registry.expireUnusedOlderThan(-1000);
+		assertThat(getRedisLockRegistryLocks(registry)).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -942,6 +985,28 @@ class RedisLockRegistryTests implements RedisContainerTest {
 
 		assertThatExceptionOfType(IllegalStateException.class)
 				.isThrownBy(() -> registry.renewLock("foo"));
+	}
+
+	@ParameterizedTest
+	@EnumSource(RedisLockType.class)
+	void testLockRenewWithCustomTtl(RedisLockType redisLockType) throws InterruptedException {
+		final RedisLockRegistry registry = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		final RedisLockRegistry registryOfAnotherProcess = new RedisLockRegistry(redisConnectionFactory, this.registryKey);
+		registry.setRedisLockType(redisLockType);
+		registryOfAnotherProcess.setRedisLockType(redisLockType);
+		final DistributedLock lock = registry.obtain("foo");
+		final Lock lockOfAnotherProcess = registryOfAnotherProcess.obtain("foo");
+
+		assertThat(lock.tryLock(100, TimeUnit.MILLISECONDS, 100, TimeUnit.MILLISECONDS)).isTrue();
+		try {
+			registry.renewLock("foo", 2000, TimeUnit.MILLISECONDS);
+			Thread.sleep(100);
+			assertThat(lockOfAnotherProcess.tryLock(100, TimeUnit.MILLISECONDS)).isFalse();
+		}
+		finally {
+			lock.unlock();
+		}
+		registryOfAnotherProcess.destroy();
 	}
 
 	@Test

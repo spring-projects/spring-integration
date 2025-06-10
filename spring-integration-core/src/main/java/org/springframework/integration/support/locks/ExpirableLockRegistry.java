@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,18 @@
 
 package org.springframework.integration.support.locks;
 
+import java.util.concurrent.locks.Lock;
+
 /**
  * A {@link LockRegistry} implementing this interface supports the removal of aged locks
  * that are not currently locked.
+ * @param <L> The expected class of the lock implementation
  *
  * @author Gary Russell
  * @since 4.2
  *
  */
-public interface ExpirableLockRegistry extends LockRegistry {
+public interface ExpirableLockRegistry<L extends Lock> extends LockRegistry<L> {
 
 	/**
 	 * Remove locks last acquired more than 'age' ago that are not currently locked.

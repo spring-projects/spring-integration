@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  */
 public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 
-	private final LockRegistry lockRegistry;
+	private final LockRegistry<?> lockRegistry;
 
 	private final Expression lockKeyExpression;
 
@@ -65,7 +65,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 	 * @param lockRegistry the {@link LockRegistry} to use.
 	 * @param lockKey the static (shared) lock key for all the calls.
 	 */
-	public LockRequestHandlerAdvice(LockRegistry lockRegistry, Object lockKey) {
+	public LockRequestHandlerAdvice(LockRegistry<?> lockRegistry, Object lockKey) {
 		this(lockRegistry, new ValueExpression<>(lockKey));
 	}
 
@@ -75,7 +75,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 	 * @param lockRegistry the {@link LockRegistry} to use.
 	 * @param lockKeyExpression the SpEL expression to evaluate a lock key against request message.
 	 */
-	public LockRequestHandlerAdvice(LockRegistry lockRegistry, Expression lockKeyExpression) {
+	public LockRequestHandlerAdvice(LockRegistry<?> lockRegistry, Expression lockKeyExpression) {
 		Assert.notNull(lockRegistry, "'lockRegistry' must not be null");
 		Assert.notNull(lockKeyExpression, "'lockKeyExpression' must not be null");
 		this.lockRegistry = lockRegistry;
@@ -88,7 +88,7 @@ public class LockRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 	 * @param lockRegistry the {@link LockRegistry} to use.
 	 * @param lockKeyFunction the function to evaluate a lock key against request message.
 	 */
-	public LockRequestHandlerAdvice(LockRegistry lockRegistry, Function<Message<?>, Object> lockKeyFunction) {
+	public LockRequestHandlerAdvice(LockRegistry<?> lockRegistry, Function<Message<?>, Object> lockKeyFunction) {
 		Assert.notNull(lockRegistry, "'lockRegistry' must not be null");
 		Assert.notNull(lockKeyFunction, "'lockKeyFunction' must not be null");
 		this.lockRegistry = lockRegistry;

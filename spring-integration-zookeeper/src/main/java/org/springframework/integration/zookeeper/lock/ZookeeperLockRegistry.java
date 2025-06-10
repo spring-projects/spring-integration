@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
  * @since 4.2
  *
  */
-public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableBean {
+public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, DisposableBean {
 
 	private static final String DEFAULT_ROOT = "/SpringIntegration-LockRegistry";
 
