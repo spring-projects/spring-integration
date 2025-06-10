@@ -16,6 +16,9 @@
 
 package org.springframework.integration.context;
 
+
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 
 /**
@@ -32,6 +35,7 @@ public interface ExpressionCapable {
 	 * Return the primary SpEL expression if this component is expression-based.
 	 * @return the expression as a String.
 	 */
+	@Nullable
 	Expression getExpression();
 
 }
