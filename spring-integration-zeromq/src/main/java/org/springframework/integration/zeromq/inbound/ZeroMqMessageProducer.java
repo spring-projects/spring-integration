@@ -77,6 +77,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 
 	private final SocketType socketType;
 
+	@SuppressWarnings("NullAway.Init")
 	private InboundMessageMapper<byte[]> messageMapper;
 
 	private Consumer<ZMQ.Socket> socketConfigurer = (socket) -> {
@@ -91,6 +92,7 @@ public class ZeroMqMessageProducer extends MessageProducerSupport {
 	@Nullable
 	private String connectUrl;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Mono<ZMQ.Socket> socketMono;
 
 	private volatile boolean unwrapTopic = true;

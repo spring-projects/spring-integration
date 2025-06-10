@@ -82,8 +82,10 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 
 	private final AtomicInteger backendPort = new AtomicInteger();
 
+	@SuppressWarnings("NullAway.Init")
 	private String controlAddress;
 
+	@SuppressWarnings("NullAway.Init")
 	private Executor proxyExecutor;
 
 	@Nullable
@@ -97,6 +99,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	@Nullable
 	private String captureAddress;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
 	private boolean autoStartup = true;

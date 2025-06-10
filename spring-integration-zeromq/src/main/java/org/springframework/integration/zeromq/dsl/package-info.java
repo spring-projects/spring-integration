@@ -1,6 +1,5 @@
 /**
  * Provides classes for supporting ZeroMQ component via Java DSL.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.zeromq.dsl;

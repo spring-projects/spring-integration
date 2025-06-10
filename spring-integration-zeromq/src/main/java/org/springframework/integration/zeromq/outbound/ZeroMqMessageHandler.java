@@ -77,8 +77,10 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 
 	private final Scheduler publisherScheduler = Schedulers.newSingle("zeroMqMessageHandlerScheduler");
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Mono<ZMQ.Socket> socketMono;
 
+	@SuppressWarnings("NullAway.Init")
 	private OutboundMessageMapper<byte[]> messageMapper;
 
 	private Consumer<ZMQ.Socket> socketConfigurer = (socket) -> {
@@ -86,10 +88,12 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 
 	private Expression topicExpression = new SupplierExpression<>(() -> null);
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	private volatile boolean initialized;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Disposable socketMonoSubscriber;
 
 	private volatile boolean wrapTopic = true;

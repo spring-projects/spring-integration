@@ -142,7 +142,7 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		this.subscriberData = prepareSubscriberDataFlux();
 	}
 
-	@SuppressWarnings("this-escape")
+	@SuppressWarnings({"this-escape", "NullAway"})
 	private Mono<Integer> prepareProxyMono() {
 		return Mono.defer(() -> {
 					if (this.zeroMqProxy != null) {
