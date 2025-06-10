@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * A lock registry. The locks it manages should be global (whatever that means for the
 	 * system) and expiring, in case the holder dies without notifying anyone.
 	 */
-	private final LockRegistry locks;
+	private final LockRegistry<?> locks;
 
 	/**
 	 * Candidate for leader election. User injects this to receive callbacks on leadership
@@ -162,7 +162,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * candidate (which just logs the leadership events).
 	 * @param locks lock registry
 	 */
-	public LockRegistryLeaderInitiator(LockRegistry locks) {
+	public LockRegistryLeaderInitiator(LockRegistry<?> locks) {
 		this(locks, new DefaultCandidate());
 	}
 
@@ -172,7 +172,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * @param locks lock registry
 	 * @param candidate leadership election candidate
 	 */
-	public LockRegistryLeaderInitiator(LockRegistry locks, Candidate candidate) {
+	public LockRegistryLeaderInitiator(LockRegistry<?> locks, Candidate candidate) {
 		Assert.notNull(locks, "'locks' must not be null");
 		Assert.notNull(candidate, "'candidate' must not be null");
 		this.locks = locks;

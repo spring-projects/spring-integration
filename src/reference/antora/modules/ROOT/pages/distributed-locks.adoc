@@ -35,3 +35,26 @@ Spring Integration provides these `LockRegistry` implementations for distributed
 * xref:zookeeper.adoc#zk-lock-registry[Zookeeper]
 
 https://github.com/spring-projects/spring-integration-aws[Spring Integration AWS] extension also implements a `DynamoDbLockRegistry`.
+
+Starting with version 7.0, the `DistributedLock` interface has been introduced, providing new methods, `lock(Duration ttl`) and `tryLock(long time, TimeUnit unit, Duration ttl)`, to acquire a lock with a custom time-to-live (TTL).
+Both `JdbcLock` and `RedisLock` implement `DistributedLock` interface to support the feature of customized time-to-live.
+The `LockRegistry<L extends Lock>` is now a generic interface for types that extend `Lock`.
+The `RenewableLockRegistry` interface now provides new `renewLock(Object lockKey, Duration ttl)` method, allowing you to renew the lock with a custom time-to-live value.
+Both `JdbcLockRegistry` and `RedisLockRegistry` implement `LockRegistry` and `RenewableLockRegistry` interfaces with the type parameter `DistributedLock`.
+
+Below is an example of how to obtain a `DistributedLock` from a registry and acquire it with a specific time-to-live value:
+[source,java]
+----
+DistributedLock lock = registry.obtain("foo");
+Duration timeToLive = Duration.ofMillis(500);
+
+if(lock.tryLock(100, TimeUnit.MILLISECONDS, timeToLive)){
+    try {
+        // do something
+    } catch (Exception e) {
+        // handle exception
+    } finally{
+        lock. unlock();
+    }
+}
+----

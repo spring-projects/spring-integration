@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * which is not Open Source anymore since Hazelcast 5.5.
  */
 @Deprecated(forRemoval = true, since = "6.5")
-public class HazelcastLockRegistry implements LockRegistry {
+public class HazelcastLockRegistry implements LockRegistry<Lock> {
 
 	private final HazelcastInstance client;
 

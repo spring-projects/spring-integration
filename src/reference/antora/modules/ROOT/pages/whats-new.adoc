@@ -24,3 +24,18 @@ Junit 4 Based Support Components are deprecated.
 
 The JDBC module now provides a Java DSL API via its dedicated `org.springframework.integration.jdbc.dsl.Jdbc` factory.
 The xref:jdbc/dsl.adoc[] chapter provides more details.
+
+A new `DistributedLock` interface has been introduced, providing new methods, `lock(Duration ttl`) and `tryLock(long time, TimeUnit unit, Duration ttl)`, to acquire a lock with a custom time-to-live (TTL).
+See xref:distributed-locks.adoc[] for more information.
+
+[[x7.0-jdbc-changes]]
+=== JDBC Changes
+
+The `JdbcLock` now supports the feature of customized time-to-live for the lock status data.
+See xref:jdbc/lock-registry.adoc[] for more information.
+
+[[x7.0-redis-changes]]
+=== Redis Changes
+
+The `RedisLock` now supports the feature of customized time-to-live for the lock status data.
+See xref:redis.adoc#redis-lock-registry[Redis Lock Registry] for more information.

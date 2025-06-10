@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	private final DefaultPropertiesPersister persister = new DefaultPropertiesPersister();
 
-	private final LockRegistry lockRegistry = new DefaultLockRegistry();
+	private final LockRegistry<Lock> lockRegistry = new DefaultLockRegistry();
 
 	private String baseDirectory = System.getProperty("java.io.tmpdir") + "/spring-integration/";
 

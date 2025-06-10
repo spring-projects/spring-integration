@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,7 +162,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private boolean appendNewLine = false;
 
-	private LockRegistry lockRegistry = new PassThruLockRegistry();
+	private LockRegistry<Lock> lockRegistry = new PassThruLockRegistry();
 
 	private int bufferSize = DEFAULT_BUFFER_SIZE;
 

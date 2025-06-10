@@ -51,7 +51,7 @@ import org.springframework.util.Assert;
  * @since 4.2
  *
  */
-public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableBean {
+public class ZookeeperLockRegistry implements ExpirableLockRegistry<Lock>, DisposableBean {
 
 	private static final String DEFAULT_ROOT = "/SpringIntegration-LockRegistry";
 
