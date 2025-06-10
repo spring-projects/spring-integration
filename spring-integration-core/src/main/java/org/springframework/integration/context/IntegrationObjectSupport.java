@@ -72,38 +72,50 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 
 	protected final LogAccessor logger = new LogAccessor(getClass()); // NOSONAR protected
 
+	@SuppressWarnings("NullAway.Init")
 	private DestinationResolver<MessageChannel> channelResolver;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
+	@Nullable
 	private String componentName;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
+	@Nullable
 	private TaskScheduler taskScheduler;
 
 	private IntegrationProperties integrationProperties = new IntegrationProperties();
 
+	@Nullable
 	private ConversionService conversionService;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationContext applicationContext;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageBuilderFactory messageBuilderFactory;
 
+	@Nullable
 	private Expression expression;
 
+	@Nullable
 	private Object beanSource;
 
+	@Nullable
 	private String beanDescription;
 
 	private boolean initialized;
 
 	@Override
-	public final void setBeanName(@Nullable String beanName) {
+	public final void setBeanName(String beanName) {
 		this.beanName = beanName;
 	}
 
 	@Override
+	@Nullable
 	public String getBeanName() {
 		return this.beanName;
 	}
@@ -113,6 +125,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	 * If {@link #componentName} was not set this method will default to the 'beanName' of this component;
 	 */
 	@Override
+	@Nullable
 	public String getComponentName() {
 		return StringUtils.hasText(this.componentName) ? this.componentName : this.beanName;
 	}
@@ -128,6 +141,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	/**
 	 * Subclasses may implement this method to provide component type information.
 	 */
+	@Nullable
 	@Override
 	public String getComponentType() {
 		return null;
@@ -195,6 +209,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	}
 
 	@Override
+	@Nullable
 	public Expression getExpression() {
 		return this.expression;
 	}
@@ -208,6 +223,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 		this.expression = expression;
 	}
 
+	@SuppressWarnings("NullAway.Init")
 	@Override
 	public final void afterPropertiesSet() {
 		this.integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
@@ -264,6 +280,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 		this.taskScheduler = taskScheduler;
 	}
 
+	@Nullable
 	protected TaskScheduler getTaskScheduler() {
 		if (this.taskScheduler == null && this.beanFactory != null) {
 			this.taskScheduler = IntegrationContextUtils.getTaskScheduler(this.beanFactory);
@@ -278,6 +295,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 		return this.channelResolver;
 	}
 
+	@Nullable
 	public ConversionService getConversionService() {
 		if (this.conversionService == null && this.beanFactory != null) {
 			this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
@@ -299,6 +317,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	 * {@link ApplicationContext} is available.
 	 * @return The id, or null if there is no application context.
 	 */
+	@Nullable
 	public String getApplicationContextId() {
 		return this.applicationContext == null ? null : this.applicationContext.getId();
 	}
