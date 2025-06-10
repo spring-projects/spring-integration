@@ -23,11 +23,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -42,13 +42,13 @@ import static org.mockito.Mockito.mock;
  * @author Dave Syer
  * @author Artem Bilan
  */
-public class MethodInvokingReleaseStrategyTests {
+public class MethodInvokingReleaseStrategyTests implements TestApplicationContextAware {
 
 	@Test
 	public void testTrueConvertedProperly() {
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new AlwaysTrueReleaseStrategy(),
 				"checkCompleteness");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(adapter.canRelease(createListOfMessages(0))).isTrue();
 	}
 
@@ -56,7 +56,7 @@ public class MethodInvokingReleaseStrategyTests {
 	public void testFalseConvertedProperly() {
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new AlwaysFalseReleaseStrategy(),
 				"checkCompleteness");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(adapter.canRelease(createListOfMessages(0))).isFalse();
 	}
 
@@ -75,7 +75,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"checkCompletenessOnNonParameterizedListOfMessages");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		MessageGroup messages = createListOfMessages(3);
 		assertThat(adapter.canRelease(messages)).isTrue();
 	}
@@ -95,7 +95,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"checkCompletenessOnListOfMessagesParametrizedWithWildcard");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		MessageGroup messages = createListOfMessages(3);
 		assertThat(adapter.canRelease(messages)).isTrue();
 	}
@@ -115,7 +115,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"checkCompletenessOnListOfMessagesParametrizedWithString");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		MessageGroup messages = createListOfMessages(3);
 		assertThat(adapter.canRelease(messages)).isTrue();
 	}
@@ -139,7 +139,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"checkCompletenessOnListOfStrings");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		MessageGroup messages = createListOfMessages(3);
 		assertThat(adapter.canRelease(messages)).isTrue();
 	}
@@ -163,7 +163,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"checkCompletenessOnListOfStrings");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		MessageGroup messages = createListOfMessages(3);
 		assertThat(adapter.canRelease(messages)).isTrue();
 	}
@@ -192,7 +192,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 		MethodInvokingReleaseStrategy adapter =
 				new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "invalidParameterType");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		MessageGroup messages = createListOfMessages(3);
 		assertThatIllegalStateException().isThrownBy(() -> adapter.canRelease(messages));
 	}
@@ -254,7 +254,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				"listSubclassParameter");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		MessageGroup messages = createListOfMessages(3);
 		assertThat(adapter.canRelease(messages)).isTrue();
 	}
@@ -272,7 +272,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 		MethodInvokingReleaseStrategy adapter =
 				new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "wrongReturnType");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		MessageGroup messages = createListOfMessages(3);
 		assertThatExceptionOfType(ConversionFailedException.class)
 				.isThrownBy(() -> adapter.canRelease(messages));
@@ -307,7 +307,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
 				TestReleaseStrategy.class.getMethod("listSubclassParameter", LinkedList.class));
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		MessageGroup messages = createListOfMessages(3);
 		assertThat(adapter.canRelease(messages)).isTrue();
 	}
@@ -326,7 +326,7 @@ public class MethodInvokingReleaseStrategyTests {
 		MethodInvokingReleaseStrategy wrongReturnType =
 				new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), TestReleaseStrategy.class.getMethod(
 						"wrongReturnType", List.class));
-		wrongReturnType.setBeanFactory(mock(BeanFactory.class));
+		wrongReturnType.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		assertThatIllegalStateException()
 				.isThrownBy(() -> wrongReturnType.canRelease(mock(MessageGroup.class)));

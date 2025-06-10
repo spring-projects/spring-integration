@@ -38,6 +38,7 @@ import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.with;
@@ -62,6 +63,7 @@ public class TcpNioConnectionReadTests {
 			AbstractByteArraySerializer serializer, TcpListener listener, TcpSender sender) {
 
 		TcpNioServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
+		scf.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		scf.setUsingDirectBuffers(true);
 		scf.setApplicationEventPublisher(e -> {
 		});
@@ -119,7 +121,6 @@ public class TcpNioConnectionReadTests {
 			semaphore.release();
 			return false;
 		});
-
 		int howMany = 2;
 		scf.setBacklog(howMany + 5);
 		// Fire up the sender.
@@ -144,7 +145,6 @@ public class TcpNioConnectionReadTests {
 			semaphore.release();
 			return false;
 		});
-
 		// Fire up the sender.
 
 		CountDownLatch done = SocketTestUtils.testSendStxEtx(scf.getPort(), latch);
@@ -533,5 +533,4 @@ public class TcpNioConnectionReadTests {
 				.atMost(Duration.ofSeconds(20))
 				.until(() -> !added.get(0).isOpen());
 	}
-
 }

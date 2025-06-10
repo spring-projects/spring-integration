@@ -22,7 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -33,11 +32,11 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -50,7 +49,7 @@ import static org.mockito.Mockito.verify;
  *
  * @since 2.2
  */
-class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest {
+class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest, TestApplicationContextAware {
 
 	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
@@ -82,7 +81,7 @@ class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest {
 	void validateMessageHandlingWithDefaultCollection() {
 
 		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(MONGO_DATABASE_FACTORY);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);
@@ -99,7 +98,7 @@ class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest {
 
 		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(MONGO_DATABASE_FACTORY);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);
@@ -120,7 +119,7 @@ class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest {
 		converter.afterPropertiesSet();
 		converter = spy(converter);
 		handler.setMongoConverter(converter);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);
@@ -142,7 +141,7 @@ class MongoDbStoringMessageHandlerTests implements MongoDbContainerTest {
 
 		MongoDbStoringMessageHandler handler = new MongoDbStoringMessageHandler(writingTemplate);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
 		handler.handleMessage(message);

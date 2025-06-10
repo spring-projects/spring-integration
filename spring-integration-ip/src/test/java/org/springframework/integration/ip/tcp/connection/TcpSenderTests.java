@@ -27,6 +27,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -37,13 +40,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 5.3.10
  *
  */
-public class TcpSenderTests {
+public class TcpSenderTests implements TestApplicationContextAware {
 
 	@Test
 	void senderCalledForDeadConnectionClientNet() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		server.registerListener(msg -> false);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		server.setApplicationEventPublisher(event -> {
 			if (event instanceof TcpConnectionServerListeningEvent) {
@@ -61,6 +66,8 @@ public class TcpSenderTests {
 	void senderCalledForDeadConnectionClientNio() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.registerListener(msg -> false);
 		server.afterPropertiesSet();
 		server.setApplicationEventPublisher(event -> {
@@ -140,6 +147,7 @@ public class TcpSenderTests {
 
 		});
 		client.setSingleUse(true);
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		client.afterPropertiesSet();
 		client.start();
 		TcpConnectionSupport conn = client.getConnection();
@@ -160,5 +168,4 @@ public class TcpSenderTests {
 		assertThat(passedConnectionsToSenderViaAddNewConnection.get(0)).isSameAs(interceptorsPerInstance.get(3));
 		assertThat(passedConnectionsToSenderViaAddNewConnection.get(1)).isSameAs(interceptorsPerInstance.get(6));
 	}
-
 }

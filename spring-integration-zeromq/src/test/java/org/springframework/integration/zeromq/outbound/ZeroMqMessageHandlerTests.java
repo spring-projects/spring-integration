@@ -26,10 +26,10 @@ import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
@@ -39,7 +39,6 @@ import org.springframework.test.util.TestSocketUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Artem Bilan
@@ -47,23 +46,23 @@ import static org.mockito.Mockito.mock;
  *
  * @since 5.4
  */
-public class ZeroMqMessageHandlerTests {
+public class ZeroMqMessageHandlerTests implements TestApplicationContextAware {
 
-	private static final ZContext CONTEXT = new ZContext();
+	private static final ZContext Z_CONTEXT = new ZContext();
 
 	@AfterAll
 	static void tearDown() {
-		CONTEXT.close();
+		Z_CONTEXT.close();
 	}
 
 	@Test
 	void testMessageHandlerForPair() {
 		String socketAddress = "inproc://messageHandler.test";
-		ZMQ.Socket socket = CONTEXT.createSocket(SocketType.PAIR);
+		ZMQ.Socket socket = Z_CONTEXT.createSocket(SocketType.PAIR);
 		socket.bind(socketAddress);
 
-		ZeroMqMessageHandler messageHandler = new ZeroMqMessageHandler(CONTEXT, socketAddress);
-		messageHandler.setBeanFactory(mock(BeanFactory.class));
+		ZeroMqMessageHandler messageHandler = new ZeroMqMessageHandler(Z_CONTEXT, socketAddress);
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.setSocketConfigurer(s -> s.setZapDomain("global"));
 		messageHandler.afterPropertiesSet();
 		messageHandler.start();
@@ -88,14 +87,14 @@ public class ZeroMqMessageHandlerTests {
 
 	@Test
 	void testMessageHandlerForPubSub() {
-		ZMQ.Socket subSocket = CONTEXT.createSocket(SocketType.SUB);
+		ZMQ.Socket subSocket = Z_CONTEXT.createSocket(SocketType.SUB);
 		subSocket.setReceiveTimeOut(0);
 		int port = subSocket.bindToRandomPort("tcp://*");
 		subSocket.subscribe("test");
 
 		ZeroMqMessageHandler messageHandler =
-				new ZeroMqMessageHandler(CONTEXT, "tcp://localhost:" + port, SocketType.PUB);
-		messageHandler.setBeanFactory(mock(BeanFactory.class));
+				new ZeroMqMessageHandler(Z_CONTEXT, "tcp://localhost:" + port, SocketType.PUB);
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.setTopicExpression(
 				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
 		messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
@@ -123,20 +122,20 @@ public class ZeroMqMessageHandlerTests {
 
 	@Test
 	void testMessageHandlerForPushPullOverProxy() {
-		ZeroMqProxy proxy = new ZeroMqProxy(CONTEXT);
+		ZeroMqProxy proxy = new ZeroMqProxy(Z_CONTEXT);
 		proxy.setBeanName("pullPushProxy");
 		proxy.afterPropertiesSet();
 		proxy.start();
 
 		await().until(() -> proxy.getBackendPort() > 0);
 
-		ZMQ.Socket pullSocket = CONTEXT.createSocket(SocketType.PULL);
+		ZMQ.Socket pullSocket = Z_CONTEXT.createSocket(SocketType.PULL);
 		pullSocket.setReceiveTimeOut(20_000);
 		pullSocket.connect("tcp://localhost:" + proxy.getBackendPort());
 
 		ZeroMqMessageHandler messageHandler =
-				new ZeroMqMessageHandler(CONTEXT, "tcp://localhost:" + proxy.getFrontendPort(), SocketType.PUSH);
-		messageHandler.setBeanFactory(mock(BeanFactory.class));
+				new ZeroMqMessageHandler(Z_CONTEXT, "tcp://localhost:" + proxy.getFrontendPort(), SocketType.PUSH);
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.setMessageConverter(new ByteArrayMessageConverter());
 		messageHandler.afterPropertiesSet();
 		messageHandler.start();
@@ -154,14 +153,14 @@ public class ZeroMqMessageHandlerTests {
 
 	@Test
 	void testMessageHandlerForPubSubDisabledWrapTopic() {
-		ZMQ.Socket subSocket = CONTEXT.createSocket(SocketType.SUB);
+		ZMQ.Socket subSocket = Z_CONTEXT.createSocket(SocketType.SUB);
 		subSocket.setReceiveTimeOut(0);
 		int port = subSocket.bindToRandomPort("tcp://*");
 		subSocket.subscribe("test");
 
 		ZeroMqMessageHandler messageHandler =
-				new ZeroMqMessageHandler(CONTEXT, "tcp://localhost:" + port, SocketType.PUB);
-		messageHandler.setBeanFactory(mock(BeanFactory.class));
+				new ZeroMqMessageHandler(Z_CONTEXT, "tcp://localhost:" + port, SocketType.PUB);
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.setTopicExpression(
 				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
 		messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
@@ -192,8 +191,8 @@ public class ZeroMqMessageHandlerTests {
 	void testMessageHandlerForPubSubWithBind() {
 		int boundPort = TestSocketUtils.findAvailableTcpPort();
 		ZeroMqMessageHandler messageHandler =
-				new ZeroMqMessageHandler(CONTEXT, boundPort, SocketType.PUB);
-		messageHandler.setBeanFactory(mock(BeanFactory.class));
+				new ZeroMqMessageHandler(Z_CONTEXT, boundPort, SocketType.PUB);
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.setTopicExpression(
 				new FunctionExpression<Message<?>>((message) -> message.getHeaders().get("topic")));
 		messageHandler.setMessageMapper(new EmbeddedJsonHeadersMessageMapper());
@@ -201,7 +200,7 @@ public class ZeroMqMessageHandlerTests {
 		messageHandler.afterPropertiesSet();
 		messageHandler.start();
 
-		ZMQ.Socket subSocket = CONTEXT.createSocket(SocketType.SUB);
+		ZMQ.Socket subSocket = Z_CONTEXT.createSocket(SocketType.SUB);
 		subSocket.setReceiveTimeOut(0);
 		subSocket.connect("tcp://localhost:" + boundPort);
 		subSocket.subscribe("test");

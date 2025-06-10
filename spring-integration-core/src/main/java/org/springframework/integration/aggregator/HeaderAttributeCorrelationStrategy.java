@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -35,6 +37,7 @@ public class HeaderAttributeCorrelationStrategy implements CorrelationStrategy {
 		this.attributeName = attributeName;
 	}
 
+	@Nullable
 	public Object getCorrelationKey(Message<?> message) {
 		return message.getHeaders().get(this.attributeName);
 	}

@@ -27,7 +27,6 @@ import jakarta.servlet.http.Cookie;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpStatus;
@@ -36,6 +35,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -57,13 +57,13 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests {
+public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests implements TestApplicationContextAware {
 
 	@Test
 	public void sendOnly() {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
-		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.afterPropertiesSet();
@@ -90,7 +90,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 	public void sendOnlyViewExpression() {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
-		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("'baz'");
 		controller.setViewExpression(viewExpression);
@@ -126,7 +126,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.afterPropertiesSet();
@@ -162,7 +162,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
 		controller.setViewExpression(viewExpression);
@@ -196,7 +196,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
 		controller.setViewExpression(viewExpression);
@@ -228,7 +228,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.setReplyKey("myReply");
@@ -264,7 +264,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.setExtractReplyPayload(false);
@@ -299,7 +299,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 			}
 		};
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
-		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.afterPropertiesSet();
 		controller.start();
@@ -341,7 +341,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		};
 		requestChannel.subscribe(handler);
 		final HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
-		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.afterPropertiesSet();
@@ -410,7 +410,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		controller.setReplyKey("cookiesReply");
 		controller.setExtractReplyPayload(true);
 		controller.setPayloadExpression(new SpelExpressionParser().parseExpression("#cookies['c1'][0].value"));
-		controller.setBeanFactory(mock(BeanFactory.class));
+		controller.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		controller.afterPropertiesSet();
 		controller.start();
 

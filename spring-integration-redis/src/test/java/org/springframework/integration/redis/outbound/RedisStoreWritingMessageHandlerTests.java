@@ -26,7 +26,6 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -41,6 +40,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.redis.RedisContainerTest;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
@@ -48,7 +48,6 @@ import org.springframework.messaging.support.GenericMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Oleg Zhurakousky
@@ -58,7 +57,7 @@ import static org.mockito.Mockito.mock;
  * @author Artem Bilan
  * @author Artem Vozhdayenko
  */
-class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
+class RedisStoreWritingMessageHandlerTests implements RedisContainerTest, TestApplicationContextAware {
 
 	private static RedisConnectionFactory redisConnectionFactory;
 
@@ -79,7 +78,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -108,7 +107,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -136,7 +135,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -162,7 +161,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
 		handler.setExtractPayloadElements(false);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -193,7 +192,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -234,7 +233,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -276,7 +275,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -320,7 +319,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<>();
@@ -352,7 +351,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Map<String, Double> presidents = new HashMap<>();
@@ -396,7 +395,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Map<President, Double> presidents = new HashMap<>();
@@ -441,7 +440,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Map<President, Double> presidents = new HashMap<>();
@@ -464,7 +463,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 				new RedisStoreWritingMessageHandler(redisConnectionFactory);
 		handler.setKey(key);
 		handler.setMapKeyExpression(new LiteralExpression(key));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatThrownBy(handler::afterPropertiesSet).isInstanceOf(IllegalStateException.class);
 	}
 
@@ -476,7 +475,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.SET);
 		handler.setMapKeyExpression(new LiteralExpression(key));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatThrownBy(handler::afterPropertiesSet).isInstanceOf(IllegalStateException.class);
 	}
 
@@ -488,7 +487,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setMapKeyExpression(new LiteralExpression(key));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatThrownBy(handler::afterPropertiesSet).isInstanceOf(IllegalStateException.class);
 	}
 
@@ -501,7 +500,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.MAP);
 		handler.setMapKeyExpression(new LiteralExpression(key));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		try {
 			handler.afterPropertiesSet();
 		}
@@ -520,7 +519,7 @@ class RedisStoreWritingMessageHandlerTests implements RedisContainerTest {
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.PROPERTIES);
 		handler.setMapKeyExpression(new LiteralExpression(key));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		try {
 			handler.afterPropertiesSet();
 		}

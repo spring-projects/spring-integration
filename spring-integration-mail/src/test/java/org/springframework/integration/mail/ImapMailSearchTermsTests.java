@@ -29,7 +29,8 @@ import jakarta.mail.search.NotTerm;
 import jakarta.mail.search.SearchTerm;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  *
  */
-public class ImapMailSearchTermsTests {
+public class ImapMailSearchTermsTests implements TestApplicationContextAware {
 
 	@Test
 	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlags() throws Exception {
@@ -62,7 +63,7 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsGuts(String userFlag, ImapMailReceiver receiver)
 			throws NoSuchFieldException, IllegalAccessException, InvocationTargetException {
 		receiver.setShouldMarkMessagesAsRead(true);
-		receiver.setBeanFactory(mock(BeanFactory.class));
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
@@ -85,8 +86,8 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldMarkAsReadWithExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(true);
-		receiver.setBeanFactory(mock(BeanFactory.class));
-
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
@@ -115,7 +116,8 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldNotMarkAsReadNoExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(false);
-		receiver.setBeanFactory(mock(BeanFactory.class));
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");

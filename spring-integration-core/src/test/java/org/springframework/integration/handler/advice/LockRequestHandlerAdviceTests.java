@@ -35,6 +35,7 @@ import org.springframework.integration.core.AsyncMessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.MessagePostProcessor;
@@ -51,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class LockRequestHandlerAdviceTests {
+public class LockRequestHandlerAdviceTests implements TestApplicationContextAware {
 
 	private static final String LOCK_KEY_HEADER = "lock-key-header";
 
@@ -76,7 +77,7 @@ public class LockRequestHandlerAdviceTests {
 				messagingTemplate.asyncConvertSendAndReceive(this.inputChannel, "test1", messagePostProcessor);
 		Future<Object> test2 =
 				messagingTemplate.asyncConvertSendAndReceive(this.inputChannel, "test2", messagePostProcessor);
-
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(test1.get(10, TimeUnit.SECONDS)).isEqualTo("test1-1");
 		assertThat(test2.get(10, TimeUnit.SECONDS)).isEqualTo("test2-1");
 

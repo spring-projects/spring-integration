@@ -22,10 +22,10 @@ import jakarta.jms.Session;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.spy;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class ChannelPublishingJmsMessageListenerTests {
+public class ChannelPublishingJmsMessageListenerTests implements TestApplicationContextAware {
 
 	private final Session session = new StubSession("test");
 
@@ -61,7 +61,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 		listener.setRequestChannel(requestChannel);
 		listener.setMessageConverter(new TestMessageConverter());
 		jakarta.jms.Message jmsMessage = session.createTextMessage("test");
-		listener.setBeanFactory(mock(BeanFactory.class));
+		listener.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		listener.afterPropertiesSet();
 		assertThatExceptionOfType(InvalidDestinationException.class)
 				.isThrownBy(() -> listener.onMessage(jmsMessage, session));
@@ -77,7 +77,6 @@ public class ChannelPublishingJmsMessageListenerTests {
 		listener.setRequestChannel(requestChannel);
 		QueueChannel errorChannel = new QueueChannel();
 		listener.setErrorChannel(errorChannel);
-		listener.setBeanFactory(mock(BeanFactory.class));
 		listener.setMessageConverter(new TestMessageConverter() {
 
 			@Override
@@ -86,6 +85,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 			}
 
 		});
+		listener.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		listener.afterPropertiesSet();
 		jakarta.jms.Message jmsMessage = session.createTextMessage("test");
 		listener.onMessage(jmsMessage, mock(Session.class));

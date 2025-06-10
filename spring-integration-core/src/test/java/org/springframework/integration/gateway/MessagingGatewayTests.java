@@ -28,10 +28,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
@@ -44,7 +44,6 @@ import org.springframework.messaging.PollableChannel;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Iwein Fuld
@@ -53,7 +52,7 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  */
 @SuppressWarnings("unchecked")
-public class MessagingGatewayTests {
+public class MessagingGatewayTests implements TestApplicationContextAware {
 
 	private final TestApplicationContext applicationContext = TestUtils.createTestApplicationContext();
 
@@ -283,7 +282,7 @@ public class MessagingGatewayTests {
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);
 		this.messagingGateway.setReplyChannel(null);
-		this.messagingGateway.setBeanFactory(mock(BeanFactory.class));
+		this.messagingGateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 

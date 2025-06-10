@@ -18,24 +18,23 @@ package org.springframework.integration.endpoint;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class CorrelationIdTests {
+public class CorrelationIdTests implements TestApplicationContextAware {
 
 	@Test
 	public void testCorrelationIdPassedIfAvailable() {
@@ -46,7 +45,7 @@ public class CorrelationIdTests {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "upperCase");
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
@@ -63,7 +62,7 @@ public class CorrelationIdTests {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "upperCase");
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
@@ -82,7 +81,7 @@ public class CorrelationIdTests {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "createMessage");
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
@@ -98,7 +97,7 @@ public class CorrelationIdTests {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "createMessage");
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
@@ -114,7 +113,7 @@ public class CorrelationIdTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(
 				new TestBean(), TestBean.class.getMethod("split", String.class));
 		splitter.setOutputChannel(testChannel);
-		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		Message<?> reply1 = testChannel.receive(100);
@@ -133,7 +132,7 @@ public class CorrelationIdTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(
 				new TestBean(), TestBean.class.getMethod("split", String.class));
 		splitter.setOutputChannel(testChannel);
-		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		Message<?> reply1 = testChannel.receive(100);

@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.kafka.channel.PollableKafkaChannel;
@@ -122,12 +124,12 @@ public class ChannelTests {
 		String embeddedKafkaBrokers;
 
 		@Bean
-		public ProducerFactory<Integer, String> pf() {
+		ProducerFactory<Integer, String> pf() {
 			return new DefaultKafkaProducerFactory<>(KafkaTestUtils.producerProps(this.embeddedKafkaBrokers));
 		}
 
 		@Bean
-		public ConsumerFactory<Integer, String> cf() {
+		ConsumerFactory<Integer, String> cf() {
 			Map<String, Object> consumerProps =
 					KafkaTestUtils.consumerProps(this.embeddedKafkaBrokers, "channelTests", false);
 			consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -135,12 +137,12 @@ public class ChannelTests {
 		}
 
 		@Bean
-		public KafkaTemplate<Integer, String> template(ProducerFactory<Integer, String> pf) {
+		KafkaTemplate<Integer, String> template(ProducerFactory<Integer, String> pf) {
 			return new KafkaTemplate<>(pf);
 		}
 
 		@Bean
-		public ConcurrentKafkaListenerContainerFactory<Integer, String> factory(ConsumerFactory<Integer, String> cf) {
+		ConcurrentKafkaListenerContainerFactory<Integer, String> factory(ConsumerFactory<Integer, String> cf) {
 			ConcurrentKafkaListenerContainerFactory<Integer, String> factory =
 					new ConcurrentKafkaListenerContainerFactory<>();
 			factory.setConsumerFactory(cf);
@@ -148,7 +150,7 @@ public class ChannelTests {
 		}
 
 		@Bean
-		public SubscribableKafkaChannel ptp(KafkaTemplate<Integer, String> template,
+		SubscribableKafkaChannel ptp(KafkaTemplate<Integer, String> template,
 				KafkaListenerContainerFactory<?> factory) {
 
 			SubscribableKafkaChannel channel = new SubscribableKafkaChannel(template, factory, "channel.1");
@@ -157,7 +159,7 @@ public class ChannelTests {
 		}
 
 		@Bean
-		public SubscribableKafkaChannel pubSub(KafkaTemplate<Integer, String> template,
+		SubscribableKafkaChannel pubSub(KafkaTemplate<Integer, String> template,
 				KafkaListenerContainerFactory<?> factory) {
 
 			SubscribableKafkaChannel channel = new PublishSubscribeKafkaChannel(template, factory, "channel.2");
@@ -166,15 +168,21 @@ public class ChannelTests {
 		}
 
 		@Bean
-		public KafkaMessageSource<Integer, String> source(ConsumerFactory<Integer, String> cf) {
+		KafkaMessageSource<Integer, String> source(ConsumerFactory<Integer, String> cf) {
 			return new KafkaMessageSource<>(cf, new ConsumerProperties("channel.3"));
 		}
 
 		@Bean
-		public PollableKafkaChannel pollable(KafkaTemplate<Integer, String> template, KafkaMessageSource<?, ?> source) {
+		PollableKafkaChannel pollable(KafkaTemplate<Integer, String> template, KafkaMessageSource<?, ?> source) {
 			return new PollableKafkaChannel(template, source);
 		}
 
+		@Bean
+		StandardEvaluationContext integrationEvaluationContext() {
+			StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
+			integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
+			return integrationEvaluationContext;
+		}
 	}
 
 }

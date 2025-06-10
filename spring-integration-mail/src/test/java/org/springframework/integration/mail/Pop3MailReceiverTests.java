@@ -26,7 +26,7 @@ import jakarta.mail.Message;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
@@ -40,14 +40,14 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  *
  */
-public class Pop3MailReceiverTests {
+public class Pop3MailReceiverTests implements TestApplicationContextAware {
 
 	@Test
 	public void receiveAndDelete() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver.setShouldDeleteMessages(true);
 		receiver = spy(receiver);
-		receiver.setBeanFactory(mock(BeanFactory.class));
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -83,7 +83,7 @@ public class Pop3MailReceiverTests {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver.setShouldDeleteMessages(false);
 		receiver = spy(receiver);
-		receiver.setBeanFactory(mock(BeanFactory.class));
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -111,7 +111,7 @@ public class Pop3MailReceiverTests {
 	public void receiveAndDontSetDeleteWithUrl() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
 		receiver = spy(receiver);
-		receiver.setBeanFactory(mock(BeanFactory.class));
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -139,7 +139,7 @@ public class Pop3MailReceiverTests {
 	public void receiveAndDontSetDeleteWithoutUrl() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver = spy(receiver);
-		receiver.setBeanFactory(mock(BeanFactory.class));
+		receiver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");

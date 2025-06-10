@@ -19,10 +19,10 @@ package org.springframework.integration.aggregator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
  * @author Gary Russell
  *
  */
-public class CorrelatingMessageHandlerIntegrationTests {
+public class CorrelatingMessageHandlerIntegrationTests implements TestApplicationContextAware {
 
 	private final MessageGroupStore store = new SimpleMessageStore(100);
 
@@ -54,7 +54,7 @@ public class CorrelatingMessageHandlerIntegrationTests {
 		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		defaultHandler.setOutputChannel(outputChannel);
 		defaultHandler.setSendTimeout(-1);
-		defaultHandler.setBeanFactory(mock(BeanFactory.class));
+		defaultHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		defaultHandler.afterPropertiesSet();
 	}
 

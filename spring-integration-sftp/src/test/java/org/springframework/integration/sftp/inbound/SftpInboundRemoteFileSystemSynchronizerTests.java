@@ -32,7 +32,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -44,6 +43,7 @@ import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilt
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
@@ -65,7 +65,7 @@ import static org.mockito.Mockito.when;
  *
  * @since 2.0
  */
-public class SftpInboundRemoteFileSystemSynchronizerTests {
+public class SftpInboundRemoteFileSystemSynchronizerTests implements TestApplicationContextAware {
 
 	@BeforeEach
 	@AfterEach
@@ -104,13 +104,13 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		filters.add(patternFilter);
 		CompositeFileListFilter<SftpClient.DirEntry> filter = new CompositeFileListFilter<>(filters);
 		synchronizer.setFilter(filter);
-		synchronizer.setBeanFactory(mock(BeanFactory.class));
+		synchronizer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		synchronizer.afterPropertiesSet();
 
 		SftpInboundFileSynchronizingMessageSource ms = new SftpInboundFileSynchronizingMessageSource(synchronizer);
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectory);
-		ms.setBeanFactory(mock(BeanFactory.class));
+		ms.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<>();
 		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.test$"));
 		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<>();

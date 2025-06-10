@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.handler.support.MessagingMethodInvokerHelper;
@@ -89,7 +90,7 @@ public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEva
 	}
 
 	@SuppressWarnings("unchecked")
-	public T process(Collection<Message<?>> messages, Map<String, Object> aggregateHeaders) {
+	public @Nullable T process(Collection<Message<?>> messages, @Nullable Map<String, Object> aggregateHeaders) {
 		return (T) this.delegate.process(messages, aggregateHeaders);
 	}
 

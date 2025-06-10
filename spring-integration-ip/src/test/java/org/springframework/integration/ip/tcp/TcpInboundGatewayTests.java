@@ -52,6 +52,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
@@ -67,7 +68,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class TcpInboundGatewayTests {
+public class TcpInboundGatewayTests implements TestApplicationContextAware {
 
 	@Test
 	public void testNetSingle() throws Exception {
@@ -75,7 +76,7 @@ public class TcpInboundGatewayTests {
 		scf.setSingleUse(true);
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		scf.start();
 		TestingUtilities.waitListening(scf, 20000L);
 		int port = scf.getPort();
@@ -83,7 +84,7 @@ public class TcpInboundGatewayTests {
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
 		handler.setChannelResolver(channelName -> channel);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
@@ -111,9 +112,9 @@ public class TcpInboundGatewayTests {
 		int port = scf.getPort();
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test1\r\n".getBytes());
@@ -172,10 +173,10 @@ public class TcpInboundGatewayTests {
 		gateway.setRequestChannel(channel);
 		gateway.setClientMode(true);
 		gateway.setRetryInterval(10000);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.setPoolSize(1);
@@ -207,10 +208,10 @@ public class TcpInboundGatewayTests {
 		int port = scf.getPort();
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
 		handler.setChannelResolver(channelName -> channel);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
@@ -238,9 +239,9 @@ public class TcpInboundGatewayTests {
 		int port = scf.getPort();
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test1\r\n".getBytes());
@@ -277,7 +278,7 @@ public class TcpInboundGatewayTests {
 		int port = scf.getPort();
 		final SubscribableChannel channel = new DirectChannel();
 		gateway.setRequestChannel(channel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
 		channel.subscribe(handler);
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
@@ -314,14 +315,14 @@ public class TcpInboundGatewayTests {
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		BeanFactory bf = mock(ConfigurableBeanFactory.class);
-		gateway.setBeanFactory(bf);
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.start();
 		TestingUtilities.waitListening(scf, 20000L);
 		int port = scf.getPort();
 		final DirectChannel channel = new DirectChannel();
 		gateway.setRequestChannel(channel);
 		BridgeHandler bridge = new BridgeHandler();
-		bridge.setBeanFactory(bf);
+		bridge.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		bridge.afterPropertiesSet();
 		ConsumerEndpointFactoryBean consumer = new ConsumerEndpointFactoryBean();
 		consumer.setInputChannel(channel);
@@ -335,6 +336,7 @@ public class TcpInboundGatewayTests {
 			latch.countDown();
 			return false;
 		});
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		client.afterPropertiesSet();
 		client.start();
 		TcpConnectionSupport connection = client.getConnection();

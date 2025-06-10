@@ -28,12 +28,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
@@ -56,7 +56,7 @@ import static org.mockito.Mockito.when;
  * @since 4.1.7
  *
  */
-public class RemoteFileTemplateTests {
+public class RemoteFileTemplateTests implements TestApplicationContextAware {
 
 	private RemoteFileTemplate<Object> template;
 
@@ -73,7 +73,7 @@ public class RemoteFileTemplateTests {
 		SessionFactory<Object> sessionFactory = mock(SessionFactory.class);
 		this.template = new RemoteFileTemplate<>(sessionFactory);
 		this.template.setRemoteDirectoryExpression(new LiteralExpression("/foo"));
-		this.template.setBeanFactory(mock(BeanFactory.class));
+		this.template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.template.afterPropertiesSet();
 		this.session = mock(Session.class);
 		when(sessionFactory.getSession()).thenReturn(this.session);

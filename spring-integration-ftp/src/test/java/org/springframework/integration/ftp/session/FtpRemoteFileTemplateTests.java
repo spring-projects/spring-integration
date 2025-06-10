@@ -26,7 +26,6 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +37,7 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.FtpTestSupport;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.MessagingException;
@@ -58,7 +58,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class FtpRemoteFileTemplateTests extends FtpTestSupport {
+public class FtpRemoteFileTemplateTests extends FtpTestSupport implements TestApplicationContextAware {
 
 	@Autowired
 	private SessionFactory<FTPFile> sessionFactory;
@@ -67,12 +67,12 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 	public void testINT3412AppendStatRmdir() {
 		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(sessionFactory);
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
-		fileNameGenerator.setBeanFactory(mock(BeanFactory.class));
+		fileNameGenerator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		fileNameGenerator.setExpression("'foobar.txt'");
 		template.setFileNameGenerator(fileNameGenerator);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setUseTemporaryFileName(false);
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		template.execute(session -> {
 			session.mkdir("foo/");
@@ -125,7 +125,7 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(this.sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("/"));
 		template.setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLST_AND_DIRS);
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		File file = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
 		FileOutputStream fileOutputStream = new FileOutputStream(file);

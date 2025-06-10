@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.messaging.Message;
@@ -40,6 +42,7 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 
 	private final Comparator<Message<?>> comparator = new MessageSequenceComparator();
 
+	@Nullable
 	public Object processMessageGroup(MessageGroup group) {
 		Collection<Message<?>> messages = group.getMessages();
 

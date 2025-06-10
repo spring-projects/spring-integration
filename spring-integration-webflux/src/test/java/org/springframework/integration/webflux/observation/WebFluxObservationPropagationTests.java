@@ -53,6 +53,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.webflux.dsl.WebFlux;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -75,7 +76,7 @@ import static org.awaitility.Awaitility.await;
  */
 @SpringJUnitWebConfig
 @DirtiesContext
-public class WebFluxObservationPropagationTests {
+public class WebFluxObservationPropagationTests implements TestApplicationContextAware {
 
 	private static final TestSpanHandler SPANS = new TestSpanHandler();
 
@@ -135,8 +136,10 @@ public class WebFluxObservationPropagationTests {
 
 	@Test
 	void observationIsPropagatedWebFluxClientRequestReply() {
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		String result =
-				new MessagingTemplate()
+				messagingTemplate
 						.convertSendAndReceive(this.webFluxRequestReplyClientFlowInput, "test", String.class);
 
 		assertThat(result).isEqualTo("SOME REPLY");

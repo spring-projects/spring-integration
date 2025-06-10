@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -35,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 5.3
  */
-class ReactiveMessageHandlerTests {
+class ReactiveMessageHandlerTests implements TestApplicationContextAware {
 
 	private AtomicBoolean handled = new AtomicBoolean();
 
@@ -50,6 +51,7 @@ class ReactiveMessageHandlerTests {
 	void messageHandledOnSubscribe() {
 		assertThat(handled.get()).isFalse();
 		TestReactiveMessageHandler handler = new TestReactiveMessageHandler();
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<>("");
 		handler.handleMessage(message).subscribe();
@@ -62,6 +64,7 @@ class ReactiveMessageHandlerTests {
 		TestReactiveMessageHandler handler = new TestReactiveMessageHandler();
 		handler.setShouldTrack(true);
 		handler.setComponentName("test-message-handler");
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<>("");
 		handler.handleMessage(message).subscribe();

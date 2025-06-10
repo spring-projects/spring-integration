@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class StopStartTests extends ActiveMQMultiContextTests {
+public class StopStartTests extends ActiveMQMultiContextTests implements TestApplicationContextAware {
 
 	@Autowired
 	@Qualifier("out")
@@ -49,6 +50,7 @@ public class StopStartTests extends ActiveMQMultiContextTests {
 	@Test
 	public void test() {
 		MessagingTemplate template = new MessagingTemplate(this.test);
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.outGateway.start();
 		assertThat(template.convertSendAndReceive("foo", String.class)).isEqualTo("FOO");
 		this.outGateway.stop();

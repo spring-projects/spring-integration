@@ -23,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.SftpTestSupport;
@@ -80,6 +83,13 @@ public class SftpMessageSourceTests extends SftpTestSupport {
 			return SftpMessageSourceTests.sessionFactory();
 		}
 
+		@Bean
+		public StandardEvaluationContext integrationEvaluationContext(ApplicationContext applicationContext) {
+			StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
+			integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
+			integrationEvaluationContext.setBeanResolver(new BeanFactoryResolver(applicationContext));
+			return integrationEvaluationContext;
+		}
 	}
 
 }

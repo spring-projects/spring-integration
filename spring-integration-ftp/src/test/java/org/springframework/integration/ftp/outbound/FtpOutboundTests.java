@@ -37,7 +37,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
@@ -46,6 +45,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -66,7 +66,7 @@ import static org.mockito.Mockito.when;
  * @author Gunnar Hillert
  * @author Gary Russell
  */
-public class FtpOutboundTests {
+public class FtpOutboundTests implements TestApplicationContextAware {
 
 	private static FTPClient ftpClient;
 
@@ -92,7 +92,7 @@ public class FtpOutboundTests {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(message -> "handlerContent.test");
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<>("String data"));
 		assertThat(file.exists()).isTrue();
@@ -111,7 +111,7 @@ public class FtpOutboundTests {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(message -> "handlerContent.test");
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<>("byte[] data".getBytes()));
 		assertThat(file.exists()).isTrue();
@@ -128,7 +128,7 @@ public class FtpOutboundTests {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName() + ".test");
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp");
@@ -149,7 +149,7 @@ public class FtpOutboundTests {
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName() + ".test");
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		File srcFile = new File(UUID.randomUUID() + ".txt");

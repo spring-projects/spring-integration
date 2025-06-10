@@ -52,6 +52,7 @@ import org.springframework.integration.kafka.dsl.Kafka;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter.ListenerMode;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -110,7 +111,7 @@ import static org.mockito.Mockito.verify;
  * @since 5.4
  *
  */
-class MessageDrivenAdapterTests {
+class MessageDrivenAdapterTests implements TestApplicationContextAware {
 
 	static final String topic1 = "testTopic1";
 
@@ -142,6 +143,7 @@ class MessageDrivenAdapterTests {
 		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.setRecordMessageConverter(new MessagingMessageConverter() {
 
@@ -248,6 +250,7 @@ class MessageDrivenAdapterTests {
 		adapter.setRecoveryCallback(
 				new ErrorMessageSendingRecoverer(errorChannel, new RawRecordHeaderErrorMessageStrategy()));
 		adapter.setRetryTemplate(retryTemplate);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		ContainerTestUtils.waitForAssignment(container, 1);
@@ -321,7 +324,7 @@ class MessageDrivenAdapterTests {
 			}
 		});
 		adapter.setRetryTemplate(retryTemplate);
-
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		ContainerTestUtils.waitForAssignment(container, 1);
@@ -363,6 +366,7 @@ class MessageDrivenAdapterTests {
 		adapter.setRecoveryCallback(
 				new ErrorMessageSendingRecoverer(errorChannel, new RawRecordHeaderErrorMessageStrategy()));
 		adapter.setBindSourceRecord(true);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		ContainerTestUtils.waitForAssignment(container, 1);
@@ -411,8 +415,9 @@ class MessageDrivenAdapterTests {
 		final CountDownLatch onPartitionsAssignedCalledLatch = new CountDownLatch(1);
 
 		adapter.setOnPartitionsAssignedSeekCallback((map, consumer) -> onPartitionsAssignedCalledLatch.countDown());
-
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.setBatchMessageConverter(new BatchMessagingMessageConverter() {
 
 			@Override
@@ -496,6 +501,7 @@ class MessageDrivenAdapterTests {
 		adapter.setRecordMessageConverter(new StringJsonMessageConverter());
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		ContainerTestUtils.waitForAssignment(container, 1);
@@ -543,6 +549,7 @@ class MessageDrivenAdapterTests {
 				.getObject();
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		ContainerTestUtils.waitForAssignment(container, 1);
@@ -616,6 +623,7 @@ class MessageDrivenAdapterTests {
 		KafkaMessageDrivenChannelAdapter adapter = new KafkaMessageDrivenChannelAdapter(container);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		assertThat(commitLatch.await(10, TimeUnit.SECONDS)).isTrue();

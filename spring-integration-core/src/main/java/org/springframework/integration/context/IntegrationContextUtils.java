@@ -16,6 +16,8 @@
 
 package org.springframework.integration.context;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -120,6 +122,7 @@ public abstract class IntegrationContextUtils {
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link MetadataStore} bean whose name is "metadataStore".
 	 */
+	@Nullable
 	public static MetadataStore getMetadataStore(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, METADATA_STORE_BEAN_NAME, MetadataStore.class);
 	}
@@ -129,7 +132,9 @@ public abstract class IntegrationContextUtils {
 	 * @return The {@link MessageChannel} bean whose name is "errorChannel".
 	 */
 	public static MessageChannel getErrorChannel(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, ERROR_CHANNEL_BEAN_NAME, MessageChannel.class);
+		MessageChannel channel = getBeanOfType(beanFactory, ERROR_CHANNEL_BEAN_NAME, MessageChannel.class);
+		Assert.state(channel != null, "No such bean '" + ERROR_CHANNEL_BEAN_NAME + "'");
+		return channel;
 	}
 
 	/**
@@ -137,7 +142,9 @@ public abstract class IntegrationContextUtils {
 	 * @return The {@link TaskScheduler} bean whose name is "taskScheduler" if available.
 	 */
 	public static TaskScheduler getTaskScheduler(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class);
+		TaskScheduler taskScheduler  = getBeanOfType(beanFactory, TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class);
+		Assert.state(taskScheduler != null, "No such bean '" + TASK_SCHEDULER_BEAN_NAME + "'");
+		return taskScheduler;
 	}
 
 	/**
@@ -157,7 +164,9 @@ public abstract class IntegrationContextUtils {
 	 * {@value #INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME}.
 	 */
 	public static StandardEvaluationContext getEvaluationContext(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class);
+		StandardEvaluationContext standardEvaluationContext = getBeanOfType(beanFactory, INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class);
+		Assert.state(standardEvaluationContext != null, "No such bean '" + INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME + "'");
+		return standardEvaluationContext;
 	}
 
 	/**
@@ -167,10 +176,14 @@ public abstract class IntegrationContextUtils {
 	 * @since 4.3.15
 	 */
 	public static SimpleEvaluationContext getSimpleEvaluationContext(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME,
+		SimpleEvaluationContext simpleEvaluationContext = getBeanOfType(beanFactory, INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME,
 				SimpleEvaluationContext.class);
+		Assert.state(simpleEvaluationContext != null, "No such bean '" + INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME + "'");
+
+		return simpleEvaluationContext;
 	}
 
+	@Nullable
 	private static <T> T getBeanOfType(BeanFactory beanFactory, String beanName, Class<T> type) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		if (!beanFactory.containsBean(beanName)) {
@@ -190,11 +203,8 @@ public abstract class IntegrationContextUtils {
 	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
 	 */
 	public static IntegrationProperties getIntegrationProperties(BeanFactory beanFactory) {
-		IntegrationProperties integrationProperties = null;
-		if (beanFactory != null) {
-			integrationProperties =
+		IntegrationProperties integrationProperties =
 					getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, IntegrationProperties.class);
-		}
 		if (integrationProperties == null) {
 			integrationProperties = IntegrationProperties.DEFAULT_INSTANCE;
 		}

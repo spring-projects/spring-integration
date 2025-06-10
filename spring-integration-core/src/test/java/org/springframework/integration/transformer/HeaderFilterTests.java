@@ -26,6 +26,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -40,7 +41,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class HeaderFilterTests {
+public class HeaderFilterTests implements TestApplicationContextAware {
 
 	@Test
 	public void testFilterDirectly() {
@@ -83,6 +84,7 @@ public class HeaderFilterTests {
 	@Test
 	public void testIdHeaderRemoval() {
 		HeaderFilter filter = new HeaderFilter("foo", MessageHeaders.ID);
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		try {
 			filter.afterPropertiesSet();
 			fail("BeanInitializationException expected");
@@ -96,6 +98,7 @@ public class HeaderFilterTests {
 	@Test
 	public void testTimestampHeaderRemoval() {
 		HeaderFilter filter = new HeaderFilter(MessageHeaders.TIMESTAMP);
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		try {
 			filter.afterPropertiesSet();
 			fail("BeanInitializationException expected");
@@ -109,6 +112,7 @@ public class HeaderFilterTests {
 	@Test
 	public void testIdPatternRemoval() {
 		HeaderFilter filter = new HeaderFilter("*", MessageHeaders.ID);
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		filter.setPatternMatch(true);
 		try {
 			filter.afterPropertiesSet();
@@ -124,7 +128,7 @@ public class HeaderFilterTests {
 	public void testPatternRemoval() {
 		HeaderFilter filter = new HeaderFilter("time*");
 		filter.setPatternMatch(true);
-
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		filter.afterPropertiesSet();
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("time", new Date())

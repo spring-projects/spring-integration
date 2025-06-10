@@ -19,6 +19,8 @@ package org.springframework.integration.context;
 import java.util.Arrays;
 import java.util.Properties;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.JavaUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -139,6 +141,7 @@ public final class IntegrationProperties {
 
 	private long endpointsDefaultTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
 
+	@Nullable
 	private volatile Properties properties;
 
 	static {

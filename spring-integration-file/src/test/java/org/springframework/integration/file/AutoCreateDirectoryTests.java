@@ -22,11 +22,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -35,7 +34,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 1.0.3
  */
-public class AutoCreateDirectoryTests {
+public class AutoCreateDirectoryTests implements TestApplicationContextAware {
 
 	private static final String BASE_PATH =
 			System.getProperty("java.io.tmpdir") + File.separator + "AutoCreateDirectoryTests";
@@ -65,7 +64,7 @@ public class AutoCreateDirectoryTests {
 	public void autoCreateForInboundEnabledByDefault() {
 		FileReadingMessageSource source = new FileReadingMessageSource();
 		source.setDirectory(new File(INBOUND_PATH));
-		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		source.start();
 		assertThat(new File(INBOUND_PATH).exists()).isTrue();
@@ -77,7 +76,7 @@ public class AutoCreateDirectoryTests {
 		FileReadingMessageSource source = new FileReadingMessageSource();
 		source.setDirectory(new File(INBOUND_PATH));
 		source.setAutoCreateDirectory(false);
-		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		assertThatIllegalArgumentException()
 				.isThrownBy(source::start);
@@ -87,7 +86,7 @@ public class AutoCreateDirectoryTests {
 	public void autoCreateForOutboundEnabledByDefault() {
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(
 				new File(OUTBOUND_PATH));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		assertThat(new File(OUTBOUND_PATH).exists()).isTrue();
 	}
@@ -96,7 +95,7 @@ public class AutoCreateDirectoryTests {
 	public void autoCreateForOutboundDisabled() {
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(
 				new File(OUTBOUND_PATH));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setAutoCreateDirectory(false);
 		assertThatIllegalArgumentException()
 				.isThrownBy(handler::afterPropertiesSet);

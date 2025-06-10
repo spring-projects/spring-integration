@@ -44,6 +44,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 
 	private final Lock lock = new ReentrantLock();
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	private volatile boolean throwExceptionOnLateReplySet;
@@ -84,7 +85,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	 * backward compatibility.
 	 * @param channel the channel to set.
 	 */
-	public void setDefaultChannel(MessageChannel channel) {
+	public void setDefaultChannel(@Nullable MessageChannel channel) {
 		super.setDefaultDestination(channel);
 	}
 
@@ -109,6 +110,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 		return super.sendAndReceive(destination, requestMessage);
 	}
 
+	@Nullable
 	public Object receiveAndConvert(MessageChannel destination, long timeout) {
 		Message<?> message = doReceive(destination, timeout);
 		if (message != null) {
@@ -119,6 +121,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 		}
 	}
 
+	@Nullable
 	public Message<?> receive(MessageChannel destination, long timeout) {
 		return doReceive(destination, timeout);
 	}

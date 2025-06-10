@@ -49,6 +49,7 @@ import org.springframework.integration.jdbc.channel.PostgresChannelMessageTableS
 import org.springframework.integration.jdbc.channel.PostgresSubscribableChannel;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -75,7 +76,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class PostgresChannelMessageTableSubscriberTests implements PostgresContainerTest {
+public class PostgresChannelMessageTableSubscriberTests implements PostgresContainerTest, TestApplicationContextAware {
 
 	private static final String INTEGRATION_DB_SCRIPTS = """
 			CREATE FUNCTION INT_CHANNEL_MESSAGE_NOTIFY_FCT()
@@ -130,6 +131,7 @@ public class PostgresChannelMessageTableSubscriberTests implements PostgresConta
 				new PostgresSubscribableChannel(messageStore, groupId, postgresChannelMessageTableSubscriber);
 		this.postgresSubscribableChannel.setBeanName("testPostgresChannel");
 		this.postgresSubscribableChannel.setDispatcherExecutor(this.taskExecutor);
+		this.postgresSubscribableChannel.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.postgresSubscribableChannel.afterPropertiesSet();
 	}
 

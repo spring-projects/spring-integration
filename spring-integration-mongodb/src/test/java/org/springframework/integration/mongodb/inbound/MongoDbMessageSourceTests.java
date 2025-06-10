@@ -24,7 +24,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -35,6 +34,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.mongodb.MongoDbContainerTest;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.verify;
  * @since 2.2
  *
  */
-class MongoDbMessageSourceTests implements MongoDbContainerTest {
+class MongoDbMessageSourceTests implements MongoDbContainerTest, TestApplicationContextAware {
 
 	static MongoDatabaseFactory MONGO_DATABASE_FACTORY;
 
@@ -90,7 +90,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest {
 
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<BasicDBObject> results = ((List<BasicDBObject>) messageSource.receive().getPayload());
@@ -110,7 +110,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest {
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setEntityClass(Object.class);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<Person> results = ((List<Person>) messageSource.receive().getPayload());
@@ -131,7 +131,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest {
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setEntityClass(Object.class);
 		messageSource.setExpectSingleResult(true);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		Person person = (Person) messageSource.receive().getPayload();
 
@@ -149,7 +149,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest {
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setEntityClass(Object.class);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<Person> results = ((List<Person>) messageSource.receive().getPayload());
@@ -188,7 +188,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest {
 		template.save(MongoDbContainerTest.createPerson("Jack"), "data");
 
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 
 		return (List<Person>) messageSource.receive().getPayload();
@@ -206,7 +206,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest {
 
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'NJ'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		assertThat(messageSource.receive()).isNull();
 	}
@@ -225,7 +225,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest {
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		MappingMongoConverter converter = new TestMongoConverter(MONGO_DATABASE_FACTORY, new MongoMappingContext());
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		converter.afterPropertiesSet();
 		converter = spy(converter);
 		messageSource.setMongoConverter(converter);
@@ -247,7 +247,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest {
 		MongoTemplate template = new MongoTemplate(MONGO_DATABASE_FACTORY, converter);
 		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(template, queryExpression);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.setUpdateExpression(new LiteralExpression("{ $set: {'address.state' : 'NJ'} }"));
 		messageSource.afterPropertiesSet();
 
@@ -278,7 +278,7 @@ class MongoDbMessageSourceTests implements MongoDbContainerTest {
 		Expression queryExpression = new LiteralExpression("{'name' : 'Manny'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(MONGO_DATABASE_FACTORY, queryExpression);
 		messageSource.setExpectSingleResult(true);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		BasicDBObject result = (BasicDBObject) messageSource.receive().getPayload();
 		Object id = result.get("_id");

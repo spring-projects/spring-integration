@@ -25,15 +25,21 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,7 +52,7 @@ import static org.mockito.Mockito.when;
  * @since 5.2.2
  *
  */
-public class RemoteFileStreamingMessageSourceTests {
+public class RemoteFileStreamingMessageSourceTests implements TestApplicationContextAware {
 
 	@Test
 	public void fetchFilesFromRemoteAfterClearingFetchedCache() throws IOException {
@@ -61,7 +67,7 @@ public class RemoteFileStreamingMessageSourceTests {
 				new TestRemoteFileStreamingMessageSource(remoteFileTemplate, comparator);
 
 		testRemoteFileStreamingMessageSource.setRemoteDirectory("remoteDirectory");
-		testRemoteFileStreamingMessageSource.setBeanFactory(mock());
+		testRemoteFileStreamingMessageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		testRemoteFileStreamingMessageSource.start();
 
 		assertThat(testRemoteFileStreamingMessageSource.doReceive(2))
@@ -95,7 +101,7 @@ public class RemoteFileStreamingMessageSourceTests {
 
 		testRemoteFileStreamingMessageSource.setFilter(fileListFilter);
 		testRemoteFileStreamingMessageSource.setRemoteDirectory("remoteDirectory");
-		testRemoteFileStreamingMessageSource.setBeanFactory(mock());
+		testRemoteFileStreamingMessageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		testRemoteFileStreamingMessageSource.start();
 
 		assertThat(testRemoteFileStreamingMessageSource.doReceive(-1)).isNull();
@@ -117,13 +123,25 @@ public class RemoteFileStreamingMessageSourceTests {
 				new TestRemoteFileStreamingMessageSource(remoteFileTemplate, null);
 
 		testRemoteFileStreamingMessageSource.setRemoteDirectory("remoteDirectory");
-		testRemoteFileStreamingMessageSource.setBeanFactory(mock());
+		testRemoteFileStreamingMessageSource.setBeanFactory(createTestEvaluationContext());
 		testRemoteFileStreamingMessageSource.start();
 
 		assertThatExceptionOfType(UncheckedIOException.class)
 				.isThrownBy(() -> testRemoteFileStreamingMessageSource.doReceive(anyInt()));
 
 		assertThat(cachingSessionFactory.getSession()).isNotNull();
+	}
+
+	private static BeanFactory createTestEvaluationContext() {
+		final String integrationEvaluationContextBeanName = "integrationEvaluationContext";
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		when(beanFactory.containsBean(eq(integrationEvaluationContextBeanName)))
+				.thenReturn(true);
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+		when(beanFactory.getBean(eq(integrationEvaluationContextBeanName), any(Class.class)))
+				.thenReturn(evaluationContext);
+		return beanFactory;
 	}
 
 	static class TestRemoteFileStreamingMessageSource extends AbstractRemoteFileStreamingMessageSource<String> {

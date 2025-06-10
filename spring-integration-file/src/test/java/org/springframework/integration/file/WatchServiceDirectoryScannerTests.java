@@ -29,16 +29,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.LastModifiedFileListFilter;
 import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -47,7 +46,7 @@ import static org.mockito.Mockito.mock;
  * @since 4.2
  *
  */
-public class WatchServiceDirectoryScannerTests {
+public class WatchServiceDirectoryScannerTests implements TestApplicationContextAware {
 
 	@TempDir
 	public File rootDir;
@@ -89,7 +88,7 @@ public class WatchServiceDirectoryScannerTests {
 				FileReadingMessageSource.WatchEventType.MODIFY,
 				FileReadingMessageSource.WatchEventType.DELETE);
 		fileReadingMessageSource.setWatchDirPredicate(path -> !path.getFileName().toString().equals("skipped"));
-		fileReadingMessageSource.setBeanFactory(mock(BeanFactory.class));
+		fileReadingMessageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		final CountDownLatch removeFileLatch = new CountDownLatch(1);
 

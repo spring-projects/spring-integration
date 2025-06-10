@@ -32,7 +32,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -51,6 +50,7 @@ import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.mongodb.dsl.MongoDb;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -66,7 +66,7 @@ import static org.mockito.Mockito.verify;
  *
  * @since 5.3
  */
-class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest {
+class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest, TestApplicationContextAware {
 
 	static ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY;
 
@@ -107,7 +107,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest {
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
 		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 
 		StepVerifier.create((Flux<BasicDBObject>) messageSource.receive().getPayload())
@@ -127,7 +127,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest {
 		Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
 		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		messageSource.setEntityClass(Person.class);
 
@@ -208,7 +208,7 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest {
 		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
 		messageSource.setExpectSingleResult(true);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 		BasicDBObject result = waitFor((Mono<BasicDBObject>) messageSource.receive().getPayload());
 		Object id = result.get("_id");
@@ -233,9 +233,10 @@ class ReactiveMongoDbMessageSourceTests implements MongoDbContainerTest {
 
 		ReactiveMongoDbMessageSource messageSource = new ReactiveMongoDbMessageSource(REACTIVE_MONGO_DATABASE_FACTORY,
 				queryExpression);
-		messageSource.setBeanFactory(mock(BeanFactory.class));
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.setEntityClass(Person.class);
 		converter.ifPresent(messageSource::setMongoConverter);
+		messageSource.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageSource.afterPropertiesSet();
 
 		return (Flux<Person>) messageSource.receive().getPayload();

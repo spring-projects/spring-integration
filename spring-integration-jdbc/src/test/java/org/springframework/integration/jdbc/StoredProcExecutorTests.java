@@ -26,11 +26,11 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.mock;
  * @author Artem Bilan
  * @author Gary Russell
  */
-public class StoredProcExecutorTests {
+public class StoredProcExecutorTests implements TestApplicationContextAware {
 
 	@Test
 	public void testStoredProcExecutorWithNullDataSource() {
@@ -59,7 +59,7 @@ public class StoredProcExecutorTests {
 		DataSource datasource = mock(DataSource.class);
 
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatIllegalArgumentException()
 				.isThrownBy(storedProcExecutor::afterPropertiesSet)
 				.withMessage("You must either provide a "
@@ -87,7 +87,7 @@ public class StoredProcExecutorTests {
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		storedProcExecutor.afterPropertiesSet();
 
 		assertThat(storedProcExecutor.getStoredProcedureNameExpressionAsString())
@@ -101,7 +101,7 @@ public class StoredProcExecutorTests {
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
 		storedProcExecutor.setStoredProcedureName("123");
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		storedProcExecutor.afterPropertiesSet();
 
 		assertThat(storedProcExecutor.getStoredProcedureName()).isEqualTo("123");
@@ -244,7 +244,7 @@ public class StoredProcExecutorTests {
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
 

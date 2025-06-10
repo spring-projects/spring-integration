@@ -42,7 +42,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -72,6 +71,7 @@ import org.springframework.integration.ftp.server.SessionOpenedEvent;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.PartialSuccessException;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -87,7 +87,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -100,7 +99,7 @@ import static org.mockito.Mockito.verify;
  */
 @SpringJUnitConfig
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class FtpServerOutboundTests extends FtpTestSupport {
+public class FtpServerOutboundTests extends FtpTestSupport implements TestApplicationContextAware {
 
 	@Autowired
 	private SessionFactory<FTPFile> ftpSessionFactory;
@@ -378,7 +377,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	public void testRawGETWithTemplate() {
 		RemoteFileTemplate<FTPFile> template = new RemoteFileTemplate<>(this.ftpSessionFactory);
 		template.setFileNameExpression(new SpelExpressionParser().parseExpression("payload"));
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 		final ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
 		assertThat(template.get(new GenericMessage<>("ftpSource/ ftpSource1.txt"),

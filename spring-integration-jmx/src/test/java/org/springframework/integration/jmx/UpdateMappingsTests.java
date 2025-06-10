@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -49,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class UpdateMappingsTests {
+public class UpdateMappingsTests implements TestApplicationContextAware {
 
 	@Autowired
 	private MessageChannel control;
@@ -78,6 +79,7 @@ public class UpdateMappingsTests {
 	@Test
 	public void testChangeRouterMappings() {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messagingTemplate.setReceiveTimeout(1000);
 		Properties newMapping = new Properties();
 		newMapping.setProperty("foo", "bar");
@@ -110,6 +112,7 @@ public class UpdateMappingsTests {
 	@Test
 	public void testJmx() throws Exception {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messagingTemplate.setReceiveTimeout(1000);
 		Set<ObjectName> names = this.server.queryNames(ObjectName
 						.getInstance("update.mapping.domain:type=MessageHandler,name=router,bean=endpoint"),

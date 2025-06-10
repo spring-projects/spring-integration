@@ -34,6 +34,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -41,6 +42,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,7 +57,7 @@ import static org.mockito.Mockito.spy;
  * @since 4.3
  *
  */
-public class AsyncHandlerTests {
+public class AsyncHandlerTests implements TestApplicationContextAware {
 
 	private final QueueChannel output = new QueueChannel();
 
@@ -218,14 +220,17 @@ public class AsyncHandlerTests {
 	public void testGateway() {
 		this.whichTest = 0;
 		GatewayProxyFactoryBean<Foo> gpfb = new GatewayProxyFactoryBean<>(Foo.class);
-		gpfb.setBeanFactory(mock(BeanFactory.class));
+		gpfb.setBeanFactory(mock());
+		gpfb.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		DirectChannel input = new DirectChannel();
 		gpfb.setDefaultRequestChannel(input);
 		gpfb.setDefaultReplyTimeout(10000L);
+		gpfb.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gpfb.afterPropertiesSet();
 		Foo foo = gpfb.getObject();
 		this.handler.setOutputChannel(null);
 		EventDrivenConsumer consumer = new EventDrivenConsumer(input, this.handler);
+		consumer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		consumer.afterPropertiesSet();
 		consumer.start();
 		this.latch.countDown();
@@ -237,14 +242,17 @@ public class AsyncHandlerTests {
 	public void testGatewayWithException() {
 		this.whichTest = 0;
 		GatewayProxyFactoryBean<Foo> gpfb = new GatewayProxyFactoryBean<>(Foo.class);
-		gpfb.setBeanFactory(mock(BeanFactory.class));
+		gpfb.setBeanFactory(mock());
+		gpfb.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		DirectChannel input = new DirectChannel();
 		gpfb.setDefaultRequestChannel(input);
 		gpfb.setDefaultReplyTimeout(10000L);
+		gpfb.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gpfb.afterPropertiesSet();
 		Foo foo = gpfb.getObject();
 		this.handler.setOutputChannel(null);
 		EventDrivenConsumer consumer = new EventDrivenConsumer(input, this.handler);
+		consumer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		consumer.afterPropertiesSet();
 		consumer.start();
 		this.latch.countDown();

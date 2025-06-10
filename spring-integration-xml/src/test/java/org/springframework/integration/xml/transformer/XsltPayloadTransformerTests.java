@@ -28,13 +28,12 @@ import javax.xml.transform.dom.DOMResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mockito;
 import org.w3c.dom.Document;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.integration.xml.util.XmlTestUtil;
@@ -56,7 +55,7 @@ import static org.xmlunit.assertj3.XmlAssert.assertThat;
  * @author Mike Bazos
  * @author Artem Bilan
  */
-public class XsltPayloadTransformerTests {
+public class XsltPayloadTransformerTests implements TestApplicationContextAware {
 
 	private XsltPayloadTransformer testTransformer;
 
@@ -78,7 +77,7 @@ public class XsltPayloadTransformerTests {
 	@BeforeEach
 	public void setUp() throws Exception {
 		this.testTransformer = new XsltPayloadTransformer(getXslTemplates());
-		this.testTransformer.setBeanFactory(Mockito.mock(BeanFactory.class));
+		this.testTransformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.testTransformer.setAlwaysUseResultFactory(false);
 		this.testTransformer.afterPropertiesSet();
 	}
@@ -144,7 +143,7 @@ public class XsltPayloadTransformerTests {
 		Integer returnValue = 13;
 		XsltPayloadTransformer transformer =
 				new XsltPayloadTransformer(getXslTemplates(), new StubResultTransformer(returnValue));
-		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		Object transformed = transformer
 				.doTransform(new GenericMessage<>(new StringSource(docAsString)));
@@ -157,7 +156,7 @@ public class XsltPayloadTransformerTests {
 		XsltPayloadTransformer transformer =
 				new XsltPayloadTransformer(getXslResourceThatOutputsText(), new StubResultTransformer(returnValue),
 						"com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
-		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		Object transformed = transformer.doTransform(new GenericMessage<>(new StringSource(this.docAsString)));
 		assertThat(transformed)
@@ -169,7 +168,7 @@ public class XsltPayloadTransformerTests {
 	public void testXsltPayloadWithBadTransformerFactoryClassName() throws IOException {
 		XsltPayloadTransformer transformer =
 				new XsltPayloadTransformer(getXslResourceThatOutputsText(), "foo.bar.Baz");
-		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThatIllegalStateException()
 				.isThrownBy(transformer::afterPropertiesSet)
 				.withCauseExactlyInstanceOf(ClassNotFoundException.class);
@@ -192,7 +191,7 @@ public class XsltPayloadTransformerTests {
 	public void testXsltWithImports() {
 		Resource resource = new ClassPathResource("transform-with-import.xsl", getClass());
 		XsltPayloadTransformer transformer = new XsltPayloadTransformer(resource);
-		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		Object transformed = transformer.doTransform(new GenericMessage<>(this.docAsString));
 		assertThat(transformed).and(this.outputAsString).areIdentical();
@@ -204,7 +203,7 @@ public class XsltPayloadTransformerTests {
 		XsltPayloadTransformer transformer = new XsltPayloadTransformer(resource);
 		transformer.setResultFactory(new StringResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
-		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		GenericMessage<Document> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
 		Object transformed = transformer.doTransform(message);
@@ -219,7 +218,7 @@ public class XsltPayloadTransformerTests {
 		XsltPayloadTransformer transformer = new XsltPayloadTransformer(resource);
 		transformer.setResultFactory(new DomResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
-		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		GenericMessage<Document> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
 		Object transformed = transformer.doTransform(message);
@@ -233,7 +232,7 @@ public class XsltPayloadTransformerTests {
 		XsltPayloadTransformer transformer = new XsltPayloadTransformer(getXslResourceThatOutputsText());
 		transformer.setResultFactory(new StringResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
-		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
+		transformer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		transformer.afterPropertiesSet();
 		GenericMessage<Document> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
 		Object transformed = transformer.doTransform(message);

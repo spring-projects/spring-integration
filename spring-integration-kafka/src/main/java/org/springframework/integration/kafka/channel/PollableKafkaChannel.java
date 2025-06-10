@@ -19,6 +19,7 @@ package org.springframework.integration.kafka.channel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 
@@ -67,7 +68,7 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 		super.onInit();
 		if (this.source.getConsumerProperties().getGroupId() == null) {
 			String groupId = getGroupId();
-			this.source.getConsumerProperties().setGroupId(groupId != null ? groupId : getBeanName());
+			this.source.getConsumerProperties().setGroupId(groupId != null ? groupId : Objects.requireNonNull(getBeanName()));
 		}
 	}
 

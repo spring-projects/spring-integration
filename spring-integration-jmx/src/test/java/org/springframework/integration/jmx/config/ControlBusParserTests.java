@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -36,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class ControlBusParserTests {
+public class ControlBusParserTests implements TestApplicationContextAware {
 
 	@Autowired
 	private ApplicationContext context;
@@ -45,6 +46,7 @@ public class ControlBusParserTests {
 	public void testControlMessageToChannelMetrics() {
 		MessageChannel control = this.context.getBean("controlChannel", MessageChannel.class);
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Object value = messagingTemplate.convertSendAndReceive(control, "@cb.isRunning()", Object.class);
 		assertThat(value).isEqualTo(Boolean.TRUE);
 	}

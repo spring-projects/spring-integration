@@ -48,12 +48,14 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,7 +78,7 @@ import static org.mockito.Mockito.when;
  * @since 2.2
  *
  */
-public class FailoverClientConnectionFactoryTests {
+public class FailoverClientConnectionFactoryTests implements TestApplicationContextAware {
 
 	@Test
 	public void testFailoverGood() throws Exception {
@@ -328,39 +330,39 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testRealNet() throws Exception {
-		AbstractServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
-		AbstractServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
+		AbstractServerConnectionFactory server1 = getTcpNetServerConnectionFactory(0);
+		AbstractServerConnectionFactory server2 = getTcpNetServerConnectionFactory(0);
 
 		Holder holder = setupAndStartServers(server1, server2);
 
-		AbstractClientConnectionFactory client1 = new TcpNetClientConnectionFactory("localhost", server1.getPort());
-		AbstractClientConnectionFactory client2 = new TcpNetClientConnectionFactory("localhost", server2.getPort());
+		AbstractClientConnectionFactory client1 = getTcpNetServerConnectionFactory("localhost", server1.getPort());
+		AbstractClientConnectionFactory client2 = getTcpNetServerConnectionFactory("localhost", server2.getPort());
 		testRealGuts(client1, client2, holder);
 	}
 
 	@Test
 	public void testRealNio() throws Exception {
 
-		AbstractServerConnectionFactory server1 = new TcpNioServerConnectionFactory(0);
-		AbstractServerConnectionFactory server2 = new TcpNioServerConnectionFactory(0);
+		AbstractServerConnectionFactory server1 = getTcpNetServerConnectionFactory(0);
+		AbstractServerConnectionFactory server2 = getTcpNetServerConnectionFactory(0);
 
 		Holder holder = setupAndStartServers(server1, server2);
 
-		AbstractClientConnectionFactory client1 = new TcpNioClientConnectionFactory("localhost", server1.getPort());
-		AbstractClientConnectionFactory client2 = new TcpNioClientConnectionFactory("localhost", server2.getPort());
+		AbstractClientConnectionFactory client1 = getTcpNetServerConnectionFactory("localhost", server1.getPort());
+		AbstractClientConnectionFactory client2 = getTcpNetServerConnectionFactory("localhost", server2.getPort());
 		testRealGuts(client1, client2, holder);
 	}
 
 	@Test
 	public void testRealNetSingleUse() throws Exception {
 
-		AbstractServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
-		AbstractServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
+		AbstractServerConnectionFactory server1 = getTcpNetServerConnectionFactory(0);
+		AbstractServerConnectionFactory server2 = getTcpNetServerConnectionFactory(0);
 
 		Holder holder = setupAndStartServers(server1, server2);
 
-		AbstractClientConnectionFactory client1 = new TcpNetClientConnectionFactory("localhost", server1.getPort());
-		AbstractClientConnectionFactory client2 = new TcpNetClientConnectionFactory("localhost", server2.getPort());
+		AbstractClientConnectionFactory client1 = getTcpNetServerConnectionFactory("localhost", server1.getPort());
+		AbstractClientConnectionFactory client2 = getTcpNetServerConnectionFactory("localhost", server2.getPort());
 		client1.setSingleUse(true);
 		client2.setSingleUse(true);
 		testRealGuts(client1, client2, holder);
@@ -369,13 +371,13 @@ public class FailoverClientConnectionFactoryTests {
 	@Test
 	public void testRealNioSingleUse() throws Exception {
 
-		AbstractServerConnectionFactory server1 = new TcpNioServerConnectionFactory(0);
-		AbstractServerConnectionFactory server2 = new TcpNioServerConnectionFactory(0);
+		AbstractServerConnectionFactory server1 = getTcpNetServerConnectionFactory(0);
+		AbstractServerConnectionFactory server2 = getTcpNetServerConnectionFactory(0);
 
 		Holder holder = setupAndStartServers(server1, server2);
 
-		AbstractClientConnectionFactory client1 = new TcpNioClientConnectionFactory("localhost", server1.getPort());
-		AbstractClientConnectionFactory client2 = new TcpNioClientConnectionFactory("localhost", server2.getPort());
+		AbstractClientConnectionFactory client1 = getTcpNetServerConnectionFactory("localhost", server1.getPort());
+		AbstractClientConnectionFactory client2 = getTcpNetServerConnectionFactory("localhost", server2.getPort());
 		client1.setSingleUse(true);
 		client2.setSingleUse(true);
 		testRealGuts(client1, client2, holder);
@@ -460,12 +462,14 @@ public class FailoverClientConnectionFactoryTests {
 	public void testFailoverCachedWithGateway() {
 		final TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		server.setBeanName("server");
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		DirectChannel inChannel = new DirectChannel();
 		inChannel.setBeanName("inChannel");
 		TcpInboundGateway inbound = new TcpInboundGateway();
 		inbound.setConnectionFactory(server);
 		inbound.setRequestChannel(inChannel);
+		inbound.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		inbound.afterPropertiesSet();
 		inChannel.subscribe(new BridgeHandler());
 		inbound.start();
@@ -477,6 +481,7 @@ public class FailoverClientConnectionFactoryTests {
 		// Cache
 		CachingClientConnectionFactory cachingClient = new CachingClientConnectionFactory(client, 2);
 		cachingClient.setBeanName("cache");
+		cachingClient.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		cachingClient.afterPropertiesSet();
 
 		// Failover
@@ -484,6 +489,7 @@ public class FailoverClientConnectionFactoryTests {
 		clientFactories.add(cachingClient);
 		FailoverClientConnectionFactory failoverClient = new FailoverClientConnectionFactory(clientFactories);
 		failoverClient.setSingleUse(true);
+		failoverClient.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		failoverClient.afterPropertiesSet();
 
 		TcpOutboundGateway outbound = new TcpOutboundGateway();
@@ -491,7 +497,7 @@ public class FailoverClientConnectionFactoryTests {
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("replyChannel");
 		outbound.setReplyChannel(replyChannel);
-		outbound.setBeanFactory(mock(BeanFactory.class));
+		outbound.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		outbound.afterPropertiesSet();
 		outbound.start();
 
@@ -696,6 +702,20 @@ public class FailoverClientConnectionFactoryTests {
 		when(factory.getConnection()).thenReturn(mockConn);
 		when(factory.isActive()).thenReturn(true);
 		return factory;
+	}
+
+	private static TcpNetServerConnectionFactory getTcpNetServerConnectionFactory(int port) {
+		TcpNetServerConnectionFactory result = new TcpNetServerConnectionFactory(port);
+		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
+
+		return result;
+	}
+
+	private static TcpNetClientConnectionFactory getTcpNetServerConnectionFactory(String host, int port) {
+		TcpNetClientConnectionFactory result = new TcpNetClientConnectionFactory(host, port);
+		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
+
+		return result;
 	}
 
 }

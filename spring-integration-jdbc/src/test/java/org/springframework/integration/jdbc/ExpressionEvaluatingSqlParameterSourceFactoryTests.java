@@ -22,19 +22,18 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.JdbcUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Dave Syer
  * @author Meherzad Lahewala
  * @author Artem Bilan
  */
-class ExpressionEvaluatingSqlParameterSourceFactoryTests {
+class ExpressionEvaluatingSqlParameterSourceFactoryTests implements TestApplicationContextAware {
 
 	private final ExpressionEvaluatingSqlParameterSourceFactory factory =
 			new ExpressionEvaluatingSqlParameterSourceFactory();
@@ -42,7 +41,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	@Test
 	void testSetStaticParameters() {
 		this.factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
-		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(null);
 		assertThat(source.hasValue("foo")).isTrue();
@@ -52,7 +51,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 
 	@Test
 	void testMapInput() {
-		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		assertThat(source.hasValue("foo")).isTrue();
@@ -62,7 +61,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 
 	@Test
 	void testListOfMapsInput() {
-		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source =
 				this.factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
@@ -75,7 +74,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 
 	@Test
 	void testMapInputWithExpression() {
-		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		// This is an illegal parameter name in Spring JDBC so we'd never get this as input
@@ -87,7 +86,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	@Test
 	void testMapInputWithMappedExpression() {
 		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		assertThat(source.hasValue("spam")).isTrue();
@@ -100,7 +99,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		this.factory.setParameterExpressions(
 				Collections.singletonMap("spam", "#staticParameters['foo'].toUpperCase()"));
 		this.factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
-		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("crap", "bucket"));
 		assertThat(source.hasValue("spam")).isTrue();
@@ -111,7 +110,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	@Test
 	void testListOfMapsInputWithExpression() {
 		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source =
 				this.factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
@@ -125,8 +124,9 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	@Test
 	void testListOfMapsInputWithExpressionAndTypes() {
 		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.setSqlParameterTypes(Collections.singletonMap("spam", Types.SQLXML));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source =
 				this.factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
@@ -140,7 +140,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	@Test
 	void testListOfMapsInputWithExpressionAndEmptyTypes() {
 		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.setSqlParameterTypes(Collections.emptyMap());
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source =
@@ -155,7 +155,7 @@ class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	@Test
 	void testNullValue() {
 		this.factory.setStaticParameters(Collections.singletonMap("foo", null));
-		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.factory.afterPropertiesSet();
 		SqlParameterSource source = this.factory.createParameterSource(null);
 		assertThat(source.hasValue("foo")).isTrue();

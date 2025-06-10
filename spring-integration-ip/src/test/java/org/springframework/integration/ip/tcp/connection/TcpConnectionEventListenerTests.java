@@ -17,18 +17,16 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -37,7 +35,7 @@ import static org.mockito.Mockito.mock;
  * @since 3.0
  *
  */
-public class TcpConnectionEventListenerTests {
+public class TcpConnectionEventListenerTests implements TestApplicationContextAware {
 
 	@Test
 	public void testNoFilter() {
@@ -45,14 +43,12 @@ public class TcpConnectionEventListenerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		eventProducer.setOutputChannel(outputChannel);
 		eventProducer.setEventTypes(TcpConnectionEvent.class);
-		BeanFactory mock = mock(BeanFactory.class);
-		given(mock.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
-				ApplicationEventMulticaster.class))
-				.willReturn(mock(ApplicationEventMulticaster.class));
-		eventProducer.setBeanFactory(mock);
+		TEST_INTEGRATION_CONTEXT.registerBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+				mock(ApplicationEventMulticaster.class));
+		eventProducer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		eventProducer.afterPropertiesSet();
 		eventProducer.start();
-		TcpConnectionSupport connection = Mockito.mock(TcpConnectionSupport.class);
+		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
 
 		assertThat(eventProducer.supportsEventType(ResolvableType.forClass(TcpConnectionOpenEvent.class))).isTrue();
 		TcpConnectionEvent event1 = new TcpConnectionOpenEvent(connection, "foo");
@@ -85,14 +81,12 @@ public class TcpConnectionEventListenerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		eventProducer.setOutputChannel(outputChannel);
 		eventProducer.setEventTypes(FooEvent.class, BarEvent.class);
-		BeanFactory mock = mock(BeanFactory.class);
-		given(mock.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
-				ApplicationEventMulticaster.class))
-				.willReturn(mock(ApplicationEventMulticaster.class));
-		eventProducer.setBeanFactory(mock);
+		TEST_INTEGRATION_CONTEXT.registerBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+				mock(ApplicationEventMulticaster.class));
+		eventProducer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		eventProducer.afterPropertiesSet();
 		eventProducer.start();
-		TcpConnectionSupport connection = Mockito.mock(TcpConnectionSupport.class);
+		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
 
 		assertThat(eventProducer.supportsEventType(ResolvableType.forClass(TcpConnectionOpenEvent.class))).isFalse();
 

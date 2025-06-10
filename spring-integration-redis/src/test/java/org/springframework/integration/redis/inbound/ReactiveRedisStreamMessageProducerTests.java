@@ -29,14 +29,18 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.stream.StreamReceiver;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.SimpleAcknowledgment;
@@ -357,6 +361,14 @@ class ReactiveRedisStreamMessageProducerTests implements RedisContainerTest {
 			messageProducer.setAutoStartup(false);
 			messageProducer.setOutputChannel(fluxMessageChannel());
 			return messageProducer;
+		}
+
+		@Bean
+		public StandardEvaluationContext integrationEvaluationContext(ApplicationContext applicationContext) {
+			StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
+			integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
+			integrationEvaluationContext.setBeanResolver(new BeanFactoryResolver(applicationContext));
+			return integrationEvaluationContext;
 		}
 
 	}

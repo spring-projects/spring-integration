@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
@@ -44,6 +43,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.splitter.FileSplitter;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
@@ -64,7 +64,7 @@ import static org.mockito.Mockito.verify;
  * @since 4.3
  *
  */
-public class StreamingInboundTests {
+public class StreamingInboundTests implements TestApplicationContextAware {
 
 	private final StreamTransformer transformer = new StreamTransformer();
 
@@ -87,7 +87,7 @@ public class StreamingInboundTests {
 	private void testAllData(FileListFilter<String> filter, boolean nullFilter) throws IOException {
 		StringSessionFactory sessionFactory = new StringSessionFactory();
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
-		streamer.setBeanFactory(mock(BeanFactory.class));
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/foo");
 		if (filter != null) {
 			streamer.setFilter(filter);
@@ -145,7 +145,7 @@ public class StreamingInboundTests {
 	public void testAllDataMaxFetch() throws Exception {
 		StringSessionFactory sessionFactory = new StringSessionFactory();
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
-		streamer.setBeanFactory(mock(BeanFactory.class));
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/foo");
 		streamer.setFilter(new AcceptOnceFileListFilter<>());
 		streamer.afterPropertiesSet();
@@ -177,7 +177,7 @@ public class StreamingInboundTests {
 	public void testExceptionOnFetch() {
 		StringSessionFactory sessionFactory = new StringSessionFactory();
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
-		streamer.setBeanFactory(mock(BeanFactory.class));
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/bad");
 		streamer.afterPropertiesSet();
 		streamer.start();
@@ -188,13 +188,13 @@ public class StreamingInboundTests {
 	@Test
 	public void testLineByLine() throws Exception {
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(new StringSessionFactory()), null);
-		streamer.setBeanFactory(mock(BeanFactory.class));
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/foo");
 		streamer.afterPropertiesSet();
 		streamer.start();
 		QueueChannel out = new QueueChannel();
 		FileSplitter splitter = new FileSplitter();
-		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		splitter.setOutputChannel(out);
 		splitter.afterPropertiesSet();
 		Message<InputStream> receivedStream = streamer.receive();
@@ -236,7 +236,7 @@ public class StreamingInboundTests {
 	@Test
 	public void testStopAdapterRemovesUnprocessed() {
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(new StringSessionFactory()), null);
-		streamer.setBeanFactory(mock(BeanFactory.class));
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/foo");
 		streamer.afterPropertiesSet();
 		streamer.start();
@@ -251,7 +251,7 @@ public class StreamingInboundTests {
 	@Test
 	public void testFilterReversedOnBadFetch() {
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(new StringSessionFactory()), null);
-		streamer.setBeanFactory(mock(BeanFactory.class));
+		streamer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		streamer.setRemoteDirectory("/bad");
 		streamer.afterPropertiesSet();
 		streamer.start();

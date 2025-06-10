@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -44,7 +45,6 @@ import org.springframework.util.ClassUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.mock;
  * @since 5.4
  *
  */
-class MessageSourceIntegrationTests {
+class MessageSourceIntegrationTests implements TestApplicationContextAware {
 
 	static final String TOPIC1 = "MessageSourceIntegrationTests1";
 
@@ -151,7 +151,7 @@ class MessageSourceIntegrationTests {
 
 		KafkaMessageSource<Integer, String> source = new KafkaMessageSource<>(consumerFactory, consumerProperties);
 		source.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
-		source.setBeanFactory(mock());
+		source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		source.afterPropertiesSet();
 		source.start();
 

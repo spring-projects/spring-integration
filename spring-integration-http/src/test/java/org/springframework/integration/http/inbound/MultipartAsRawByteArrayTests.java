@@ -24,9 +24,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  *
  * @since 4.2
  */
-public class MultipartAsRawByteArrayTests {
+public class MultipartAsRawByteArrayTests implements TestApplicationContextAware {
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -53,7 +53,7 @@ public class MultipartAsRawByteArrayTests {
 		gw.setMergeWithDefaultConverters(false);
 		QueueChannel requestChannel = new QueueChannel();
 		gw.setRequestChannel(requestChannel);
-		gw.setBeanFactory(mock(BeanFactory.class));
+		gw.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gw.setRequestPayloadTypeClass(byte[].class);
 		gw.afterPropertiesSet();
 		gw.start();

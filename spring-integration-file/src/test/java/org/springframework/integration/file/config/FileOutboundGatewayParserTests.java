@@ -31,6 +31,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -52,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class FileOutboundGatewayParserTests {
+public class FileOutboundGatewayParserTests implements TestApplicationContextAware {
 
 	@TempDir
 	public static File tempFolder;
@@ -139,6 +140,7 @@ public class FileOutboundGatewayParserTests {
 	public void gatewayWithIgnoreMode() throws Exception {
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithIgnoreModeChannel);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		final String expectedFileContent = "Initial File Content:";
 		final File testFile = new File(tempFolder, "fileToAppend.txt");
@@ -170,6 +172,7 @@ public class FileOutboundGatewayParserTests {
 	public void gatewayWithFailMode() throws Exception {
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithFailModeChannel);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		String expectedFileContent = "Initial File Content:";
 
@@ -197,6 +200,7 @@ public class FileOutboundGatewayParserTests {
 	public void gatewayWithFailModeLowercase() throws Exception {
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithFailModeLowercaseChannel);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		String expectedFileContent = "Initial File Content:";
 
@@ -225,6 +229,7 @@ public class FileOutboundGatewayParserTests {
 	@Test
 	public void gatewayWithAppendMode() throws Exception {
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messagingTemplate.setDefaultDestination(this.gatewayWithAppendModeChannel);
 
 		String expectedFileContent = "Initial File Content:String content:";
@@ -261,6 +266,7 @@ public class FileOutboundGatewayParserTests {
 
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithReplaceModeChannel);
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		String expectedFileContent = "String content:";
 

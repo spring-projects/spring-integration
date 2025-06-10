@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.channel.QueueChannel;
@@ -49,6 +48,7 @@ import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice.MessageHandlingExpressionEvaluatingAdviceException;
 import org.springframework.integration.message.AdviceMessage;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
@@ -86,7 +86,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class AdvisedMessageHandlerTests {
+public class AdvisedMessageHandlerTests implements TestApplicationContextAware {
 
 	@Autowired
 	private MessageChannel input;
@@ -131,7 +131,7 @@ public class AdvisedMessageHandlerTests {
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
 		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
-		advice.setBeanFactory(mock(BeanFactory.class));
+		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
 		advice.setOnSuccessExpressionString("'foo'");
@@ -151,7 +151,7 @@ public class AdvisedMessageHandlerTests {
 
 		});
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		// advice with success
@@ -227,7 +227,7 @@ public class AdvisedMessageHandlerTests {
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
 		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
-		advice.setBeanFactory(mock(BeanFactory.class));
+		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
 		advice.setOnSuccessExpressionString("1/0");
@@ -236,7 +236,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		// failing advice with success
@@ -288,7 +288,7 @@ public class AdvisedMessageHandlerTests {
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
 		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
-		advice.setBeanFactory(mock(BeanFactory.class));
+		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
 		advice.setOnSuccessExpressionString("1/0");
@@ -297,7 +297,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		// failing advice with failure
@@ -362,7 +362,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		doFail.set(true);
@@ -436,7 +436,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -469,7 +469,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -539,7 +539,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -573,7 +573,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -607,13 +607,13 @@ public class AdvisedMessageHandlerTests {
 			}
 		});
 		advice.setRetryTemplate(retryTemplate);
-		advice.setBeanFactory(mock(BeanFactory.class));
+		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.afterPropertiesSet();
 
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -646,7 +646,7 @@ public class AdvisedMessageHandlerTests {
 			throw new RuntimeException("intentional");
 		});
 
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setAdviceChain(adviceChain);
 		handler.afterPropertiesSet();
 
@@ -676,7 +676,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<>();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
-		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
+		expressionAdvice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 //		MessagingException / RuntimeException
 		expressionAdvice.setOnFailureExpressionString("#exception.cause.message");
 		expressionAdvice.setReturnFailureExpressionResult(true);
@@ -696,7 +696,7 @@ public class AdvisedMessageHandlerTests {
 		});
 
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		handler.handleMessage(new GenericMessage<>("test"));
@@ -723,7 +723,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<>();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
-		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
+		expressionAdvice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		expressionAdvice.setOnFailureExpressionString("#exception.message");
 		expressionAdvice.setFailureChannel(errors);
 
@@ -734,7 +734,7 @@ public class AdvisedMessageHandlerTests {
 		});
 
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		assertThatException()
@@ -803,7 +803,7 @@ public class AdvisedMessageHandlerTests {
 		QueueChannel errors = new QueueChannel();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
-		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
+		expressionAdvice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		expressionAdvice.setOnFailureExpressionString("'foo'");
 		expressionAdvice.setFailureChannel(errors);
 
@@ -840,7 +840,7 @@ public class AdvisedMessageHandlerTests {
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		consumer.setTaskExecutor(new ErrorHandlingTaskExecutor(exec, t -> {
 		}));
-		consumer.setBeanFactory(mock(BeanFactory.class));
+		consumer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		consumer.afterPropertiesSet();
 		consumer.setTaskScheduler(mock(TaskScheduler.class));
 		consumer.start();
@@ -893,7 +893,7 @@ public class AdvisedMessageHandlerTests {
 			}
 		});
 		filter.setAdviceChain(adviceChain);
-		filter.setBeanFactory(mock(BeanFactory.class));
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		filter.afterPropertiesSet();
 		filter.handleMessage(new GenericMessage<>("foo"));
 		assertThat(discardedWithinAdvice.get()).isNotNull();
@@ -920,7 +920,7 @@ public class AdvisedMessageHandlerTests {
 		});
 		filter.setAdviceChain(adviceChain);
 		filter.setDiscardWithinAdvice(false);
-		filter.setBeanFactory(mock(BeanFactory.class));
+		filter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		filter.afterPropertiesSet();
 		filter.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled.get()).isTrue();
@@ -971,7 +971,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
@@ -1013,14 +1013,14 @@ public class AdvisedMessageHandlerTests {
 		RetryTemplate retryTemplate = new RetryTemplate();
 		retryTemplate.registerListener(new MetricsRetryListener(meterRegistry));
 		advice.setRetryTemplate(retryTemplate);
-		advice.setBeanFactory(mock(BeanFactory.class));
+		advice.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		advice.afterPropertiesSet();
 
 		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanName("testEndpoint");
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<String> message = new GenericMessage<>("Hello, world!");

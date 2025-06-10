@@ -59,6 +59,7 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.PoolItemNotAvailableException;
 import org.springframework.integration.util.SimplePool;
@@ -68,6 +69,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -96,7 +98,7 @@ import static org.mockito.Mockito.when;
 @SpringJUnitConfig
 @DirtiesContext
 @LogLevels(level = "trace", categories = "org.springframework.integration")
-public class CachingClientConnectionFactoryTests {
+public class CachingClientConnectionFactoryTests implements TestApplicationContextAware {
 
 	@Autowired
 	SubscribableChannel outbound;
@@ -698,6 +700,7 @@ public class CachingClientConnectionFactoryTests {
 	@Test //INT-3722
 	public void testGatewayRelease() {
 		TcpNetServerConnectionFactory in = new TcpNetServerConnectionFactory(0);
+		in.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		in.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		final TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(in);
@@ -730,6 +733,7 @@ public class CachingClientConnectionFactoryTests {
 		gate.setOutputChannel(outputChannel);
 		gate.setBeanFactory(mock(BeanFactory.class));
 		gate.setRemoteTimeout(20_000);
+		gate.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gate.afterPropertiesSet();
 		LogAccessor logger = spy(TestUtils.getPropertyValue(gate, "logger", LogAccessor.class));
 		new DirectFieldAccessor(gate).setPropertyValue("logger", logger);

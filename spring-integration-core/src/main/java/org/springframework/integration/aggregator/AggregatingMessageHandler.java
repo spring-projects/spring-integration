@@ -18,6 +18,8 @@ package org.springframework.integration.aggregator;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -95,7 +97,7 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 	 * @param completedMessages The completed messages. Ignored in this implementation.
 	 */
 	@Override
-	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
+	protected void afterRelease(MessageGroup messageGroup, @Nullable Collection<Message<?>> completedMessages) {
 		Object groupId = messageGroup.getGroupId();
 		MessageGroupStore messageStore = getMessageStore();
 		messageStore.completeGroup(groupId);

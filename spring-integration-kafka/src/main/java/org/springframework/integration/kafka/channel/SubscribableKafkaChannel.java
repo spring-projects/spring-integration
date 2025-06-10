@@ -16,6 +16,8 @@
 
 package org.springframework.integration.kafka.channel;
 
+import java.util.Objects;
+
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.jspecify.annotations.Nullable;
@@ -139,7 +141,7 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		this.container = this.factory.createContainer(this.topic);
 		String groupId = getGroupId();
 		ContainerProperties containerProperties = this.container.getContainerProperties();
-		containerProperties.setGroupId(groupId != null ? groupId : getBeanName());
+		containerProperties.setGroupId(groupId != null ? groupId : Objects.requireNonNull(getBeanName()));
 		containerProperties.setMessageListener(this.recordListener);
 	}
 

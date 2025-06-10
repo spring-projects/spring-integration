@@ -71,11 +71,13 @@ import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StopWatch;
@@ -103,7 +105,7 @@ import static org.mockito.Mockito.when;
  * @since 2.0
  *
  */
-public class TcpNioConnectionTests {
+public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	private static final Log logger = LogFactory.getLog(TcpNioConnectionTests.class);
 
@@ -543,9 +545,8 @@ public class TcpNioConnectionTests {
 
 	@Test
 	public void testAssemblerUsesSecondaryExecutor() throws Exception {
-		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
+		TcpNioServerConnectionFactory factory = newTcpNioServerConnectionFactory();
 		factory.setApplicationEventPublisher(nullPublisher);
-
 		CompositeExecutor compositeExec = compositeExecutor();
 
 		factory.setSoTimeout(1000);
@@ -586,6 +587,12 @@ public class TcpNioConnectionTests {
 		cleanupCompositeExecutor(compositeExec);
 	}
 
+	private static TcpNioServerConnectionFactory newTcpNioServerConnectionFactory() {
+		TcpNioServerConnectionFactory tcpNioServerConnectionFactory = new TcpNioServerConnectionFactory(0);
+		tcpNioServerConnectionFactory.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		return tcpNioServerConnectionFactory;
+	}
+
 	private void cleanupCompositeExecutor(CompositeExecutor compositeExec) throws Exception {
 		TestUtils.getPropertyValue(compositeExec, "primaryTaskExecutor", DisposableBean.class).destroy();
 		TestUtils.getPropertyValue(compositeExec, "secondaryTaskExecutor", DisposableBean.class).destroy();
@@ -595,6 +602,7 @@ public class TcpNioConnectionTests {
 	public void testAllMessagesDelivered() throws Exception {
 		final int numberOfSockets = 10;
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
+		factory.setTaskScheduler(mock());
 		factory.setApplicationEventPublisher(nullPublisher);
 
 		CompositeExecutor compositeExec = compositeExecutor();
@@ -682,6 +690,7 @@ public class TcpNioConnectionTests {
 	@Test
 	public void int3453RaceTest() throws Exception {
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
+		factory.setTaskScheduler(mock());
 		final CountDownLatch connectionLatch = new CountDownLatch(1);
 		factory.setApplicationEventPublisher(new ApplicationEventPublisher() {
 
@@ -768,7 +777,8 @@ public class TcpNioConnectionTests {
 
 	@Test
 	public void testNoDelayOnClose() throws Exception {
-		TcpNioServerConnectionFactory cf = new TcpNioServerConnectionFactory(0);
+		TcpNioServerConnectionFactory cf = newTcpNioServerConnectionFactory();
+		cf.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		final CountDownLatch reading = new CountDownLatch(1);
 		final StopWatch watch = new StopWatch();
 		cf.setDeserializer(is -> {
@@ -807,7 +817,8 @@ public class TcpNioConnectionTests {
 		CountDownLatch serverReadyLatch = new CountDownLatch(1);
 		CountDownLatch latch = new CountDownLatch(21);
 		List<Socket> sockets = new ArrayList<>();
-		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
+		TcpNioServerConnectionFactory server = newTcpNioServerConnectionFactory();
+
 		try {
 			List<IpIntegrationEvent> events = Collections.synchronizedList(new ArrayList<>());
 			List<Message<?>> messages = Collections.synchronizedList(new ArrayList<>());
@@ -824,6 +835,7 @@ public class TcpNioConnectionTests {
 				latch.countDown();
 				return false;
 			});
+			server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 			server.afterPropertiesSet();
 			server.start();
 			assertThat(serverReadyLatch.await(10, TimeUnit.SECONDS)).isTrue();

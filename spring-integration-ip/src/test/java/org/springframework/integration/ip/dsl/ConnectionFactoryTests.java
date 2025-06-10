@@ -34,10 +34,12 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.TcpSocketSupport;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -50,13 +52,14 @@ import static org.mockito.Mockito.mock;
  * @since 5.0
  *
  */
-public class ConnectionFactoryTests {
+public class ConnectionFactoryTests implements TestApplicationContextAware {
 
 	@Test
 	public void test() throws Exception {
 		ApplicationEventPublisher publisher = e -> {
 		};
 		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).getObject();
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		final AtomicReference<Message<?>> received = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(m -> {
@@ -65,11 +68,13 @@ public class ConnectionFactoryTests {
 			return false;
 		});
 		server.setApplicationEventPublisher(publisher);
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).getObject();
 		client.setApplicationEventPublisher(publisher);
+		client.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		client.afterPropertiesSet();
 		client.start();
 		client.getConnection().send(new GenericMessage<>("foo"));

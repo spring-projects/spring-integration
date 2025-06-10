@@ -23,6 +23,7 @@ import java.util.Comparator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Gary Russell
  */
-class FileReadingMessageSourceTests {
+class FileReadingMessageSourceTests implements TestApplicationContextAware {
 
 	private FileReadingMessageSource source;
 
@@ -63,7 +64,7 @@ class FileReadingMessageSourceTests {
 		this.source = new FileReadingMessageSource(comparator);
 		this.source.setDirectory(inputDirectoryMock);
 		this.source.setLocker(locker);
-		this.source.setBeanFactory(mock());
+		this.source.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.source.afterPropertiesSet();
 	}
 

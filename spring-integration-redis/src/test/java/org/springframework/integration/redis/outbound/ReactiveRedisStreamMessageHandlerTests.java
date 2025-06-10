@@ -24,13 +24,17 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.redis.RedisContainerTest;
@@ -156,6 +160,14 @@ class ReactiveRedisStreamMessageHandlerTests implements RedisContainerTest {
 				ReactiveRedisStreamMessageHandler streamMessageHandler) {
 
 			return new ReactiveMessageHandlerAdapter(streamMessageHandler);
+		}
+
+		@Bean
+		public StandardEvaluationContext integrationEvaluationContext(ApplicationContext applicationContext) {
+			StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
+			integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
+			integrationEvaluationContext.setBeanResolver(new BeanFactoryResolver(applicationContext));
+			return integrationEvaluationContext;
 		}
 
 	}

@@ -77,15 +77,11 @@ public class ExpressionUtilsTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.registerBeanDefinition(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
 				new RootBeanDefinition(ConversionServiceFactoryBean.class));
+		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+				new RootBeanDefinition(StandardEvaluationContext.class));
 		context.refresh();
 		StandardEvaluationContext evalContext = ExpressionUtils.createStandardEvaluationContext(context);
-		assertThat(evalContext.getBeanResolver()).isNotNull();
-		TypeConverter typeConverter = evalContext.getTypeConverter();
-		assertThat(typeConverter).isNotNull();
-		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService", Supplier.class).get())
-				.isNotSameAs(DefaultConversionService.getSharedInstance());
-		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService", Supplier.class).get())
-				.isSameAs(context.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME));
+		assertThat(evalContext.getBeanResolver()).isNull();
 	}
 
 	@Test

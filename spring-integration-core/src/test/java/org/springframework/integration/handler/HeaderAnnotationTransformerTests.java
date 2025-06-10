@@ -18,17 +18,16 @@ package org.springframework.integration.handler;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -37,14 +36,14 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class HeaderAnnotationTransformerTests {
+public class HeaderAnnotationTransformerTests implements TestApplicationContextAware {
 
 	@Test // INT-1082
 	public void headerAnnotationWithPrefixedHeader() {
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "appendCorrelationId");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -60,7 +59,7 @@ public class HeaderAnnotationTransformerTests {
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "evalCorrelationId");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -76,7 +75,7 @@ public class HeaderAnnotationTransformerTests {
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "appendFoo");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -92,7 +91,7 @@ public class HeaderAnnotationTransformerTests {
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "evalFoo");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
@@ -108,7 +107,7 @@ public class HeaderAnnotationTransformerTests {
 		Object target = new TestTransformer();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "evalFoo");
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.setNotPropagatedHeaders(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 		handler.afterPropertiesSet();
 		QueueChannel outputChannel = new QueueChannel();

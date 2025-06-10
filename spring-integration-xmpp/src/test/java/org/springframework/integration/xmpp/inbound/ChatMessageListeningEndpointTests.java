@@ -41,13 +41,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
 import org.springframework.messaging.MessagingException;
@@ -70,7 +69,7 @@ import static org.mockito.Mockito.verify;
  * @author Florian Schmaus
  * @author Artem Bilan
  */
-public class ChatMessageListeningEndpointTests {
+public class ChatMessageListeningEndpointTests implements TestApplicationContextAware {
 
 	/*
 	 * Should add/remove StanzaListener when endpoint started/stopped
@@ -95,7 +94,7 @@ public class ChatMessageListeningEndpointTests {
 
 		assertThat(packetListSet.size()).isEqualTo(0);
 		endpoint.setOutputChannel(new QueueChannel());
-		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 		assertThat(packetListSet.size()).isEqualTo(1);
@@ -112,10 +111,9 @@ public class ChatMessageListeningEndpointTests {
 
 	@Test
 	public void testWithImplicitXmppConnection() {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
+		TEST_INTEGRATION_CONTEXT.registerBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
-		endpoint.setBeanFactory(bf);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.afterPropertiesSet();
 		assertThat(TestUtils.getPropertyValue(endpoint, "xmppConnection")).isNotNull();
@@ -124,17 +122,14 @@ public class ChatMessageListeningEndpointTests {
 	@Test
 	public void testNoXmppConnection() {
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
-		endpoint.setBeanFactory(mock(BeanFactory.class));
 		assertThatIllegalArgumentException()
 				.isThrownBy(endpoint::afterPropertiesSet);
 	}
 
 	@Test
 	public void testWithErrorChannel() throws Exception {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		XMPPConnection connection = mock(XMPPConnection.class);
-		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, connection);
-
+		TEST_INTEGRATION_CONTEXT.registerBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, connection);
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
 
 		DirectChannel outChannel = new DirectChannel();
@@ -142,7 +137,7 @@ public class ChatMessageListeningEndpointTests {
 			throw new RuntimeException("ooops");
 		});
 		PollableChannel errorChannel = new QueueChannel();
-		endpoint.setBeanFactory(bf);
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.setOutputChannel(outChannel);
 		endpoint.setErrorChannel(errorChannel);
 		endpoint.afterPropertiesSet();
@@ -168,7 +163,7 @@ public class ChatMessageListeningEndpointTests {
 		SpelExpressionParser parser = new SpelExpressionParser();
 		endpoint.setPayloadExpression(parser.parseExpression("#root"));
 		endpoint.setOutputChannel(inputChannel);
-		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
@@ -239,7 +234,7 @@ public class ChatMessageListeningEndpointTests {
 		Expression payloadExpression = new SpelExpressionParser().parseExpression("#extension.json");
 		endpoint.setPayloadExpression(payloadExpression);
 		endpoint.setOutputChannel(inputChannel);
-		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 

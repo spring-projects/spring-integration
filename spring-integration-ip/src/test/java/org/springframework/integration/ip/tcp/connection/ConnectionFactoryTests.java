@@ -40,24 +40,23 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.config.TcpConnectionFactoryFactoryBean;
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,11 +79,11 @@ import static org.mockito.Mockito.when;
  * @since 3.0
  *
  */
-public class ConnectionFactoryTests {
+public class ConnectionFactoryTests implements TestApplicationContextAware {
 
 	@Test
 	void netOpenEventOnReadThread() throws InterruptedException, IOException {
-		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		TcpNetServerConnectionFactory server = getTcpNetServerConnectionFactory(0);
 		AtomicReference<Thread> readThread = new AtomicReference<>();
 		AtomicReference<Thread> openEventThread = new AtomicReference<>();
 		CountDownLatch latch1 = new CountDownLatch(1);
@@ -102,6 +101,7 @@ public class ConnectionFactoryTests {
 				openEventThread.set(Thread.currentThread());
 			}
 		});
+		server.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		server.afterPropertiesSet();
 		server.start();
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
@@ -162,10 +162,8 @@ public class ConnectionFactoryTests {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.setPoolSize(10);
 		scheduler.afterPropertiesSet();
-		BeanFactory bf = mock(BeanFactory.class);
-		when(bf.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
-		when(bf.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class)).thenReturn(scheduler);
-		serverFactory.setBeanFactory(bf);
+
+		serverFactory.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setOutputChannel(new NullChannel());
 		adapter.setConnectionFactory(serverFactory);
@@ -225,6 +223,7 @@ public class ConnectionFactoryTests {
 	@Test
 	public void testEarlyCloseNio() throws Exception {
 		AbstractServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
+		factory.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		testEarlyClose(factory, "serverChannel", " stopped before registering the server channel");
 	}
 
@@ -273,22 +272,22 @@ public class ConnectionFactoryTests {
 
 	@Test
 	void healthCheckSuccessNet() throws InterruptedException {
-		healthCheckSuccess(new TcpNetServerConnectionFactory(0), false);
+		healthCheckSuccess(getTcpNetServerConnectionFactory(0), false);
 	}
 
 	@Test
 	void healthCheckSuccessNio() throws InterruptedException {
-		healthCheckSuccess(new TcpNioServerConnectionFactory(0), false);
+		healthCheckSuccess(getTcpNetServerConnectionFactory(0), false);
 	}
 
 	@Test
 	void healthCheckFailureNet() throws InterruptedException {
-		healthCheckSuccess(new TcpNetServerConnectionFactory(0), true);
+		healthCheckSuccess(getTcpNetServerConnectionFactory(0), true);
 	}
 
 	@Test
 	void healthCheckFailureNio() throws InterruptedException {
-		healthCheckSuccess(new TcpNioServerConnectionFactory(0), true);
+		healthCheckSuccess(getTcpNetServerConnectionFactory(0), true);
 	}
 
 	private void healthCheckSuccess(AbstractServerConnectionFactory server, boolean fail) throws InterruptedException {
@@ -298,7 +297,7 @@ public class ConnectionFactoryTests {
 				serverUp.countDown();
 			}
 		});
-		server.setBeanFactory(mock(BeanFactory.class));
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		AtomicReference<TcpConnection> connection = new AtomicReference<>();
 		server.registerSender(conn -> {
 			connection.set(conn);
@@ -365,6 +364,12 @@ public class ConnectionFactoryTests {
 		}
 		gateway.stop();
 		server.stop();
+	}
+
+	private TcpNetServerConnectionFactory getTcpNetServerConnectionFactory(int port) {
+		TcpNetServerConnectionFactory result = new TcpNetServerConnectionFactory(port);
+		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		return result;
 	}
 
 	@SuppressWarnings("serial")

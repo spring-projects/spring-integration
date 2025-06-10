@@ -28,6 +28,7 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -65,7 +66,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Jiandong Ma
@@ -219,9 +219,9 @@ class JdbcTests {
 	public static class Config {
 
 		@Bean
-		public IntegrationFlow inboundFlow(DataSource h2DataSource) {
+		public IntegrationFlow inboundFlow(DataSource h2DataSource, BeanFactory beanFactory) {
 			var sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
-			sqlParameterSourceFactory.setBeanFactory(mock());
+			sqlParameterSourceFactory.setBeanFactory(beanFactory);
 			return IntegrationFlow.from(Jdbc.inboundAdapter(h2DataSource, "select * from inbound")
 									.maxRows(2)
 									.rowMapper((rs, rowNum) -> new Inbound(rs.getInt(1), rs.getInt(2)))

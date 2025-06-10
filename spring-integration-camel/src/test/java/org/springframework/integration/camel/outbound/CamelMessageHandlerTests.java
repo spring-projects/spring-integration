@@ -26,26 +26,25 @@ import org.apache.camel.test.junit5.CamelTestSupport;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.camel.support.CamelHeaderMapper;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Artem Bilan
  *
  * @since 6.0
  */
-public class CamelMessageHandlerTests extends CamelTestSupport {
+public class CamelMessageHandlerTests extends CamelTestSupport implements TestApplicationContextAware {
 
 	@Test
 	void inOnlyPatternSyncMessageHandler() throws InterruptedException {
@@ -60,7 +59,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 
 		CamelMessageHandler camelMessageHandler = new CamelMessageHandler(template());
 		camelMessageHandler.setEndpointUri("direct:simple");
-		camelMessageHandler.setBeanFactory(mock(BeanFactory.class));
+		camelMessageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		camelMessageHandler.afterPropertiesSet();
 
 		camelMessageHandler.handleMessage(messageUnderTest);
@@ -97,7 +96,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 		camelMessageHandler.setEndpointUriExpression(new FunctionExpression<>(m -> "direct:simple"));
 		camelMessageHandler.setExchangePatternExpression(spelExpressionParser.parseExpression("headers.exchangePattern"));
 		camelMessageHandler.setHeaderMapper(headerMapper);
-		camelMessageHandler.setBeanFactory(mock(BeanFactory.class));
+		camelMessageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		camelMessageHandler.afterPropertiesSet();
 
 		camelMessageHandler.handleMessage(messageUnderTest);
@@ -128,7 +127,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 
 		CamelMessageHandler camelMessageHandler = new CamelMessageHandler(template());
 		camelMessageHandler.setEndpointUri("direct:simple");
-		camelMessageHandler.setBeanFactory(mock(BeanFactory.class));
+		camelMessageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		camelMessageHandler.setAsync(true);
 		camelMessageHandler.afterPropertiesSet();
 
@@ -161,7 +160,7 @@ public class CamelMessageHandlerTests extends CamelTestSupport {
 		producerTemplate.setDefaultEndpointUri("direct:simple");
 		CamelMessageHandler camelMessageHandler = new CamelMessageHandler(producerTemplate);
 		camelMessageHandler.setExchangePattern(ExchangePattern.InOut);
-		camelMessageHandler.setBeanFactory(mock(BeanFactory.class));
+		camelMessageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		camelMessageHandler.setAsync(true);
 		camelMessageHandler.afterPropertiesSet();
 

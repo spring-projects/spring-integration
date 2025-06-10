@@ -20,13 +20,13 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.http.AbstractHttpInboundTests;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -35,7 +35,6 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerMapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Oleg Zhurakousky
@@ -45,7 +44,7 @@ import static org.mockito.Mockito.mock;
  * @author Artem Bilan
  * @author Biju Kunjummen
  */
-public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends AbstractHttpInboundTests {
+public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends AbstractHttpInboundTests implements TestApplicationContextAware {
 
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
@@ -66,7 +65,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		request.setRequestURI("/fname/bill/lname/clinton");
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
@@ -108,7 +107,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		request.setRequestURI(requestURI);
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
@@ -154,7 +153,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		request.setRequestURI(requestURI);
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");

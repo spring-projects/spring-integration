@@ -19,12 +19,11 @@ package org.springframework.integration.aggregator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Alex Peters
@@ -33,7 +32,7 @@ import static org.mockito.Mockito.mock;
  * @author Artem Bilan
  *
  */
-public class ExpressionEvaluatingReleaseStrategyTests {
+public class ExpressionEvaluatingReleaseStrategyTests implements TestApplicationContextAware {
 
 	private ExpressionEvaluatingReleaseStrategy strategy;
 
@@ -50,21 +49,21 @@ public class ExpressionEvaluatingReleaseStrategyTests {
 	@Test
 	public void testCompletedWithSizeSpelEvaluated() {
 		strategy = new ExpressionEvaluatingReleaseStrategy("#root.size()==5");
-		strategy.setBeanFactory(mock(BeanFactory.class));
+		strategy.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(strategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
 	public void testCompletedWithFilterSpelEvaluated() {
 		strategy = new ExpressionEvaluatingReleaseStrategy("!messages.?[payload==5].empty");
-		strategy.setBeanFactory(mock(BeanFactory.class));
+		strategy.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(strategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
 	public void testCompletedWithFilterSpelReturnsNotCompleted() {
 		strategy = new ExpressionEvaluatingReleaseStrategy("!messages.?[payload==6].empty");
-		strategy.setBeanFactory(mock(BeanFactory.class));
+		strategy.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		assertThat(strategy.canRelease(messages)).isFalse();
 	}
 

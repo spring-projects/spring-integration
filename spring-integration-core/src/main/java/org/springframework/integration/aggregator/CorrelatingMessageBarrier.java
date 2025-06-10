@@ -20,6 +20,8 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -27,6 +29,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * This Endpoint serves as a barrier for messages that should not be processed yet. The decision when a message can be
@@ -58,8 +61,10 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 	private final MessageGroupStore store;
 
+	@Nullable
 	private CorrelationStrategy correlationStrategy;
 
+	@Nullable
 	private ReleaseStrategy releaseStrategy;
 
 	public CorrelatingMessageBarrier() {
@@ -86,9 +91,11 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		this.releaseStrategy = releaseStrategy;
 	}
 
+	@SuppressWarnings("NullAway")
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
+		Assert.notNull(correlationKey, "The correlation key is required");
 		Object lock = getLock(correlationKey);
 		synchronized (lock) {
 			this.store.addMessagesToGroup(correlationKey, message);
@@ -101,8 +108,9 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		return existingLock == null ? correlationKey : existingLock;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	@Override
+	@Nullable
 	public Message<Object> receive() {
 		for (Object key : this.correlationLocks.keySet()) {
 			Object lock = getLock(key);
@@ -111,7 +119,6 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 				//group might be removed by another thread
 				if (group != null && this.releaseStrategy.canRelease(group)) {
 					Message<?> nextMessage = null;
-
 					Iterator<Message<?>> messages = group.getMessages().iterator();
 					if (messages.hasNext()) {
 						nextMessage = messages.next();
@@ -126,6 +133,13 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 			}
 		}
 		return null;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		Assert.notNull(this.releaseStrategy, "'releaseStrategy' must not be null");
+		Assert.notNull(this.correlationStrategy, "'correlationStrategy' must not be null");
 	}
 
 	private void remove(Object key) {

@@ -26,6 +26,7 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -42,7 +43,7 @@ import static org.assertj.core.api.Assertions.fail;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class ServiceActivatorParserTests {
+public class ServiceActivatorParserTests implements TestApplicationContextAware {
 
 	@Autowired
 	private MessageChannel literalExpressionInput;
@@ -214,6 +215,7 @@ public class ServiceActivatorParserTests {
 
 	private Object sendAndReceive(MessageChannel channel, Object payload) {
 		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setDefaultDestination(channel);
 
 		return template.convertSendAndReceive(payload, Object.class);

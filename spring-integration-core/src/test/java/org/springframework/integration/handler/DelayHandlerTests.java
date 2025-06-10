@@ -32,7 +32,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.expression.Expression;
@@ -46,6 +45,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
@@ -59,7 +59,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -69,7 +68,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 1.0.3
  */
-public class DelayHandlerTests {
+public class DelayHandlerTests implements TestApplicationContextAware {
 
 	private static final String DELAYER_MESSAGE_GROUP_ID = "testDelayer.messageGroupId";
 
@@ -95,7 +94,7 @@ public class DelayHandlerTests {
 		taskScheduler.afterPropertiesSet();
 		delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, taskScheduler);
 		delayHandler.setOutputChannel(output);
-		delayHandler.setBeanFactory(mock(BeanFactory.class));
+		delayHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
 	}
@@ -443,7 +442,7 @@ public class DelayHandlerTests {
 		this.delayHandler.setOutputChannel(output);
 		this.delayHandler.setDefaultDelay(200);
 		this.delayHandler.setMessageStore(messageGroupStore);
-		this.delayHandler.setBeanFactory(mock(BeanFactory.class));
+		this.delayHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		startDelayerHandler();
 
 		waitForLatch(10000);

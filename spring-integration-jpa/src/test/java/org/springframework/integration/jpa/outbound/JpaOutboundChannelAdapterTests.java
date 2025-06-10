@@ -22,13 +22,13 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.jpa.test.JpaTestUtils;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -40,7 +40,6 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -53,7 +52,7 @@ import static org.mockito.Mockito.mock;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class JpaOutboundChannelAdapterTests {
+public class JpaOutboundChannelAdapterTests implements TestApplicationContextAware {
 
 	@Autowired
 	private EntityManager entityManager;
@@ -80,7 +79,7 @@ public class JpaOutboundChannelAdapterTests {
 
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
-		jpaExecutor.setBeanFactory(mock(BeanFactory.class));
+		jpaExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
@@ -112,7 +111,7 @@ public class JpaOutboundChannelAdapterTests {
 		assertThat(results1.size() == 3).isTrue();
 
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
-		jpaExecutor.setBeanFactory(mock(BeanFactory.class));
+		jpaExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
@@ -146,7 +145,7 @@ public class JpaOutboundChannelAdapterTests {
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
 		jpaExecutor.setPersistMode(PersistMode.PERSIST);
-		jpaExecutor.setBeanFactory(mock(BeanFactory.class));
+		jpaExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
@@ -158,7 +157,7 @@ public class JpaOutboundChannelAdapterTests {
 
 		final Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
 
-		jpaOutboundChannelAdapter.setBeanFactory(mock(BeanFactory.class));
+		jpaOutboundChannelAdapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		jpaOutboundChannelAdapter.afterPropertiesSet();
 
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);

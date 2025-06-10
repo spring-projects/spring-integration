@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.ws.WebServiceHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -40,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class WebServiceHeaderEnricherTests {
+public class WebServiceHeaderEnricherTests implements TestApplicationContextAware {
 
 	@Autowired
 	@Qualifier("literalValueInput")
@@ -53,6 +54,7 @@ public class WebServiceHeaderEnricherTests {
 	@Test
 	public void literalValue() {
 		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setDefaultDestination(literalValueInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("foo"));
 		Map<String, Object> headers = result.getHeaders();
@@ -62,6 +64,7 @@ public class WebServiceHeaderEnricherTests {
 	@Test
 	public void expression() {
 		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.setDefaultDestination(expressionInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("foo"));
 		Map<String, Object> headers = result.getHeaders();

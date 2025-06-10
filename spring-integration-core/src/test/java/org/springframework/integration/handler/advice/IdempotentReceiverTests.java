@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -33,6 +32,7 @@ import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.fail;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class IdempotentReceiverTests {
+public class IdempotentReceiverTests implements TestApplicationContextAware {
 
 	@Autowired
 	private MessageChannel input;
@@ -80,7 +80,7 @@ public class IdempotentReceiverTests {
 		ConcurrentMetadataStore store = new SimpleMetadataStore();
 		ExpressionEvaluatingMessageProcessor<String> idempotentKeyStrategy =
 				new ExpressionEvaluatingMessageProcessor<>(new SpelExpressionParser().parseExpression("payload"));
-		BeanFactory beanFactory = Mockito.mock(BeanFactory.class);
+		BeanFactory beanFactory = TEST_INTEGRATION_CONTEXT;
 		idempotentKeyStrategy.setBeanFactory(beanFactory);
 		IdempotentReceiverInterceptor idempotentReceiverInterceptor =
 				new IdempotentReceiverInterceptor(new MetadataStoreSelector(idempotentKeyStrategy, store));

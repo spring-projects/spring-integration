@@ -18,6 +18,8 @@ package org.springframework.integration.aggregator;
 
 import java.lang.reflect.Method;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -57,6 +59,7 @@ public class MethodInvokingCorrelationStrategy implements CorrelationStrategy, B
 	}
 
 	@Override
+	@Nullable
 	public Object getCorrelationKey(Message<?> message) {
 		return this.processor.processMessage(message);
 	}

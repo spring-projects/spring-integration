@@ -32,7 +32,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -49,6 +48,7 @@ import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
@@ -67,7 +67,7 @@ import static org.mockito.Mockito.when;
  *
  * @since 2.0
  */
-public class FtpInboundRemoteFileSystemSynchronizerTests {
+public class FtpInboundRemoteFileSystemSynchronizerTests implements TestApplicationContextAware {
 
 	private static FTPClient ftpClient = mock(FTPClient.class);
 
@@ -107,14 +107,14 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 		Expression expression = expressionParser.parseExpression("'subdir/' + #this.toUpperCase() + '.a'");
 		synchronizer.setLocalFilenameGeneratorExpression(expression);
-		synchronizer.setBeanFactory(mock(BeanFactory.class));
+		synchronizer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		synchronizer.afterPropertiesSet();
 
 		FtpInboundFileSynchronizingMessageSource ms = new FtpInboundFileSynchronizingMessageSource(synchronizer);
 
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectory);
-		ms.setBeanFactory(mock(BeanFactory.class));
+		ms.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<>();
 		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.TEST\\.a$"));
 		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<>();
@@ -179,7 +179,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		FtpInboundFileSynchronizer synchronizer = spy(new FtpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setRemoteDirectory("remote-test-dir");
 
-		synchronizer.setBeanFactory(mock(BeanFactory.class));
+		synchronizer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		synchronizer.afterPropertiesSet();
 
 		synchronizer.synchronizeToLocalDirectory(localDirectory);

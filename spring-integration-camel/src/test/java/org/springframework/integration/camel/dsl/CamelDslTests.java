@@ -35,6 +35,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Artem Bilan
@@ -51,7 +52,9 @@ public class CamelDslTests {
 
 	@Test
 	void sendAndReceiveCamelRoute() {
-		String result = new MessagingTemplate().convertSendAndReceive(this.input, "apache camel", String.class);
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setBeanFactory(mock());
+		String result = messagingTemplate.convertSendAndReceive(this.input, "apache camel", String.class);
 		assertThat(result).isEqualTo("___APACHE CAMEL___");
 	}
 

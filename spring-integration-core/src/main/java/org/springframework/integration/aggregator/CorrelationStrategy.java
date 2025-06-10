@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 
 /**
@@ -35,6 +37,7 @@ public interface CorrelationStrategy {
 	 * @param message The message.
 	 * @return The correlation key.
 	 */
+	@Nullable
 	Object getCorrelationKey(Message<?> message);
 
 }

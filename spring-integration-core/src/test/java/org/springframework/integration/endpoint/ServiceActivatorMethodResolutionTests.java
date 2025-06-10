@@ -20,11 +20,11 @@ import java.util.Date;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -32,14 +32,13 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class ServiceActivatorMethodResolutionTests {
+public class ServiceActivatorMethodResolutionTests implements TestApplicationContextAware {
 
 	@Test
 	public void singleAnnotationMatches() {
@@ -47,7 +46,7 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		serviceActivator.handleMessage(new GenericMessage<>("foo"));
@@ -68,7 +67,7 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		serviceActivator.handleMessage(new GenericMessage<>("foo"));
@@ -98,7 +97,7 @@ public class ServiceActivatorMethodResolutionTests {
 				return null;
 			}
 		};
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		serviceActivator.handleMessage(test);
@@ -125,7 +124,7 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
@@ -158,7 +157,7 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
@@ -196,7 +195,7 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
@@ -234,7 +233,7 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
@@ -252,7 +251,7 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		serviceActivator.afterPropertiesSet();
 
 		serviceActivator.handleMessage(new GenericMessage<>(new KafkaNull()));

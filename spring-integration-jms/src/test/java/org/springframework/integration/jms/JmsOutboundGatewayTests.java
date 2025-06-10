@@ -34,11 +34,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.jms.JmsOutboundGateway.ReplyContainerProperties;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jms.JmsException;
@@ -63,7 +63,7 @@ import static org.mockito.Mockito.when;
  *
  * @since 2.2.4
  */
-public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
+public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests implements TestApplicationContextAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -74,7 +74,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.setRequestDestinationName("foo");
 		gateway.setUseReplyContainer(true);
 		gateway.setReplyContainerProperties(new ReplyContainerProperties());
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.afterPropertiesSet();
 		assertThat(TestUtils.getPropertyValue(gateway, "replyContainer.beanName"))
 				.isEqualTo("JMS_OutboundGateway@" + ObjectUtils.getIdentityHexString(gateway) +
@@ -165,7 +165,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.setReplyDestinationExpression(new ValueExpression<>(replyQ));
 		QueueChannel queueChannel = new QueueChannel();
 		gateway.setOutputChannel(queueChannel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.setReceiveTimeout(60000);
 		gateway.afterPropertiesSet();
 		gateway.start();
@@ -211,7 +211,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.setReplyDestinationName(replyQ);
 		QueueChannel queueChannel = new QueueChannel();
 		gateway.setOutputChannel(queueChannel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gateway.setReceiveTimeout(60000);
 		gateway.setCorrelationKey("JMSCorrelationID");
 		gateway.afterPropertiesSet();

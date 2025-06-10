@@ -31,6 +31,7 @@ import org.springframework.integration.jpa.support.parametersource.ExpressionEva
 import org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
@@ -52,13 +53,12 @@ import static org.mockito.Mockito.mock;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class JpaExecutorTests {
+public class JpaExecutorTests implements TestApplicationContextAware {
 
 	@Autowired
 	protected EntityManager entityManager;
 
-	@Autowired
-	private BeanFactory beanFactory;
+	private BeanFactory beanFactory = TEST_INTEGRATION_CONTEXT;
 
 	/**
 	 * In this test, the {@link JpaExecutor}'s poll method will be called without
@@ -68,7 +68,7 @@ public class JpaExecutorTests {
 	@Test
 	public void testExecutePollWithNoEntityClassSpecified() {
 		JpaExecutor jpaExecutor = new JpaExecutor(mock(EntityManager.class));
-		jpaExecutor.setBeanFactory(mock(BeanFactory.class));
+		jpaExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		jpaExecutor.afterPropertiesSet();
 
 		assertThatIllegalStateException()
@@ -161,14 +161,14 @@ public class JpaExecutorTests {
 	private JpaExecutor getJpaExecutorForMessageAsParamSource(String query) {
 		JpaExecutor executor = new JpaExecutor(entityManager);
 		ExpressionEvaluatingParameterSourceFactory factory =
-				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
+				new ExpressionEvaluatingParameterSourceFactory(TEST_INTEGRATION_CONTEXT);
 		factory.setParameters(
 				Collections.singletonList(new JpaParameter("firstName", null, "payload['firstName']")));
 		executor.setParameterSourceFactory(factory);
 		executor.setJpaQuery(query);
 		executor.setExpectSingleResult(true);
 		executor.setUsePayloadAsParameterSource(false);
-		executor.setBeanFactory(mock(BeanFactory.class));
+		executor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		executor.afterPropertiesSet();
 		return executor;
 	}
@@ -176,14 +176,14 @@ public class JpaExecutorTests {
 	private JpaExecutor getJpaExecutorForPayloadAsParamSource(String query) {
 		JpaExecutor executor = new JpaExecutor(entityManager);
 		ExpressionEvaluatingParameterSourceFactory factory =
-				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
+				new ExpressionEvaluatingParameterSourceFactory(TEST_INTEGRATION_CONTEXT);
 		factory.setParameters(
 				Collections.singletonList(new JpaParameter("firstName", null, "#this")));
 		executor.setParameterSourceFactory(factory);
 		executor.setJpaQuery(query);
 		executor.setExpectSingleResult(true);
 		executor.setUsePayloadAsParameterSource(true);
-		executor.setBeanFactory(mock(BeanFactory.class));
+		executor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		executor.afterPropertiesSet();
 		return executor;
 	}

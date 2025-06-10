@@ -37,7 +37,7 @@ public class RouterFactoryBeanTests {
 	private boolean routeAttempted;
 
 	@Test
-	public void testOutputChannelName() throws Exception {
+	public void testOutputChannelName() {
 		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 		testApplicationContext.refresh();
 		RouterFactoryBean fb = new RouterFactoryBean();

@@ -56,6 +56,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 
 	private boolean messageBuilderFactorySet;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	@Override

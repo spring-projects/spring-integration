@@ -32,14 +32,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -50,7 +49,7 @@ import static org.mockito.Mockito.mock;
  */
 @Multicast
 @DisabledOnOs(value = OS.MAC, disabledReason = "Multicast tests don't work on MacOS")
-public class DatagramPacketMulticastSendingHandlerTests {
+public class DatagramPacketMulticastSendingHandlerTests implements TestApplicationContextAware {
 
 	@Test
 	public void verifySendMulticast(MulticastCondition multicastCondition) throws Exception {
@@ -95,7 +94,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		executor.execute(catcher);
 		assertThat(listening.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		MulticastSendingMessageHandler handler = new MulticastSendingMessageHandler(multicastAddress, testPort);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		NetworkInterface nic = multicastCondition.getNic();
 		if (nic != null) {
 			String hostName = null;
@@ -216,7 +215,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 			handler.setLocalAddress(hostName);
 		}
 		handler.setMinAcksForSuccess(2);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		waitAckListening(handler);

@@ -25,12 +25,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -39,14 +39,13 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class StoredProcMessageHandlerDerbyIntegrationTests {
+public class StoredProcMessageHandlerDerbyIntegrationTests implements TestApplicationContextAware {
 
 	private static EmbeddedDatabase embeddedDatabase;
 
@@ -78,10 +77,10 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
 
 		storedProcExecutor.setStoredProcedureName("CREATE_USER");
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
-		messageHandler.setBeanFactory(mock(BeanFactory.class));
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
@@ -104,10 +103,10 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
-		messageHandler.setBeanFactory(mock(BeanFactory.class));
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
@@ -131,10 +130,10 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
-		messageHandler.setBeanFactory(mock(BeanFactory.class));
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
@@ -161,10 +160,10 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		procedureParameters.add(new ProcedureParameter("email", null, "payload.email.toUpperCase()"));
 
 		storedProcExecutor.setProcedureParameters(procedureParameters);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
-		messageHandler.setBeanFactory(mock(BeanFactory.class));
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.afterPropertiesSet();
 
 		Message<User> message = new GenericMessage<>(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
@@ -191,10 +190,10 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		procedureParameters.add(new ProcedureParameter("email", "static_email", null));
 
 		storedProcExecutor.setProcedureParameters(procedureParameters);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+		storedProcExecutor.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 
 		storedProcExecutor.afterPropertiesSet();
-		messageHandler.setBeanFactory(mock(BeanFactory.class));
+		messageHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		messageHandler.afterPropertiesSet();
 
 		Message<User> message =

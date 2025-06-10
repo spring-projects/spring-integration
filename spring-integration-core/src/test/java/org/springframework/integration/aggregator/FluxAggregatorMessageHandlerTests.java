@@ -36,6 +36,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Artem Bilan
@@ -159,6 +160,7 @@ class FluxAggregatorMessageHandlerTests {
 	void testWindowTimespan() {
 		QueueChannel resultChannel = new QueueChannel();
 		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
+		fluxAggregatorMessageHandler.setTaskScheduler(mock());
 		fluxAggregatorMessageHandler.setOutputChannel(resultChannel);
 		fluxAggregatorMessageHandler.setWindowTimespan(Duration.ofMillis(100));
 		fluxAggregatorMessageHandler.start();

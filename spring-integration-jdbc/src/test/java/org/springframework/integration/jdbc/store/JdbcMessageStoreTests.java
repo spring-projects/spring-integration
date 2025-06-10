@@ -44,7 +44,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
@@ -54,6 +53,7 @@ import org.springframework.integration.handler.support.CollectionArgumentResolve
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
@@ -81,7 +81,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringJUnitConfig
 @DirtiesContext // close at the end after class
 @Transactional
-public class JdbcMessageStoreTests {
+public class JdbcMessageStoreTests  implements TestApplicationContextAware {
 
 	@Autowired
 	private DataSource dataSource;
@@ -561,7 +561,7 @@ public class JdbcMessageStoreTests {
 		JdbcMessageStore pooledMessageStore = new JdbcMessageStore(poolingDataSource);
 
 		CollectionArgumentResolver collectionArgumentResolver = new CollectionArgumentResolver(true);
-		collectionArgumentResolver.setBeanFactory(new DefaultListableBeanFactory());
+		collectionArgumentResolver.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		Method methodForCollectionOfPayloads = getClass().getMethod("methodForCollectionOfPayloads", Collection.class);
 		MethodParameter methodParameter = SynthesizingMethodParameter.forExecutable(methodForCollectionOfPayloads, 0);
 

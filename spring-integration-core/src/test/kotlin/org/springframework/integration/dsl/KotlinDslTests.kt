@@ -36,6 +36,8 @@ import org.springframework.integration.handler.LoggingHandler
 import org.springframework.integration.scheduling.PollerMetadata
 import org.springframework.integration.selector.UnexpiredMessageSelector
 import org.springframework.integration.support.MessageBuilder
+import org.springframework.integration.test.context.TestApplicationContextAware
+import org.springframework.integration.test.context.TestApplicationContextAware.TEST_INTEGRATION_CONTEXT
 import org.springframework.integration.test.util.OnlyOnceTrigger
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
@@ -57,7 +59,7 @@ import java.util.function.Function
  */
 @SpringJUnitConfig
 @DirtiesContext
-class KotlinDslTests {
+class KotlinDslTests : TestApplicationContextAware {
 
 	@Autowired
 	private lateinit var beanFactory: BeanFactory
@@ -121,7 +123,9 @@ class KotlinDslTests {
 
 	@Test
 	fun `fixed subscriber channel`() {
-		assertThat(MessagingTemplate().convertSendAndReceive(this.fixedSubscriberInput, "test", String::class.java))
+		var messagingTemplate = MessagingTemplate()
+		messagingTemplate.setBeanFactory(TEST_INTEGRATION_CONTEXT)
+		assertThat(messagingTemplate.convertSendAndReceive(this.fixedSubscriberInput, "test", String::class.java))
 			.isEqualTo("test")
 	}
 

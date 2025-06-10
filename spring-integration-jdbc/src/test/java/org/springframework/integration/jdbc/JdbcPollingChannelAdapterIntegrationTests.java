@@ -27,7 +27,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -37,14 +37,13 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Jonas Partner
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class JdbcPollingChannelAdapterIntegrationTests {
+public class JdbcPollingChannelAdapterIntegrationTests implements TestApplicationContextAware {
 
 	private static EmbeddedDatabase embeddedDatabase;
 
@@ -145,7 +144,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 				"select * from item where status=2");
 		adapter.setUpdateSql("update item set status = 10 where id in (:id)");
 		adapter.setRowMapper(new ItemRowMapper());
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
 		jdbcTemplate.update("insert into item values(1,2)");
@@ -174,7 +173,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		adapter.setUpdateSql("update item set status = 10 where id = :id");
 		adapter.setUpdatePerRow(true);
 		adapter.setRowMapper(new ItemRowMapper());
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
 		jdbcTemplate.update("insert into item values(1,2)");
@@ -204,7 +203,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		adapter.setUpdatePerRow(true);
 		adapter.setMaxRows(1);
 		adapter.setRowMapper(new ItemRowMapper());
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
 		jdbcTemplate.update("insert into item values(1,2)");
@@ -234,7 +233,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		adapter.setUpdatePerRow(true);
 		adapter.setMaxRows(1);
 		adapter.setRowMapper(new ItemRowMapper());
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		adapter.afterPropertiesSet();
 
 		jdbcTemplate.update("insert into item values(1,2)");

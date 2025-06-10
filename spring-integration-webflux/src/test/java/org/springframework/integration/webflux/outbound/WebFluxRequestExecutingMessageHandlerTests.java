@@ -26,12 +26,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -41,6 +41,7 @@ import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.webflux.support.ClientHttpResponseBodyExtractor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -55,7 +56,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Shiliang Li
@@ -65,7 +65,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 5.0
  */
-class WebFluxRequestExecutingMessageHandlerTests {
+class WebFluxRequestExecutingMessageHandlerTests implements TestApplicationContextAware {
 
 	@Test
 	void testReactiveReturn() {
@@ -470,7 +470,10 @@ class WebFluxRequestExecutingMessageHandlerTests {
 		reactiveHandler.setReplyPayloadToFlux(true);
 		Expression expr = new SpelExpressionParser().parseExpression("{name:{first:'Nikola'}}");
 		reactiveHandler.setAttributeVariablesExpression(expr);
-		reactiveHandler.setBeanFactory(mock(BeanFactory.class));
+		reactiveHandler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		TEST_INTEGRATION_CONTEXT.registerBean("integrationSimpleEvaluationContext", SimpleEvaluationContext
+				.forReadOnlyDataBinding()
+				.build());
 		reactiveHandler.afterPropertiesSet();
 
 		reactiveHandler.handleMessage(MessageBuilder.withPayload(Mono.just("hello, world")).build());

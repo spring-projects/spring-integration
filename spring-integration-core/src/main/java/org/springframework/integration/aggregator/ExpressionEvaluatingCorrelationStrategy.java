@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -51,7 +53,7 @@ public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrat
 		this.processor = new ExpressionEvaluatingMessageProcessor<>(expression, Object.class);
 	}
 
-	public Object getCorrelationKey(Message<?> message) {
+	public @Nullable Object getCorrelationKey(Message<?> message) {
 		return this.processor.processMessage(message);
 	}
 

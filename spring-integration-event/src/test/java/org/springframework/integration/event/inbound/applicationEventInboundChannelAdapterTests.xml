@@ -6,6 +6,9 @@
 	<bean id="channel"
 		  class="org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducerTests$ContextEventsChannel"/>
 
+	<bean id="integrationEvaluationContext"
+		  class="org.springframework.expression.spel.support.StandardEvaluationContext"/>
+
 	<bean id="adapter" class="org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer">
 		<property name="outputChannel" ref="channel"/>
 	</bean>

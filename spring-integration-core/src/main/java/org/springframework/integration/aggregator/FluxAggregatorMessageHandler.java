@@ -17,10 +17,12 @@
 package org.springframework.integration.aggregator;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -62,18 +64,23 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	private CorrelationStrategy correlationStrategy =
 			new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 
+	@Nullable
 	private Predicate<Message<?>> boundaryTrigger;
 
-	private Function<Message<?>, Integer> windowSizeFunction = FluxAggregatorMessageHandler::sequenceSizeHeader;
+	private Function<Message<?>, @Nullable Integer> windowSizeFunction = FluxAggregatorMessageHandler::sequenceSizeHeader;
 
+	@Nullable
 	private Function<Flux<Message<?>>, Flux<Flux<Message<?>>>> windowConfigurer;
 
+	@Nullable
 	private Duration windowTimespan;
 
 	private Function<Flux<Message<?>>, Mono<Message<?>>> combineFunction = this::messageForWindowFlux;
 
+	@SuppressWarnings("NullAway.Init")
 	private FluxSink<Message<?>> sink;
 
+	@Nullable
 	private volatile Disposable subscription;
 
 	/**
@@ -90,7 +97,9 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	}
 
 	private Object groupBy(Message<?> message) {
-		return this.correlationStrategy.getCorrelationKey(message);
+		Object result = this.correlationStrategy.getCorrelationKey(message);
+		Assert.notNull(result, "Correlation key cannot be null");
+		return result;
 	}
 
 	private Flux<Message<?>> releaseBy(Flux<Message<?>> groupFlux) {
@@ -106,7 +115,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 		return groupFlux
 				.switchOnFirst((signal, group) -> {
 					if (signal.hasValue()) {
-						Integer maxSize = this.windowSizeFunction.apply(signal.get());
+						Integer maxSize = this.windowSizeFunction.apply(Objects.requireNonNull(signal.get()));
 						if (maxSize != null) {
 							if (this.windowTimespan != null) {
 								return group.windowTimeout(maxSize, this.windowTimespan);
@@ -185,13 +194,13 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	/**
 	 * Specify a {@link Function} to determine a size for windows to close against the first message in group.
 	 * Tne result of the function can be combined with the {@link #setWindowTimespan(Duration)}.
-	 * By default an {@link IntegrationMessageHeaderAccessor#SEQUENCE_SIZE} header is consulted.
+	 * By default, an {@link IntegrationMessageHeaderAccessor#SEQUENCE_SIZE} header is consulted.
 	 * @param windowSizeFunction the {@link Function} to use to determine a window size
 	 * against a first message in the group.
 	 * @see Flux#window(int)
 	 * @see Flux#windowTimeout(int, Duration)
 	 */
-	public void setWindowSizeFunction(Function<Message<?>, Integer> windowSizeFunction) {
+	public void setWindowSizeFunction(Function<Message<?>, @Nullable Integer> windowSizeFunction) {
 		Assert.notNull(windowSizeFunction, "'windowSizeFunction' must not be null");
 		this.windowSizeFunction = windowSizeFunction;
 	}
@@ -243,8 +252,9 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 
 	@Override
 	public void stop() {
-		if (this.subscribed.compareAndSet(true, false) && this.subscription != null) {
-			this.subscription.dispose();
+		Disposable subscriptionToDispose = this.subscription;
+		if (this.subscribed.compareAndSet(true, false) && subscriptionToDispose != null) {
+			subscriptionToDispose.dispose();
 		}
 	}
 
@@ -277,7 +287,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 								.build());
 	}
 
-	private static Integer sequenceSizeHeader(Message<?> message) {
+	private static @Nullable Integer sequenceSizeHeader(Message<?> message) {
 		return message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class);
 	}
 

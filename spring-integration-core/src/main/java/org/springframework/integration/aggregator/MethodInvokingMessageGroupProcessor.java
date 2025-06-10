@@ -26,6 +26,7 @@ import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * MessageGroupProcessor that serves as an adapter for the invocation of a POJO method.
@@ -87,7 +88,9 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	@Override
 	protected final Object aggregatePayloads(MessageGroup group, Map<String, Object> headers) {
 		final Collection<Message<?>> messagesUpForProcessing = group.getMessages();
-		return this.processor.process(messagesUpForProcessing, headers);
+		Object object = this.processor.process(messagesUpForProcessing, headers);
+		Assert.state(object != null, "The process returned a null result. Null result is not expected.");
+		return object;
 	}
 
 	@Override

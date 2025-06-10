@@ -73,6 +73,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1203,6 +1204,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 	public void testInterceptedConnection() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
+		scf.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -1236,6 +1238,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 	public void testInterceptedCleanup() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
+		scf.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -1260,5 +1263,4 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		await().untilAsserted(() -> assertThat(handler.getConnections()).isEmpty());
 		scf.stop();
 	}
-
 }

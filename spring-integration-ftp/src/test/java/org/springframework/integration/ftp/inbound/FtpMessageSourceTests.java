@@ -20,7 +20,9 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.ftp.FtpTestSupport;
 import org.springframework.messaging.Message;
@@ -64,6 +66,11 @@ public class FtpMessageSourceTests extends FtpTestSupport {
 
 	@Configuration
 	public static class Config {
+
+		@Bean
+		StandardEvaluationContext integrationEvaluationContext() {
+			return new StandardEvaluationContext();
+		}
 
 	}
 

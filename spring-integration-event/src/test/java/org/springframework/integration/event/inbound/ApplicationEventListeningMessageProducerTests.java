@@ -39,8 +39,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
@@ -144,9 +146,7 @@ public class ApplicationEventListeningMessageProducerTests {
 
 		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
 		ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
-		beanFactory.registerSingleton(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
-				new SimpleApplicationEventMulticaster(beanFactory));
-
+		populateBeanFactory(beanFactory);
 		adapter.setBeanFactory(beanFactory);
 		beanFactory.registerSingleton("testListenerMessageProducer", adapter);
 		adapter.afterPropertiesSet();
@@ -292,6 +292,12 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertThat(receive.getPayload()).isSameAs(event2);
 		assertThat(channel.receive(1)).isNull();
 		ctx.close();
+	}
+
+	private static void populateBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		beanFactory.registerSingleton(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+				new SimpleApplicationEventMulticaster(beanFactory));
+		beanFactory.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, new StandardEvaluationContext());
 	}
 
 	@Test

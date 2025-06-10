@@ -45,6 +45,7 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -71,7 +72,7 @@ import static org.mockito.Mockito.verify;
  * @since 3.0
  *
  */
-public class ConnectionEventTests {
+public class ConnectionEventTests implements TestApplicationContextAware {
 
 	@Test
 	public void testConnectionEvents() throws Exception {
@@ -202,6 +203,7 @@ public class ConnectionEventTests {
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(message -> ((MessageChannel) message.getHeaders().getReplyChannel()).send(message));
 		gw.setRequestChannel(requestChannel);
+		gw.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		gw.start();
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader(IpHeaders.CONNECTION_ID, "bar")

@@ -22,9 +22,9 @@ import java.io.OutputStream;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  * @since 3.0
  *
  */
-public class CachingSessionFactoryTests {
+public class CachingSessionFactoryTests implements TestApplicationContextAware {
 
 	@Test
 	public void testCacheAndReset() {
@@ -87,7 +87,7 @@ public class CachingSessionFactoryTests {
 		CachingSessionFactory<Object> ccf = new CachingSessionFactory<>(factory);
 		RemoteFileTemplate<Object> template = new RemoteFileTemplate<>(ccf);
 		template.setFileNameExpression(new LiteralExpression("foo"));
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		template.afterPropertiesSet();
 
 		assertThatExceptionOfType(MessagingException.class)

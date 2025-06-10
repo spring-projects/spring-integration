@@ -33,6 +33,7 @@ import org.zeromq.ZMQ;
 import reactor.core.publisher.Mono;
 
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
@@ -46,18 +47,18 @@ import static org.awaitility.Awaitility.await;
  *
  * @since 5.4
  */
-public class ZeroMqChannelTests {
+public class ZeroMqChannelTests implements TestApplicationContextAware {
 
-	private static final ZContext CONTEXT = new ZContext();
+	private static final ZContext Z_CONTEXT = new ZContext();
 
 	@AfterAll
 	static void tearDown() {
-		CONTEXT.close();
+		Z_CONTEXT.close();
 	}
 
 	@Test
 	void testSimpleSendAndReceive() throws InterruptedException {
-		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT);
+		ZeroMqChannel channel = new ZeroMqChannel(Z_CONTEXT);
 		channel.setBeanName("testChannel1");
 		channel.setConsumeDelay(Duration.ofMillis(10));
 		channel.setSendSocketConfigurer(socket -> socket.setZapDomain("global"));
@@ -72,6 +73,7 @@ public class ZeroMqChannelTests {
 			}
 
 		});
+		channel.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		channel.afterPropertiesSet();
 
 		@SuppressWarnings("unchecked")
@@ -112,9 +114,10 @@ public class ZeroMqChannelTests {
 
 	@Test
 	void testPubSubLocal() throws InterruptedException {
-		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
+		ZeroMqChannel channel = new ZeroMqChannel(Z_CONTEXT, true);
 		channel.setBeanName("testChannel2");
 		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -135,7 +138,7 @@ public class ZeroMqChannelTests {
 
 	@Test
 	void testPushPullBind() throws InterruptedException {
-		ZeroMqProxy proxy = new ZeroMqProxy(CONTEXT);
+		ZeroMqProxy proxy = new ZeroMqProxy(Z_CONTEXT);
 		proxy.setBeanName("pullPushProxy");
 		proxy.setExposeCaptureSocket(true);
 		proxy.afterPropertiesSet();
@@ -143,14 +146,15 @@ public class ZeroMqChannelTests {
 
 		await().until(() -> proxy.getBackendPort() > 0);
 
-		ZMQ.Socket captureSocket = CONTEXT.createSocket(SocketType.SUB);
+		ZMQ.Socket captureSocket = Z_CONTEXT.createSocket(SocketType.SUB);
 		captureSocket.subscribe(ZMQ.SUBSCRIPTION_ALL);
 		captureSocket.connect(proxy.getCaptureAddress());
 
-		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT);
+		ZeroMqChannel channel = new ZeroMqChannel(Z_CONTEXT);
 		channel.setConnectUrl("tcp://localhost:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
 		channel.setBeanName("testChannel3");
 		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -179,15 +183,17 @@ public class ZeroMqChannelTests {
 
 	@Test
 	void testPubSubBind() throws InterruptedException {
-		ZeroMqProxy proxy = new ZeroMqProxy(CONTEXT, ZeroMqProxy.Type.SUB_PUB);
+		ZeroMqProxy proxy = new ZeroMqProxy(Z_CONTEXT, ZeroMqProxy.Type.SUB_PUB);
 		proxy.setBeanName("subPubProxy");
 		proxy.afterPropertiesSet();
 		proxy.start();
 
-		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
+		ZeroMqChannel channel = new ZeroMqChannel(Z_CONTEXT, true);
 		channel.setZeroMqProxy(proxy);
 		channel.setBeanName("testChannel4");
 		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel.setBeanFactory(TEST_INTEGRATION_CONTEXT);
+		channel.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -197,10 +203,11 @@ public class ZeroMqChannelTests {
 
 		await().until(() -> proxy.getBackendPort() > 0);
 
-		ZeroMqChannel channel2 = new ZeroMqChannel(CONTEXT, true);
+		ZeroMqChannel channel2 = new ZeroMqChannel(Z_CONTEXT, true);
 		channel2.setConnectUrl("tcp://localhost:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
 		channel2.setBeanName("testChannel5");
 		channel2.setConsumeDelay(Duration.ofMillis(10));
+		channel2.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		channel2.afterPropertiesSet();
 
 		channel2.subscribe(received::offer);
@@ -227,12 +234,12 @@ public class ZeroMqChannelTests {
 
 	@Test
 	void testPubSubWithCurve() throws InterruptedException {
-		new ZAuth(CONTEXT).configureCurve(ZAuth.CURVE_ALLOW_ANY);
+		new ZAuth(Z_CONTEXT).configureCurve(ZAuth.CURVE_ALLOW_ANY);
 
 		ZMQ.Curve.KeyPair frontendKeyPair = ZMQ.Curve.generateKeyPair();
 		ZMQ.Curve.KeyPair backendKeyPair = ZMQ.Curve.generateKeyPair();
 
-		ZeroMqProxy proxy = new ZeroMqProxy(CONTEXT, ZeroMqProxy.Type.SUB_PUB);
+		ZeroMqProxy proxy = new ZeroMqProxy(Z_CONTEXT, ZeroMqProxy.Type.SUB_PUB);
 		proxy.setBeanName("subPubCurveProxy");
 		proxy.setFrontendSocketConfigurer(socket -> {
 			socket.setZAPDomain("global".getBytes());
@@ -249,7 +256,7 @@ public class ZeroMqChannelTests {
 		proxy.afterPropertiesSet();
 		proxy.start();
 
-		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
+		ZeroMqChannel channel = new ZeroMqChannel(Z_CONTEXT, true);
 		channel.setZeroMqProxy(proxy);
 		channel.setBeanName("testChannelWithCurve");
 		channel.setSendSocketConfigurer(socket -> {
@@ -266,6 +273,7 @@ public class ZeroMqChannelTests {
 				}
 		);
 		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();

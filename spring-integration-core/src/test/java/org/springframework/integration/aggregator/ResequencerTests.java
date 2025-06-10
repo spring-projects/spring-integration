@@ -23,13 +23,13 @@ import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -37,7 +37,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Marius Bogoevici
@@ -48,7 +47,7 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class ResequencerTests {
+public class ResequencerTests implements TestApplicationContextAware {
 
 	private ResequencingMessageHandler resequencer;
 
@@ -59,7 +58,7 @@ public class ResequencerTests {
 	@BeforeEach
 	public void configureResequencer() {
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, null);
-		this.resequencer.setBeanFactory(mock(BeanFactory.class));
+		this.resequencer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.resequencer.afterPropertiesSet();
 	}
 
@@ -88,7 +87,7 @@ public class ResequencerTests {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
-		this.resequencer.setBeanFactory(mock(BeanFactory.class));
+		this.resequencer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.resequencer.afterPropertiesSet();
 
 		QueueChannel replyChannel = new QueueChannel();
@@ -109,7 +108,7 @@ public class ResequencerTests {
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
 		QueueChannel replyChannel = new QueueChannel();
 		this.resequencer.setCorrelationStrategy(message -> "A");
-		this.resequencer.setBeanFactory(mock(BeanFactory.class));
+		this.resequencer.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 		this.resequencer.afterPropertiesSet();
 
 		//Message<?> message0 = MessageBuilder.withPayload("0").setSequenceNumber(0).build();
