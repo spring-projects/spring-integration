@@ -16,6 +16,8 @@
 
 package org.springframework.integration.context;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -120,6 +122,7 @@ public abstract class IntegrationContextUtils {
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link MetadataStore} bean whose name is "metadataStore".
 	 */
+	@Nullable
 	public static MetadataStore getMetadataStore(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, METADATA_STORE_BEAN_NAME, MetadataStore.class);
 	}
@@ -128,6 +131,7 @@ public abstract class IntegrationContextUtils {
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link MessageChannel} bean whose name is "errorChannel".
 	 */
+	@Nullable
 	public static MessageChannel getErrorChannel(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, ERROR_CHANNEL_BEAN_NAME, MessageChannel.class);
 	}
@@ -136,6 +140,7 @@ public abstract class IntegrationContextUtils {
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link TaskScheduler} bean whose name is "taskScheduler" if available.
 	 */
+	@Nullable
 	public static TaskScheduler getTaskScheduler(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class);
 	}
@@ -156,6 +161,7 @@ public abstract class IntegrationContextUtils {
 	 * @return the instance of {@link StandardEvaluationContext} bean whose name is
 	 * {@value #INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME}.
 	 */
+	@Nullable
 	public static StandardEvaluationContext getEvaluationContext(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class);
 	}
@@ -166,11 +172,13 @@ public abstract class IntegrationContextUtils {
 	 * {@value #INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME}.
 	 * @since 4.3.15
 	 */
+	@Nullable
 	public static SimpleEvaluationContext getSimpleEvaluationContext(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME,
 				SimpleEvaluationContext.class);
 	}
 
+	@Nullable
 	private static <T> T getBeanOfType(BeanFactory beanFactory, String beanName, Class<T> type) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		if (!beanFactory.containsBean(beanName)) {
