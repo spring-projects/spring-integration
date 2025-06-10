@@ -66,6 +66,7 @@ import org.springframework.util.Assert;
  * concurrency primitives for multi-publisher(subscriber) communication within the same application.
  *
  * @author Artem Bilan
+ * @author Jooyoung Pyoung
  *
  * @since 5.4
  */
@@ -142,19 +143,19 @@ public class ZeroMqChannel extends AbstractMessageChannel implements Subscribabl
 		this.subscriberData = prepareSubscriberDataFlux();
 	}
 
-	@SuppressWarnings({"this-escape", "NullAway"})
 	private Mono<Integer> prepareProxyMono() {
 		return Mono.defer(() -> {
-					if (this.zeroMqProxy != null) {
-						return Mono.fromCallable(() -> this.zeroMqProxy.getBackendPort())
+					ZeroMqProxy zeroMqProxyToUse = this.zeroMqProxy;
+					if (zeroMqProxyToUse != null) {
+						return Mono.fromCallable(zeroMqProxyToUse::getBackendPort)
 								.filter((proxyPort) -> proxyPort > 0)
 								.repeatWhenEmpty(100, (repeat) -> repeat.delayElements(Duration.ofMillis(100))) // NOSONAR
 								.doOnNext((proxyPort) ->
-										setConnectUrl("tcp://localhost:" + this.zeroMqProxy.getFrontendPort() +
-												':' + this.zeroMqProxy.getBackendPort()))
+										setConnectUrl("tcp://localhost:" + zeroMqProxyToUse.getFrontendPort() +
+												':' + zeroMqProxyToUse.getBackendPort()))
 								.doOnError((error) ->
 										logger.error(error,
-												() -> "The provided '" + this.zeroMqProxy + "' has not been started"));
+												() -> "The provided '" + zeroMqProxyToUse + "' has not been started"));
 					}
 					else {
 						return Mono.empty();
