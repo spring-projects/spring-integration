@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZFrame;
@@ -45,7 +46,6 @@ import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.zeromq.ZeroMqUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
@@ -77,8 +77,10 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 
 	private final Scheduler publisherScheduler = Schedulers.newSingle("zeroMqMessageHandlerScheduler");
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Mono<ZMQ.Socket> socketMono;
 
+	@SuppressWarnings("NullAway.Init")
 	private OutboundMessageMapper<byte[]> messageMapper;
 
 	private Consumer<ZMQ.Socket> socketConfigurer = (socket) -> {
@@ -86,10 +88,12 @@ public class ZeroMqMessageHandler extends AbstractReactiveMessageHandler
 
 	private Expression topicExpression = new SupplierExpression<>(() -> null);
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	private volatile boolean initialized;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Disposable socketMonoSubscriber;
 
 	private volatile boolean wrapTopic = true;

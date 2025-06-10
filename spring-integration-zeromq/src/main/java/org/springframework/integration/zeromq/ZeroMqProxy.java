@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -35,7 +36,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -82,8 +82,10 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 
 	private final AtomicInteger backendPort = new AtomicInteger();
 
+	@SuppressWarnings("NullAway.Init")
 	private String controlAddress;
 
+	@SuppressWarnings("NullAway.Init")
 	private Executor proxyExecutor;
 
 	@Nullable
@@ -97,6 +99,7 @@ public class ZeroMqProxy implements InitializingBean, SmartLifecycle, BeanNameAw
 	@Nullable
 	private String captureAddress;
 
+	@SuppressWarnings("NullAway.Init")
 	private String beanName;
 
 	private boolean autoStartup = true;
