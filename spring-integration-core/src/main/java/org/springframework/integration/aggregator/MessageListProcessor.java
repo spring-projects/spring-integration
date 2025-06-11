@@ -29,7 +29,6 @@ import org.springframework.messaging.Message;
 @FunctionalInterface
 public interface MessageListProcessor {
 
-	@Nullable
 	Object process(Collection<? extends Message<?>> messages);
 
 }
