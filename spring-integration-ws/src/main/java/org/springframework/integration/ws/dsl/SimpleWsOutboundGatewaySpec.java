@@ -41,8 +41,7 @@ import org.springframework.ws.transport.WebServiceMessageSender;
 public class SimpleWsOutboundGatewaySpec
 		extends BaseWsOutboundGatewaySpec<SimpleWsOutboundGatewaySpec, SimpleWebServiceOutboundGateway> {
 
-	@Nullable
-	protected SourceExtractor<?> sourceExtractor; // NOSONAR
+	protected @Nullable SourceExtractor<?> sourceExtractor; // NOSONAR
 
 	protected SimpleWsOutboundGatewaySpec(WebServiceTemplate template) {
 		this.template = template;

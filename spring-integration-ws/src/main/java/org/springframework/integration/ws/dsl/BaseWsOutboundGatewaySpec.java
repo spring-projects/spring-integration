@@ -26,7 +26,7 @@ import org.springframework.integration.JavaUtils;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.ws.AbstractWebServiceOutboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
-import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
@@ -53,37 +53,27 @@ public abstract class BaseWsOutboundGatewaySpec<
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
-	@Nullable
-	protected WebServiceTemplate template; // NOSONAR
+	protected @Nullable WebServiceTemplate template; // NOSONAR
 
-	@Nullable
-	protected DestinationProvider destinationProvider; // NOSONAR
+	protected @Nullable DestinationProvider destinationProvider; // NOSONAR
 
-	@Nullable
-	protected String uri; // NOSONAR
+	protected @Nullable String uri; // NOSONAR
 
-	@Nullable
-	protected WebServiceMessageFactory webServiceMessageFactory; // NOSONAR
+	protected @Nullable WebServiceMessageFactory webServiceMessageFactory; // NOSONAR
 
-	@Nullable
-	private SoapHeaderMapper headerMapper;
+	private @Nullable SoapHeaderMapper headerMapper;
 
-	@Nullable
-	private EncodingMode encodingMode;
+	private DefaultUriBuilderFactory.@Nullable EncodingMode encodingMode;
 
 	private boolean ignoreEmptyResponses = true;
 
-	@Nullable
-	private WebServiceMessageCallback requestCallback;
+	private @Nullable WebServiceMessageCallback requestCallback;
 
-	@Nullable
-	protected FaultMessageResolver faultMessageResolver; // NOSONAR
+	protected @Nullable FaultMessageResolver faultMessageResolver; // NOSONAR
 
-	@SuppressWarnings("NullAway.Init")
-	protected WebServiceMessageSender[] messageSenders; // NOSONAR
+	protected WebServiceMessageSender @Nullable [] messageSenders; // NOSONAR
 
-	@SuppressWarnings("NullAway.Init")
-	protected ClientInterceptor[] gatewayInterceptors; // NOSONAR
+	protected ClientInterceptor @Nullable [] gatewayInterceptors; // NOSONAR
 
 	protected boolean extractPayload = true; // NOSONAR
 
@@ -129,11 +119,11 @@ public abstract class BaseWsOutboundGatewaySpec<
 	}
 
 	/**
-	 * Specify a {@link EncodingMode} for uri construction.
+	 * Specify a {@link DefaultUriBuilderFactory.EncodingMode} for uri construction.
 	 * @param encodingMode to use for uri construction.
 	 * @return the spec
 	 */
-	public S encodingMode(EncodingMode encodingMode) {
+	public S encodingMode(DefaultUriBuilderFactory.EncodingMode encodingMode) {
 		this.encodingMode = encodingMode;
 		return _this();
 	}
