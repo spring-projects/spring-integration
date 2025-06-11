@@ -1,6 +1,7 @@
 /**
  * Provides Mail Components for the Java DSL.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@NullMarked
 package org.springframework.integration.mail.dsl;
+
+import org.jspecify.annotations.NullMarked;

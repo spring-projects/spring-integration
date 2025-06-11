@@ -40,6 +40,7 @@ import jakarta.mail.Session;
 import jakarta.mail.Store;
 import jakarta.mail.URLName;
 import jakarta.mail.internet.MimeMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.Expression;
@@ -79,7 +80,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 */
 	public static final String DEFAULT_SI_USER_FLAG = "spring-integration-mail-adapter";
 
-	private final URLName url;
+	private final @Nullable URLName url;
 
 	private final ReentrantReadWriteLock folderLock = new ReentrantReadWriteLock();
 
@@ -87,11 +88,11 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private final Lock folderWriteLock = this.folderLock.writeLock();
 
-	private String protocol;
+	private @Nullable String protocol;
 
 	private int maxFetchSize = -1;
 
-	private Session session;
+	private @Nullable Session session;
 
 	private boolean shouldDeleteMessages;
 
@@ -99,13 +100,14 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private Properties javaMailProperties = new Properties();
 
-	private Authenticator javaMailAuthenticator;
+	private @Nullable Authenticator javaMailAuthenticator;
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
-	private Expression selectorExpression;
+	private @Nullable Expression selectorExpression;
 
-	private HeaderMapper<MimeMessage> headerMapper;
+	private @Nullable HeaderMapper<MimeMessage> headerMapper;
 
 	private String userFlag = DEFAULT_SI_USER_FLAG;
 
@@ -117,9 +119,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private boolean flaggedAsFallback = true;
 
-	private volatile Store store;
+	private volatile @Nullable Store store;
 
-	private volatile Folder folder;
+	private volatile @Nullable Folder folder;
 
 	public AbstractMailReceiver() {
 		this.url = null;
@@ -130,7 +132,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.url = urlName;
 	}
 
-	public AbstractMailReceiver(String url) {
+	public AbstractMailReceiver(@Nullable String url) {
 		if (url != null) {
 			this.url = new URLName(url);
 		}
@@ -139,7 +141,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 	}
 
-	public void setSelectorExpression(Expression selectorExpression) {
+	public void setSelectorExpression(@Nullable Expression selectorExpression) {
 		this.selectorExpression = selectorExpression;
 	}
 
@@ -306,7 +308,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.flaggedAsFallback = flaggedAsFallback;
 	}
 
-	protected Folder getFolder() {
+	protected @Nullable Folder getFolder() {
 		return this.folder;
 	}
 
@@ -334,6 +336,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private void connectStoreIfNecessary() throws MessagingException {
 		if (this.store == null) {
+			Assert.state(this.session != null, "'session' should not be null");
 			if (this.url != null) {
 				this.store = this.session.getStore(this.url);
 			}
@@ -345,7 +348,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			}
 		}
 		if (!this.store.isConnected()) {
-			this.logger.debug(() -> "connecting to store [" + this.store.getURLName() + "]");
+			URLName urlName = this.store.getURLName();
+			this.logger.debug(() -> "connecting to store [" + urlName + "]");
 			this.store.connect();
 		}
 	}
@@ -360,7 +364,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			connectStoreIfNecessary();
 		}
 		if (this.folder == null || !this.folder.exists()) {
-			throw new IllegalStateException("no such folder [" + this.url.getFile() + "]");
+			String file = this.url != null ? this.url.getFile() : "";
+			throw new IllegalStateException("no such folder [" + file + "]");
 		}
 		if (this.folder.isOpen()) {
 			return;
@@ -371,6 +376,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private Folder obtainFolderInstance() throws MessagingException {
+		Assert.state(this.store != null, "'store' should not be null");
 		if (this.url == null) {
 			return this.store.getDefaultFolder();
 		}
@@ -422,7 +428,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private MimeMessage[] searchAndFilterMessages() throws MessagingException {
-		this.logger.debug(() -> "attempting to receive mail from folder [" + this.folder.getFullName() + "]");
+		Assert.state(this.folder != null, "'folder' should not be null");
+		String fullName = this.folder.getFullName();
+		this.logger.debug(() -> "attempting to receive mail from folder [" + fullName + "]");
 		Message[] messagesToProcess;
 		Message[] messages = searchForNewMessages();
 		if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
@@ -549,7 +557,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	private void setMessageFlags(Message[] filteredMessages) throws MessagingException {
 		boolean recentFlagSupported = false;
 
-		Flags flags = getFolder().getPermanentFlags();
+		Folder folder = getFolder();
+		Assert.state(folder != null, "'folder' should not be null");
+		Flags flags = folder.getPermanentFlags();
 
 		if (flags != null) {
 			recentFlagSupported = flags.contains(Flags.Flag.RECENT);
@@ -612,6 +622,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		contentsProfile.add(FetchProfile.Item.ENVELOPE);
 		contentsProfile.add(FetchProfile.Item.CONTENT_INFO);
 		contentsProfile.add(FetchProfile.Item.FLAGS);
+		Assert.state(this.folder != null, "'folder' should not be null");
 		this.folder.fetch(messages, contentsProfile);
 	}
 
@@ -641,8 +652,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		try {
 			closeFolder();
 			MailTransportUtils.closeService(this.store);
-			this.folder = null;
-			this.store = null;
+			// this.folder = null;
+			// this.store = null;
 		}
 		finally {
 			this.folderWriteLock.unlock();
@@ -658,10 +669,12 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	@Override
 	public String toString() {
-		return this.url.toString();
+		String urlName = this.store != null && this.store.getURLName() != null
+				? this.store.getURLName().toString() : "";
+		return this.url != null ? this.url.toString() : urlName;
 	}
 
-	Store getStore() {
+	@Nullable Store getStore() {
 		return this.store;
 	}
 
@@ -678,7 +691,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 		private final MimeMessage source;
 
-		private final Object content;
+		private final @Nullable Object content;
 
 		IntegrationMimeMessage(MimeMessage source) throws MessagingException {
 			super(source);
@@ -700,7 +713,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 
 		@Override
-		public Folder getFolder() {
+		public @Nullable Folder getFolder() {
 			if (!AbstractMailReceiver.this.autoCloseFolder) {
 				return AbstractMailReceiver.this.folder;
 			}
@@ -731,7 +744,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 
 		@Override
-		public Object getContent() throws IOException, MessagingException {
+		public @Nullable Object getContent() throws IOException, MessagingException {
 			if (AbstractMailReceiver.this.simpleContent) {
 				return super.getContent();
 			}

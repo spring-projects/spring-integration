@@ -33,6 +33,7 @@ import jakarta.mail.search.FlagTerm;
 import jakarta.mail.search.NotTerm;
 import jakarta.mail.search.SearchTerm;
 import org.eclipse.angus.mail.imap.IMAPFolder;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -67,11 +68,12 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 	private long cancelIdleInterval = DEFAULT_CANCEL_IDLE_INTERVAL;
 
+	@SuppressWarnings("NullAway.Init")
 	private TaskScheduler scheduler;
 
 	private boolean isInternalScheduler;
 
-	private volatile ScheduledFuture<?> pingTask;
+	private volatile @Nullable ScheduledFuture<?> pingTask;
 
 	@SuppressWarnings("this-escape")
 	public ImapMailReceiver() {
@@ -79,7 +81,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	}
 
 	@SuppressWarnings("this-escape")
-	public ImapMailReceiver(String url) {
+	public ImapMailReceiver(@Nullable String url) {
 		super(url);
 		if (url != null) {
 			Assert.isTrue(url.toLowerCase(Locale.ROOT).startsWith(PROTOCOL),
@@ -212,6 +214,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	@Override
 	protected Message[] searchForNewMessages() throws MessagingException {
 		Folder folderToUse = getFolder();
+		Assert.state(folderToUse != null, "'folderToUse' should not be null");
 		Flags supportedFlags = folderToUse.getPermanentFlags();
 		SearchTerm searchTerm = compileSearchTerms(supportedFlags);
 		if (folderToUse.isOpen()) {
@@ -238,8 +241,10 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 	}
 
-	private SearchTerm compileSearchTerms(Flags supportedFlags) {
-		return this.searchTermStrategy.generateSearchTerm(supportedFlags, this.getFolder());
+	private @Nullable SearchTerm compileSearchTerms(Flags supportedFlags) {
+		Folder folderToUse = this.getFolder();
+		Assert.state(folderToUse != null, "'folderToUse' should not be null");
+		return this.searchTermStrategy.generateSearchTerm(supportedFlags, folderToUse);
 	}
 
 	@Override
@@ -277,7 +282,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 
 		@Override
-		public SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder) {
+		public @Nullable SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder) {
 			SearchTerm searchTerm = null;
 			boolean recentFlagSupported = false;
 			if (supportedFlags != null) {
@@ -320,7 +325,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			return searchTerm;
 		}
 
-		private SearchTerm applyTermsWhenNoRecentFlag(Folder folder, SearchTerm searchTerm) {
+		private SearchTerm applyTermsWhenNoRecentFlag(Folder folder, @Nullable SearchTerm searchTerm) {
 			NotTerm notFlagged;
 			if (folder.getPermanentFlags().contains(Flag.USER)) {
 				logger.debug(() -> "This email server does not support RECENT flag, but it does support " +

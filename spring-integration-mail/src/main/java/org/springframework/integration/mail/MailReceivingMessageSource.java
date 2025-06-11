@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.mail;
 import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.endpoint.AbstractMessageSource;
@@ -54,7 +56,7 @@ public class MailReceivingMessageSource extends AbstractMessageSource<Object> {
 	}
 
 	@Override
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		try {
 			Object mailMessage = this.mailQueue.poll();
 			if (mailMessage == null) {

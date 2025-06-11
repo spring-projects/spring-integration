@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mail;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Strategy interface for receiving mail {@link jakarta.mail.Message Messages}.
  *
@@ -25,6 +27,6 @@ package org.springframework.integration.mail;
  */
 public interface MailReceiver {
 
-	Object[] receive() throws jakarta.mail.MessagingException;
+	Object @Nullable [] receive() throws jakarta.mail.MessagingException;
 
 }

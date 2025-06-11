@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.mail;
 import jakarta.mail.Flags;
 import jakarta.mail.Folder;
 import jakarta.mail.search.SearchTerm;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Strategy to be used to generate a {@link SearchTerm}.
@@ -38,6 +39,6 @@ public interface SearchTermStrategy {
 	 * @param folder The folder.
 	 * @return The search term.
 	 */
-	SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder);
+	@Nullable SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder);
 
 }

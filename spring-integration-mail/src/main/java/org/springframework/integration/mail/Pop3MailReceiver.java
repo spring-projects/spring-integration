@@ -21,6 +21,7 @@ import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.URLName;
 import jakarta.mail.internet.MimeMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.Assert;
 
@@ -41,7 +42,7 @@ public class Pop3MailReceiver extends AbstractMailReceiver {
 	}
 
 	@SuppressWarnings("this-escape")
-	public Pop3MailReceiver(String url) {
+	public Pop3MailReceiver(@Nullable String url) {
 		super(url);
 		if (url != null) {
 			Assert.isTrue(url.startsWith(PROTOCOL), "url must start with 'pop3'");
@@ -63,6 +64,7 @@ public class Pop3MailReceiver extends AbstractMailReceiver {
 	@Override
 	protected Message[] searchForNewMessages() throws MessagingException {
 		Folder folderToUse = getFolder();
+		Assert.state(folderToUse != null, "'folderToUse' should not be null");
 		int messageCount = folderToUse.getMessageCount();
 		if (messageCount == 0) {
 			return new Message[0];

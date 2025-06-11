@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.mail.transformer;
 
 import java.util.Map;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -41,7 +43,7 @@ import org.springframework.messaging.Message;
  */
 public abstract class AbstractMailMessageTransformer<T> implements Transformer, BeanFactoryAware {
 
-	private BeanFactory beanFactory;
+	private @Nullable BeanFactory beanFactory;
 
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
@@ -71,9 +73,6 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer, 
 		}
 		AbstractIntegrationMessageBuilder<T> builder;
 		builder = doTransform(mailMessage);
-		if (builder == null) {
-			throw new MessageTransformationException(message, "failed to transform mail message");
-		}
 		return builder.copyHeaders(extractHeaderMapFromMailMessage(mailMessage)).build();
 	}
 

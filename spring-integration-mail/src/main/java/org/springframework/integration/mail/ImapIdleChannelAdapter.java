@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import org.aopalliance.aop.Advice;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -35,7 +36,6 @@ import org.springframework.integration.mail.event.MailIntegrationEvent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.IntegrationResourceHolderSynchronization;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -62,18 +62,22 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private final ImapMailReceiver mailReceiver;
 
+	@SuppressWarnings("NullAway.Init")
 	private Executor taskExecutor;
 
-	private TransactionSynchronizationFactory transactionSynchronizationFactory;
+	private @Nullable TransactionSynchronizationFactory transactionSynchronizationFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private ClassLoader classLoader;
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private boolean shouldReconnectAutomatically = true;
 
-	private List<Advice> adviceChain;
+	private @Nullable List<Advice> adviceChain;
 
+	@SuppressWarnings("NullAway.Init")
 	private Consumer<Object> messageSender;
 
 	private long reconnectDelay = DEFAULT_RECONNECT_DELAY; // milliseconds
@@ -252,8 +256,8 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 	}
 
-	@Nullable
-	private static jakarta.mail.MessagingException getJakartaMailMessagingExceptionFromCause(Throwable cause) {
+	private static jakarta.mail.@Nullable MessagingException getJakartaMailMessagingExceptionFromCause(
+			@Nullable Throwable cause) {
 		if (cause == null) {
 			return null;
 		}
