@@ -1,5 +1,5 @@
 /**
  * Contains classes for DSL support.
  */
-@org.springframework.lang.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.ws.dsl;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.springframework.integration.ws.dsl;
 
 import java.util.Arrays;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
-import org.springframework.lang.Nullable;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
@@ -100,6 +101,7 @@ public class SimpleWsOutboundGatewaySpec
 	public static class SimpleWsOutboundGatewayNoTemplateSpec
 			extends BaseWsOutboundGatewaySpec<SimpleWsOutboundGatewayNoTemplateSpec, SimpleWebServiceOutboundGateway> {
 
+		@Nullable
 		protected SourceExtractor<?> sourceExtractor; // NOSONAR
 
 		private boolean extractPayload = true;

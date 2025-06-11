@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@ package org.springframework.integration.ws.dsl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.ws.AbstractWebServiceOutboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
-import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
@@ -51,26 +53,36 @@ public abstract class BaseWsOutboundGatewaySpec<
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
+	@Nullable
 	protected WebServiceTemplate template; // NOSONAR
 
+	@Nullable
 	protected DestinationProvider destinationProvider; // NOSONAR
 
+	@Nullable
 	protected String uri; // NOSONAR
 
+	@Nullable
 	protected WebServiceMessageFactory webServiceMessageFactory; // NOSONAR
 
+	@Nullable
 	private SoapHeaderMapper headerMapper;
 
-	private DefaultUriBuilderFactory.EncodingMode encodingMode;
+	@Nullable
+	private EncodingMode encodingMode;
 
 	private boolean ignoreEmptyResponses = true;
 
+	@Nullable
 	private WebServiceMessageCallback requestCallback;
 
+	@Nullable
 	protected FaultMessageResolver faultMessageResolver; // NOSONAR
 
+	@SuppressWarnings("NullAway.Init")
 	protected WebServiceMessageSender[] messageSenders; // NOSONAR
 
+	@SuppressWarnings("NullAway.Init")
 	protected ClientInterceptor[] gatewayInterceptors; // NOSONAR
 
 	protected boolean extractPayload = true; // NOSONAR
@@ -117,11 +129,11 @@ public abstract class BaseWsOutboundGatewaySpec<
 	}
 
 	/**
-	 * Specify a {@link DefaultUriBuilderFactory.EncodingMode} for uri construction.
+	 * Specify a {@link EncodingMode} for uri construction.
 	 * @param encodingMode to use for uri construction.
 	 * @return the spec
 	 */
-	public S encodingMode(DefaultUriBuilderFactory.EncodingMode encodingMode) {
+	public S encodingMode(EncodingMode encodingMode) {
 		this.encodingMode = encodingMode;
 		return _this();
 	}
