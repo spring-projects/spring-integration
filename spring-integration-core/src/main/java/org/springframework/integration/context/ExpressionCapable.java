@@ -16,7 +16,6 @@
 
 package org.springframework.integration.context;
 
-
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;

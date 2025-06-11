@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2024 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -67,8 +68,10 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 
 	private final MessageGroupProcessor messageGroupProcessor;
 
+	@Nullable
 	private String discardChannelName;
 
+	@Nullable
 	private MessageChannel discardChannel;
 
 	/**
@@ -158,7 +161,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	 * @since 5.4
 	 */
 	public BarrierMessageHandler(long requestTimeout, long triggerTimeout, MessageGroupProcessor outputProcessor,
-			CorrelationStrategy correlationStrategy) {
+			@Nullable CorrelationStrategy correlationStrategy) {
 
 		Assert.notNull(outputProcessor, "'messageGroupProcessor' cannot be null");
 		this.messageGroupProcessor = outputProcessor;
@@ -217,6 +220,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
+	@Nullable
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Object key = this.correlationStrategy.getCorrelationKey(requestMessage);
 		if (key == null) {
@@ -246,6 +250,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 		return null;
 	}
 
+	@Nullable
 	private Object processRelease(Object key, Message<?> requestMessage, Message<?> releaseMessage) {
 		this.suspensions.remove(key);
 		if (releaseMessage.getPayload() instanceof Throwable) {
@@ -265,6 +270,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	 * @param releaseMessage the release message.
 	 * @return the result.
 	 */
+	@Nullable
 	protected Object buildResult(Object key, Message<?> requestMessage, Message<?> releaseMessage) {
 		SimpleMessageGroup group = new SimpleMessageGroup(key);
 		group.add(requestMessage);
