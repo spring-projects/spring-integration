@@ -18,6 +18,8 @@ package org.springframework.integration.aggregator;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
@@ -37,6 +39,7 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 
 	private final Expression expression;
 
+	@Nullable
 	private volatile Class<?> expectedType = null;
 
 	/**
@@ -101,6 +104,7 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 	 * evaluation result Object will be returned.
 	 */
 	@Override
+	@Nullable
 	public Object process(Collection<? extends Message<?>> messages) {
 		return this.evaluateExpression(this.expression, messages, this.expectedType);
 	}

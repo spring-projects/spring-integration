@@ -54,7 +54,7 @@ public class MethodInvokingReleaseStrategy implements ReleaseStrategy, BeanFacto
 
 	@Override
 	public boolean canRelease(MessageGroup messages) {
-		return this.adapter.process(messages.getMessages(), null);
+		return Boolean.TRUE.equals(this.adapter.process(messages.getMessages(), null));
 	}
 
 	@Override

@@ -141,8 +141,8 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	/**
 	 * Subclasses may implement this method to provide component type information.
 	 */
-	@Nullable
 	@Override
+	@Nullable
 	public String getComponentType() {
 		return null;
 	}
@@ -152,8 +152,8 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 		this.beanSource = source;
 	}
 
-	@Nullable
 	@Override
+	@Nullable
 	public Object getComponentSource() {
 		return this.beanSource;
 	}
@@ -163,8 +163,8 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 		this.beanDescription = description;
 	}
 
-	@Nullable
 	@Override
+	@Nullable
 	public String getComponentDescription() {
 		return this.beanDescription;
 	}
@@ -223,8 +223,8 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 		this.expression = expression;
 	}
 
-	@SuppressWarnings("NullAway.Init")
 	@Override
+	@SuppressWarnings("NullAway.Init")
 	public final void afterPropertiesSet() {
 		this.integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 		if (this.messageBuilderFactory == null) {

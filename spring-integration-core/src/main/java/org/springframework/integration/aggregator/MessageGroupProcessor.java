@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.store.MessageGroup;
 
 /**
@@ -37,6 +39,7 @@ public interface MessageGroupProcessor {
 	 * @param group The message group.
 	 * @return The result of processing the group.
 	 */
+	@Nullable
 	Object processMessageGroup(MessageGroup group);
 
 }

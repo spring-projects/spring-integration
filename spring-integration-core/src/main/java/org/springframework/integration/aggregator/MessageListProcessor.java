@@ -18,6 +18,8 @@ package org.springframework.integration.aggregator;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 
 /**
@@ -27,6 +29,7 @@ import org.springframework.messaging.Message;
 @FunctionalInterface
 public interface MessageListProcessor {
 
+	@Nullable
 	Object process(Collection<? extends Message<?>> messages);
 
 }

@@ -68,8 +68,10 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 
 	private final MessageGroupProcessor messageGroupProcessor;
 
+	@Nullable
 	private String discardChannelName;
 
+	@Nullable
 	private MessageChannel discardChannel;
 
 	/**
@@ -159,7 +161,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	 * @since 5.4
 	 */
 	public BarrierMessageHandler(long requestTimeout, long triggerTimeout, MessageGroupProcessor outputProcessor,
-			CorrelationStrategy correlationStrategy) {
+			@Nullable CorrelationStrategy correlationStrategy) {
 
 		Assert.notNull(outputProcessor, "'messageGroupProcessor' cannot be null");
 		this.messageGroupProcessor = outputProcessor;
@@ -218,6 +220,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
+	@Nullable
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Object key = this.correlationStrategy.getCorrelationKey(requestMessage);
 		if (key == null) {
@@ -247,6 +250,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 		return null;
 	}
 
+	@Nullable
 	private Object processRelease(Object key, Message<?> requestMessage, Message<?> releaseMessage) {
 		this.suspensions.remove(key);
 		if (releaseMessage.getPayload() instanceof Throwable) {
@@ -266,6 +270,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	 * @param releaseMessage the release message.
 	 * @return the result.
 	 */
+	@Nullable
 	protected Object buildResult(Object key, Message<?> requestMessage, Message<?> releaseMessage) {
 		SimpleMessageGroup group = new SimpleMessageGroup(key);
 		group.add(requestMessage);

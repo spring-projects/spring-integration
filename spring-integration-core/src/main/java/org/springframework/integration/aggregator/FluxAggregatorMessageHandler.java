@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -62,18 +64,24 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	private CorrelationStrategy correlationStrategy =
 			new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 
+	@Nullable
 	private Predicate<Message<?>> boundaryTrigger;
 
-	private Function<Message<?>, Integer> windowSizeFunction = FluxAggregatorMessageHandler::sequenceSizeHeader;
+	@Nullable
+	public Function<Message<?>, Integer> windowSizeFunction = FluxAggregatorMessageHandler::sequenceSizeHeader;
 
+	@Nullable
 	private Function<Flux<Message<?>>, Flux<Flux<Message<?>>>> windowConfigurer;
 
+	@Nullable
 	private Duration windowTimespan;
 
 	private Function<Flux<Message<?>>, Mono<Message<?>>> combineFunction = this::messageForWindowFlux;
 
+	@SuppressWarnings("NullAway.Init")
 	private FluxSink<Message<?>> sink;
 
+	@Nullable
 	private volatile Disposable subscription;
 
 	/**
@@ -90,7 +98,9 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	}
 
 	private Object groupBy(Message<?> message) {
-		return this.correlationStrategy.getCorrelationKey(message);
+		Object result = this.correlationStrategy.getCorrelationKey(message);
+		Assert.notNull(result, "Correlation key cannot be null");
+		return result;
 	}
 
 	private Flux<Message<?>> releaseBy(Flux<Message<?>> groupFlux) {
@@ -99,6 +109,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 				.flatMap((windowFlux) -> windowFlux.transform(this.combineFunction));
 	}
 
+	@NullUnmarked
 	private Flux<Flux<Message<?>>> applyWindowOptions(Flux<Message<?>> groupFlux) {
 		if (this.boundaryTrigger != null) {
 			return groupFlux.windowUntil(this.boundaryTrigger);
@@ -106,6 +117,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 		return groupFlux
 				.switchOnFirst((signal, group) -> {
 					if (signal.hasValue()) {
+						Assert.notNull(this.windowSizeFunction, "'windowSizeFunction' must not be null");
 						Integer maxSize = this.windowSizeFunction.apply(signal.get());
 						if (maxSize != null) {
 							if (this.windowTimespan != null) {
@@ -277,6 +289,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 								.build());
 	}
 
+	@NullUnmarked
 	private static Integer sequenceSizeHeader(Message<?> message) {
 		return message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class);
 	}

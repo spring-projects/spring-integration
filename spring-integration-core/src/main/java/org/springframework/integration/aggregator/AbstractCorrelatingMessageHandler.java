@@ -65,6 +65,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -125,8 +126,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private boolean releaseStrategySet;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageChannel discardChannel;
 
+	@Nullable
 	private String discardChannelName;
 
 	private boolean sendPartialResultOnExpiry;
@@ -143,18 +146,23 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private boolean releasePartialSequences;
 
+	@Nullable
 	private Expression groupTimeoutExpression;
 
+	@Nullable
 	private List<Advice> forceReleaseAdviceChain;
 
 	private long expireTimeout;
 
+	@Nullable
 	private Duration expireDuration;
 
 	private MessageGroupProcessor forceReleaseProcessor = new ForceReleaseMessageGroupProcessor();
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
+	@Nullable
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private boolean expireGroupsUponTimeout = true;
@@ -165,10 +173,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private volatile boolean running;
 
+	@Nullable
 	private BiFunction<Message<?>, String, String> groupConditionSupplier;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
-			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
+			@Nullable CorrelationStrategy correlationStrategy, @Nullable ReleaseStrategy releaseStrategy) {
 
 		Assert.notNull(processor, "'processor' must not be null");
 		Assert.notNull(store, "'store' must not be null");
@@ -504,6 +513,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		return this.discardChannel;
 	}
 
+	@Nullable
 	protected String getDiscardChannelName() {
 		return this.discardChannelName;
 	}
@@ -532,6 +542,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		return this.releasePartialSequences;
 	}
 
+	@Nullable
 	protected Expression getGroupTimeoutExpression() {
 		return this.groupTimeoutExpression;
 	}
@@ -641,8 +652,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	private void removeEmptyGroupAfterTimeout(UUID groupId, long timeout) {
+		TaskScheduler taskScheduler = getTaskScheduler();
+		Assert.notNull(taskScheduler, "'taskScheduler' must not be null");
 		ScheduledFuture<?> scheduledFuture =
-				getTaskScheduler()
+				taskScheduler
 						.schedule(() -> {
 							Lock lock = this.lockRegistry.obtain(groupId.toString());
 
@@ -699,8 +712,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				Object groupId = messageGroup.getGroupId();
 				long timestamp = messageGroup.getTimestamp();
 				long lastModified = messageGroup.getLastModified();
+				TaskScheduler taskScheduler = getTaskScheduler();
+				Assert.notNull(taskScheduler, "'taskScheduler' must not be null");
 				ScheduledFuture<?> scheduledFuture =
-						getTaskScheduler()
+						taskScheduler
 								.schedule(() -> {
 									try {
 										processForceRelease(groupId, timestamp, lastModified);
@@ -753,7 +768,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	 * @param group The group.
 	 * @param completedMessages The completed messages.
 	 */
-	protected abstract void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages);
+	protected abstract void afterRelease(MessageGroup group, @Nullable Collection<Message<?>> completedMessages);
 
 	/**
 	 * Subclasses may override if special action is needed because the group was released or discarded
@@ -912,14 +927,12 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	protected void completeGroup(Object correlationKey, MessageGroup group, Lock lock) {
-		Message<?> first = null;
-		if (group != null) {
-			first = group.getOne();
-		}
+		Message<?> first = group.getOne();
 		completeGroup(first, correlationKey, group, lock);
 	}
 
 	@SuppressWarnings("unchecked")
+	@Nullable
 	protected Collection<Message<?>> completeGroup(Message<?> message, Object correlationKey, MessageGroup group,
 			Lock lock) {
 
@@ -929,6 +942,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			this.logger.debug(() -> "Completing group with correlationKey [" + correlationKey + "]");
 
 			result = this.outputProcessor.processMessageGroup(group);
+			Assert.notNull(result, "the group returned a null result");
 			if (isResultCollectionOfMessages(result)) {
 				partialSequence = (Collection<Message<?>>) result;
 			}
@@ -976,6 +990,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		return false;
 	}
 
+	@Nullable
 	protected Object obtainGroupTimeout(MessageGroup group) {
 		if (this.groupTimeoutExpression != null) {
 			Object timeout = this.groupTimeoutExpression.getValue(this.evaluationContext, group);
@@ -1012,7 +1027,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (this.expireTimeout > 0) {
 				purgeOrphanedGroups();
 				if (this.expireDuration != null) {
-					getTaskScheduler()
+					TaskScheduler taskScheduler = getTaskScheduler();
+					Assert.notNull(taskScheduler, "'taskScheduler' must not be null");
+					taskScheduler
 							.scheduleWithFixedDelay(this::purgeOrphanedGroups, this.expireDuration);
 				}
 			}
@@ -1050,6 +1067,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	protected static class SequenceAwareMessageGroup extends SimpleMessageGroup {
 
+		@Nullable
 		private final SimpleMessageGroup sourceGroup;
 
 		public SequenceAwareMessageGroup(MessageGroup messageGroup) {
@@ -1112,6 +1130,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 
 		@Override
+		@Nullable
 		public Object processMessageGroup(MessageGroup group) {
 			forceComplete(group);
 			return null;
