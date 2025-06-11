@@ -104,9 +104,10 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 	 * evaluation result Object will be returned.
 	 */
 	@Override
-	@Nullable
 	public Object process(Collection<? extends Message<?>> messages) {
-		return this.evaluateExpression(this.expression, messages, this.expectedType);
+		Object object = this.evaluateExpression(this.expression, messages, this.expectedType);
+		Assert.state(object != null, "Failed to evaluate expression: " + this.expression);
+		return object;
 	}
 
 }

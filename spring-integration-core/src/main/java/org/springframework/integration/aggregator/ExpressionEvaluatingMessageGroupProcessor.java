@@ -18,11 +18,10 @@ package org.springframework.integration.aggregator;
 
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.util.Assert;
 
 /**
  * A {@link MessageGroupProcessor} implementation that evaluates a SpEL expression. The SpEL context root is the list of
@@ -60,9 +59,10 @@ public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregati
 	 * {@link org.springframework.integration.core.MessagingTemplate} to send downstream.
 	 */
 	@Override
-	@Nullable
 	protected Object aggregatePayloads(MessageGroup group, Map<String, Object> headers) {
-		return this.processor.process(group.getMessages());
+		Object object = this.processor.process(group.getMessages());
+		Assert.notNull(object, "Result from processor must not be null");
+		return object;
 	}
 
 }
