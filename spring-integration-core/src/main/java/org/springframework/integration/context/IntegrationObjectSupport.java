@@ -280,11 +280,11 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 		this.taskScheduler = taskScheduler;
 	}
 
-	@Nullable
 	protected TaskScheduler getTaskScheduler() {
 		if (this.taskScheduler == null && this.beanFactory != null) {
 			this.taskScheduler = IntegrationContextUtils.getTaskScheduler(this.beanFactory);
 		}
+		Assert.notNull(this.taskScheduler, "'taskScheduler' must not be null");
 		return this.taskScheduler;
 	}
 

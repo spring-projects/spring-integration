@@ -21,7 +21,6 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -118,7 +117,6 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 		return getHeadersFunction().apply(group);
 	}
 
-	@Nullable
 	protected abstract Object aggregatePayloads(MessageGroup group, Map<String, Object> defaultHeaders);
 
 }

@@ -140,9 +140,10 @@ public abstract class IntegrationContextUtils {
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link TaskScheduler} bean whose name is "taskScheduler" if available.
 	 */
-	@Nullable
 	public static TaskScheduler getTaskScheduler(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class);
+		TaskScheduler taskScheduler  = getBeanOfType(beanFactory, TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class);
+		Assert.state(taskScheduler != null, "No such bean '" + TASK_SCHEDULER_BEAN_NAME + "'");
+		return taskScheduler;
 	}
 
 	/**

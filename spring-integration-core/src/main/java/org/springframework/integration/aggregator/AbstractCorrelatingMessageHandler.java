@@ -65,7 +65,6 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -652,10 +651,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	private void removeEmptyGroupAfterTimeout(UUID groupId, long timeout) {
-		TaskScheduler taskScheduler = getTaskScheduler();
-		Assert.notNull(taskScheduler, "'taskScheduler' must not be null");
 		ScheduledFuture<?> scheduledFuture =
-				taskScheduler
+				getTaskScheduler()
 						.schedule(() -> {
 							Lock lock = this.lockRegistry.obtain(groupId.toString());
 
@@ -712,10 +709,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				Object groupId = messageGroup.getGroupId();
 				long timestamp = messageGroup.getTimestamp();
 				long lastModified = messageGroup.getLastModified();
-				TaskScheduler taskScheduler = getTaskScheduler();
-				Assert.notNull(taskScheduler, "'taskScheduler' must not be null");
 				ScheduledFuture<?> scheduledFuture =
-						taskScheduler
+						getTaskScheduler()
 								.schedule(() -> {
 									try {
 										processForceRelease(groupId, timestamp, lastModified);
@@ -1027,9 +1022,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (this.expireTimeout > 0) {
 				purgeOrphanedGroups();
 				if (this.expireDuration != null) {
-					TaskScheduler taskScheduler = getTaskScheduler();
-					Assert.notNull(taskScheduler, "'taskScheduler' must not be null");
-					taskScheduler
+					getTaskScheduler()
 							.scheduleWithFixedDelay(this::purgeOrphanedGroups, this.expireDuration);
 				}
 			}
