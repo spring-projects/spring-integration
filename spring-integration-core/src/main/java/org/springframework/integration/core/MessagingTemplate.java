@@ -120,6 +120,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 			return null;
 		}
 	}
+
 	@Nullable
 	public Message<?> receive(MessageChannel destination, long timeout) {
 		return doReceive(destination, timeout);

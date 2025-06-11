@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.aggregator;
 
 import java.util.Collection;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
@@ -37,6 +39,7 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 
 	private final Expression expression;
 
+	@Nullable
 	private volatile Class<?> expectedType = null;
 
 	/**
@@ -101,6 +104,7 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 	 * evaluation result Object will be returned.
 	 */
 	@Override
+	@Nullable
 	public Object process(Collection<? extends Message<?>> messages) {
 		return this.evaluateExpression(this.expression, messages, this.expectedType);
 	}

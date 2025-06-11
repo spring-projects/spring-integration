@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.aggregator;
 
 import java.util.Collection;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.store.MessageGroup;
@@ -78,7 +80,7 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 	}
 
 	@Override
-	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
+	protected void afterRelease(MessageGroup messageGroup, @Nullable Collection<Message<?>> completedMessages) {
 		afterRelease(messageGroup, completedMessages, false);
 	}
 
@@ -90,7 +92,7 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 	 * @param timeout True if the release/discard was due to a timeout.
 	 */
 	@Override
-	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages, boolean timeout) {
+	protected void afterRelease(MessageGroup messageGroup, @Nullable Collection<Message<?>> completedMessages, boolean timeout) {
 		int size = messageGroup.size();
 		int sequenceSize = messageGroup.getSequenceSize();
 
