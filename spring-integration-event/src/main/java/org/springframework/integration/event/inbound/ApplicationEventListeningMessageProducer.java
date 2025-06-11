@@ -19,6 +19,8 @@ package org.springframework.integration.event.inbound;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.context.event.ApplicationEventMulticaster;
@@ -49,9 +51,9 @@ import org.springframework.util.Assert;
 public class ApplicationEventListeningMessageProducer extends ExpressionMessageProducerSupport
 		implements GenericApplicationListener {
 
-	private ApplicationEventMulticaster applicationEventMulticaster;
+	private @Nullable ApplicationEventMulticaster applicationEventMulticaster;
 
-	private volatile Set<ResolvableType> eventTypes;
+	private volatile @Nullable Set<ResolvableType> eventTypes;
 
 	private volatile long stoppedAt;
 
@@ -74,7 +76,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * @see ApplicationEventMulticaster#addApplicationListener
 	 * @see #supportsEventType
 	 */
-	public final void setEventTypes(Class<?>... eventTypes) {
+	public final void setEventTypes(@Nullable Class<?>... eventTypes) {
 		Assert.notNull(eventTypes, "'eventTypes' must not be null");
 		Set<ResolvableType> eventSet = new HashSet<>(eventTypes.length);
 		for (Class<?> eventType : eventTypes) {
@@ -146,11 +148,12 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 	@Override
 	public boolean supportsEventType(ResolvableType eventType) {
-		if (this.eventTypes == null) {
+		Set<ResolvableType> eventTypesToCheck = this.eventTypes;
+		if (eventTypesToCheck == null) {
 			return true;
 		}
 
-		for (ResolvableType type : this.eventTypes) {
+		for (ResolvableType type : eventTypesToCheck) {
 			if (type.isAssignableFrom(eventType)) {
 				return true;
 			}
@@ -163,7 +166,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 			}
 
 			ResolvableType payloadType = eventType.as(PayloadApplicationEvent.class).getGeneric();
-			for (ResolvableType type : this.eventTypes) {
+			for (ResolvableType type : eventTypesToCheck) {
 				if (type.isAssignableFrom(payloadType)) {
 					return true;
 				}

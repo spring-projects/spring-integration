@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
 public class ApplicationEventPublishingMessageHandler extends AbstractMessageHandler
 		implements ApplicationEventPublisherAware {
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private boolean publishPayload;
