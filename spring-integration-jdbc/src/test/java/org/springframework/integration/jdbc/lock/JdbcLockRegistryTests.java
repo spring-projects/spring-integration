@@ -146,7 +146,7 @@ class JdbcLockRegistryTests {
 		long sleepTimeLongerThanDefaultTTL = 110;
 		for (int i = 0; i < 10; i++) {
 			DistributedLock lock = lockRegistry.obtain("foo");
-			lock.tryLock(100, TimeUnit.MILLISECONDS, Duration.ofMillis(200));
+			lock.tryLock(Duration.ofMillis(100), Duration.ofMillis(200));
 			try {
 				assertThat(TestUtils.getPropertyValue(lockRegistry, "locks", Map.class)).hasSize(1);
 				Thread.sleep(sleepTimeLongerThanDefaultTTL);
@@ -388,7 +388,7 @@ class JdbcLockRegistryTests {
 		final DistributedLock lock = this.registry.obtain("foo");
 		final Lock lockOfAnotherProcess = registryOfAnotherProcess.obtain("foo");
 
-		assertThat(lock.tryLock(100, TimeUnit.MILLISECONDS, Duration.ofMillis(100))).isTrue();
+		assertThat(lock.tryLock(Duration.ofMillis(100), Duration.ofMillis(100))).isTrue();
 		try {
 			registry.renewLock("foo", Duration.ofSeconds(2));
 			Thread.sleep(110);

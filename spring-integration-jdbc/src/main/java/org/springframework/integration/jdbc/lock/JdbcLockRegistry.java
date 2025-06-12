@@ -88,6 +88,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 
 	/**
 	 * Default value for the time-to-live property.
+	 * @since 7.0
 	 */
 	public static final Duration DEFAULT_TTL = Duration.ofSeconds(10);
 
@@ -102,6 +103,12 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		this.ttl = DEFAULT_TTL;
 	}
 
+	/**
+	 * Create a lock registry with the supplied lock expiration.
+	 * @param client the {@link LockRepository} to rely on.
+	 * @param expireAfter The expiration in {@link Duration}.
+	 * @since 7.0
+	 */
 	public JdbcLockRegistry(LockRepository client, Duration expireAfter) {
 		this.client = client;
 		this.ttl = expireAfter;
@@ -290,16 +297,16 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 
 		@Override
 		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-			return tryLock(time, unit, JdbcLockRegistry.this.ttl);
+			return tryLock(Duration.of(time, unit.toChronoUnit()), JdbcLockRegistry.this.ttl);
 		}
 
 		@Override
-		public boolean tryLock(long time, TimeUnit unit, Duration ttl) throws InterruptedException {
+		public boolean tryLock(Duration waitTime, Duration ttl) throws InterruptedException {
 			long now = System.currentTimeMillis();
-			if (!this.delegate.tryLock(time, unit)) {
+			if (!this.delegate.tryLock(waitTime.toMillis(), TimeUnit.MILLISECONDS)) {
 				return false;
 			}
-			long expire = now + TimeUnit.MILLISECONDS.convert(time, unit);
+			long expire = now + waitTime.toMillis();
 			boolean acquired;
 			while (true) {
 				try {
@@ -388,6 +395,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		 * @param ttl the new time-to-live value for the lock status data
 		 * @return {@code true} if the lock's time-to-live was successfully renewed;
 		 *         {@code false} if the time-to-live could not be renewed
+		 * @since 7.0
 		 */
 		public boolean renew(Duration ttl) {
 			if (!this.delegate.isHeldByCurrentThread()) {

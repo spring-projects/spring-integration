@@ -151,7 +151,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		registry.setRedisLockType(testRedisLockType);
 		for (int i = 0; i < 3; i++) {
 			DistributedLock lock = registry.obtain("foo");
-			lock.tryLock(100, TimeUnit.MILLISECONDS, Duration.ofMillis(500));
+			lock.tryLock(Duration.ofMillis(100), Duration.ofMillis(500));
 			try {
 				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
 				Thread.sleep(sleepTimeLongerThanDefaultTTL);
@@ -999,7 +999,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		final Lock lockOfAnotherProcess = registryOfAnotherProcess.obtain("foo");
 		long ttl = 100;
 		long sleepTimeLongerThanTtl = 110;
-		assertThat(lock.tryLock(100, TimeUnit.MILLISECONDS, Duration.ofMillis(ttl))).isTrue();
+		assertThat(lock.tryLock(Duration.ofMillis(100), Duration.ofMillis(ttl))).isTrue();
 		try {
 			registry.renewLock("foo", Duration.ofSeconds(2));
 			Thread.sleep(sleepTimeLongerThanTtl);

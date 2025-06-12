@@ -170,7 +170,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 	private volatile RedisMessageListenerContainer redisMessageListenerContainer;
 
 	/**
-	 * Constructs a lock registry with the default (60 second) lock expiration.
+	 * Create a lock registry with the default (60 second) lock expiration.
 	 * @param connectionFactory The connection factory.
 	 * @param registryKey The key prefix for locks.
 	 */
@@ -179,7 +179,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 	}
 
 	/**
-	 * Constructs a lock registry with the supplied lock expiration.
+	 * Create a lock registry with the supplied lock expiration.
 	 * @param connectionFactory The connection factory.
 	 * @param registryKey The key prefix for locks.
 	 * @param expireAfter The expiration in milliseconds.
@@ -189,10 +189,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 	}
 
 	/**
-	 * Constructs a lock registry with the supplied lock expiration.
+	 * Create a lock registry with the supplied lock expiration.
 	 * @param connectionFactory The connection factory.
 	 * @param registryKey The key prefix for locks.
 	 * @param expireAfter The expiration in {@link Duration}.
+	 * @since 7.0
 	 */
 	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey, Duration expireAfter) {
 		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
@@ -500,17 +501,16 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 
 		@Override
 		public final boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-			return this.tryLock(time, unit, RedisLockRegistry.this.expireAfter);
+			return this.tryLock(Duration.of(time, unit.toChronoUnit()), RedisLockRegistry.this.expireAfter);
 		}
 
 		@Override
-		public boolean tryLock(long time, TimeUnit unit, Duration ttl) throws InterruptedException {
-			if (!this.localLock.tryLock(time, unit)) {
+		public boolean tryLock(Duration waitTime, Duration ttl) throws InterruptedException {
+			if (!this.localLock.tryLock(waitTime.toMillis(), TimeUnit.MILLISECONDS)) {
 				return false;
 			}
 			try {
-				long waitTime = TimeUnit.MILLISECONDS.convert(time, unit);
-				boolean acquired = tryRedisLock(waitTime, ttl.toMillis());
+				boolean acquired = tryRedisLock(waitTime.toMillis(), ttl.toMillis());
 				if (!acquired) {
 					this.localLock.unlock();
 				}

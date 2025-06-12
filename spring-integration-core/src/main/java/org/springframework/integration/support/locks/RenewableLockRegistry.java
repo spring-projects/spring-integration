@@ -29,6 +29,7 @@ import org.springframework.scheduling.TaskScheduler;
  * @author Alexandre Strubel
  * @author Artem Bilan
  * @author Youbin Wu
+ * @author Eddie Cho
  *
  * @since 5.4
  */
@@ -46,7 +47,7 @@ public interface RenewableLockRegistry<L extends Lock> extends LockRegistry<L> {
 	 * The lock must be held by the current thread
 	 * @param lockKey The object with which the lock is associated.
 	 * @param ttl the specific time-to-live for the lock status data
-	 *
+	 * @since 7.0
 	 */
 	void renewLock(Object lockKey, Duration ttl);
 
