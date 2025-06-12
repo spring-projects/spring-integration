@@ -111,6 +111,7 @@ import static org.mockito.Mockito.when;
  * @author Alexander Pinske
  * @author Dominik Simmen
  * @author Filip Hrisafov
+ * @author Jiandong Ma
  */
 @SpringJUnitConfig
 @ContextConfiguration(
@@ -334,7 +335,7 @@ public class ImapMailReceiverTests {
 
 		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages, folder);
 		if (receive) {
 			receiver.receive();
 		}
@@ -443,7 +444,7 @@ public class ImapMailReceiverTests {
 
 		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages, folder);
 		receiver.receive();
 
 		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
@@ -474,7 +475,7 @@ public class ImapMailReceiverTests {
 
 		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages, folder);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 		assertThat(msg1.getFlags().contains(Flag.SEEN)).isFalse();
@@ -511,7 +512,7 @@ public class ImapMailReceiverTests {
 
 		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages, folder);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 
@@ -549,7 +550,7 @@ public class ImapMailReceiverTests {
 
 		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages, folder);
 		receiver.receive();
 		assertThat(msg1.getFlags().contains(Flag.SEEN)).isTrue();
 		assertThat(msg2.getFlags().contains(Flag.SEEN)).isTrue();
@@ -580,12 +581,12 @@ public class ImapMailReceiverTests {
 		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
 			accessor.setPropertyValue("folder", folder);
-			return null;
+			return folder;
 		}).given(receiver).openFolder();
 
 		willAnswer(invocation -> messages).given(folder).search(any(SearchTerm.class));
 
-		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages, folder);
 
 		PollableChannel channel = this.context.getBean("channel", PollableChannel.class);
 
@@ -926,7 +927,7 @@ public class ImapMailReceiverTests {
 
 			@Override
 			public Message[] receive() throws MessagingException {
-				Message[] messages = searchForNewMessages();
+				Message[] messages = searchForNewMessages(getFolder());
 				this.firstDone = true;
 				return messages;
 			}

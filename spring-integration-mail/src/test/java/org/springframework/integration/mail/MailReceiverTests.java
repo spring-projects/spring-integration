@@ -50,7 +50,7 @@ public class MailReceiverTests {
 		AbstractMailReceiver receiver = new AbstractMailReceiver() {
 
 			@Override
-			protected Message[] searchForNewMessages() {
+			protected Message[] searchForNewMessages(Folder folder) {
 				return new Message[0];
 			}
 

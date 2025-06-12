@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  *
  * @author Arjen Poutsma
  * @author Mark Fisher
+ * @author Jiandong Ma
  */
 public class Pop3MailReceiver extends AbstractMailReceiver {
 
@@ -61,13 +62,12 @@ public class Pop3MailReceiver extends AbstractMailReceiver {
 	}
 
 	@Override
-	protected Message[] searchForNewMessages() throws MessagingException {
-		Folder folderToUse = getFolder();
-		int messageCount = folderToUse.getMessageCount();
+	protected Message[] searchForNewMessages(Folder folder) throws MessagingException {
+		int messageCount = folder.getMessageCount();
 		if (messageCount == 0) {
 			return new Message[0];
 		}
-		return folderToUse.getMessages();
+		return folder.getMessages();
 	}
 
 	/**

@@ -316,65 +316,78 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	/**
 	 * Subclasses must implement this method to return new mail messages.
+	 * @param folder the folder for fetching mail messages.
 	 * @return An array of messages.
 	 * @throws MessagingException Any MessagingException.
 	 */
-	protected abstract Message[] searchForNewMessages() throws MessagingException;
+	protected abstract Message[] searchForNewMessages(Folder folder) throws MessagingException;
 
-	private void openSession() {
-		if (this.session == null) {
+	private Session openSession() {
+		Session sessionToUse = this.session;
+		if (sessionToUse == null) {
 			if (this.javaMailAuthenticator != null) {
-				this.session = Session.getInstance(this.javaMailProperties, this.javaMailAuthenticator);
+				sessionToUse = Session.getInstance(this.javaMailProperties, this.javaMailAuthenticator);
 			}
 			else {
-				this.session = Session.getInstance(this.javaMailProperties);
+				sessionToUse = Session.getInstance(this.javaMailProperties);
 			}
 		}
+		this.session = sessionToUse;
+		return sessionToUse;
 	}
 
-	private void connectStoreIfNecessary() throws MessagingException {
-		if (this.store == null) {
+	private Store connectStoreIfNecessary(Session session) throws MessagingException {
+		Store storeToUse = this.store;
+		if (storeToUse == null) {
 			if (this.url != null) {
-				this.store = this.session.getStore(this.url);
+				storeToUse = session.getStore(this.url);
 			}
 			else if (this.protocol != null) {
-				this.store = this.session.getStore(this.protocol);
+				storeToUse = session.getStore(this.protocol);
 			}
 			else {
-				this.store = this.session.getStore();
+				storeToUse = session.getStore();
 			}
 		}
-		if (!this.store.isConnected()) {
-			this.logger.debug(() -> "connecting to store [" + this.store.getURLName() + "]");
-			this.store.connect();
+		if (!storeToUse.isConnected()) {
+			URLName urlName = storeToUse.getURLName();
+			this.logger.debug(() -> "connecting to store [" + urlName + "]");
+			storeToUse.connect();
 		}
+		this.store = storeToUse;
+		return storeToUse;
 	}
 
-	protected void openFolder() throws MessagingException {
-		if (this.folder == null) {
-			openSession();
-			connectStoreIfNecessary();
-			this.folder = obtainFolderInstance();
+	protected Folder openFolder() throws MessagingException {
+		Folder folderToUse = this.folder;
+		if (folderToUse == null) {
+			Session session = openSession();
+			Store storeToUse = connectStoreIfNecessary(session);
+			folderToUse = obtainFolderInstance(storeToUse);
 		}
 		else {
-			connectStoreIfNecessary();
+			connectStoreIfNecessary(this.session);
 		}
-		if (this.folder == null || !this.folder.exists()) {
-			throw new IllegalStateException("no such folder [" + this.url.getFile() + "]");
+		if (folderToUse == null || !folderToUse.exists()) {
+			String file = this.url != null ? this.url.getFile() : "";
+			throw new IllegalStateException("no such folder [" + file + "]");
 		}
-		if (this.folder.isOpen()) {
-			return;
+		if (folderToUse.isOpen()) {
+			this.folder = folderToUse;
+			return folderToUse;
 		}
-		URLName urlName = this.folder.getURLName();
+		URLName urlName = folderToUse.getURLName();
 		this.logger.debug(() -> "opening folder [" + urlName + "]");
-		this.folder.open(this.folderOpenMode);
+		folderToUse.open(this.folderOpenMode);
+		this.folder = folderToUse;
+		return folderToUse;
 	}
 
-	private Folder obtainFolderInstance() throws MessagingException {
+	private Folder obtainFolderInstance(Store store) throws MessagingException {
 		if (this.url == null) {
-			return this.store.getDefaultFolder();
+			return store.getDefaultFolder();
 		}
-		return this.store.getFolder(this.url);
+		return store.getFolder(this.url);
 	}
 
 	@Override
@@ -388,14 +401,14 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					this.folderReadLock.unlock();
 					this.folderWriteLock.lock();
 					try {
-						openFolder();
+						folderToCheck = openFolder();
 						this.folderReadLock.lock();
 					}
 					finally {
 						this.folderWriteLock.unlock();
 					}
 				}
-				messagesToReturn = convertMessagesIfNecessary(searchAndFilterMessages());
+				messagesToReturn = convertMessagesIfNecessary(searchAndFilterMessages(folderToCheck));
 				return messagesToReturn;
 			}
 			finally {
@@ -421,10 +434,10 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 	}
 
-	private MimeMessage[] searchAndFilterMessages() throws MessagingException {
-		this.logger.debug(() -> "attempting to receive mail from folder [" + this.folder.getFullName() + "]");
+	private MimeMessage[] searchAndFilterMessages(Folder folder) throws MessagingException {
+		this.logger.debug(() -> "attempting to receive mail from folder [" + folder.getFullName() + "]");
 		Message[] messagesToProcess;
-		Message[] messages = searchForNewMessages();
+		Message[] messages = searchForNewMessages(folder);
 		if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
 			Message[] reducedMessages = new Message[this.maxFetchSize];
 			System.arraycopy(messages, 0, reducedMessages, 0, this.maxFetchSize);
@@ -435,14 +448,14 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 		this.logger.debug(() -> "found " + messagesToProcess.length + " new messages");
 		if (messagesToProcess.length > 0) {
-			fetchMessages(messagesToProcess);
+			fetchMessages(messagesToProcess, folder);
 		}
 
 		this.logger.debug(() -> "Received " + messagesToProcess.length + " messages");
 
 		MimeMessage[] filteredMessages = filterMessagesThruSelector(messagesToProcess);
 
-		postProcessFilteredMessages(filteredMessages);
+		postProcessFilteredMessages(filteredMessages, folder);
 		return filteredMessages;
 	}
 
@@ -519,7 +532,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		return baos.toByteArray();
 	}
 
-	private void postProcessFilteredMessages(Message[] filteredMessages) throws MessagingException {
+	private void postProcessFilteredMessages(Message[] filteredMessages, Folder folder) throws MessagingException {
 		// Copy messages to cause an eager fetch
 		Message[] messages = filteredMessages;
 		if (this.headerMapper == null && (this.autoCloseFolder || this.simpleContent)) {
@@ -532,24 +545,22 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			}
 		}
 
-		setMessageFlagsAndMaybeDeleteMessages(messages);
+		setMessageFlagsAndMaybeDeleteMessages(messages, folder);
 		if (filteredMessages.length > 0 && filteredMessages[0] instanceof IntegrationMimeMessage) {
-			setMessageFlagsAndMaybeDeleteMessages(filteredMessages);
+			setMessageFlagsAndMaybeDeleteMessages(filteredMessages, folder);
 		}
 	}
 
-	private void setMessageFlagsAndMaybeDeleteMessages(Message[] messages) throws MessagingException {
-		setMessageFlags(messages);
+	private void setMessageFlagsAndMaybeDeleteMessages(Message[] messages, Folder folder) throws MessagingException {
+		setMessageFlags(messages, folder.getPermanentFlags());
 
 		if (shouldDeleteMessages()) {
 			deleteMessages(messages);
 		}
 	}
 
-	private void setMessageFlags(Message[] filteredMessages) throws MessagingException {
+	private void setMessageFlags(Message[] filteredMessages, Flags flags) throws MessagingException {
 		boolean recentFlagSupported = false;
-
-		Flags flags = getFolder().getPermanentFlags();
 
 		if (flags != null) {
 			recentFlagSupported = flags.contains(Flags.Flag.RECENT);
@@ -605,14 +616,15 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * implementation {@link Folder#fetch(Message[], FetchProfile) fetches}
 	 * every {@link jakarta.mail.FetchProfile.Item}.
 	 * @param messages the messages to fetch
+	 * @param folder the folder to fetch from
 	 * @throws MessagingException in case of JavaMail errors
 	 */
-	protected void fetchMessages(Message[] messages) throws MessagingException {
+	protected void fetchMessages(Message[] messages, Folder folder) throws MessagingException {
 		FetchProfile contentsProfile = new FetchProfile();
 		contentsProfile.add(FetchProfile.Item.ENVELOPE);
 		contentsProfile.add(FetchProfile.Item.CONTENT_INFO);
 		contentsProfile.add(FetchProfile.Item.FLAGS);
-		this.folder.fetch(messages, contentsProfile);
+		folder.fetch(messages, contentsProfile);
 	}
 
 	/**
@@ -706,7 +718,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			}
 			else {
 				try {
-					return obtainFolderInstance();
+					return obtainFolderInstance(AbstractMailReceiver.this.store);
 				}
 				catch (MessagingException e) {
 					throw new org.springframework.messaging.MessagingException("Unable to obtain the mail folder", e);

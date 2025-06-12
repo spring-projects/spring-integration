@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
- *
+ * @author Jiandong Ma
  */
 public class Pop3MailReceiverTests {
 
@@ -65,12 +65,12 @@ public class Pop3MailReceiverTests {
 			if (folderOpenMode != Folder.READ_WRITE) {
 				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 			}
-			return null;
+			return folder;
 		}).when(receiver).openFolder();
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages(folder);
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages, folder);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 
@@ -95,11 +95,11 @@ public class Pop3MailReceiverTests {
 		Message msg1 = GreenMailUtil.newMimeMessage("test1");
 		Message msg2 = GreenMailUtil.newMimeMessage("test2");
 		final Message[] messages = new Message[] {msg1, msg2};
-		doAnswer(invocation -> null).when(receiver).openFolder();
+		doAnswer(invocation -> folder).when(receiver).openFolder();
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages(folder);
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages, folder);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 
@@ -123,11 +123,11 @@ public class Pop3MailReceiverTests {
 		Message msg1 = GreenMailUtil.newMimeMessage("test1");
 		Message msg2 = GreenMailUtil.newMimeMessage("test2");
 		final Message[] messages = new Message[] {msg1, msg2};
-		doAnswer(invocation -> null).when(receiver).openFolder();
+		doAnswer(invocation -> folder).when(receiver).openFolder();
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages(folder);
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages, folder);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 
@@ -151,11 +151,11 @@ public class Pop3MailReceiverTests {
 		Message msg1 = GreenMailUtil.newMimeMessage("test1");
 		Message msg2 = GreenMailUtil.newMimeMessage("test2");
 		final Message[] messages = new Message[] {msg1, msg2};
-		doAnswer(invocation -> null).when(receiver).openFolder();
+		doAnswer(invocation -> folder).when(receiver).openFolder();
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages(folder);
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages, folder);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 

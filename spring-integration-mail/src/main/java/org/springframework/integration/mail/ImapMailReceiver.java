@@ -52,6 +52,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Alexander Pinske
+ * @author Jiandong Ma
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
 
@@ -174,15 +175,14 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	 * @throws MessagingException Any MessagingException.
 	 */
 	public void waitForNewMessages() throws MessagingException {
-		openFolder();
-		Folder folder = getFolder();
+		Folder folder = openFolder();
 		Assert.state(folder instanceof IMAPFolder,
 				() -> "folder is not an instance of [" + IMAPFolder.class.getName() + "]");
 		IMAPFolder imapFolder = (IMAPFolder) folder;
 		if (imapFolder.hasNewMessages()) {
 			return;
 		}
-		else if (!folder.getPermanentFlags().contains(Flags.Flag.RECENT) && searchForNewMessages().length > 0) {
+		else if (!folder.getPermanentFlags().contains(Flags.Flag.RECENT) && searchForNewMessages(folder).length > 0) {
 			return;
 		}
 		try {
@@ -210,12 +210,11 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	 * @throws MessagingException in case of JavaMail errors
 	 */
 	@Override
-	protected Message[] searchForNewMessages() throws MessagingException {
-		Folder folderToUse = getFolder();
-		Flags supportedFlags = folderToUse.getPermanentFlags();
-		SearchTerm searchTerm = compileSearchTerms(supportedFlags);
-		if (folderToUse.isOpen()) {
-			return nullSafeMessages(searchTerm != null ? folderToUse.search(searchTerm) : folderToUse.getMessages());
+	protected Message[] searchForNewMessages(Folder folder) throws MessagingException {
+		Flags supportedFlags = folder.getPermanentFlags();
+		SearchTerm searchTerm = compileSearchTerms(supportedFlags, folder);
+		if (folder.isOpen()) {
+			return nullSafeMessages(searchTerm != null ? folder.search(searchTerm) : folder.getMessages());
 		}
 		throw new MessagingException("Folder is closed");
 	}
@@ -238,8 +237,8 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 	}
 
-	private SearchTerm compileSearchTerms(Flags supportedFlags) {
-		return this.searchTermStrategy.generateSearchTerm(supportedFlags, this.getFolder());
+	private SearchTerm compileSearchTerms(Flags supportedFlags, Folder folder) {
+		return this.searchTermStrategy.generateSearchTerm(supportedFlags, folder);
 	}
 
 	@Override
