@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
-import jakarta.mail.URLName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -68,7 +67,7 @@ public class MailReceiverTests {
 		Folder folder = mock(Folder.class);
 		when(folder.exists()).thenReturn(true);
 		when(folder.isOpen()).thenReturn(false, true);
-		doReturn(folder).when(store).getFolder((URLName) null);
+		doReturn(folder).when(store).getDefaultFolder();
 		doNothing().when(store).connect();
 		receiver.openFolder();
 		receiver.openFolder();

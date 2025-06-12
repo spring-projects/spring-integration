@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import org.springframework.util.ObjectUtils;
  * @author Dominik Simmen
  * @author Yuxin Wang
  * @author Filip Hrisafov
+ * @author Jiandong Ma
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean {
 
@@ -357,6 +358,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private Folder obtainFolderInstance() throws MessagingException {
+		if (this.url == null) {
+			return this.store.getDefaultFolder();
+		}
 		return this.store.getFolder(this.url);
 	}
 
