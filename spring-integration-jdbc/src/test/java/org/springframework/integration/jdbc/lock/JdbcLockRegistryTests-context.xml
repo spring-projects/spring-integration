@@ -25,7 +25,7 @@
 	<bean id="lockClient" class="org.springframework.integration.jdbc.lock.DefaultLockRepository">
 		<constructor-arg name="dataSource" ref="dataSource"/>
 		<property name="insertQuery"
-				  value="INSERT INTO INT_LOCK (REGION, LOCK_KEY, CLIENT_ID, EXPIRED_AFTER) VALUES (?, ?, ?, ?)"/>
+				  value="INSERT INTO INT_LOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE, EXPIRED_AFTER) VALUES (?, ?, ?, ?, ?)"/>
 	</bean>
 
 	<tx:annotation-driven/>

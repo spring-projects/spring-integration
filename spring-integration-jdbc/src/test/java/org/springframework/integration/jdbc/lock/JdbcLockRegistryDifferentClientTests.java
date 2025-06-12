@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc.lock;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -285,7 +286,7 @@ class JdbcLockRegistryDifferentClientTests {
 
 	@Test
 	void testOutOfDateLockTaken() throws Exception {
-		long ttl = 100;
+		Duration ttl = Duration.ofMillis(100);
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
 		client1.setApplicationContext(this.context);
 		client1.afterPropertiesSet();
@@ -326,7 +327,7 @@ class JdbcLockRegistryDifferentClientTests {
 
 	@Test
 	void testRenewLock() throws Exception {
-		long ttl = 500;
+		Duration ttl = Duration.ofMillis(500);
 		DefaultLockRepository client1 = new DefaultLockRepository(dataSource);
 		client1.setApplicationContext(this.context);
 		client1.afterPropertiesSet();

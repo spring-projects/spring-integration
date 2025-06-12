@@ -16,7 +16,7 @@
 
 package org.springframework.integration.support.locks;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 import java.util.concurrent.locks.Lock;
 
 import org.springframework.scheduling.TaskScheduler;
@@ -45,11 +45,10 @@ public interface RenewableLockRegistry<L extends Lock> extends LockRegistry<L> {
 	 * Renew the time to live of the lock is associated with the parameter object with a specific value.
 	 * The lock must be held by the current thread
 	 * @param lockKey The object with which the lock is associated.
-	 * @param customTtl the specific time-to-live for the lock status data
-	 * @param customTtlTimeUnit the time unit of the {@code customTtl} argument
+	 * @param ttl the specific time-to-live for the lock status data
 	 *
 	 */
-	void renewLock(Object lockKey, long customTtl, TimeUnit customTtlTimeUnit);
+	void renewLock(Object lockKey, Duration ttl);
 
 	/**
 	 * Set the {@link TaskScheduler} to use for the renewal task.

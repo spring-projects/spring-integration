@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.util;
 
+import java.time.Duration;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +130,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		registry.setRedisLockType(testRedisLockType);
 		for (int i = 0; i < 3; i++) {
 			DistributedLock lock = registry.obtain("foo");
-			lock.lock(500, TimeUnit.MILLISECONDS);
+			lock.lock(Duration.ofMillis(500));
 			try {
 				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
 				Thread.sleep(sleepTimeLongerThanDefaultTTL);
@@ -150,7 +151,7 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		registry.setRedisLockType(testRedisLockType);
 		for (int i = 0; i < 3; i++) {
 			DistributedLock lock = registry.obtain("foo");
-			lock.tryLock(100, TimeUnit.MILLISECONDS, 500, TimeUnit.MILLISECONDS);
+			lock.tryLock(100, TimeUnit.MILLISECONDS, Duration.ofMillis(500));
 			try {
 				assertThat(getRedisLockRegistryLocks(registry)).hasSize(1);
 				Thread.sleep(sleepTimeLongerThanDefaultTTL);
@@ -996,11 +997,12 @@ class RedisLockRegistryTests implements RedisContainerTest {
 		registryOfAnotherProcess.setRedisLockType(redisLockType);
 		final DistributedLock lock = registry.obtain("foo");
 		final Lock lockOfAnotherProcess = registryOfAnotherProcess.obtain("foo");
-
-		assertThat(lock.tryLock(100, TimeUnit.MILLISECONDS, 100, TimeUnit.MILLISECONDS)).isTrue();
+		long ttl = 100;
+		long sleepTimeLongerThanTtl = 110;
+		assertThat(lock.tryLock(100, TimeUnit.MILLISECONDS, Duration.ofMillis(ttl))).isTrue();
 		try {
-			registry.renewLock("foo", 2000, TimeUnit.MILLISECONDS);
-			Thread.sleep(100);
+			registry.renewLock("foo", Duration.ofSeconds(2));
+			Thread.sleep(sleepTimeLongerThanTtl);
 			assertThat(lockOfAnotherProcess.tryLock(100, TimeUnit.MILLISECONDS)).isFalse();
 		}
 		finally {

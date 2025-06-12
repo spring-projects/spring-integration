@@ -70,8 +70,8 @@ class DefaultLockRepositoryTests {
 		TransactionSynchronization transactionSynchronization = spy(TransactionSynchronization.class);
 		TransactionSynchronizationManager.registerSynchronization(transactionSynchronization);
 
-		this.client.acquire("foo", Duration.ofMillis(10000)); // 1
-		this.client.renew("foo", Duration.ofMillis(10000)); // 2
+		this.client.acquire("foo", Duration.ofSeconds(10)); // 1
+		this.client.renew("foo", Duration.ofSeconds(10)); // 2
 		this.client.delete("foo"); // 3
 		this.client.isAcquired("foo"); // 4
 		this.client.deleteExpired(); // 5
@@ -92,7 +92,7 @@ class DefaultLockRepositoryTests {
 		assertThat(TransactionSynchronizationManager.getCurrentTransactionIsolationLevel())
 				.isEqualTo(Connection.TRANSACTION_REPEATABLE_READ);
 
-		this.client.acquire("foo", Duration.ofMillis(10000));
+		this.client.acquire("foo", Duration.ofSeconds(10));
 		assertThat(this.client.isAcquired("foo")).isTrue();
 
 		this.client.delete("foo");
@@ -194,7 +194,7 @@ class DefaultLockRepositoryTests {
 
 	@Test
 	void testDelete() {
-		this.client.acquire("foo", Duration.ofMillis(10000));
+		this.client.acquire("foo", Duration.ofSeconds(10));
 		assertThat(this.client.delete("foo")).isTrue();
 		assertThat(this.client.isAcquired("foo")).isFalse();
 	}
@@ -206,7 +206,7 @@ class DefaultLockRepositoryTests {
 		lockRepositoryOfAnotherProcess.afterSingletonsInstantiated();
 		lockRepositoryOfAnotherProcess.afterPropertiesSet();
 
-		lockRepositoryOfAnotherProcess.acquire("foo", Duration.ofMillis(10000));
+		lockRepositoryOfAnotherProcess.acquire("foo", Duration.ofSeconds(10));
 		assertThat(this.client.delete("foo")).isFalse();
 
 		lockRepositoryOfAnotherProcess.close();
@@ -219,5 +219,14 @@ class DefaultLockRepositoryTests {
 		client.deleteExpired();
 
 		assertThat(this.client.delete("foo")).isFalse();
+	}
+
+	@Test
+	void testDeleteExpired() throws InterruptedException {
+		client.acquire("foo", Duration.ofMillis(100));
+		Thread.sleep(200);
+		client.deleteExpired();
+
+		assertThat(this.client.renew("foo", Duration.ofMillis(100))).isFalse();
 	}
 }

@@ -864,4 +864,5 @@ Starting with version 6.4, a `RedisLockRegistry.setRenewalTaskScheduler()` is ad
 When it is set, the lock will be automatically renewed every `1/3` of the expiration time after the lock is successfully acquired, until unlocked or the redis key is removed.
 
 Starting with version 7.0, the `RedisLock` implements `DistributedLock` interface to support the feature of customized time-to-live (TTL) for the lock status data.
-The `RedisLockRegistry` now provides new `renewLock()` method, allowing you to renew the lock with a custom time-to-live value.
+A `RedisLock` can now be acquired using the `lock(Duration ttl)` or `tryLock(long time, TimeUnit unit, Duration ttl)` method, with a specified time-to-live (TTL) value.
+The `RedisLockRegistry` now provides new `renewLock(Object lockKey, Duration ttl)` method, allowing you to renew the lock with a custom time-to-live value.

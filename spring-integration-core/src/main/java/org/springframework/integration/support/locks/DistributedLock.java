@@ -16,11 +16,12 @@
 
 package org.springframework.integration.support.locks;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 /**
- * A {@link Lock} implementing for spring distributed locks
+ * A distributed {@link Lock} extension.
  *
  * @author Eddie Cho
  *
@@ -30,18 +31,16 @@ public interface DistributedLock extends Lock {
 
 	/**
 	 * Attempt to acquire a lock with a specific time-to-live
-	 * @param customTtl the specific time-to-live for the lock status data
-	 * @param customTtlTimeUnit the time unit of the {@code customTtl} argument
+	 * @param ttl the specific time-to-live for the lock status data
 	 */
-	void lock(long customTtl, TimeUnit customTtlTimeUnit);
+	void lock(Duration ttl);
 
 	/**
 	 * Acquires the lock with a specific time-to-live if it is free within the
 	 * given waiting time and the current thread has not been {@linkplain Thread#interrupt interrupted}.
 	 * @param time the maximum time to wait for the lock
 	 * @param unit the time unit of the {@code time} argument
-	 * @param customTtl the specific time-to-live for the lock status data
-	 * @param customTtlTimeUnit the time unit of the customTtl argument
+	 * @param ttl the specific time-to-live for the lock status data
 	 * @return {@code true} if the lock was acquired and {@code false}
 	 *         if the waiting time elapsed before the lock was acquired
 	 *
@@ -49,5 +48,5 @@ public interface DistributedLock extends Lock {
 	 *         while acquiring the lock (and interruption of lock
 	 *         acquisition is supported)
 	 */
-	boolean tryLock(long time, TimeUnit unit, long customTtl, TimeUnit customTtlTimeUnit) throws InterruptedException;
+	boolean tryLock(long time, TimeUnit unit, Duration ttl) throws InterruptedException;
 }

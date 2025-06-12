@@ -102,13 +102,13 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		this.ttl = DEFAULT_TTL;
 	}
 
-	public JdbcLockRegistry(LockRepository client, long expireAfter) {
+	public JdbcLockRegistry(LockRepository client, Duration expireAfter) {
 		this.client = client;
-		this.ttl = convertToDuration(expireAfter, TimeUnit.MILLISECONDS);
+		this.ttl = expireAfter;
 	}
 
 	/**
-	 * Specify a @link Duration} to sleep between lock record insert/update attempts.
+	 * Specify a {@link Duration} to sleep between lock record insert/update attempts.
 	 * Defaults to 100 milliseconds.
 	 * @param idleBetweenTries the {@link Duration} to sleep between insert/update attempts.
 	 * @since 5.1.8
@@ -166,12 +166,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 	}
 
 	@Override
-	public void renewLock(Object lockKey, long customTtl, TimeUnit customTtlTimeUnit) {
-		Duration customTtlDuration = convertToDuration(customTtl, customTtlTimeUnit);
-		this.renewLock(lockKey, customTtlDuration);
-	}
-
-	private void renewLock(Object lockKey, Duration customTtlDuration) {
+	public void renewLock(Object lockKey, Duration customTtl) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
 		JdbcLock jdbcLock;
@@ -186,7 +181,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		if (jdbcLock == null) {
 			throw new IllegalStateException("Could not found mutex at " + path);
 		}
-		if (!jdbcLock.renew(customTtlDuration)) {
+		if (!jdbcLock.renew(customTtl)) {
 			throw new IllegalStateException("Could not renew mutex at " + path);
 		}
 	}
@@ -224,12 +219,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		}
 
 		@Override
-		public void lock(long customTtl, TimeUnit customTtlUnit) {
-			Duration customTtlDuration = convertToDuration(customTtl, customTtlUnit);
-			lock(customTtlDuration);
-		}
-
-		private void lock(Duration ttl) {
+		public void lock(Duration ttl) {
 			this.delegate.lock();
 			while (true) {
 				try {
@@ -304,12 +294,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 		}
 
 		@Override
-		public boolean tryLock(long time, TimeUnit unit, long customTtl, TimeUnit customTtlUnit) throws InterruptedException {
-			Duration customTtlDuration = convertToDuration(customTtl, customTtlUnit);
-			return tryLock(time, unit, customTtlDuration);
-		}
-
-		private boolean tryLock(long time, TimeUnit unit, Duration ttl) throws InterruptedException {
+		public boolean tryLock(long time, TimeUnit unit, Duration ttl) throws InterruptedException {
 			long now = System.currentTimeMillis();
 			if (!this.delegate.tryLock(time, unit)) {
 				return false;
@@ -389,10 +374,21 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 			return this.delegate.isLocked();
 		}
 
+		/**
+		 * Renew the time-to-live of the distributed lock
+		 * @return {@code true} if the lock's time-to-live was successfully renewed;
+		 *         {@code false} if the time-to-live could not be renewed
+		 */
 		public boolean renew() {
 			return renew(JdbcLockRegistry.this.ttl);
 		}
 
+		/**
+		 * Renew the time-to-live of the distributed lock
+		 * @param ttl the new time-to-live value for the lock status data
+		 * @return {@code true} if the lock's time-to-live was successfully renewed;
+		 *         {@code false} if the time-to-live could not be renewed
+		 */
 		public boolean renew(Duration ttl) {
 			if (!this.delegate.isHeldByCurrentThread()) {
 				throw new IllegalMonitorStateException("The current thread doesn't own mutex at " + this.path);

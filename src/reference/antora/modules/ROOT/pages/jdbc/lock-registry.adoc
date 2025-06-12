@@ -61,9 +61,16 @@ Starting with version 6.4, the `LockRepository.delete()` method return the resul
 And the `JdbcLockRegistry.JdbcLock.unlock()` method throws `ConcurrentModificationException` if the ownership of the lock is expired.
 
 Starting with version 7.0, the `JdbcLock` implements `DistributedLock` interface to support the feature of customized time-to-live (TTL) for the lock status data.
-The `JdbcLockRegistry` now provides new `renewLock()` method, allowing you to renew the lock with a custom time-to-live value.
+A `JdbcLock` can now be acquired using the `lock(Duration ttl)` or `tryLock(long time, TimeUnit unit, Duration ttl)` method, with a specified time-to-live (TTL) value.
+The `JdbcLockRegistry` now provides new `renewLock(Object lockKey, Duration ttl)` method, allowing you to renew the lock with a custom time-to-live value.
 The APIs of `LockRepository` and `DefaultLockRepository` are also modified to support the feature.
 [IMPORTANT]
 ====
-The `CREATED_DATE` column in the `INT_LOCK` table has been replaced with `EXPIRED_AFTER` to support the custom time-to-live feature.
+If you're already using an earlier version of `JdbcLockRegistry` or `DefaultLockRepository`, please execute the necessary DDL to modify the `INT_LOCK` table before upgrading to this version.
+
+Here is an example of the Postgres DDL for adding the new column to the lock table:
+[source,sql]
+----
+ALTER TABLE INT_LOCK ADD EXPIRED_AFTER TIMESTAMP NOT NULL;
+----
 ====

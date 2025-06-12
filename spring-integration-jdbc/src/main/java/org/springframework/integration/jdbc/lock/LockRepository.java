@@ -53,12 +53,26 @@ public interface LockRepository extends Closeable {
 	void deleteExpired();
 
 	/**
+	 * Acquire a lock for a key.
+	 * @param lock the key for lock to acquire.
+	 * @return acquired or not.
+	 */
+	boolean acquire(String lock);
+
+	/**
 	 * Acquire a lock for a key with specific time-to-live value
 	 * @param lock the key for lock to acquire.
 	 * @param ttl the custom time-to-live value
 	 * @return acquired or not.
 	 */
 	boolean acquire(String lock, Duration ttl);
+
+	/**
+	 * Renew the lease for a lock.
+	 * @param lock the lock to renew.
+	 * @return renewed or not.
+	 */
+	boolean renew(String lock);
 
 	/**
 	 * Renew the lease for a lock with specific time-to-live value

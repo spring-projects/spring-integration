@@ -134,7 +134,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 
 	private final StringRedisTemplate redisTemplate;
 
-	private final long expireAfter;
+	private final Duration expireAfter;
 
 	private int cacheCapacity = DEFAULT_CAPACITY;
 
@@ -185,6 +185,16 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 	 * @param expireAfter The expiration in milliseconds.
 	 */
 	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey, long expireAfter) {
+		this(connectionFactory, registryKey, Duration.ofMillis(expireAfter));
+	}
+
+	/**
+	 * Constructs a lock registry with the supplied lock expiration.
+	 * @param connectionFactory The connection factory.
+	 * @param registryKey The key prefix for locks.
+	 * @param expireAfter The expiration in {@link Duration}.
+	 */
+	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey, Duration expireAfter) {
 		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
 		Assert.notNull(registryKey, "'registryKey' cannot be null");
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
@@ -234,7 +244,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 	}
 
 	/**
-	 * Specify a @link Duration} to sleep between obtainLock attempts.
+	 * Specify a {@link Duration} to sleep between obtainLock attempts.
 	 * Defaults to 100 milliseconds.
 	 * @param idleBetweenTries the {@link Duration} to sleep between obtainLock attempts.
 	 * @since 6.4.0
@@ -310,11 +320,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 
 	@Override
 	public void renewLock(Object lockKey) {
-		this.renewLock(lockKey, RedisLockRegistry.this.expireAfter, TimeUnit.MILLISECONDS);
+		this.renewLock(lockKey, RedisLockRegistry.this.expireAfter);
 	}
 
 	@Override
-	public void renewLock(Object lockKey, long customTtl, TimeUnit customTtlUnit) {
+	public void renewLock(Object lockKey, Duration ttl) {
 		String path = (String) lockKey;
 		RedisLock redisLock;
 		this.lock.lock();
@@ -328,8 +338,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 			throw new IllegalStateException("Could not renew mutex at " + path);
 		}
 
-		long customTtlInMilliseconds = TimeUnit.MILLISECONDS.convert(customTtl, customTtlUnit);
-		if (!redisLock.renew(customTtlInMilliseconds)) {
+		if (!redisLock.renew(ttl.toMillis())) {
 			throw new IllegalStateException("Could not renew mutex at " + path);
 		}
 	}
@@ -427,16 +436,15 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 
 		@Override
 		public final void lock() {
-			this.lock(RedisLockRegistry.this.expireAfter, TimeUnit.MILLISECONDS);
+			this.lock(RedisLockRegistry.this.expireAfter);
 		}
 
 		@Override
-		public void lock(long customTtl, TimeUnit customTtlUnit) {
+		public void lock(Duration ttl) {
 			this.localLock.lock();
 			while (true) {
 				try {
-					long customTtlInMilliseconds = TimeUnit.MILLISECONDS.convert(customTtl, customTtlUnit);
-					if (tryRedisLock(-1L, customTtlInMilliseconds)) {
+					if (tryRedisLock(-1L, ttl.toMillis())) {
 						return;
 					}
 				}
@@ -463,7 +471,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 			this.localLock.lockInterruptibly();
 			while (true) {
 				try {
-					if (tryRedisLock(-1L, RedisLockRegistry.this.expireAfter)) {
+					if (tryRedisLock(-1L, RedisLockRegistry.this.expireAfter.toMillis())) {
 						return;
 					}
 				}
@@ -492,18 +500,17 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 
 		@Override
 		public final boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-			return this.tryLock(time, unit, RedisLockRegistry.this.expireAfter, TimeUnit.MILLISECONDS);
+			return this.tryLock(time, unit, RedisLockRegistry.this.expireAfter);
 		}
 
 		@Override
-		public boolean tryLock(long time, TimeUnit unit, long customTtl, TimeUnit customTtlUnit) throws InterruptedException {
+		public boolean tryLock(long time, TimeUnit unit, Duration ttl) throws InterruptedException {
 			if (!this.localLock.tryLock(time, unit)) {
 				return false;
 			}
 			try {
 				long waitTime = TimeUnit.MILLISECONDS.convert(time, unit);
-				long customTtlInMilliseconds = TimeUnit.MILLISECONDS.convert(customTtl, customTtlUnit);
-				boolean acquired = tryRedisLock(waitTime, customTtlInMilliseconds);
+				boolean acquired = tryRedisLock(waitTime, ttl.toMillis());
 				if (!acquired) {
 					this.localLock.unlock();
 				}
@@ -753,7 +760,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 					}
 					try {
 						//if short expireAfter key expire for ttl, no receive unlock msg
-						long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter;
+						long waitTime = time >= 0 ? time : RedisLockRegistry.this.expireAfter.toMillis();
 						future.get(waitTime, TimeUnit.MILLISECONDS);
 					}
 					catch (TimeoutException ignore) {
