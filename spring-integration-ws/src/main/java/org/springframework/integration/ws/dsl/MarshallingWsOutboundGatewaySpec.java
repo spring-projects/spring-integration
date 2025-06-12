@@ -66,7 +66,7 @@ public class MarshallingWsOutboundGatewaySpec extends
 			extends BaseWsOutboundGatewaySpec<MarshallingWsOutboundGatewayNoTemplateSpec,
 			MarshallingWebServiceOutboundGateway> {
 
-		protected Marshaller gatewayMarshaller = new Jaxb2Marshaller(); // NOSONAR
+		protected Marshaller gatewayMarshaller = new Jaxb2Marshaller();
 
 		protected @Nullable Unmarshaller gatewayUnmarshaller; // NOSONAR
 

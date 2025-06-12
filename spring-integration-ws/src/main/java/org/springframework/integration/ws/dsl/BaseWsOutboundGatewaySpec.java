@@ -53,11 +53,13 @@ public abstract class BaseWsOutboundGatewaySpec<
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
-	protected @Nullable WebServiceTemplate template; // NOSONAR
+	@SuppressWarnings("NullAway.Init")
+	protected WebServiceTemplate template; // NOSONAR
 
 	protected @Nullable DestinationProvider destinationProvider; // NOSONAR
 
-	protected @Nullable String uri; // NOSONAR
+	@SuppressWarnings("NullAway.Init")
+	protected String uri; // NOSONAR
 
 	protected @Nullable WebServiceMessageFactory webServiceMessageFactory; // NOSONAR
 

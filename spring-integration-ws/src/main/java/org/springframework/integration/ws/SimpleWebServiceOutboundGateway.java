@@ -49,6 +49,7 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jooyoung Pyoung
  */
 public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
 
@@ -68,7 +69,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider,
 			@Nullable SourceExtractor<?> sourceExtractor,
-			WebServiceMessageFactory messageFactory) {
+			@Nullable WebServiceMessageFactory messageFactory) {
 
 		super(destinationProvider, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
@@ -83,7 +84,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	}
 
 	public SimpleWebServiceOutboundGateway(String uri, @Nullable SourceExtractor<?> sourceExtractor,
-			WebServiceMessageFactory messageFactory) {
+			@Nullable WebServiceMessageFactory messageFactory) {
 
 		super(uri, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
@@ -107,8 +108,8 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	}
 
 	@Override
-	protected Object doHandle(String uri, final Message<?> requestMessage,
-			final WebServiceMessageCallback requestCallback) {
+	protected @Nullable Object doHandle(String uri, final Message<?> requestMessage,
+			final @Nullable WebServiceMessageCallback requestCallback) {
 
 		Object requestPayload = requestMessage.getPayload();
 		Result responseResultInstance = null;
@@ -126,7 +127,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	private final class SimpleRequestMessageCallback extends RequestMessageCallback {
 
-		SimpleRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
+		SimpleRequestMessageCallback(@Nullable WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
 			super(requestCallback, requestMessage);
 		}
 
@@ -134,13 +135,16 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		public void doWithMessageInternal(WebServiceMessage message, Object payload)
 				throws IOException, TransformerException {
 			Source source = this.extractSource(payload);
+			if (source == null) {
+				source = new DOMSource();
+			}
 			transform(source, message.getPayloadResult());
 			if (message instanceof MimeMessage && payload instanceof MimeMessage) {
 				copyAttachments((MimeMessage) payload, (MimeMessage) message);
 			}
 		}
 
-		private Source extractSource(Object requestPayload) throws IOException, TransformerException {
+		private @Nullable Source extractSource(Object requestPayload) throws IOException, TransformerException {
 			Source source = null;
 
 			if (requestPayload instanceof Source) {
@@ -181,14 +185,14 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	private final class SimpleResponseMessageExtractor extends ResponseMessageExtractor {
 
-		private final Result result;
+		private final @Nullable Result result;
 
-		SimpleResponseMessageExtractor(Result result) {
+		SimpleResponseMessageExtractor(@Nullable Result result) {
 			this.result = result;
 		}
 
 		@Override
-		public Object doExtractData(WebServiceMessage message) throws TransformerException {
+		public @Nullable Object doExtractData(WebServiceMessage message) throws TransformerException {
 			if (!SimpleWebServiceOutboundGateway.this.extractPayload) {
 				return message;
 			}
@@ -220,9 +224,12 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		}
 
 		@Override
-		public DOMSource extractData(Source source) throws TransformerException {
+		public @Nullable DOMSource extractData(@Nullable Source source) throws TransformerException {
 			if (source instanceof DOMSource) {
 				return (DOMSource) source;
+			}
+			else if (source == null) {
+				return new DOMSource();
 			}
 			DOMResult result = new DOMResult();
 			this.transform(source, result);
