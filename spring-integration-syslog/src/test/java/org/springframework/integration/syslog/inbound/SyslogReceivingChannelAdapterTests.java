@@ -46,14 +46,17 @@ import org.springframework.integration.syslog.config.SyslogReceivingChannelAdapt
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.scheduling.TaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -72,13 +75,14 @@ public class SyslogReceivingChannelAdapterTests {
 		PollableChannel outputChannel = new QueueChannel();
 		factory.setPort(0);
 		factory.setOutputChannel(outputChannel);
-		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.setBeanFactory(getBeanFactory());
 		factory.afterPropertiesSet();
 		factory.start();
 		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
 				UnicastReceivingChannelAdapter.class);
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
+		adapter.setBeanFactory(getBeanFactory());
 		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes(StandardCharsets.UTF_8);
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost",
 				server.getPort()));
@@ -106,7 +110,7 @@ public class SyslogReceivingChannelAdapterTests {
 			return null;
 		}).when(publisher).publishEvent(any(ApplicationEvent.class));
 		factory.setApplicationEventPublisher(publisher);
-		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.setBeanFactory(getBeanFactory());
 		factory.afterPropertiesSet();
 		factory.start();
 		AbstractServerConnectionFactory server = TestUtils.getPropertyValue(factory, "syslogAdapter.connectionFactory",
@@ -137,6 +141,15 @@ public class SyslogReceivingChannelAdapterTests {
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
+	private BeanFactory getBeanFactory() {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		TaskScheduler taskScheduler = mock(TaskScheduler.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		return beanFactory;
+	}
+
 	@Test
 	public void testAsMapFalse() throws Exception {
 		SyslogReceivingChannelAdapterFactoryBean factory = new SyslogReceivingChannelAdapterFactoryBean(
@@ -144,15 +157,18 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setPort(0);
 		PollableChannel outputChannel = new QueueChannel();
 		factory.setOutputChannel(outputChannel);
-		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.setBeanFactory(getBeanFactory());
 		factory.afterPropertiesSet();
 		factory.start();
 		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
 				UnicastReceivingChannelAdapter.class);
+		server.setBeanFactory(getBeanFactory());
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
+		adapter.setBeanFactory(getBeanFactory());
 		DefaultMessageConverter defaultMessageConverter = new DefaultMessageConverter();
 		defaultMessageConverter.setAsMap(false);
+		defaultMessageConverter.setBeanFactory(getBeanFactory());
 		adapter.setConverter(defaultMessageConverter);
 		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes(StandardCharsets.UTF_8);
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost",
@@ -173,6 +189,7 @@ public class SyslogReceivingChannelAdapterTests {
 	public void testTcpRFC5424() throws Exception {
 		SyslogReceivingChannelAdapterFactoryBean factory = new SyslogReceivingChannelAdapterFactoryBean(
 				SyslogReceivingChannelAdapterFactoryBean.Protocol.tcp);
+		factory.setBeanFactory(getBeanFactory());
 		PollableChannel outputChannel = new QueueChannel();
 		factory.setOutputChannel(outputChannel);
 		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
@@ -181,8 +198,9 @@ public class SyslogReceivingChannelAdapterTests {
 			latch.countDown();
 			return null;
 		}).when(publisher).publishEvent(any(ApplicationEvent.class));
-		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.setBeanFactory(getBeanFactory());
 		AbstractServerConnectionFactory connectionFactory = new TcpNioServerConnectionFactory(0);
+		connectionFactory.setBeanFactory(getBeanFactory());
 		connectionFactory.setDeserializer(new RFC6587SyslogDeserializer());
 		connectionFactory.setApplicationEventPublisher(publisher);
 		factory.setConnectionFactory(connectionFactory);
@@ -191,6 +209,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.start();
 		TestingUtilities.waitListening(connectionFactory, null);
 		TcpSyslogReceivingChannelAdapter adapter = (TcpSyslogReceivingChannelAdapter) factory.getObject();
+		adapter.setBeanFactory(getBeanFactory());
 		LogAccessor logger = spy(TestUtils.getPropertyValue(adapter, "logger", LogAccessor.class));
 		doReturn(true).when(logger).isDebugEnabled();
 		final CountDownLatch sawLog = new CountDownLatch(1);
@@ -223,21 +242,23 @@ public class SyslogReceivingChannelAdapterTests {
 	public void testUdpRFC5424() throws Exception {
 		SyslogReceivingChannelAdapterFactoryBean factory = new SyslogReceivingChannelAdapterFactoryBean(
 				SyslogReceivingChannelAdapterFactoryBean.Protocol.udp);
+		factory.setBeanFactory(getBeanFactory());
 		factory.setPort(0);
 		PollableChannel outputChannel = new QueueChannel();
 		factory.setOutputChannel(outputChannel);
-		factory.setBeanFactory(mock(BeanFactory.class));
 		factory.setConverter(new RFC5424MessageConverter());
 		factory.afterPropertiesSet();
 		factory.start();
 		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
 				UnicastReceivingChannelAdapter.class);
+		server.setBeanFactory(getBeanFactory());
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
 		byte[] buf = ("<14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
 				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"]" +
 				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"] Removing instance")
 				.getBytes(StandardCharsets.UTF_8);
+		adapter.setBeanFactory(getBeanFactory());
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost",
 				adapter.getPort()));
 		DatagramSocket socket = new DatagramSocket();

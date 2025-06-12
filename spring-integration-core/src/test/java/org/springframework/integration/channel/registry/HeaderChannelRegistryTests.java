@@ -46,6 +46,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -238,6 +240,7 @@ public class HeaderChannelRegistryTests {
 	@Test
 	public void testRemoveOnGet() {
 		DefaultHeaderChannelRegistry registry = new DefaultHeaderChannelRegistry();
+		registry.setBeanFactory(getBeanFactory());
 		MessageChannel channel = new DirectChannel();
 		String foo = (String) registry.channelToChannelName(channel);
 		Map<?, ?> map = TestUtils.getPropertyValue(registry, "channels", Map.class);
@@ -247,6 +250,15 @@ public class HeaderChannelRegistryTests {
 		registry.setRemoveOnGet(true);
 		assertThat(registry.channelNameToChannel(foo)).isSameAs(channel);
 		assertThat(map.size()).isEqualTo(0);
+	}
+
+	private BeanFactory getBeanFactory() {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		TaskScheduler taskScheduler = mock(TaskScheduler.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		return beanFactory;
 	}
 
 	public static class Foo extends AbstractReplyProducingMessageHandler {

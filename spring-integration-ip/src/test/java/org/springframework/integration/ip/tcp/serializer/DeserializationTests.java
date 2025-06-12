@@ -49,7 +49,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIOException;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -308,9 +311,24 @@ public class DeserializationTests {
 		testTimeoutWhileDecoding(new ByteArrayRawSerializer(), "reply");
 	}
 
+	private TcpNioServerConnectionFactory getTcpNioServerConnectionFactory(int port) {
+		TcpNioServerConnectionFactory result = new TcpNioServerConnectionFactory(port);
+		result.setBeanFactory(getBeanFactory());
+		return result;
+	}
+
+	private BeanFactory getBeanFactory() {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		TaskScheduler taskScheduler = mock(TaskScheduler.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		return beanFactory;
+	}
+
 	private void testTimeoutWhileDecoding(AbstractByteArraySerializer deserializer, String reply) {
 		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
-		TcpNioServerConnectionFactory serverNio = new TcpNioServerConnectionFactory(0);
+		TcpNioServerConnectionFactory serverNio = getTcpNioServerConnectionFactory(0);
 		serverNio.setApplicationEventPublisher(event -> {
 		});
 		ByteArrayLengthHeaderSerializer lengthHeaderSerializer = new ByteArrayLengthHeaderSerializer(1);
@@ -364,7 +382,7 @@ public class DeserializationTests {
 	@Test
 	public void testTimeoutWithRawDeserializerEofIsTerminator() {
 		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
-		TcpNioServerConnectionFactory serverNio = new TcpNioServerConnectionFactory(0);
+		TcpNioServerConnectionFactory serverNio = getTcpNioServerConnectionFactory(0);
 		ByteArrayLengthHeaderSerializer lengthHeaderSerializer = new ByteArrayLengthHeaderSerializer(1);
 		serverNio.setDeserializer(lengthHeaderSerializer);
 		serverNio.setSerializer(serializer);

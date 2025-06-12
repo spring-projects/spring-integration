@@ -30,6 +30,7 @@ import javax.net.SocketFactory;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
@@ -38,9 +39,14 @@ import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.scheduling.TaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.with;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -62,6 +68,7 @@ public class TcpNioConnectionReadTests {
 			AbstractByteArraySerializer serializer, TcpListener listener, TcpSender sender) {
 
 		TcpNioServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
+		scf.setBeanFactory(getBeanFactory());
 		scf.setUsingDirectBuffers(true);
 		scf.setApplicationEventPublisher(e -> {
 		});
@@ -119,7 +126,6 @@ public class TcpNioConnectionReadTests {
 			semaphore.release();
 			return false;
 		});
-
 		int howMany = 2;
 		scf.setBacklog(howMany + 5);
 		// Fire up the sender.
@@ -144,7 +150,6 @@ public class TcpNioConnectionReadTests {
 			semaphore.release();
 			return false;
 		});
-
 		// Fire up the sender.
 
 		CountDownLatch done = SocketTestUtils.testSendStxEtx(scf.getPort(), latch);
@@ -532,6 +537,15 @@ public class TcpNioConnectionReadTests {
 		with().pollInterval(Duration.ofMillis(50)).await("Failed to close socket")
 				.atMost(Duration.ofSeconds(20))
 				.until(() -> !added.get(0).isOpen());
+	}
+
+	private BeanFactory getBeanFactory() {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		TaskScheduler taskScheduler = mock(TaskScheduler.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		return beanFactory;
 	}
 
 }

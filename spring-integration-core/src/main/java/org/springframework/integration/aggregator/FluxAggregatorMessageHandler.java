@@ -17,7 +17,6 @@
 package org.springframework.integration.aggregator;
 
 import java.time.Duration;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -203,7 +202,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 * @see Flux#window(int)
 	 * @see Flux#windowTimeout(int, Duration)
 	 */
-	public void setWindowSizeFunction(Function<Message<?>, @Nullable  Integer> windowSizeFunction) {
+	public void setWindowSizeFunction(Function<Message<?>, @Nullable Integer> windowSizeFunction) {
 		Assert.notNull(windowSizeFunction, "'windowSizeFunction' must not be null");
 		this.windowSizeFunction = windowSizeFunction;
 	}
@@ -255,8 +254,9 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 
 	@Override
 	public void stop() {
-		if (this.subscribed.compareAndSet(true, false) && this.subscription != null) {
-			this.subscription.dispose();
+		Disposable subscriptionToDispose = this.subscription;
+		if (this.subscribed.compareAndSet(true, false) && subscriptionToDispose != null) {
+			subscriptionToDispose.dispose();
 		}
 	}
 
@@ -289,9 +289,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 								.build());
 	}
 
-
-	private static Integer sequenceSizeHeader(Message<?> message) {
-		return Objects.requireNonNull(message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class));
+	private static @Nullable Integer sequenceSizeHeader(Message<?> message) {
+		return message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class);
 	}
-
 }
