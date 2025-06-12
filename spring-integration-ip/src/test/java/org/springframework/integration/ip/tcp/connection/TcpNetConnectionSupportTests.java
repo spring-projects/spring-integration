@@ -26,10 +26,16 @@ import javax.net.SocketFactory;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.TaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -41,6 +47,7 @@ public class TcpNetConnectionSupportTests {
 	@Test
 	public void testBadCode() throws Exception {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setBeanFactory(getBeanFactory());
 		AtomicReference<Message<?>> message = new AtomicReference<>();
 		CountDownLatch latch1 = new CountDownLatch(1);
 		server.registerListener(m -> {
@@ -81,4 +88,12 @@ public class TcpNetConnectionSupportTests {
 		server.stop();
 	}
 
+	private BeanFactory getBeanFactory() {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		TaskScheduler taskScheduler = mock(TaskScheduler.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		return beanFactory;
+	}
 }

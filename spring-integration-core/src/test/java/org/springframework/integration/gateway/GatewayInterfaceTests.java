@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -340,6 +341,7 @@ public class GatewayInterfaceTests {
 		bf.registerSingleton("requestChannelBar", channel);
 		bf.registerSingleton("requestChannelBaz", channel);
 		bf.registerSingleton("requestChannelFoo", channel);
+		bf.registerSingleton("taskScheduler", mock(TaskScheduler.class));
 		fb.setBeanFactory(bf);
 		fb.afterPropertiesSet();
 		assertThat(fb.getObject()).isNotSameAs(bar);

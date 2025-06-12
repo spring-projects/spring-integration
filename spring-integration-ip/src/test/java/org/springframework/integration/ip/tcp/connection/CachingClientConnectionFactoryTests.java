@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -77,6 +78,7 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -698,6 +700,7 @@ public class CachingClientConnectionFactoryTests {
 	@Test //INT-3722
 	public void testGatewayRelease() {
 		TcpNetServerConnectionFactory in = new TcpNetServerConnectionFactory(0);
+		in.setBeanFactory(getBeanFactory());
 		in.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		final TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(in);
@@ -819,6 +822,15 @@ public class CachingClientConnectionFactoryTests {
 		when(factory.getConnection()).thenReturn(mockConn);
 		when(factory.isActive()).thenReturn(true);
 		return factory;
+	}
+
+	private BeanFactory getBeanFactory() {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		TaskScheduler taskScheduler = mock(TaskScheduler.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		return beanFactory;
 	}
 
 }

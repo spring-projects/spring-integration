@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -76,6 +77,7 @@ import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StopWatch;
@@ -88,6 +90,7 @@ import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -545,7 +548,7 @@ public class TcpNioConnectionTests {
 	public void testAssemblerUsesSecondaryExecutor() throws Exception {
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
 		factory.setApplicationEventPublisher(nullPublisher);
-
+		factory.setBeanFactory(getBeanFactory());
 		CompositeExecutor compositeExec = compositeExecutor();
 
 		factory.setSoTimeout(1000);
@@ -595,6 +598,7 @@ public class TcpNioConnectionTests {
 	public void testAllMessagesDelivered() throws Exception {
 		final int numberOfSockets = 10;
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
+		factory.setBeanFactory(getBeanFactory());
 		factory.setApplicationEventPublisher(nullPublisher);
 
 		CompositeExecutor compositeExec = compositeExecutor();
@@ -661,6 +665,15 @@ public class TcpNioConnectionTests {
 		cleanupCompositeExecutor(compositeExec);
 	}
 
+	private BeanFactory getBeanFactory() {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		TaskScheduler taskScheduler = mock(TaskScheduler.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		return beanFactory;
+	}
+
 	private CompositeExecutor compositeExecutor() {
 		ThreadPoolTaskExecutor ioExec = new ThreadPoolTaskExecutor();
 		ioExec.setCorePoolSize(2);
@@ -682,6 +695,7 @@ public class TcpNioConnectionTests {
 	@Test
 	public void int3453RaceTest() throws Exception {
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
+		factory.setBeanFactory(getBeanFactory());
 		final CountDownLatch connectionLatch = new CountDownLatch(1);
 		factory.setApplicationEventPublisher(new ApplicationEventPublisher() {
 
@@ -769,6 +783,7 @@ public class TcpNioConnectionTests {
 	@Test
 	public void testNoDelayOnClose() throws Exception {
 		TcpNioServerConnectionFactory cf = new TcpNioServerConnectionFactory(0);
+		cf.setBeanFactory(getBeanFactory());
 		final CountDownLatch reading = new CountDownLatch(1);
 		final StopWatch watch = new StopWatch();
 		cf.setDeserializer(is -> {
@@ -808,6 +823,7 @@ public class TcpNioConnectionTests {
 		CountDownLatch latch = new CountDownLatch(21);
 		List<Socket> sockets = new ArrayList<>();
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
+		server.setBeanFactory(getBeanFactory());
 		try {
 			List<IpIntegrationEvent> events = Collections.synchronizedList(new ArrayList<>());
 			List<Message<?>> messages = Collections.synchronizedList(new ArrayList<>());
