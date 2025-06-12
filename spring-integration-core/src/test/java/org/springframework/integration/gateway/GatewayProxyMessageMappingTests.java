@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,11 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.scheduling.TaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -58,6 +60,8 @@ public class GatewayProxyMessageMappingTests {
 		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
 		context.refresh();
+		context.getBeanFactory().registerSingleton("taskScheduler", mock(TaskScheduler.class));
+
 		factoryBean.setBeanFactory(context);
 		factoryBean.afterPropertiesSet();
 		this.gateway = factoryBean.getObject();
@@ -144,6 +148,7 @@ public class GatewayProxyMessageMappingTests {
 		context.registerBeanDefinition("testBean", new RootBeanDefinition(TestBean.class));
 		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
+		context.getBeanFactory().registerSingleton("taskScheduler", mock(TaskScheduler.class));
 		context.refresh();
 		TestGateway gateway = context.getBean("testGateway", TestGateway.class);
 		gateway.payloadAnnotationAtMethodLevelUsingBeanResolver("foo");
@@ -171,6 +176,7 @@ public class GatewayProxyMessageMappingTests {
 		context.registerBeanDefinition("testBean", new RootBeanDefinition(TestBean.class));
 		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
+		context.getBeanFactory().registerSingleton("taskScheduler", mock(TaskScheduler.class));
 		context.refresh();
 		TestGateway gateway = context.getBean("testGateway", TestGateway.class);
 		gateway.payloadAnnotationWithExpressionUsingBeanResolver("foo");

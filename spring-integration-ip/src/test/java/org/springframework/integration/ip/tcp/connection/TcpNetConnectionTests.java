@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnection.ChannelInputStream;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
@@ -46,9 +47,12 @@ import org.springframework.integration.support.converter.MapMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.scheduling.TaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -153,6 +157,7 @@ public class TcpNetConnectionTests {
 	@Test
 	public void socketClosedNextRead() throws InterruptedException, IOException {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setBeanFactory(getBeanFactory());
 		AtomicInteger port = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(1);
 		ApplicationEventPublisher publisher = ev -> {
@@ -172,6 +177,15 @@ public class TcpNetConnectionTests {
 		assertThatThrownBy(() -> connection.getPayload())
 				.isInstanceOf(SoftEndOfStreamException.class);
 		server.stop();
+	}
+
+	private BeanFactory getBeanFactory() {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		TaskScheduler taskScheduler = mock(TaskScheduler.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		return beanFactory;
 	}
 
 }

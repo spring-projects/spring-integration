@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 the original author or authors.
+ * Copyright 2022-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.scheduling.TaskScheduler;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -43,6 +50,7 @@ public class TcpSenderTests {
 	void senderCalledForDeadConnectionClientNet() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setBeanFactory(getBeanFactory());
 		server.registerListener(msg -> false);
 		server.afterPropertiesSet();
 		server.setApplicationEventPublisher(event -> {
@@ -61,6 +69,7 @@ public class TcpSenderTests {
 	void senderCalledForDeadConnectionClientNio() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setBeanFactory(getBeanFactory());
 		server.registerListener(msg -> false);
 		server.afterPropertiesSet();
 		server.setApplicationEventPublisher(event -> {
@@ -161,4 +170,12 @@ public class TcpSenderTests {
 		assertThat(passedConnectionsToSenderViaAddNewConnection.get(1)).isSameAs(interceptorsPerInstance.get(6));
 	}
 
+	private BeanFactory getBeanFactory() {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		TaskScheduler taskScheduler = mock(TaskScheduler.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		return beanFactory;
+	}
 }
