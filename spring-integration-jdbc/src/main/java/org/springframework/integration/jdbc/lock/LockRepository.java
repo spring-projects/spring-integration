@@ -56,7 +56,9 @@ public interface LockRepository extends Closeable {
 	 * Acquire a lock for a key.
 	 * @param lock the key for lock to acquire.
 	 * @return acquired or not.
+	 * @deprecated since 7.0, we allow custom time-to-live value
 	 */
+	@Deprecated(since = "7.0")
 	boolean acquire(String lock);
 
 	/**
@@ -71,7 +73,9 @@ public interface LockRepository extends Closeable {
 	 * Renew the lease for a lock.
 	 * @param lock the lock to renew.
 	 * @return renewed or not.
+	 * @deprecated since 7.0, we allow custom time-to-live value
 	 */
+	@Deprecated(since = "7.0")
 	boolean renew(String lock);
 
 	/**

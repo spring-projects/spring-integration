@@ -192,7 +192,9 @@ public class DefaultLockRepository
 	/**
 	 * Specify the time (in milliseconds) to expire deadlocks.
 	 * @param timeToLive the time to expire deadlocks.
+	 * @deprecated since 7.0, the default time-to-live can be set by the constructor of {@link JdbcLockRegistry}
 	 */
+	@Deprecated(since = "7.0")
 	public void setTimeToLive(int timeToLive) {
 		this.ttl = Duration.ofMillis(timeToLive);
 	}
@@ -396,6 +398,7 @@ public class DefaultLockRepository
 	}
 
 	@Override
+	@Deprecated(since = "7.0")
 	public boolean acquire(String lock) {
 		return this.acquire(lock, this.ttl);
 	}
@@ -438,6 +441,7 @@ public class DefaultLockRepository
 	}
 
 	@Override
+	@Deprecated(since = "7.0")
 	public boolean renew(String lock) {
 		return this.renew(lock, this.ttl);
 	}
