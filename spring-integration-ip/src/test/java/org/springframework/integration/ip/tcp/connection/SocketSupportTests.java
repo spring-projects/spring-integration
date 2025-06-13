@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -470,6 +471,7 @@ public class SocketSupportTests {
 	public void testNioClientAndServerSSL() throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		server.setSslHandshakeTimeout(43);
 		DefaultTcpSSLContextSupport sslContextSupport = new DefaultTcpSSLContextSupport("test.ks",
 				"test.truststore.ks", "secret", "secret");
@@ -576,6 +578,7 @@ public class SocketSupportTests {
 	public void testNioClientAndServerSSLDifferentContextsLargeDataWithReply() throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport serverTcpNioConnectionSupport =

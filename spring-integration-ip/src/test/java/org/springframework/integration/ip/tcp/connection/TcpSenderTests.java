@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 the original author or authors.
+ * Copyright 2022-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -43,6 +45,7 @@ public class TcpSenderTests {
 	void senderCalledForDeadConnectionClientNet() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		server.registerListener(msg -> false);
 		server.afterPropertiesSet();
 		server.setApplicationEventPublisher(event -> {
@@ -61,6 +64,7 @@ public class TcpSenderTests {
 	void senderCalledForDeadConnectionClientNio() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		server.registerListener(msg -> false);
 		server.afterPropertiesSet();
 		server.setApplicationEventPublisher(event -> {
@@ -160,5 +164,4 @@ public class TcpSenderTests {
 		assertThat(passedConnectionsToSenderViaAddNewConnection.get(0)).isSameAs(interceptorsPerInstance.get(3));
 		assertThat(passedConnectionsToSenderViaAddNewConnection.get(1)).isSameAs(interceptorsPerInstance.get(6));
 	}
-
 }

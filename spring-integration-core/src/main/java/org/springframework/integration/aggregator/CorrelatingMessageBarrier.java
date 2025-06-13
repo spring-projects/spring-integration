@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -27,6 +29,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * This Endpoint serves as a barrier for messages that should not be processed yet. The decision when a message can be
@@ -58,8 +61,10 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 	private final MessageGroupStore store;
 
+	@Nullable
 	private CorrelationStrategy correlationStrategy;
 
+	@Nullable
 	private ReleaseStrategy releaseStrategy;
 
 	public CorrelatingMessageBarrier() {
@@ -88,7 +93,9 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
+		Assert.notNull(this.correlationStrategy, "'correlationStrategy' must not be null");
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
+		Assert.notNull(correlationKey, "The correlation key is required");
 		Object lock = getLock(correlationKey);
 		synchronized (lock) {
 			this.store.addMessagesToGroup(correlationKey, message);
@@ -103,12 +110,14 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 	@SuppressWarnings("unchecked")
 	@Override
+	@Nullable
 	public Message<Object> receive() {
 		for (Object key : this.correlationLocks.keySet()) {
 			Object lock = getLock(key);
 			synchronized (lock) {
 				MessageGroup group = this.store.getMessageGroup(key);
 				//group might be removed by another thread
+				Assert.notNull(this.releaseStrategy, "'releaseStrategy' must not be null");
 				if (group != null && this.releaseStrategy.canRelease(group)) {
 					Message<?> nextMessage = null;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -218,7 +219,8 @@ public class AsyncHandlerTests {
 	public void testGateway() {
 		this.whichTest = 0;
 		GatewayProxyFactoryBean<Foo> gpfb = new GatewayProxyFactoryBean<>(Foo.class);
-		gpfb.setBeanFactory(mock(BeanFactory.class));
+		gpfb.setBeanFactory(mock());
+		gpfb.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		DirectChannel input = new DirectChannel();
 		gpfb.setDefaultRequestChannel(input);
 		gpfb.setDefaultReplyTimeout(10000L);
@@ -237,7 +239,8 @@ public class AsyncHandlerTests {
 	public void testGatewayWithException() {
 		this.whichTest = 0;
 		GatewayProxyFactoryBean<Foo> gpfb = new GatewayProxyFactoryBean<>(Foo.class);
-		gpfb.setBeanFactory(mock(BeanFactory.class));
+		gpfb.setBeanFactory(mock());
+		gpfb.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		DirectChannel input = new DirectChannel();
 		gpfb.setDefaultRequestChannel(input);
 		gpfb.setDefaultReplyTimeout(10000L);

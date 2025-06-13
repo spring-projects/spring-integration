@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -238,6 +239,7 @@ public class HeaderChannelRegistryTests {
 	@Test
 	public void testRemoveOnGet() {
 		DefaultHeaderChannelRegistry registry = new DefaultHeaderChannelRegistry();
+		registry.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		MessageChannel channel = new DirectChannel();
 		String foo = (String) registry.channelToChannelName(channel);
 		Map<?, ?> map = TestUtils.getPropertyValue(registry, "channels", Map.class);

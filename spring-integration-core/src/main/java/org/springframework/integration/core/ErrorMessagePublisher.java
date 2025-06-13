@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -27,7 +28,6 @@ import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -54,10 +54,13 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 
 	protected final MessagingTemplate messagingTemplate = new MessagingTemplate(); // NOSONAR final
 
+	@SuppressWarnings("NullAway.Init")
 	private DestinationResolver<MessageChannel> channelResolver;
 
+	@Nullable
 	private MessageChannel channel;
 
+	@Nullable
 	private String channelName;
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
@@ -79,6 +82,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 		return this.errorMessageStrategy;
 	}
 
+	@Nullable
 	public MessageChannel getChannel() {
 		populateChannel();
 		return this.channel;
@@ -146,7 +150,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 	 * @param failedMessage the message.
 	 * @param throwable the throwable.
 	 */
-	public void publish(@Nullable Message<?> inputMessage, Message<?> failedMessage, Throwable throwable) {
+	public void publish(@Nullable Message<?> inputMessage, @Nullable Message<?> failedMessage, Throwable throwable) {
 		publish(throwable, ErrorMessageUtils.getAttributeAccessor(inputMessage, failedMessage));
 	}
 
