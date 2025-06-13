@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.zookeeper.config;
 import java.util.UUID;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -31,6 +32,7 @@ import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.zookeeper.leader.LeaderInitiator;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Creates a {@link LeaderInitiator}.
@@ -44,21 +46,22 @@ import org.springframework.util.Assert;
 public class LeaderInitiatorFactoryBean
 		implements FactoryBean<LeaderInitiator>, SmartLifecycle, InitializingBean, ApplicationEventPublisherAware {
 
-	private CuratorFramework client;
+	private @Nullable CuratorFramework client;
 
-	private Candidate candidate;
+	private @Nullable Candidate candidate;
 
-	private String path;
+	private @Nullable String path;
 
-	private LeaderInitiator leaderInitiator;
+	private @Nullable LeaderInitiator leaderInitiator;
 
 	private boolean autoStartup = true;
 
 	private int phase = Integer.MAX_VALUE - 1000; // NOSONAR magic number
 
+	@SuppressWarnings("NullAway.Init")
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private LeaderEventPublisher leaderEventPublisher;
+	private @Nullable LeaderEventPublisher leaderEventPublisher;
 
 	public LeaderInitiatorFactoryBean() {
 	}
@@ -164,21 +167,24 @@ public class LeaderInitiatorFactoryBean
 	@Override
 	public void afterPropertiesSet() {
 		if (this.leaderInitiator == null) {
-			this.leaderInitiator = new LeaderInitiator(this.client, this.candidate, this.path);
+			Assert.notNull(this.client, "The 'CuratorFramework' must be provided.");
+			Assert.notNull(this.candidate, "The 'CuratorFramework' must be provided.");
+			this.leaderInitiator =
+					StringUtils.hasText(this.path)
+							? new LeaderInitiator(this.client, this.candidate, this.path)
+							: new LeaderInitiator(this.client, this.candidate);
 			this.leaderInitiator.setPhase(this.phase);
 			this.leaderInitiator.setAutoStartup(this.autoStartup);
-			if (this.leaderEventPublisher != null) {
-				this.leaderInitiator.setLeaderEventPublisher(this.leaderEventPublisher);
+			LeaderEventPublisher leaderEventPublisherToSet = this.leaderEventPublisher;
+			if (leaderEventPublisherToSet == null) {
+				leaderEventPublisherToSet = new DefaultLeaderEventPublisher(this.applicationEventPublisher);
 			}
-			else if (this.applicationEventPublisher != null) {
-				this.leaderInitiator.setLeaderEventPublisher(
-						new DefaultLeaderEventPublisher(this.applicationEventPublisher));
-			}
+			this.leaderInitiator.setLeaderEventPublisher(leaderEventPublisherToSet);
 		}
 	}
 
 	@Override
-	public LeaderInitiator getObject() {
+	public @Nullable LeaderInitiator getObject() {
 		return this.leaderInitiator;
 	}
 

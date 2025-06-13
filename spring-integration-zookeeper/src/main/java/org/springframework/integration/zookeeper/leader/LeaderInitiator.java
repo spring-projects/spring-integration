@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
 import org.apache.curator.framework.recipes.leader.Participant;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
-import org.springframework.util.StringUtils;
 
 /**
  * Bootstrap leadership {@link Candidate candidates}
@@ -79,7 +79,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	/**
 	 * Leader event publisher if set
 	 */
-	private LeaderEventPublisher leaderEventPublisher;
+	private @Nullable LeaderEventPublisher leaderEventPublisher;
 
 	/**
 	 * @see SmartLifecycle
@@ -94,7 +94,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	/**
 	 * Curator utility for selecting leaders.
 	 */
-	private volatile LeaderSelector leaderSelector;
+	private volatile @Nullable LeaderSelector leaderSelector;
 
 	/**
 	 * Flag that indicates whether the leadership election for
@@ -167,15 +167,17 @@ public class LeaderInitiator implements SmartLifecycle {
 			if (!this.running) {
 				if (this.client.getState() != CuratorFrameworkState.STARTED) {
 					// we want to do curator start here because it needs to
-					// be started before leader selector and it gets a little
+					// be started before leader selector, and it gets a little
 					// complicated to control ordering via beans so that
 					// curator is fully started.
 					this.client.start();
 				}
-				this.leaderSelector = new LeaderSelector(this.client, buildLeaderPath(), new LeaderListener());
-				this.leaderSelector.setId(this.candidate.getId());
-				this.leaderSelector.autoRequeue();
-				this.leaderSelector.start();
+				LeaderSelector leaderSelectorToSet =
+						new LeaderSelector(this.client, buildLeaderPath(), new LeaderListener());
+				leaderSelectorToSet.setId(this.candidate.getId());
+				leaderSelectorToSet.autoRequeue();
+				leaderSelectorToSet.start();
+				this.leaderSelector = leaderSelectorToSet;
 
 				this.running = true;
 				LOGGER.debug("Started LeaderInitiator");
@@ -195,7 +197,10 @@ public class LeaderInitiator implements SmartLifecycle {
 		this.lifecycleMonitor.lock();
 		try {
 			if (this.running) {
-				this.leaderSelector.close();
+				LeaderSelector leaderSelectorToClose = this.leaderSelector;
+				if (leaderSelectorToClose != null) {
+					leaderSelectorToClose.close();
+				}
 				this.running = false;
 				LOGGER.debug("Stopped LeaderInitiator");
 			}
@@ -229,7 +234,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	 * @return the ZooKeeper path used for leadership election by Curator
 	 */
 	private String buildLeaderPath() {
-		String ns = StringUtils.hasText(this.namespace) ? this.namespace : DEFAULT_NAMESPACE;
+		String ns = this.namespace;
 		if (ns.charAt(0) != '/') {
 			ns = '/' + ns;
 		}
@@ -294,12 +299,16 @@ public class LeaderInitiator implements SmartLifecycle {
 
 		@Override
 		public boolean isLeader() {
-			return LeaderInitiator.this.leaderSelector.hasLeadership();
+			LeaderSelector leaderSelectorToCheck = LeaderInitiator.this.leaderSelector;
+			return leaderSelectorToCheck != null && leaderSelectorToCheck.hasLeadership();
 		}
 
 		@Override
 		public void yield() {
-			LeaderInitiator.this.leaderSelector.interruptLeadership();
+			LeaderSelector leaderSelectorToInterrupt = LeaderInitiator.this.leaderSelector;
+			if (leaderSelectorToInterrupt != null) {
+				leaderSelectorToInterrupt.interruptLeadership();
+			}
 		}
 
 		@Override
@@ -312,13 +321,17 @@ public class LeaderInitiator implements SmartLifecycle {
 		 * @return the leader.
 		 * @since 6.0.3
 		 */
-		public Participant getLeader() {
-			try {
-				return LeaderInitiator.this.leaderSelector.getLeader();
+		public @Nullable Participant getLeader() {
+			LeaderSelector leaderSelectorToUse = LeaderInitiator.this.leaderSelector;
+			if (leaderSelectorToUse != null) {
+				try {
+					return leaderSelectorToUse.getLeader();
+				}
+				catch (Exception ex) {
+					throw new IllegalStateException(ex);
+				}
 			}
-			catch (Exception ex) {
-				throw new IllegalStateException(ex);
-			}
+			return null;
 		}
 
 		/**
@@ -327,12 +340,16 @@ public class LeaderInitiator implements SmartLifecycle {
 		 * @since 6.0.3
 		 */
 		public Collection<Participant> getParticipants() {
-			try {
-				return LeaderInitiator.this.leaderSelector.getParticipants();
+			LeaderSelector leaderSelectorToUse = LeaderInitiator.this.leaderSelector;
+			if (leaderSelectorToUse != null) {
+				try {
+					return leaderSelectorToUse.getParticipants();
+				}
+				catch (Exception ex) {
+					throw new IllegalStateException(ex);
+				}
 			}
-			catch (Exception ex) {
-				throw new IllegalStateException(ex);
-			}
+			return List.of();
 		}
 
 		@Override
@@ -352,12 +369,7 @@ public class LeaderInitiator implements SmartLifecycle {
 		}
 
 		@Override
-		public String getRole() {
-			return LeaderInitiator.this.candidate.getRole();
-		}
-
-		@Override
-		public Participant getLeader() {
+		public @Nullable Participant getLeader() {
 			return null;
 		}
 

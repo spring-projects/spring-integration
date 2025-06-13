@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.zookeeper.lock;
 
+import java.io.Serial;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,7 +64,10 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 	private final Lock locksLock = new ReentrantLock();
 
 	private final Map<String, ZkLock> locks =
-			new LinkedHashMap<String, ZkLock>(16, 0.75F, true) {
+			new LinkedHashMap<>(16, 0.75F, true) {
+
+				@Serial
+				private static final long serialVersionUID = 7092378879531819061L;
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, ZkLock> eldest) {
@@ -334,9 +338,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 				}
 			}
 			catch (@SuppressWarnings("unused") TimeoutException e) {
-				if (future != null) {
-					future.cancel(true);
-				}
+				future.cancel(true);
 				return false;
 			}
 			catch (InterruptedException e) {
