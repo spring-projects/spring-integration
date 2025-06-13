@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2024 the original author or authors.
+ * Copyright 2015-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.zookeeper.metadata;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -31,6 +32,7 @@ import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.metadata.ListenableMetadataStore;
@@ -67,7 +69,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	private String encoding = StandardCharsets.UTF_8.name();
 
-	private CuratorCache cache;
+	private @Nullable CuratorCache cache;
 
 	private boolean autoStartup = true;
 
@@ -79,7 +81,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	public ZookeeperMetadataStore(CuratorFramework client) {
 		Assert.notNull(client, "Client cannot be null");
-		this.client = client;  // NOSONAR
+		this.client = client;
 	}
 
 	/**
@@ -115,7 +117,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	@Override
-	public String putIfAbsent(String key, String value) {
+	public @Nullable String putIfAbsent(String key, String value) {
 		this.lock.lock();
 		try {
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
@@ -207,12 +209,13 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	@Override
-	public String get(String key) {
+	public @Nullable String get(String key) {
 		this.lock.lock();
 		try {
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 			Assert.state(isRunning(), "ZookeeperMetadataStore has to be started before using.");
-			return this.cache.get(getPath(key))
+			return Objects.requireNonNull(this.cache)
+					.get(getPath(key))
 					.map(currentData -> {
 						// our version is more recent than the cache
 						if (this.updateMap.containsKey(key) &&
@@ -240,7 +243,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	@Override
-	public String remove(String key) {
+	public @Nullable String remove(String key) {
 		this.lock.lock();
 		try {
 			Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
@@ -276,7 +279,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	public String getPath(String key) {
-		return "".equals(key) ? this.root : this.root + '/' + key;
+		return key.isEmpty() ? this.root : this.root + '/' + key;
 	}
 
 	@Override
@@ -344,7 +347,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		return path.replace(this.root + '/', "");
 	}
 
-	private record LocalChildData(String value, int version) {
+	private record LocalChildData(@Nullable String value, int version) {
 
 	}
 
