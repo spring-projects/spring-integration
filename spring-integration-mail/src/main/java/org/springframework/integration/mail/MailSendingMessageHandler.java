@@ -16,8 +16,12 @@
 
 package org.springframework.integration.mail;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -190,12 +194,14 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
-	private String[] retrieveHeaderValueAsStringArray(MessageHeaders headers, String key) {
+	private String @Nullable [] retrieveHeaderValueAsStringArray(MessageHeaders headers, String key) {
 		Object value = headers.get(key);
 		String[] returnedHeaders = null;
 		if (value != null) {
-			if (value instanceof String[]) {
-				returnedHeaders = (String[]) value;
+			if (value instanceof String[] strArr) {
+				returnedHeaders = Arrays.stream(strArr)
+						.filter(Objects::nonNull)
+						.toArray(String[]::new);
 			}
 			else if (value instanceof String) {
 				returnedHeaders = StringUtils.commaDelimitedListToStringArray((String) value);

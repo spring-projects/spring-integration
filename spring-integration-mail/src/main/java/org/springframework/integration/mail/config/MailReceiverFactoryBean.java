@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import jakarta.mail.Authenticator;
 import jakarta.mail.Session;
 import jakarta.mail.URLName;
 import jakarta.mail.internet.MimeMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -34,7 +35,6 @@ import org.springframework.integration.mail.MailReceiver;
 import org.springframework.integration.mail.Pop3MailReceiver;
 import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -48,41 +48,42 @@ import org.springframework.util.StringUtils;
  */
 public class MailReceiverFactoryBean extends AbstractFactoryBean<MailReceiver> {
 
-	private String storeUri;
+	private @Nullable String storeUri;
 
-	private String protocol;
+	private @Nullable String protocol;
 
-	private Session session;
+	private @Nullable Session session;
 
+	@SuppressWarnings("NullAway.Init")
 	private MailReceiver receiver;
 
-	private Properties javaMailProperties;
+	private @Nullable Properties javaMailProperties;
 
-	private Authenticator authenticator;
+	private @Nullable Authenticator authenticator;
 
 	/**
 	 * Indicates whether retrieved messages should be deleted from the server.
 	 * This value will be <code>null</code> <i>unless</i> explicitly configured.
 	 */
-	private Boolean shouldDeleteMessages = null;
+	private @Nullable Boolean shouldDeleteMessages = null;
 
-	private Boolean shouldMarkMessagesAsRead = null;
+	private @Nullable Boolean shouldMarkMessagesAsRead = null;
 
 	private int maxFetchSize = 1;
 
-	private Expression selectorExpression;
+	private @Nullable Expression selectorExpression;
 
-	private SearchTermStrategy searchTermStrategy;
+	private @Nullable SearchTermStrategy searchTermStrategy;
 
-	private String userFlag;
+	private @Nullable String userFlag;
 
-	private HeaderMapper<MimeMessage> headerMapper;
+	private @Nullable HeaderMapper<MimeMessage> headerMapper;
 
-	private Boolean embeddedPartsAsBytes;
+	private @Nullable Boolean embeddedPartsAsBytes;
 
-	private Boolean simpleContent;
+	private @Nullable Boolean simpleContent;
 
-	private Boolean autoCloseFolder;
+	private @Nullable Boolean autoCloseFolder;
 
 	public void setStoreUri(@Nullable String storeUri) {
 		this.storeUri = storeUri;
@@ -163,6 +164,7 @@ public class MailReceiverFactoryBean extends AbstractFactoryBean<MailReceiver> {
 
 	private MailReceiver createReceiver() { // NOSONAR
 		verifyProtocol();
+		Assert.state(this.protocol != null, "'protocol' should not be null ");
 		boolean isPop3 = this.protocol.toLowerCase(Locale.ROOT).startsWith("pop3");
 		boolean isImap = this.protocol.toLowerCase(Locale.ROOT).startsWith("imap");
 		Assert.isTrue(isPop3 || isImap, "the store URI must begin with 'pop3' or 'imap'");
@@ -203,7 +205,7 @@ public class MailReceiverFactoryBean extends AbstractFactoryBean<MailReceiver> {
 			}
 		}
 		else {
-			((ImapMailReceiver) mailReceiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
+			((ImapMailReceiver) mailReceiver).setShouldMarkMessagesAsRead(isShouldMarkMessagesAsRead());
 		}
 		BeanFactory beanFactory = getBeanFactory();
 		if (beanFactory != null) {

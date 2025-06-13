@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2024 the original author or authors.
+ * Copyright 2007-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import jakarta.mail.Service;
 import jakarta.mail.URLName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.StringUtils;
 
@@ -44,7 +45,7 @@ public abstract class MailTransportUtils {
 	 * @see jakarta.mail.Transport
 	 * @see jakarta.mail.Store
 	 */
-	public static void closeService(Service service) {
+	public static void closeService(@Nullable Service service) {
 		if (service != null) {
 			try {
 				service.close();
@@ -61,7 +62,7 @@ public abstract class MailTransportUtils {
 	 * @param folder  the JavaMail Folder to close (may be <code>null</code>)
 	 * @param expunge whether all deleted messages should be expunged from the folder
 	 */
-	public static void closeFolder(Folder folder, boolean expunge) {
+	public static void closeFolder(@Nullable Folder folder, boolean expunge) {
 		if (folder != null && folder.isOpen()) {
 			try {
 				folder.close(expunge);
