@@ -29,13 +29,10 @@ import jakarta.mail.search.NotTerm;
 import jakarta.mail.search.SearchTerm;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,7 +62,7 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsGuts(String userFlag, ImapMailReceiver receiver)
 			throws NoSuchFieldException, IllegalAccessException, InvocationTargetException {
 		receiver.setShouldMarkMessagesAsRead(true);
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
@@ -88,7 +85,7 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldMarkAsReadWithExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(true);
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 
 		receiver.afterPropertiesSet();
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -118,7 +115,7 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldNotMarkAsReadNoExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(false);
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -132,15 +129,6 @@ public class ImapMailSearchTermsTests {
 		Flags flags = new Flags();
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
 		assertThat(searchTerms instanceof NotTerm).isTrue();
-	}
-
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
 	}
 
 }

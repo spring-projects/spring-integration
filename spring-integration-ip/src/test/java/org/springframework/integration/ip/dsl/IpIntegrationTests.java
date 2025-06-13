@@ -69,6 +69,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ReflectionUtils;
@@ -185,6 +186,7 @@ public class IpIntegrationTests {
 				.setHeader("udp_dest", "udp://localhost:" + this.udpInbound.getPort())
 				.build();
 		this.udpOut.send(outMessage);
+		this.udpIn.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		Message<?> received = this.udpIn.receive(10000);
 		assertThat(received).isNotNull();
 		assertThat(Transformers.objectToString().transform(received).getPayload()).isEqualTo("foo");

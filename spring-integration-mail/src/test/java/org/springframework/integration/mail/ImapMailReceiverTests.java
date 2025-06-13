@@ -83,6 +83,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -171,6 +172,7 @@ public class ImapMailReceiverTests {
 	public void testIdleWithServerCustomSearch() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		receiver.setSearchTermStrategy((supportedFlags, folder) -> {
 			try {
 				FromTerm fromTerm = new FromTerm(new InternetAddress("bar@baz"));
@@ -187,6 +189,7 @@ public class ImapMailReceiverTests {
 	public void testIdleWithServerDefaultSearch() throws Exception {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		testIdleWithServerGuts(receiver, false);
 		assertThat(imapSearches.searches.get(0)).contains("testSIUserFlag");
 	}
@@ -214,6 +217,7 @@ public class ImapMailReceiverTests {
 		ImapMailReceiver receiver =
 				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getImap().getPort() + "/INBOX");
 		receiver.setSimpleContent(true);
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		testIdleWithServerGuts(receiver, true, true);
 	}
@@ -983,7 +987,7 @@ public class ImapMailReceiverTests {
 	private void setUpScheduler(ImapMailReceiver mailReceiver, ThreadPoolTaskScheduler taskScheduler) {
 		taskScheduler.setPoolSize(5);
 		taskScheduler.initialize();
-		BeanFactory bf = getBeanFactory();
+		BeanFactory bf = getBeanFactory(taskScheduler);
 		given(bf.containsBean("taskScheduler")).willReturn(true);
 		given(bf.getBean("taskScheduler", TaskScheduler.class)).willReturn(taskScheduler);
 		mailReceiver.setBeanFactory(bf);
@@ -1012,6 +1016,14 @@ public class ImapMailReceiverTests {
 		// msg2 is marked with the user and seen flags
 		verify(msg1, times(2)).setFlags(Mockito.any(), Mockito.anyBoolean());
 		verify(receiver, times(0)).deleteMessages(Mockito.any());
+	}
+
+	private BeanFactory getBeanFactory(TaskScheduler taskScheduler) {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		return beanFactory;
 	}
 
 	private BeanFactory getBeanFactory() {

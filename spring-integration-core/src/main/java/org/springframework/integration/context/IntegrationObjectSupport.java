@@ -224,7 +224,7 @@ public abstract class IntegrationObjectSupport implements ComponentSourceAware, 
 	}
 
 	@Override
-	@SuppressWarnings("NullAway.Init")
+	@SuppressWarnings("NullAway")
 	public final void afterPropertiesSet() {
 		this.integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 		if (this.messageBuilderFactory == null) {

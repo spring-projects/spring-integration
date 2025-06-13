@@ -54,13 +54,12 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -702,25 +701,16 @@ public class FailoverClientConnectionFactoryTests {
 
 	private TcpNetServerConnectionFactory getTcpNetServerConnectionFactory(int port) {
 		TcpNetServerConnectionFactory result = new TcpNetServerConnectionFactory(port);
-		result.setBeanFactory(getBeanFactory());
+		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
 
 		return result;
 	}
 
 	private TcpNetClientConnectionFactory getTcpNetServerConnectionFactory(String host, int port) {
 		TcpNetClientConnectionFactory result = new TcpNetClientConnectionFactory(host, port);
-		result.setBeanFactory(getBeanFactory());
+		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
 
 		return result;
-	}
-
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
 	}
 }
 

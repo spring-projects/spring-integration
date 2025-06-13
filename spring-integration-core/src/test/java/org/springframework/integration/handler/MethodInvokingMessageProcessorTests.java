@@ -79,7 +79,7 @@ import org.springframework.messaging.handler.annotation.support.DefaultMessageHa
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.util.StopWatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -88,12 +88,9 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Mark Fisher
@@ -609,7 +606,8 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void gatewayTest() throws Exception {
 		GatewayProxyFactoryBean<?> gwFactoryBean = new GatewayProxyFactoryBean<>();
-		gwFactoryBean.setBeanFactory(getBeanFactory());
+		gwFactoryBean.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		gwFactoryBean.setBeanFactory(mock());
 		gwFactoryBean.afterPropertiesSet();
 		Object target = gwFactoryBean.getObject();
 		// just instantiate a helper with a simple target; we're going to invoke getTargetClass with reflection
@@ -619,15 +617,6 @@ public class MethodInvokingMessageProcessorTests {
 		method.setAccessible(true);
 		Object result = method.invoke(helper, target);
 		assertThat(result).isSameAs(RequestReplyExchanger.class);
-	}
-
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
 	}
 
 	@Test
