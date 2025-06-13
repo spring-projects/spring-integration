@@ -168,7 +168,7 @@ public class LeaderInitiatorFactoryBean
 	public void afterPropertiesSet() {
 		if (this.leaderInitiator == null) {
 			Assert.notNull(this.client, "The 'CuratorFramework' must be provided.");
-			Assert.notNull(this.candidate, "The 'CuratorFramework' must be provided.");
+			Assert.notNull(this.candidate, "The 'candidate' must be provided.");
 			this.leaderInitiator =
 					StringUtils.hasText(this.path)
 							? new LeaderInitiator(this.client, this.candidate, this.path)
