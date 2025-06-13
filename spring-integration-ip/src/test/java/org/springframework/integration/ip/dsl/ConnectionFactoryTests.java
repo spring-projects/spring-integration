@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
@@ -39,13 +38,10 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -62,7 +58,7 @@ public class ConnectionFactoryTests {
 		ApplicationEventPublisher publisher = e -> {
 		};
 		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).getObject();
-		server.setBeanFactory(getBeanFactory());
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		final AtomicReference<Message<?>> received = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(m -> {
@@ -83,15 +79,6 @@ public class ConnectionFactoryTests {
 		assertThat(received.get().getPayload()).isEqualTo("foo");
 		client.stop();
 		server.stop();
-	}
-
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
 	}
 
 	@Test

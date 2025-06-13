@@ -41,15 +41,13 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -221,7 +219,8 @@ public class AsyncHandlerTests {
 	public void testGateway() {
 		this.whichTest = 0;
 		GatewayProxyFactoryBean<Foo> gpfb = new GatewayProxyFactoryBean<>(Foo.class);
-		gpfb.setBeanFactory(getBeanFactory());
+		gpfb.setBeanFactory(mock());
+		gpfb.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		DirectChannel input = new DirectChannel();
 		gpfb.setDefaultRequestChannel(input);
 		gpfb.setDefaultReplyTimeout(10000L);
@@ -236,20 +235,12 @@ public class AsyncHandlerTests {
 		assertThat(result).isEqualTo("reply");
 	}
 
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
-	}
-
 	@Test
 	public void testGatewayWithException() {
 		this.whichTest = 0;
 		GatewayProxyFactoryBean<Foo> gpfb = new GatewayProxyFactoryBean<>(Foo.class);
-		gpfb.setBeanFactory(getBeanFactory());
+		gpfb.setBeanFactory(mock());
+		gpfb.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		DirectChannel input = new DirectChannel();
 		gpfb.setDefaultRequestChannel(input);
 		gpfb.setDefaultReplyTimeout(10000L);

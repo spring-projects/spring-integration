@@ -73,16 +73,13 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -1207,7 +1204,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 	public void testInterceptedConnection() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
-		scf.setBeanFactory(getBeanFactory());
+		scf.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -1241,7 +1238,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 	public void testInterceptedCleanup() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
-		scf.setBeanFactory(getBeanFactory());
+		scf.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
@@ -1266,14 +1263,4 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		await().untilAsserted(() -> assertThat(handler.getConnections()).isEmpty());
 		scf.stop();
 	}
-
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
-	}
-
 }

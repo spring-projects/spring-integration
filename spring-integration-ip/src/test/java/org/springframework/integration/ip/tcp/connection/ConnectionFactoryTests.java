@@ -40,14 +40,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.config.TcpConnectionFactoryFactoryBean;
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
@@ -57,7 +55,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,7 +64,6 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -163,10 +160,8 @@ public class ConnectionFactoryTests {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.setPoolSize(10);
 		scheduler.afterPropertiesSet();
-		BeanFactory bf = getBeanFactory();
-		when(bf.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
-		when(bf.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class)).thenReturn(scheduler);
-		serverFactory.setBeanFactory(bf);
+
+		serverFactory.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setOutputChannel(new NullChannel());
 		adapter.setConnectionFactory(serverFactory);
@@ -299,7 +294,7 @@ public class ConnectionFactoryTests {
 				serverUp.countDown();
 			}
 		});
-		server.setBeanFactory(getBeanFactory());
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		AtomicReference<TcpConnection> connection = new AtomicReference<>();
 		server.registerSender(conn -> {
 			connection.set(conn);
@@ -370,17 +365,8 @@ public class ConnectionFactoryTests {
 
 	private TcpNetServerConnectionFactory getTcpNetServerConnectionFactory(int port) {
 		TcpNetServerConnectionFactory result = new TcpNetServerConnectionFactory(port);
-		result.setBeanFactory(getBeanFactory());
+		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		return result;
-	}
-
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
 	}
 
 	@SuppressWarnings("serial")
