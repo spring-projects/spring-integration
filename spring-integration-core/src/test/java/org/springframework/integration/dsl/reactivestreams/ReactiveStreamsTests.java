@@ -36,7 +36,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -58,15 +57,11 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Artem Bilan
@@ -136,7 +131,7 @@ public class ReactiveStreamsTests {
 	@Test
 	void testPollableReactiveFlow() throws Exception {
 		assertThat(this.reactiveTransformer).isInstanceOf(ReactiveStreamsConsumer.class);
-		this.reactiveTransformer.setBeanFactory(getBeanFactory());
+		this.reactiveTransformer.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
 		CountDownLatch latch = new CountDownLatch(6);
@@ -170,15 +165,6 @@ public class ReactiveStreamsTests {
 		assertThat(integers).isNotNull();
 		assertThat(integers.size()).isEqualTo(7);
 		exec.shutdownNow();
-	}
-
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
 	}
 
 	@Test

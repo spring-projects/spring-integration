@@ -29,7 +29,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
@@ -42,15 +41,12 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Mark Fisher
@@ -67,9 +63,7 @@ public class AsyncGatewayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		Future<Message<?>> f = service.returnMessage("foo");
@@ -90,9 +84,7 @@ public class AsyncGatewayTests {
 
 		};
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(channel);
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		setupProxyFactory(channel, proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		Future<Message<?>> f = service.returnMessage("foo");
@@ -108,9 +100,7 @@ public class AsyncGatewayTests {
 		addThreadEnricher(requestChannel);
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		CompletableFuture<Message<?>> f = service.returnMessageListenable("foo");
@@ -134,9 +124,7 @@ public class AsyncGatewayTests {
 		addThreadEnricher(requestChannel);
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		CustomFuture f = service.returnCustomFuture("foo");
@@ -151,10 +139,7 @@ public class AsyncGatewayTests {
 		addThreadEnricher(requestChannel);
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
-
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.setAsyncExecutor(null);    // Not async - user flow returns Future<?>
 
 		proxyFactory.afterPropertiesSet();
@@ -183,9 +168,7 @@ public class AsyncGatewayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		Future<String> f = service.returnString("foo");
@@ -199,9 +182,7 @@ public class AsyncGatewayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		Future<?> f = service.returnSomething("foo");
@@ -213,9 +194,7 @@ public class AsyncGatewayTests {
 	@Test
 	public void futureVoid() throws Exception {
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(new NullChannel());
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		setupProxyFactory(new NullChannel(), proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		Future<Void> f = service.asyncSendAndForget("test1");
@@ -253,9 +232,7 @@ public class AsyncGatewayTests {
 			}
 		}).start();
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.setAsyncExecutor(null);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
@@ -270,9 +247,7 @@ public class AsyncGatewayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanFactory(getBeanFactory());
-		proxyFactory.setBeanName("testGateway");
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		Mono<Message<?>> mono = service.returnMessagePromise("foo");
@@ -285,9 +260,7 @@ public class AsyncGatewayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanFactory(getBeanFactory());
-		proxyFactory.setBeanName("testGateway");
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		Mono<String> mono = service.returnStringPromise("foo");
@@ -300,9 +273,7 @@ public class AsyncGatewayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanFactory(getBeanFactory());
-		proxyFactory.setBeanName("testGateway");
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		Mono<?> mono = service.returnSomethingPromise("foo");
@@ -316,9 +287,7 @@ public class AsyncGatewayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setBeanFactory(getBeanFactory());
-		proxyFactory.setBeanName("testGateway");
+		setupProxyFactory(requestChannel, proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		Mono<String> mono = service.returnStringPromise("foo");
@@ -331,9 +300,7 @@ public class AsyncGatewayTests {
 	@Test
 	public void monoVoid() throws InterruptedException {
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
-		proxyFactory.setDefaultRequestChannel(new NullChannel());
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setBeanFactory(getBeanFactory());
+		setupProxyFactory(new NullChannel(), proxyFactory);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = proxyFactory.getObject();
 		Mono<Void> mono = service.monoVoid("test1");
@@ -376,15 +343,6 @@ public class AsyncGatewayTests {
 		}).start();
 	}
 
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
-	}
-
 	private interface TestEchoService {
 
 		Future<String> returnString(String s);
@@ -413,6 +371,13 @@ public class AsyncGatewayTests {
 
 		Mono<Void> monoVoid(String s);
 
+	}
+
+	private static void setupProxyFactory(MessageChannel messageChannel, GatewayProxyFactoryBean proxyFactory) {
+		proxyFactory.setDefaultRequestChannel(messageChannel);
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		proxyFactory.setBeanFactory(mock());
 	}
 
 	private record CustomFuture(String result, Thread thread) implements Future<String> {

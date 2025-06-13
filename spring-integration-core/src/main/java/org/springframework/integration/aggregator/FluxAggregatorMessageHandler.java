@@ -17,11 +17,11 @@
 package org.springframework.integration.aggregator;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -108,7 +108,6 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 				.flatMap((windowFlux) -> windowFlux.transform(this.combineFunction));
 	}
 
-	@NullUnmarked
 	private Flux<Flux<Message<?>>> applyWindowOptions(Flux<Message<?>> groupFlux) {
 		if (this.boundaryTrigger != null) {
 			return groupFlux.windowUntil(this.boundaryTrigger);
@@ -117,7 +116,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 				.switchOnFirst((signal, group) -> {
 					if (signal.hasValue()) {
 						Assert.notNull(this.windowSizeFunction, "'windowSizeFunction' must not be null");
-						Integer maxSize = this.windowSizeFunction.apply(signal.get());
+						Integer maxSize = this.windowSizeFunction.apply(Objects.requireNonNull(signal.get()));
 						if (maxSize != null) {
 							if (this.windowTimespan != null) {
 								return group.windowTimeout(maxSize, this.windowTimespan);
@@ -196,7 +195,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	/**
 	 * Specify a {@link Function} to determine a size for windows to close against the first message in group.
 	 * Tne result of the function can be combined with the {@link #setWindowTimespan(Duration)}.
-	 * By default an {@link IntegrationMessageHeaderAccessor#SEQUENCE_SIZE} header is consulted.
+	 * By default, an {@link IntegrationMessageHeaderAccessor#SEQUENCE_SIZE} header is consulted.
 	 * @param windowSizeFunction the {@link Function} to use to determine a window size
 	 * against a first message in the group.
 	 * @see Flux#window(int)

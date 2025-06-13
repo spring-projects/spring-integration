@@ -44,15 +44,13 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIOException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -313,17 +311,8 @@ public class DeserializationTests {
 
 	private TcpNioServerConnectionFactory getTcpNioServerConnectionFactory(int port) {
 		TcpNioServerConnectionFactory result = new TcpNioServerConnectionFactory(port);
-		result.setBeanFactory(getBeanFactory());
+		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		return result;
-	}
-
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
 	}
 
 	private void testTimeoutWhileDecoding(AbstractByteArraySerializer deserializer, String reply) {

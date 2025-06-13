@@ -56,13 +56,11 @@ import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Gary Russell
@@ -452,18 +450,9 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		scf.stop();
 	}
 
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
-	}
-
 	private AbstractServerConnectionFactory getDefaultServerConnectionFactory() {
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
-		scf.setBeanFactory(getBeanFactory());
+		scf.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		return scf;
 	}
 
