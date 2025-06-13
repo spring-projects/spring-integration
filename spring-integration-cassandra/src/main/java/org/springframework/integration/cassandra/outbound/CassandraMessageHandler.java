@@ -27,6 +27,7 @@ import com.datastax.oss.driver.api.core.cql.BatchType;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.datastax.oss.driver.api.core.cql.Statement;
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -50,7 +51,6 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -85,8 +85,10 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 	 */
 	private WriteOptions writeOptions;
 
+	@SuppressWarnings("NullAway.Init")
 	private ReactiveSessionMessageCallback sessionMessageCallback;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	public CassandraMessageHandler(ReactiveCassandraOperations cassandraOperations) {
@@ -161,6 +163,7 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 		this.parameterExpressions.putAll(parameterExpressions);
 	}
 
+	@SuppressWarnings("NullAway")
 	public void setStatementProcessor(MessageProcessor<Statement<?>> statementProcessor) {
 		Assert.notNull(statementProcessor, "'statementProcessor' must not be null.");
 		this.sessionMessageCallback =
@@ -191,6 +194,7 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Object payload = requestMessage.getPayload();
 
@@ -218,7 +222,7 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	private Mono<? extends WriteResult> handleInsert(Object payload) {
 		if (this.ingestQuery != null) {
 			Assert.isInstanceOf(List.class, payload,

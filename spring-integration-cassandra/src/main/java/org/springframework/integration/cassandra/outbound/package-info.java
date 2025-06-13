@@ -1,5 +1,5 @@
 /**
  * Provides classes supporting Cassandra outbound endpoints.
  */
-@org.springframework.lang.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.cassandra.outbound;
