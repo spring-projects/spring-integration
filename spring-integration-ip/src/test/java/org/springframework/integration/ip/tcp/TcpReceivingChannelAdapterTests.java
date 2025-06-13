@@ -82,7 +82,8 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		int port = scf.getPort();
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(mock());
+		adapter.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		adapter.afterPropertiesSet();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test1\r\n".getBytes());
