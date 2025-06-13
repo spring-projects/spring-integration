@@ -63,6 +63,7 @@ And the `JdbcLockRegistry.JdbcLock.unlock()` method throws `ConcurrentModificati
 Starting with version 7.0, the `JdbcLock` implements `DistributedLock` interface to support the feature of customized time-to-live (TTL) for the lock status data.
 A `JdbcLock` can now be acquired using the `lock(Duration ttl)` or `tryLock(long time, TimeUnit unit, Duration ttl)` method, with a specified time-to-live (TTL) value.
 The `JdbcLockRegistry` now provides new `renewLock(Object lockKey, Duration ttl)` method, allowing you to renew the lock with a custom time-to-live value.
+The default time-to-live for all `JdbcLock` instances stored in the same `JdbcLockRegistry` can now be set by the new constructor `JdbcLockRegistry(LockRepository client, Duration expireAfter)`.
 The APIs of `LockRepository` and `DefaultLockRepository` are also modified to support the feature.
 [IMPORTANT]
 ====
