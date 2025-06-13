@@ -652,8 +652,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		try {
 			closeFolder();
 			MailTransportUtils.closeService(this.store);
-			// this.folder = null;
-			// this.store = null;
+			this.folder = null;
+			this.store = null;
 		}
 		finally {
 			this.folderWriteLock.unlock();
