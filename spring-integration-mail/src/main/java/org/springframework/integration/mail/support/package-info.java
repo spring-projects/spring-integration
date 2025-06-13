@@ -1,7 +1,5 @@
 /**
  * Provides classes to support email.
  */
-@NullMarked
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.mail.support;
-
-import org.jspecify.annotations.NullMarked;

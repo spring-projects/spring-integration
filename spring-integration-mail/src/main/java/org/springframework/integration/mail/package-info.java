@@ -1,7 +1,5 @@
 /**
  * Base package for Mail support.
  */
-@NullMarked
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.mail;
-
-import org.jspecify.annotations.NullMarked;
