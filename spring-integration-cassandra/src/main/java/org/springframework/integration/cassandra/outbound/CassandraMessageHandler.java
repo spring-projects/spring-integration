@@ -163,14 +163,16 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 		this.parameterExpressions.putAll(parameterExpressions);
 	}
 
-	@SuppressWarnings("NullAway")
 	public void setStatementProcessor(MessageProcessor<Statement<?>> statementProcessor) {
 		Assert.notNull(statementProcessor, "'statementProcessor' must not be null.");
 		this.sessionMessageCallback =
-				(session, requestMessage) ->
-						session.execute(
-								QueryOptionsUtil.addQueryOptions(statementProcessor.processMessage(requestMessage),
-										this.writeOptions));
+				(session, requestMessage) -> {
+					Statement<?> statement = statementProcessor.processMessage(requestMessage);
+					Assert.notNull(statement, "Statement must not be null");
+					return session.execute(
+							QueryOptionsUtil.addQueryOptions(statement,
+									this.writeOptions));
+				};
 		this.mode = Type.STATEMENT;
 	}
 
@@ -194,7 +196,7 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 	}
 
 	@Override
-	@SuppressWarnings("NullAway")
+	@Nullable
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Object payload = requestMessage.getPayload();
 
@@ -222,9 +224,10 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "NullAway"})
+	@SuppressWarnings("unchecked")
 	private Mono<? extends WriteResult> handleInsert(Object payload) {
-		if (this.ingestQuery != null) {
+		final String localIngestQuery = this.ingestQuery;
+		if (localIngestQuery != null) {
 			Assert.isInstanceOf(List.class, payload,
 					"to perform 'ingest' the 'payload' must be of 'List<List<?>>' type.");
 			List<?> list = (List<?>) payload;
@@ -236,7 +239,7 @@ public class CassandraMessageHandler extends AbstractReplyProducingMessageHandle
 			return this.cassandraOperations.getReactiveCqlOperations()
 					.execute((ReactiveSessionCallback<WriteResult>) session ->
 							session.prepare(
-											QueryOptionsUtil.addQueryOptions(SimpleStatement.newInstance(this.ingestQuery),
+											QueryOptionsUtil.addQueryOptions(SimpleStatement.newInstance(localIngestQuery),
 													this.writeOptions))
 									.flatMapMany(s ->
 											Flux.fromIterable(rows)
