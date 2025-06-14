@@ -18,6 +18,7 @@ package org.springframework.integration.dsl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanInitializationException;
@@ -27,7 +28,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.lang.NonNull;
 
 /**
  * The common Builder abstraction.
