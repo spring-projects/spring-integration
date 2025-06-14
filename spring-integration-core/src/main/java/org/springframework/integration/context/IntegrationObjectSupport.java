@@ -37,7 +37,7 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.TaskScheduler;

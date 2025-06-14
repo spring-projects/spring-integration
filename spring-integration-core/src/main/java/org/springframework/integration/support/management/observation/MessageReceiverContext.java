@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 
 import io.micrometer.observation.transport.ReceiverContext;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 
 /**

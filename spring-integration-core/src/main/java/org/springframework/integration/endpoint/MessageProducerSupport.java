@@ -39,7 +39,7 @@ import org.springframework.integration.support.management.observation.DefaultMes
 import org.springframework.integration.support.management.observation.IntegrationObservation;
 import org.springframework.integration.support.management.observation.MessageReceiverContext;
 import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;

@@ -58,7 +58,7 @@ import org.springframework.integration.support.management.observation.Integratio
 import org.springframework.integration.support.management.observation.MessageSenderContext;
 import org.springframework.integration.support.management.observation.MessageSenderObservationConvention;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;

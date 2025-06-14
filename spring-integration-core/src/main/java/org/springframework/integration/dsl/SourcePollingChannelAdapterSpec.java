@@ -19,7 +19,7 @@ package org.springframework.integration.dsl;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollerMetadata;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.scheduling.TaskScheduler;
 
 /**

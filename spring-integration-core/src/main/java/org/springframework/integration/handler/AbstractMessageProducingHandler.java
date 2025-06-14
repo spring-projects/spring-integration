@@ -50,7 +50,7 @@ import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.util.IntegrationReactiveUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;

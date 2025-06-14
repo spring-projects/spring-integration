@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.IntegrationManagement;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
@@ -51,8 +51,7 @@ public abstract class IntegrationNode {
 	@Nullable
 	private final IntegrationPatternType integrationPatternType;
 
-	@Nullable
-	private final IntegrationPatternType.IntegrationPatternCategory integrationPatternCategory;
+	private final IntegrationPatternType.@Nullable IntegrationPatternCategory integrationPatternCategory;
 
 	private final Map<String, Object> properties = new HashMap<>();
 
@@ -120,8 +119,7 @@ public abstract class IntegrationNode {
 		return this.integrationPatternType;
 	}
 
-	@Nullable
-	public IntegrationPatternType.IntegrationPatternCategory getIntegrationPatternCategory() {
+	public IntegrationPatternType.@Nullable IntegrationPatternCategory getIntegrationPatternCategory() {
 		return this.integrationPatternCategory;
 	}
 

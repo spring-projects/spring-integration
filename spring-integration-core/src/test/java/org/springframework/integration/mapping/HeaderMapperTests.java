@@ -30,7 +30,7 @@ import org.springframework.integration.mapping.AbstractHeaderMapper.HeaderMatche
 import org.springframework.integration.mapping.AbstractHeaderMapper.PatternBasedHeaderMatcher;
 import org.springframework.integration.mapping.AbstractHeaderMapper.PrefixBasedMatcher;
 import org.springframework.integration.mapping.AbstractHeaderMapper.SinglePatternBasedHeaderMatcher;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
