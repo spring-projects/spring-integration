@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 the original author or authors.
+ * Copyright 2023-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package org.springframework.integration.dsl;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.channel.PartitionedChannel;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**

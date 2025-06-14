@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 the original author or authors.
+ * Copyright 2019-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.observation.ObservationConvention;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationContext;
@@ -32,7 +33,6 @@ import org.springframework.integration.support.management.observation.DefaultMes
 import org.springframework.integration.support.management.observation.DefaultMessageRequestReplyReceiverObservationConvention;
 import org.springframework.integration.support.management.observation.DefaultMessageSenderObservationConvention;
 import org.springframework.integration.support.management.observation.IntegrationObservation;
-import org.springframework.lang.Nullable;
 
 /**
  * Add micrometer metrics to the node.

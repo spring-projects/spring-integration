@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import io.micrometer.observation.ObservationRegistry;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
@@ -39,7 +40,6 @@ import org.springframework.integration.support.management.observation.DefaultMes
 import org.springframework.integration.support.management.observation.IntegrationObservation;
 import org.springframework.integration.support.management.observation.MessageReceiverContext;
 import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;

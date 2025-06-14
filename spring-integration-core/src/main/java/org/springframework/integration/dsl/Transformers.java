@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.dsl;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -45,7 +46,6 @@ import org.springframework.integration.transformer.PayloadSerializingTransformer
 import org.springframework.integration.transformer.PayloadTypeConvertingTransformer;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -107,7 +107,7 @@ public abstract class Transformers {
 	}
 
 	public static ObjectToJsonTransformer toJson(@Nullable JsonObjectMapper<?, ?> jsonObjectMapper,
-			@Nullable ObjectToJsonTransformer.ResultType resultType) {
+			ObjectToJsonTransformer.@Nullable ResultType resultType) {
 		return toJson(jsonObjectMapper, resultType, null);
 	}
 
@@ -127,17 +127,17 @@ public abstract class Transformers {
 	 * @return the ObjectToJsonTransformer
 	 * @since 5.0.9
 	 */
-	public static ObjectToJsonTransformer toJson(@Nullable ObjectToJsonTransformer.ResultType resultType) {
+	public static ObjectToJsonTransformer toJson(ObjectToJsonTransformer.@Nullable ResultType resultType) {
 		return toJson(null, resultType, null);
 	}
 
-	public static ObjectToJsonTransformer toJson(@Nullable ObjectToJsonTransformer.ResultType resultType,
+	public static ObjectToJsonTransformer toJson(ObjectToJsonTransformer.@Nullable ResultType resultType,
 			@Nullable String contentType) {
 		return toJson(null, resultType, contentType);
 	}
 
 	public static ObjectToJsonTransformer toJson(@Nullable JsonObjectMapper<?, ?> jsonObjectMapper,
-			@Nullable ObjectToJsonTransformer.ResultType resultType, @Nullable String contentType) {
+			ObjectToJsonTransformer.@Nullable ResultType resultType, @Nullable String contentType) {
 
 		ObjectToJsonTransformer transformer;
 		if (jsonObjectMapper != null) {
