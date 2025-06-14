@@ -24,10 +24,11 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.context.ComponentSourceAware;
 import org.springframework.integration.support.context.NamedComponent;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**

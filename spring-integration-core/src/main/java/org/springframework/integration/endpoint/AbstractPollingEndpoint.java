@@ -28,6 +28,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.aopalliance.aop.Advice;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -50,7 +51,6 @@ import org.springframework.integration.transaction.PassThroughTransactionSynchro
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;

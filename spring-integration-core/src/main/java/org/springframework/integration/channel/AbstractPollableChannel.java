@@ -20,11 +20,12 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;

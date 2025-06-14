@@ -20,11 +20,12 @@ import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.util.UpperBound;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 

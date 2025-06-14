@@ -16,6 +16,8 @@
 
 package org.springframework.integration.dsl;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
@@ -23,7 +25,6 @@ import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.util.ClassUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.StringUtils;
 

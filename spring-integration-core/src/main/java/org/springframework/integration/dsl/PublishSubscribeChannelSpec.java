@@ -18,8 +18,9 @@ package org.springframework.integration.dsl;
 
 import java.util.concurrent.Executor;
 
-import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.util.ErrorHandler;
 
 /**

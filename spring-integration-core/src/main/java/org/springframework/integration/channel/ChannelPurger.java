@@ -20,8 +20,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.integration.core.MessageSelector;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.core.MessageSelector;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

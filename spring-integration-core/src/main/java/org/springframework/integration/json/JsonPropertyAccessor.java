@@ -25,12 +25,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypedValue;
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

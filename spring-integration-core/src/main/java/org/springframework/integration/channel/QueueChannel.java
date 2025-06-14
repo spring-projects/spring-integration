@@ -24,10 +24,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.support.management.metrics.GaugeFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

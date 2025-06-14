@@ -19,8 +19,9 @@ package org.springframework.integration.support.json;
 import java.lang.reflect.Type;
 import java.util.Map;
 
-import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

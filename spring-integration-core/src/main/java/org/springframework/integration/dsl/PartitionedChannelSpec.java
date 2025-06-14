@@ -19,8 +19,9 @@ package org.springframework.integration.dsl;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 
-import org.springframework.integration.channel.PartitionedChannel;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.channel.PartitionedChannel;
 import org.springframework.messaging.Message;
 
 /**

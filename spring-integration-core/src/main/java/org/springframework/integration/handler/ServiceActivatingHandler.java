@@ -18,12 +18,13 @@ package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.support.management.ManageableLifecycle;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 
 /**

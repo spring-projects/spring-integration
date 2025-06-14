@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.cache.CacheManager;
@@ -38,7 +40,6 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;

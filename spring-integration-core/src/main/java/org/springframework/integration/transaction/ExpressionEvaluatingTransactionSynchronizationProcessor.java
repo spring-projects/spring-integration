@@ -19,12 +19,13 @@ package org.springframework.integration.transaction;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;

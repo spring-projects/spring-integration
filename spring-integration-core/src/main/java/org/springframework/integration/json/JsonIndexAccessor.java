@@ -17,12 +17,12 @@
 package org.springframework.integration.json;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.IndexAccessor;
 import org.springframework.expression.TypedValue;
-import org.jspecify.annotations.Nullable;
 
 /**
  * A SpEL {@link IndexAccessor} that knows how to read indexes from JSON arrays, using

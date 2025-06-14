@@ -21,13 +21,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.store.SimpleMessageGroup;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;

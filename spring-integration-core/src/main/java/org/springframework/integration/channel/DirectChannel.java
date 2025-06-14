@@ -18,10 +18,11 @@ package org.springframework.integration.channel;
 
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
-import org.jspecify.annotations.Nullable;
 
 /**
  * A channel that invokes a single subscriber for each sent Message.

@@ -19,6 +19,8 @@ package org.springframework.integration.config;
 import java.lang.reflect.Method;
 import java.util.Map.Entry;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.expression.BeanFactoryResolver;
@@ -30,7 +32,6 @@ import org.springframework.expression.TypeLocator;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.jspecify.annotations.Nullable;
 
 /**
  * <p>

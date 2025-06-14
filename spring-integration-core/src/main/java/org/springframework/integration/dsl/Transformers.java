@@ -19,6 +19,7 @@ package org.springframework.integration.dsl;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -45,7 +46,6 @@ import org.springframework.integration.transformer.PayloadSerializingTransformer
 import org.springframework.integration.transformer.PayloadTypeConvertingTransformer;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 
 /**

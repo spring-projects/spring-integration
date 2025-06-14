@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
@@ -93,7 +94,6 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.integration.util.MessagingAnnotationUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;

@@ -16,8 +16,9 @@
 
 package org.springframework.integration.support;
 
-import org.springframework.core.AttributeAccessor;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.core.AttributeAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 

@@ -32,6 +32,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -53,7 +55,6 @@ import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptorConfiguration;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;

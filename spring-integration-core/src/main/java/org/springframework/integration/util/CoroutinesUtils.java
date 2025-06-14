@@ -16,10 +16,10 @@
 
 package org.springframework.integration.util;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.KotlinDetector;
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**

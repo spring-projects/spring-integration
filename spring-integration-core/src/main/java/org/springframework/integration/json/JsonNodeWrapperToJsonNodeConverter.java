@@ -20,11 +20,11 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.integration.json.JsonPropertyAccessor.JsonNodeWrapper;
-import org.jspecify.annotations.Nullable;
 
 /**
  * The {@link org.springframework.core.convert.converter.Converter} implementation for the conversion

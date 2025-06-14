@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 
 /**

@@ -27,6 +27,7 @@ import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.test.SampleTestRunner;
 import io.micrometer.tracing.test.simple.SpansAssert;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,7 +47,6 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;

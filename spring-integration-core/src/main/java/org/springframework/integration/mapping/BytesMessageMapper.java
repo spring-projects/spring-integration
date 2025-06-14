@@ -18,8 +18,9 @@ package org.springframework.integration.mapping;
 
 import java.util.Map;
 
-import org.springframework.lang.NonNull;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 
 /**

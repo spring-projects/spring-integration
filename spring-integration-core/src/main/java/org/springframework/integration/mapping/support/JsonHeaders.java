@@ -20,9 +20,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.TypeDescriptor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**

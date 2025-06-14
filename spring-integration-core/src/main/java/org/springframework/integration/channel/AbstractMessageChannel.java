@@ -32,6 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -58,7 +59,6 @@ import org.springframework.integration.support.management.observation.Integratio
 import org.springframework.integration.support.management.observation.MessageSenderContext;
 import org.springframework.integration.support.management.observation.MessageSenderObservationConvention;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;

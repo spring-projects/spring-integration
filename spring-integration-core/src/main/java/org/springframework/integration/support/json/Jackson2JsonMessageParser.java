@@ -24,8 +24,8 @@ import java.util.Map;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

@@ -20,10 +20,11 @@ import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.PartitionedDispatcher;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;

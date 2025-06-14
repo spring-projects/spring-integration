@@ -17,6 +17,7 @@
 package org.springframework.integration.core;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessageChannel;
 
 /**

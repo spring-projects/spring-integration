@@ -40,6 +40,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.AopProxyUtils;
@@ -88,7 +89,6 @@ import org.springframework.integration.util.CoroutinesUtils;
 import org.springframework.integration.util.FixedMethodFilter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.integration.util.UniqueMethodFilter;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;

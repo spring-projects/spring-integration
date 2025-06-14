@@ -16,8 +16,9 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 
 /**

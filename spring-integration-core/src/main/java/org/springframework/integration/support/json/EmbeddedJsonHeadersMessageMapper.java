@@ -29,12 +29,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.integration.support.utils.PatternMatchUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;

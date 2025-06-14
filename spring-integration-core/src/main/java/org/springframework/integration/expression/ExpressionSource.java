@@ -18,8 +18,9 @@ package org.springframework.integration.expression;
 
 import java.util.Locale;
 
-import org.springframework.expression.Expression;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.expression.Expression;
 
 /**
  * Strategy interface for retrieving Expressions.

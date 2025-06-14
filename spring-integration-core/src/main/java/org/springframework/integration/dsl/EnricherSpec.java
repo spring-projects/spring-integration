@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import reactor.util.function.Tuple2;
 
 import org.springframework.expression.Expression;
@@ -31,7 +32,6 @@ import org.springframework.integration.transformer.support.AbstractHeaderValueMe
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;

@@ -18,6 +18,8 @@ package org.springframework.integration.expression;
 
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
@@ -25,7 +27,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.TypedValue;
 import org.springframework.expression.common.ExpressionUtils;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**

@@ -19,6 +19,8 @@ package org.springframework.integration.dsl.context;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
@@ -74,7 +76,6 @@ import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
 import org.springframework.integration.support.context.NamedComponent;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;

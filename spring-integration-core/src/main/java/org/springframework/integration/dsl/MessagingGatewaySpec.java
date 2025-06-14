@@ -16,11 +16,12 @@
 
 package org.springframework.integration.dsl;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.management.observation.MessageRequestReplyReceiverObservationConvention;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**

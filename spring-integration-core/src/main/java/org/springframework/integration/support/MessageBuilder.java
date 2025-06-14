@@ -17,6 +17,7 @@
 package org.springframework.integration.support;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;

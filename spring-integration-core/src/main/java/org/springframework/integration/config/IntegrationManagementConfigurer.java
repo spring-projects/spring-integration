@@ -22,6 +22,7 @@ import java.util.Set;
 
 import io.micrometer.observation.ObservationRegistry;
 import org.apache.commons.logging.Log;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
@@ -38,7 +39,6 @@ import org.springframework.integration.support.management.IntegrationManagement.
 import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.utils.PatternMatchUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;

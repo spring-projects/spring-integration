@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
@@ -31,7 +33,6 @@ import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.MethodArgsHolder;
 import org.springframework.integration.gateway.MethodArgsMessageMapper;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**

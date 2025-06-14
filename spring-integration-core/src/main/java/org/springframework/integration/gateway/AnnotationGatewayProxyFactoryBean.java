@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanExpressionResolver;
@@ -39,7 +41,6 @@ import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.util.MessagingAnnotationUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;

@@ -20,11 +20,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiPredicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

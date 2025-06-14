@@ -24,6 +24,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.observation.ObservationConvention;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationContext;
@@ -32,7 +33,6 @@ import org.springframework.integration.support.management.observation.DefaultMes
 import org.springframework.integration.support.management.observation.DefaultMessageRequestReplyReceiverObservationConvention;
 import org.springframework.integration.support.management.observation.DefaultMessageSenderObservationConvention;
 import org.springframework.integration.support.management.observation.IntegrationObservation;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Add micrometer metrics to the node.

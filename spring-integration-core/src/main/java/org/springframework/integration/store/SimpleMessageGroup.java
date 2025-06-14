@@ -25,8 +25,9 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

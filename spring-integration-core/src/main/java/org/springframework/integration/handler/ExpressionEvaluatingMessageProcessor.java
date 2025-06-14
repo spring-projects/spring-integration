@@ -16,9 +16,10 @@
 
 package org.springframework.integration.handler;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

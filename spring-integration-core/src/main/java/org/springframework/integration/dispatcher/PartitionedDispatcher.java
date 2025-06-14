@@ -30,8 +30,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;

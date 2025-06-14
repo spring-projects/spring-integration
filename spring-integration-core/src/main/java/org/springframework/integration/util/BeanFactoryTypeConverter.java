@@ -18,6 +18,8 @@ package org.springframework.integration.util;
 
 import java.beans.PropertyEditor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.BeanFactory;
@@ -28,7 +30,6 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.TypeConverter;
 import org.springframework.integration.history.MessageHistory;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.ClassUtils;
 

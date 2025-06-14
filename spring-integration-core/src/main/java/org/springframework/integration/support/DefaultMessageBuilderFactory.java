@@ -19,6 +19,7 @@ package org.springframework.integration.support;
 import java.util.Arrays;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 
 /**

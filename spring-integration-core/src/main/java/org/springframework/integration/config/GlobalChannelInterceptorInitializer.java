@@ -18,6 +18,8 @@ package org.springframework.integration.config;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -28,7 +30,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**

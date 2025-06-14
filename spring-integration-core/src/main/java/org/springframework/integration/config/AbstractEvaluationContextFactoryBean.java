@@ -21,6 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -34,7 +36,6 @@ import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**

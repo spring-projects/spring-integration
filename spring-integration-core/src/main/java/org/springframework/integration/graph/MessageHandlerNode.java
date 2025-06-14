@@ -19,6 +19,7 @@ package org.springframework.integration.graph;
 import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessageHandler;
 
 /**

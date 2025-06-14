@@ -22,13 +22,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.aopalliance.aop.Advice;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.log.LogMessage;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;

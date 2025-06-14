@@ -19,6 +19,7 @@ package org.springframework.integration.support.converter;
 import java.nio.charset.Charset;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.StringMessageConverter;
 

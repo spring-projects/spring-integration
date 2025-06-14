@@ -16,8 +16,9 @@
 
 package org.springframework.integration.acks;
 
-import org.springframework.integration.acks.AcknowledgmentCallback.Status;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.acks.AcknowledgmentCallback.Status;
 
 /**
  * Utility methods for acting on {@link AcknowledgmentCallback} headers.

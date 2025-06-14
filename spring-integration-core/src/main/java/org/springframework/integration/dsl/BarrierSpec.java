@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import org.jspecify.annotations.Nullable;
 import reactor.util.function.Tuple2;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -25,7 +26,6 @@ import org.springframework.integration.aggregator.DefaultAggregatingMessageGroup
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 

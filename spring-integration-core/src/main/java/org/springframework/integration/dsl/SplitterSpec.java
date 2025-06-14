@@ -19,6 +19,7 @@ package org.springframework.integration.dsl;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import reactor.util.function.Tuple2;
 
 import org.springframework.expression.Expression;
@@ -32,7 +33,6 @@ import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.util.ClassUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;

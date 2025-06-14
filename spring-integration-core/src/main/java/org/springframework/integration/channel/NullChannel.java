@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -31,7 +32,6 @@ import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.TimerFacade;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 

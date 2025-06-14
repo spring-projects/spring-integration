@@ -19,6 +19,7 @@ package org.springframework.integration.config.xml;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -47,7 +48,6 @@ import org.springframework.integration.config.FixedSubscriberChannelBeanFactoryP
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.transaction.TransactionHandleMessageAdvice;
-import org.jspecify.annotations.Nullable;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;

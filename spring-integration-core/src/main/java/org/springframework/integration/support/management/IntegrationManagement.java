@@ -17,12 +17,12 @@
 package org.springframework.integration.support.management;
 
 import io.micrometer.observation.ObservationRegistry;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Base interface for Integration managed components.

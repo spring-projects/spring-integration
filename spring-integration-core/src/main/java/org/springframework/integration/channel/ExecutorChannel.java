@@ -19,11 +19,12 @@ package org.springframework.integration.channel;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 

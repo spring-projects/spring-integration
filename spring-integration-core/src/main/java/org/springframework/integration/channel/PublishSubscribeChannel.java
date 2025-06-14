@@ -18,11 +18,12 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 

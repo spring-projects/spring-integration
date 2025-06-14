@@ -21,9 +21,10 @@ import java.util.Iterator;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 
 /**

@@ -16,11 +16,12 @@
 
 package org.springframework.integration.channel;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.ErrorMessagePublisher;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.MessagingExceptionWrapper;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;

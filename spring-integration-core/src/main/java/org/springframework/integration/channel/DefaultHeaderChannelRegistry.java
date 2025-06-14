@@ -27,10 +27,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.integration.support.management.ManageableLifecycle;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 

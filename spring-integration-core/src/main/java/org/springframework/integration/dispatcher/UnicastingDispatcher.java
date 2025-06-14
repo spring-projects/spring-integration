@@ -23,9 +23,10 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.MessageHandlingRunnable;

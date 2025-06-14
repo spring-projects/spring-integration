@@ -19,8 +19,9 @@ package org.springframework.integration.gateway;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.expression.Expression;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.expression.Expression;
 
 /**
  * Represents the metadata associated with a Gateway method. This is most useful when there are

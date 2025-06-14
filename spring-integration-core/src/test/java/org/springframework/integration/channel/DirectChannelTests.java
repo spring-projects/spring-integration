@@ -22,6 +22,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -32,7 +33,6 @@ import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrateg
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;

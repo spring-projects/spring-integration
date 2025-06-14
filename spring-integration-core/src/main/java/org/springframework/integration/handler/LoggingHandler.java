@@ -23,13 +23,14 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.dispatcher.AggregateMessageDeliveryException;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

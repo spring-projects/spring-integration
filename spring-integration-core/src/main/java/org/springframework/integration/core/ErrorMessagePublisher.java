@@ -18,6 +18,7 @@ package org.springframework.integration.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -27,7 +28,6 @@ import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;

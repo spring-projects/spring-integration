@@ -20,13 +20,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.IntegrationManagement;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;

@@ -18,9 +18,10 @@ package org.springframework.integration.channel;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 
 /**

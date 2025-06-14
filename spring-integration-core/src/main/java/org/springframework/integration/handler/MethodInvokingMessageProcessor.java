@@ -19,12 +19,13 @@ package org.springframework.integration.handler;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.handler.support.MessagingMethodInvokerHelper;
 import org.springframework.integration.support.management.ManageableLifecycle;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 
 /**

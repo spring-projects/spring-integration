@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
@@ -28,7 +29,6 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.scheduling.PollerMetadata;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 

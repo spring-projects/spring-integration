@@ -21,8 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;

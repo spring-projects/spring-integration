@@ -18,8 +18,9 @@ package org.springframework.integration.graph;
 
 import java.util.function.Supplier;
 
-import org.springframework.integration.core.MessageSource;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.core.MessageSource;
 
 /**
  * Represents a message source.

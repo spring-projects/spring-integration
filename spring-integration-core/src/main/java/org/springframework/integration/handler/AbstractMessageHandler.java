@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import io.micrometer.observation.ObservationRegistry;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Subscription;
 import reactor.core.CoreSubscriber;
 
@@ -28,7 +29,6 @@ import org.springframework.integration.support.management.observation.Integratio
 import org.springframework.integration.support.management.observation.MessageReceiverContext;
 import org.springframework.integration.support.management.observation.MessageReceiverObservationConvention;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;

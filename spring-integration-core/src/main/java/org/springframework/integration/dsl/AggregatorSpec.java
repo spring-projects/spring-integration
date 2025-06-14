@@ -19,6 +19,8 @@ package org.springframework.integration.dsl;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.aggregator.AbstractAggregatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.DefaultAggregatingMessageGroupProcessor;
@@ -27,7 +29,6 @@ import org.springframework.integration.aggregator.ExpressionEvaluatingMessageGro
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 import org.springframework.integration.store.MessageGroup;
-import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link CorrelationHandlerSpec} for an {@link AggregatingMessageHandler}.

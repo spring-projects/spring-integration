@@ -16,9 +16,10 @@
 
 package org.springframework.integration.core;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.IntegrationPattern;
 import org.springframework.integration.IntegrationPatternType;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 
 /**

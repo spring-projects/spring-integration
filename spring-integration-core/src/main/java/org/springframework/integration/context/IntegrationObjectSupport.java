@@ -18,6 +18,8 @@ package org.springframework.integration.context;
 
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -37,7 +39,6 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.TaskScheduler;

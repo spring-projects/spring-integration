@@ -19,8 +19,9 @@ package org.springframework.integration.config;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.FactoryBean;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

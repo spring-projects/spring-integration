@@ -16,8 +16,9 @@
 
 package org.springframework.integration.context;
 
-import org.springframework.beans.factory.BeanNameAware;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.beans.factory.BeanNameAware;
 
 /**
  * The contract to supply and provide useful information about

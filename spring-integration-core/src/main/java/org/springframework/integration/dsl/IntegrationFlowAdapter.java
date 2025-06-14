@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
 import org.springframework.integration.context.ComponentSourceAware;
@@ -28,7 +29,6 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;

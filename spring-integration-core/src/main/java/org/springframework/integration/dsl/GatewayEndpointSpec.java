@@ -18,8 +18,9 @@ package org.springframework.integration.dsl;
 
 import java.util.concurrent.Executor;
 
-import org.springframework.integration.gateway.GatewayMessageHandler;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.integration.gateway.GatewayMessageHandler;
 import org.springframework.messaging.MessageChannel;
 
 /**

@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.message.AdviceMessage;
@@ -39,7 +40,6 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
-import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
