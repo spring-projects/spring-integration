@@ -18,7 +18,8 @@ package org.springframework.integration.ws;
 
 import java.io.IOException;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
@@ -45,11 +46,12 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
-			Unmarshaller unmarshaller, WebServiceMessageFactory messageFactory) {
+			@Nullable Unmarshaller unmarshaller, @Nullable WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
 		configureMarshallers(marshaller, unmarshaller);
 	}
 
+	@SuppressWarnings("NullAway")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
 			Unmarshaller unmarshaller) {
 		this(destinationProvider, marshaller, unmarshaller, null);
@@ -60,17 +62,19 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 		this(destinationProvider, marshaller, null, messageFactory);
 	}
 
+	@SuppressWarnings("NullAway")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller) {
 		this(destinationProvider, marshaller, (WebServiceMessageFactory) null);
 	}
 
 	@SuppressWarnings("this-escape")
-	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller, Unmarshaller unmarshaller,
-			WebServiceMessageFactory messageFactory) {
+	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller, @Nullable Unmarshaller unmarshaller,
+			@Nullable WebServiceMessageFactory messageFactory) {
 		super(uri, messageFactory);
 		configureMarshallers(marshaller, unmarshaller);
 	}
 
+	@SuppressWarnings("NullAway")
 	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller, Unmarshaller unmarshaller) {
 		this(uri, marshaller, unmarshaller, null);
 	}
@@ -80,6 +84,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 		this(uri, marshaller, null, messageFactory);
 	}
 
+	@SuppressWarnings("NullAway")
 	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller) {
 		this(uri, marshaller, (WebServiceMessageFactory) null);
 	}
@@ -90,7 +95,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	 * @param webServiceTemplate the WebServiceTemplate
 	 * @since 5.0
 	 */
-	@SuppressWarnings("this-escape")
+	@SuppressWarnings({"this-escape", "NullAway"})
 	public MarshallingWebServiceOutboundGateway(String uri, WebServiceTemplate webServiceTemplate) {
 		super(uri, null);
 		doSetWebServiceTemplate(webServiceTemplate);
@@ -102,7 +107,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	 * @param webServiceTemplate the WebServiceTemplate
 	 * @since 5.0
 	 */
-	@SuppressWarnings("this-escape")
+	@SuppressWarnings({"this-escape", "NullAway"})
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider,
 			WebServiceTemplate webServiceTemplate) {
 		super(destinationProvider, null);
@@ -139,7 +144,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	}
 
 	@Override
-	protected Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback) {
+	protected @Nullable Object doHandle(String uri, Message<?> requestMessage, @Nullable WebServiceMessageCallback requestCallback) {
 		return getWebServiceTemplate()
 				.marshalSendAndReceive(uri, requestMessage.getPayload(),
 						new PassThroughRequestMessageCallback(requestCallback, requestMessage));
@@ -147,7 +152,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 	private final class PassThroughRequestMessageCallback extends RequestMessageCallback {
 
-		PassThroughRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
+		PassThroughRequestMessageCallback(@Nullable WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
 			super(requestCallback, requestMessage);
 		}
 

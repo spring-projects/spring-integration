@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,13 @@ package org.springframework.integration.ws.dsl;
 
 import java.util.Arrays;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.JavaUtils;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.WebServiceTemplate;
@@ -63,9 +66,9 @@ public class MarshallingWsOutboundGatewaySpec extends
 			extends BaseWsOutboundGatewaySpec<MarshallingWsOutboundGatewayNoTemplateSpec,
 			MarshallingWebServiceOutboundGateway> {
 
-		protected Marshaller gatewayMarshaller; // NOSONAR
+		protected Marshaller gatewayMarshaller = new Jaxb2Marshaller();
 
-		protected Unmarshaller gatewayUnmarshaller; // NOSONAR
+		protected @Nullable Unmarshaller gatewayUnmarshaller; // NOSONAR
 
 		/**
 		 * Configure the marshaller to use.
