@@ -66,7 +66,7 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 	private String outputChannelName;
 
-	private LockRegistry lockRegistry;
+	private LockRegistry<?> lockRegistry;
 
 	private MessageGroupStore messageStore;
 
@@ -125,7 +125,7 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.outputChannelName = outputChannelName;
 	}
 
-	public void setLockRegistry(LockRegistry lockRegistry) {
+	public void setLockRegistry(LockRegistry<?> lockRegistry) {
 		this.lockRegistry = lockRegistry;
 	}
 

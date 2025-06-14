@@ -67,7 +67,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	private boolean timeoutOnIdle;
 
-	private LockRegistry lockRegistry = new DefaultLockRegistry();
+	private LockRegistry<?> lockRegistry = new DefaultLockRegistry();
 
 	protected AbstractMessageGroupStore() {
 	}
@@ -127,12 +127,12 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	 * @param lockRegistry lockRegistryType
 	 * @since 6.5
 	 */
-	public final void setLockRegistry(LockRegistry lockRegistry) {
+	public final void setLockRegistry(LockRegistry<?> lockRegistry) {
 		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");
 		this.lockRegistry = lockRegistry;
 	}
 
-	protected LockRegistry getLockRegistry() {
+	protected LockRegistry<?> getLockRegistry() {
 		return this.lockRegistry;
 	}
 
