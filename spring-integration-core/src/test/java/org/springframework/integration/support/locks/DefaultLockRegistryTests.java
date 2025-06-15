@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class DefaultLockRegistryTests {
 
 	@Test
 	public void testSingleLockCreation() {
-		LockRegistry registry = new DefaultLockRegistry(0);
+		LockRegistry<Lock> registry = new DefaultLockRegistry(0);
 		Lock a = registry.obtain(23);
 		Lock b = registry.obtain(new Object());
 		Lock c = registry.obtain("hello");
@@ -67,7 +67,7 @@ public class DefaultLockRegistryTests {
 
 	@Test
 	public void testSame() {
-		LockRegistry registry = new DefaultLockRegistry();
+		LockRegistry<Lock> registry = new DefaultLockRegistry();
 		Lock lock1 = registry.obtain(new Object() {
 
 			@Override
@@ -87,7 +87,7 @@ public class DefaultLockRegistryTests {
 
 	@Test
 	public void testDifferent() {
-		LockRegistry registry = new DefaultLockRegistry();
+		LockRegistry<Lock> registry = new DefaultLockRegistry();
 		Lock lock1 = registry.obtain(new Object() {
 
 			@Override
@@ -107,7 +107,7 @@ public class DefaultLockRegistryTests {
 
 	@Test
 	public void testAllDifferentAndSame() {
-		LockRegistry registry = new DefaultLockRegistry(3);
+		LockRegistry<Lock> registry = new DefaultLockRegistry(3);
 		Lock[] locks = new Lock[4];
 		locks[0] = registry.obtain(new Object() {
 
@@ -213,7 +213,7 @@ public class DefaultLockRegistryTests {
 
 	@Test
 	public void cyclicBarrierIsBrokenWhenExecutedConcurrentlyInLock() throws Exception {
-		LockRegistry registry = new DefaultLockRegistry(1);
+		LockRegistry<Lock> registry = new DefaultLockRegistry(1);
 
 		CyclicBarrier cyclicBarrier = new CyclicBarrier(2);
 		CountDownLatch brokenBarrierLatch = new CountDownLatch(2);
@@ -245,7 +245,7 @@ public class DefaultLockRegistryTests {
 
 	@Test
 	public void executeLockedIsTimedOutInOtherThread() throws Exception {
-		LockRegistry registry = new DefaultLockRegistry(1);
+		LockRegistry<Lock> registry = new DefaultLockRegistry(1);
 
 		String lockKey = "lockKey";
 		Duration waitLockDuration = Duration.ofMillis(100);

@@ -135,7 +135,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private boolean sequenceAware;
 
-	private LockRegistry lockRegistry = new DefaultLockRegistry();
+	private LockRegistry<?> lockRegistry = new DefaultLockRegistry();
 
 	private boolean lockRegistrySet = false;
 
@@ -198,7 +198,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this(processor, new SimpleMessageStore(0), null, null);
 	}
 
-	public void setLockRegistry(LockRegistry lockRegistry) {
+	public void setLockRegistry(LockRegistry<?> lockRegistry) {
 		Assert.isTrue(!this.lockRegistrySet, "'this.lockRegistry' can not be reset once its been set");
 		Assert.notNull(lockRegistry, "'lockRegistry' must not be null");
 		this.lockRegistry = lockRegistry;
@@ -516,7 +516,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		return this.sequenceAware;
 	}
 
-	protected LockRegistry getLockRegistry() {
+	protected LockRegistry<?> getLockRegistry() {
 		return this.lockRegistry;
 	}
 
