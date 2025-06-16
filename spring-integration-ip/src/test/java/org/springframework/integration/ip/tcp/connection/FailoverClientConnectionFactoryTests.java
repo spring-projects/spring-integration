@@ -706,11 +706,12 @@ public class FailoverClientConnectionFactoryTests {
 		return result;
 	}
 
-	private TcpNetClientConnectionFactory getTcpNetServerConnectionFactory(String host, int port) {
+	private static TcpNetClientConnectionFactory getTcpNetServerConnectionFactory(String host, int port) {
 		TcpNetClientConnectionFactory result = new TcpNetClientConnectionFactory(host, port);
 		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
 
 		return result;
 	}
+
 }
 

@@ -937,7 +937,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			this.logger.debug(() -> "Completing group with correlationKey [" + correlationKey + "]");
 
 			result = this.outputProcessor.processMessageGroup(group);
-			Assert.notNull(result, "the group returned a null result");
+			Assert.state(result != null, "The processorMessageGroup returned a null result. Null result is not expected.");
 			if (isResultCollectionOfMessages(result)) {
 				partialSequence = (Collection<Message<?>>) result;
 			}

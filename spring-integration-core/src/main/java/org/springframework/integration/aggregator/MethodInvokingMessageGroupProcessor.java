@@ -89,7 +89,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	protected final Object aggregatePayloads(MessageGroup group, Map<String, Object> headers) {
 		final Collection<Message<?>> messagesUpForProcessing = group.getMessages();
 		Object object = this.processor.process(messagesUpForProcessing, headers);
-		Assert.notNull(object, "Result from processor must not be null");
+		Assert.state(object != null, "The process returned a null result. Null result is not expected.");
 		return object;
 	}
 
