@@ -131,9 +131,10 @@ public abstract class IntegrationContextUtils {
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link MessageChannel} bean whose name is "errorChannel".
 	 */
-	@Nullable
 	public static MessageChannel getErrorChannel(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, ERROR_CHANNEL_BEAN_NAME, MessageChannel.class);
+		MessageChannel channel = getBeanOfType(beanFactory, ERROR_CHANNEL_BEAN_NAME, MessageChannel.class);
+		Assert.state(channel != null, "Error Channel was not found");
+		return channel;
 	}
 
 	/**
