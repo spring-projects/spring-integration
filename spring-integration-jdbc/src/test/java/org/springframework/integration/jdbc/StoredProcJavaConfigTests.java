@@ -39,6 +39,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -61,7 +62,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class StoredProcJavaConfigTests {
+public class StoredProcJavaConfigTests implements TestApplicationContextAware {
 
 	@Autowired
 	private PollableChannel fooChannel;
@@ -81,6 +82,7 @@ public class StoredProcJavaConfigTests {
 		assertThat(received).isNull();
 		MessagingTemplate template = new MessagingTemplate(this.control);
 		template.convertAndSend("'storedProc.inboundChannelAdapter'.stop");
+		template.setBeanFactory(CONTEXT);
 		assertThat(template.convertSendAndReceive(
 				"'storedProc.inboundChannelAdapter'.isRunning", Boolean.class))
 				.isFalse();

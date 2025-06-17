@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 the original author or authors.
+ * Copyright 2022-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 5.3.10
  *
  */
-public class TcpSenderTests {
+public class TcpSenderTests implements TestApplicationContextAware {
 
 	@Test
 	void senderCalledForDeadConnectionClientNet() throws InterruptedException {
@@ -47,6 +48,7 @@ public class TcpSenderTests {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		server.registerListener(msg -> false);
+		server.setBeanFactory(CONTEXT);
 		server.afterPropertiesSet();
 		server.setApplicationEventPublisher(event -> {
 			if (event instanceof TcpConnectionServerListeningEvent) {
@@ -65,6 +67,7 @@ public class TcpSenderTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		server.setBeanFactory(CONTEXT);
 		server.registerListener(msg -> false);
 		server.afterPropertiesSet();
 		server.setApplicationEventPublisher(event -> {
@@ -144,6 +147,7 @@ public class TcpSenderTests {
 
 		});
 		client.setSingleUse(true);
+		client.setBeanFactory(CONTEXT);
 		client.afterPropertiesSet();
 		client.start();
 		TcpConnectionSupport conn = client.getConnection();

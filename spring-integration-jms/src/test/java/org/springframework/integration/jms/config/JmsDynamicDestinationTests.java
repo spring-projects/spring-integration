@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -39,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class JmsDynamicDestinationTests extends ActiveMQMultiContextTests {
+public class JmsDynamicDestinationTests extends ActiveMQMultiContextTests implements TestApplicationContextAware {
 
 	@Autowired
 	private MessageChannel channelAdapterChannel;
@@ -76,6 +77,7 @@ public class JmsDynamicDestinationTests extends ActiveMQMultiContextTests {
 		Message<?> message1 = MessageBuilder.withPayload("test-1").setHeader("destinationNumber", 1).build();
 		Message<?> message2 = MessageBuilder.withPayload("test-2").setHeader("destinationNumber", 2).build();
 		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(CONTEXT);
 		Message<?> result1 = template.sendAndReceive(gatewayChannel, message1);
 		Message<?> result2 = template.sendAndReceive(gatewayChannel, message2);
 		assertThat(result1).isNotNull();

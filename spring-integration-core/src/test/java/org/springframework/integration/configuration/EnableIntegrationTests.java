@@ -118,6 +118,7 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.NoBeansOverrideAnnotationConfigContextLoader;
@@ -162,7 +163,7 @@ import static org.mockito.Mockito.when;
 @SpringJUnitConfig(classes = {EnableIntegrationTests.ContextConfiguration.class,
 		EnableIntegrationTests.ContextConfiguration2.class})
 @DirtiesContext
-public class EnableIntegrationTests {
+public class EnableIntegrationTests implements TestApplicationContextAware {
 
 	@Autowired
 	private ApplicationContext context;
@@ -455,6 +456,7 @@ public class EnableIntegrationTests {
 		assertThat(message.getHeaders().get("foo")).isEqualTo("FOO");
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.controlBusChannel);
+		messagingTemplate.setBeanFactory(CONTEXT);
 		assertThat(messagingTemplate.convertSendAndReceive("pausable.isRunning", Boolean.class)).isEqualTo(false);
 		this.controlBusChannel.send(new GenericMessage<>("pausable.start"));
 		assertThat(messagingTemplate.convertSendAndReceive("pausable.isRunning", Boolean.class)).isEqualTo(true);

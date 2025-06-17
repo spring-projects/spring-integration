@@ -39,7 +39,6 @@ import reactor.test.StepVerifier;
 import reactor.util.Loggers;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FluxMessageChannel;
@@ -47,6 +46,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -68,7 +68,7 @@ import static org.mockito.Mockito.verify;
  *
  * @since 5.0
  */
-public class ReactiveStreamsConsumerTests {
+public class ReactiveStreamsConsumerTests implements TestApplicationContextAware {
 
 	private static final Log LOGGER = LogFactory.getLog(ReactiveStreamsConsumerTests.class);
 
@@ -85,9 +85,9 @@ public class ReactiveStreamsConsumerTests {
 		};
 
 		MessageHandler testSubscriber = new MethodInvokingMessageHandler(messageHandler, (String) null);
-		((MethodInvokingMessageHandler) testSubscriber).setBeanFactory(mock(BeanFactory.class));
+		((MethodInvokingMessageHandler) testSubscriber).setBeanFactory(CONTEXT);
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
-		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
+		reactiveConsumer.setBeanFactory(CONTEXT);
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
 
@@ -144,7 +144,7 @@ public class ReactiveStreamsConsumerTests {
 		});
 
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
-		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
+		reactiveConsumer.setBeanFactory(CONTEXT);
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
 
@@ -199,7 +199,7 @@ public class ReactiveStreamsConsumerTests {
 		publisher = publisher.log(Loggers.getLogger(ReactiveStreamsConsumerTests.class));
 		dfa.setPropertyValue("publisher", publisher);
 
-		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
+		reactiveConsumer.setBeanFactory(CONTEXT);
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
 
@@ -306,7 +306,7 @@ public class ReactiveStreamsConsumerTests {
 				};
 
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, messageHandler);
-		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
+		reactiveConsumer.setBeanFactory(CONTEXT);
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
 

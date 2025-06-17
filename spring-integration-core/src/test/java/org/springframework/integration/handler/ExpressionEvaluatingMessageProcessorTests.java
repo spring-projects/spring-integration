@@ -21,7 +21,6 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -36,6 +35,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -43,7 +43,6 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Dave Syer
@@ -54,7 +53,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageProcessorTests {
+public class ExpressionEvaluatingMessageProcessorTests implements TestApplicationContextAware {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser();
 
@@ -63,7 +62,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		Expression expression = expressionParser.parseExpression("payload");
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
-		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.setBeanFactory(CONTEXT);
 		assertThat(processor.processMessage(new GenericMessage<>("foo"))).isEqualTo("foo");
 	}
 
@@ -81,7 +80,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		Expression expression = expressionParser.parseExpression("#target.stringify(payload)");
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
-		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.setBeanFactory(CONTEXT);
 		processor.afterPropertiesSet();
 		EvaluationContext evaluationContext =
 				TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
@@ -102,7 +101,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		Expression expression = expressionParser.parseExpression("#target.ping(payload)");
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
-		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.setBeanFactory(CONTEXT);
 		processor.afterPropertiesSet();
 		EvaluationContext evaluationContext =
 				TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
@@ -146,7 +145,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		Expression expression = expressionParser.parseExpression("headers['$foo_id']");
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
-		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.setBeanFactory(CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("$foo_id", "abc").build();
 		assertThat(processor.processMessage(message)).isEqualTo("abc");
 	}
@@ -156,7 +155,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		Expression expression = expressionParser.parseExpression("headers.$foo_id");
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
-		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.setBeanFactory(CONTEXT);
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("$foo_id", "xyz").build();
 		assertThat(processor.processMessage(message)).isEqualTo("xyz");
 	}
@@ -165,7 +164,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	public void testProcessMessageWithStaticKey() {
 		Expression expression = expressionParser.parseExpression("headers[headers.ID]");
 		ExpressionEvaluatingMessageProcessor<UUID> processor = new ExpressionEvaluatingMessageProcessor<>(expression);
-		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.setBeanFactory(CONTEXT);
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		assertThat(processor.processMessage(message)).isEqualTo(message.getHeaders().getId());
 	}
@@ -213,7 +212,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		Expression expression = expressionParser.parseExpression("payload.fixMe()");
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
-		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.setBeanFactory(CONTEXT);
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
 				.withCauseInstanceOf(EvaluationException.class);
@@ -224,7 +223,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		Expression expression = expressionParser.parseExpression("payload.throwRuntimeException()");
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
-		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.setBeanFactory(CONTEXT);
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>(new TestPayload())))
 				.withCauseInstanceOf(UnsupportedOperationException.class);
@@ -235,7 +234,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		Expression expression = expressionParser.parseExpression("payload.throwCheckedException()");
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
-		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.setBeanFactory(CONTEXT);
 		assertThatExceptionOfType(MessagingException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>(new TestPayload())))
 				.withCauseInstanceOf(CheckedException.class);

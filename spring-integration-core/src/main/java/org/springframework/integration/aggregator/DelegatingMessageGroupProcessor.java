@@ -61,6 +61,7 @@ public class DelegatingMessageGroupProcessor implements MessageGroupProcessor, B
 
 	private volatile boolean messageBuilderFactorySet;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
 	public DelegatingMessageGroupProcessor(MessageGroupProcessor delegate,

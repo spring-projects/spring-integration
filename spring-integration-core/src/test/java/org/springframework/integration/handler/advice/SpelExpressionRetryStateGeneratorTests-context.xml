@@ -7,4 +7,6 @@
 		<constructor-arg value="headers['foo']"/>
 	</bean>
 
+	<bean id="integrationEvaluationContext" class="org.springframework.expression.spel.support.StandardEvaluationContext" />
+
 </beans>

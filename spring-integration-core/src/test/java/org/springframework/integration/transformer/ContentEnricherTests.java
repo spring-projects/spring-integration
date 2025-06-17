@@ -23,7 +23,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -38,6 +37,7 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -51,7 +51,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -62,7 +61,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.1
  */
-public class ContentEnricherTests {
+public class ContentEnricherTests implements TestApplicationContextAware {
 
 	/**
 	 * In this test a {@link Target} message is passed into a {@link ContentEnricher}.
@@ -102,7 +101,7 @@ public class ContentEnricherTests {
 		enricher.setPropertyExpressions(expressions);
 		enricher.setRequiresReply(true);
 		enricher.setBeanName("Enricher");
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 		enricher.afterPropertiesSet();
 
 		final AbstractReplyProducingMessageHandler handler =
@@ -121,7 +120,7 @@ public class ContentEnricherTests {
 
 				};
 
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 
 		final PollingConsumer consumer = new PollingConsumer(requestChannel, handler);
@@ -135,7 +134,7 @@ public class ContentEnricherTests {
 		taskScheduler.afterPropertiesSet();
 
 		consumer.setTaskScheduler(taskScheduler);
-		consumer.setBeanFactory(mock(BeanFactory.class));
+		consumer.setBeanFactory(CONTEXT);
 		consumer.afterPropertiesSet();
 		consumer.start();
 
@@ -162,7 +161,7 @@ public class ContentEnricherTests {
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setRequestChannel(requestChannel);
 		enricher.setRequestTimeout(requestTimeout);
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("replace me");
@@ -194,7 +193,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("replace me");
@@ -210,7 +209,7 @@ public class ContentEnricherTests {
 
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setReplyChannel(replyChannel);
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 
 		assertThatIllegalStateException()
 				.isThrownBy(enricher::afterPropertiesSet)
@@ -220,7 +219,7 @@ public class ContentEnricherTests {
 	@Test
 	public void setNullReplyTimeout() {
 		ContentEnricher enricher = new ContentEnricher();
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> enricher.setReplyTimeout(null))
@@ -230,7 +229,7 @@ public class ContentEnricherTests {
 	@Test
 	public void setNullRequestTimeout() {
 		ContentEnricher enricher = new ContentEnricher();
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> enricher.setRequestTimeout(null))
@@ -245,7 +244,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("'just a static string'"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 		enricher.afterPropertiesSet();
 		Target target = new Target("replace me");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
@@ -258,7 +257,7 @@ public class ContentEnricherTests {
 	public void testContentEnricherWithNullRequestChannel() {
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setReplyChannel(new QueueChannel());
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 
 		assertThatIllegalStateException()
 				.isThrownBy(enricher::afterPropertiesSet)
@@ -283,7 +282,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("child.name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("test");
@@ -314,7 +313,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("replace me");
@@ -345,7 +344,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 		enricher.afterPropertiesSet();
 
 		TargetUser target = new TargetUser();
@@ -379,7 +378,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 		enricher.afterPropertiesSet();
 
 		UncloneableTargetUser target = new UncloneableTargetUser();
@@ -395,7 +394,7 @@ public class ContentEnricherTests {
 	@Test
 	public void testLifeCycleMethodsWithoutRequestChannel() {
 		ContentEnricher enricher = new ContentEnricher();
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 
 		enricher.afterPropertiesSet();
 
@@ -417,7 +416,7 @@ public class ContentEnricherTests {
 
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setRequestChannel(requestChannel);
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 
 		enricher.afterPropertiesSet();
 
@@ -470,7 +469,7 @@ public class ContentEnricherTests {
 		propertyExpressions.put("name", parser.parseExpression("payload.name + ' target'"));
 
 		enricher.setPropertyExpressions(propertyExpressions);
-		enricher.setBeanFactory(mock(BeanFactory.class));
+		enricher.setBeanFactory(CONTEXT);
 		enricher.afterPropertiesSet();
 
 		final Target target = new Target("replace me");
@@ -488,7 +487,7 @@ public class ContentEnricherTests {
 		contentEnricher.setHeaderExpressions(
 				Collections.singletonMap(MessageHeaders.TIMESTAMP, new StaticHeaderValueMessageProcessor<>("foo")));
 
-		contentEnricher.setBeanFactory(mock(BeanFactory.class));
+		contentEnricher.setBeanFactory(CONTEXT);
 
 		assertThatExceptionOfType(BeanInitializationException.class)
 				.isThrownBy(contentEnricher::afterPropertiesSet)
@@ -501,7 +500,7 @@ public class ContentEnricherTests {
 		contentEnricher.setNullResultHeaderExpressions(
 				Collections.singletonMap(MessageHeaders.ID, new StaticHeaderValueMessageProcessor<>("foo")));
 
-		contentEnricher.setBeanFactory(mock(BeanFactory.class));
+		contentEnricher.setBeanFactory(CONTEXT);
 
 		assertThatExceptionOfType(BeanInitializationException.class)
 				.isThrownBy(contentEnricher::afterPropertiesSet)

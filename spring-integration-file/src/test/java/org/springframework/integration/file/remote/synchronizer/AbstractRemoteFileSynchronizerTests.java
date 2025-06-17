@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.file.HeadDirectoryScanner;
@@ -39,6 +38,7 @@ import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.MessagingException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.mock;
  * @since 4.0.4
  *
  */
-public class AbstractRemoteFileSynchronizerTests {
+public class AbstractRemoteFileSynchronizerTests implements TestApplicationContextAware {
 
 	@Test
 	public void testRollback() throws Exception {
@@ -144,6 +144,7 @@ public class AbstractRemoteFileSynchronizerTests {
 	public void testDefaultFilter() {
 		final AtomicInteger count = new AtomicInteger();
 		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(count);
+		source.setBeanFactory(CONTEXT);
 		source.afterPropertiesSet();
 		source.start();
 		source.receive();
@@ -162,6 +163,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		AbstractInboundFileSynchronizer<String> sync = createLimitingSynchronizer(count);
 		sync.setFilter(null);
 		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(sync);
+		source.setBeanFactory(CONTEXT);
 		source.afterPropertiesSet();
 		source.start();
 		source.receive();
@@ -259,7 +261,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		remoteDirs.add("dir2");
 		sync.setRemoteDirectoryExpression(new SupplierExpression<>(remoteDirs::poll));
 		sync.setLocalFilenameGeneratorExpressionString("#remoteDirectory+'/'+#root");
-		sync.setBeanFactory(mock(BeanFactory.class));
+		sync.setBeanFactory(CONTEXT);
 		sync.afterPropertiesSet();
 
 		sync.synchronizeToLocalDirectory(localDir);
@@ -292,7 +294,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		source.setMaxFetchSize(1);
 		source.setLocalDirectory(new File(System.getProperty("java.io.tmpdir") + File.separator + UUID.randomUUID()));
 		source.setAutoCreateLocalDirectory(true);
-		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanFactory(CONTEXT);
 		source.setBeanName("fooSource");
 		return source;
 	}
@@ -333,7 +335,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		};
 		sync.setFilter(new AcceptOnceFileListFilter<>());
 		sync.setRemoteDirectory("foo");
-		sync.setBeanFactory(mock(BeanFactory.class));
+		sync.setBeanFactory(CONTEXT);
 		return sync;
 	}
 

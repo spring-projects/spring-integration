@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
@@ -44,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  *
  * @since 2.0.1
  */
-public class MessageProducerSupportTests {
+public class MessageProducerSupportTests implements TestApplicationContextAware {
 
 	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
 
@@ -103,7 +104,7 @@ public class MessageProducerSupportTests {
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
 		SuccessfulErrorService errorService = new SuccessfulErrorService();
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(errorService);
-		handler.setBeanFactory(this.context);
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
 		MessageProducerSupport mps = new MessageProducerSupport() {

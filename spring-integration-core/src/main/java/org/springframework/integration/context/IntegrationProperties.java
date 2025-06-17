@@ -141,6 +141,7 @@ public final class IntegrationProperties {
 
 	private long endpointsDefaultTimeout = IntegrationContextUtils.DEFAULT_TIMEOUT;
 
+	@Nullable
 	private volatile Properties properties;
 
 	static {

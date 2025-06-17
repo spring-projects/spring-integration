@@ -35,6 +35,7 @@ import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -46,7 +47,6 @@ import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -56,11 +56,12 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class AsyncGatewayTests {
+public class AsyncGatewayTests implements TestApplicationContextAware {
 
 	@Test
 	public void futureWithMessageReturned() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
+		requestChannel.setBeanFactory(CONTEXT);
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean<TestEchoService> proxyFactory = new GatewayProxyFactoryBean<>(TestEchoService.class);
 		setupProxyFactory(requestChannel, proxyFactory);
@@ -377,7 +378,7 @@ public class AsyncGatewayTests {
 		proxyFactory.setDefaultRequestChannel(messageChannel);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setTaskScheduler(new SimpleAsyncTaskScheduler());
-		proxyFactory.setBeanFactory(mock());
+		proxyFactory.setBeanFactory(CONTEXT);
 	}
 
 	private record CustomFuture(String result, Thread thread) implements Future<String> {

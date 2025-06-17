@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -32,6 +31,7 @@ import org.springframework.integration.file.remote.session.CachingSessionFactory
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-public class FileTransferringMessageHandlerTests {
+public class FileTransferringMessageHandlerTests implements TestApplicationContextAware {
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -71,7 +71,7 @@ public class FileTransferringMessageHandlerTests {
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("''"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
@@ -94,7 +94,7 @@ public class FileTransferringMessageHandlerTests {
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("foo"));
 		handler.setTemporaryRemoteDirectoryExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
@@ -117,7 +117,7 @@ public class FileTransferringMessageHandlerTests {
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", null).build();
 		handler.handleMessage(message);
@@ -131,7 +131,7 @@ public class FileTransferringMessageHandlerTests {
 		Session<F> session = mock(Session.class);
 		when(sf.getSession()).thenReturn(session);
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.setRemoteDirectoryExpressionString("headers['path']");
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> handler.setTemporaryFileSuffix(null));
@@ -149,7 +149,7 @@ public class FileTransferringMessageHandlerTests {
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
 		handler.setUseTemporaryFileName(false);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", null).build();
 		handler.handleMessage(message);
@@ -163,7 +163,7 @@ public class FileTransferringMessageHandlerTests {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		CachingSessionFactory<F> csf = new CachingSessionFactory<F>(sf, 2);
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(csf);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		Session<F> session1 = newSession();
 		Session<F> session2 = newSession();
 		Session<F> session3 = newSession();

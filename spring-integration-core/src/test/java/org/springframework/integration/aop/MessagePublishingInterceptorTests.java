@@ -26,7 +26,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -54,6 +56,7 @@ public class MessagePublishingInterceptorTests {
 		beanFactory = new DefaultListableBeanFactory();
 		channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		beanFactory.registerSingleton("c", testChannel);
+		beanFactory.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, new StandardEvaluationContext());
 	}
 
 	@Test

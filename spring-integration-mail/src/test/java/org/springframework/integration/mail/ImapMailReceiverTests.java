@@ -79,6 +79,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
@@ -124,7 +125,7 @@ import static org.mockito.Mockito.when;
 				"com.icegreen.greenmail",
 				"jakarta.mail"
 		})
-public class ImapMailReceiverTests {
+public class ImapMailReceiverTests implements TestApplicationContextAware {
 
 	private static final ImapSearchLoggingHandler imapSearches = new ImapSearchLoggingHandler();
 
@@ -233,11 +234,13 @@ public class ImapMailReceiverTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		setUpScheduler(receiver, taskScheduler);
 		receiver.setUserFlag("testSIUserFlag");
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(receiver);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		adapter.setReconnectDelay(10);
+		adapter.setBeanFactory(CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		MimeMessage message =
@@ -316,7 +319,7 @@ public class ImapMailReceiverTests {
 
 		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(true);
 		receiver = spy(receiver);
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
@@ -424,7 +427,7 @@ public class ImapMailReceiverTests {
 		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(true);
 		receiver.setShouldDeleteMessages(true);
 		receiver = spy(receiver);
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -462,7 +465,7 @@ public class ImapMailReceiverTests {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -492,7 +495,7 @@ public class ImapMailReceiverTests {
 		receiver.setShouldDeleteMessages(true);
 		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -530,7 +533,7 @@ public class ImapMailReceiverTests {
 	public void receiveAndIgnoreMarkAsReadDontDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -568,7 +571,7 @@ public class ImapMailReceiverTests {
 
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -624,7 +627,7 @@ public class ImapMailReceiverTests {
 		adapter.setReconnectDelay(10);
 
 		AbstractMailReceiver receiver = new ImapMailReceiver();
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -680,7 +683,7 @@ public class ImapMailReceiverTests {
 		given(store.isConnected()).willReturn(true);
 		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 		storeField.set(receiver, store);
-
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -749,7 +752,7 @@ public class ImapMailReceiverTests {
 		given(store.isConnected()).willReturn(true);
 		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 		storeField.set(receiver, store);
-
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -791,6 +794,7 @@ public class ImapMailReceiverTests {
 			latch.countDown();
 		});
 		adapter.setReconnectDelay(10);
+		adapter.setBeanFactory(CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -815,7 +819,7 @@ public class ImapMailReceiverTests {
 
 			DirectFieldAccessor df = new DirectFieldAccessor(receiver);
 			df.setPropertyValue("store", store);
-			receiver.setBeanFactory(getBeanFactory());
+			receiver.setBeanFactory(CONTEXT);
 			receiver.afterPropertiesSet();
 
 			new Thread(() -> {
@@ -895,7 +899,7 @@ public class ImapMailReceiverTests {
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		DirectFieldAccessor df = new DirectFieldAccessor(receiver);
 		df.setPropertyValue("store", store);
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 
 		return folder;
@@ -951,7 +955,7 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testIdleReconnects() throws Exception {
 		ImapMailReceiver receiver = spy(new ImapMailReceiver("imap:foo"));
-		receiver.setBeanFactory(getBeanFactory());
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 		IMAPFolder folder = mock(IMAPFolder.class);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
@@ -976,6 +980,7 @@ public class ImapMailReceiverTests {
 		adapter.setReconnectDelay(10);
 		CountDownLatch latch = new CountDownLatch(3);
 		adapter.setApplicationEventPublisher(e -> latch.countDown());
+		adapter.setBeanFactory(CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		assertThat(latch.await(60, TimeUnit.SECONDS)).isTrue();
@@ -1020,15 +1025,6 @@ public class ImapMailReceiverTests {
 
 	private BeanFactory getBeanFactory(TaskScheduler taskScheduler) {
 		BeanFactory beanFactory = mock(BeanFactory.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
-	}
-
-	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
-		TaskScheduler taskScheduler = mock(TaskScheduler.class);
 		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
 				.thenReturn(taskScheduler);
 		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);

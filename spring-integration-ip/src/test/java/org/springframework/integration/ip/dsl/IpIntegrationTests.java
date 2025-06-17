@@ -63,19 +63,18 @@ import org.springframework.integration.ip.udp.UdpServerListeningEvent;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -86,7 +85,7 @@ import static org.mockito.Mockito.mock;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class IpIntegrationTests {
+public class IpIntegrationTests implements TestApplicationContextAware {
 
 	@Autowired
 	private ConfigurableApplicationContext applicationContext;
@@ -137,17 +136,19 @@ public class IpIntegrationTests {
 		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).id("server").getObject();
 		assertThat(server.getComponentName()).isEqualTo("server");
 		server.setApplicationEventPublisher(publisher);
-		server.setTaskScheduler(mock(TaskScheduler.class));
+		server.setBeanFactory(CONTEXT);
 		server.afterPropertiesSet();
 		TcpReceivingChannelAdapter inbound = Tcp.inboundAdapter(server).getObject();
 		QueueChannel received = new QueueChannel();
 		inbound.setOutputChannel(received);
+		inbound.setBeanFactory(CONTEXT);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		TestingUtilities.waitListening(server, null);
 		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).id("client").getObject();
 		assertThat(client.getComponentName()).isEqualTo("client");
 		client.setApplicationEventPublisher(publisher);
+		client.setBeanFactory(CONTEXT);
 		client.afterPropertiesSet();
 		TcpSendingMessageHandler handler = Tcp.outboundAdapter(client).getObject();
 		handler.start();
@@ -167,6 +168,7 @@ public class IpIntegrationTests {
 		this.client1.start();
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.clientTcpFlowInput);
+		messagingTemplate.setBeanFactory(CONTEXT);
 
 		assertThat(messagingTemplate.convertSendAndReceive("foo", String.class)).isEqualTo("FOO");
 		assertThat(messagingTemplate.convertSendAndReceive("junk", String.class)).isEqualTo("error:non-convertible");

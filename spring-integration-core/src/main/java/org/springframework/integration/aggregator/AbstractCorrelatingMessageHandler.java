@@ -125,7 +125,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private boolean releaseStrategySet;
 
-	@SuppressWarnings("NullAway.Init")
+	@Nullable
 	private MessageChannel discardChannel;
 
 	@Nullable
@@ -490,7 +490,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	@Override
-	public MessageChannel getDiscardChannel() {
+	@Nullable
+	public  MessageChannel getDiscardChannel() {
 		String channelName = this.discardChannelName;
 		if (channelName == null && this.discardChannel == null) {
 			channelName = IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME;

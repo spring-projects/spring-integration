@@ -30,12 +30,12 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.test.MockPartitioner;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -61,7 +61,7 @@ import static org.mockito.Mockito.mock;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class KafkaOutboundAdapterParserTests {
+class KafkaOutboundAdapterParserTests implements TestApplicationContextAware {
 
 	@Autowired
 	private ApplicationContext appContext;
@@ -119,7 +119,7 @@ class KafkaOutboundAdapterParserTests {
 		given(pf.getConfigurationProperties()).willReturn(props);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 
 		handler.setSync(true);

@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
@@ -38,6 +37,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -61,7 +61,7 @@ import static org.mockito.Mockito.spy;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class ReactiveMongoDbStoringMessageHandlerTests implements MongoDbContainerTest {
+class ReactiveMongoDbStoringMessageHandlerTests implements MongoDbContainerTest, TestApplicationContextAware {
 
 	public static ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY;
 
@@ -96,7 +96,7 @@ class ReactiveMongoDbStoringMessageHandlerTests implements MongoDbContainerTest 
 	@Test
 	void validateMessageHandlingWithDefaultCollection() {
 		ReactiveMongoDbStoringMessageHandler handler = new ReactiveMongoDbStoringMessageHandler(REACTIVE_MONGO_DATABASE_FACTORY);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
@@ -113,7 +113,7 @@ class ReactiveMongoDbStoringMessageHandlerTests implements MongoDbContainerTest 
 	void validateMessageHandlingWithNamedCollection() {
 		ReactiveMongoDbStoringMessageHandler handler = new ReactiveMongoDbStoringMessageHandler(REACTIVE_MONGO_DATABASE_FACTORY);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.afterPropertiesSet();
 
@@ -133,7 +133,7 @@ class ReactiveMongoDbStoringMessageHandlerTests implements MongoDbContainerTest 
 
 		ReactiveMongoDbStoringMessageHandler handler = new ReactiveMongoDbStoringMessageHandler(REACTIVE_MONGO_DATABASE_FACTORY);
 		handler.setCollectionNameExpression(new LiteralExpression(null));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.afterPropertiesSet();
 
@@ -153,7 +153,7 @@ class ReactiveMongoDbStoringMessageHandlerTests implements MongoDbContainerTest 
 		converter.afterPropertiesSet();
 		converter = spy(converter);
 		handler.setMongoConverter(converter);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();
@@ -175,7 +175,7 @@ class ReactiveMongoDbStoringMessageHandlerTests implements MongoDbContainerTest 
 		ReactiveMongoTemplate writingTemplate = new ReactiveMongoTemplate(REACTIVE_MONGO_DATABASE_FACTORY, converter);
 		ReactiveMongoDbStoringMessageHandler handler = new ReactiveMongoDbStoringMessageHandler(writingTemplate);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(MongoDbContainerTest.createPerson("Bob")).build();

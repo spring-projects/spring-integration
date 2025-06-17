@@ -33,6 +33,7 @@ import org.zeromq.ZMQ;
 import reactor.core.publisher.Mono;
 
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zeromq.ZeroMqProxy;
 import org.springframework.messaging.Message;
@@ -46,7 +47,7 @@ import static org.awaitility.Awaitility.await;
  *
  * @since 5.4
  */
-public class ZeroMqChannelTests {
+public class ZeroMqChannelTests implements TestApplicationContextAware {
 
 	private static final ZContext CONTEXT = new ZContext();
 
@@ -72,6 +73,7 @@ public class ZeroMqChannelTests {
 			}
 
 		});
+		channel.setBeanFactory(TestApplicationContextAware.CONTEXT);
 		channel.afterPropertiesSet();
 
 		@SuppressWarnings("unchecked")
@@ -115,6 +117,7 @@ public class ZeroMqChannelTests {
 		ZeroMqChannel channel = new ZeroMqChannel(CONTEXT, true);
 		channel.setBeanName("testChannel2");
 		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel.setBeanFactory(TestApplicationContextAware.CONTEXT);
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -151,6 +154,7 @@ public class ZeroMqChannelTests {
 		channel.setConnectUrl("tcp://localhost:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
 		channel.setBeanName("testChannel3");
 		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel.setBeanFactory(TestApplicationContextAware.CONTEXT);
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -188,6 +192,8 @@ public class ZeroMqChannelTests {
 		channel.setZeroMqProxy(proxy);
 		channel.setBeanName("testChannel4");
 		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel.setBeanFactory(TestApplicationContextAware.CONTEXT);
+		channel.setBeanFactory(TestApplicationContextAware.CONTEXT);
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();
@@ -201,6 +207,7 @@ public class ZeroMqChannelTests {
 		channel2.setConnectUrl("tcp://localhost:" + proxy.getFrontendPort() + ':' + proxy.getBackendPort());
 		channel2.setBeanName("testChannel5");
 		channel2.setConsumeDelay(Duration.ofMillis(10));
+		channel2.setBeanFactory(TestApplicationContextAware.CONTEXT);
 		channel2.afterPropertiesSet();
 
 		channel2.subscribe(received::offer);
@@ -266,6 +273,7 @@ public class ZeroMqChannelTests {
 				}
 		);
 		channel.setConsumeDelay(Duration.ofMillis(10));
+		channel.setBeanFactory(TestApplicationContextAware.CONTEXT);
 		channel.afterPropertiesSet();
 
 		BlockingQueue<Message<?>> received = new LinkedBlockingQueue<>();

@@ -25,7 +25,6 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
@@ -33,6 +32,7 @@ import org.springframework.integration.jpa.support.parametersource.ParameterSour
 import org.springframework.integration.jpa.test.JpaTestUtils;
 import org.springframework.integration.jpa.test.entity.Gender;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.TransactionDefinition;
@@ -41,7 +41,6 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Gunnar Hillert
@@ -53,7 +52,7 @@ import static org.mockito.Mockito.mock;
 @SpringJUnitConfig
 @DirtiesContext
 @Transactional
-public class HibernateJpaOperationsTests {
+public class HibernateJpaOperationsTests implements TestApplicationContextAware {
 
 	@Autowired
 	protected EntityManager entityManager;
@@ -87,7 +86,7 @@ public class HibernateJpaOperationsTests {
 		assertThat(students.size() == 3).isTrue();
 
 		ParameterSourceFactory requestParameterSourceFactory =
-				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
+				new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdate("update Student s " +
@@ -106,7 +105,7 @@ public class HibernateJpaOperationsTests {
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
 		ParameterSourceFactory requestParameterSourceFactory =
-				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
+				new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdateWithNamedQuery("updateStudent", source);
@@ -122,7 +121,7 @@ public class HibernateJpaOperationsTests {
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
 		ExpressionEvaluatingParameterSourceFactory requestParameterSourceFactory =
-				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
+				new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdateWithNativeQuery("update Student " +
@@ -179,7 +178,7 @@ public class HibernateJpaOperationsTests {
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
 		ParameterSourceFactory requestParameterSourceFactory =
-				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
+				new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdateWithNamedQuery("updateStudentNativeQuery", source);

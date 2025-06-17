@@ -43,6 +43,7 @@ import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
@@ -62,7 +63,7 @@ import static org.mockito.Mockito.when;
  * @since 2.2.2
  *
  */
-public class TcpNetConnectionTests {
+public class TcpNetConnectionTests implements TestApplicationContextAware {
 
 	@Test
 	public void testErrorLog() throws Exception {
@@ -165,6 +166,7 @@ public class TcpNetConnectionTests {
 		};
 		server.setApplicationEventPublisher(publisher);
 		server.registerListener(message -> false);
+		server.setBeanFactory(CONTEXT);
 		server.afterPropertiesSet();
 		server.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();

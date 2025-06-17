@@ -31,11 +31,11 @@ import jakarta.xml.soap.MessageFactory;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -62,7 +62,6 @@ import org.springframework.xml.transform.StringSource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -71,7 +70,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class SimpleWebServiceOutboundGatewayTests {
+public class SimpleWebServiceOutboundGatewayTests implements TestApplicationContextAware {
 
 	private static final String response = "<response><name>Test Name</name></response>";
 
@@ -99,7 +98,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 			SoapMessage soapMessage = (SoapMessage) message;
 			soapActionFromCallback.set(soapMessage.getSoapAction());
 		});
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 		String soapActionHeaderValue = "testAction";
 		String request = "<test>foo</test>";
@@ -142,7 +141,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 	public void testAttachments() throws Exception {
 		String uri = "https://www.example.org";
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 
 		final CompletableFuture<WebServiceMessage> requestFuture = new CompletableFuture<>();
 
@@ -202,7 +201,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 	public void testDomPoxMessageFactory() throws Exception {
 		String uri = "https://www.example.org";
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 
 		final CompletableFuture<WebServiceMessage> requestFuture = new CompletableFuture<>();
 

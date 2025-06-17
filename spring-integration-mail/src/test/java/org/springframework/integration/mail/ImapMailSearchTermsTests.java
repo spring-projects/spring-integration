@@ -29,6 +29,7 @@ import jakarta.mail.search.NotTerm;
 import jakarta.mail.search.SearchTerm;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.util.ReflectionUtils;
 
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  *
  */
-public class ImapMailSearchTermsTests {
+public class ImapMailSearchTermsTests implements TestApplicationContextAware {
 
 	@Test
 	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlags() throws Exception {
@@ -86,7 +87,7 @@ public class ImapMailSearchTermsTests {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(true);
 		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
-
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
@@ -116,6 +117,7 @@ public class ImapMailSearchTermsTests {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(false);
 		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		receiver.setBeanFactory(CONTEXT);
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");

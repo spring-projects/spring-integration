@@ -30,6 +30,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -49,7 +50,7 @@ import static org.mockito.Mockito.when;
  * @author Dave Syer
  * @author Artme Bilan
  */
-public class CorrelatingMessageHandlerTests {
+public class CorrelatingMessageHandlerTests implements TestApplicationContextAware {
 
 	private AggregatingMessageHandler handler;
 
@@ -70,7 +71,7 @@ public class CorrelatingMessageHandlerTests {
 		outputChannel = mock(MessageChannel.class);
 		handler = new AggregatingMessageHandler(processor, store, correlationStrategy, ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
-		handler.setBeanFactory(mock());
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 	}
 

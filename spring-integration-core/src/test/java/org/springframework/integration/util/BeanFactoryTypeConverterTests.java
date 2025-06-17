@@ -42,7 +42,9 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.history.MessageHistory;
@@ -199,6 +201,7 @@ public class BeanFactoryTypeConverterTests {
 		MethodInvokingMessageProcessor<Service> processor = new MethodInvokingMessageProcessor<>(service, "handle");
 		processor.setConversionService(conversionService);
 		processor.setUseSpelInvoker(true);
+		beanFactory.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, new StandardEvaluationContext());
 		processor.setBeanFactory(beanFactory);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		QueueChannel replyChannel = new QueueChannel();
@@ -222,6 +225,7 @@ public class BeanFactoryTypeConverterTests {
 		});
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		beanFactory.setConversionService(conversionService);
+		beanFactory.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, new StandardEvaluationContext());
 		typeConverter.setBeanFactory(beanFactory);
 
 		Service service = new Service();

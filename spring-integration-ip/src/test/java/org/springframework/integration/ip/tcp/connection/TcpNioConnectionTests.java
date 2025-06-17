@@ -71,6 +71,7 @@ import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
@@ -104,7 +105,7 @@ import static org.mockito.Mockito.when;
  * @since 2.0
  *
  */
-public class TcpNioConnectionTests {
+public class TcpNioConnectionTests implements TestApplicationContextAware {
 
 	private static final Log logger = LogFactory.getLog(TcpNioConnectionTests.class);
 
@@ -777,6 +778,7 @@ public class TcpNioConnectionTests {
 	@Test
 	public void testNoDelayOnClose() throws Exception {
 		TcpNioServerConnectionFactory cf = newTcpNioServerConnectionFactory();
+		cf.setBeanFactory(CONTEXT);
 		final CountDownLatch reading = new CountDownLatch(1);
 		final StopWatch watch = new StopWatch();
 		cf.setDeserializer(is -> {
@@ -833,6 +835,7 @@ public class TcpNioConnectionTests {
 				latch.countDown();
 				return false;
 			});
+			server.setBeanFactory(CONTEXT);
 			server.afterPropertiesSet();
 			server.start();
 			assertThat(serverReadyLatch.await(10, TimeUnit.SECONDS)).isTrue();

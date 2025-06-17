@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.file.FileHeaders;
@@ -48,6 +47,7 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
@@ -76,7 +76,7 @@ import static org.mockito.Mockito.when;
  * @since 2.1
  */
 @SuppressWarnings("rawtypes")
-public class RemoteFileOutboundGatewayTests {
+public class RemoteFileOutboundGatewayTests implements TestApplicationContextAware {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -841,12 +841,12 @@ public class RemoteFileOutboundGatewayTests {
 
 		};
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(CONTEXT);
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", "payload");
 		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpressionString("'foo/'");
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -872,12 +872,12 @@ public class RemoteFileOutboundGatewayTests {
 				.exists(anyString());
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(CONTEXT);
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", "payload");
 		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -932,12 +932,12 @@ public class RemoteFileOutboundGatewayTests {
 				.exists(anyString());
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(CONTEXT);
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", "payload");
 		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();
 		gw.setFileExistsModeExpressionString("headers[\"file.exists.mode\"]");
@@ -992,7 +992,7 @@ public class RemoteFileOutboundGatewayTests {
 		Session<TestLsEntry> session = mock(Session.class);
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(CONTEXT);
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "mput", "payload");
 		gw.afterPropertiesSet();
@@ -1019,7 +1019,7 @@ public class RemoteFileOutboundGatewayTests {
 		Session<TestLsEntry> session = mock(Session.class);
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(CONTEXT);
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "mput", null);
 		gw.setOptions("-R");
@@ -1177,14 +1177,14 @@ public class RemoteFileOutboundGatewayTests {
 		TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
 				String command, String expression) {
 			super(sessionFactory, Command.toCommand(command), expression);
-			this.setBeanFactory(mock(BeanFactory.class));
+			this.setBeanFactory(CONTEXT);
 			remoteFileTemplateExplicitlySet(false);
 		}
 
 		TestRemoteFileOutboundGateway(RemoteFileTemplate<TestLsEntry> remoteFileTemplate, String command,
 				String expression) {
 			super(remoteFileTemplate, command, expression);
-			this.setBeanFactory(mock(BeanFactory.class));
+			this.setBeanFactory(CONTEXT);
 		}
 
 		@Override

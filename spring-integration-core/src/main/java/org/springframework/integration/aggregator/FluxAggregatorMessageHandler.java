@@ -115,7 +115,6 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 		return groupFlux
 				.switchOnFirst((signal, group) -> {
 					if (signal.hasValue()) {
-						Assert.notNull(this.windowSizeFunction, "'windowSizeFunction' must not be null");
 						Integer maxSize = this.windowSizeFunction.apply(Objects.requireNonNull(signal.get()));
 						if (maxSize != null) {
 							if (this.windowTimespan != null) {
@@ -291,4 +290,5 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	private static @Nullable Integer sequenceSizeHeader(Message<?> message) {
 		return message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class);
 	}
+
 }

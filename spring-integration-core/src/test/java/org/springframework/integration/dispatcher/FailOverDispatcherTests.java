@@ -22,10 +22,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.TestHandlers;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -33,13 +33,12 @@ import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
  */
-public class FailOverDispatcherTests {
+public class FailOverDispatcherTests implements TestApplicationContextAware {
 
 	@Test
 	public void singleMessage() throws InterruptedException {
@@ -189,7 +188,7 @@ public class FailOverDispatcherTests {
 
 	private static ServiceActivatingHandler createConsumer(Object object) {
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(object);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		return handler;
 	}

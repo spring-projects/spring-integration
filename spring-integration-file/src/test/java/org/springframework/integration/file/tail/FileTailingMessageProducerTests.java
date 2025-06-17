@@ -36,6 +36,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingEvent;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingIdleEvent;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -52,7 +53,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 3.0
  */
-public class FileTailingMessageProducerTests {
+public class FileTailingMessageProducerTests implements TestApplicationContextAware {
 
 	private static final String TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES = "-F -n +0";
 
@@ -166,6 +167,7 @@ public class FileTailingMessageProducerTests {
 
 		adapter.setOutputChannel(new NullChannel());
 		adapter.setIdleEventInterval(10);
+		adapter.setBeanFactory(CONTEXT);
 		adapter.afterPropertiesSet();
 		adapter.start();
 

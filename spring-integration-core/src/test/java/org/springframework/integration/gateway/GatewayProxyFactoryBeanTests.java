@@ -36,12 +36,14 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
@@ -52,6 +54,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -81,7 +84,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author JingPeng Xie
  */
-public class GatewayProxyFactoryBeanTests {
+public class GatewayProxyFactoryBeanTests implements TestApplicationContextAware {
 
 	@Test
 	public void testRequestReplyWithAnonymousChannel() {
@@ -118,6 +121,8 @@ public class GatewayProxyFactoryBeanTests {
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, cs);
 		bf.registerSingleton("taskScheduler", mock(TaskScheduler.class));
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		bf.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, evaluationContext);
 		proxyFactory.setBeanFactory(bf);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
@@ -146,7 +151,18 @@ public class GatewayProxyFactoryBeanTests {
 	@Test
 	public void testOneWayIgnoreReply() {
 		DirectChannel requestChannel = new DirectChannel();
-		BeanFactory beanFactory = getBeanFactory();
+		BeanFactory beanFactory = mock();
+		TaskScheduler taskScheduler = mock(TaskScheduler.class);
+		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
+				.thenReturn(taskScheduler);
+		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+		when(beanFactory.containsBean(eq("integrationEvaluationContext")))
+				.thenReturn(true);
+		when(beanFactory.getBean(eq("integrationEvaluationContext"), any(Class.class)))
+				.thenReturn(evaluationContext);
+
 		QueueChannel nullChannel = new QueueChannel();
 		willReturn(nullChannel)
 				.given(beanFactory)
@@ -419,18 +435,15 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	private BeanFactory getBeanFactory() {
-		BeanFactory beanFactory = mock(BeanFactory.class);
 		TaskScheduler taskScheduler = mock(TaskScheduler.class);
-		when(beanFactory.getBean(eq("taskScheduler"), any(Class.class)))
-				.thenReturn(taskScheduler);
-		when(beanFactory.containsBean("taskScheduler")).thenReturn(true);
-		return beanFactory;
+		CONTEXT.registerBean("taskScheduler", taskScheduler);
+		return CONTEXT;
 	}
 
 	@Test
 	public void testIdHeaderOverrideHeaderExpression() {
 		GatewayProxyFactoryBean<?> gpfb = new GatewayProxyFactoryBean<>();
-		gpfb.setBeanFactory(mock(BeanFactory.class));
+		gpfb.setBeanFactory(CONTEXT);
 
 		GatewayMethodMetadata meta = new GatewayMethodMetadata();
 		meta.setHeaderExpressions(Collections.singletonMap(MessageHeaders.ID, new LiteralExpression("bar")));
@@ -445,7 +458,7 @@ public class GatewayProxyFactoryBeanTests {
 	public void testIdHeaderOverrideGatewayHeaderAnnotation() {
 		GatewayProxyFactoryBean<HeadersOverwriteService> gpfb =
 				new GatewayProxyFactoryBean<>(HeadersOverwriteService.class);
-		gpfb.setBeanFactory(mock(BeanFactory.class));
+		gpfb.setBeanFactory(CONTEXT);
 
 		assertThatExceptionOfType(BeanInitializationException.class)
 				.isThrownBy(gpfb::afterPropertiesSet)
@@ -455,7 +468,7 @@ public class GatewayProxyFactoryBeanTests {
 	@Test
 	public void testTimeStampHeaderOverrideParamHeaderAnnotation() {
 		GatewayProxyFactoryBean<HeadersParamService> gpfb = new GatewayProxyFactoryBean<>(HeadersParamService.class);
-		gpfb.setBeanFactory(mock(BeanFactory.class));
+		gpfb.setBeanFactory(CONTEXT);
 
 		assertThatExceptionOfType(BeanInitializationException.class)
 				.isThrownBy(gpfb::afterPropertiesSet)
@@ -522,6 +535,7 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean<CompositedGatewayService> gpfb = new GatewayProxyFactoryBean<>(
 				CompositedGatewayService.class);
 		beanFactory.registerSingleton("taskScheduler", mock(TaskScheduler.class));
+		beanFactory.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, new StandardEvaluationContext());
 		gpfb.setBeanFactory(beanFactory);
 		gpfb.afterPropertiesSet();
 		Map<Method, MessagingGatewaySupport> gateways = gpfb.getGateways();

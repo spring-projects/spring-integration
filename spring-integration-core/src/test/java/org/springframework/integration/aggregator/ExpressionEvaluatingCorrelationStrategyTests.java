@@ -18,7 +18,6 @@ package org.springframework.integration.aggregator;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -26,13 +25,13 @@ import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Alex Peters
@@ -40,7 +39,7 @@ import static org.mockito.Mockito.mock;
  * @author Gunnar Hillert
  * @author Gary Russell
  */
-public class ExpressionEvaluatingCorrelationStrategyTests {
+public class ExpressionEvaluatingCorrelationStrategyTests implements TestApplicationContextAware {
 
 	private ExpressionEvaluatingCorrelationStrategy strategy;
 
@@ -62,7 +61,7 @@ public class ExpressionEvaluatingCorrelationStrategyTests {
 		ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 		Expression expression = parser.parseExpression("payload.substring(0,1)");
 		strategy = new ExpressionEvaluatingCorrelationStrategy(expression);
-		strategy.setBeanFactory(mock(BeanFactory.class));
+		strategy.setBeanFactory(CONTEXT);
 		Object correlationKey = strategy.getCorrelationKey(new GenericMessage<String>("bla"));
 		assertThat(correlationKey).isInstanceOf(String.class);
 		assertThat((String) correlationKey).isEqualTo("b");

@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.log.LogAccessor;
@@ -32,6 +31,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.handler.LoggingHandler.Level;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -41,7 +41,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -58,7 +57,7 @@ import static org.mockito.Mockito.when;
 @SpringJUnitConfig
 @DirtiesContext
 @LogLevels(categories = "test.logging.handler")
-public class LoggingHandlerTests {
+public class LoggingHandlerTests implements TestApplicationContextAware {
 
 	@Autowired
 	@Qualifier("input.handler")
@@ -101,7 +100,7 @@ public class LoggingHandlerTests {
 	public void testDontEvaluateIfNotEnabled() {
 		LoggingHandler loggingHandler = new LoggingHandler("INFO");
 		loggingHandler.setLoggerName("test.logging.handler");
-		loggingHandler.setBeanFactory(mock(BeanFactory.class));
+		loggingHandler.setBeanFactory(CONTEXT);
 		loggingHandler.afterPropertiesSet();
 
 		LogAccessor logAccessor = TestUtils.getPropertyValue(loggingHandler, "messageLogger", LogAccessor.class);
@@ -120,7 +119,7 @@ public class LoggingHandlerTests {
 	@SuppressWarnings("unchecked")
 	public void testChangeLevel() {
 		LoggingHandler loggingHandler = new LoggingHandler(Level.INFO);
-		loggingHandler.setBeanFactory(mock(BeanFactory.class));
+		loggingHandler.setBeanFactory(CONTEXT);
 		loggingHandler.afterPropertiesSet();
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(loggingHandler);

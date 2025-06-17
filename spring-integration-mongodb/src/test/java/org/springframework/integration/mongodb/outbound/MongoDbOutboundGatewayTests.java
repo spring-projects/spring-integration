@@ -39,6 +39,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.mongodb.MongoDbContainerTest;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
@@ -58,7 +59,7 @@ import static org.assertj.core.api.Assertions.fail;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
+class MongoDbOutboundGatewayTests implements MongoDbContainerTest, TestApplicationContextAware {
 
 	private static final String COLLECTION_NAME = "data";
 
@@ -131,6 +132,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setQueryExpression(
 				PARSER.parseExpression("new BasicQuery('{''address.state'' : ''PA''}').limit(2)"));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 
 		Object result = gateway.handleRequestMessage(message);
@@ -149,6 +151,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 		gateway.setQueryExpression(functionExpression);
 		gateway.setExpectSingleResult(true);
 		gateway.setEntityClass(Person.class);
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 
 		Object result = gateway.handleRequestMessage(message);
@@ -178,6 +181,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
 		gateway.setQueryExpression(PARSER.parseExpression("payload"));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 
 		Object result = gateway.handleRequestMessage(message);
@@ -192,6 +196,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
 		gateway.setQueryExpression(PARSER.parseExpression("payload"));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 
 		Object result = gateway.handleRequestMessage(message);
@@ -208,6 +213,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 		gateway.setQueryExpression(PARSER.parseExpression("payload"));
 		gateway.setExpectSingleResult(true);
 		gateway.setEntityClass(Person.class);
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 
 		Object result = gateway.handleRequestMessage(message);
@@ -223,6 +229,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 		gateway.setQueryExpression(PARSER.parseExpression("new BasicQuery('{''name'' : ''Gary''}')"));
 		gateway.setExpectSingleResult(true);
 		gateway.setEntityClass(Person.class);
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 
 		Object result = gateway.handleRequestMessage(message);
@@ -237,6 +244,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setQueryExpression(new LiteralExpression("{name : 'Xavi'}"));
 		gateway.setExpectSingleResult(true);
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 
 		Object result = gateway.handleRequestMessage(message);
@@ -268,6 +276,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 		gateway.setQueryExpression(new LiteralExpression("{name : 'Xavi'}"));
 		gateway.setExpectSingleResult(true);
 		gateway.setCollectionNameExpression(new LiteralExpression("anotherCollection"));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 
 		Object result = gateway.handleRequestMessage(message);
@@ -287,6 +296,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 		gateway.setCollectionNameExpression(new LiteralExpression("data"));
 
 		gateway.setMessageCollectionCallback((collection, requestMessage) -> collection.countDocuments());
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 
 		long result = (long) gateway.handleRequestMessage(message);
@@ -306,6 +316,7 @@ class MongoDbOutboundGatewayTests implements MongoDbContainerTest {
 			collection.insertOne(new Document("name", requestMessage.getPayload()));
 			return null;
 		});
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 
 		gateway.handleRequestMessage(message);

@@ -48,6 +48,7 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
@@ -77,7 +78,7 @@ import static org.mockito.Mockito.when;
  * @since 2.2
  *
  */
-public class FailoverClientConnectionFactoryTests {
+public class FailoverClientConnectionFactoryTests implements TestApplicationContextAware {
 
 	@Test
 	public void testFailoverGood() throws Exception {
@@ -461,12 +462,14 @@ public class FailoverClientConnectionFactoryTests {
 	public void testFailoverCachedWithGateway() {
 		final TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		server.setBeanName("server");
+		server.setBeanFactory(CONTEXT);
 		server.afterPropertiesSet();
 		DirectChannel inChannel = new DirectChannel();
 		inChannel.setBeanName("inChannel");
 		TcpInboundGateway inbound = new TcpInboundGateway();
 		inbound.setConnectionFactory(server);
 		inbound.setRequestChannel(inChannel);
+		inbound.setBeanFactory(CONTEXT);
 		inbound.afterPropertiesSet();
 		inChannel.subscribe(new BridgeHandler());
 		inbound.start();
@@ -478,6 +481,7 @@ public class FailoverClientConnectionFactoryTests {
 		// Cache
 		CachingClientConnectionFactory cachingClient = new CachingClientConnectionFactory(client, 2);
 		cachingClient.setBeanName("cache");
+		cachingClient.setBeanFactory(CONTEXT);
 		cachingClient.afterPropertiesSet();
 
 		// Failover
@@ -485,6 +489,7 @@ public class FailoverClientConnectionFactoryTests {
 		clientFactories.add(cachingClient);
 		FailoverClientConnectionFactory failoverClient = new FailoverClientConnectionFactory(clientFactories);
 		failoverClient.setSingleUse(true);
+		failoverClient.setBeanFactory(CONTEXT);
 		failoverClient.afterPropertiesSet();
 
 		TcpOutboundGateway outbound = new TcpOutboundGateway();
@@ -492,7 +497,7 @@ public class FailoverClientConnectionFactoryTests {
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("replyChannel");
 		outbound.setReplyChannel(replyChannel);
-		outbound.setBeanFactory(mock(BeanFactory.class));
+		outbound.setBeanFactory(CONTEXT);
 		outbound.afterPropertiesSet();
 		outbound.start();
 
@@ -699,7 +704,7 @@ public class FailoverClientConnectionFactoryTests {
 		return factory;
 	}
 
-	private TcpNetServerConnectionFactory getTcpNetServerConnectionFactory(int port) {
+	private static TcpNetServerConnectionFactory getTcpNetServerConnectionFactory(int port) {
 		TcpNetServerConnectionFactory result = new TcpNetServerConnectionFactory(port);
 		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
 

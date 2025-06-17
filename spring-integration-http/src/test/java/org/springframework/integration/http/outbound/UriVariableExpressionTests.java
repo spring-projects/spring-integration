@@ -22,23 +22,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Dave Syer
@@ -49,7 +50,14 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class UriVariableExpressionTests {
+public class UriVariableExpressionTests implements TestApplicationContextAware {
+
+	@BeforeEach
+	void setUp() {
+		CONTEXT.registerBean("integrationSimpleEvaluationContext", SimpleEvaluationContext
+				.forReadOnlyDataBinding()
+				.build());
+	}
 
 	@Test
 	public void testFromMessageWithExpressions() {
@@ -62,7 +70,7 @@ public class UriVariableExpressionTests {
 					uriHolder.set(uri);
 					throw new RuntimeException("intentional");
 				});
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<>("bar");
 		try {
@@ -92,7 +100,7 @@ public class UriVariableExpressionTests {
 					uriHolder.set(uri);
 					throw new RuntimeException("intentional");
 				});
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		try {
 			handler.handleMessage(new GenericMessage<Object>("bar"));

@@ -49,7 +49,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
@@ -61,6 +60,7 @@ import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandle
 import org.springframework.integration.kafka.support.KafkaIntegrationHeaders;
 import org.springframework.integration.kafka.support.KafkaSendFailureException;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -119,7 +119,7 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.value;
  *
  * @since 5.4
  */
-class KafkaProducerMessageHandlerTests {
+class KafkaProducerMessageHandlerTests implements TestApplicationContextAware {
 
 	private static final String topic1 = "testTopic1out";
 
@@ -161,7 +161,7 @@ class KafkaProducerMessageHandlerTests {
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.setSendTimeout(50_000);
 		handler.setSync(true);
 		handler.afterPropertiesSet();
@@ -219,7 +219,7 @@ class KafkaProducerMessageHandlerTests {
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload("foo")
@@ -250,7 +250,7 @@ class KafkaProducerMessageHandlerTests {
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload("foo")
@@ -289,7 +289,7 @@ class KafkaProducerMessageHandlerTests {
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		PollableChannel successes = new QueueChannel();
 		handler.setSendSuccessChannel(successes);
 		handler.afterPropertiesSet();
@@ -327,7 +327,7 @@ class KafkaProducerMessageHandlerTests {
 		});
 		PollableChannel failures = new QueueChannel();
 		handler.setSendFailureChannel(failures);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		message = MessageBuilder.withPayload("bar")
 				.setHeader(KafkaHeaders.TOPIC, "foo")
@@ -380,7 +380,7 @@ class KafkaProducerMessageHandlerTests {
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.setHeaderMapper(new DefaultKafkaHeaderMapper("!*"));
 		handler.afterPropertiesSet();
 
@@ -434,7 +434,7 @@ class KafkaProducerMessageHandlerTests {
 		template.start();
 		assertThat(assigned.await(30, TimeUnit.SECONDS)).isTrue();
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		QueueChannel replies = new QueueChannel();
 		handler.setOutputChannel(replies);
 		handler.afterPropertiesSet();
@@ -485,7 +485,7 @@ class KafkaProducerMessageHandlerTests {
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		handler.handleMessage(new GenericMessage<>("foo"));
@@ -547,6 +547,7 @@ class KafkaProducerMessageHandlerTests {
 		handler.setMessageKeyExpression(new LiteralExpression("bar"));
 		handler.setTopicExpression(new LiteralExpression("topic"));
 		channel.subscribe(handler);
+		inbound.setBeanFactory(CONTEXT);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		assertThat(closeLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -589,7 +590,7 @@ class KafkaProducerMessageHandlerTests {
 		template.setTransactionIdPrefix("overridden.tx.id.");
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		handler.handleMessage(new GenericMessage<>("foo"));
@@ -612,7 +613,7 @@ class KafkaProducerMessageHandlerTests {
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		try {
@@ -692,6 +693,7 @@ class KafkaProducerMessageHandlerTests {
 		handler.setMessageKeyExpression(new LiteralExpression("bar"));
 		handler.setTopicExpression(new LiteralExpression("topic"));
 		channel.subscribe(handler);
+		inbound.setBeanFactory(CONTEXT);
 		inbound.afterPropertiesSet();
 		inbound.start();
 		assertThat(closeLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -739,7 +741,7 @@ class KafkaProducerMessageHandlerTests {
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		handler.handleMessage(
@@ -762,7 +764,7 @@ class KafkaProducerMessageHandlerTests {
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		handler.handleMessage(new GenericMessage<>("foo"));
@@ -786,7 +788,7 @@ class KafkaProducerMessageHandlerTests {
 		template.setMessageConverter(converter);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		ProducerRecordCreator creator = mock(ProducerRecordCreator.class);
 		ProducerRecord recordFromCreator = mock(ProducerRecord.class);
 		given(creator.create(any(), any(), any(), any(), any(), any(), any())).willReturn(recordFromCreator);

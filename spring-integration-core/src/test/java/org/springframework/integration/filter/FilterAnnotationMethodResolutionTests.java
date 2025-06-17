@@ -18,9 +18,11 @@ package org.springframework.integration.filter;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.FilterFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -39,6 +41,8 @@ public class FilterAnnotationMethodResolutionTests {
 	@Test
 	public void resolveAnnotatedMethod() throws Exception {
 		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		testApplicationContext.registerBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, evaluationContext);
 		testApplicationContext.refresh();
 		FilterFactoryBean factoryBean = new FilterFactoryBean();
 		factoryBean.setBeanFactory(testApplicationContext);

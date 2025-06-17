@@ -24,6 +24,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -40,7 +41,7 @@ import static org.assertj.core.api.Assertions.fail;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
-public class ErrorMessageExceptionTypeRouterTests {
+public class ErrorMessageExceptionTypeRouterTests implements TestApplicationContextAware {
 
 	private final TestUtils.TestApplicationContext context = TestUtils.createTestApplicationContext();
 
@@ -147,6 +148,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setApplicationContext(this.context);
+		router.setBeanFactory(TestUtils.createTestApplicationContext());
 		router.setDefaultOutputChannel(defaultChannel);
 		router.afterPropertiesSet();
 
@@ -167,6 +169,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setApplicationContext(this.context);
+		router.setBeanFactory(TestUtils.createTestApplicationContext());
 		router.setChannelMapping(MessageDeliveryException.class.getName(), "messageDeliveryExceptionChannel");
 		router.setResolutionRequired(true);
 		router.setBeanName("fooRouter");
@@ -252,6 +255,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 	public void testInvalidMapping() {
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setApplicationContext(this.context);
+		router.setBeanFactory(CONTEXT);
 		router.afterPropertiesSet();
 		try {
 			router.setChannelMapping("foo", "fooChannel");

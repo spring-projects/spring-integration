@@ -37,6 +37,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
@@ -59,7 +60,7 @@ import static org.mockito.Mockito.verify;
  *
  * @since 3.0
  */
-public class OutboundEndpointTests {
+public class OutboundEndpointTests implements TestApplicationContextAware {
 
 	@Test
 	public void testDelayExpression() {
@@ -75,6 +76,7 @@ public class OutboundEndpointTests {
 		endpoint.setRoutingKey("bar");
 		endpoint.setDelayExpressionString("42");
 		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.setBeanFactory(CONTEXT);
 		endpoint.afterPropertiesSet();
 		endpoint.handleMessage(new GenericMessage<>("foo"));
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
@@ -109,6 +111,7 @@ public class OutboundEndpointTests {
 		gateway.setDelayExpressionString("42");
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setOutputChannel(new NullChannel());
+		gateway.setBeanFactory(CONTEXT);
 		gateway.afterPropertiesSet();
 		gateway.start();
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);

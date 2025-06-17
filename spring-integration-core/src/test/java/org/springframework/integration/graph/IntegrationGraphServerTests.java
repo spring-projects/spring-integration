@@ -265,6 +265,7 @@ public class IntegrationGraphServerTests {
 	@Test
 	void timersViaObservationArePopulated() {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.setBeanFactory(beanFactory);
 		assertThat(messagingTemplate.convertSendAndReceive(this.filterInputChannel, "test", String.class))
 				.isEqualTo("test");
 

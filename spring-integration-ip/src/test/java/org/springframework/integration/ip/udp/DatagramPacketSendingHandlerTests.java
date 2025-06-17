@@ -26,15 +26,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -44,7 +43,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class DatagramPacketSendingHandlerTests {
+public class DatagramPacketSendingHandlerTests implements TestApplicationContextAware {
 
 	@Test
 	public void verifySend() throws Exception {
@@ -122,7 +121,7 @@ public class DatagramPacketSendingHandlerTests {
 		listening.await(10000, TimeUnit.MILLISECONDS);
 		UnicastSendingMessageHandler handler =
 				new UnicastSendingMessageHandler("localhost", testPort.get(), true, true, "localhost", 0, 5000);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		waitAckListening(handler);

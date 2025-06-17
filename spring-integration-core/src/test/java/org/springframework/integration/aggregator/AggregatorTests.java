@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -40,6 +39,7 @@ import org.springframework.integration.store.SimpleMessageGroupFactory;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.messaging.Message;
@@ -51,7 +51,6 @@ import org.springframework.util.StopWatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -60,7 +59,7 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class AggregatorTests {
+public class AggregatorTests  implements TestApplicationContextAware {
 
 	private static final Log logger = LogFactory.getLog(AggregatorTests.class);
 
@@ -73,7 +72,7 @@ public class AggregatorTests {
 	@BeforeEach
 	public void configureAggregator() {
 		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
-		this.aggregator.setBeanFactory(mock(BeanFactory.class));
+		this.aggregator.setBeanFactory(CONTEXT);
 		this.aggregator.setApplicationEventPublisher(event -> expiryEvents.add((MessageGroupExpiredEvent) event));
 		this.aggregator.setBeanName("testAggregator");
 		this.aggregator.afterPropertiesSet();

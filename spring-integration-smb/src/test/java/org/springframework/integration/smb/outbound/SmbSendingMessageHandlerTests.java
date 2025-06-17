@@ -26,11 +26,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.smb.AbstractBaseTests;
 import org.springframework.integration.smb.session.SmbSession;
 import org.springframework.integration.smb.session.SmbSessionFactory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileSystemUtils;
 
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
  * @author Prafull Kumar Soni
  * @author Gregory Bragg
  */
-public class SmbSendingMessageHandlerTests extends AbstractBaseTests {
+public class SmbSendingMessageHandlerTests extends AbstractBaseTests implements TestApplicationContextAware {
 
 	private SmbSession smbSession;
 
@@ -75,7 +75,7 @@ public class SmbSendingMessageHandlerTests extends AbstractBaseTests {
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(message -> "handlerContent.test");
 		handler.setAutoCreateDirectory(true);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<>("hello"));
 		assertFileExists(file);
@@ -88,7 +88,7 @@ public class SmbSendingMessageHandlerTests extends AbstractBaseTests {
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(message -> "handlerContent.test");
 		handler.setAutoCreateDirectory(true);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<>("hello".getBytes()));
 		assertFileExists(file);

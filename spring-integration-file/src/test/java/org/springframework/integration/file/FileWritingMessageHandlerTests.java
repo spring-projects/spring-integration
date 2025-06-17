@@ -41,7 +41,6 @@ import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
@@ -50,6 +49,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -81,7 +81,7 @@ import static org.mockito.Mockito.when;
  * @author Artem Bilan
  * @author Alen Turkovic
  */
-public class FileWritingMessageHandlerTests {
+public class FileWritingMessageHandlerTests implements TestApplicationContextAware {
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
@@ -104,7 +104,7 @@ public class FileWritingMessageHandlerTests {
 				new FileOutputStream(sourceFile, false));
 
 		this.handler = new FileWritingMessageHandler(this.outputDirectory);
-		this.handler.setBeanFactory(mock(BeanFactory.class));
+		this.handler.setBeanFactory(CONTEXT);
 		this.handler.setApplicationContext(new GenericApplicationContext());
 		this.handler.afterPropertiesSet();
 
@@ -274,7 +274,7 @@ public class FileWritingMessageHandlerTests {
 	public void testCreateDirFail() {
 		File dir = new File("/foo");
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(dir);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		assertThatIllegalArgumentException()
 				.isThrownBy(handler::afterPropertiesSet)
 				.withMessageContaining("[/foo] could not be created");
@@ -498,7 +498,7 @@ public class FileWritingMessageHandlerTests {
 		taskScheduler.afterPropertiesSet();
 		handler.setTaskScheduler(taskScheduler);
 		handler.setOutputChannel(new NullChannel());
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.setFlushInterval(30000);
 		handler.afterPropertiesSet();
 		handler.start();
@@ -583,7 +583,7 @@ public class FileWritingMessageHandlerTests {
 		taskScheduler.afterPropertiesSet();
 		handler.setTaskScheduler(taskScheduler);
 		handler.setOutputChannel(new NullChannel());
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.setFlushInterval(10);
 		handler.setFlushWhenIdle(false);
 		handler.afterPropertiesSet();

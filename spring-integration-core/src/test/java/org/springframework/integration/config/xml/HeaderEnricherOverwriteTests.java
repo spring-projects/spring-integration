@@ -24,6 +24,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -41,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class HeaderEnricherOverwriteTests {
+public class HeaderEnricherOverwriteTests implements TestApplicationContextAware {
 
 	@Autowired
 	private ApplicationContext context;
@@ -155,6 +156,7 @@ public class HeaderEnricherOverwriteTests {
 		MessageChannel channel = this.context.getBean("priorityExplicitOverwriteTrueInput", MessageChannel.class);
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(channel);
+		template.setBeanFactory(CONTEXT);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
 		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(42);

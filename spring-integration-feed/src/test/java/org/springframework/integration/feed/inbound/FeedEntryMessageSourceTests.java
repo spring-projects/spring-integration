@@ -26,15 +26,14 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Oleg Zhurakousky
@@ -45,7 +44,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class FeedEntryMessageSourceTests {
+public class FeedEntryMessageSourceTests implements TestApplicationContextAware {
 
 	static File metadataStoreFile;
 
@@ -88,7 +87,7 @@ public class FeedEntryMessageSourceTests {
 				};
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(urlResource, "foo");
 		feedEntrySource.setBeanName("feedReader");
-		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.setBeanFactory(CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		assertThat(feedEntrySource.receive()).isNull();
 	}
@@ -98,7 +97,7 @@ public class FeedEntryMessageSourceTests {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
 		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "foo");
 		source.setBeanName("feedReader");
-		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanFactory(CONTEXT);
 		source.afterPropertiesSet();
 		Message<SyndEntry> message1 = source.receive();
 		Message<SyndEntry> message2 = source.receive();
@@ -121,7 +120,7 @@ public class FeedEntryMessageSourceTests {
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
 		feedEntrySource.setMetadataStore(metadataStore);
-		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.setBeanFactory(CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
@@ -140,7 +139,7 @@ public class FeedEntryMessageSourceTests {
 		metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
 		feedEntrySource.setMetadataStore(metadataStore);
-		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.setBeanFactory(CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		assertThat(feedEntrySource.receive()).isNull();
 	}
@@ -155,7 +154,7 @@ public class FeedEntryMessageSourceTests {
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
 		feedEntrySource.setMetadataStore(metadataStore);
-		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.setBeanFactory(CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
 		SyndEntry entry2 = feedEntrySource.receive().getPayload();
@@ -180,7 +179,7 @@ public class FeedEntryMessageSourceTests {
 		metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
 		feedEntrySource.setMetadataStore(metadataStore);
-		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.setBeanFactory(CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		assertThat(feedEntrySource.receive()).isNull();
 		assertThat(feedEntrySource.receive()).isNull();
@@ -194,7 +193,7 @@ public class FeedEntryMessageSourceTests {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
 		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(resource, "foo");
 		feedEntrySource.setBeanName("feedReader");
-		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.setBeanFactory(CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
 		SyndEntry entry2 = feedEntrySource.receive().getPayload();
@@ -214,7 +213,7 @@ public class FeedEntryMessageSourceTests {
 		// now test that what's been read is read AGAIN
 		feedEntrySource = new FeedEntryMessageSource(resource, "foo");
 		feedEntrySource.setBeanName("feedReader");
-		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
+		feedEntrySource.setBeanFactory(CONTEXT);
 		feedEntrySource.afterPropertiesSet();
 		entry1 = feedEntrySource.receive().getPayload();
 		entry2 = feedEntrySource.receive().getPayload();

@@ -23,11 +23,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.jpa.support.JpaParameter;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -37,10 +36,10 @@ import static org.mockito.Mockito.mock;
  * @since 2.2
  *
  */
-public class ExpressionEvaluatingParameterSourceFactoryTests {
+public class ExpressionEvaluatingParameterSourceFactoryTests implements TestApplicationContextAware {
 
 	private final ExpressionEvaluatingParameterSourceFactory factory =
-			new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
+			new ExpressionEvaluatingParameterSourceFactory(CONTEXT);
 
 	@Test
 	public void testSetStaticParameters() {

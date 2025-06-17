@@ -37,7 +37,9 @@ import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -129,6 +131,9 @@ public abstract class TestUtils {
 					LOGGER.error(message);
 					return true;
 				}, context);
+		StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
+		integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
+		registerBean("integrationEvaluationContext", integrationEvaluationContext, context);
 		return context;
 	}
 

@@ -25,7 +25,6 @@ import org.apache.sshd.sftp.client.SftpVersionSelector;
 import org.apache.sshd.sftp.common.SftpException;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,6 +38,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
@@ -49,7 +49,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Gary Russell
@@ -59,7 +58,7 @@ import static org.mockito.Mockito.mock;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class SftpRemoteFileTemplateTests extends SftpTestSupport {
+public class SftpRemoteFileTemplateTests extends SftpTestSupport implements TestApplicationContextAware {
 
 	@Autowired
 	private CachingSessionFactory<SftpClient.DirEntry> sessionFactory;
@@ -70,11 +69,11 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(sessionFactory);
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setExpression("'foobar.txt'");
-		fileNameGenerator.setBeanFactory(mock(BeanFactory.class));
+		fileNameGenerator.setBeanFactory(CONTEXT);
 		template.setFileNameGenerator(fileNameGenerator);
 		template.setRemoteDirectoryExpression(new LiteralExpression("/foo/"));
 		template.setUseTemporaryFileName(false);
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(CONTEXT);
 		template.afterPropertiesSet();
 
 		template.execute(session -> {
@@ -112,11 +111,11 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		CachingSessionFactory<SftpClient.DirEntry> sessionFactory = new CachingSessionFactory<>(sessionFactory(), 1);
 		SftpRemoteFileTemplate template = new SftpRemoteFileTemplate(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression(""));
-		template.setBeanFactory(mock(BeanFactory.class));
+		template.setBeanFactory(CONTEXT);
 		template.setUseTemporaryFileName(false);
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setExpression("'test.file'");
-		fileNameGenerator.setBeanFactory(mock(BeanFactory.class));
+		fileNameGenerator.setBeanFactory(CONTEXT);
 		template.setFileNameGenerator(fileNameGenerator);
 		template.afterPropertiesSet();
 

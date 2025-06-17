@@ -28,6 +28,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter.ListenerMode;
 import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -50,7 +51,7 @@ import static org.mockito.Mockito.mock;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class KafkaMessageDrivenChannelAdapterParserTests {
+class KafkaMessageDrivenChannelAdapterParserTests implements TestApplicationContextAware {
 
 	@Autowired
 	private ApplicationContext context;
@@ -131,6 +132,7 @@ class KafkaMessageDrivenChannelAdapterParserTests {
 		adapter.setOutputChannel(new QueueChannel());
 
 		adapter.setRecordFilterStrategy(mock(RecordFilterStrategy.class));
+		adapter.setBeanFactory(CONTEXT);
 		adapter.afterPropertiesSet();
 
 		containerProps = TestUtils.getPropertyValue(container, "containerProperties", ContainerProperties.class);

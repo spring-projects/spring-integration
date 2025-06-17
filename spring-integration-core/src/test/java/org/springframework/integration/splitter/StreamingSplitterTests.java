@@ -25,19 +25,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Alex Peters
@@ -46,7 +45,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 4.1
  */
-public class StreamingSplitterTests {
+public class StreamingSplitterTests implements TestApplicationContextAware {
 
 	private Message<?> message;
 
@@ -59,7 +58,7 @@ public class StreamingSplitterTests {
 	public void splitToIterator_sequenceSizeInLastMessageHeader() {
 		int messageQuantity = 5;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
-		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.setBeanFactory(CONTEXT);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
@@ -82,7 +81,7 @@ public class StreamingSplitterTests {
 						.build();
 		int messageQuantity = 5;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
-		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.setBeanFactory(CONTEXT);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
@@ -103,7 +102,7 @@ public class StreamingSplitterTests {
 	public void splitToIterator_allMessagesSent() {
 		int messageQuantity = 5;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
-		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.setBeanFactory(CONTEXT);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
@@ -115,7 +114,7 @@ public class StreamingSplitterTests {
 	public void splitToIterable_allMessagesSent() {
 		int messageQuantity = 5;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IterableTestBean(messageQuantity));
-		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.setBeanFactory(CONTEXT);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
@@ -127,7 +126,7 @@ public class StreamingSplitterTests {
 	public void splitToIterator_allMessagesContainSequenceNumber() {
 		final int messageQuantity = 5;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
-		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.setBeanFactory(CONTEXT);
 		DirectChannel replyChannel = new DirectChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
@@ -142,7 +141,7 @@ public class StreamingSplitterTests {
 	public void splitWithMassiveReplyMessages_allMessagesSent() {
 		final int messageQuantity = 100000;
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
-		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.setBeanFactory(CONTEXT);
 		DirectChannel replyChannel = new DirectChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();

@@ -32,6 +32,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.routingslip.ExpressionEvaluatingRoutingSlipRouteStrategy;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -51,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class HeaderEnricherTests {
+public class HeaderEnricherTests implements TestApplicationContextAware {
 
 	@Autowired
 	private ApplicationContext context;
@@ -105,7 +106,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void correlationIdValue() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("correlationIdValueInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -114,7 +115,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void correlationIdValueWithType() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("correlationIdValueWithTypeInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -125,7 +126,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void correlationIdRef() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("correlationIdRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -134,7 +135,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void expirationDateValue() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("expirationDateValueInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -143,7 +144,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void expirationDateRef() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("expirationDateRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -152,7 +153,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void priority() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("priorityInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -161,7 +162,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void priorityExpression() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("priorityExpressionInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel,
 				new GenericMessage<>(Collections.singletonMap("priority", "-10")));
@@ -171,7 +172,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void expressionUsingPayload() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("payloadExpressionInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>(new TestBean("foo")));
 		assertThat(result).isNotNull();
@@ -180,7 +181,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void expressionUsingHeader() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("headerExpressionInput", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeader1", "foo").build();
 		Message<?> result = template.sendAndReceive(channel, message);
@@ -190,7 +191,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void expressionWithDateType() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("expressionWithDateTypeInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -202,7 +203,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void expressionWithLongType() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("expressionWithLongTypeInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -212,7 +213,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void refWithMethod() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("refWithMethod", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -222,7 +223,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void ref() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("ref", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -233,7 +234,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void innerBean() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("innerBean", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -244,7 +245,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void innerBeanWithMethod() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("innerBeanWithMethod", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -263,7 +264,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void testRoutingSlip() {
-		MessagingTemplate template = new MessagingTemplate();
+		MessagingTemplate template = createMessagingTemplate();
 		MessageChannel channel = context.getBean("routingSlipInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
 		assertThat(result).isNotNull();
@@ -278,6 +279,12 @@ public class HeaderEnricherTests {
 		assertThat(routingSlipPath.get(1)).isEqualTo("fooChannel");
 		assertThat(routingSlipPath.get(2)).isInstanceOf(ExpressionEvaluatingRoutingSlipRouteStrategy.class);
 		assertThat(routingSlipPath.get(3)).isEqualTo("bazRoutingSlip");
+	}
+
+	private static MessagingTemplate createMessagingTemplate() {
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(CONTEXT);
+		return template;
 	}
 
 	public static class TestBean {

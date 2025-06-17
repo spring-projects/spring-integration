@@ -37,6 +37,7 @@ import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannel
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -53,7 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class MqttDslTests implements MosquittoContainerTest {
+public class MqttDslTests implements MosquittoContainerTest, TestApplicationContextAware {
 
 	@Autowired
 	@Qualifier("mqttOutFlow.input")

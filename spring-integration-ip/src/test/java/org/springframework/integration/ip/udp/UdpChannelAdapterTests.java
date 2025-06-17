@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -46,12 +45,12 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -64,7 +63,7 @@ import static org.mockito.Mockito.mock;
  */
 @Multicast
 @LogLevels(categories = "org.springframework.integration.ip.udp", level = "TRACE")
-public class UdpChannelAdapterTests {
+public class UdpChannelAdapterTests implements TestApplicationContextAware {
 
 	@Test
 	public void testUnicastReceiver() throws Exception {
@@ -235,7 +234,7 @@ public class UdpChannelAdapterTests {
 				"localhost", port, false, true,
 				"localhost",
 				0, 5000);
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
@@ -328,7 +327,7 @@ public class UdpChannelAdapterTests {
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setOutputChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		channel.subscribe(handler);
 		QueueChannel errorChannel = new QueueChannel();

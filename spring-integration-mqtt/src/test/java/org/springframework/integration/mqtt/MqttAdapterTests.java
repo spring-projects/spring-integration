@@ -43,12 +43,15 @@ import org.mockito.ArgumentMatchers;
 
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -65,6 +68,7 @@ import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaderAccessor;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -100,7 +104,7 @@ import static org.mockito.Mockito.when;
  * @since 4.0
  *
  */
-public class MqttAdapterTests {
+public class MqttAdapterTests implements TestApplicationContextAware {
 
 	private final IMqttToken alwaysComplete;
 
@@ -152,7 +156,7 @@ public class MqttAdapterTests {
 
 		MqttPahoMessageHandler handler = new MqttPahoMessageHandler("foo", "bar", factory);
 		handler.setDefaultTopic("mqtt-foo");
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 
@@ -208,7 +212,7 @@ public class MqttAdapterTests {
 
 		var handler = new MqttPahoMessageHandler(clientManager);
 		handler.setDefaultTopic("mqtt-foo");
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		handler.start();
 
@@ -238,7 +242,7 @@ public class MqttAdapterTests {
 				.willReturn(subscribeToken);
 
 		var adapter = new MqttPahoMessageDrivenChannelAdapter(clientManager, "mqtt-foo");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(CONTEXT);
 		adapter.afterPropertiesSet();
 
 		// when
@@ -311,7 +315,7 @@ public class MqttAdapterTests {
 		adapter.setOutputChannel(outputChannel);
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setErrorChannel(errorChannel);
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(CONTEXT);
 		ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
 		final BlockingQueue<MqttIntegrationEvent> events = new LinkedBlockingQueue<>();
 		willAnswer(invocation -> {
@@ -399,6 +403,7 @@ public class MqttAdapterTests {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
 		MqttPahoMessageHandler handler = ctx.getBean("handler", MqttPahoMessageHandler.class);
 		GenericMessage<String> message = new GenericMessage<>("foo");
+		handler.setApplicationContext(ctx);
 		assertThat(TestUtils.getPropertyValue(handler, "topicProcessor", MessageProcessor.class)
 				.processMessage(message)).isEqualTo("fooTopic");
 		assertThat(TestUtils.getPropertyValue(handler, "converter.qosProcessor", MessageProcessor.class)
@@ -555,6 +560,7 @@ public class MqttAdapterTests {
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("client", factory, "foo");
 		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		adapter.setOutputChannel(new NullChannel());
+		adapter.setBeanFactory(CONTEXT);
 		adapter.afterPropertiesSet();
 		return adapter;
 	}
@@ -574,6 +580,7 @@ public class MqttAdapterTests {
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("client", factory);
 		adapter.setDefaultTopic("foo");
 		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
+		adapter.setBeanFactory(CONTEXT);
 		adapter.afterPropertiesSet();
 		return adapter;
 	}
@@ -627,6 +634,14 @@ public class MqttAdapterTests {
 			handler.setDefaultRetained(true);
 			handler.setRetainedExpressionString("null");
 			return handler;
+		}
+
+		@Bean
+		public StandardEvaluationContext integrationEvaluationContext(ApplicationContext applicationContext) {
+			StandardEvaluationContext integrationEvaluationContext = new StandardEvaluationContext();
+			integrationEvaluationContext.addPropertyAccessor(new MapAccessor());
+			integrationEvaluationContext.setBeanResolver(new BeanFactoryResolver(applicationContext));
+			return integrationEvaluationContext;
 		}
 
 	}

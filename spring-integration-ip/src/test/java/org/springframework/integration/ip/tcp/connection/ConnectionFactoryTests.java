@@ -50,6 +50,7 @@ import org.springframework.integration.ip.config.TcpConnectionFactoryFactoryBean
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -78,7 +79,7 @@ import static org.mockito.Mockito.when;
  * @since 3.0
  *
  */
-public class ConnectionFactoryTests {
+public class ConnectionFactoryTests implements TestApplicationContextAware {
 
 	@Test
 	void netOpenEventOnReadThread() throws InterruptedException, IOException {
@@ -100,6 +101,7 @@ public class ConnectionFactoryTests {
 				openEventThread.set(Thread.currentThread());
 			}
 		});
+		server.setBeanFactory(CONTEXT);
 		server.afterPropertiesSet();
 		server.start();
 		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
@@ -221,6 +223,7 @@ public class ConnectionFactoryTests {
 	@Test
 	public void testEarlyCloseNio() throws Exception {
 		AbstractServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
+		factory.setBeanFactory(CONTEXT);
 		testEarlyClose(factory, "serverChannel", " stopped before registering the server channel");
 	}
 

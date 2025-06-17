@@ -34,6 +34,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -56,7 +57,7 @@ import static org.mockito.Mockito.spy;
  * @since 4.3
  *
  */
-public class AsyncHandlerTests {
+public class AsyncHandlerTests implements TestApplicationContextAware {
 
 	private final QueueChannel output = new QueueChannel();
 
@@ -224,10 +225,12 @@ public class AsyncHandlerTests {
 		DirectChannel input = new DirectChannel();
 		gpfb.setDefaultRequestChannel(input);
 		gpfb.setDefaultReplyTimeout(10000L);
+		gpfb.setBeanFactory(CONTEXT);
 		gpfb.afterPropertiesSet();
 		Foo foo = gpfb.getObject();
 		this.handler.setOutputChannel(null);
 		EventDrivenConsumer consumer = new EventDrivenConsumer(input, this.handler);
+		consumer.setBeanFactory(CONTEXT);
 		consumer.afterPropertiesSet();
 		consumer.start();
 		this.latch.countDown();
@@ -244,10 +247,12 @@ public class AsyncHandlerTests {
 		DirectChannel input = new DirectChannel();
 		gpfb.setDefaultRequestChannel(input);
 		gpfb.setDefaultReplyTimeout(10000L);
+		gpfb.setBeanFactory(CONTEXT);
 		gpfb.afterPropertiesSet();
 		Foo foo = gpfb.getObject();
 		this.handler.setOutputChannel(null);
 		EventDrivenConsumer consumer = new EventDrivenConsumer(input, this.handler);
+		consumer.setBeanFactory(CONTEXT);
 		consumer.afterPropertiesSet();
 		consumer.start();
 		this.latch.countDown();

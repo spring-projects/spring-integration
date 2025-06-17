@@ -29,16 +29,17 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.xml.transform.Source;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -52,6 +53,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -82,7 +84,7 @@ import static org.mockito.Mockito.when;
  * @author Gunnar Hillert
  * @author Florian Schöffl
  */
-public class HttpRequestExecutingMessageHandlerTests {
+public class HttpRequestExecutingMessageHandlerTests implements TestApplicationContextAware {
 
 	// Used in the HttpOutboundWithinChainTests-context.xml
 	public static ParameterizedTypeReference<List<String>> testParameterizedTypeReference() {
@@ -90,6 +92,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		};
 
+	}
+
+	@BeforeEach
+	void setUp() {
+		CONTEXT.registerBean("integrationSimpleEvaluationContext", SimpleEvaluationContext
+				.forReadOnlyDataBinding()
+				.build());
 	}
 
 	@Test
@@ -867,7 +876,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 	}
 
 	private void setBeanFactory(HttpRequestExecutingMessageHandler handler) {
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 	}
 
 	private HttpHeaders setUpMocksToCaptureSentHeaders(RestTemplate restTemplate) throws IOException {

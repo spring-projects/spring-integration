@@ -25,18 +25,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -45,7 +44,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageSourceIntegrationTests {
+public class ExpressionEvaluatingMessageSourceIntegrationTests implements TestApplicationContextAware {
 
 	private static final AtomicInteger counter = new AtomicInteger();
 
@@ -64,7 +63,7 @@ public class ExpressionEvaluatingMessageSourceIntegrationTests {
 		Expression expression = factoryBean.getObject();
 		ExpressionEvaluatingMessageSource<Object> source =
 				new ExpressionEvaluatingMessageSource<>(expression, Object.class);
-		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanFactory(CONTEXT);
 		source.setHeaderExpressions(headerExpressions);
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setSource(source);

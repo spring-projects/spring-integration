@@ -19,21 +19,20 @@ package org.springframework.integration.aggregator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Dave Syer
  * @author Artem Bilan
  *
  */
-public class CorrelationStrategyAdapterTests {
+public class CorrelationStrategyAdapterTests implements TestApplicationContextAware {
 
 	private Message<?> message;
 
@@ -46,7 +45,7 @@ public class CorrelationStrategyAdapterTests {
 	public void testMethodName() {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimpleMessageCorrelator(), "getKey");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(CONTEXT);
 		assertThat(adapter.getCorrelationKey(message)).isEqualTo("b");
 	}
 
@@ -55,7 +54,7 @@ public class CorrelationStrategyAdapterTests {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimpleMessageCorrelator(),
 						ReflectionUtils.findMethod(SimpleMessageCorrelator.class, "getKey", Message.class));
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(CONTEXT);
 		assertThat(adapter.getCorrelationKey(message)).isEqualTo("b");
 	}
 
@@ -63,7 +62,7 @@ public class CorrelationStrategyAdapterTests {
 	public void testCorrelationStrategyAdapterPojoMethod() {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimplePojoCorrelator(), "getKey");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(CONTEXT);
 		assertThat(adapter.getCorrelationKey(message)).isEqualTo("foo");
 	}
 
@@ -71,7 +70,7 @@ public class CorrelationStrategyAdapterTests {
 	public void testHeaderPojoMethod() {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimpleHeaderCorrelator(), "getKey");
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(CONTEXT);
 		assertThat(adapter.getCorrelationKey(message)).isEqualTo("b");
 	}
 
@@ -79,7 +78,7 @@ public class CorrelationStrategyAdapterTests {
 	public void testHeadersPojoMethod() {
 		MethodInvokingCorrelationStrategy adapter = new MethodInvokingCorrelationStrategy(new MultiHeaderCorrelator(),
 				ReflectionUtils.findMethod(MultiHeaderCorrelator.class, "getKey", String.class, String.class));
-		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBeanFactory(CONTEXT);
 		assertThat(adapter.getCorrelationKey(message)).isEqualTo("bd");
 	}
 

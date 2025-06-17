@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -53,7 +54,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class UnZipTransformerTests {
+public class UnZipTransformerTests implements TestApplicationContextAware {
 
 	@TempDir
 	public File workDir;
@@ -70,6 +71,7 @@ public class UnZipTransformerTests {
 
 		final UnZipTransformer unZipTransformer = new UnZipTransformer();
 		unZipTransformer.setZipResultType(ZipResultType.FILE);
+		unZipTransformer.setBeanFactory(CONTEXT);
 		unZipTransformer.afterPropertiesSet();
 
 		final Message<?> resultMessage = unZipTransformer.transform(message);
@@ -91,6 +93,7 @@ public class UnZipTransformerTests {
 
 		final UnZipTransformer unZipTransformer = new UnZipTransformer();
 		unZipTransformer.setZipResultType(ZipResultType.BYTE_ARRAY);
+		unZipTransformer.setBeanFactory(CONTEXT);
 		unZipTransformer.afterPropertiesSet();
 
 		final Message<?> resultMessage = unZipTransformer.transform(message);
@@ -120,6 +123,7 @@ public class UnZipTransformerTests {
 
 		final UnZipTransformer unZipTransformer = new UnZipTransformer();
 		unZipTransformer.setZipResultType(ZipResultType.BYTE_ARRAY);
+		unZipTransformer.setBeanFactory(CONTEXT);
 		unZipTransformer.afterPropertiesSet();
 
 		final Message<?> resultMessage = unZipTransformer.transform(message);
@@ -151,6 +155,7 @@ public class UnZipTransformerTests {
 		final UnZipTransformer unZipTransformer = new UnZipTransformer();
 		unZipTransformer.setZipResultType(ZipResultType.BYTE_ARRAY);
 		unZipTransformer.setDeleteFiles(true);
+		unZipTransformer.setBeanFactory(CONTEXT);
 		unZipTransformer.afterPropertiesSet();
 
 		final Message<?> resultMessage = unZipTransformer.transform(message);
@@ -174,6 +179,7 @@ public class UnZipTransformerTests {
 
 		final UnZipTransformer unZipTransformer = new UnZipTransformer();
 		unZipTransformer.setZipResultType(ZipResultType.BYTE_ARRAY);
+		unZipTransformer.setBeanFactory(CONTEXT);
 		unZipTransformer.afterPropertiesSet();
 
 		final Message<?> resultMessage = unZipTransformer.transform(message);
@@ -196,6 +202,7 @@ public class UnZipTransformerTests {
 		final UnZipTransformer unZipTransformer = new UnZipTransformer();
 		unZipTransformer.setZipResultType(ZipResultType.BYTE_ARRAY);
 		unZipTransformer.setExpectSingleResult(true);
+		unZipTransformer.setBeanFactory(CONTEXT);
 		unZipTransformer.afterPropertiesSet();
 
 		assertThatExceptionOfType(MessagingException.class)
@@ -212,6 +219,7 @@ public class UnZipTransformerTests {
 		UnZipTransformer unZipTransformer = new UnZipTransformer();
 		unZipTransformer.setZipResultType(ZipResultType.BYTE_ARRAY);
 		unZipTransformer.setExpectSingleResult(true);
+		unZipTransformer.setBeanFactory(CONTEXT);
 		unZipTransformer.afterPropertiesSet();
 
 		Message<File> message = MessageBuilder.withPayload(fileToUnzip).build();
@@ -229,6 +237,7 @@ public class UnZipTransformerTests {
 		final Message<InputStream> message = MessageBuilder.withPayload(is).build();
 
 		final UnZipTransformer unZipTransformer = new UnZipTransformer();
+		unZipTransformer.setBeanFactory(CONTEXT);
 		unZipTransformer.afterPropertiesSet();
 
 		assertThatExceptionOfType(MessageTransformationException.class)

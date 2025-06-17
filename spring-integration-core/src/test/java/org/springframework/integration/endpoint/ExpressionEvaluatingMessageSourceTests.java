@@ -18,29 +18,28 @@ package org.springframework.integration.endpoint;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageSourceTests {
+public class ExpressionEvaluatingMessageSourceTests implements TestApplicationContextAware {
 
 	@Test
 	public void literalExpression() {
 		Expression expression = new LiteralExpression("foo");
 		ExpressionEvaluatingMessageSource<String> source =
 				new ExpressionEvaluatingMessageSource<String>(expression, String.class);
-		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanFactory(CONTEXT);
 		Message<?> message = source.receive();
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("foo");
@@ -51,7 +50,7 @@ public class ExpressionEvaluatingMessageSourceTests {
 		Expression expression = new LiteralExpression("foo");
 		ExpressionEvaluatingMessageSource<Integer> source =
 				new ExpressionEvaluatingMessageSource<Integer>(expression, Integer.class);
-		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanFactory(CONTEXT);
 		assertThatThrownBy(() -> source.receive())
 				.isInstanceOf(ConversionFailedException.class);
 	}

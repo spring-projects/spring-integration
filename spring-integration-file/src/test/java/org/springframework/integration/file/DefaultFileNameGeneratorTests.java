@@ -20,24 +20,23 @@ import java.io.File;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class DefaultFileNameGeneratorTests {
+public class DefaultFileNameGeneratorTests implements TestApplicationContextAware {
 
 	@Test
 	public void defaultHeaderNamePresent() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, "foo").build();
 		String filename = generator.generateFileName(message);
 		assertThat(filename).isEqualTo("foo");
@@ -46,7 +45,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void defaultHeaderNameNotPresent() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		String filename = generator.generateFileName(message);
 		assertThat(filename).isEqualTo(message.getHeaders().getId() + ".msg");
@@ -55,7 +54,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void defaultHeaderNameNotString() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, 123)
 				.build();
 		String filename = generator.generateFileName(message);
@@ -65,7 +64,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void customHeaderNamePresent() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("foo", "bar").build();
 		String filename = generator.generateFileName(message);
@@ -75,7 +74,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void customHeaderNameNotPresent() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		String filename = generator.generateFileName(message);
@@ -85,7 +84,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void customHeaderNameNotString() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("foo", 123).build();
 		String filename = generator.generateFileName(message);
@@ -95,7 +94,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void filePayloadPresent() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		File payload = new File("/some/path/foo");
 		Message<?> message = MessageBuilder.withPayload(payload).build();
 		String filename = generator.generateFileName(message);
@@ -105,7 +104,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void defaultHeaderNameTakesPrecedenceOverFilePayload() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		File payload = new File("/some/path/ignore");
 		Message<?> message = MessageBuilder.withPayload(payload).setHeader(FileHeaders.FILENAME, "foo").build();
 		String filename = generator.generateFileName(message);
@@ -115,7 +114,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void customHeaderNameTakesPrecedenceOverFilePayload() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		generator.setHeaderName("foo");
 		File payload = new File("/some/path/ignore");
 		Message<?> message = MessageBuilder.withPayload(payload).setHeader("foo", "bar").build();
@@ -126,7 +125,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void customExpressionTakesPrecedenceOverFilePayload() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		generator.setExpression("'foobar'");
 		File payload = new File("/some/path/ignore");
 		Message<?> message = MessageBuilder.withPayload(payload).build();
@@ -137,7 +136,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void customHeaderNameTakesPrecedenceOverDefault() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, "ignore")
 				.setHeader("foo", "bar").build();
@@ -148,7 +147,7 @@ public class DefaultFileNameGeneratorTests {
 	@Test
 	public void customHeaderNameTakesPrecedenceOverFilePayloadAndDefault() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
-		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setBeanFactory(CONTEXT);
 		generator.setHeaderName("foo");
 		File payload = new File("/some/path/ignore1");
 		Message<?> message = MessageBuilder.withPayload(payload).setHeader(FileHeaders.FILENAME, "ignore2")

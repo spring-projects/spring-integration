@@ -53,6 +53,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.scheduling.TaskScheduler;
@@ -66,7 +67,7 @@ import static org.mockito.Mockito.mock;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTests {
+public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTests  implements TestApplicationContextAware {
 
 	@Test
 	public void testNet() throws Exception {
@@ -637,7 +638,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		SubscribableChannel channel = new DirectChannel();
 		adapter.setOutputChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(CONTEXT);
 		handler.afterPropertiesSet();
 		channel.subscribe(handler);
 		QueueChannel errorChannel = new QueueChannel();

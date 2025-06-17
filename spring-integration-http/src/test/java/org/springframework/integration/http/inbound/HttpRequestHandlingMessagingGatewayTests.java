@@ -29,7 +29,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.expression.common.LiteralExpression;
@@ -50,6 +49,7 @@ import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -72,14 +72,14 @@ import static org.mockito.Mockito.verify;
  *
  * @since 2.0
  */
-public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboundTests {
+public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboundTests implements TestApplicationContextAware {
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getRequestGeneratesMapPayload() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
 		gateway.start();
@@ -101,7 +101,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	public void stringExpectedWithoutReply() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestPayloadTypeClass(String.class);
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
@@ -140,7 +140,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		});
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setStatusCodeExpression(new LiteralExpression("foo"));
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestPayloadTypeClass(String.class);
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
@@ -169,7 +169,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 			}
 		});
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestPayloadTypeClass(String.class);
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
@@ -197,7 +197,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 
 		};
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestChannel(requestChannel);
 		gateway.setConvertExceptions(true);
 		gateway.setMessageConverters(Collections.singletonList(new TestHttpMessageConverter()));
@@ -217,7 +217,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	public void multiValueParameterMap() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestChannel(channel);
 		gateway.afterPropertiesSet();
 		gateway.start();
@@ -244,7 +244,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	public void serializableRequestBody() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestPayloadTypeClass(TestBean.class);
 		gateway.setRequestChannel(channel);
 
@@ -278,7 +278,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	public void testJsonRequestBody() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		ParameterizedTypeReference<List<TestBean>> parameterizedTypeReference =
 				new ParameterizedTypeReference<>() {
 
@@ -338,7 +338,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		messageConverters.add(messageConverter);
 
 		final HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setMessageConverters(messageConverters);
 		gateway.setRequestChannel(requestChannel);
 		gateway.start();
@@ -364,7 +364,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	public void timeoutDefault() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyTimeout(0);
 		gateway.afterPropertiesSet();
@@ -382,7 +382,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	public void timeoutStatusExpression() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyTimeout(0);
 		gateway.setStatusCodeExpression(new LiteralExpression("501"));
@@ -402,7 +402,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	public void timeoutErrorFlow() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyTimeout(0);
 		DirectChannel errorChannel = new DirectChannel();
@@ -432,7 +432,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	public void timeoutErrorFlowTimeout() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyTimeout(0);
 		QueueChannel errorChannel = new QueueChannel();
@@ -454,7 +454,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	@Test
 	public void testMultipart() throws Exception {
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		MultipartResolver multipartResolver = mock(MultipartResolver.class);
 		gateway.setMultipartResolver(multipartResolver);
 		gateway.setRequestChannel(new NullChannel());
@@ -476,7 +476,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 	public void deleteRequestBodyIgnored() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
-		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setBeanFactory(CONTEXT);
 		gateway.setRequestChannel(channel);
 		gateway.afterPropertiesSet();
 		gateway.start();

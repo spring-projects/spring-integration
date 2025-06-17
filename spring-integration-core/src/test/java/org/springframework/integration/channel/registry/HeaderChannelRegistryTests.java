@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -34,6 +36,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MessagingExceptionWrapper;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -47,6 +50,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -60,7 +65,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class HeaderChannelRegistryTests {
+public class HeaderChannelRegistryTests implements TestApplicationContextAware {
 
 	@Autowired
 	MessageChannel input;
@@ -93,6 +98,7 @@ public class HeaderChannelRegistryTests {
 	public void testReplace() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.input);
+		template.setBeanFactory(CONTEXT);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<>("foo"));
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:foo");
@@ -107,6 +113,7 @@ public class HeaderChannelRegistryTests {
 	public void testReplaceTtl() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputTtl);
+		template.setBeanFactory(CONTEXT);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<>("ttl"));
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("echo:ttl");
@@ -121,6 +128,7 @@ public class HeaderChannelRegistryTests {
 	public void testReplaceCustomTtl() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputCustomTtl);
+		template.setBeanFactory(CONTEXT);
 		Message<String> requestMessage = MessageBuilder.withPayload("ttl")
 				.setHeader("channelTTL", 180000)
 				.build();
@@ -165,6 +173,7 @@ public class HeaderChannelRegistryTests {
 	public void testReplaceError() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputPolled);
+		template.setBeanFactory(CONTEXT);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<>("bar"));
 		assertThat(reply).isNotNull();
 		assertThat(reply instanceof ErrorMessage).isTrue();
@@ -207,7 +216,7 @@ public class HeaderChannelRegistryTests {
 	@Test
 	public void testBFCRWithRegistry() {
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver();
-		BeanFactory beanFactory = mock(BeanFactory.class);
+		BeanFactory beanFactory = createTestEvaluationContext();
 		when(beanFactory.getBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
 				HeaderChannelRegistry.class))
 				.thenReturn(mock(HeaderChannelRegistry.class));
@@ -224,7 +233,7 @@ public class HeaderChannelRegistryTests {
 	@Test
 	public void testBFCRNoRegistry() {
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver();
-		BeanFactory beanFactory = mock(BeanFactory.class);
+		BeanFactory beanFactory = createTestEvaluationContext();
 		doAnswer(invocation -> {
 			throw new NoSuchBeanDefinitionException("bar");
 		}).when(beanFactory).getBean("foo", MessageChannel.class);
@@ -271,6 +280,18 @@ public class HeaderChannelRegistryTests {
 					.build();
 		}
 
+	}
+
+	private static BeanFactory createTestEvaluationContext() {
+		final String integrationEvaluationContextBeanName = "integrationEvaluationContext";
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		when(beanFactory.containsBean(eq(integrationEvaluationContextBeanName)))
+				.thenReturn(true);
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+		when(beanFactory.getBean(eq(integrationEvaluationContextBeanName), any(Class.class)))
+				.thenReturn(evaluationContext);
+		return beanFactory;
 	}
 
 	public interface Gateway {

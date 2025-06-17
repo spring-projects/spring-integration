@@ -26,17 +26,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilderFactory;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -44,7 +43,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 2.0
  */
-public class AggregatingMessageGroupProcessorHeaderTests {
+public class AggregatingMessageGroupProcessorHeaderTests implements TestApplicationContextAware {
 
 	private final DefaultAggregatingMessageGroupProcessor defaultProcessor =
 			new DefaultAggregatingMessageGroupProcessor();
@@ -54,8 +53,8 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 
 	@BeforeEach
 	public void setup() {
-		this.defaultProcessor.setBeanFactory(mock(BeanFactory.class));
-		this.methodInvokingProcessor.setBeanFactory(mock(BeanFactory.class));
+		this.defaultProcessor.setBeanFactory(CONTEXT);
+		this.methodInvokingProcessor.setBeanFactory(CONTEXT);
 	}
 
 	@Test

@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.mail.MailHeaders;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -38,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class MailHeaderEnricherTests {
+public class MailHeaderEnricherTests implements TestApplicationContextAware {
 
 	@Autowired
 	@Qualifier("literalValuesInput")
@@ -52,6 +53,7 @@ public class MailHeaderEnricherTests {
 	public void literalValues() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.literalValuesInput);
+		template.setBeanFactory(CONTEXT);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("test"));
 		Map<String, Object> headers = result.getHeaders();
 		assertThat(headers.get(MailHeaders.TO)).isEqualTo("test.to");
@@ -68,6 +70,7 @@ public class MailHeaderEnricherTests {
 	public void expressions() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.expressionsInput);
+		template.setBeanFactory(CONTEXT);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("foo"));
 		Map<String, Object> headers = result.getHeaders();
 		assertThat(headers.get(MailHeaders.TO)).isEqualTo("foo.to");

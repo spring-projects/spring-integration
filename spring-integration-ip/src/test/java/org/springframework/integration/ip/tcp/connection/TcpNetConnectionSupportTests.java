@@ -27,6 +27,7 @@ import javax.net.SocketFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 5.0.3
  *
  */
-public class TcpNetConnectionSupportTests {
+public class TcpNetConnectionSupportTests implements TestApplicationContextAware {
 
 	@Test
 	public void testBadCode() throws Exception {
@@ -70,6 +71,7 @@ public class TcpNetConnectionSupportTests {
 				latch2.countDown();
 			}
 		});
+		server.setBeanFactory(CONTEXT);
 		server.afterPropertiesSet();
 		server.start();
 		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();

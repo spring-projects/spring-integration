@@ -31,13 +31,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.zeroturnaround.zip.ZipUtil;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.context.TestApplicationContextAware;
 import org.springframework.integration.zip.ZipHeaders;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -46,7 +45,7 @@ import static org.mockito.Mockito.mock;
  *
  * @since 6.1
  */
-public class ZipTransformerTests {
+public class ZipTransformerTests implements TestApplicationContextAware {
 
 	@TempDir
 	public File workDir;
@@ -54,7 +53,7 @@ public class ZipTransformerTests {
 	@Test
 	public void zipString() {
 		final ZipTransformer zipTransformer = new ZipTransformer();
-		zipTransformer.setBeanFactory(mock(BeanFactory.class));
+		zipTransformer.setBeanFactory(CONTEXT);
 		zipTransformer.setZipResultType(ZipResultType.BYTE_ARRAY);
 		zipTransformer.afterPropertiesSet();
 
@@ -87,7 +86,7 @@ public class ZipTransformerTests {
 	@Test
 	public void zipStringCollection() {
 		final ZipTransformer zipTransformer = new ZipTransformer();
-		zipTransformer.setBeanFactory(mock(BeanFactory.class));
+		zipTransformer.setBeanFactory(CONTEXT);
 		zipTransformer.setZipResultType(ZipResultType.BYTE_ARRAY);
 		zipTransformer.afterPropertiesSet();
 
@@ -145,7 +144,7 @@ public class ZipTransformerTests {
 	@Test
 	public void zipStringToFile() {
 		final ZipTransformer zipTransformer = new ZipTransformer();
-		zipTransformer.setBeanFactory(mock(BeanFactory.class));
+		zipTransformer.setBeanFactory(CONTEXT);
 		zipTransformer.afterPropertiesSet();
 
 		final String stringToCompress = "Hello World";
@@ -174,7 +173,7 @@ public class ZipTransformerTests {
 	public void zipFile() {
 
 		ZipTransformer zipTransformer = new ZipTransformer();
-		zipTransformer.setBeanFactory(mock(BeanFactory.class));
+		zipTransformer.setBeanFactory(CONTEXT);
 		zipTransformer.setDeleteFiles(true);
 		zipTransformer.afterPropertiesSet();
 
@@ -215,7 +214,7 @@ public class ZipTransformerTests {
 		files.add(testFile4);
 
 		final ZipTransformer zipTransformer = new ZipTransformer();
-		zipTransformer.setBeanFactory(mock(BeanFactory.class));
+		zipTransformer.setBeanFactory(CONTEXT);
 		zipTransformer.afterPropertiesSet();
 
 		final Message<Collection<File>> message = MessageBuilder.withPayload(files).build();

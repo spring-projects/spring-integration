@@ -60,6 +60,7 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.BridgeTo;
@@ -342,6 +343,7 @@ public class GatewayInterfaceTests {
 		bf.registerSingleton("requestChannelBaz", channel);
 		bf.registerSingleton("requestChannelFoo", channel);
 		bf.registerSingleton("taskScheduler", mock(TaskScheduler.class));
+		bf.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, new StandardEvaluationContext());
 		fb.setBeanFactory(bf);
 		fb.afterPropertiesSet();
 		assertThat(fb.getObject()).isNotSameAs(bar);

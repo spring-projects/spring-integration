@@ -133,7 +133,7 @@ public abstract class IntegrationContextUtils {
 	 */
 	public static MessageChannel getErrorChannel(BeanFactory beanFactory) {
 		MessageChannel channel = getBeanOfType(beanFactory, ERROR_CHANNEL_BEAN_NAME, MessageChannel.class);
-		Assert.state(channel != null, "Error Channel was not found");
+		Assert.state(channel != null, "No such bean '" + ERROR_CHANNEL_BEAN_NAME + "'");
 		return channel;
 	}
 
@@ -163,9 +163,10 @@ public abstract class IntegrationContextUtils {
 	 * @return the instance of {@link StandardEvaluationContext} bean whose name is
 	 * {@value #INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME}.
 	 */
-	@Nullable
 	public static StandardEvaluationContext getEvaluationContext(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class);
+		StandardEvaluationContext standardEvaluationContext = getBeanOfType(beanFactory, INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class);
+		Assert.state(standardEvaluationContext != null, "No such bean '" + INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME + "'");
+		return standardEvaluationContext;
 	}
 
 	/**
@@ -174,10 +175,12 @@ public abstract class IntegrationContextUtils {
 	 * {@value #INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME}.
 	 * @since 4.3.15
 	 */
-	@Nullable
 	public static SimpleEvaluationContext getSimpleEvaluationContext(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME,
+		SimpleEvaluationContext simpleEvaluationContext = getBeanOfType(beanFactory, INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME,
 				SimpleEvaluationContext.class);
+		Assert.state(simpleEvaluationContext != null, "No such bean '" + INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME + "'");
+
+		return simpleEvaluationContext;
 	}
 
 	@Nullable
@@ -200,11 +203,8 @@ public abstract class IntegrationContextUtils {
 	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
 	 */
 	public static IntegrationProperties getIntegrationProperties(BeanFactory beanFactory) {
-		IntegrationProperties integrationProperties = null;
-		if (beanFactory != null) {
-			integrationProperties =
+		IntegrationProperties integrationProperties =
 					getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, IntegrationProperties.class);
-		}
 		if (integrationProperties == null) {
 			integrationProperties = IntegrationProperties.DEFAULT_INSTANCE;
 		}
