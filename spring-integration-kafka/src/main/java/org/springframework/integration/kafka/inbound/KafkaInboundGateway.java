@@ -25,6 +25,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Header;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -50,7 +51,6 @@ import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -82,11 +82,11 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 
 	private final KafkaTemplate<K, R> kafkaTemplate;
 
-	private RetryTemplate retryTemplate;
+	private @Nullable RetryTemplate retryTemplate;
 
-	private RecoveryCallback<?> recoveryCallback;
+	private @Nullable RecoveryCallback<?> recoveryCallback;
 
-	private BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedSeekCallback;
+	private @Nullable BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedSeekCallback;
 
 	private boolean bindSourceRecord;
 
@@ -271,7 +271,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 	}
 
 	@Override
-	protected AttributeAccessor getErrorMessageAttributes(Message<?> message) {
+	protected AttributeAccessor getErrorMessageAttributes(@Nullable Message<?> message) {
 		AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
 		if (attributes == null) {
 			return super.getErrorMessageAttributes(message);
@@ -281,6 +281,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		}
 	}
 
+	@SuppressWarnings("NullAway")
 	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationRecordMessageListener() {
@@ -295,7 +296,8 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		}
 
 		@Override
-		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
+		public void onMessage(ConsumerRecord<K, V> record, @Nullable Acknowledgment acknowledgment,
+				@Nullable Consumer<?, ?> consumer) {
 			Message<?> message = null;
 			try {
 				message = toMessagingMessage(record, acknowledgment, consumer);
@@ -321,8 +323,8 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 			}
 		}
 
-		private void sendAndReceive(ConsumerRecord<K, V> record, Message<?> message, Acknowledgment acknowledgment,
-				Consumer<?, ?> consumer) {
+		private void sendAndReceive(ConsumerRecord<K, V> record, Message<?> message,
+				@Nullable Acknowledgment acknowledgment, @Nullable Consumer<?, ?> consumer) {
 
 			RetryTemplate template = KafkaInboundGateway.this.retryTemplate;
 			if (template != null) {

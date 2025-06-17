@@ -28,6 +28,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Header;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -59,7 +60,6 @@ import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessageConverter;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.retry.RecoveryCallback;
@@ -91,17 +91,17 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private final ListenerMode mode;
 
-	private RecordFilterStrategy<K, V> recordFilterStrategy;
+	private @Nullable RecordFilterStrategy<K, V> recordFilterStrategy;
 
 	private boolean ackDiscarded;
 
-	private RetryTemplate retryTemplate;
+	private @Nullable RetryTemplate retryTemplate;
 
-	private RecoveryCallback<?> recoveryCallback;
+	private @Nullable RecoveryCallback<?> recoveryCallback;
 
 	private boolean filterInRetry;
 
-	private BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedSeekCallback;
+	private @Nullable BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedSeekCallback;
 
 	private boolean bindSourceRecord;
 
@@ -378,7 +378,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	@Override
-	protected AttributeAccessor getErrorMessageAttributes(Message<?> message) {
+	protected AttributeAccessor getErrorMessageAttributes(@Nullable Message<?> message) {
 		AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
 		if (attributes == null) {
 			return super.getErrorMessageAttributes(message);
@@ -422,6 +422,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		batch
 	}
 
+	@SuppressWarnings("NullAway")
 	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationRecordMessageListener() {
@@ -436,7 +437,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		}
 
 		@Override
-		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
+		public void onMessage(ConsumerRecord<K, V> record, @Nullable Acknowledgment acknowledgment,
+				@Nullable Consumer<?, ?> consumer) {
 			Message<?> message;
 			try {
 				message = toMessagingMessage(record, acknowledgment, consumer);
@@ -510,6 +512,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	}
 
+	@SuppressWarnings("NullAway")
 	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationBatchMessageListener() {
@@ -524,8 +527,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		}
 
 		@Override
-		public void onMessage(List<ConsumerRecord<K, V>> records, Acknowledgment acknowledgment,
-				Consumer<?, ?> consumer) {
+		public void onMessage(List<ConsumerRecord<K, V>> records, @Nullable Acknowledgment acknowledgment,
+				@Nullable Consumer<?, ?> consumer) {
 
 			Message<?> message = null;
 			if (!KafkaMessageDrivenChannelAdapter.this.filterInRetry) {
@@ -537,8 +540,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		}
 
 		@Nullable
-		private Message<?> toMessage(List<ConsumerRecord<K, V>> records, Acknowledgment acknowledgment,
-				Consumer<?, ?> consumer) {
+		private Message<?> toMessage(List<ConsumerRecord<K, V>> records, @Nullable Acknowledgment acknowledgment,
+				@Nullable Consumer<?, ?> consumer) {
 
 			Message<?> message = null;
 			try {

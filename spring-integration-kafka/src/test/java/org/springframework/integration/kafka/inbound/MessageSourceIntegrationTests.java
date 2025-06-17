@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 the original author or authors.
+ * Copyright 2018-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ class MessageSourceIntegrationTests {
 
 	@Test
 	void testSource() throws Exception {
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(brokers, "testSource", "false");
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(brokers, "testSource", false);
 		consumerProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		consumerProps.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 42);
@@ -140,7 +140,7 @@ class MessageSourceIntegrationTests {
 
 	@Test
 	void deserializationErrorIsThrownFromSource() {
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(brokers, "testErrorChannelSource", "false");
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(brokers, "testErrorChannelSource", false);
 		consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
 		consumerProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, FailingDeserializer.class);
 

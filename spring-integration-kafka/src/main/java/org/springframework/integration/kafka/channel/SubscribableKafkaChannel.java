@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.channel;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
@@ -56,8 +57,10 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 
 	private final IntegrationRecordMessageListener recordListener = new IntegrationRecordMessageListener();
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageDispatcher dispatcher;
 
+	@SuppressWarnings("NullAway.Init")
 	private MessageListenerContainer container;
 
 	private boolean autoStartup = true;
@@ -176,6 +179,7 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		return this.dispatcher.removeHandler(handler);
 	}
 
+	@SuppressWarnings("NullAway")
 	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<Object, Object> {
 
 		IntegrationRecordMessageListener() {
@@ -183,8 +187,8 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		}
 
 		@Override
-		public void onMessage(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment,
-				Consumer<?, ?> consumer) {
+		public void onMessage(ConsumerRecord<Object, Object> record, @Nullable Acknowledgment acknowledgment,
+				@Nullable Consumer<?, ?> consumer) {
 
 			SubscribableKafkaChannel.this.dispatcher.dispatch(toMessagingMessage(record, acknowledgment, consumer));
 		}

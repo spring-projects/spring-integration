@@ -46,7 +46,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.MockConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
-import org.apache.kafka.clients.consumer.OffsetResetStrategy;
+import org.apache.kafka.clients.consumer.internals.AutoOffsetResetStrategy;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.record.TimestampType;
@@ -267,11 +267,11 @@ class MessageSourceTests {
 		records4.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "qux",
 						new RecordHeaders(), Optional.empty())));
-		ConsumerRecords cr1 = new ConsumerRecords(records1);
-		ConsumerRecords cr2 = new ConsumerRecords(records2);
-		ConsumerRecords cr3 = new ConsumerRecords(records3);
-		ConsumerRecords cr4 = new ConsumerRecords(records4);
-		ConsumerRecords cr5 = new ConsumerRecords(Collections.emptyMap());
+		ConsumerRecords cr1 = new ConsumerRecords(records1, Map.of());
+		ConsumerRecords cr2 = new ConsumerRecords(records2, Map.of());
+		ConsumerRecords cr3 = new ConsumerRecords(records3, Map.of());
+		ConsumerRecords cr4 = new ConsumerRecords(records4, Map.of());
+		ConsumerRecords cr5 = new ConsumerRecords(Collections.emptyMap(), Map.of());
 		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr2, cr3, cr4, cr5);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
@@ -404,13 +404,13 @@ class MessageSourceTests {
 		records6.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 5L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "buz",
 						new RecordHeaders(), Optional.empty())));
-		ConsumerRecords cr1 = new ConsumerRecords(records1);
-		ConsumerRecords cr2 = new ConsumerRecords(records2);
-		ConsumerRecords cr3 = new ConsumerRecords(records3);
-		ConsumerRecords cr4 = new ConsumerRecords(records4);
-		ConsumerRecords cr5 = new ConsumerRecords(records5);
-		ConsumerRecords cr6 = new ConsumerRecords(records6);
-		ConsumerRecords cr7 = new ConsumerRecords(Collections.emptyMap());
+		ConsumerRecords cr1 = new ConsumerRecords(records1, Map.of());
+		ConsumerRecords cr2 = new ConsumerRecords(records2, Map.of());
+		ConsumerRecords cr3 = new ConsumerRecords(records3, Map.of());
+		ConsumerRecords cr4 = new ConsumerRecords(records4, Map.of());
+		ConsumerRecords cr5 = new ConsumerRecords(records5, Map.of());
+		ConsumerRecords cr6 = new ConsumerRecords(records6, Map.of());
+		ConsumerRecords cr7 = new ConsumerRecords(Collections.emptyMap(), Map.of());
 		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr2, cr3, cr4, cr5, cr6, cr7);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
@@ -480,13 +480,13 @@ class MessageSourceTests {
 		records1.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
 						new RecordHeaders(), Optional.empty())));
-		ConsumerRecords cr1 = new ConsumerRecords(records1);
+		ConsumerRecords cr1 = new ConsumerRecords(records1, Map.of());
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "bar",
 						new RecordHeaders(), Optional.empty())));
-		ConsumerRecords cr2 = new ConsumerRecords(records2);
-		ConsumerRecords cr3 = new ConsumerRecords(Collections.emptyMap());
+		ConsumerRecords cr2 = new ConsumerRecords(records2, Map.of());
+		ConsumerRecords cr3 = new ConsumerRecords(Collections.emptyMap(), Map.of());
 		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr1, cr2, cr2, cr3);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
@@ -551,13 +551,13 @@ class MessageSourceTests {
 		records1.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
 						new RecordHeaders(), Optional.empty())));
-		ConsumerRecords cr1 = new ConsumerRecords(records1);
+		ConsumerRecords cr1 = new ConsumerRecords(records1, Map.of());
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "bar",
 						new RecordHeaders(), Optional.empty())));
-		ConsumerRecords cr2 = new ConsumerRecords(records2);
-		ConsumerRecords cr3 = new ConsumerRecords(Collections.emptyMap());
+		ConsumerRecords cr2 = new ConsumerRecords(records2, Map.of());
+		ConsumerRecords cr3 = new ConsumerRecords(Collections.emptyMap(), Map.of());
 		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr2, cr1, cr2, cr3);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
@@ -656,13 +656,13 @@ class MessageSourceTests {
 		records1.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
 						new RecordHeaders(), Optional.empty())));
-		ConsumerRecords cr1 = new ConsumerRecords(records1);
+		ConsumerRecords cr1 = new ConsumerRecords(records1, Map.of());
 		given(consumer.poll(Duration.of(20 * 5000, ChronoUnit.MILLIS))).willReturn(cr1, ConsumerRecords.EMPTY);
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "foo",
 						new RecordHeaders(), Optional.empty())));
-		ConsumerRecords cr2 = new ConsumerRecords(records2);
+		ConsumerRecords cr2 = new ConsumerRecords(records2, Map.of());
 		given(consumer.poll(Duration.of(5000, ChronoUnit.MILLIS))).willReturn(cr2, ConsumerRecords.EMPTY);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
@@ -727,8 +727,8 @@ class MessageSourceTests {
 						new RecordHeaders(), Optional.empty()),
 				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, null, "qux",
 						new RecordHeaders(), Optional.empty())));
-		ConsumerRecords cr1 = new ConsumerRecords(records);
-		ConsumerRecords cr2 = new ConsumerRecords(Collections.emptyMap());
+		ConsumerRecords cr1 = new ConsumerRecords(records, Map.of());
+		ConsumerRecords cr2 = new ConsumerRecords(Collections.emptyMap(), Map.of());
 		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr2);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 4)).given(consumerFactory)
@@ -775,7 +775,7 @@ class MessageSourceTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	void testTopicPatternBasedMessageSource() {
-		MockConsumer<String, String> consumer = new MockConsumer<>(OffsetResetStrategy.EARLIEST);
+		MockConsumer<String, String> consumer = new MockConsumer<>(AutoOffsetResetStrategy.EARLIEST.name());
 		TopicPartition topicPartition1 = new TopicPartition("abc_foo", 0);
 		TopicPartition topicPartition2 = new TopicPartition("abc_foo", 1);
 		TopicPartition topicPartition3 = new TopicPartition("def_foo", 0);
@@ -836,7 +836,7 @@ class MessageSourceTests {
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	void testStaticPartitionAssignment() {
-		MockConsumer<String, String> consumer = spy(new MockConsumer<>(OffsetResetStrategy.EARLIEST));
+		MockConsumer<String, String> consumer = spy(new MockConsumer<>(AutoOffsetResetStrategy.EARLIEST.name()));
 
 		TopicPartition beginning = new TopicPartition("foo", 0);
 		TopicPartition end = new TopicPartition("foo", 1);

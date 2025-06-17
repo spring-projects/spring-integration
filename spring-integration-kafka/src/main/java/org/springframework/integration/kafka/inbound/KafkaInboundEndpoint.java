@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.inbound;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.AttributeAccessor;
 import org.springframework.kafka.KafkaException;
@@ -63,8 +64,8 @@ public interface KafkaInboundEndpoint {
 	 * @param consumer the consumer.
 	 * @param runnable the runnable.
 	 */
-	default void doWithRetry(RetryTemplate template, RecoveryCallback<?> callback, ConsumerRecord<?, ?> record,
-			Acknowledgment acknowledgment, Consumer<?, ?> consumer, Runnable runnable) {
+	default void doWithRetry(RetryTemplate template, @Nullable RecoveryCallback<?> callback, ConsumerRecord<?, ?> record,
+			@Nullable Acknowledgment acknowledgment, @Nullable Consumer<?, ?> consumer, Runnable runnable) {
 
 		try {
 			template.execute(context -> {

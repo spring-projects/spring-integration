@@ -102,13 +102,13 @@ class InboundGatewayTests {
 	@Test
 	void testInbound(EmbeddedKafkaBroker embeddedKafka) throws Exception {
 		Map<String, Object> consumerProps =
-				KafkaTestUtils.consumerProps("replyHandler1", "false", embeddedKafka);
+				KafkaTestUtils.consumerProps(embeddedKafka, "replyHandler1", false);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
 		Consumer<Integer, String> consumer = cf2.createConsumer();
 		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic2);
 
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "false", embeddedKafka);
+		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test1", false);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic1);
@@ -195,13 +195,13 @@ class InboundGatewayTests {
 
 	@Test
 	void testInboundErrorRecover(EmbeddedKafkaBroker embeddedKafka) {
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler2", "false", embeddedKafka);
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "replyHandler2", false);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
 		Consumer<Integer, String> consumer = cf2.createConsumer();
 		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic4);
 
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test2", "false", embeddedKafka);
+		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test2", false);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic3);
@@ -276,13 +276,13 @@ class InboundGatewayTests {
 
 	@Test
 	void testInboundRetryErrorRecover(EmbeddedKafkaBroker embeddedKafka) {
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler3", "false", embeddedKafka);
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "replyHandler3", false);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
 		Consumer<Integer, String> consumer = cf2.createConsumer();
 		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic6);
 
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test3", "false", embeddedKafka);
+		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test3", false);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic5);
@@ -362,13 +362,13 @@ class InboundGatewayTests {
 
 	@Test
 	void testInboundRetryErrorRecoverWithoutRecoveryCallback(EmbeddedKafkaBroker embeddedKafka) throws Exception {
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler4", "false", embeddedKafka);
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "replyHandler4", false);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
 		Consumer<Integer, String> consumer = cf2.createConsumer();
 		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic7);
 
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test4", "false", embeddedKafka);
+		Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "test4", false);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic7);
