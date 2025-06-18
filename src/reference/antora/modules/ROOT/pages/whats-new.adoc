@@ -22,14 +22,14 @@ Junit 4 Based Support Components are deprecated.
 [[x7.0-new-components]]
 == New Components
 
-The JDBC module now provides a Java DSL API via its dedicated `org.springframework.integration.jdbc.dsl.Jdbc` factory.
-The xref:jdbc/dsl.adoc[] chapter provides more details.
-
 A new `DistributedLock` interface has been introduced, providing new methods, `lock(Duration ttl`) and `tryLock(long time, TimeUnit unit, Duration ttl)`, to acquire a lock with a custom time-to-live (TTL).
 See xref:distributed-locks.adoc[] for more information.
 
 [[x7.0-jdbc-changes]]
 === JDBC Changes
+
+The JDBC module now provides a Java DSL API via its dedicated `org.springframework.integration.jdbc.dsl.Jdbc` factory.
+The xref:jdbc/dsl.adoc[] chapter provides more details.
 
 The `JdbcLock` now supports the feature of customized time-to-live for the lock status data.
 See xref:jdbc/lock-registry.adoc[] for more information.
@@ -39,3 +39,8 @@ See xref:jdbc/lock-registry.adoc[] for more information.
 
 The `RedisLock` now supports the feature of customized time-to-live for the lock status data.
 See xref:redis.adoc#redis-lock-registry[Redis Lock Registry] for more information.
+
+[[x7.0-hazelcast-changes]]
+=== Hazelcast Changes
+
+Previously deprecated classes in the `spring-integation-hazelcast` module, such as `LeaderInitiator`, `HazelcastMembershipListener`, `HazelcastLocalInstanceRegistrar` and `HazelcastLockRegistry`, are now removed due to not supported CP-subsystem in Hazelcast library for Open Source.
