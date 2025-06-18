@@ -281,7 +281,6 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport
 		}
 	}
 
-	@SuppressWarnings("NullAway")
 	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationRecordMessageListener() {

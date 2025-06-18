@@ -179,7 +179,6 @@ public class SubscribableKafkaChannel extends AbstractKafkaChannel implements Su
 		return this.dispatcher.removeHandler(handler);
 	}
 
-	@SuppressWarnings("NullAway")
 	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<Object, Object> {
 
 		IntegrationRecordMessageListener() {
