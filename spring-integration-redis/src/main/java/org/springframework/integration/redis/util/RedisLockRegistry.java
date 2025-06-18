@@ -99,7 +99,8 @@ import org.springframework.util.ReflectionUtils;
  * @since 4.0
  *
  */
-public final class RedisLockRegistry implements ExpirableLockRegistry<DistributedLock>, DisposableBean, RenewableLockRegistry<DistributedLock> {
+public final class RedisLockRegistry
+		implements ExpirableLockRegistry<DistributedLock>, DisposableBean, RenewableLockRegistry<DistributedLock> {
 
 	private static final Log LOGGER = LogFactory.getLog(RedisLockRegistry.class);
 
@@ -423,7 +424,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 		 * @throws InterruptedException –
 		 * if the current thread is interrupted while acquiring the lock (and interruption of lock acquisition is supported)
 		 */
-		protected abstract boolean tryRedisLockInner(long time, long expireAfter) throws ExecutionException, InterruptedException;
+		protected abstract boolean tryRedisLockInner(long time, long expireAfter)
+				throws ExecutionException, InterruptedException;
 
 		/**
 		 * Unlock the lock using the unlink method in redis.
@@ -533,7 +535,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 				if (RedisLockRegistry.this.renewalTaskScheduler != null) {
 					Duration delay = Duration.ofMillis(expireAfter / 3);
 					this.renewFuture =
-							RedisLockRegistry.this.renewalTaskScheduler.scheduleWithFixedDelay(() -> this.renew(expireAfter), delay);
+							RedisLockRegistry.this.renewalTaskScheduler.scheduleWithFixedDelay(() ->
+									this.renew(expireAfter), delay);
 				}
 			}
 			return acquired;
@@ -718,7 +721,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry<Distribute
 		}
 
 		@Override
-		protected boolean tryRedisLockInner(long time, long expireAfter) throws ExecutionException, InterruptedException {
+		protected boolean tryRedisLockInner(long time, long expireAfter)
+				throws ExecutionException, InterruptedException {
 			return subscribeLock(time, expireAfter);
 		}
 
