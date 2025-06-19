@@ -3,9 +3,14 @@ name: Pull Request Build
 on:
   pull_request:
     branches:
-      - main
       - '*.x'
 
 jobs:
   build-pull-request:
-    uses: spring-io/spring-github-workflows/.github/workflows/spring-gradle-pull-request-build.yml@main
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-gradle-pull-request-build.yml@v5
+    with:
+      runner: ubuntu22-2-8
+    #      The secrets in PRs are available only for Dependabot scope
+    secrets:
+      ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_RO_USERNAME }}
+      ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_RO_PASSWORD }}

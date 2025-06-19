@@ -5,11 +5,7 @@ on:
 
   push:
     branches:
-      - main
       - '*.x'
-
-  schedule:
-    - cron: '0 5 * * *'
 
 concurrency:
   group: group-snapshot-for-${{ github.ref }}
@@ -17,10 +13,12 @@ concurrency:
 
 jobs:
   build-snapshot:
-    uses: spring-io/spring-github-workflows/.github/workflows/spring-artifactory-gradle-snapshot.yml@main
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-artifactory-gradle-snapshot.yml@v5
     with:
-      gradleTasks: ${{ github.event_name == 'schedule' && '--rerun-tasks' || '' }}
+      artifactoryUrl: https://usw1.packages.broadcom.com
+      targetRepository: spring-enterprise-maven-dev-local
+      artifactoryProjectKey: spring
+      runner: ubuntu22-2-8
     secrets:
-      DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
-      ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-      ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+      ARTIFACTORY_USERNAME: ${{ secrets.COMMERCIAL_ARTIFACTORY_USERNAME }}
+      ARTIFACTORY_PASSWORD: ${{ secrets.COMMERCIAL_ARTIFACTORY_PASSWORD }}

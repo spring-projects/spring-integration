@@ -1,10 +1,19 @@
 version: 2
+registries:
+  spring-commercial:
+    type: maven-repository
+    url: https://repo.spring.io/artifactory/spring-commercial-release-remote
+    username: ${{ secrets.ARTIFACTORY_RO_USERNAME }}
+    password: ${{ secrets.ARTIFACTORY_RO_PASSWORD }}
+
 updates:
+
   - package-ecosystem: gradle
     directory: /
     schedule:
-      interval: weekly
-      day: sunday
+      interval: monthly
+    registries:
+      - spring-commercial
     ignore:
       - dependency-name: '*'
         update-types:
@@ -18,7 +27,7 @@ updates:
         update-types:
           - patch
         patterns:
-          - com.gradle.enterprise
+          - org.gradle.*
           - com.github.spotbugs
           - io.spring.*
           - org.ajoberstar.grgit
@@ -49,8 +58,9 @@ updates:
     target-branch: 6.2.x
     directory: /
     schedule:
-      interval: weekly
-      day: sunday
+      interval: monthly
+    registries:
+      - spring-commercial
     ignore:
       - dependency-name: '*'
         update-types:
@@ -64,7 +74,7 @@ updates:
         update-types:
           - patch
         patterns:
-          - com.gradle.enterprise
+          - com.gradle.*
           - com.github.spotbugs
           - io.spring.*
           - org.ajoberstar.grgit
@@ -88,56 +98,12 @@ updates:
           - org.apache.tomcat.embed:tomcat-embed-websocket
           - org.xmlunit:xmlunit-assertj3
           - com.thoughtworks.xstream:xstream
-
-  - package-ecosystem: gradle
-    target-branch: 6.1.x
-    directory: /
-    schedule:
-      interval: weekly
-      day: sunday
-    ignore:
-      - dependency-name: '*'
-        update-types:
-          - version-update:semver-major
-          - version-update:semver-minor
-    open-pull-requests-limit: 10
-    labels:
-      - 'type: dependency-upgrade'
-    groups:
-      development-dependencies:
-        update-types:
-          - patch
-        patterns:
-          - com.gradle.enterprise
-          - com.github.spotbugs
-          - io.spring.*
-          - org.ajoberstar.grgit
-          - org.antora
-          - io.micrometer:micrometer-docs-generator
-          - com.willowtreeapps.assertk:assertk-jvm
-          - org.jetbrains.dokka
-          - org.apache.activemq*
-          - org.aspectj*
-          - org.awaitility:awaitility
-          - org.apache.commons:commons-dbcp2
-          - org.apache.derby
-          - com.icegreen:greenmail
-          - org.hibernate.orm*
-          - org.testcontainers*
-          - org.hsqldb:hsqldb
-          - com.h2database:h2
-          - org.postgresql:postgresql
-          - mysql:mysql-connector-java
-          - com.oracle.database.jdbc:ojdbc11
-          - org.apache.tomcat.embed:tomcat-embed-websocket
-          - org.xmlunit:xmlunit-assertj3
-          - com.thoughtworks.xstream:xstream
+          - com.google.protobuf
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-      day: saturday
+      interval: monthly
     labels:
       - 'type: task'
     groups:
@@ -149,21 +115,7 @@ updates:
     target-branch: 6.2.x
     directory: /
     schedule:
-      interval: weekly
-      day: saturday
-    labels:
-      - 'type: task'
-    groups:
-      development-dependencies:
-        patterns:
-          - '*'
-
-  - package-ecosystem: github-actions
-    target-branch: 6.1.x
-    directory: /
-    schedule:
-      interval: weekly
-      day: saturday
+      interval: monthly
     labels:
       - 'type: task'
     groups:

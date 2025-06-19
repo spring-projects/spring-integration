@@ -3,7 +3,6 @@ name: Merge Dependabot PR
 on:
   pull_request:
     branches:
-      - main
       - '*.x'
 
 run-name: Merge Dependabot PR ${{ github.ref_name }}
@@ -15,4 +14,3 @@ jobs:
     uses: spring-io/spring-github-workflows/.github/workflows/spring-merge-dependabot-pr.yml@v5
     with:
       mergeArguments: --auto --squash
-      autoMergeSnapshots: true

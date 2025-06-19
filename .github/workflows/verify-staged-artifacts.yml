@@ -9,13 +9,12 @@ on:
         type: string
 
 env:
-  DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
-  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+  ARTIFACTORY_USERNAME: ${{ secrets.COMMERCIAL_ARTIFACTORY_USERNAME }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.COMMERCIAL_ARTIFACTORY_PASSWORD }}
 
 jobs:
   verify-staged-with-samples:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu22-2-8
     steps:
 
       - name: Checkout Samples Repo
@@ -33,7 +32,14 @@ jobs:
           printf "allprojects {
                   repositories {
                     maven { 
-                      url 'https://repo.spring.io/libs-staging-local'
+                      url 'https://usw1.packages.broadcom.com/artifactory/spring-enterprise-maven-stage-local'
+                      credentials {
+                        username = '$ARTIFACTORY_USERNAME'
+                        password = '$ARTIFACTORY_PASSWORD'
+                      }
+                    }
+                    maven { 
+                      url 'https://usw1.packages.broadcom.com/artifactory/spring-enterprise-maven-prod-local'
                       credentials {
                         username = '$ARTIFACTORY_USERNAME'
                         password = '$ARTIFACTORY_PASSWORD'
