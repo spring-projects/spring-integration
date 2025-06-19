@@ -968,18 +968,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	}
 
-	/**
-	 * Probably the method is {@code protected} by mistake.
-	 * @param elements the group processor result.
-	 * @deprecated without replacement - out of use from now on.
-	 */
-	@Deprecated(since = "6.5", forRemoval = true)
-	protected void verifyResultCollectionConsistsOfMessages(Collection<?> elements) {
-		Class<?> commonElementType = CollectionUtils.findCommonElementType(elements);
-		Assert.isAssignable(Message.class, commonElementType, () ->
-				"The expected collection of Messages contains non-Message element: " + commonElementType);
-	}
-
 	private static boolean isResultCollectionOfMessages(Object result) {
 		if (result instanceof Collection<?> resultCollection) {
 			Class<?> commonElementType = CollectionUtils.findCommonElementType(resultCollection);

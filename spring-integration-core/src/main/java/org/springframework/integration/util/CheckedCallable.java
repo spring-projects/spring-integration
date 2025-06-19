@@ -58,16 +58,4 @@ public interface CheckedCallable<T, E extends Throwable> {
 		};
 	}
 
-	/**
-	 * Wrap the {@link #call()} into unchecked {@link Callable}.
-	 * Re-throw its exception wrapped with a {@link IllegalStateException}.
-	 * @return the unchecked {@link Callable}.
-	 * @since 6.3.7
-	 * @deprecated since 6.5 in favor of {@link #unchecked()}.
-	 */
-	@Deprecated(since = "6.5", forRemoval = true)
-	default Callable<T> uncheckedCallable() {
-		return unchecked();
-	}
-
 }
