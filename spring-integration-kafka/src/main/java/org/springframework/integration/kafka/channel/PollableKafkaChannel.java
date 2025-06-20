@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,13 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.kafka.core.KafkaOperations;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -47,7 +48,7 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 
 	private final KafkaMessageSource<?, ?> source;
 
-	private CounterFacade receiveCounter;
+	private @Nullable CounterFacade receiveCounter;
 
 	private volatile int executorInterceptorsSize;
 
@@ -197,8 +198,8 @@ public class PollableKafkaChannel extends AbstractKafkaChannel
 
 	private static String topic(KafkaMessageSource<?, ?> source) {
 		Assert.notNull(source, "'source' cannot be null");
-		String[] topics = source.getConsumerProperties().getTopics();
-		Assert.isTrue(topics != null && topics.length == 1, "Only one topic is allowed");
+		@Nullable String @Nullable [] topics = source.getConsumerProperties().getTopics();
+		Assert.isTrue(topics != null && topics.length == 1 && topics[0] != null, "Only one topic is allowed");
 		return topics[0];
 	}
 

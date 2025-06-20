@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
@@ -47,6 +48,7 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.log.LogAccessor;
@@ -75,7 +77,6 @@ import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.kafka.support.serializer.SerializationUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -138,7 +139,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	private final Collection<TopicPartition> assignedPartitions = new LinkedHashSet<>();
 
-	private final Duration commitTimeout;
+	private final @Nullable Duration commitTimeout;
 
 	private final Duration assignTimeout;
 
@@ -154,7 +155,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	private RecordMessageConverter messageConverter = new MessagingMessageConverter();
 
-	private Class<?> payloadType;
+	private @Nullable Class<?> payloadType;
 
 	private boolean rawMessageHeader;
 
@@ -164,13 +165,13 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	private boolean checkNullValueForExceptions;
 
-	private volatile Consumer<K, V> consumer;
+	private volatile @Nullable Consumer<K, V> consumer;
 
-	private volatile Iterator<ConsumerRecord<K, V>> recordsIterator;
+	private volatile @Nullable Iterator<ConsumerRecord<K, V>> recordsIterator;
 
 	public volatile boolean newAssignment; // NOSONAR - direct access from inner
 
-	private ClassLoader classLoader;
+	private @Nullable ClassLoader classLoader;
 
 	/**
 	 * Construct an instance with the supplied parameters. Fetching multiple
@@ -307,7 +308,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		return this.consumerProperties;
 	}
 
-	protected String getGroupId() {
+	protected @Nullable String getGroupId() {
 		return this.consumerProperties.getGroupId();
 	}
 
@@ -332,7 +333,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		this.messageConverter = messageConverter;
 	}
 
-	protected Class<?> getPayloadType() {
+	protected @Nullable Class<?> getPayloadType() {
 		return this.payloadType;
 	}
 
@@ -345,7 +346,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		this.payloadType = payloadType;
 	}
 
-	protected ConsumerRebalanceListener getRebalanceListener() {
+	protected @Nullable ConsumerRebalanceListener getRebalanceListener() {
 		return this.consumerProperties.getConsumerRebalanceListener();
 	}
 
@@ -369,7 +370,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		this.rawMessageHeader = rawMessageHeader;
 	}
 
-	protected Duration getCommitTimeout() {
+	protected @Nullable Duration getCommitTimeout() {
 		return this.commitTimeout;
 	}
 
@@ -450,7 +451,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	}
 
 	@Override // NOSONAR - not so complex
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		this.receiveLock.lock();
 		try {
 
@@ -461,6 +462,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			if (this.consumer == null) {
 				createConsumer();
 			}
+			Assert.state(this.consumer != null, "'consumer' must not be null");
 			if (this.pausing.get() && !this.paused.get() && !this.assignedPartitions.isEmpty()) {
 				this.consumer.pause(this.assignedPartitions);
 				this.paused.set(true);
@@ -492,7 +494,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 					new IntegrationConsumerRebalanceListener(this.consumerProperties.getConsumerRebalanceListener());
 
 			Pattern topicPattern = this.consumerProperties.getTopicPattern();
-			TopicPartitionOffset[] partitions = this.consumerProperties.getTopicPartitions();
+			@Nullable TopicPartitionOffset @Nullable [] partitions = this.consumerProperties.getTopicPartitions();
 			if (topicPattern != null) {
 				this.consumer.subscribe(topicPattern, rebalanceCallback);
 			}
@@ -509,15 +511,18 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		}
 	}
 
-	private void assignAndSeekPartitions(TopicPartitionOffset[] partitions) {
+	private void assignAndSeekPartitions(@Nullable TopicPartitionOffset[] partitions) {
 		List<TopicPartition> topicPartitionsToAssign =
 				Arrays.stream(partitions)
+						.filter(Objects::nonNull)
 						.map(TopicPartitionOffset::getTopicPartition)
 						.collect(Collectors.toList());
+		Assert.state(this.consumer != null, "'consumer' must not be null");
 		this.consumer.assign(topicPartitionsToAssign);
 		this.assignedPartitions.addAll(topicPartitionsToAssign);
 
 		for (TopicPartitionOffset partition : partitions) {
+			Assert.state(partition != null, "'partition' must not be null");
 			if (TopicPartitionOffset.SeekPosition.BEGINNING.equals(partition.getPosition())) {
 				this.consumer.seekToBeginning(Collections.singleton(partition.getTopicPartition()));
 			}
@@ -548,8 +553,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 						this.consumer.seek(topicPartition, newOffset);
 					}
 					catch (Exception ex) {
+						var consumer = this.consumer;
 						this.logger.error(ex, () -> "Failed to set initial offset for " + topicPartition
-								+ " at " + newOffset + ". Position is " + this.consumer
+								+ " at " + newOffset + ". Position is " + consumer
 								.position(topicPartition));
 					}
 				}
@@ -566,6 +572,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			this.consumerLock.lock();
 			try {
 				try {
+					Assert.state(this.consumer != null, "'consumer' must not be null");
 					ConsumerRecords<K, V> records = this.consumer
 							.poll(this.assignedPartitions.isEmpty() ? this.assignTimeout : this.pollTimeout);
 					this.logger.debug(() -> records == null
@@ -595,6 +602,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	private ConsumerRecord<K, V> nextRecord() {
 		ConsumerRecord<K, V> record;
+		Assert.state(this.recordsIterator != null, "'recordsIterator' must not be null");
 		record = this.recordsIterator.next();
 		if (!this.recordsIterator.hasNext()) {
 			this.recordsIterator = null;
@@ -689,11 +697,11 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	private class IntegrationConsumerRebalanceListener implements ConsumerRebalanceListener {
 
-		private final ConsumerRebalanceListener providedRebalanceListener;
+		private final @Nullable ConsumerRebalanceListener providedRebalanceListener;
 
 		private final boolean isConsumerAware;
 
-		IntegrationConsumerRebalanceListener(ConsumerRebalanceListener providedRebalanceListener) {
+		IntegrationConsumerRebalanceListener(@Nullable ConsumerRebalanceListener providedRebalanceListener) {
 			this.providedRebalanceListener = providedRebalanceListener;
 			this.isConsumerAware = providedRebalanceListener instanceof ConsumerAwareRebalanceListener;
 		}
@@ -704,6 +712,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			KafkaMessageSource.this.logger.info(() -> "Partitions revoked: " + partitions);
 			if (this.providedRebalanceListener != null) {
 				if (this.isConsumerAware) {
+					Assert.state(KafkaMessageSource.this.consumer != null, "'consumer' must not be null");
 					((ConsumerAwareRebalanceListener) this.providedRebalanceListener)
 							.onPartitionsRevokedAfterCommit(KafkaMessageSource.this.consumer, partitions);
 				}
@@ -725,6 +734,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		@Override
 		public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
 			KafkaMessageSource.this.assignedPartitions.addAll(partitions);
+			Assert.state(KafkaMessageSource.this.consumer != null, "'consumer' must not be null");
 			if (KafkaMessageSource.this.paused.get()) {
 				KafkaMessageSource.this.consumer.pause(KafkaMessageSource.this.assignedPartitions);
 				KafkaMessageSource.this.logger.warn("Paused consumer resumed by Kafka due to rebalance; "
@@ -777,7 +787,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 		private final KafkaAckInfo<K, V> ackInfo;
 
-		private final Duration commitTimeout;
+		private final @Nullable Duration commitTimeout;
 
 		private final OffsetCommitCallback commitCallback;
 
@@ -830,15 +840,19 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 				finally {
 					this.acknowledged = true;
 					if (!this.ackInfo.isAckDeferred()) {
-						this.ackInfo.getOffsets().get(this.ackInfo.getTopicPartition()).remove(this.ackInfo);
+						var inflight = this.ackInfo.getOffsets().get(this.ackInfo.getTopicPartition());
+						Assert.state(inflight != null, "'inflight' must not be null");
+						inflight.remove(this.ackInfo);
 					}
 				}
 			}
 		}
 
 		private void rollback(ConsumerRecord<K, V> record) {
+			Assert.state(this.ackInfo.getConsumer() != null, "'consumer' must not be null");
 			this.ackInfo.getConsumer().seek(this.ackInfo.getTopicPartition(), record.offset());
 			Set<KafkaAckInfo<K, V>> inflight = this.ackInfo.getOffsets().get(this.ackInfo.getTopicPartition());
+			Assert.state(inflight != null, "'infligt' must not be null");
 			synchronized (inflight) {
 				if (inflight.size() > 1) {
 					List<Long> rewound =
@@ -866,6 +880,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			}
 			else {
 				Set<KafkaAckInfo<K, V>> candidates = this.ackInfo.getOffsets().get(this.ackInfo.getTopicPartition());
+				Assert.state(candidates != null, "'candidates' must not be null");
 				KafkaAckInfo<K, V> ackInformation = null;
 				synchronized (candidates) {
 					if (candidates.iterator().next().equals(this.ackInfo)) {
@@ -902,6 +917,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 						Map<TopicPartition, OffsetAndMetadata> offset =
 								Collections.singletonMap(ackInformation.getTopicPartition(),
 										new OffsetAndMetadata(ackInformation.getRecord().offset() + 1));
+						Assert.state(ackInformation.getConsumer() != null, "'consumer' must not be null");
 						if (this.isSyncCommits) {
 							if (this.commitTimeout == null) {
 								ackInformation.getConsumer().commitSync(offset);
@@ -967,12 +983,12 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		}
 
 		@Override
-		public String getGroupId() {
+		public @Nullable String getGroupId() {
 			return KafkaMessageSource.this.getGroupId();
 		}
 
 		@Override
-		public Consumer<K, V> getConsumer() {
+		public @Nullable Consumer<K, V> getConsumer() {
 			return KafkaMessageSource.this.consumer;
 		}
 
@@ -1035,9 +1051,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 		Object getConsumerMonitor();
 
-		String getGroupId();
+		@Nullable String getGroupId();
 
-		Consumer<K, V> getConsumer();
+		@Nullable Consumer<K, V> getConsumer();
 
 		ConsumerRecord<K, V> getRecord();
 

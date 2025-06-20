@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -79,7 +80,6 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.EmbeddedKafkaKraftBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.kafka.transaction.KafkaTransactionManager;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -141,7 +141,7 @@ class KafkaProducerMessageHandlerTests {
 	static void setup() {
 		embeddedKafka = new EmbeddedKafkaKraftBroker(1, 2, topic1, topic2, topic3, topic4, topic5, topic6);
 		embeddedKafka.afterPropertiesSet();
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testOut", "true", embeddedKafka);
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "testOut", true);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(consumerProps);
 		consumer = cf.createConsumer();
@@ -408,7 +408,7 @@ class KafkaProducerMessageHandlerTests {
 
 	private void testOutboundGatewayGuts(ProducerRecord<?, ?> payload) throws Exception {
 		ConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(
-				KafkaTestUtils.consumerProps(topic5, "false", embeddedKafka));
+				KafkaTestUtils.consumerProps(embeddedKafka, topic5, false));
 		ContainerProperties containerProperties = new ContainerProperties(topic6);
 		final CountDownLatch assigned = new CountDownLatch(1);
 		containerProperties.setConsumerRebalanceListener(new ConsumerRebalanceListener() {
@@ -507,7 +507,7 @@ class KafkaProducerMessageHandlerTests {
 			return null;
 		}).given(mockConsumer).subscribe(any(Collection.class), any(ConsumerRebalanceListener.class));
 		ConsumerRecords records = new ConsumerRecords(Collections.singletonMap(topicPartition,
-				Collections.singletonList(new ConsumerRecord<>("foo", 0, 0, "key", "value"))));
+				Collections.singletonList(new ConsumerRecord<>("foo", 0, 0, "key", "value"))), Map.of());
 		final AtomicBoolean done = new AtomicBoolean();
 		willAnswer(i -> {
 			if (done.compareAndSet(false, true)) {
@@ -642,7 +642,7 @@ class KafkaProducerMessageHandlerTests {
 			return null;
 		}).given(mockConsumer).subscribe(any(Collection.class), any(ConsumerRebalanceListener.class));
 		ConsumerRecords records = new ConsumerRecords(Collections.singletonMap(topicPartition,
-				Collections.singletonList(new ConsumerRecord<>("foo", 0, 0, "key", "value"))));
+				Collections.singletonList(new ConsumerRecord<>("foo", 0, 0, "key", "value"))), Map.of());
 		final AtomicBoolean done = new AtomicBoolean();
 		willAnswer(i -> {
 			if (done.compareAndSet(false, true)) {

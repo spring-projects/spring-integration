@@ -1,6 +1,5 @@
 /**
  * Provides Spring Integration Java DSL Components support for Apache Kafka.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.kafka.dsl;

@@ -33,6 +33,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -59,7 +60,6 @@ import org.springframework.kafka.support.SimpleKafkaHeaderMapper;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -118,38 +118,40 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private final long deliveryTimeoutMsProperty;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
-	private Expression topicExpression;
+	private @Nullable Expression topicExpression;
 
-	private Expression messageKeyExpression;
+	private @Nullable Expression messageKeyExpression;
 
-	private Expression partitionIdExpression;
+	private @Nullable Expression partitionIdExpression;
 
-	private Expression timestampExpression;
+	private @Nullable Expression timestampExpression;
 
 	private Expression flushExpression = new FunctionExpression<Message<?>>(message ->
 			Boolean.TRUE.equals(message.getHeaders().get(KafkaIntegrationHeaders.FLUSH)));
 
 	private boolean sync;
 
+	@SuppressWarnings("NullAway.Init")
 	private Expression sendTimeoutExpression;
 
-	private KafkaHeaderMapper headerMapper;
+	private @Nullable KafkaHeaderMapper headerMapper;
 
 	private RecordMessageConverter replyMessageConverter = new MessagingMessageConverter();
 
-	private MessageChannel sendFailureChannel;
+	private @Nullable MessageChannel sendFailureChannel;
 
-	private String sendFailureChannelName;
+	private @Nullable String sendFailureChannelName;
 
-	private MessageChannel sendSuccessChannel;
+	private @Nullable MessageChannel sendSuccessChannel;
 
-	private String sendSuccessChannelName;
+	private @Nullable String sendSuccessChannelName;
 
-	private MessageChannel futuresChannel;
+	private @Nullable MessageChannel futuresChannel;
 
-	private String futuresChannelName;
+	private @Nullable String futuresChannelName;
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
@@ -164,8 +166,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	private boolean useTemplateConverter;
 
 	private Duration assignmentDuration = DEFAULT_ASSIGNMENT_TIMEOUT;
-
-	private volatile byte[] singleReplyTopic;
 
 	@SuppressWarnings("this-escape")
 	public KafkaProducerMessageHandler(final KafkaTemplate<K, V> kafkaTemplate) {
@@ -190,9 +190,9 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 					+ "configured to read uncommitted records");
 		}
 		determineSendTimeout();
-		this.deliveryTimeoutMsProperty =
-				this.sendTimeoutExpression.getValue(Long.class) // NOSONAR - never null after determineSendTimeout()
-						- this.timeoutBuffer;
+		Long sendTimeout = this.sendTimeoutExpression.getValue(Long.class); // never null after determineSendTimeout()
+		Assert.state(sendTimeout != null, "'sendTimeout' must not be null");
+		this.deliveryTimeoutMsProperty = sendTimeout - this.timeoutBuffer;
 	}
 
 	private void determineSendTimeout() {
@@ -254,7 +254,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		this.headerMapper = headerMapper;
 	}
 
-	public KafkaHeaderMapper getHeaderMapper() {
+	public @Nullable KafkaHeaderMapper getHeaderMapper() {
 		return this.headerMapper;
 	}
 
@@ -446,7 +446,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		return null;
 	}
 
-	protected MessageChannel getSendSuccessChannel() {
+	protected @Nullable MessageChannel getSendSuccessChannel() {
 		if (this.sendSuccessChannel != null) {
 			return this.sendSuccessChannel;
 		}
@@ -457,7 +457,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		return null;
 	}
 
-	protected MessageChannel getFuturesChannel() {
+	protected @Nullable MessageChannel getFuturesChannel() {
 		if (this.futuresChannel != null) {
 			return this.futuresChannel;
 		}
@@ -492,7 +492,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	@SuppressWarnings("unchecked") // NOSONAR - complexity
 	@Override
-	protected Object handleRequestMessage(final Message<?> message) {
+	protected @Nullable Object handleRequestMessage(final Message<?> message) {
 		final ProducerRecord<K, V> producerRecord;
 		boolean flush =
 				Boolean.TRUE.equals(this.flushExpression.getValue(this.evaluationContext, message, Boolean.class));
@@ -544,7 +544,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			throw new MessageHandlingException(message, e);
 		}
 		catch (ExecutionException e) {
-			throw new MessageHandlingException(message, e.getCause()); // NOSONAR
+			Throwable cause = e.getCause() != null ? e.getCause() : e;
+			throw new MessageHandlingException(message, cause);
 		}
 		return processReplyFuture(gatewayFuture);
 	}
@@ -600,7 +601,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		}
 	}
 
-	@Nullable
 	private void addReplyTopicIfAny(MessageHeaders messageHeaders, Headers headers) {
 		if (this.isGateway) {
 			Object replyHeader = messageHeaders.get(KafkaHeaders.REPLY_TOPIC);
@@ -616,9 +616,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		}
 	}
 
-	private void sendFutureIfRequested(CompletableFuture<SendResult<K, V>> sendFuture, Object futureToken) {
+	private void sendFutureIfRequested(@Nullable CompletableFuture<SendResult<K, V>> sendFuture,
+			@Nullable Object futureToken) {
 
-		if (futureToken != null) {
+		if (sendFuture != null && futureToken != null) {
 			MessageChannel futures = getFuturesChannel();
 			if (futures != null) {
 				try {
@@ -635,9 +636,13 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	}
 
 	public void processSendResult(final Message<?> message, final ProducerRecord<K, V> producerRecord,
-			CompletableFuture<SendResult<K, V>> future, MessageChannel metadataChannel)
+			@Nullable CompletableFuture<SendResult<K, V>> future, @Nullable MessageChannel metadataChannel)
 			throws InterruptedException, ExecutionException {
 
+		if (future == null) {
+			this.logger.warn("send future is null, skip processing send result.");
+			return;
+		}
 		final MessageChannel failureChannel = getSendFailureChannel();
 		if (failureChannel != null || metadataChannel != null) {
 			future.whenComplete((sendResult, exception) -> {
@@ -689,7 +694,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		}
 	}
 
-	private Future<?> processReplyFuture(@Nullable RequestReplyFuture<?, ?, Object> future) {
+	private @Nullable Future<?> processReplyFuture(@Nullable RequestReplyFuture<?, ?, Object> future) {
 		if (future == null) {
 			return null;
 		}
@@ -763,8 +768,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		 * @param headers the headers.
 		 * @return the record.
 		 */
-		ProducerRecord<K, V> create(Message<?> message, String topic, Integer partition, Long timestamp, K key, V value,
-				Headers headers);
+		ProducerRecord<K, V> create(Message<?> message, @Nullable String topic, @Nullable Integer partition,
+				@Nullable Long timestamp, @Nullable K key, @Nullable V value, Headers headers);
 
 	}
 

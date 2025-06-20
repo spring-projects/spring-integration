@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.kafka.config.xml;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -38,7 +39,7 @@ import org.springframework.util.StringUtils;
 public class KafkaChannelParser extends AbstractChannelParser {
 
 	@Override
-	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
+	protected @Nullable BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
 		String factory = element.getAttribute("container-factory");
 		boolean hasFactory = StringUtils.hasText(factory);

@@ -133,7 +133,7 @@ class MessageDrivenAdapterTests {
 
 	@Test
 	void testInboundRecord() {
-		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test1", "true");
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test1", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic1);
@@ -222,7 +222,7 @@ class MessageDrivenAdapterTests {
 
 	@Test
 	void testInboundRecordRetryRecover() {
-		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test4", "true");
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test4", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic4);
@@ -289,7 +289,7 @@ class MessageDrivenAdapterTests {
 	 */
 	@Test
 	void testInboundRecordRetryRecoverWithoutRecoveryCallback() throws Exception {
-		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test6", "true");
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test6", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic6);
@@ -340,7 +340,7 @@ class MessageDrivenAdapterTests {
 
 	@Test
 	void testInboundRecordNoRetryRecover() {
-		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test5", "true");
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test5", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic5);
@@ -396,7 +396,7 @@ class MessageDrivenAdapterTests {
 
 	@Test
 	void testInboundBatch() throws Exception {
-		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test2", "true");
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test2", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic2);
@@ -486,7 +486,7 @@ class MessageDrivenAdapterTests {
 
 	@Test
 	void testInboundJson() {
-		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test3", "true");
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test3", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic3);
@@ -529,7 +529,7 @@ class MessageDrivenAdapterTests {
 
 	@Test
 	void testInboundJsonWithPayload() {
-		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test7", "true");
+		Map<String, Object> props = KafkaTestUtils.consumerProps(EMBEDDED_BROKERS, "test7", true);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, Foo> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic6);
@@ -585,8 +585,8 @@ class MessageDrivenAdapterTests {
 		records.put(new TopicPartition("foo", 0), Arrays.asList(
 				new ConsumerRecord<>("foo", 0, 0L, 1, "foo"),
 				new ConsumerRecord<>("foo", 0, 1L, 1, "bar")));
-		ConsumerRecords<Integer, String> consumerRecords = new ConsumerRecords<>(records);
-		ConsumerRecords<Integer, String> emptyRecords = new ConsumerRecords<>(Collections.emptyMap());
+		ConsumerRecords<Integer, String> consumerRecords = new ConsumerRecords<>(records, Map.of());
+		ConsumerRecords<Integer, String> emptyRecords = new ConsumerRecords<>(Collections.emptyMap(), Map.of());
 		AtomicBoolean first = new AtomicBoolean(true);
 		given(consumer.poll(any(Duration.class))).willAnswer(i -> {
 			Thread.sleep(50);

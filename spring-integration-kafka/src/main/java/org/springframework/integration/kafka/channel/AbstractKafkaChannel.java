@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.kafka.channel;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.kafka.core.KafkaOperations;
@@ -42,7 +44,7 @@ public abstract class AbstractKafkaChannel extends AbstractMessageChannel {
 
 	protected final String topic; // NOSONAR final
 
-	private String groupId;
+	private @Nullable String groupId;
 
 	/**
 	 * Construct an instance with the provided {@link KafkaOperations} and topic.
@@ -64,7 +66,7 @@ public abstract class AbstractKafkaChannel extends AbstractMessageChannel {
 		this.groupId = groupId;
 	}
 
-	protected String getGroupId() {
+	protected @Nullable String getGroupId() {
 		return this.groupId;
 	}
 
@@ -82,7 +84,8 @@ public abstract class AbstractKafkaChannel extends AbstractMessageChannel {
 			return false;
 		}
 		catch (ExecutionException e) {
-			this.logger.error(e.getCause(), () -> "Interrupted while waiting for send result for: " + message);
+			Throwable cause = e.getCause() != null ? e.getCause() : e;
+			this.logger.error(cause, () -> "Interrupted while waiting for send result for: " + message);
 			return false;
 		}
 		catch (TimeoutException e) {
