@@ -382,7 +382,7 @@ public class WebServiceOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertThat(accessor.getPropertyValue("destinationProvider")).as("Wrong DestinationProvider")
 				.isEqualTo(stubProvider);
-		assertThat(accessor.getPropertyValue("uri")).isEqualTo("");
+		assertThat(accessor.getPropertyValue("uri")).isNull();
 		Object destinationProviderObject = new DirectFieldAccessor(
 				accessor.getPropertyValue("webServiceTemplate")).getPropertyValue("destinationProvider");
 		assertThat(destinationProviderObject).as("Wrong DestinationProvider").isEqualTo(stubProvider);

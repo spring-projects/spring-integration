@@ -46,45 +46,41 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
-			@Nullable Unmarshaller unmarshaller, WebServiceMessageFactory messageFactory) {
+			@Nullable Unmarshaller unmarshaller, @Nullable WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
 		configureMarshallers(marshaller, unmarshaller);
 	}
 
-	@SuppressWarnings("NullAway")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
 			Unmarshaller unmarshaller) {
 		this(destinationProvider, marshaller, unmarshaller, null);
 	}
 
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
-			WebServiceMessageFactory messageFactory) {
+			@Nullable WebServiceMessageFactory messageFactory) {
 		this(destinationProvider, marshaller, null, messageFactory);
 	}
 
-	@SuppressWarnings("NullAway")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller) {
 		this(destinationProvider, marshaller, (WebServiceMessageFactory) null);
 	}
 
 	@SuppressWarnings("this-escape")
-	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller, @Nullable Unmarshaller unmarshaller,
-			WebServiceMessageFactory messageFactory) {
+	public MarshallingWebServiceOutboundGateway(@Nullable String uri, Marshaller marshaller, @Nullable Unmarshaller unmarshaller,
+			@Nullable WebServiceMessageFactory messageFactory) {
 		super(uri, messageFactory);
 		configureMarshallers(marshaller, unmarshaller);
 	}
 
-	@SuppressWarnings("NullAway")
 	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller, Unmarshaller unmarshaller) {
 		this(uri, marshaller, unmarshaller, null);
 	}
 
 	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller,
-			WebServiceMessageFactory messageFactory) {
+			@Nullable WebServiceMessageFactory messageFactory) {
 		this(uri, marshaller, null, messageFactory);
 	}
 
-	@SuppressWarnings("NullAway")
 	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller) {
 		this(uri, marshaller, (WebServiceMessageFactory) null);
 	}
@@ -96,8 +92,9 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	 * @since 5.0
 	 */
 	@SuppressWarnings("this-escape")
-	public MarshallingWebServiceOutboundGateway(String uri, WebServiceTemplate webServiceTemplate) {
-		super(uri, webServiceTemplate);
+	public MarshallingWebServiceOutboundGateway(@Nullable String uri, WebServiceTemplate webServiceTemplate) {
+		super(uri, null);
+		doSetWebServiceTemplate(webServiceTemplate);
 	}
 
 	/**
@@ -109,7 +106,8 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider,
 			WebServiceTemplate webServiceTemplate) {
-		super(destinationProvider, webServiceTemplate);
+		super(destinationProvider, null);
+		doSetWebServiceTemplate(webServiceTemplate);
 	}
 
 	/**

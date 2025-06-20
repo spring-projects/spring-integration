@@ -58,33 +58,32 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	private boolean extractPayload = true;
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider) {
-		this(destinationProvider, null);
+		this(destinationProvider, null, null);
 	}
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider,
-			@Nullable SourceExtractor<?> sourceExtractor) {
-		super(destinationProvider);
-		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
+			SourceExtractor<?> sourceExtractor) {
+
+		this(destinationProvider, sourceExtractor, null);
 	}
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider,
 			@Nullable SourceExtractor<?> sourceExtractor,
-			WebServiceMessageFactory messageFactory) {
+			@Nullable WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
 	public SimpleWebServiceOutboundGateway(String uri) {
-		this(uri, null);
+		this(uri, null, null);
 	}
 
-	public SimpleWebServiceOutboundGateway(String uri, @Nullable SourceExtractor<?> sourceExtractor) {
-		super(uri);
-		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
+	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor) {
+		this(uri, sourceExtractor, null);
 	}
 
-	public SimpleWebServiceOutboundGateway(String uri, @Nullable SourceExtractor<?> sourceExtractor,
-			WebServiceMessageFactory messageFactory) {
+	public SimpleWebServiceOutboundGateway(@Nullable String uri, @Nullable SourceExtractor<?> sourceExtractor,
+			@Nullable WebServiceMessageFactory messageFactory) {
 
 		super(uri, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
