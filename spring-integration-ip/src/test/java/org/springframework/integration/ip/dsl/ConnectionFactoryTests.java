@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -57,6 +58,7 @@ public class ConnectionFactoryTests {
 		ApplicationEventPublisher publisher = e -> {
 		};
 		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).getObject();
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		final AtomicReference<Message<?>> received = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(m -> {

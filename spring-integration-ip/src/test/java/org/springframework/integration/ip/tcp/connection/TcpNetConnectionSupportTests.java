@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,6 +42,7 @@ public class TcpNetConnectionSupportTests {
 	@Test
 	public void testBadCode() throws Exception {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		AtomicReference<Message<?>> message = new AtomicReference<>();
 		CountDownLatch latch1 = new CountDownLatch(1);
 		server.registerListener(m -> {
@@ -80,5 +82,4 @@ public class TcpNetConnectionSupportTests {
 		assertThat(message.get()).isNotNull();
 		server.stop();
 	}
-
 }

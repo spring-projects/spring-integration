@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -698,6 +699,7 @@ public class CachingClientConnectionFactoryTests {
 	@Test //INT-3722
 	public void testGatewayRelease() {
 		TcpNetServerConnectionFactory in = new TcpNetServerConnectionFactory(0);
+		in.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		in.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		final TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(in);
@@ -820,5 +822,4 @@ public class CachingClientConnectionFactoryTests {
 		when(factory.isActive()).thenReturn(true);
 		return factory;
 	}
-
 }

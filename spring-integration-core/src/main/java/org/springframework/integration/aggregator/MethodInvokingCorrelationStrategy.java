@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.aggregator;
 
 import java.lang.reflect.Method;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -57,6 +59,7 @@ public class MethodInvokingCorrelationStrategy implements CorrelationStrategy, B
 	}
 
 	@Override
+	@Nullable
 	public Object getCorrelationKey(Message<?> message) {
 		return this.processor.processMessage(message);
 	}

@@ -46,6 +46,7 @@ import org.springframework.integration.support.converter.MapMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -153,6 +154,7 @@ public class TcpNetConnectionTests {
 	@Test
 	public void socketClosedNextRead() throws InterruptedException, IOException {
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		AtomicInteger port = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(1);
 		ApplicationEventPublisher publisher = ev -> {

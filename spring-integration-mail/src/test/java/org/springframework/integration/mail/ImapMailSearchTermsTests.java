@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import jakarta.mail.search.NotTerm;
 import jakarta.mail.search.SearchTerm;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,7 +62,7 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsGuts(String userFlag, ImapMailReceiver receiver)
 			throws NoSuchFieldException, IllegalAccessException, InvocationTargetException {
 		receiver.setShouldMarkMessagesAsRead(true);
-		receiver.setBeanFactory(mock(BeanFactory.class));
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
@@ -85,7 +85,7 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldMarkAsReadWithExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(true);
-		receiver.setBeanFactory(mock(BeanFactory.class));
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 
 		receiver.afterPropertiesSet();
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -115,7 +115,7 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldNotMarkAsReadNoExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(false);
-		receiver.setBeanFactory(mock(BeanFactory.class));
+		receiver.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");

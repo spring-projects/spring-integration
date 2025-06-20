@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,14 +40,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.core.log.LogMessage;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.config.TcpConnectionFactoryFactoryBean;
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
@@ -57,7 +55,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -84,7 +82,7 @@ public class ConnectionFactoryTests {
 
 	@Test
 	void netOpenEventOnReadThread() throws InterruptedException, IOException {
-		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		TcpNetServerConnectionFactory server = getTcpNetServerConnectionFactory(0);
 		AtomicReference<Thread> readThread = new AtomicReference<>();
 		AtomicReference<Thread> openEventThread = new AtomicReference<>();
 		CountDownLatch latch1 = new CountDownLatch(1);
@@ -162,10 +160,8 @@ public class ConnectionFactoryTests {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.setPoolSize(10);
 		scheduler.afterPropertiesSet();
-		BeanFactory bf = mock(BeanFactory.class);
-		when(bf.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
-		when(bf.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class)).thenReturn(scheduler);
-		serverFactory.setBeanFactory(bf);
+
+		serverFactory.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setOutputChannel(new NullChannel());
 		adapter.setConnectionFactory(serverFactory);
@@ -273,22 +269,22 @@ public class ConnectionFactoryTests {
 
 	@Test
 	void healthCheckSuccessNet() throws InterruptedException {
-		healthCheckSuccess(new TcpNetServerConnectionFactory(0), false);
+		healthCheckSuccess(getTcpNetServerConnectionFactory(0), false);
 	}
 
 	@Test
 	void healthCheckSuccessNio() throws InterruptedException {
-		healthCheckSuccess(new TcpNioServerConnectionFactory(0), false);
+		healthCheckSuccess(getTcpNetServerConnectionFactory(0), false);
 	}
 
 	@Test
 	void healthCheckFailureNet() throws InterruptedException {
-		healthCheckSuccess(new TcpNetServerConnectionFactory(0), true);
+		healthCheckSuccess(getTcpNetServerConnectionFactory(0), true);
 	}
 
 	@Test
 	void healthCheckFailureNio() throws InterruptedException {
-		healthCheckSuccess(new TcpNioServerConnectionFactory(0), true);
+		healthCheckSuccess(getTcpNetServerConnectionFactory(0), true);
 	}
 
 	private void healthCheckSuccess(AbstractServerConnectionFactory server, boolean fail) throws InterruptedException {
@@ -298,7 +294,7 @@ public class ConnectionFactoryTests {
 				serverUp.countDown();
 			}
 		});
-		server.setBeanFactory(mock(BeanFactory.class));
+		server.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		AtomicReference<TcpConnection> connection = new AtomicReference<>();
 		server.registerSender(conn -> {
 			connection.set(conn);
@@ -367,6 +363,12 @@ public class ConnectionFactoryTests {
 		server.stop();
 	}
 
+	private TcpNetServerConnectionFactory getTcpNetServerConnectionFactory(int port) {
+		TcpNetServerConnectionFactory result = new TcpNetServerConnectionFactory(port);
+		result.setTaskScheduler(new SimpleAsyncTaskScheduler());
+		return result;
+	}
+
 	@SuppressWarnings("serial")
 	private class FooEvent extends TcpConnectionOpenEvent {
 
@@ -375,5 +377,4 @@ public class ConnectionFactoryTests {
 		}
 
 	}
-
 }

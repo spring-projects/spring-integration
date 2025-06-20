@@ -57,6 +57,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -130,6 +131,7 @@ public class ReactiveStreamsTests {
 	@Test
 	void testPollableReactiveFlow() throws Exception {
 		assertThat(this.reactiveTransformer).isInstanceOf(ReactiveStreamsConsumer.class);
+		this.reactiveTransformer.setTaskScheduler(new SimpleAsyncTaskScheduler());
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
 		CountDownLatch latch = new CountDownLatch(6);

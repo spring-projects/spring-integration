@@ -54,10 +54,13 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 
 	protected final MessagingTemplate messagingTemplate = new MessagingTemplate(); // NOSONAR final
 
+	@SuppressWarnings("NullAway.Init")
 	private DestinationResolver<MessageChannel> channelResolver;
 
+	@Nullable
 	private MessageChannel channel;
 
+	@Nullable
 	private String channelName;
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
@@ -79,6 +82,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 		return this.errorMessageStrategy;
 	}
 
+	@Nullable
 	public MessageChannel getChannel() {
 		populateChannel();
 		return this.channel;
@@ -146,7 +150,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 	 * @param failedMessage the message.
 	 * @param throwable the throwable.
 	 */
-	public void publish(@Nullable Message<?> inputMessage, Message<?> failedMessage, Throwable throwable) {
+	public void publish(@Nullable Message<?> inputMessage, @Nullable Message<?> failedMessage, Throwable throwable) {
 		publish(throwable, ErrorMessageUtils.getAttributeAccessor(inputMessage, failedMessage));
 	}
 
