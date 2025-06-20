@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.transform.TransformerException;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -59,6 +61,7 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * @author Artem Bilan
  * @author Christian Tzolov
  * @author Ngoc Nhan
+ * @author Jooyoung Pyoung
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -66,15 +69,16 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	protected final DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory(); // NOSONAR - final
 
-	private final String uri;
+	private final @Nullable String uri;
 
-	private final DestinationProvider destinationProvider;
+	private final @Nullable DestinationProvider destinationProvider;
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
+	@SuppressWarnings("NullAway.Init")
 	private StandardEvaluationContext evaluationContext;
 
-	private WebServiceMessageCallback requestCallback;
+	private @Nullable WebServiceMessageCallback requestCallback;
 
 	private WebServiceTemplate webServiceTemplate;
 
@@ -84,18 +88,20 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private boolean webServiceTemplateExplicitlySet;
 
-	public AbstractWebServiceOutboundGateway(final String uri, WebServiceMessageFactory messageFactory) {
+	public AbstractWebServiceOutboundGateway(@Nullable final String uri, @Nullable WebServiceMessageFactory messageFactory) {
 		Assert.hasText(uri, "URI must not be empty");
-		this.webServiceTemplate = new WebServiceTemplate(messageFactory);
+		this.webServiceTemplate = messageFactory != null ?
+				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
 		this.destinationProvider = null;
 		this.uri = uri;
 	}
 
 	public AbstractWebServiceOutboundGateway(DestinationProvider destinationProvider,
-			WebServiceMessageFactory messageFactory) {
+			@Nullable WebServiceMessageFactory messageFactory) {
 
 		Assert.notNull(destinationProvider, "DestinationProvider must not be null");
-		this.webServiceTemplate = new WebServiceTemplate(messageFactory);
+		this.webServiceTemplate = messageFactory != null ?
+				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
 		this.destinationProvider = destinationProvider;
 		// we always call WebServiceTemplate methods with an explicit URI argument,
 		// but in case the WebServiceTemplate is accessed directly we'll set this:
@@ -165,7 +171,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		this.webServiceTemplate.setMessageFactory(messageFactory);
 	}
 
-	public void setRequestCallback(WebServiceMessageCallback requestCallback) {
+	public void setRequestCallback(@Nullable WebServiceMessageCallback requestCallback) {
 		this.requestCallback = requestCallback;
 	}
 
@@ -199,7 +205,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 	@Override
-	public final Object handleRequestMessage(Message<?> requestMessage) {
+	public final @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		URI uriWithVariables = prepareUri(requestMessage);
 		if (uriWithVariables == null) {
 			throw new MessageDeliveryException(requestMessage, "Failed to determine URI for " +
@@ -215,7 +221,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		return null;
 	}
 
-	private URI prepareUri(Message<?> requestMessage) {
+	private @Nullable URI prepareUri(Message<?> requestMessage) {
 		if (this.destinationProvider != null) {
 			return this.destinationProvider.getDestination();
 		}
@@ -226,20 +232,21 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 						.withRoot(requestMessage)
 						.build();
 
+		Assert.notNull(this.uri, "'uri' must not be null");
 		return this.uriFactory.expand(this.uri, uriVariables);
 	}
 
-	protected abstract Object doHandle(String theUri, Message<?> requestMessage,
-			WebServiceMessageCallback reqCallback);
+	protected abstract @Nullable Object doHandle(String theUri, Message<?> requestMessage,
+			@Nullable WebServiceMessageCallback reqCallback);
 
 	protected abstract class RequestMessageCallback extends TransformerObjectSupport
 			implements WebServiceMessageCallback {
 
-		private final WebServiceMessageCallback reqCallback;
+		private final @Nullable WebServiceMessageCallback reqCallback;
 
 		private final Message<?> requestMessage;
 
-		public RequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
+		public RequestMessageCallback(@Nullable WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
 			this.reqCallback = requestCallback;
 			this.requestMessage = requestMessage;
 		}
@@ -266,7 +273,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			implements WebServiceMessageExtractor<Object> {
 
 		@Override
-		public Object extractData(WebServiceMessage message)
+		public @Nullable Object extractData(WebServiceMessage message)
 				throws IOException, TransformerException {
 
 			Object resultObject = this.doExtractData(message);
@@ -284,7 +291,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			}
 		}
 
-		public abstract Object doExtractData(WebServiceMessage message) throws IOException, TransformerException;
+		public abstract @Nullable Object doExtractData(WebServiceMessage message) throws IOException, TransformerException;
 
 	}
 

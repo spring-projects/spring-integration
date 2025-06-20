@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.ws.dsl;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.JavaUtils;
@@ -51,27 +53,28 @@ public abstract class BaseWsOutboundGatewaySpec<
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
+	@SuppressWarnings("NullAway.Init")
 	protected WebServiceTemplate template; // NOSONAR
 
-	protected DestinationProvider destinationProvider; // NOSONAR
+	protected @Nullable DestinationProvider destinationProvider; // NOSONAR
 
-	protected String uri; // NOSONAR
+	protected @Nullable String uri; // NOSONAR
 
-	protected WebServiceMessageFactory webServiceMessageFactory; // NOSONAR
+	protected @Nullable WebServiceMessageFactory webServiceMessageFactory; // NOSONAR
 
-	private SoapHeaderMapper headerMapper;
+	private @Nullable SoapHeaderMapper headerMapper;
 
-	private DefaultUriBuilderFactory.EncodingMode encodingMode;
+	private DefaultUriBuilderFactory.@Nullable EncodingMode encodingMode;
 
 	private boolean ignoreEmptyResponses = true;
 
-	private WebServiceMessageCallback requestCallback;
+	private @Nullable WebServiceMessageCallback requestCallback;
 
-	protected FaultMessageResolver faultMessageResolver; // NOSONAR
+	protected @Nullable FaultMessageResolver faultMessageResolver; // NOSONAR
 
-	protected WebServiceMessageSender[] messageSenders; // NOSONAR
+	protected WebServiceMessageSender @Nullable [] messageSenders; // NOSONAR
 
-	protected ClientInterceptor[] gatewayInterceptors; // NOSONAR
+	protected ClientInterceptor @Nullable [] gatewayInterceptors; // NOSONAR
 
 	protected boolean extractPayload = true; // NOSONAR
 

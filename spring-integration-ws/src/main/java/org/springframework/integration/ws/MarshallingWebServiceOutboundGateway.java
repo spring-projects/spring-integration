@@ -18,7 +18,8 @@ package org.springframework.integration.ws;
 
 import java.io.IOException;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
@@ -45,7 +46,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 	@SuppressWarnings("this-escape")
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
-			Unmarshaller unmarshaller, WebServiceMessageFactory messageFactory) {
+			@Nullable Unmarshaller unmarshaller, @Nullable WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
 		configureMarshallers(marshaller, unmarshaller);
 	}
@@ -56,7 +57,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	}
 
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
-			WebServiceMessageFactory messageFactory) {
+			@Nullable WebServiceMessageFactory messageFactory) {
 		this(destinationProvider, marshaller, null, messageFactory);
 	}
 
@@ -65,8 +66,8 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	}
 
 	@SuppressWarnings("this-escape")
-	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller, Unmarshaller unmarshaller,
-			WebServiceMessageFactory messageFactory) {
+	public MarshallingWebServiceOutboundGateway(@Nullable String uri, Marshaller marshaller, @Nullable Unmarshaller unmarshaller,
+			@Nullable WebServiceMessageFactory messageFactory) {
 		super(uri, messageFactory);
 		configureMarshallers(marshaller, unmarshaller);
 	}
@@ -76,7 +77,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	}
 
 	public MarshallingWebServiceOutboundGateway(String uri, Marshaller marshaller,
-			WebServiceMessageFactory messageFactory) {
+			@Nullable WebServiceMessageFactory messageFactory) {
 		this(uri, marshaller, null, messageFactory);
 	}
 
@@ -91,7 +92,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	 * @since 5.0
 	 */
 	@SuppressWarnings("this-escape")
-	public MarshallingWebServiceOutboundGateway(String uri, WebServiceTemplate webServiceTemplate) {
+	public MarshallingWebServiceOutboundGateway(@Nullable String uri, WebServiceTemplate webServiceTemplate) {
 		super(uri, null);
 		doSetWebServiceTemplate(webServiceTemplate);
 	}
@@ -139,7 +140,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	}
 
 	@Override
-	protected Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback) {
+	protected @Nullable Object doHandle(String uri, Message<?> requestMessage, @Nullable WebServiceMessageCallback requestCallback) {
 		return getWebServiceTemplate()
 				.marshalSendAndReceive(uri, requestMessage.getPayload(),
 						new PassThroughRequestMessageCallback(requestCallback, requestMessage));
@@ -147,7 +148,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 	private final class PassThroughRequestMessageCallback extends RequestMessageCallback {
 
-		PassThroughRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
+		PassThroughRequestMessageCallback(@Nullable WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
 			super(requestCallback, requestMessage);
 		}
 
