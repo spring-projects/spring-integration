@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -382,7 +382,7 @@ public class WebServiceOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertThat(accessor.getPropertyValue("destinationProvider")).as("Wrong DestinationProvider")
 				.isEqualTo(stubProvider);
-		assertThat(accessor.getPropertyValue("uri")).isNull();
+		assertThat(accessor.getPropertyValue("uri")).isEqualTo("");
 		Object destinationProviderObject = new DirectFieldAccessor(
 				accessor.getPropertyValue("webServiceTemplate")).getPropertyValue("destinationProvider");
 		assertThat(destinationProviderObject).as("Wrong DestinationProvider").isEqualTo(stubProvider);

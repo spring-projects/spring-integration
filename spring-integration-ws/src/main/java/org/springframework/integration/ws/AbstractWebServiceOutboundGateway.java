@@ -61,6 +61,7 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * @author Artem Bilan
  * @author Christian Tzolov
  * @author Ngoc Nhan
+ * @author Jooyoung Pyoung
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -87,17 +88,48 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private boolean webServiceTemplateExplicitlySet;
 
-	@SuppressWarnings("NullAway")
-	public AbstractWebServiceOutboundGateway(final String uri, @Nullable WebServiceMessageFactory messageFactory) {
+	public AbstractWebServiceOutboundGateway(final String uri) {
+		Assert.hasText(uri, "URI must not be empty");
+		this.webServiceTemplate = new WebServiceTemplate();
+		this.destinationProvider = null;
+		this.uri = uri;
+	}
+
+	public AbstractWebServiceOutboundGateway(final String uri, WebServiceMessageFactory messageFactory) {
 		Assert.hasText(uri, "URI must not be empty");
 		this.webServiceTemplate = new WebServiceTemplate(messageFactory);
 		this.destinationProvider = null;
 		this.uri = uri;
 	}
 
-	@SuppressWarnings("NullAway")
+	public AbstractWebServiceOutboundGateway(final String uri, WebServiceTemplate webServiceTemplate) {
+		Assert.hasText(uri, "URI must not be empty");
+		doSetWebServiceTemplate(webServiceTemplate);
+		this.destinationProvider = null;
+		this.uri = uri;
+	}
+
+	protected AbstractWebServiceOutboundGateway(DestinationProvider destinationProvider,
+												WebServiceTemplate webServiceTemplate) {
+
+		Assert.notNull(destinationProvider, "DestinationProvider must not be null");
+		doSetWebServiceTemplate(webServiceTemplate);
+		this.destinationProvider = destinationProvider;
+		this.uri = "";
+	}
+
+	public AbstractWebServiceOutboundGateway(DestinationProvider destinationProvider) {
+		Assert.notNull(destinationProvider, "DestinationProvider must not be null");
+		this.webServiceTemplate = new WebServiceTemplate();
+		this.destinationProvider = destinationProvider;
+		// we always call WebServiceTemplate methods with an explicit URI argument,
+		// but in case the WebServiceTemplate is accessed directly we'll set this:
+		this.webServiceTemplate.setDestinationProvider(destinationProvider);
+		this.uri = "";
+	}
+
 	public AbstractWebServiceOutboundGateway(DestinationProvider destinationProvider,
-			@Nullable WebServiceMessageFactory messageFactory) {
+			WebServiceMessageFactory messageFactory) {
 
 		Assert.notNull(destinationProvider, "DestinationProvider must not be null");
 		this.webServiceTemplate = new WebServiceTemplate(messageFactory);
@@ -105,7 +137,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		// we always call WebServiceTemplate methods with an explicit URI argument,
 		// but in case the WebServiceTemplate is accessed directly we'll set this:
 		this.webServiceTemplate.setDestinationProvider(destinationProvider);
-		this.uri = null;
+		this.uri = "";
 	}
 
 	public void setHeaderMapper(SoapHeaderMapper headerMapper) {

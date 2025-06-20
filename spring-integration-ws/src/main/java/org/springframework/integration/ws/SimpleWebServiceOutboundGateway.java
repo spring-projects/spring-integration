@@ -58,33 +58,33 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	private boolean extractPayload = true;
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider) {
-		this(destinationProvider, null, null);
+		this(destinationProvider, null);
 	}
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider,
-			SourceExtractor<?> sourceExtractor) {
-
-		this(destinationProvider, sourceExtractor, null);
+			@Nullable SourceExtractor<?> sourceExtractor) {
+		super(destinationProvider);
+		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider,
 			@Nullable SourceExtractor<?> sourceExtractor,
-			@Nullable WebServiceMessageFactory messageFactory) {
-
+			WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
 	public SimpleWebServiceOutboundGateway(String uri) {
-		this(uri, null, null);
+		this(uri, null);
 	}
 
-	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor) {
-		this(uri, sourceExtractor, null);
+	public SimpleWebServiceOutboundGateway(String uri, @Nullable SourceExtractor<?> sourceExtractor) {
+		super(uri);
+		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
 	public SimpleWebServiceOutboundGateway(String uri, @Nullable SourceExtractor<?> sourceExtractor,
-			@Nullable WebServiceMessageFactory messageFactory) {
+			WebServiceMessageFactory messageFactory) {
 
 		super(uri, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();

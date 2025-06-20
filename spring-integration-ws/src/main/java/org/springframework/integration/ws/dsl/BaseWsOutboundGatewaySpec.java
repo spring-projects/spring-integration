@@ -61,7 +61,8 @@ public abstract class BaseWsOutboundGatewaySpec<
 	@SuppressWarnings("NullAway.Init")
 	protected String uri; // NOSONAR
 
-	protected @Nullable WebServiceMessageFactory webServiceMessageFactory; // NOSONAR
+	@SuppressWarnings("NullAway.Init")
+	protected WebServiceMessageFactory webServiceMessageFactory; // NOSONAR
 
 	private @Nullable SoapHeaderMapper headerMapper;
 
