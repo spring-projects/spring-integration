@@ -508,28 +508,6 @@ Otherwise, the whole message will be written by converting both message headers 
 By setting distributed object name in the header, messages can be written to different distributed objects via same channel.
 If `cache` or `cache-expression` attributes are not defined, a `HazelcastHeaders.CACHE_NAME` header has to be set in a request `Message`.
 
-[[hazelcast-leader-election]]
-== Hazelcast Leader Election
-
-If leader election is needed (e.g. for highly available message consumer where only one node should receive messages) a Hazelcast-based `LeaderInitiator` can be used:
-
-[source,java]
-----
-@Bean
-public HazelcastInstance hazelcastInstance() {
-    return Hazelcast.newHazelcastInstance();
-}
-
-@Bean
-public LeaderInitiator initiator() {
-    return new LeaderInitiator(hazelcastInstance());
-}
-----
-
-When a node is elected leader it will send an `OnGrantedEvent` to all application listeners.
-
-NOTE: The `LeaderInitiator` has been deprecated since version 6.5, since it relies on CP Subsystem which had been moved out of Open Source since Hazelcast 5.5.
-
 [[hazelcast-message-store]]
 == Hazelcast Message Store
 
@@ -571,31 +549,6 @@ public MetadataStore metadataStore() {
 ----
 
 The `HazelcastMetadataStore` implements `ListenableMetadataStore` which allows you to register your own listeners of type `MetadataStoreListener` to listen for events via `addListener(MetadataStoreListener callback)`.
-
-
-[[hazelcast-lock-registry]]
-== Hazelcast Lock Registry
-
-An implementation of a `LockRegistry` is available using a backing Hazelcast distributed `ILock` support:
-
-[source,java]
-----
-@Bean
-public HazelcastInstance hazelcastInstance() {
-    return Hazelcast.newHazelcastInstance();
-}
-
-@Bean
-public LockRegistry lockRegistry() {
-    return new HazelcastLockRegistry(hazelcastInstance());
-}
-----
-
-NOTE: The `HazelcastLockRegistry` has been deprecated since version 6.5, since it relies on CP Subsystem which had been moved out of Open Source since Hazelcast 5.5.
-
-When used with a shared `MessageGroupStore` (e.g. `Aggregator` store management), the `HazelcastLockRegistry` can be used to provide this functionality across multiple application instances, such that only one instance can manipulate the group at a time.
-
-NOTE: For all the distributed operations the CP Subsystem must be enabled on `HazelcastInstance`.
 
 [[hazelcast-message-channels]]
 == Message Channels with Hazelcast

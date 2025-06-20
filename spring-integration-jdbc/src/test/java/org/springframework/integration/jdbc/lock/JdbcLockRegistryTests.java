@@ -121,6 +121,7 @@ class JdbcLockRegistryTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	void testLockWithCustomTtl() throws Exception {
 		JdbcLockRegistry lockRegistry = new JdbcLockRegistry(client, Duration.ofMillis(100));
 		long sleepTimeLongerThanDefaultTTL = 110;
@@ -141,6 +142,7 @@ class JdbcLockRegistryTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	void testTryLockWithCustomTtl() throws Exception {
 		JdbcLockRegistry lockRegistry = new JdbcLockRegistry(client, Duration.ofMillis(100));
 		long sleepTimeLongerThanDefaultTTL = 110;
@@ -401,15 +403,15 @@ class JdbcLockRegistryTests {
 
 	@Test
 	void concurrentObtainCapacityTest() throws InterruptedException {
-		final int KEY_CNT = 500;
-		final int CAPACITY_CNT = 179;
-		final int THREAD_CNT = 4;
+		final int keyCnt = 500;
+		final int capacityCnt = 179;
+		final int threadCnt = 4;
 
-		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
-		registry.setCacheCapacity(CAPACITY_CNT);
-		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
+		final CountDownLatch countDownLatch = new CountDownLatch(threadCnt);
+		registry.setCacheCapacity(capacityCnt);
+		final ExecutorService executorService = Executors.newFixedThreadPool(threadCnt);
 
-		for (int i = 0; i < KEY_CNT; i++) {
+		for (int i = 0; i < keyCnt; i++) {
 			int finalI = i;
 			executorService.submit(() -> {
 				countDownLatch.countDown();
@@ -429,7 +431,7 @@ class JdbcLockRegistryTests {
 		executorService.awaitTermination(5, TimeUnit.SECONDS);
 
 		//capacity limit test
-		assertThat(getRegistryLocks(registry)).hasSize(CAPACITY_CNT);
+		assertThat(getRegistryLocks(registry)).hasSize(capacityCnt);
 
 		registry.expireUnusedOlderThan(-1000);
 		assertThat(getRegistryLocks(registry)).isEmpty();
@@ -437,24 +439,22 @@ class JdbcLockRegistryTests {
 
 	@Test
 	void concurrentObtainRemoveOrderTest() throws InterruptedException {
-		final int THREAD_CNT = 2;
-		final int DUMMY_LOCK_CNT = 3;
+		final int threadCnt = 2;
+		final int dummyLockCnt = 3;
 
-		final int CAPACITY_CNT = THREAD_CNT;
-
-		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
-		registry.setCacheCapacity(CAPACITY_CNT);
-		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
+		final CountDownLatch countDownLatch = new CountDownLatch(threadCnt);
+		registry.setCacheCapacity(threadCnt);
+		final ExecutorService executorService = Executors.newFixedThreadPool(threadCnt);
 		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
 
 		//Removed due to capcity limit
-		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
+		for (int i = 0; i < dummyLockCnt; i++) {
 			Lock obtainLock0 = registry.obtain("foo:" + i);
 			obtainLock0.lock();
 			obtainLock0.unlock();
 		}
 
-		for (int i = DUMMY_LOCK_CNT; i < THREAD_CNT + DUMMY_LOCK_CNT; i++) {
+		for (int i = dummyLockCnt; i < threadCnt + dummyLockCnt; i++) {
 			int finalI = i;
 			executorService.submit(() -> {
 				countDownLatch.countDown();
@@ -476,24 +476,24 @@ class JdbcLockRegistryTests {
 		executorService.awaitTermination(5, TimeUnit.SECONDS);
 
 		assertThat(getRegistryLocks(registry)).containsKeys(
-				remainLockCheckQueue.toArray(new String[remainLockCheckQueue.size()]));
+				remainLockCheckQueue.toArray(new String[0]));
 	}
 
 	@Test
 	void concurrentObtainAccessRemoveOrderTest() throws InterruptedException {
-		final int THREAD_CNT = 2;
-		final int DUMMY_LOCK_CNT = 3;
+		final int threadCnt = 2;
+		final int dummyLockCnt = 3;
 
-		final int CAPACITY_CNT = THREAD_CNT + 1;
+		final int CAPACITY_CNT = threadCnt + 1;
 		final String REMAIN_DUMMY_LOCK_KEY = "foo:1";
 
-		final CountDownLatch countDownLatch = new CountDownLatch(THREAD_CNT);
+		final CountDownLatch countDownLatch = new CountDownLatch(threadCnt);
 		registry.setCacheCapacity(CAPACITY_CNT);
-		final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_CNT);
+		final ExecutorService executorService = Executors.newFixedThreadPool(threadCnt);
 		final Queue<String> remainLockCheckQueue = new LinkedBlockingQueue<>();
 
 		//Removed due to capcity limit
-		for (int i = 0; i < DUMMY_LOCK_CNT; i++) {
+		for (int i = 0; i < dummyLockCnt; i++) {
 			Lock obtainLock0 = registry.obtain("foo:" + i);
 			obtainLock0.lock();
 			obtainLock0.unlock();
@@ -504,7 +504,7 @@ class JdbcLockRegistryTests {
 		obtainLock0.unlock();
 		remainLockCheckQueue.offer(toUUID(REMAIN_DUMMY_LOCK_KEY));
 
-		for (int i = DUMMY_LOCK_CNT; i < THREAD_CNT + DUMMY_LOCK_CNT; i++) {
+		for (int i = dummyLockCnt; i < threadCnt + dummyLockCnt; i++) {
 			int finalI = i;
 			executorService.submit(() -> {
 				countDownLatch.countDown();
@@ -531,15 +531,15 @@ class JdbcLockRegistryTests {
 
 	@Test
 	void setCapacityTest() {
-		final int CAPACITY_CNT = 4;
-		registry.setCacheCapacity(CAPACITY_CNT);
+		final int capacityCnt = 4;
+		registry.setCacheCapacity(capacityCnt);
 
 		registry.obtain("foo:1");
 		registry.obtain("foo:2");
 		registry.obtain("foo:3");
 
 		//capacity 4->3
-		registry.setCacheCapacity(CAPACITY_CNT - 1);
+		registry.setCacheCapacity(capacityCnt - 1);
 
 		registry.obtain("foo:4");
 
@@ -549,7 +549,7 @@ class JdbcLockRegistryTests {
 				toUUID("foo:4"));
 
 		//capacity 3->4
-		registry.setCacheCapacity(CAPACITY_CNT);
+		registry.setCacheCapacity(capacityCnt);
 		registry.obtain("foo:5");
 		assertThat(getRegistryLocks(registry)).hasSize(4);
 		assertThat(getRegistryLocks(registry)).containsKeys(toUUID("foo:3"),
@@ -588,7 +588,7 @@ class JdbcLockRegistryTests {
 		Lock lock2 = process2Registry.obtain("foo");
 
 		lock1.lock();
-		Thread.sleep(ttl);
+		Thread.sleep(ttl.toMillis());
 		assertThat(lock2.tryLock()).isTrue();
 
 		assertThatExceptionOfType(ConcurrentModificationException.class)

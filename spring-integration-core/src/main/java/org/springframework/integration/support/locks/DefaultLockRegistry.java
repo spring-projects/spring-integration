@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ *
  * @since 2.1.1
  *
  */
@@ -41,7 +42,7 @@ public final class DefaultLockRegistry implements LockRegistry<Lock> {
 	private final int mask;
 
 	/**
-	 * Constructs a DefaultLockRegistry with the default
+	 * Construct a DefaultLockRegistry with the default
 	 * mask 0xFF with 256 locks.
 	 */
 	public DefaultLockRegistry() {
@@ -49,7 +50,7 @@ public final class DefaultLockRegistry implements LockRegistry<Lock> {
 	}
 
 	/**
-	 * Constructs a DefaultLockRegistry with the supplied
+	 * Construct a DefaultLockRegistry with the supplied
 	 * mask - the mask must have a value Math.pow(2, n) - 1 where n
 	 * is 1 to 31, creating a hash of Math.pow(2, n) locks.
 	 * <p> Examples:
@@ -61,7 +62,8 @@ public final class DefaultLockRegistry implements LockRegistry<Lock> {
 	 */
 	public DefaultLockRegistry(int mask) {
 		String bits = Integer.toBinaryString(mask);
-		Assert.isTrue(bits.length() < 32 && (mask == 0 || bits.lastIndexOf('0') < bits.indexOf('1')), "Mask must be a power of 2 - 1"); // NOSONAR magic number
+		Assert.isTrue(bits.length() < 32 && (mask == 0 || bits.lastIndexOf('0') < bits.indexOf('1')),
+				"Mask must be a power of 2 - 1"); // NOSONAR magic number
 		this.mask = mask;
 		int arraySize = this.mask + 1;
 		this.lockTable = new ReentrantLock[arraySize];
@@ -71,14 +73,14 @@ public final class DefaultLockRegistry implements LockRegistry<Lock> {
 	}
 
 	/**
-	 * Obtains a lock by masking the lockKey's hashCode() with
+	 * Obtain a lock by masking the lockKey's hashCode() with
 	 * the mask and using the result as an index to the lock table.
 	 * @param lockKey the object used to derive the lock index.
 	 */
 	@Override
 	public Lock obtain(Object lockKey) {
 		Assert.notNull(lockKey, "'lockKey' must not be null");
-		Integer lockIndex = lockKey.hashCode() & this.mask;
+		int lockIndex = lockKey.hashCode() & this.mask;
 		return this.lockTable[lockIndex];
 	}
 

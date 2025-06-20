@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc.lock;
 
+import java.io.Serial;
 import java.time.Duration;
 import java.util.ConcurrentModificationException;
 import java.util.LinkedHashMap;
@@ -72,6 +73,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry<DistributedLock>,
 
 	private final Map<String, JdbcLock> locks =
 			new LinkedHashMap<>(16, 0.75F, true) {
+
+				@Serial
+				private static final long serialVersionUID = -8345579941944883141L;
 
 				@Override
 				protected boolean removeEldestEntry(Entry<String, JdbcLock> eldest) {

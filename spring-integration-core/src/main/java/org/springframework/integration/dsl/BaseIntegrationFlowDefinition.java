@@ -517,34 +517,6 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * Populate the {@code Control Bus} EI Pattern specific {@link MessageHandler} implementation
 	 * at the current {@link IntegrationFlow} chain position.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @since 6.4
-	 * @deprecated since 6.5 in favor of {@link #controlBus()}
-	 * @see ControlBusMessageProcessor
-	 */
-	@Deprecated(since = "6.5", forRemoval = true)
-	public B controlBusOnRegistry() {
-		return controlBus();
-	}
-
-	/**
-	 * Populate the {@code Control Bus} EI Pattern specific {@link MessageHandler} implementation
-	 * at the current {@link IntegrationFlow} chain position.
-	 * @param endpointConfigurer the {@link Consumer} to accept integration endpoint options.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
-	 * @since 6.4
-	 * @deprecated since 6.5 in favor of {@link #controlBus(Consumer)}
-	 * @see GenericEndpointSpec
-	 * @see ControlBusMessageProcessor
-	 */
-	@Deprecated(since = "6.5", forRemoval = true)
-	public B controlBusOnRegistry(@Nullable Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
-		return controlBus(endpointConfigurer);
-	}
-
-	/**
-	 * Populate the {@code Control Bus} EI Pattern specific {@link MessageHandler} implementation
-	 * at the current {@link IntegrationFlow} chain position.
-	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 */
 	public B controlBus() {
 		return controlBus(null);

@@ -114,7 +114,7 @@ public class LockRequestHandlerAdviceTests {
 	public static class Config {
 
 		@Bean
-		LockRegistry lockRegistry() {
+		LockRegistry<?> lockRegistry() {
 			return new DefaultLockRegistry();
 		}
 
@@ -124,7 +124,7 @@ public class LockRequestHandlerAdviceTests {
 		}
 
 		@Bean
-		LockRequestHandlerAdvice lockRequestHandlerAdvice(LockRegistry lockRegistry, QueueChannel discardChannel) {
+		LockRequestHandlerAdvice lockRequestHandlerAdvice(LockRegistry<?> lockRegistry, QueueChannel discardChannel) {
 			LockRequestHandlerAdvice lockRequestHandlerAdvice =
 					new LockRequestHandlerAdvice(lockRegistry, (message) -> message.getHeaders().get(LOCK_KEY_HEADER));
 			lockRequestHandlerAdvice.setDiscardChannel(discardChannel);
