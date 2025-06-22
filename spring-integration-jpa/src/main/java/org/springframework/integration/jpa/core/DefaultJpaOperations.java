@@ -25,12 +25,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Parameter;
 import jakarta.persistence.Query;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.jpa.support.JpaUtils;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 import org.springframework.integration.jpa.support.parametersource.PositionSupportingParameterSource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -74,7 +74,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 				}
 			}
 		}
-
+		Assert.state(entityClass != null, "'entityClass' must not be null");
 		EntityManager entityManager = getEntityManager();
 		final String entityName = JpaUtils.getEntityName(entityManager, entityClass);
 		final String queryString = JpaUtils.getQueryString(JpaUtils.DELETE_ALL_QUERY_STRING, entityName);
@@ -85,21 +85,21 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	}
 
 	@Override
-	public int executeUpdate(String updateQuery, ParameterSource source) {
+	public int executeUpdate(String updateQuery, @Nullable ParameterSource source) {
 		Query query = getEntityManager().createQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
 	@Override
-	public int executeUpdateWithNamedQuery(String updateQuery, ParameterSource source) {
+	public int executeUpdateWithNamedQuery(String updateQuery, @Nullable ParameterSource source) {
 		Query query = getEntityManager().createNamedQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
 	@Override
-	public int executeUpdateWithNativeQuery(String updateQuery, ParameterSource source) {
+	public int executeUpdateWithNativeQuery(String updateQuery, @Nullable ParameterSource source) {
 		Query query = getEntityManager().createNativeQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
@@ -110,7 +110,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		return getEntityManager().find(entityType, id);
 	}
 
-	private Query getQuery(String queryString, ParameterSource source) {
+	private Query getQuery(String queryString, @Nullable ParameterSource source) {
 		Query query = getEntityManager().createQuery(queryString);
 		setParametersIfRequired(queryString, source, query);
 		return query;
@@ -134,7 +134,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	@Override
 	public List<?> getResultListForNamedQuery(String selectNamedQuery,
-			ParameterSource parameterSource, int firstResult, int maxNumberOfResults) {
+			@Nullable ParameterSource parameterSource, int firstResult, int maxNumberOfResults) {
 
 		final Query query = getEntityManager().createNamedQuery(selectNamedQuery);
 		setParametersIfRequired(selectNamedQuery, parameterSource, query);
@@ -152,7 +152,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	@Override
 	public List<?> getResultListForNativeQuery(String selectQuery, @Nullable Class<?> entityClass,
-			ParameterSource parameterSource, int firstResult, int maxNumberOfResults) {
+			@Nullable ParameterSource parameterSource, int firstResult, int maxNumberOfResults) {
 
 		final Query query;
 
@@ -181,7 +181,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	}
 
 	@Override
-	public List<?> getResultListForQuery(String queryString, ParameterSource source,
+	public List<?> getResultListForQuery(String queryString, @Nullable ParameterSource source,
 			int firstResult, int maxNumberOfResults) {
 
 		Query query = getQuery(queryString, source);
@@ -266,7 +266,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		List<Object> mergedEntities = new ArrayList<>();
 
 		EntityManager entityManager = getEntityManager();
-		for (Object iteratedEntity : entities) {
+		for (@Nullable Object iteratedEntity : entities) {
 			if (iteratedEntity == null) {
 				nullEntities.incrementAndGet();
 			}

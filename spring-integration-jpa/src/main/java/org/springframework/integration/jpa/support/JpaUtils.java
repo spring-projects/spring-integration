@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.Assert;
 
@@ -84,7 +85,7 @@ public final class JpaUtils {
 	 * @return The alias, or null.
 	 *
 	 */
-	public static String detectAlias(String query) {
+	public static @Nullable String detectAlias(String query) {
 
 		Matcher matcher = ALIAS_MATCH.matcher(query);
 

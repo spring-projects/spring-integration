@@ -18,6 +18,7 @@ package org.springframework.integration.jpa.core;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
@@ -32,9 +33,9 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractJpaOperations implements JpaOperations, InitializingBean {
 
-	private EntityManager entityManager;
+	private @Nullable EntityManager entityManager;
 
-	private EntityManagerFactory entityManagerFactory;
+	private @Nullable EntityManagerFactory entityManagerFactory;
 
 	public void setEntityManager(EntityManager entityManager) {
 		Assert.notNull(entityManager, "The provided entityManager must not be null.");
@@ -42,6 +43,7 @@ abstract class AbstractJpaOperations implements JpaOperations, InitializingBean 
 	}
 
 	protected EntityManager getEntityManager() {
+		Assert.state(this.entityManager != null, "'entityManager' must not be null after initialized");
 		return this.entityManager;
 	}
 
@@ -72,6 +74,7 @@ abstract class AbstractJpaOperations implements JpaOperations, InitializingBean 
 
 	@Override
 	public void flush() {
+		Assert.state(this.entityManager != null, "'entityManager' must not be null after initialized");
 		this.entityManager.flush();
 	}
 

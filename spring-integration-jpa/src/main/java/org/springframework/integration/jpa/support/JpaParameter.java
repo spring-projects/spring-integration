@@ -16,10 +16,11 @@
 
 package org.springframework.integration.jpa.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -37,15 +38,15 @@ public class JpaParameter {
 
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
-	private String name;
+	private @Nullable String name;
 
-	private Object value;
+	private @Nullable Object value;
 
-	private String expression;
+	private @Nullable String expression;
 
-	private Expression spelExpression;
+	private @Nullable Expression spelExpression;
 
-	private Expression projectionExpression;
+	private @Nullable Expression projectionExpression;
 
 	/**
 	 * Default constructor.
@@ -77,7 +78,7 @@ public class JpaParameter {
 		setExpression(expression);
 	}
 
-	public String getName() {
+	public @Nullable String getName() {
 		return this.name;
 	}
 
