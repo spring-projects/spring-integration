@@ -16,10 +16,12 @@
 
 package org.springframework.integration.jpa.outbound;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
-import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * The {@link JpaOutboundGatewayFactoryBean} creates instances of the
@@ -38,7 +40,7 @@ import org.springframework.lang.Nullable;
  */
 public class JpaOutboundGatewayFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<JpaOutboundGateway> {
 
-	private JpaExecutor jpaExecutor;
+	private @Nullable JpaExecutor jpaExecutor;
 
 	private OutboundGatewayType gatewayType = OutboundGatewayType.UPDATING;
 
@@ -77,6 +79,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractSimpleMessageHandlerF
 
 	@Override
 	protected JpaOutboundGateway createHandler() {
+		Assert.state(this.jpaExecutor != null, "'jpaExecutor' must not be null");
 		JpaOutboundGateway jpaOutboundGateway = new JpaOutboundGateway(this.jpaExecutor);
 		jpaOutboundGateway.setGatewayType(this.gatewayType);
 		jpaOutboundGateway.setProducesReply(this.producesReply);

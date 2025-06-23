@@ -18,8 +18,9 @@ package org.springframework.integration.jpa.core;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
-import org.springframework.lang.Nullable;
 
 /**
  * The Interface containing all the JpaOperations those will be executed by
@@ -51,10 +52,10 @@ public interface JpaOperations {
 	 * Executes the given update statement and uses the given parameter source to
 	 * set the required query parameters.
 	 * @param updateQuery Must Not be empty.
-	 * @param source Must Not be null.
+	 * @param source Can be null.
 	 * @return The number of entities updated
 	 */
-	int executeUpdate(String updateQuery, ParameterSource source);
+	int executeUpdate(String updateQuery, @Nullable ParameterSource source);
 
 	/**
 	 *
@@ -62,7 +63,7 @@ public interface JpaOperations {
 	 * @param source The parameter source.
 	 * @return The number of entities updated.
 	 */
-	int executeUpdateWithNamedQuery(String updateQuery, ParameterSource source);
+	int executeUpdateWithNamedQuery(String updateQuery, @Nullable ParameterSource source);
 
 	/**
 	 *
@@ -70,7 +71,7 @@ public interface JpaOperations {
 	 * @param source The parameter source.
 	 * @return The number of entities updated
 	 */
-	int executeUpdateWithNativeQuery(String updateQuery, ParameterSource source);
+	int executeUpdateWithNativeQuery(String updateQuery, @Nullable ParameterSource source);
 
 	/**
 	 * Find an Entity of given type with the given primary key type.
@@ -100,7 +101,7 @@ public interface JpaOperations {
 	 * @param  maxNumberOfResults The number of objects to return.
 	 * @return The list of found entities.
 	 */
-	List<?> getResultListForNamedQuery(String selectNamedQuery, ParameterSource jpaQLParameterSource,
+	List<?> getResultListForNamedQuery(String selectNamedQuery, @Nullable ParameterSource jpaQLParameterSource,
 			int firstResult,
 			int maxNumberOfResults);
 
@@ -115,7 +116,7 @@ public interface JpaOperations {
 	 */
 	List<?> getResultListForNativeQuery(String selectQuery,
 			@Nullable Class<?> entityClass,
-			ParameterSource jpaQLParameterSource,
+			@Nullable ParameterSource jpaQLParameterSource,
 			int firstResult,
 			int maxNumberOfResults);
 
@@ -135,7 +136,8 @@ public interface JpaOperations {
 	 * @param source the Parameter source for this query to be executed, if none then set null.
 	 * @return The list of found entities.
 	 */
-	List<?> getResultListForQuery(String query, ParameterSource source, int firstResult, int maxNumberOfResults);
+	List<?> getResultListForQuery(String query, @Nullable ParameterSource source, int firstResult,
+			int maxNumberOfResults);
 
 	/**
 	 * Execute the provided query to return a single element.
@@ -155,7 +157,7 @@ public interface JpaOperations {
 	 * @param entity Must not be null.
 	 * @return The merged managed instance of the entity.
 	 */
-	Object merge(Object entity);
+	@Nullable Object merge(Object entity);
 
 	/**
 	 * The entity to be merged with the {@link jakarta.persistence.EntityManager}.
@@ -174,7 +176,7 @@ public interface JpaOperations {
 	 * @return The merged object.
 	 */
 
-	Object merge(Object entity, int flushSize, boolean clearOnFlush);
+	@Nullable Object merge(Object entity, int flushSize, boolean clearOnFlush);
 
 	/**
 	 * Persists the entity. The provided object can also be an {@link Iterable}

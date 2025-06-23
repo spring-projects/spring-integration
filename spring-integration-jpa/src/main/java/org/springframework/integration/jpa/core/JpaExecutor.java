@@ -20,6 +20,7 @@ import java.util.List;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -35,7 +36,6 @@ import org.springframework.integration.jpa.support.parametersource.BeanPropertyP
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 import org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -71,27 +71,27 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	private final JpaOperations jpaOperations;
 
-	private List<JpaParameter> jpaParameters;
+	private @Nullable List<JpaParameter> jpaParameters;
 
-	private Class<?> entityClass;
+	private @Nullable Class<?> entityClass;
 
-	private String jpaQuery;
+	private @Nullable String jpaQuery;
 
-	private String nativeQuery;
+	private @Nullable String nativeQuery;
 
-	private String namedQuery;
+	private @Nullable String namedQuery;
 
-	private Expression maxResultsExpression;
+	private @Nullable Expression maxResultsExpression;
 
-	private Expression firstResultExpression;
+	private @Nullable Expression firstResultExpression;
 
-	private Expression idExpression;
+	private @Nullable Expression idExpression;
 
 	private PersistMode persistMode = PersistMode.MERGE;
 
-	private ParameterSourceFactory parameterSourceFactory = null;
+	private @Nullable ParameterSourceFactory parameterSourceFactory = null;
 
-	private ParameterSource parameterSource;
+	private @Nullable ParameterSource parameterSource;
 
 	private boolean flush = false;
 
@@ -111,10 +111,12 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * default a {@link BeanPropertyParameterSourceFactory} implementation is
 	 * used for the sqlParameterSourceFactory property.
 	 */
-	private Boolean usePayloadAsParameterSource = null;
+	private @Nullable Boolean usePayloadAsParameterSource = null;
 
+	@SuppressWarnings("NullAway.Init")
 	private BeanFactory beanFactory;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	/**
@@ -157,6 +159,10 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		this.jpaOperations = jpaOperations;
 	}
 
+	/**
+	 * @deprecated in favor of the one obtained from the application context.
+	 */
+	@Deprecated(since = "7.0", forRemoval = true)
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		this.evaluationContext = evaluationContext;
 	}
@@ -398,10 +404,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		else if (this.flush) {
 			this.flushSize = 1;
 		}
-
-		if (this.evaluationContext == null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
 
 	/**
@@ -414,7 +417,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @return Either the number of affected entities when using a JPQL query.
 	 * When using a merge/persist the updated/inserted itself is returned.
 	 */
-	public Object executeOutboundJpaOperation(Message<?> message) {
+	public @Nullable Object executeOutboundJpaOperation(Message<?> message) {
 		ParameterSource paramSource = null;
 		if (this.jpaQuery != null || this.nativeQuery != null || this.namedQuery != null) {
 			paramSource = determineParameterSource(message);
@@ -433,7 +436,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		}
 	}
 
-	private Object executeOutboundJpaOperationOnPersistentMode(Message<?> message) {
+	private @Nullable Object executeOutboundJpaOperationOnPersistentMode(Message<?> message) {
 		Object payload = message.getPayload();
 		switch (this.persistMode) {
 			case PERSIST -> {
@@ -511,8 +514,9 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 					payload = result.iterator().next();
 				}
 				else {
-					throw new MessagingException(requestMessage, // NOSONAR
-							"The Jpa operation returned more than 1 result for expectSingleResult mode.");
+					String description = "The Jpa operation returned more than 1 result for expectSingleResult mode.";
+					throw requestMessage == null ? new MessagingException(description)
+							: new MessagingException(requestMessage, description);
 				}
 			}
 			else {
@@ -546,7 +550,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		}
 	}
 
-	protected List<?> doPoll(ParameterSource jpaQLParameterSource, int firstResult, int maxNumberOfResults) {
+	protected List<?> doPoll(@Nullable ParameterSource jpaQLParameterSource, int firstResult, int maxNumberOfResults) {
 		List<?> payload;
 		if (this.jpaQuery != null) {
 			payload =
@@ -609,7 +613,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	private ParameterSource determineParameterSource(final Message<?> requestMessage) {
-		if (this.usePayloadAsParameterSource) {
+		Assert.state(this.parameterSourceFactory != null, "'parameterSourceFactory' must not be null");
+		if (Boolean.TRUE.equals(this.usePayloadAsParameterSource)) {
 			return this.parameterSourceFactory.createParameterSource(requestMessage.getPayload());
 		}
 		else {

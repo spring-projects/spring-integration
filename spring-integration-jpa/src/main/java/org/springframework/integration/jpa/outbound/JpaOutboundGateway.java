@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jpa.outbound;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
@@ -69,7 +71,7 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		final Object result;
 		if (OutboundGatewayType.RETRIEVING.equals(this.gatewayType)) {
 			result = this.jpaExecutor.poll(requestMessage);

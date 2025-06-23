@@ -20,11 +20,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**

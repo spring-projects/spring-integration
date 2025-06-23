@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jpa.inbound;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.util.Assert;
@@ -76,7 +78,7 @@ public class JpaPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * no reason to emit an empty message from this message source.
 	 */
 	@Override
-	protected Object doReceive() {
+	protected @Nullable Object doReceive() {
 		Object result = this.jpaExecutor.poll();
 		return ObjectUtils.isEmpty(result) ? null : result;
 	}

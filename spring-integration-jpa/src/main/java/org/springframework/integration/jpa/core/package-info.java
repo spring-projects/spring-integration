@@ -1,5 +1,5 @@
 /**
  * Provides core classes of the JPA module.
  */
-@org.springframework.lang.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.springframework.integration.jpa.core;
