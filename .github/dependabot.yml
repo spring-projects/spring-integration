@@ -18,10 +18,9 @@ updates:
         update-types:
           - patch
         patterns:
-          - com.gradle.*
+          - org.gradle.*
           - com.github.spotbugs
           - io.spring.*
-          - org.ajoberstar.grgit
           - org.antora
           - com.google.protobuf
           - io.micrometer:micrometer-docs-generator
@@ -64,10 +63,9 @@ updates:
         update-types:
           - patch
         patterns:
-          - com.gradle.*
+          - org.gradle.*
           - com.github.spotbugs
           - io.spring.*
-          - org.ajoberstar.grgit
           - org.antora
           - com.google.protobuf
           - io.micrometer:micrometer-docs-generator
@@ -95,7 +93,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      day: saturday
+      day: sunday
     labels:
       - 'type: task'
     groups:
@@ -108,7 +106,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      day: saturday
+      day: sunday
     labels:
       - 'type: task'
     groups:
