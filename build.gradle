@@ -70,6 +70,7 @@ ext {
     hsqldbVersion = '2.7.4'
     h2Version = '2.3.232'
     jacksonVersion = '2.19.1'
+    jackson3Version = '3.0.0-rc5'
     jaxbVersion = '4.0.5'
     jcifsVersion = '2.1.40'
     jeroMqVersion = '0.6.0'
@@ -156,6 +157,7 @@ allprojects {
 
         imports {
             mavenBom "com.fasterxml.jackson:jackson-bom:$jacksonVersion"
+            mavenBom "tools.jackson:jackson-bom:$jackson3Version"
             mavenBom "io.micrometer:micrometer-bom:$micrometerVersion"
             mavenBom "io.micrometer:micrometer-tracing-bom:$micrometerTracingVersion"
             mavenBom "io.projectreactor:reactor-bom:$reactorVersion"
@@ -444,6 +446,7 @@ project('spring-integration-amqp') {
         testImplementation 'org.springframework:spring-web'
         testImplementation 'org.testcontainers:rabbitmq'
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
 
@@ -488,6 +491,11 @@ project('spring-integration-core') {
         api 'io.projectreactor:reactor-core'
         api 'io.micrometer:micrometer-observation'
 
+        optionalApi 'tools.jackson.core:jackson-databind'
+        optionalApi 'tools.jackson.datatype:jackson-datatype-joda'
+        optionalApi('tools.jackson.module:jackson-module-kotlin') {
+            exclude group: 'org.jetbrains.kotlin'
+        }
         optionalApi 'com.fasterxml.jackson.core:jackson-databind'
         optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
         optionalApi 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
@@ -583,6 +591,7 @@ project('spring-integration-file') {
         testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
         testImplementation "com.jayway.jsonpath:json-path:$jsonpathVersion"
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
 
@@ -659,6 +668,7 @@ project('spring-integration-http') {
         testImplementation 'org.springframework.security:spring-security-config'
         testImplementation 'org.springframework.security:spring-security-test'
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'tools.jackson.core:jackson-databind'
 
         testRuntimeOnly "com.jayway.jsonpath:json-path:$jsonpathVersion"
     }
@@ -672,6 +682,7 @@ project('spring-integration-ip') {
 
         testRuntimeOnly "com.esotericsoftware:kryo:$kryoVersion"
         testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
+        testRuntimeOnly 'tools.jackson.core:jackson-databind'
     }
 
     tasks.withType(JavaForkOptions) {
@@ -700,6 +711,7 @@ project('spring-integration-jdbc') {
         testImplementation 'org.testcontainers:oracle-xe'
 
         testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
+        testRuntimeOnly 'tools.jackson.core:jackson-databind'
         testRuntimeOnly "com.oracle.database.jdbc:ojdbc11:$oracleVersion"
     }
 }
@@ -716,6 +728,7 @@ project('spring-integration-jms') {
         testImplementation "org.apache.activemq:artemis-jakarta-client:$artemisVersion"
         testImplementation 'org.springframework:spring-oxm'
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'tools.jackson.core:jackson-databind'
         testImplementation 'io.micrometer:micrometer-observation-test'
     }
 }
@@ -748,6 +761,7 @@ project('spring-integration-kafka') {
             exclude group: 'ch.qos.logback'
         }
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
 
@@ -793,6 +807,7 @@ project('spring-integration-mqtt') {
 
         testImplementation project(':spring-integration-jmx')
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
 
@@ -803,6 +818,7 @@ project('spring-integration-redis') {
 
         testImplementation "io.lettuce:lettuce-core:$lettuceVersion"
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'tools.jackson.core:jackson-databind'
     }
 }
 
@@ -873,6 +889,7 @@ project('spring-integration-stomp') {
         }
         testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'tools.jackson.core:jackson-databind'
 
         testRuntimeOnly 'org.springframework:spring-webmvc'
         testRuntimeOnly 'io.projectreactor.netty:reactor-netty-http'
@@ -922,6 +939,7 @@ project('spring-integration-webflux') {
         testImplementation 'org.springframework.security:spring-security-config'
         testImplementation 'org.springframework.security:spring-security-test'
         testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+        testImplementation 'tools.jackson.core:jackson-databind'
         testImplementation 'io.micrometer:micrometer-observation-test'
         testImplementation('io.micrometer:micrometer-tracing-integration-test') {
             exclude group: 'io.opentelemetry'
@@ -944,6 +962,7 @@ project('spring-integration-websocket') {
         testImplementation "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
 
         testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind'
+        testRuntimeOnly 'tools.jackson.core:jackson-databind'
     }
 
     tasks.withType(JavaForkOptions) {
@@ -1015,6 +1034,7 @@ project('spring-integration-zeromq') {
         api "org.zeromq:jeromq:$jeroMqVersion"
 
         optionalApi 'com.fasterxml.jackson.core:jackson-databind'
+        optionalApi 'tools.jackson.core:jackson-databind'
     }
 }
 
