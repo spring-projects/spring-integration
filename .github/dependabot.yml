@@ -21,7 +21,6 @@ updates:
           - org.gradle.*
           - com.github.spotbugs
           - io.spring.*
-          - org.ajoberstar.grgit
           - org.antora
           - com.google.protobuf
           - io.micrometer:micrometer-docs-generator
@@ -67,7 +66,6 @@ updates:
           - org.gradle.*
           - com.github.spotbugs
           - io.spring.*
-          - org.ajoberstar.grgit
           - org.antora
           - com.google.protobuf
           - io.micrometer:micrometer-docs-generator
@@ -113,7 +111,6 @@ updates:
           - org.gradle.*
           - com.github.spotbugs
           - io.spring.*
-          - org.ajoberstar.grgit
           - org.antora
           - com.google.protobuf
           - io.micrometer:micrometer-docs-generator

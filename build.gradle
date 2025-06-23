@@ -17,7 +17,6 @@ buildscript {
 plugins {
     id 'base'
     id 'io.spring.nohttp' version '0.0.11' apply false
-    id 'org.ajoberstar.grgit' version '5.3.2'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.jetbrains.dokka' version '1.9.20'
     id 'org.antora' version '1.0.0'
@@ -46,14 +45,6 @@ ext {
     linkScmUrl = 'https://github.com/spring-projects/spring-integration'
     linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
     linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
-
-    modifiedFiles =
-            files()
-                    .from {
-                        files(grgit.status().unstaged.modified)
-                                .filter { f -> f.name.endsWith('.java') || f.name.endsWith('.kt') || f.name.endsWith('.groovy') }
-                    }
-    modifiedFiles.finalizeValueOnRead()
 
     apacheSshdVersion = '2.15.0'
     artemisVersion = '2.41.0'
