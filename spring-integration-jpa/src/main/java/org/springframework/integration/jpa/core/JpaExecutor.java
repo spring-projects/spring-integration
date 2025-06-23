@@ -113,9 +113,11 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 */
 	private @Nullable Boolean usePayloadAsParameterSource = null;
 
-	private @Nullable BeanFactory beanFactory;
+	@SuppressWarnings("NullAway.Init")
+	private BeanFactory beanFactory;
 
-	private @Nullable EvaluationContext evaluationContext;
+	@SuppressWarnings("NullAway.Init")
+	private EvaluationContext evaluationContext;
 
 	/**
 	 * Constructor taking an {@link EntityManagerFactory} from which the
@@ -482,7 +484,6 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		final Object payload;
 
 		if (this.idExpression != null) {
-			Assert.state(this.evaluationContext != null, "'evaluationContext' must not be null");
 			Object id = this.idExpression.getValue(this.evaluationContext, requestMessage); // NOSONAR It can be null
 			Assert.state(id != null, "The 'idExpression' cannot evaluate to null.");
 			Class<?> entityClazz = this.entityClass;
@@ -585,7 +586,6 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 		int evaluatedResult = 0;
 		if (expression != null) {
-			Assert.state(this.evaluationContext != null, "'evaluationContext' must not be null");
 			Object evaluationResult = expression.getValue(this.evaluationContext, requestMessage); // NOSONAR can be
 			// null
 			if (evaluationResult != null) {

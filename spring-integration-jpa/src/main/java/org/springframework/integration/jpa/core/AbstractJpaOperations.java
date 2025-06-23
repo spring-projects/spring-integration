@@ -33,7 +33,8 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractJpaOperations implements JpaOperations, InitializingBean {
 
-	private @Nullable EntityManager entityManager;
+	@SuppressWarnings("NullAway.Init")
+	private EntityManager entityManager;
 
 	private @Nullable EntityManagerFactory entityManagerFactory;
 
@@ -43,7 +44,6 @@ abstract class AbstractJpaOperations implements JpaOperations, InitializingBean 
 	}
 
 	protected EntityManager getEntityManager() {
-		Assert.state(this.entityManager != null, "'entityManager' must not be null after initialized");
 		return this.entityManager;
 	}
 
@@ -74,7 +74,6 @@ abstract class AbstractJpaOperations implements JpaOperations, InitializingBean 
 
 	@Override
 	public void flush() {
-		Assert.state(this.entityManager != null, "'entityManager' must not be null after initialized");
 		this.entityManager.flush();
 	}
 
