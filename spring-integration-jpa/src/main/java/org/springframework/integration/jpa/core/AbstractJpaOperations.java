@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jpa.core;
 
+import java.util.Objects;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.jspecify.annotations.Nullable;
@@ -33,8 +35,7 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractJpaOperations implements JpaOperations, InitializingBean {
 
-	@SuppressWarnings("NullAway.Init")
-	private EntityManager entityManager;
+	private @Nullable EntityManager entityManager;
 
 	private @Nullable EntityManagerFactory entityManagerFactory;
 
@@ -44,7 +45,7 @@ abstract class AbstractJpaOperations implements JpaOperations, InitializingBean 
 	}
 
 	protected EntityManager getEntityManager() {
-		return this.entityManager;
+		return Objects.requireNonNull(this.entityManager);
 	}
 
 	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
@@ -74,7 +75,7 @@ abstract class AbstractJpaOperations implements JpaOperations, InitializingBean 
 
 	@Override
 	public void flush() {
-		this.entityManager.flush();
+		Objects.requireNonNull(this.entityManager).flush();
 	}
 
 }

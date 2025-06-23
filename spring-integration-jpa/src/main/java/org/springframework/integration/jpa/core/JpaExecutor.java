@@ -159,6 +159,10 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		this.jpaOperations = jpaOperations;
 	}
 
+	/**
+	 * deprecated setIntegrationEvaluationContext, in favor of the one obtained from the application context.
+	 */
+	@Deprecated(since = "7.0", forRemoval = true)
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		this.evaluationContext = evaluationContext;
 	}
@@ -400,10 +404,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		else if (this.flush) {
 			this.flushSize = 1;
 		}
-
-		if (this.evaluationContext == null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
 
 	/**
