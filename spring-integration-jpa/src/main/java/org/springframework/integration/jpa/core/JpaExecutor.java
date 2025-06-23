@@ -160,7 +160,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	 * deprecated setIntegrationEvaluationContext, in favor of the one obtained from the application context.
+	 * @deprecated in favor of the one obtained from the application context.
 	 */
 	@Deprecated(since = "7.0", forRemoval = true)
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
@@ -613,9 +613,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	private ParameterSource determineParameterSource(final Message<?> requestMessage) {
-		Assert.state(this.usePayloadAsParameterSource != null, "'usePayloadAsParameterSource' must not be null");
 		Assert.state(this.parameterSourceFactory != null, "'parameterSourceFactory' must not be null");
-		if (this.usePayloadAsParameterSource) {
+		if (Boolean.TRUE.equals(this.usePayloadAsParameterSource)) {
 			return this.parameterSourceFactory.createParameterSource(requestMessage.getPayload());
 		}
 		else {
