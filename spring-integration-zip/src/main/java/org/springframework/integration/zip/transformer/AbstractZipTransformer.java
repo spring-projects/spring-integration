@@ -19,6 +19,8 @@ package org.springframework.integration.zip.transformer;
 import java.io.File;
 import java.nio.charset.Charset;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -93,7 +95,7 @@ public abstract class AbstractZipTransformer extends AbstractTransformer {
 	 * @param message the message and its payload must not be null.
 	 */
 	@Override
-	protected Object doTransform(Message<?> message) {
+	protected @Nullable Object doTransform(Message<?> message) {
 		return doZipTransform(message);
 	}
 
@@ -103,6 +105,6 @@ public abstract class AbstractZipTransformer extends AbstractTransformer {
 	 * @param message The message will never be null.
 	 * @return The result of the Zip transformation.
 	 */
-	protected abstract Object doZipTransform(Message<?> message);
+	protected abstract @Nullable Object doZipTransform(Message<?> message);
 
 }

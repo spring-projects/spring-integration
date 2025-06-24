@@ -25,15 +25,18 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 
 import org.apache.commons.io.IOUtils;
+import org.jspecify.annotations.Nullable;
 import org.zeroturnaround.zip.ZipEntryCallback;
 import org.zeroturnaround.zip.ZipException;
 import org.zeroturnaround.zip.ZipUtil;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.util.Assert;
 
 /**
  * Transformer implementation that applies an UnZip transformation to the message
@@ -68,7 +71,7 @@ public class UnZipTransformer extends AbstractZipTransformer {
 	}
 
 	@Override
-	protected Object doZipTransform(final Message<?> message) {
+	protected @Nullable Object doZipTransform(final Message<?> message) {
 		Object payload = message.getPayload();
 		Object unzippedData;
 
@@ -100,6 +103,10 @@ public class UnZipTransformer extends AbstractZipTransformer {
 
 			final SortedMap<String, Object> uncompressedData = new TreeMap<>();
 
+			UUID messageId = message.getHeaders().getId();
+			Assert.state(messageId != null,
+					() -> "The 'MessageHeaders.ID' must be provided in request message: " + message);
+
 			ZipUtil.iterate(inputStream, new ZipEntryCallback() {
 
 				@Override
@@ -115,7 +122,7 @@ public class UnZipTransformer extends AbstractZipTransformer {
 							zipEntryName, zipEntryTime, zipEntryCompressedSize, type));
 
 					if (ZipResultType.FILE.equals(zipResultType)) {
-						final File destinationFile = checkPath(message, zipEntryName);
+						final File destinationFile = checkPath(messageId, zipEntryName);
 
 						if (zipEntry.isDirectory()) {
 							destinationFile.mkdirs(); //NOSONAR false positive
@@ -128,7 +135,7 @@ public class UnZipTransformer extends AbstractZipTransformer {
 					}
 					else if (ZipResultType.BYTE_ARRAY.equals(zipResultType)) {
 						if (!zipEntry.isDirectory()) {
-							checkPath(message, zipEntryName);
+							checkPath(messageId, zipEntryName);
 							byte[] data = IOUtils.toByteArray(zipEntryInputStream);
 							uncompressedData.put(zipEntryName, data);
 						}
@@ -138,8 +145,8 @@ public class UnZipTransformer extends AbstractZipTransformer {
 					}
 				}
 
-				public File checkPath(final Message<?> message, final String zipEntryName) throws IOException {
-					File tempDir = new File(workDirectory, message.getHeaders().getId().toString()); // NOSONAR
+				public File checkPath(UUID messageId, final String zipEntryName) throws IOException {
+					File tempDir = new File(workDirectory, messageId.toString());
 					tempDir.mkdirs(); //NOSONAR false positive
 					final File destinationFile = new File(tempDir, zipEntryName);
 
@@ -157,7 +164,7 @@ public class UnZipTransformer extends AbstractZipTransformer {
 			});
 
 			if (uncompressedData.isEmpty()) {
-				logger.warn(() -> "No data unzipped from payload with message Id " + message.getHeaders().getId());
+				logger.warn(() -> "No data unzipped from payload with message Id " + messageId);
 				unzippedData = null;
 			}
 			else {
@@ -169,8 +176,7 @@ public class UnZipTransformer extends AbstractZipTransformer {
 					else {
 						throw new MessagingException(message,
 								String.format("The UnZip operation extracted %s "
-										+ "result objects but expectSingleResult was 'true'.", uncompressedData
-										.size()));
+										+ "result objects but expectSingleResult was 'true'.", uncompressedData.size()));
 					}
 				}
 				else {

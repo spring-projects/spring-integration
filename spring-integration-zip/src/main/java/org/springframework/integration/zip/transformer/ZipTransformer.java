@@ -60,6 +60,7 @@ public class ZipTransformer extends AbstractZipTransformer {
 
 	private boolean useFileAttributes = true;
 
+	@SuppressWarnings("NullAway.Init")
 	private FileNameGenerator fileNameGenerator;
 
 	/**
@@ -214,7 +215,7 @@ public class ZipTransformer extends AbstractZipTransformer {
 		if (item instanceof final File filePayload) {
 			String fileName = useFileAttributes ? filePayload.getName() : zipEntryName;
 
-			if (((File) item).isDirectory()) {
+			if (filePayload.isDirectory()) {
 				throw new UnsupportedOperationException("Zipping of directories is not supported.");
 			}
 
@@ -222,14 +223,10 @@ public class ZipTransformer extends AbstractZipTransformer {
 
 		}
 		else if (item instanceof byte[] || item instanceof String) {
-			byte[] bytesToCompress;
-
-			if (item instanceof String) {
-				bytesToCompress = ((String) item).getBytes(this.charset);
-			}
-			else {
-				bytesToCompress = (byte[]) item;
-			}
+			byte[] bytesToCompress =
+					item instanceof String stringItem
+							? stringItem.getBytes(this.charset)
+							: (byte[]) item;
 
 			return new ByteSource(zipEntryName, bytesToCompress, lastModifiedDate.getTime());
 		}
