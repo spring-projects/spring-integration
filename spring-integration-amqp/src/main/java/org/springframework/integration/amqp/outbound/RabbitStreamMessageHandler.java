@@ -27,6 +27,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.MappingUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
@@ -77,6 +78,7 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 	public RabbitStreamMessageHandler(RabbitStreamOperations streamOperations) {
 		Assert.notNull(streamOperations, "'streamOperations' cannot be null");
 		this.streamOperations = streamOperations;
+		this.sendFailureChannelName = IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME;
 	}
 
 	/**
