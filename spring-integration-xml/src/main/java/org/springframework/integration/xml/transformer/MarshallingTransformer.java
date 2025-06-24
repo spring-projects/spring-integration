@@ -20,6 +20,8 @@ import java.io.IOException;
 
 import javax.xml.transform.Result;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.oxm.Marshaller;
@@ -39,11 +41,11 @@ public class MarshallingTransformer extends AbstractXmlTransformer {
 
 	private final Marshaller marshaller;
 
-	private final ResultTransformer resultTransformer;
+	private final @Nullable ResultTransformer resultTransformer;
 
 	private volatile boolean extractPayload = true;
 
-	public MarshallingTransformer(Marshaller marshaller, ResultTransformer resultTransformer) {
+	public MarshallingTransformer(Marshaller marshaller, @Nullable ResultTransformer resultTransformer) {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
 		this.resultTransformer = resultTransformer;

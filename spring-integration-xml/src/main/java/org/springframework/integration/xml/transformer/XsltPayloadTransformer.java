@@ -33,6 +33,7 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Document;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -89,17 +90,19 @@ import org.springframework.xml.transform.TransformerFactoryUtils;
  */
 public class XsltPayloadTransformer extends AbstractXmlTransformer implements BeanClassLoaderAware {
 
-	private final ResultTransformer resultTransformer;
+	private final @Nullable ResultTransformer resultTransformer;
 
-	private final Resource xslResource;
+	private final @Nullable Resource xslResource;
 
+	@SuppressWarnings("NullAway.Init")
 	private Templates templates;
 
-	private String transformerFactoryClassName;
+	private @Nullable String transformerFactoryClassName;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile StandardEvaluationContext evaluationContext;
 
-	private Map<String, Expression> xslParameterMappings;
+	private @Nullable Map<String, Expression> xslParameterMappings;
 
 	private SourceFactory sourceFactory = new DomSourceFactory();
 
@@ -109,15 +112,15 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 
 	private boolean alwaysUseResultFactory = false;
 
-	private String[] xsltParamHeaders;
+	private String @Nullable [] xsltParamHeaders;
 
 	public XsltPayloadTransformer(Templates templates) {
 		this(templates, null);
 	}
 
-	private ClassLoader classLoader;
+	private @Nullable ClassLoader classLoader;
 
-	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) {
+	public XsltPayloadTransformer(Templates templates, @Nullable ResultTransformer resultTransformer) {
 		Assert.notNull(templates, "'templates' must not be null.");
 		this.templates = templates;
 		this.resultTransformer = resultTransformer;
@@ -136,8 +139,8 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		this(xslResource, null, transformerFactoryClassName);
 	}
 
-	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer,
-			String transformerFactoryClassName) {
+	public XsltPayloadTransformer(Resource xslResource, @Nullable ResultTransformer resultTransformer,
+			@Nullable String transformerFactoryClassName) {
 
 		Assert.notNull(xslResource, "'xslResource' must not be null.");
 		Assert.isTrue(xslResource instanceof ClassPathResource ||
@@ -230,6 +233,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.templates == null) {
 			try {
+				Assert.notNull(this.xslResource, "'xslResource' must not be null.");
 				TransformerFactory transformerFactory = createTransformerFactory();
 				this.templates = transformerFactory.newTemplates(createStreamSourceOnResource(this.xslResource));
 			}

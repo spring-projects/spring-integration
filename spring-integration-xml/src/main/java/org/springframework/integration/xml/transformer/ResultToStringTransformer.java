@@ -28,6 +28,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.xml.transform.StringResult;
@@ -48,7 +50,7 @@ public class ResultToStringTransformer implements ResultTransformer {
 
 	private final TransformerFactory transformerFactory;
 
-	private Properties outputProperties;
+	private @Nullable Properties outputProperties;
 
 	public ResultToStringTransformer() {
 		this.transformerFactory = TransformerFactoryUtils.newInstance();

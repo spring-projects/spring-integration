@@ -27,6 +27,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Document;
 
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
@@ -68,7 +69,7 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 
 	private boolean alwaysUseSourceFactory = false;
 
-	private MimeMessageUnmarshallerHelper mimeMessageUnmarshallerHelper;
+	private @Nullable MimeMessageUnmarshallerHelper mimeMessageUnmarshallerHelper;
 
 	public UnmarshallingTransformer(Unmarshaller unmarshaller) {
 		this.unmarshaller = unmarshaller;
@@ -162,7 +163,7 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 			this.delegate = unmarshaller;
 		}
 
-		Object maybeUnmarshalMimeMessage(Object payload) throws IOException {
+		@Nullable Object maybeUnmarshalMimeMessage(Object payload) throws IOException {
 			if (payload instanceof org.springframework.ws.mime.MimeMessage mimeMessage) {
 				return org.springframework.ws.support.MarshallingUtils.unmarshal(this.delegate,
 					mimeMessage);

@@ -24,6 +24,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -88,7 +89,7 @@ public final class XPathUtils {
 	 * @throws XPathException - if the xpath expression can't be evaluated.
 	 */
 	@SuppressWarnings({"unchecked"})
-	public static <T> T evaluate(Object object, String xpath, Object... resultArg) {
+	public static @Nullable <T> T evaluate(Object object, String xpath, Object... resultArg) {
 		Object resultType = null;
 		if (resultArg != null && resultArg.length > 0) {
 			Assert.isTrue(resultArg.length == 1, "'resultArg' can contains only one element.");
@@ -109,6 +110,7 @@ public final class XPathUtils {
 			if (DOCUMENT_LIST.equals(resType)) {
 				List<Node> nodeList = (List<Node>) XPathEvaluationType.NODE_LIST_RESULT.evaluateXPath(expression,
 						node);
+				Assert.notNull(nodeList, "'nodeList' must not be null.");
 				try {
 					DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
 					List<Node> documents = new ArrayList<>(nodeList.size());
