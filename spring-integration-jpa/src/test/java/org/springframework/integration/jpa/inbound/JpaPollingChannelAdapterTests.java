@@ -65,6 +65,7 @@ public class JpaPollingChannelAdapterTests {
 	private GenericApplicationContext context;
 
 	@Autowired
+	@Qualifier("em")
 	EntityManager entityManager;
 
 	@Autowired
