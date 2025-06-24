@@ -16,6 +16,8 @@
 
 package org.springframework.integration.xml.transformer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
@@ -39,9 +41,9 @@ public abstract class AbstractXmlTransformer extends AbstractTransformer {
 
 	public static final String STRING_RESULT = "StringResult";
 
-	private volatile String resultType;
+	private volatile @Nullable String resultType;
 
-	private volatile String resultFactoryName;
+	private volatile @Nullable String resultFactoryName;
 
 	private volatile ResultFactory resultFactory = new DomResultFactory();
 
@@ -58,11 +60,11 @@ public abstract class AbstractXmlTransformer extends AbstractTransformer {
 		this.resultFactory = resultFactory;
 	}
 
-	public String getResultType() {
+	public @Nullable String getResultType() {
 		return this.resultType;
 	}
 
-	public String getResultFactoryName() {
+	public @Nullable String getResultFactoryName() {
 		return this.resultFactoryName;
 	}
 
@@ -85,7 +87,7 @@ public abstract class AbstractXmlTransformer extends AbstractTransformer {
 	 * a bean definition for a {@link ResultFactory} based on either the
 	 * 'result-factory' or 'result-type' attributes.
 	 */
-	private ResultFactory configureResultFactory(String resultType, String resultFactoryName, BeanFactory beanFactory) {
+	private @Nullable ResultFactory configureResultFactory(@Nullable String resultType, @Nullable String resultFactoryName, BeanFactory beanFactory) {
 		boolean bothHaveText = StringUtils.hasText(resultFactoryName) && StringUtils.hasText(resultType);
 		ResultFactory configuredResultFactory = null;
 		Assert.state(!bothHaveText, "Only one of 'result-factory' or 'result-type' should be specified.");

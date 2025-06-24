@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.xpath;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import org.springframework.xml.xpath.XPathExpression;
@@ -36,7 +37,7 @@ public enum XPathEvaluationType {
 	},
 
 	STRING_RESULT {
-		public Object evaluateXPath(XPathExpression expression, Node node) {
+		public @Nullable Object evaluateXPath(XPathExpression expression, Node node) {
 			return expression.evaluateAsString(node);
 		}
 	},
@@ -48,7 +49,7 @@ public enum XPathEvaluationType {
 	},
 
 	NODE_RESULT {
-		public Object evaluateXPath(XPathExpression expression, Node node) {
+		public @Nullable Object evaluateXPath(XPathExpression expression, Node node) {
 			return expression.evaluateAsNode(node);
 		}
 	},
@@ -59,6 +60,6 @@ public enum XPathEvaluationType {
 		}
 	};
 
-	public abstract Object evaluateXPath(XPathExpression expression, Node node);
+	public abstract @Nullable Object evaluateXPath(XPathExpression expression, Node node);
 
 }

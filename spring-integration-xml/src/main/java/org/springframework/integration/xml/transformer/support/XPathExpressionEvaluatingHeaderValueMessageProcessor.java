@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.transformer.support;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import org.springframework.beans.BeansException;
@@ -55,9 +56,9 @@ public class XPathExpressionEvaluatingHeaderValueMessageProcessor implements Hea
 
 	private XPathEvaluationType evaluationType = XPathEvaluationType.STRING_RESULT;
 
-	private TypeDescriptor headerTypeDescriptor;
+	private @Nullable TypeDescriptor headerTypeDescriptor;
 
-	private Boolean overwrite;
+	private @Nullable Boolean overwrite;
 
 	public XPathExpressionEvaluatingHeaderValueMessageProcessor(String expression) {
 		this(expression, new DefaultXmlPayloadConverter());
@@ -107,7 +108,7 @@ public class XPathExpressionEvaluatingHeaderValueMessageProcessor implements Hea
 	}
 
 	@Override
-	public Boolean isOverwrite() {
+	public @Nullable Boolean isOverwrite() {
 		return this.overwrite;
 	}
 
@@ -120,7 +121,7 @@ public class XPathExpressionEvaluatingHeaderValueMessageProcessor implements Hea
 	}
 
 	@Override
-	public Object processMessage(Message<?> message) {
+	public @Nullable Object processMessage(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
 		Object result = this.evaluationType.evaluateXPath(this.expression, node);
 		if (result instanceof String string && string.isEmpty()) {

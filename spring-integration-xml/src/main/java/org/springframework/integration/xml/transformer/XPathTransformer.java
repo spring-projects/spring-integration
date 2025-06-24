@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import org.springframework.integration.transformer.AbstractTransformer;
@@ -50,7 +51,7 @@ public class XPathTransformer extends AbstractTransformer {
 
 	private volatile XPathEvaluationType evaluationType = XPathEvaluationType.STRING_RESULT;
 
-	private volatile NodeMapper<?> nodeMapper;
+	private volatile @Nullable NodeMapper<?> nodeMapper;
 
 	/**
 	 * Create an {@link XPathTransformer} that will create an XPath expression from the given String
@@ -110,7 +111,7 @@ public class XPathTransformer extends AbstractTransformer {
 	}
 
 	@Override
-	protected Object doTransform(Message<?> message) {
+	protected @Nullable Object doTransform(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
 		Object result = null;
 		if (this.nodeMapper != null) {

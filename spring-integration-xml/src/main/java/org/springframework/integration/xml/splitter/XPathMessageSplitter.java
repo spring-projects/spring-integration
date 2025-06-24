@@ -38,6 +38,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -82,7 +83,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 	private final XPathExpression xpathExpression;
 
-	private javax.xml.xpath.XPathExpression jaxpExpression;
+	private javax.xml.xpath.@Nullable XPathExpression jaxpExpression;
 
 	private boolean createDocuments;
 
@@ -90,7 +91,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 	private XmlPayloadConverter xmlPayloadConverter = new DefaultXmlPayloadConverter();
 
-	private Properties outputProperties;
+	private @Nullable Properties outputProperties;
 
 	private boolean returnIterator = true;
 
@@ -292,7 +293,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	}
 
 	private Object splitNode(Node node) throws ParserConfigurationException {
-		if (this.returnIterator) {
+		if (this.returnIterator && this.jaxpExpression != null) {
 			try {
 				NodeList nodeList = (NodeList) this.jaxpExpression.evaluate(node, XPathConstants.NODESET);
 				return new NodeListIterator(nodeList);
@@ -338,7 +339,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 	private final class NodeListIterator implements Iterator<Node> {
 
-		private final DocumentBuilder documentBuilder;
+		private final @Nullable DocumentBuilder documentBuilder;
 
 		private final NodeList nodeList;
 
@@ -360,7 +361,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		}
 
 		@Override
-		public Node next() {
+		public @Nullable Node next() {
 			if (!hasNext()) {
 				return null;
 			}

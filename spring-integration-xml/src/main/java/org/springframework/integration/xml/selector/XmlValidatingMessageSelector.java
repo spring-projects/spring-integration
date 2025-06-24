@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 
+import org.jspecify.annotations.Nullable;
 import org.xml.sax.SAXParseException;
 
 import org.springframework.core.io.Resource;
@@ -83,7 +84,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 	 * @param schemaType The schema type.
 	 * @throws IOException if the XmlValidatorFactory fails to create a validator
 	 */
-	public XmlValidatingMessageSelector(Resource schema, SchemaType schemaType) throws IOException {
+	public XmlValidatingMessageSelector(Resource schema, @Nullable SchemaType schemaType) throws IOException {
 		this(XmlValidatorFactory.createValidator(schema,
 				schemaType == null
 						? SchemaType.XML_SCHEMA.getUrl()
@@ -95,7 +96,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 		this.xmlValidator = xmlValidator;
 	}
 
-	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
+	public XmlValidatingMessageSelector(Resource schema, @Nullable String schemaType) throws IOException {
 		this(schema,
 				StringUtils.hasText(schemaType)
 						? SchemaType.valueOf(schemaType.toUpperCase().replaceFirst("-", "_"))

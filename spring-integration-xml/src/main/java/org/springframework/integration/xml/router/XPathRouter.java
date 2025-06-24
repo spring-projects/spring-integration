@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 
@@ -128,7 +129,7 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 		}
 
 		@Override
-		public Object mapNode(Node node, int nodeNum) throws DOMException {
+		public @Nullable Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent();
 		}
 
