@@ -38,25 +38,26 @@ import org.springframework.util.Assert;
  *
  * @since 7.0
  */
-public class Jackson3JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
+public class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
+
 	private static final JsonFactory JSON_FACTORY = JsonFactory.builder().build();
 
-	public Jackson3JsonMessageParser() {
-		this(new Jackson3JsonObjectMapper());
+	public JacksonJsonMessageParser() {
+		this(new JacksonJsonObjectMapper());
 	}
 
-	public Jackson3JsonMessageParser(Jackson3JsonObjectMapper objectMapper) {
+	public JacksonJsonMessageParser(JacksonJsonObjectMapper objectMapper) {
 		super(objectMapper);
 	}
 
 	@Override
-	protected JsonParser createJsonParser(String jsonMessage) throws JacksonException {
+	protected JsonParser createJsonParser(String jsonMessage) {
 		return JSON_FACTORY.createParser(ObjectReadContext.empty(), jsonMessage);
 	}
 
 	@Override
 	protected Message<?> parseWithHeaders(JsonParser parser, String jsonMessage,
-			@Nullable Map<String, Object> headersToAdd) throws JacksonException {
+			@Nullable Map<String, Object> headersToAdd) {
 
 		String error = AbstractJsonInboundMessageMapper.MESSAGE_FORMAT_ERROR + jsonMessage;
 		Assert.isTrue(JsonToken.START_OBJECT == parser.nextToken(), error);

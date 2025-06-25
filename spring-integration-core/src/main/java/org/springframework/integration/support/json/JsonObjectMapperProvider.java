@@ -45,7 +45,7 @@ public final class JsonObjectMapperProvider {
 			return new Jackson2JsonObjectMapper();
 		}
 		else if (JacksonPresent.isJackson3Present()) {
-			return new Jackson3JsonObjectMapper();
+			return new JacksonJsonObjectMapper();
 		}
 		else {
 			throw new IllegalStateException("No jackson-databind.jar is present in the classpath.");
