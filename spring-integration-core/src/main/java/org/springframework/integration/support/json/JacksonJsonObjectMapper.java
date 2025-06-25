@@ -17,19 +17,17 @@
 package org.springframework.integration.support.json;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
-import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -37,7 +35,6 @@ import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Jackson 3 JSON-processor (@link https://github.com/FasterXML)
@@ -57,25 +54,17 @@ import org.springframework.util.ClassUtils;
  * @since 7.0
  *
  */
-public class Jackson3JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
-
-	private static final boolean JODA_MODULE_PRESENT =
-			ClassUtils.isPresent("tools.jackson.datatype.joda.JodaModule", null);
-
-	private static final boolean KOTLIN_MODULE_PRESENT =
-			ClassUtils.isPresent("kotlin.Unit", null) &&
-					ClassUtils.isPresent("tools.jackson.module.kotlin.KotlinModule", null);
+public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
 
 	private final ObjectMapper objectMapper;
 
-	public Jackson3JsonObjectMapper() {
-		List<JacksonModule> jacksonModules = collectWellKnownModulesIfAvailable();
+	public JacksonJsonObjectMapper() {
 		this.objectMapper = JsonMapper.builder()
-				.addModules(jacksonModules)
+				.findAndAddModules(JacksonJsonObjectMapper.class.getClassLoader())
 				.build();
 	}
 
-	public Jackson3JsonObjectMapper(ObjectMapper objectMapper) {
+	public JacksonJsonObjectMapper(ObjectMapper objectMapper) {
 		Assert.notNull(objectMapper, "objectMapper must not be null");
 		this.objectMapper = objectMapper;
 	}
@@ -85,17 +74,27 @@ public class Jackson3JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	}
 
 	@Override
-	public String toJson(Object value) throws JacksonException {
-		return this.objectMapper.writeValueAsString(value);
+	public String toJson(Object value) throws IOException {
+		try {
+			return this.objectMapper.writeValueAsString(value);
+		}
+		catch (JacksonException e) {
+			throw new IOException(e);
+		}
 	}
 
 	@Override
-	public void toJson(Object value, Writer writer) throws JacksonException {
-		this.objectMapper.writeValue(writer, value);
+	public void toJson(Object value, Writer writer) throws IOException {
+		try {
+			this.objectMapper.writeValue(writer, value);
+		}
+		catch (JacksonException e) {
+		throw new IOException(e);
+		}
 	}
 
 	@Override
-	public JsonNode toJsonNode(Object json) throws JacksonException {
+	public JsonNode toJsonNode(Object json) throws IOException {
 		try {
 			if (json instanceof String) {
 				return this.objectMapper.readTree((String) json);
@@ -118,7 +117,7 @@ public class Jackson3JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 		}
 		catch (JacksonException e) {
 			if (!(json instanceof String) && !(json instanceof byte[])) {
-				throw e;
+				throw new IOException(e);
 			}
 			// Otherwise the input might not be valid JSON, fallback to TextNode with ObjectMapper.valueToTree()
 		}
@@ -127,34 +126,44 @@ public class Jackson3JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	}
 
 	@Override
-	protected <T> T fromJson(Object json, JavaType type) throws RuntimeException {
-		if (json instanceof String) {
-			return this.objectMapper.readValue((String) json, type);
+	protected <T> T fromJson(Object json, JavaType type) throws IOException {
+		try {
+			if (json instanceof String) {
+				return this.objectMapper.readValue((String) json, type);
+			}
+			else if (json instanceof byte[]) {
+				return this.objectMapper.readValue((byte[]) json, type);
+			}
+			else if (json instanceof File) {
+				return this.objectMapper.readValue((File) json, type);
+			}
+			else if (json instanceof URL) {
+				return this.objectMapper.readValue((URL) json, type);
+			}
+			else if (json instanceof InputStream) {
+				return this.objectMapper.readValue((InputStream) json, type);
+			}
+			else if (json instanceof Reader) {
+				return this.objectMapper.readValue((Reader) json, type);
+			}
+			else {
+				throw new IllegalArgumentException("'json' argument must be an instance of: " + SUPPORTED_JSON_TYPES
+						+ " , but gotten: " + json.getClass());
+			}
 		}
-		else if (json instanceof byte[]) {
-			return this.objectMapper.readValue((byte[]) json, type);
-		}
-		else if (json instanceof File) {
-			return this.objectMapper.readValue((File) json, type);
-		}
-		else if (json instanceof URL) {
-			return this.objectMapper.readValue((URL) json, type);
-		}
-		else if (json instanceof InputStream) {
-			return this.objectMapper.readValue((InputStream) json, type);
-		}
-		else if (json instanceof Reader) {
-			return this.objectMapper.readValue((Reader) json, type);
-		}
-		else {
-			throw new IllegalArgumentException("'json' argument must be an instance of: " + SUPPORTED_JSON_TYPES
-					+ " , but gotten: " + json.getClass());
+		catch (JacksonException e) {
+			throw new IOException(e);
 		}
 	}
 
 	@Override
-	public <T> T fromJson(JsonParser parser, Type valueType) throws JacksonException {
-		return this.objectMapper.readValue(parser, constructType(valueType));
+	public <T> T fromJson(JsonParser parser, Type valueType) throws IOException {
+		try {
+			return this.objectMapper.readValue(parser, constructType(valueType));
+		}
+		catch (JacksonException e) {
+			throw new IOException(e);
+		}
 	}
 
 	@Override
@@ -180,31 +189,6 @@ public class Jackson3JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	@Override
 	protected JavaType constructType(Type type) {
 		return this.objectMapper.constructType(type);
-	}
-
-	private List<JacksonModule> collectWellKnownModulesIfAvailable() {
-		List<JacksonModule> modules = new ArrayList<>();
-		if (JODA_MODULE_PRESENT) {
-			modules.add(JodaModuleProvider.MODULE);
-		}
-		if (KOTLIN_MODULE_PRESENT) {
-			modules.add(KotlinModuleProvider.MODULE);
-		}
-		return modules;
-	}
-
-	private static final class JodaModuleProvider {
-
-		static final tools.jackson.databind.JacksonModule MODULE =
-				new tools.jackson.datatype.joda.JodaModule();
-
-	}
-
-	private static final class KotlinModuleProvider {
-
-		static final tools.jackson.databind.JacksonModule MODULE =
-				new tools.jackson.module.kotlin.KotlinModule.Builder().build();
-
 	}
 
 }
