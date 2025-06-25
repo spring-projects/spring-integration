@@ -221,7 +221,6 @@ class JacksonJsonObjectMapperTest {
 		String json = mapper.toJson(data);
 		assertThat("{\"localDate\":\"2000-01-01T00:00:00\",\"zoneDate\":\"2000-01-01T00:00:00Z\"}").isEqualTo(json);
 
-		// 물어보기
 		TimeData deserialized = mapper.fromJson(json, TimeData.class);
 		assertThat(deserialized.localDate()).isEqualTo(data.localDate());
 		assertThat(deserialized.zoneDate().toInstant()).isEqualTo(data.zoneDate().toInstant());
