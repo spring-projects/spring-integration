@@ -16,6 +16,8 @@
 
 package org.springframework.integration.amqp.support;
 
+import java.io.Serial;
+
 import org.springframework.amqp.core.Message;
 import org.springframework.messaging.MessagingException;
 
@@ -28,6 +30,7 @@ import org.springframework.messaging.MessagingException;
  */
 public class ReturnedAmqpMessageException extends MessagingException {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private final Message amqpMessage;

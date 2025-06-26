@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
@@ -72,55 +73,55 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	private static final String NO_ID = new UUID(0L, 0L).toString();
 
-	private String exchangeName;
-
-	private String routingKey;
-
-	private Expression exchangeNameExpression;
-
-	private Expression routingKeyExpression;
-
-	private ExpressionEvaluatingMessageProcessor<String> routingKeyGenerator;
-
-	private ExpressionEvaluatingMessageProcessor<String> exchangeNameGenerator;
+	private final Lock lock = new ReentrantLock();
 
 	private AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
 
-	private Expression confirmCorrelationExpression;
+	private @Nullable String exchangeName;
 
-	private ExpressionEvaluatingMessageProcessor<Object> correlationDataGenerator;
+	private @Nullable String routingKey;
 
-	private MessageChannel confirmAckChannel;
+	private @Nullable Expression exchangeNameExpression;
 
-	private String confirmAckChannelName;
+	private @Nullable Expression routingKeyExpression;
 
-	private MessageChannel confirmNackChannel;
+	private @Nullable ExpressionEvaluatingMessageProcessor<String> routingKeyGenerator;
 
-	private String confirmNackChannelName;
+	private @Nullable ExpressionEvaluatingMessageProcessor<String> exchangeNameGenerator;
 
-	private MessageChannel returnChannel;
+	private @Nullable Expression confirmCorrelationExpression;
 
-	private MessageDeliveryMode defaultDeliveryMode;
+	private @Nullable ExpressionEvaluatingMessageProcessor<Object> correlationDataGenerator;
+
+	private @Nullable MessageChannel confirmAckChannel;
+
+	private @Nullable String confirmAckChannelName;
+
+	private @Nullable MessageChannel confirmNackChannel;
+
+	private @Nullable String confirmNackChannelName;
+
+	private @Nullable MessageChannel returnChannel;
+
+	private @Nullable MessageDeliveryMode defaultDeliveryMode;
 
 	private boolean lazyConnect = true;
 
-	private ConnectionFactory connectionFactory;
+	private @Nullable ConnectionFactory connectionFactory;
 
-	private Expression delayExpression;
+	private @Nullable Expression delayExpression;
 
-	private ExpressionEvaluatingMessageProcessor<Long> delayGenerator;
+	private @Nullable ExpressionEvaluatingMessageProcessor<Long> delayGenerator;
 
 	private boolean headersMappedLast;
 
-	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
+	private @Nullable ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
-	private Duration confirmTimeout;
+	private @Nullable Duration confirmTimeout;
 
 	private volatile boolean running;
 
-	private volatile ScheduledFuture<?> confirmChecker;
-
-	private final Lock lock = new ReentrantLock();
+	private volatile @Nullable ScheduledFuture<?> confirmChecker;
 
 	/**
 	 * Set a custom {@link AmqpHeaderMapper} for mapping request and reply headers.
@@ -327,7 +328,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	 * @param errorMessageStrategy the strategy.
 	 * @since 4.3.12
 	 */
-	public void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+	public void setErrorMessageStrategy(@Nullable ErrorMessageStrategy errorMessageStrategy) {
 		this.errorMessageStrategy = errorMessageStrategy;
 	}
 
@@ -353,27 +354,27 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		}
 	}
 
-	protected String getExchangeName() {
+	protected @Nullable String getExchangeName() {
 		return this.exchangeName;
 	}
 
-	protected String getRoutingKey() {
+	protected @Nullable String getRoutingKey() {
 		return this.routingKey;
 	}
 
-	protected Expression getExchangeNameExpression() {
+	protected @Nullable Expression getExchangeNameExpression() {
 		return this.exchangeNameExpression;
 	}
 
-	protected Expression getRoutingKeyExpression() {
+	protected @Nullable Expression getRoutingKeyExpression() {
 		return this.routingKeyExpression;
 	}
 
-	protected ExpressionEvaluatingMessageProcessor<String> getRoutingKeyGenerator() {
+	protected @Nullable ExpressionEvaluatingMessageProcessor<String> getRoutingKeyGenerator() {
 		return this.routingKeyGenerator;
 	}
 
-	protected ExpressionEvaluatingMessageProcessor<String> getExchangeNameGenerator() {
+	protected @Nullable ExpressionEvaluatingMessageProcessor<String> getExchangeNameGenerator() {
 		return this.exchangeNameGenerator;
 	}
 
@@ -381,33 +382,33 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return this.headerMapper;
 	}
 
-	protected Expression getConfirmCorrelationExpression() {
+	protected @Nullable Expression getConfirmCorrelationExpression() {
 		return this.confirmCorrelationExpression;
 	}
 
-	protected ExpressionEvaluatingMessageProcessor<Object> getCorrelationDataGenerator() {
+	protected @Nullable ExpressionEvaluatingMessageProcessor<Object> getCorrelationDataGenerator() {
 		return this.correlationDataGenerator;
 	}
 
-	protected MessageChannel getConfirmAckChannel() {
+	protected @Nullable MessageChannel getConfirmAckChannel() {
 		if (this.confirmAckChannel == null && this.confirmAckChannelName != null) {
 			this.confirmAckChannel = getChannelResolver().resolveDestination(this.confirmAckChannelName);
 		}
 		return this.confirmAckChannel;
 	}
 
-	protected MessageChannel getConfirmNackChannel() {
+	protected @Nullable MessageChannel getConfirmNackChannel() {
 		if (this.confirmNackChannel == null && this.confirmNackChannelName != null) {
 			this.confirmNackChannel = getChannelResolver().resolveDestination(this.confirmNackChannelName);
 		}
 		return this.confirmNackChannel;
 	}
 
-	protected MessageChannel getReturnChannel() {
+	protected @Nullable MessageChannel getReturnChannel() {
 		return this.returnChannel;
 	}
 
-	protected MessageDeliveryMode getDefaultDeliveryMode() {
+	protected @Nullable MessageDeliveryMode getDefaultDeliveryMode() {
 		return this.defaultDeliveryMode;
 	}
 
@@ -419,8 +420,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return this.headersMappedLast;
 	}
 
-	@Nullable
-	protected Duration getConfirmTimeout() {
+	protected @Nullable Duration getConfirmTimeout() {
 		return this.confirmTimeout;
 	}
 
@@ -445,9 +445,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		if (this.exchangeNameExpression != null) {
 			this.exchangeNameGenerator =
 					new ExpressionEvaluatingMessageProcessor<>(this.exchangeNameExpression, String.class);
-			if (beanFactory != null) {
-				this.exchangeNameGenerator.setBeanFactory(beanFactory);
-			}
+			this.exchangeNameGenerator.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -457,9 +455,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		if (this.routingKeyExpression != null) {
 			this.routingKeyGenerator =
 					new ExpressionEvaluatingMessageProcessor<>(this.routingKeyExpression, String.class);
-			if (beanFactory != null) {
-				this.routingKeyGenerator.setBeanFactory(beanFactory);
-			}
+			this.routingKeyGenerator.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -467,9 +463,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		if (this.confirmCorrelationExpression != null) {
 			this.correlationDataGenerator =
 					new ExpressionEvaluatingMessageProcessor<>(this.confirmCorrelationExpression, Object.class);
-			if (beanFactory != null) {
-				this.correlationDataGenerator.setBeanFactory(beanFactory);
-			}
+			this.correlationDataGenerator.setBeanFactory(beanFactory);
 		}
 		else {
 			NullChannel nullChannel = extractTypeIfPossible(this.confirmAckChannel, NullChannel.class);
@@ -486,9 +480,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	private void configureDelayGenerator(BeanFactory beanFactory) {
 		if (this.delayExpression != null) {
 			this.delayGenerator = new ExpressionEvaluatingMessageProcessor<>(this.delayExpression, Long.class);
-			if (beanFactory != null) {
-				this.delayGenerator.setBeanFactory(beanFactory);
-			}
+			this.delayGenerator.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -506,19 +498,18 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			if (!this.running) {
 				if (!this.lazyConnect && this.connectionFactory != null) {
 					try {
-						Connection connection = this.connectionFactory.createConnection(); // NOSONAR (close)
-						if (connection != null) {
-							connection.close();
-						}
+						Connection connection = this.connectionFactory.createConnection();
+						connection.close();
 					}
 					catch (RuntimeException ex) {
 						logger.error(ex, "Failed to eagerly establish the connection.");
 					}
 				}
 				doStart();
-				if (this.confirmTimeout != null && getConfirmNackChannel() != null && getRabbitTemplate() != null) {
+				Duration confirmTimeoutToUse = this.confirmTimeout;
+				if (confirmTimeoutToUse != null && getConfirmNackChannel() != null && getRabbitTemplate() != null) {
 					this.confirmChecker = getTaskScheduler()
-							.scheduleAtFixedRate(checkUnconfirmed(), this.confirmTimeout.dividedBy(2L));
+							.scheduleAtFixedRate(checkUnconfirmed(confirmTimeoutToUse), confirmTimeoutToUse.dividedBy(2L));
 				}
 				this.running = true;
 			}
@@ -529,12 +520,12 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	}
 
-	private Runnable checkUnconfirmed() {
+	private Runnable checkUnconfirmed(Duration confirmTimeoutToUse) {
 		return () -> {
 			RabbitTemplate rabbitTemplate = getRabbitTemplate();
 			if (rabbitTemplate != null) {
 				Collection<CorrelationData> unconfirmed =
-						rabbitTemplate.getUnconfirmed(getConfirmTimeout().toMillis());
+						rabbitTemplate.getUnconfirmed(confirmTimeoutToUse.toMillis());
 				if (unconfirmed != null) {
 					unconfirmed.forEach(correlation -> handleConfirm(correlation, false, "Confirm timed out"));
 				}
@@ -553,8 +544,9 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 				doStop();
 			}
 			this.running = false;
-			if (this.confirmChecker != null) {
-				this.confirmChecker.cancel(false);
+			ScheduledFuture<?> confirmCheckerToCancel = this.confirmChecker;
+			if (confirmCheckerToCancel != null) {
+				confirmCheckerToCancel.cancel(false);
 				this.confirmChecker = null;
 			}
 		}
@@ -574,7 +566,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return this.running;
 	}
 
-	protected CorrelationData generateCorrelationData(Message<?> requestMessage) {
+	protected @Nullable CorrelationData generateCorrelationData(Message<?> requestMessage) {
 		CorrelationData correlationData = null;
 		UUID uuid = requestMessage.getHeaders().getId();
 		String messageId;
@@ -606,7 +598,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return correlationData;
 	}
 
-	protected String generateExchangeName(Message<?> requestMessage) {
+	protected @Nullable String generateExchangeName(Message<?> requestMessage) {
 		String exchange = this.exchangeName;
 		if (this.exchangeNameGenerator != null) {
 			exchange = this.exchangeNameGenerator.processMessage(requestMessage);
@@ -614,7 +606,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return exchange;
 	}
 
-	protected String generateRoutingKey(Message<?> requestMessage) {
+	protected @Nullable String generateRoutingKey(Message<?> requestMessage) {
 		String key = this.routingKey;
 		if (this.routingKeyGenerator != null) {
 			key = this.routingKeyGenerator.processMessage(requestMessage);
@@ -665,12 +657,12 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return message;
 	}
 
-	protected void handleConfirm(CorrelationData correlationData, boolean ack, String cause) {
-		CorrelationDataWrapper wrapper = (CorrelationDataWrapper) correlationData;
+	protected void handleConfirm(@Nullable CorrelationData correlationData, boolean ack, @Nullable String cause) {
 		if (correlationData == null) {
 			logger.debug(() -> "No correlation data provided for ack: " + ack + " cause:" + cause);
 			return;
 		}
+		CorrelationDataWrapper wrapper = (CorrelationDataWrapper) correlationData;
 		Object userCorrelationData = wrapper.getUserData();
 		MessageChannel ackChannel = getConfirmAckChannel();
 		if (ack && ackChannel != null) {
@@ -688,7 +680,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		}
 	}
 
-	private Message<?> buildConfirmMessage(boolean ack, String cause, CorrelationDataWrapper wrapper,
+	private Message<?> buildConfirmMessage(boolean ack, @Nullable String cause, CorrelationDataWrapper wrapper,
 			Object userCorrelationData) {
 
 		if (this.errorMessageStrategy == null || ack) {
@@ -704,7 +696,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		}
 		else {
 			return this.errorMessageStrategy.buildErrorMessage(new NackedAmqpMessageException(wrapper.getMessage(),
-					wrapper.getUserData(), cause), null);
+					wrapper.getUserData(), Objects.requireNonNull(cause)), null);
 		}
 	}
 

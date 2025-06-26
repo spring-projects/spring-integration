@@ -173,8 +173,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * @param requestMessage The request message.
 	 * @return The result of handling the message, or {@code null}.
 	 */
-	@Nullable
-	protected abstract Object handleRequestMessage(Message<?> requestMessage);
+	protected abstract @Nullable Object handleRequestMessage(Message<?> requestMessage);
 
 	/**
 	 * An implementation of this interface is used to wrap the

@@ -26,6 +26,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.GetResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.batch.BatchingStrategy;
@@ -178,7 +179,7 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 	}
 
 	@Override
-	protected AbstractIntegrationMessageBuilder<Object> doReceive() {
+	protected @Nullable AbstractIntegrationMessageBuilder<Object> doReceive() {
 		Connection connection = this.connectionFactory.createConnection(); // NOSONAR - RabbitUtils
 		Channel channel = connection.createChannel(this.transacted);
 		try {
@@ -193,8 +194,8 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 			MessageProperties messageProperties = this.propertiesConverter.toMessageProperties(resp.getProps(),
 					resp.getEnvelope(), StandardCharsets.UTF_8.name());
 			messageProperties.setConsumerQueue(this.queue);
-			Map<String, Object> headers = this.headerMapper.toHeadersFromRequest(messageProperties);
-			org.springframework.amqp.core.Message amqpMessage = new org.springframework.amqp.core.Message(resp.getBody(), messageProperties);
+			Map<String, @Nullable Object> headers = this.headerMapper.toHeadersFromRequest(messageProperties);
+			var amqpMessage = new org.springframework.amqp.core.Message(resp.getBody(), messageProperties);
 			Object payload;
 			if (this.batchingStrategy.canDebatch(messageProperties)) {
 				List<Object> payloads = new ArrayList<>();
@@ -232,7 +233,7 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 	public static class AmqpAckCallback implements AcknowledgmentCallback {
 
-		private static Log logger = LogFactory.getLog(AmqpAckCallback.class);
+		private static final Log LOGGER = LogFactory.getLog(AmqpAckCallback.class);
 
 		private final AmqpAckInfo ackInfo;
 
@@ -270,28 +271,28 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 		@Override
 		public void acknowledge(Status status) {
 			Assert.notNull(status, "'status' cannot be null");
-			if (logger.isTraceEnabled()) {
-				logger.trace("acknowledge(" + status.name() + ") for " + this);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("acknowledge(" + status.name() + ") for " + this);
 			}
 			try {
-				long deliveryTag = this.ackInfo.getGetResponse().getEnvelope().getDeliveryTag();
+				long deliveryTag = this.ackInfo.getResponse().getEnvelope().getDeliveryTag();
 				switch (status) {
-					case ACCEPT -> this.ackInfo.getChannel().basicAck(deliveryTag, false);
-					case REJECT -> this.ackInfo.getChannel().basicReject(deliveryTag, false);
-					case REQUEUE -> this.ackInfo.getChannel().basicReject(deliveryTag, true);
+					case ACCEPT -> this.ackInfo.channel().basicAck(deliveryTag, false);
+					case REJECT -> this.ackInfo.channel().basicReject(deliveryTag, false);
+					case REQUEUE -> this.ackInfo.channel().basicReject(deliveryTag, true);
 					default -> {
 					}
 				}
-				if (this.ackInfo.isTransacted()) {
-					this.ackInfo.getChannel().txCommit();
+				if (this.ackInfo.transacted()) {
+					this.ackInfo.channel().txCommit();
 				}
 			}
 			catch (IOException e) {
 				throw RabbitExceptionTranslator.convertRabbitAccessException(e);
 			}
 			finally {
-				RabbitUtils.closeChannel(this.ackInfo.getChannel());
-				RabbitUtils.closeConnection(this.ackInfo.getConnection());
+				RabbitUtils.closeChannel(this.ackInfo.channel());
+				RabbitUtils.closeConnection(this.ackInfo.connection());
 				this.acknowledged = true;
 			}
 		}
@@ -306,36 +307,29 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 	/**
 	 * Information for building an AmqpAckCallback.
+	 * @param connection the {@link Connection} to use
+	 * @param channel the {@link Channel} to use
+	 * @param transacted if channel is transacted
+	 * @param getResponse the {@link GetResponse} to use
 	 */
-	public static class AmqpAckInfo {
+	public record AmqpAckInfo(Connection connection, Channel channel, boolean transacted, GetResponse getResponse) {
 
-		private final Connection connection;
-
-		private final Channel channel;
-
-		private final boolean transacted;
-
-		private final GetResponse getResponse;
-
-		public AmqpAckInfo(Connection connection, Channel channel, boolean transacted, GetResponse getResponse) {
-			this.connection = connection;
-			this.channel = channel;
-			this.transacted = transacted;
-			this.getResponse = getResponse;
-		}
-
+		@Deprecated(since = "7.0", forRemoval = true)
 		public Connection getConnection() {
 			return this.connection;
 		}
 
+		@Deprecated(since = "7.0", forRemoval = true)
 		public Channel getChannel() {
 			return this.channel;
 		}
 
+		@Deprecated(since = "7.0", forRemoval = true)
 		public boolean isTransacted() {
 			return this.transacted;
 		}
 
+		@Deprecated(since = "7.0", forRemoval = true)
 		public GetResponse getGetResponse() {
 			return this.getResponse;
 		}

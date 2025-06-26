@@ -28,6 +28,8 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.util.StringUtils;
 import org.springframework.ws.soap.SoapHeader;
@@ -59,7 +61,7 @@ import org.springframework.xml.transform.TransformerHelper;
  */
 public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> implements SoapHeaderMapper {
 
-	protected static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
+	protected static final List<String> STANDARD_HEADER_NAMES = new ArrayList<>();
 
 	static {
 		STANDARD_HEADER_NAMES.add(WebServiceHeaders.SOAP_ACTION);
@@ -68,14 +70,14 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 	protected final TransformerHelper transformerHelper = new TransformerHelper(); // NOSONAR final
 
 	public DefaultSoapHeaderMapper() {
-		super(WebServiceHeaders.PREFIX, STANDARD_HEADER_NAMES, Collections.<String>emptyList());
+		super(WebServiceHeaders.PREFIX, STANDARD_HEADER_NAMES, Collections.emptyList());
 	}
 
 	@Override
 	protected Map<String, Object> extractStandardHeaders(SoapMessage source) {
 		final String soapAction = source.getSoapAction();
 		if (StringUtils.hasText(soapAction)) {
-			Map<String, Object> headers = new HashMap<String, Object>(1);
+			Map<String, Object> headers = new HashMap<>(1);
 			headers.put(WebServiceHeaders.SOAP_ACTION, soapAction);
 			return headers;
 		}
@@ -85,8 +87,8 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 	}
 
 	@Override
-	protected Map<String, Object> extractUserDefinedHeaders(SoapMessage source) {
-		Map<String, Object> headers = new HashMap<String, Object>();
+	protected Map<String, @Nullable Object> extractUserDefinedHeaders(SoapMessage source) {
+		Map<String, @Nullable Object> headers = new HashMap<>();
 		SoapHeader soapHeader = source.getSoapHeader();
 		if (soapHeader != null) {
 			Iterator<?> attributeIter = soapHeader.getAllAttributes();
@@ -94,10 +96,7 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 				Object name = attributeIter.next();
 				if (name instanceof QName) {
 					String qnameString = QNameUtils.toQualifiedName((QName) name);
-					String value = soapHeader.getAttributeValue((QName) name);
-					if (value != null) {
-						headers.put(qnameString, value);
-					}
+					headers.put(qnameString, soapHeader.getAttributeValue((QName) name));
 				}
 			}
 			Iterator<?> elementIter = soapHeader.examineAllHeaderElements();

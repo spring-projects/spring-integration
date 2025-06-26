@@ -105,7 +105,7 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 	 * @return The result of processing the message.
 	 */
 	@Override
-	public T processMessage(Message<?> message) {
+	public @Nullable T processMessage(Message<?> message) {
 		return evaluateExpression(this.expression, message, this.expectedType);
 	}
 

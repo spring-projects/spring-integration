@@ -39,6 +39,7 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
  */
 public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmqpChannel {
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Queue queue;
 
 	/**

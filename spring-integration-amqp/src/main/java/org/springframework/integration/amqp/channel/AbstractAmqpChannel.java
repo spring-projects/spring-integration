@@ -16,6 +16,10 @@
 
 package org.springframework.integration.amqp.channel;
 
+import java.util.Objects;
+
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -53,21 +57,21 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 
 	private final AmqpTemplate amqpTemplate;
 
-	private final RabbitTemplate rabbitTemplate;
+	private final @Nullable RabbitTemplate rabbitTemplate;
 
 	private final AmqpHeaderMapper outboundHeaderMapper;
 
 	private final AmqpHeaderMapper inboundHeaderMapper;
 
-	private AmqpAdmin admin;
+	private @Nullable AmqpAdmin admin;
 
-	private ConnectionFactory connectionFactory;
+	private @Nullable ConnectionFactory connectionFactory;
 
 	private boolean extractPayload;
 
 	private boolean loggingEnabled = true;
 
-	private MessageDeliveryMode defaultDeliveryMode;
+	private @Nullable MessageDeliveryMode defaultDeliveryMode;
 
 	private boolean headersMappedLast;
 
@@ -149,8 +153,6 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 	public void setExtractPayload(boolean extractPayload) {
 		if (extractPayload) {
 			Assert.isTrue(this.rabbitTemplate != null, "amqpTemplate must be a RabbitTemplate for 'extractPayload'");
-			Assert.state(this.outboundHeaderMapper != null && this.inboundHeaderMapper != null,
-					"'extractPayload' requires both inbound and outbound header mappers");
 		}
 		this.extractPayload = extractPayload;
 	}
@@ -211,6 +213,7 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 	}
 
 	protected RabbitTemplate getRabbitTemplate() {
+		Assert.notNull(this.rabbitTemplate, "The 'RabbitTemplate' must be provided.");
 		return this.rabbitTemplate;
 	}
 
@@ -222,11 +225,11 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 		this.connectionFactory = connectionFactory;
 	}
 
-	protected AmqpAdmin getAdmin() {
+	protected @Nullable AmqpAdmin getAdmin() {
 		return this.admin;
 	}
 
-	protected ConnectionFactory getConnectionFactory() {
+	protected @Nullable ConnectionFactory getConnectionFactory() {
 		return this.connectionFactory;
 	}
 
@@ -251,8 +254,8 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 	protected boolean doSend(Message<?> message, long timeout) {
 		if (this.extractPayload) {
 			this.amqpTemplate.send(getExchangeName(), getRoutingKey(), MappingUtils.mapMessage(message,
-					this.rabbitTemplate.getMessageConverter(), this.outboundHeaderMapper, this.defaultDeliveryMode,
-					this.headersMappedLast));
+					getRabbitTemplate().getMessageConverter(), Objects.requireNonNull(this.outboundHeaderMapper),
+					this.defaultDeliveryMode, this.headersMappedLast));
 		}
 		else {
 			this.amqpTemplate.convertAndSend(getExchangeName(), getRoutingKey(), message);
@@ -261,7 +264,7 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 	}
 
 	@Override
-	public void onCreate(Connection connection) {
+	public void onCreate(@Nullable Connection connection) {
 		doDeclares();
 	}
 

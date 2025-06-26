@@ -57,9 +57,10 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 
 	private final String channelName;
 
+	@SuppressWarnings("NullAway.Init")
 	private Queue queue;
 
-	private CounterFacade receiveCounter;
+	private @Nullable CounterFacade receiveCounter;
 
 	private volatile int executorInterceptorsSize;
 
@@ -148,19 +149,16 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	@Override
-	@Nullable
-	public Message<?> receive() {
+	public @Nullable Message<?> receive() {
 		return doReceive(null);
 	}
 
 	@Override
-	@Nullable
-	public Message<?> receive(long timeout) {
+	public @Nullable Message<?> receive(long timeout) {
 		return doReceive(timeout);
 	}
 
-	@Nullable
-	protected Message<?> doReceive(Long timeout) {
+	protected @Nullable Message<?> doReceive(@Nullable Long timeout) {
 		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		AtomicBoolean counted = new AtomicBoolean();
@@ -194,7 +192,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	@Nullable
-	protected Object performReceive(Long timeout) {
+	protected Object performReceive(@Nullable Long timeout) {
 		if (!this.declared) {
 			doDeclares();
 			this.declared = true;
@@ -220,7 +218,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 
 			if (message != null) {
 				Object payload = rabbitTemplate.getMessageConverter().fromMessage(message);
-				Map<String, Object> headers = getInboundHeaderMapper()
+				Map<String, @Nullable Object> headers = getInboundHeaderMapper()
 						.toHeadersFromRequest(message.getMessageProperties());
 				return getMessageBuilderFactory()
 						.withPayload(payload)
@@ -233,7 +231,8 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		}
 	}
 
-	private Message<?> buildMessageFromResult(@Nullable Object object, boolean traceEnabled, AtomicBoolean counted) {
+	private @Nullable Message<?> buildMessageFromResult(
+			@Nullable Object object, boolean traceEnabled, AtomicBoolean counted) {
 
 		Message<?> message = null;
 		if (object != null) {
@@ -323,8 +322,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	@Override
-	@Nullable
-	public ChannelInterceptor removeInterceptor(int index) {
+	public @Nullable ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
 		if (interceptor instanceof ExecutorChannelInterceptor) {
 			this.executorInterceptorsSize--;

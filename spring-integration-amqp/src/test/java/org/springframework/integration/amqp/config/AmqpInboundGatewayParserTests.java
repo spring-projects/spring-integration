@@ -45,6 +45,7 @@ import org.springframework.util.ReflectionUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -135,7 +136,7 @@ public class AmqpInboundGatewayParserTests {
 		amqpProperties.setHeader("foo", "foo");
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
-		listener.onMessage(amqpMessage, null);
+		listener.onMessage(amqpMessage, mock());
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
 				Mockito.any(Message.class), isNull());

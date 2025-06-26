@@ -28,8 +28,8 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.amqp.utils.JavaUtils;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.JavaUtils;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.messaging.MessageHeaders;
@@ -93,7 +93,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	}
 
 	@SuppressWarnings("this-escape")
-	protected DefaultAmqpHeaderMapper(String[] requestHeaderNames, String[] replyHeaderNames) {
+	protected DefaultAmqpHeaderMapper(String @Nullable [] requestHeaderNames, String @Nullable [] replyHeaderNames) {
 		super(AmqpHeaders.PREFIX, STANDARD_HEADER_NAMES, STANDARD_HEADER_NAMES);
 		if (requestHeaderNames != null) {
 			setRequestHeaderNames(requestHeaderNames);
@@ -133,8 +133,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 					.acceptIfHasText(AmqpHeaders.MESSAGE_ID, amqpMessageProperties.getMessageId(), headers::put);
 			Integer priority = amqpMessageProperties.getPriority();
 			JavaUtils.INSTANCE
-					.acceptIfCondition(priority != null && priority > 0, IntegrationMessageHeaderAccessor.PRIORITY,
-							priority, headers::put)
+					.acceptIfCondition(priority > 0, IntegrationMessageHeaderAccessor.PRIORITY, priority, headers::put)
 					.acceptIfNotNull(AmqpHeaders.RECEIVED_DELAY, amqpMessageProperties.getReceivedDelayLong(),
 							headers::put)
 					.acceptIfNotNull(AmqpHeaders.RECEIVED_EXCHANGE, amqpMessageProperties.getReceivedExchange(),
@@ -167,7 +166,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * Extract user-defined headers from an AMQP MessageProperties instance.
 	 */
 	@Override
-	protected Map<String, Object> extractUserDefinedHeaders(MessageProperties amqpMessageProperties) {
+	protected Map<String, @Nullable Object> extractUserDefinedHeaders(MessageProperties amqpMessageProperties) {
 		return amqpMessageProperties.getHeaders();
 	}
 
@@ -197,7 +196,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 						amqpMessageProperties::setContentEncoding)
 				.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_LENGTH, Long.class),
 						amqpMessageProperties::setContentLength)
-				.acceptIfHasText(this.extractContentTypeAsString(headers),
+				.acceptIfHasText(extractContentTypeAsString(headers),
 						amqpMessageProperties::setContentType)
 				.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.CORRELATION_ID, String.class),
 						amqpMessageProperties::setCorrelationId)
@@ -302,7 +301,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * Required since Content-Type can be represented as org.springframework.util.MimeType.
 	 *
 	 */
-	private String extractContentTypeAsString(Map<String, Object> headers) {
+	private @Nullable String extractContentTypeAsString(Map<String, Object> headers) {
 		String contentTypeStringValue = null;
 
 		Object contentType = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_TYPE, Object.class);

@@ -16,12 +16,8 @@
 
 package org.springframework.integration.amqp.channel;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.Channel;
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.AmqpTemplate;
@@ -30,14 +26,10 @@ import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.MessageDeliveryException;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -56,8 +48,8 @@ public class DispatcherHasNoSubscribersTests {
 
 	@Test
 	public void testPtP() throws Exception {
-		final Channel channel = mock(Channel.class);
-		DeclareOk declareOk = mock(DeclareOk.class);
+		final Channel channel = mock();
+		DeclareOk declareOk = mock();
 		when(declareOk.getQueue()).thenReturn("noSubscribersChannel");
 		when(channel.queueDeclare(anyString(), anyBoolean(), anyBoolean(), anyBoolean(), isNull()))
 				.thenReturn(declareOk);
@@ -77,15 +69,15 @@ public class DispatcherHasNoSubscribersTests {
 
 		MessageListener listener = container.getMessageListener();
 
-		assertThatExceptionOfType(MessageDeliveryException.class)
+		assertThatExceptionOfType(ListenerExecutionFailedException.class)
 				.isThrownBy(() -> listener.onMessage(new Message("Hello world!".getBytes())))
 				.withMessageContaining("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.");
 	}
 
 	@Test
 	public void testPubSub() {
-		final Channel channel = mock(Channel.class);
-		Connection connection = mock(Connection.class);
+		final Channel channel = mock();
+		Connection connection = mock();
 		doAnswer(invocation -> channel).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		when(connectionFactory.createConnection()).thenReturn(connection);
@@ -98,44 +90,10 @@ public class DispatcherHasNoSubscribersTests {
 		amqpChannel.setBeanFactory(mock(BeanFactory.class));
 		amqpChannel.afterPropertiesSet();
 
-		List<String> logList = insertMockLoggerInListener(amqpChannel);
 		MessageListener listener = container.getMessageListener();
-		listener.onMessage(new Message("Hello world!".getBytes()));
-		verifyLogReceived(logList);
-	}
-
-	private static List<String> insertMockLoggerInListener(PublishSubscribeAmqpChannel channel) {
-		SimpleMessageListenerContainer container =
-				TestUtils.getPropertyValue(channel, "container", SimpleMessageListenerContainer.class);
-		Log logger = mock(Log.class);
-		final ArrayList<String> logList = new ArrayList<>();
-		doAnswer(invocation -> {
-			String message = invocation.getArgument(0);
-			if (message.startsWith("Dispatcher has no subscribers")) {
-				logList.add(message);
-			}
-			return null;
-		}).when(logger).warn(anyString(), any(Exception.class));
-		when(logger.isWarnEnabled()).thenReturn(true);
-		Object listener = container.getMessageListener();
-		DirectFieldAccessor dfa = new DirectFieldAccessor(listener);
-		dfa.setPropertyValue("logger", logger);
-		return logList;
-	}
-
-	private static void verifyLogReceived(final List<String> logList) {
-		assertThat(logList.size() > 0).as("Failed to get expected exception").isTrue();
-		boolean expectedExceptionFound = false;
-		while (logList.size() > 0) {
-			String message = logList.remove(0);
-			assertThat(message).as("Failed to get expected exception").isNotNull();
-			if (message.startsWith("Dispatcher has no subscribers")) {
-				expectedExceptionFound = true;
-				assertThat(message).contains("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.");
-				break;
-			}
-		}
-		assertThat(expectedExceptionFound).as("Failed to get expected exception").isTrue();
+		assertThatExceptionOfType(ListenerExecutionFailedException.class)
+				.isThrownBy(() -> listener.onMessage(new Message("Hello world!".getBytes())))
+				.withMessageContaining("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.");
 	}
 
 }

@@ -40,6 +40,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Mark Fisher
@@ -117,7 +118,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		amqpProperties.setHeader("foo", "foo");
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
-		listener.onMessage(amqpMessage, null);
+		listener.onMessage(amqpMessage, mock());
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
 		assertThat(siMessage.getHeaders().get("foo")).isEqualTo("foo");
@@ -146,7 +147,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		amqpProperties.setHeader("foo", "foo");
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
-		listener.onMessage(amqpMessage, null);
+		listener.onMessage(amqpMessage, mock());
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
 		assertThat(siMessage.getHeaders().get("foo")).isEqualTo("foo");
@@ -175,7 +176,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		amqpProperties.setHeader("foo", "foo");
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
-		listener.onMessage(amqpMessage, null);
+		listener.onMessage(amqpMessage, mock());
 
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
@@ -205,7 +206,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		amqpProperties.setHeader("foo", "foo");
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
-		listener.onMessage(amqpMessage, null);
+		listener.onMessage(amqpMessage, mock());
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
 		assertThat(siMessage.getHeaders().get("bar")).isNotNull();

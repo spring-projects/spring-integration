@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * An advice that causes all downstream {@link RabbitOperations} operations to be executed
+ * A {@link HandleMessageAdvice} that causes all downstream {@link RabbitOperations} operations to be executed
  * on the same channel, as long as there are no thread handoffs, since the channel is
  * bound to the thread. The same RabbitOperations must be used in this and all downstream
  * components. Typically, used with a splitter or some other mechanism that would cause
@@ -50,7 +50,7 @@ public class BoundRabbitChannelAdvice implements HandleMessageAdvice {
 
 	private final RabbitOperations operations;
 
-	private final Duration waitForConfirmsTimeout;
+	private final @Nullable Duration waitForConfirmsTimeout;
 
 	private final ConfirmCallback ackCallback = this::handleAcks;
 
@@ -81,7 +81,7 @@ public class BoundRabbitChannelAdvice implements HandleMessageAdvice {
 	}
 
 	@Override
-	public Object invoke(MethodInvocation invocation) throws Throwable {
+	public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		try {
 			return this.operations.invoke(operations -> {
 				try {

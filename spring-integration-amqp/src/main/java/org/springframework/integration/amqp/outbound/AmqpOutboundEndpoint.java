@@ -17,9 +17,12 @@
 package org.springframework.integration.amqp.outbound;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -55,7 +58,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 
 	private final AmqpTemplate amqpTemplate;
 
-	private final RabbitTemplate rabbitTemplate;
+	private final @Nullable RabbitTemplate rabbitTemplate;
 
 	private boolean expectReply;
 
@@ -129,7 +132,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 	}
 
 	@Override
-	public RabbitTemplate getRabbitTemplate() {
+	public @Nullable RabbitTemplate getRabbitTemplate() {
 		return this.rabbitTemplate;
 	}
 
@@ -167,7 +170,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		CorrelationData correlationData = generateCorrelationData(requestMessage);
 		String exchangeName = generateExchangeName(requestMessage);
 		String routingKey = generateRoutingKey(requestMessage);
@@ -188,15 +191,16 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 	}
 
 	@SuppressWarnings("unchecked")
-	private void multiSend(Message<?> requestMessage, String exchangeName, String routingKey) {
+	private void multiSend(Message<?> requestMessage, @Nullable String exchangeName, @Nullable String routingKey) {
 		((Iterable<?>) requestMessage.getPayload()).forEach(payload -> {
 			Assert.state(payload instanceof Message,
 					"To use multiSend, the payload must be an Iterable<Message<?>>");
 		});
-		this.rabbitTemplate.invoke(template -> {
-			((Iterable<Message<?>>) requestMessage.getPayload()).forEach(message -> {
-				doRabbitSend(exchangeName, routingKey, message, null, (RabbitTemplate) template);
-			});
+		RabbitTemplate rabbitTemplateToUse = this.rabbitTemplate;
+		Assert.notNull(rabbitTemplateToUse, "The 'RabbitTemplate' must be provided for multi-send.");
+		rabbitTemplateToUse.invoke(template -> {
+			((Iterable<Message<?>>) requestMessage.getPayload())
+					.forEach(message -> doRabbitSend(exchangeName, routingKey, message, null, rabbitTemplateToUse));
 			if (this.waitForConfirm) {
 				template.waitForConfirmsOrDie(this.waitForConfirmTimeout.toMillis());
 			}
@@ -226,8 +230,8 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		}
 	}
 
-	private void send(String exchangeName, String routingKey,
-			final Message<?> requestMessage, CorrelationData correlationData) {
+	private void send(@Nullable String exchangeName, @Nullable String routingKey,
+			final Message<?> requestMessage, @Nullable CorrelationData correlationData) {
 
 		if (this.rabbitTemplate != null) {
 			doRabbitSend(exchangeName, routingKey, requestMessage, correlationData, this.rabbitTemplate);
@@ -242,8 +246,8 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		}
 	}
 
-	private void doRabbitSend(String exchangeName, String routingKey, final Message<?> requestMessage,
-			CorrelationData correlationData, RabbitTemplate template) {
+	private void doRabbitSend(@Nullable String exchangeName, @Nullable String routingKey, Message<?> requestMessage,
+			@Nullable CorrelationData correlationData, RabbitTemplate template) {
 
 		MessageConverter converter = template.getMessageConverter();
 		org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
@@ -252,11 +256,10 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		template.send(exchangeName, routingKey, amqpMessage, correlationData);
 	}
 
-	private AbstractIntegrationMessageBuilder<?> sendAndReceive(String exchangeName, String routingKey,
-			Message<?> requestMessage, CorrelationData correlationData) {
+	private @Nullable AbstractIntegrationMessageBuilder<?> sendAndReceive(@Nullable String exchangeName,
+			@Nullable String routingKey, Message<?> requestMessage, @Nullable CorrelationData correlationData) {
 
-		Assert.state(this.rabbitTemplate != null,
-				"RabbitTemplate implementation is required for publisher confirms");
+		Assert.state(this.rabbitTemplate != null, "RabbitTemplate implementation is required for publisher confirms");
 		MessageConverter converter = this.rabbitTemplate.getMessageConverter();
 		org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
 				getHeaderMapper(), getDefaultDeliveryMode(), isHeadersMappedLast());
@@ -272,16 +275,16 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 	}
 
 	@Override
-	public void confirm(CorrelationData correlationData, boolean ack, String cause) {
+	public void confirm(@Nullable CorrelationData correlationData, boolean ack, @Nullable String cause) {
 		handleConfirm(correlationData, ack, cause);
 	}
 
 	@Override
 	public void returnedMessage(ReturnedMessage returnedMessage) {
-		// no need for null check; we asserted we have a RabbitTemplate in doInit()
+		Assert.state(this.rabbitTemplate != null, "RabbitTemplate implementation is required for publisher confirms");
 		MessageConverter converter = this.rabbitTemplate.getMessageConverter();
 		Message<?> returned = buildReturnedMessage(returnedMessage, converter);
-		getReturnChannel().send(returned);
+		Objects.requireNonNull(getReturnChannel()).send(returned);
 	}
 
 }

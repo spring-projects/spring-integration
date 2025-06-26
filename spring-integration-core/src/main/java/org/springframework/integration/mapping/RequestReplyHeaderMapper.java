@@ -18,6 +18,8 @@ package org.springframework.integration.mapping;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessageHeaders;
 
 /**
@@ -51,13 +53,13 @@ public interface RequestReplyHeaderMapper<T> {
 	 * @param source the native target request
 	 * @return the abstracted MessageHeaders
 	 */
-	Map<String, Object> toHeadersFromRequest(T source);
+	Map<String, @Nullable Object> toHeadersFromRequest(T source);
 
 	/**
 	 * Map from the given reply object to abstracted {@link MessageHeaders}.
 	 * @param source the native target reply
 	 * @return the abstracted MessageHeaders
 	 */
-	Map<String, Object> toHeadersFromReply(T source);
+	Map<String, @Nullable Object> toHeadersFromReply(T source);
 
 }

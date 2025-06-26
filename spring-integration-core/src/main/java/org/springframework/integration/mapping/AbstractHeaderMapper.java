@@ -372,7 +372,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * @param source the source object to extract user defined headers.
 	 * @return the map of headers to be mapped.
 	 */
-	protected abstract Map<String, Object> extractUserDefinedHeaders(T source);
+	protected abstract Map<String, @Nullable Object> extractUserDefinedHeaders(T source);
 
 	/**
 	 * Populate the specified standard headers to the specified source.

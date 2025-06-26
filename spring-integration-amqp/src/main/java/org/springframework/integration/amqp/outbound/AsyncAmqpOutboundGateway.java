@@ -18,6 +18,8 @@ package org.springframework.integration.amqp.outbound;
 
 import java.util.function.BiConsumer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.amqp.core.AmqpMessageReturnedException;
 import org.springframework.amqp.core.AmqpReplyTimeoutException;
 import org.springframework.amqp.core.ReturnedMessage;
@@ -85,14 +87,14 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected @Nullable Object handleRequestMessage(Message<?> requestMessage) {
 		org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage,
 				this.messageConverter, getHeaderMapper(), getDefaultDeliveryMode(), isHeadersMappedLast());
 		addDelayProperty(requestMessage, amqpMessage);
 		RabbitMessageFuture future = this.template.sendAndReceive(generateExchangeName(requestMessage),
 				generateRoutingKey(requestMessage), amqpMessage);
 		CorrelationData correlationData = generateCorrelationData(requestMessage);
-		if (correlationData != null && future.getConfirm() != null) {
+		if (correlationData != null) {
 			future.getConfirm().whenComplete(new CorrelationCallback(correlationData, future));
 		}
 		future.whenComplete(new FutureCallback(requestMessage, correlationData));
@@ -103,15 +105,15 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 
 		private final Message<?> requestMessage;
 
-		private final CorrelationDataWrapper correlationData;
+		private final @Nullable CorrelationDataWrapper correlationData;
 
-		FutureCallback(Message<?> requestMessage, CorrelationData correlationData) {
+		FutureCallback(Message<?> requestMessage, @Nullable CorrelationData correlationData) {
 			this.requestMessage = requestMessage;
 			this.correlationData = (CorrelationDataWrapper) correlationData;
 		}
 
 		@Override
-		public void accept(org.springframework.amqp.core.Message message, Throwable throwable) {
+		public void accept(org.springframework.amqp.core.Message message, @Nullable Throwable throwable) {
 			if (throwable == null) {
 				AbstractIntegrationMessageBuilder<?> replyMessageBuilder = null;
 				try {
@@ -128,7 +130,7 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 									new MessagingException(replyMessageBuilder.build(), exceptionToLogAndSend);
 						}
 					}
-					logger.error(exceptionToLogAndSend, () -> "Failed to send async reply: " + message.toString());
+					logger.error(exceptionToLogAndSend, () -> "Failed to send async reply: " + message);
 					sendErrorMessage(this.requestMessage, exceptionToLogAndSend);
 				}
 			}
@@ -154,12 +156,14 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 								AsyncAmqpOutboundGateway.this.messageConverter);
 						sendOutput(returnedMessage, returnChannel, true);
 					}
-					this.correlationData.setReturned(amre.getReturned());
-					/*
-					 *  Complete the user's future (if present) since the async template will only complete
-					 *  once, successfully, or with a failure.
-					 */
-					this.correlationData.getFuture().complete(new Confirm(true, null));
+					if (this.correlationData != null) {
+						this.correlationData.setReturned(amre.getReturned());
+						/*
+						 *  Complete the user's future (if present) since the async template will only complete
+						 *  once, successfully, or with a failure.
+						 */
+						this.correlationData.getFuture().complete(new Confirm(true, null));
+					}
 				}
 				else {
 					sendErrorMessage(this.requestMessage, exceptionToSend);
@@ -181,7 +185,7 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 		}
 
 		@Override
-		public void accept(Boolean result, Throwable throwable) {
+		public void accept(@Nullable Boolean result, Throwable throwable) {
 			if (result != null) {
 				try {
 					handleConfirm(this.correlationData, result, this.replyFuture.getNackCause());

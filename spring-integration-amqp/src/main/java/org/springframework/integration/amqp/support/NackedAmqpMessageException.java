@@ -16,7 +16,7 @@
 
 package org.springframework.integration.amqp.support;
 
-import org.jspecify.annotations.Nullable;
+import java.io.Serial;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -33,14 +33,14 @@ import org.springframework.messaging.MessagingException;
  */
 public class NackedAmqpMessageException extends MessagingException {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private final String nackReason;
 
-	@SuppressWarnings("serial")
-	private final Object correlationData;
+	private final transient Object correlationData;
 
-	public NackedAmqpMessageException(Message<?> message, @Nullable Object correlationData, String nackReason) {
+	public NackedAmqpMessageException(Message<?> message, Object correlationData, String nackReason) {
 		super(message);
 		this.correlationData = correlationData;
 		this.nackReason = nackReason;

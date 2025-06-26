@@ -111,7 +111,7 @@ public final class JavaUtils {
 	 * @return this.
 	 * @since 5.2
 	 */
-	public <T> JavaUtils acceptIfNotEmpty(@Nullable T[] value, Consumer<T[]> consumer) {
+	public <T> JavaUtils acceptIfNotEmpty(@Nullable T @Nullable [] value, Consumer<T[]> consumer) {
 		if (!ObjectUtils.isEmpty(value)) {
 			consumer.accept(value);
 		}
@@ -130,7 +130,9 @@ public final class JavaUtils {
 	 * @return this.
 	 * @since 5.2
 	 */
-	public <T1, T2> JavaUtils acceptIfCondition(boolean condition, T1 t1, T2 t2, BiConsumer<T1, T2> consumer) {
+	public <T1, T2> JavaUtils acceptIfCondition(boolean condition, @Nullable T1 t1, @Nullable T2 t2,
+			BiConsumer<T1, T2> consumer) {
+
 		if (condition) {
 			consumer.accept(t1, t2);
 		}
@@ -148,7 +150,7 @@ public final class JavaUtils {
 	 * @return this.
 	 * @since 5.2
 	 */
-	public <T1, T2> JavaUtils acceptIfNotNull(T1 t1, T2 t2, BiConsumer<T1, T2> consumer) {
+	public <T1, T2> JavaUtils acceptIfNotNull(T1 t1, @Nullable T2 t2, BiConsumer<T1, T2> consumer) {
 		if (t2 != null) {
 			consumer.accept(t1, t2);
 		}
@@ -165,7 +167,7 @@ public final class JavaUtils {
 	 * @return this.
 	 * @since 5.2
 	 */
-	public <T> JavaUtils acceptIfHasText(T t1, String value, BiConsumer<T, String> consumer) {
+	public <T> JavaUtils acceptIfHasText(T t1, @Nullable String value, BiConsumer<T, String> consumer) {
 		if (StringUtils.hasText(value)) {
 			consumer.accept(t1, value);
 		}

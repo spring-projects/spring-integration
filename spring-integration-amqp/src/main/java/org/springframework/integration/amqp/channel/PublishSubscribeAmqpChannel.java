@@ -42,8 +42,10 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 
 	private final Queue queue = new AnonymousQueue();
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile FanoutExchange exchange;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile Binding binding;
 
 	/**

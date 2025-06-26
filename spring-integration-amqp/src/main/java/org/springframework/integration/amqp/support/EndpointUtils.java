@@ -17,8 +17,10 @@
 package org.springframework.integration.amqp.support;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.rabbitmq.client.Channel;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
@@ -49,10 +51,10 @@ public final class EndpointUtils {
 	 * @return the exception.
 	 */
 	public static ListenerExecutionFailedException errorMessagePayload(Message message,
-			Channel channel, boolean isManualAck, Exception ex) {
+			@Nullable Channel channel, boolean isManualAck, Exception ex) {
 
 		return isManualAck
-				? new ManualAckListenerExecutionFailedException(LEFE_MESSAGE, ex, channel,
+				? new ManualAckListenerExecutionFailedException(LEFE_MESSAGE, ex, Objects.requireNonNull(channel),
 				message.getMessageProperties().getDeliveryTag(), message)
 				: new ListenerExecutionFailedException(LEFE_MESSAGE, ex, message);
 	}
@@ -68,10 +70,10 @@ public final class EndpointUtils {
 	 * @since 5.3
 	 */
 	public static ListenerExecutionFailedException errorMessagePayload(List<Message> messages,
-			Channel channel, boolean isManualAck, Exception ex) {
+			@Nullable Channel channel, boolean isManualAck, Exception ex) {
 
 		return isManualAck
-				? new ManualAckListenerExecutionFailedException(LEFE_MESSAGE, ex, channel,
+				? new ManualAckListenerExecutionFailedException(LEFE_MESSAGE, ex, Objects.requireNonNull(channel),
 				messages.get(messages.size() - 1).getMessageProperties().getDeliveryTag(),
 				messages.toArray(new Message[0]))
 				: new ListenerExecutionFailedException(LEFE_MESSAGE, ex, messages.toArray(new Message[0]));

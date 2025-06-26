@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -28,6 +29,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.MessageDispatchingException;
@@ -39,7 +41,6 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.management.ManageableSmartLifecycle;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
@@ -60,11 +61,12 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 
 	private final AbstractMessageListenerContainer container;
 
+	@SuppressWarnings("NullAway.Init")
 	private volatile AbstractDispatcher dispatcher;
 
 	private final boolean isPubSub;
 
-	private volatile Integer maxSubscribers;
+	private volatile @Nullable Integer maxSubscribers;
 
 	private volatile boolean declared;
 
@@ -151,8 +153,9 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
 		this.maxSubscribers = maxSubscribers;
-		if (this.dispatcher != null) {
-			this.dispatcher.setMaxSubscribers(this.maxSubscribers);
+		AbstractDispatcher dispatcherToUse = this.dispatcher;
+		if (dispatcherToUse != null) {
+			dispatcherToUse.setMaxSubscribers(maxSubscribers);
 		}
 	}
 
@@ -169,14 +172,18 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	@Override
 	public void onInit() {
 		super.onInit();
-		this.dispatcher = this.createDispatcher();
-		if (this.maxSubscribers == null) {
-			this.maxSubscribers =
+		this.dispatcher = createDispatcher();
+		Integer maxSubscribersToCheck = this.maxSubscribers;
+		if (maxSubscribersToCheck == null) {
+			int newMaxSubscribers =
 					this.isPubSub
 							? getIntegrationProperties().getChannelsMaxBroadcastSubscribers()
 							: getIntegrationProperties().getChannelsMaxUnicastSubscribers();
+			setMaxSubscribers(newMaxSubscribers);
 		}
-		setMaxSubscribers(this.maxSubscribers);
+		else {
+			this.dispatcher.setMaxSubscribers(maxSubscribersToCheck);
+		}
 		String queue = obtainQueueName(this.channelName);
 		this.container.setQueueNames(queue);
 		MessageConverter converter =
@@ -199,17 +206,17 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 
 	@Override
 	public boolean isAutoStartup() {
-		return (this.container != null) && this.container.isAutoStartup();
+		return this.container.isAutoStartup();
 	}
 
 	@Override
 	public int getPhase() {
-		return (this.container != null) ? this.container.getPhase() : 0;
+		return this.container.getPhase();
 	}
 
 	@Override
 	public boolean isRunning() {
-		return (this.container != null) && this.container.isRunning();
+		return this.container.isRunning();
 	}
 
 	@Override
@@ -224,14 +231,12 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 						"Postponed to the next connection create...");
 			}
 		}
-		if (this.container != null) {
-			this.container.start();
-		}
+		this.container.start();
 	}
 
 	@Override
 	public void stop() {
-		if (this.container != null) {
+		if (isRunning()) {
 			this.container.stop();
 			this.declared = false;
 		}
@@ -239,7 +244,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 
 	@Override
 	public void stop(Runnable callback) {
-		if (this.container != null) {
+		if (isRunning()) {
 			this.container.stop(callback);
 			this.declared = false;
 		}
@@ -251,10 +256,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	@Override
 	public void destroy() {
 		super.destroy();
-		if (this.container != null) {
-			this.container.destroy();
-			this.declared = false;
-		}
+		this.container.destroy();
+		this.declared = false;
 	}
 
 	protected abstract AbstractDispatcher createDispatcher();
@@ -301,17 +304,10 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 				this.dispatcher.dispatch(messageToSend);
 			}
 			catch (MessageDispatchingException e) {
-				String exceptionMessage = e.getMessage() + " for amqp-channel '"
-						+ this.channel.getFullChannelName() + "'.";
-				if (this.isPubSub) {
-					// log only for backwards compatibility with pub/sub
-					if (this.logger.isWarnEnabled()) {
-						this.logger.warn(exceptionMessage, e);
-					}
-				}
-				else {
-					throw new MessageDeliveryException(messageToSend, exceptionMessage, e);
-				}
+				String exceptionMessage =
+						e.getMessage() + " for amqp-channel '" + this.channel.getFullChannelName() + "'.";
+
+				throw new ListenerExecutionFailedException(exceptionMessage, e, message);
 			}
 		}
 
@@ -319,7 +315,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 			AbstractIntegrationMessageBuilder<Object> messageBuilder =
 					this.messageBuilderFactory.withPayload(converted);
 			if (this.channel.isExtractPayload()) {
-				Map<String, Object> headers =
+				Map<String, @Nullable Object> headers =
 						this.inboundHeaderMapper.toHeadersFromRequest(message.getMessageProperties());
 				messageBuilder.copyHeaders(headers);
 			}

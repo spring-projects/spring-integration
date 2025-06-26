@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.rabbitmq.client.Channel;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Address;
@@ -68,11 +69,11 @@ import org.springframework.util.Assert;
  */
 public class AmqpInboundGateway extends MessagingGatewaySupport {
 
-	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
+	private static final ThreadLocal<@Nullable AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
 	private final MessageListenerContainer messageListenerContainer;
 
-	private final AbstractMessageListenerContainer abstractListenerContainer;
+	private final @Nullable AbstractMessageListenerContainer abstractListenerContainer;
 
 	private final AmqpTemplate amqpTemplate;
 
@@ -84,13 +85,13 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
-	private Address defaultReplyTo;
+	private @Nullable Address defaultReplyTo;
 
-	private RetryTemplate retryTemplate;
+	private @Nullable RetryTemplate retryTemplate;
 
-	private RecoveryCallback<?> recoveryCallback;
+	private @Nullable RecoveryCallback<?> recoveryCallback;
 
-	private MessageRecoverer messageRecoverer;
+	private @Nullable MessageRecoverer messageRecoverer;
 
 	private BatchingStrategy batchingStrategy = new SimpleBatchingStrategy(0, 0, 0L);
 
@@ -132,9 +133,10 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			this.templateMessageConverter = rabbitTemplate.getMessageConverter();
 		}
 		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
-		this.abstractListenerContainer = listenerContainer instanceof AbstractMessageListenerContainer abstractMessageListenerContainer
-				? abstractMessageListenerContainer
-				: null;
+		this.abstractListenerContainer =
+				listenerContainer instanceof AbstractMessageListenerContainer abstractMessageListenerContainer
+						? abstractMessageListenerContainer
+						: null;
 	}
 
 	/**
@@ -279,15 +281,17 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	}
 
 	private void setupRecoveryCallbackIfAny() {
-		Assert.state(this.recoveryCallback == null || this.messageRecoverer == null,
+		MessageRecoverer messageRecovererToUse = this.messageRecoverer;
+		Assert.state(this.recoveryCallback == null || messageRecovererToUse == null,
 				"Only one of 'recoveryCallback' or 'messageRecoverer' may be provided, but not both");
-		if (this.messageRecoverer != null) {
+		if (messageRecovererToUse != null) {
 			this.recoveryCallback =
 					context -> {
 						Message messageToRecover =
-								(Message) RetrySynchronizationManager.getContext()
-										.getAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
-						this.messageRecoverer.recover(messageToRecover, context.getLastThrowable());
+								(Message) context.getAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE);
+						if (messageToRecover != null) {
+							messageRecovererToUse.recover(messageToRecover, context.getLastThrowable());
+						}
 						return null;
 					};
 		}
@@ -315,7 +319,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	 * @param message the Spring Messaging message to use.
 	 * @since 4.3.10
 	 */
-	private void setAttributesIfNecessary(Message amqpMessage, org.springframework.messaging.Message<?> message) {
+	private void setAttributesIfNecessary(Message amqpMessage,
+			org.springframework.messaging.@Nullable Message<?> message) {
+
 		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
 		boolean needAttributes = needHolder || this.retryTemplate != null;
 		if (needHolder) {
@@ -333,7 +339,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	}
 
 	@Override
-	protected AttributeAccessor getErrorMessageAttributes(org.springframework.messaging.Message<?> message) {
+	protected AttributeAccessor getErrorMessageAttributes(org.springframework.messaging.@Nullable Message<?> message) {
 		AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
 		if (attributes == null) {
 			return super.getErrorMessageAttributes(message);
@@ -350,7 +356,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public void onMessage(final Message message, final Channel channel) {
+		public void onMessage(final Message message, @Nullable Channel channel) {
 			if (AmqpInboundGateway.this.retryTemplate == null) {
 				try {
 					org.springframework.messaging.Message<Object> converted = convert(message, channel);
@@ -366,7 +372,10 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				org.springframework.messaging.Message<Object> converted = convert(message, channel);
 				if (converted != null) {
 					AmqpInboundGateway.this.retryTemplate.execute(context -> {
-								StaticMessageHeaderAccessor.getDeliveryAttempt(converted).incrementAndGet();
+								AtomicInteger deliveryAttempt = StaticMessageHeaderAccessor.getDeliveryAttempt(converted);
+								if (deliveryAttempt != null) {
+									deliveryAttempt.incrementAndGet();
+								}
 								process(message, converted);
 								return null;
 							},
@@ -375,12 +384,15 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			}
 		}
 
-		private org.springframework.messaging.Message<Object> convert(Message message, Channel channel) {
-			Map<String, Object> headers;
+		private org.springframework.messaging.@Nullable Message<Object> convert(
+				Message message, @Nullable Channel channel) {
+
+			Map<String, @Nullable Object> headers;
 			Object payload;
-			boolean isManualAck = AmqpInboundGateway.this.abstractListenerContainer == null
-					? false
-					: AcknowledgeMode.MANUAL == AmqpInboundGateway.this.abstractListenerContainer.getAcknowledgeMode();
+			AbstractMessageListenerContainer listenerContainerToCheck = AmqpInboundGateway.this.abstractListenerContainer;
+			boolean isManualAck =
+					listenerContainerToCheck != null
+							&& AcknowledgeMode.MANUAL == listenerContainerToCheck.getAcknowledgeMode();
 			try {
 				if (AmqpInboundGateway.this.batchingStrategy.canDebatch(message.getMessageProperties())) {
 					List<Object> payloads = new ArrayList<>();

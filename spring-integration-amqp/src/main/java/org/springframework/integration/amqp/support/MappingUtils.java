@@ -54,7 +54,7 @@ public final class MappingUtils {
 	 * @return the mapped Message.
 	 */
 	public static org.springframework.amqp.core.Message mapMessage(Message<?> requestMessage,
-			MessageConverter converter, AmqpHeaderMapper headerMapper, MessageDeliveryMode defaultDeliveryMode,
+			MessageConverter converter, AmqpHeaderMapper headerMapper, @Nullable MessageDeliveryMode defaultDeliveryMode,
 			boolean headersMappedLast) {
 
 		return doMapMessage(requestMessage, converter, headerMapper, defaultDeliveryMode, headersMappedLast, false);
@@ -135,7 +135,7 @@ public final class MappingUtils {
 		}
 	}
 
-	private static String contentTypeAsString(MessageHeaders headers) {
+	private static @Nullable String contentTypeAsString(MessageHeaders headers) {
 		Object contentType = headers.get(AmqpHeaders.CONTENT_TYPE);
 		if (contentType instanceof MimeType) {
 			contentType = contentType.toString();

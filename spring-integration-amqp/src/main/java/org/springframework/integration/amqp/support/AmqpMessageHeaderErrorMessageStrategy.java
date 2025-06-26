@@ -52,8 +52,11 @@ public class AmqpMessageHeaderErrorMessageStrategy implements ErrorMessageStrate
 				: context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
 		Map<String, Object> headers = new HashMap<>();
 		if (context != null) {
-			headers.put(AMQP_RAW_MESSAGE, context.getAttribute(AMQP_RAW_MESSAGE));
-			headers.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, context.getAttribute(AMQP_RAW_MESSAGE));
+			Object amqpRawMessage = context.getAttribute(AMQP_RAW_MESSAGE);
+			if (amqpRawMessage != null) {
+				headers.put(AMQP_RAW_MESSAGE, amqpRawMessage);
+				headers.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, amqpRawMessage);
+			}
 		}
 		if (inputMessage instanceof Message) {
 			return new ErrorMessage(throwable, headers, (Message<?>) inputMessage);

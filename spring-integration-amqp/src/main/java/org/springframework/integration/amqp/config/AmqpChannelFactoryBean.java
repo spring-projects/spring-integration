@@ -75,65 +75,68 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	private final boolean messageDriven;
 
+	@SuppressWarnings("NullAway.Init")
 	private AbstractAmqpChannel channel;
 
-	private List<ChannelInterceptor> interceptors;
+	@SuppressWarnings("NullAway.Init")
+	private String beanName;
 
-	private AmqpAdmin amqpAdmin;
+	@SuppressWarnings("NullAway.Init")
+	private ConnectionFactory connectionFactory;
 
-	private FanoutExchange exchange;
+	private @Nullable List<ChannelInterceptor> interceptors;
 
-	private String queueName;
+	private @Nullable AmqpAdmin amqpAdmin;
+
+	private @Nullable FanoutExchange exchange;
+
+	private @Nullable String queueName;
 
 	private boolean autoStartup = true;
 
-	private Advice[] adviceChain;
+	private Advice @Nullable [] adviceChain;
 
-	private Integer concurrentConsumers;
+	private @Nullable Integer concurrentConsumers;
 
-	private Integer consumersPerQueue;
+	private @Nullable Integer consumersPerQueue;
 
-	private ConnectionFactory connectionFactory;
+	private @Nullable MessagePropertiesConverter messagePropertiesConverter;
 
-	private MessagePropertiesConverter messagePropertiesConverter;
+	private @Nullable ErrorHandler errorHandler;
 
-	private ErrorHandler errorHandler;
+	private @Nullable Boolean exposeListenerChannel;
 
-	private Boolean exposeListenerChannel;
+	private @Nullable Integer phase;
 
-	private Integer phase;
-
-	private Integer prefetchCount;
+	private @Nullable Integer prefetchCount;
 
 	private boolean isPubSub;
 
-	private Long receiveTimeout;
+	private @Nullable Long receiveTimeout;
 
-	private Long recoveryInterval;
+	private @Nullable Long recoveryInterval;
 
-	private Long shutdownTimeout;
+	private @Nullable Long shutdownTimeout;
 
-	private String beanName;
-
-	private AcknowledgeMode acknowledgeMode;
+	private @Nullable AcknowledgeMode acknowledgeMode;
 
 	private boolean channelTransacted;
 
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
-	private PlatformTransactionManager transactionManager;
+	private @Nullable PlatformTransactionManager transactionManager;
 
-	private TransactionAttribute transactionAttribute;
+	private @Nullable TransactionAttribute transactionAttribute;
 
-	private Integer batchSize;
+	private @Nullable Integer batchSize;
 
-	private Integer maxSubscribers;
+	private @Nullable Integer maxSubscribers;
 
-	private Boolean missingQueuesFatal;
+	private @Nullable Boolean missingQueuesFatal;
 
-	private MessageDeliveryMode defaultDeliveryMode;
+	private @Nullable MessageDeliveryMode defaultDeliveryMode;
 
-	private Boolean extractPayload;
+	private @Nullable Boolean extractPayload;
 
 	private AmqpHeaderMapper outboundHeaderMapper = DefaultAmqpHeaderMapper.outboundMapper();
 
@@ -150,7 +153,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	}
 
 	@Override
-	public void setBeanName(@Nullable String name) {
+	public void setBeanName(String name) {
 		this.beanName = name;
 	}
 
@@ -480,7 +483,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	}
 
 	@Override
-	protected void destroyInstance(AbstractAmqpChannel instance) {
+	protected void destroyInstance(@Nullable AbstractAmqpChannel instance) {
 		this.channel.destroy();
 	}
 

@@ -29,6 +29,7 @@ import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link MessageChannelSpec} for a {@link AbstractAmqpChannel}s.
@@ -66,7 +67,9 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 
 	@Override
 	protected S id(@Nullable String id) {
-		this.amqpChannelFactoryBean.setBeanName(id);
+		if (StringUtils.hasText(id)) {
+			this.amqpChannelFactoryBean.setBeanName(id);
+		}
 		return super.id(id);
 	}
 

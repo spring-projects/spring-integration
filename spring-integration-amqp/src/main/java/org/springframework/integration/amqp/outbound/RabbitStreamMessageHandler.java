@@ -21,6 +21,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -58,13 +60,13 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 
 	private long confirmTimeout = DEFAULT_CONFIRM_TIMEOUT;
 
-	private MessageChannel sendFailureChannel;
+	private @Nullable MessageChannel sendFailureChannel;
 
-	private String sendFailureChannelName;
+	private @Nullable String sendFailureChannelName;
 
-	private MessageChannel sendSuccessChannel;
+	private @Nullable MessageChannel sendSuccessChannel;
 
-	private String sendSuccessChannelName;
+	private @Nullable String sendSuccessChannelName;
 
 	private AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
 
@@ -170,7 +172,7 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 		return this.streamOperations;
 	}
 
-	protected MessageChannel getSendFailureChannel() {
+	protected @Nullable MessageChannel getSendFailureChannel() {
 		if (this.sendFailureChannel != null) {
 			return this.sendFailureChannel;
 		}
@@ -181,7 +183,7 @@ public class RabbitStreamMessageHandler extends AbstractMessageHandler {
 		return null;
 	}
 
-	protected MessageChannel getSendSuccessChannel() {
+	protected @Nullable MessageChannel getSendSuccessChannel() {
 		if (this.sendSuccessChannel != null) {
 			return this.sendSuccessChannel;
 		}
