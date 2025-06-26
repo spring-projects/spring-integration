@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractXmppConnectionAwareEndpoint extends MessageProducerSupport {
 
+	@SuppressWarnings("NullAway.Init")
 	private XMPPConnection xmppConnection;
 
 	private boolean initialized;

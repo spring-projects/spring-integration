@@ -25,6 +25,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.MessageBuilder;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
+import org.jspecify.annotations.Nullable;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.stringprep.XmppStringprepException;
 
@@ -86,8 +87,8 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<MessageBuilder
 	}
 
 	@Override
-	protected Map<String, Object> extractUserDefinedHeaders(MessageBuilder source) {
-		Map<String, Object> headers = new HashMap<>();
+	protected Map<String, @Nullable Object> extractUserDefinedHeaders(MessageBuilder source) {
+		Map<String, @Nullable Object> headers = new HashMap<>();
 		JivePropertiesExtension jpe = JivePropertiesExtension.from(source.build());
 		if (jpe == null) {
 			return headers;

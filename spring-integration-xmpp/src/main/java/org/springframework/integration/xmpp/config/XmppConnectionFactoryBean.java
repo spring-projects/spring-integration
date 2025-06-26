@@ -24,12 +24,14 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jspecify.annotations.Nullable;
 import org.jxmpp.stringprep.XmppStringprepException;
 import org.jxmpp.util.XmppStringUtils;
 
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -53,21 +55,21 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private final Lock lifecycleMonitor = new ReentrantLock();
 
-	private XMPPTCPConnectionConfiguration connectionConfiguration;
+	private @Nullable XMPPTCPConnectionConfiguration connectionConfiguration;
 
-	private String resource; // server will generate resource if not provided
+	private @Nullable String resource; // server will generate resource if not provided
 
-	private String user;
+	private @Nullable String user;
 
-	private String password;
+	private @Nullable String password;
 
-	private String serviceName;
+	private @Nullable String serviceName;
 
-	private String host;
+	private @Nullable String host;
 
 	private int port = 5222; // NOSONAR magic number
 
-	private Roster.SubscriptionMode subscriptionMode = Roster.getDefaultSubscriptionMode();
+	private Roster.@Nullable SubscriptionMode subscriptionMode = Roster.getDefaultSubscriptionMode();
 
 	private boolean autoStartup = true;
 
@@ -128,7 +130,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	 * Can be {@code null}.
 	 * @see Roster#setSubscriptionMode(Roster.SubscriptionMode)
 	 */
-	public void setSubscriptionMode(Roster.SubscriptionMode subscriptionMode) {
+	public void setSubscriptionMode(Roster.@Nullable SubscriptionMode subscriptionMode) {
 		this.subscriptionMode = subscriptionMode;
 	}
 
@@ -141,6 +143,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	protected XMPPConnection createInstance() throws XmppStringprepException {
 		XMPPTCPConnectionConfiguration connectionConfig = this.connectionConfiguration;
 		if (connectionConfig == null) {
+			Assert.notNull(this.user, "The 'user' property is required'");
 			XMPPTCPConnectionConfiguration.Builder builder =
 					XMPPTCPConnectionConfiguration.builder()
 							.setHost(this.host)

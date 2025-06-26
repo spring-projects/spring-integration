@@ -24,6 +24,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Stanza;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -52,10 +53,11 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 	private XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
 
-	private Expression payloadExpression;
+	private @Nullable Expression payloadExpression;
 
-	private StanzaFilter stanzaFilter;
+	private @Nullable StanzaFilter stanzaFilter;
 
+	@SuppressWarnings("NullAway.Init")
 	private EvaluationContext evaluationContext;
 
 	public ChatMessageListeningEndpoint() {
@@ -110,10 +112,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 	@Override
 	protected void doStop() {
-		XMPPConnection xmppConnection = getXmppConnection();
-		if (xmppConnection != null) {
-			xmppConnection.removeAsyncStanzaListener(this.stanzaListener);
-		}
+		getXmppConnection().removeAsyncStanzaListener(this.stanzaListener);
 	}
 
 	private class ChatMessagePublishingStanzaListener implements StanzaListener {

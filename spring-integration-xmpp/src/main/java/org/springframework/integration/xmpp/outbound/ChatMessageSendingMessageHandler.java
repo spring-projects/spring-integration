@@ -26,6 +26,7 @@ import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smack.provider.ExtensionElementProvider;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.jivesoftware.smack.xml.XmlPullParser;
+import org.jspecify.annotations.Nullable;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
 
@@ -56,7 +57,7 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 
 	private XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
 
-	private ExtensionElementProvider<? extends ExtensionElement> extensionProvider;
+	private @Nullable ExtensionElementProvider<? extends ExtensionElement> extensionProvider;
 
 	public ChatMessageSendingMessageHandler() {
 	}
@@ -94,9 +95,8 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 		try {
 			Object payload = message.getPayload();
 			MessageBuilder xmppMessageBuilder;
-			if (payload instanceof org.jivesoftware.smack.packet.Message) {
-				xmppMessage = (org.jivesoftware.smack.packet.Message) payload;
-				xmppMessageBuilder = xmppMessage.asBuilder();
+			if (payload instanceof org.jivesoftware.smack.packet.Message smackMessage) {
+				xmppMessageBuilder = smackMessage.asBuilder();
 			}
 			else {
 				String to = message.getHeaders().get(XmppHeaders.TO, String.class);
@@ -104,12 +104,12 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 				xmppMessageBuilder = buildXmppMessage(payload, to);
 			}
 
-			if (this.headerMapper != null) {
-				this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessageBuilder);
-			}
+			this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessageBuilder);
 			XMPPConnection xmppConnection = getXmppConnection();
-			if (!xmppConnection.isConnected() && xmppConnection instanceof AbstractXMPPConnection) {
-				((AbstractXMPPConnection) xmppConnection).connect();
+			if (!xmppConnection.isConnected() &&
+					xmppConnection instanceof AbstractXMPPConnection abstractXMPPConnection) {
+
+				abstractXMPPConnection.connect();
 			}
 			xmppMessage = xmppMessageBuilder.build();
 			xmppConnection.sendStanza(xmppMessage);

@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractXmppConnectionAwareMessageHandler extends AbstractMessageHandler {
 
+	@SuppressWarnings("NullAway.Init")
 	private XMPPConnection xmppConnection;
 
 	private volatile boolean initialized;
@@ -53,7 +54,7 @@ public abstract class AbstractXmppConnectionAwareMessageHandler extends Abstract
 
 	@Override
 	protected void onInit() {
-		BeanFactory beanFactory = this.getBeanFactory();
+		BeanFactory beanFactory = getBeanFactory();
 		if (this.xmppConnection == null && beanFactory != null) {
 			this.xmppConnection =
 					beanFactory.getBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, XMPPConnection.class);
